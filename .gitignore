@@ -1,0 +1,8 @@
+
+IndyPOS/bin/
+IndyPOS/obj/
+IndyPOS.DataServices/bin/
+IndyPOS.DataServices/obj/
+IndyPOS.EventAggregator/bin/
+IndyPOS.EventAggregator/obj/
+packages/
