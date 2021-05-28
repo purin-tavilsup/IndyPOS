@@ -6,3 +6,4 @@ IndyPOS.DataServices/obj/
 IndyPOS.EventAggregator/bin/
 IndyPOS.EventAggregator/obj/
 packages/
+.vs/
