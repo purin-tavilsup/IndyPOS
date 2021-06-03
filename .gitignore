@@ -7,3 +7,7 @@ IndyPOS.EventAggregator/bin/
 IndyPOS.EventAggregator/obj/
 packages/
 .vs/
+.vs/IndyPOS/v15/.suo
+.vs/IndyPOS/v15/Server/sqlite3/storage.ide
+.vs/IndyPOS/v15/Server/sqlite3/storage.ide-shm
+.vs/IndyPOS/v15/Server/sqlite3/storage.ide-wal
