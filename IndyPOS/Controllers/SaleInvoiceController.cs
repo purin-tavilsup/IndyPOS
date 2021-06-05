@@ -19,6 +19,8 @@ namespace IndyPOS.Controllers
 
         public IList<ISaleInvoiceProduct> Products { get; }
 
+        public decimal InvoiceTotal => Products.Sum(p => p.Quantity * p.UnitPrice);
+
         public SaleInvoiceController(IEventAggregator eventAggregator, IInvoicesDataService invoicesDataService, IInventoryProductsDataService inventoryProductsDataService)
         {
             _eventAggregator = eventAggregator;

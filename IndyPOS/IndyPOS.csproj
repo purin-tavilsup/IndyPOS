@@ -100,8 +100,8 @@
     <Compile Include="Controllers\SaleInvoiceController.cs" />
     <Compile Include="Extensions\IInventoryProductExtensions.cs" />
     <Compile Include="Extensions\StringExtensions.cs" />
-    <Compile Include="SaleInvoiceProduct.cs" />
-    <Compile Include="StoreConstants.cs" />
+    <Compile Include="SaleInvoice\SaleInvoiceProduct.cs" />
+    <Compile Include="Constants\StoreConstants.cs" />
     <Compile Include="Extensions\UIControlExtensions.cs" />
     <Compile Include="Machine.cs" />
     <Compile Include="UI\CustomerAccountsPanel.cs">

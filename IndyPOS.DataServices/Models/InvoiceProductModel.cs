@@ -30,6 +30,8 @@ namespace IndyPOS.DataServices
 
         public string UnitPrice { get; set; }
 
+        public int Quantity { get; set; }
+
         public string DateCreated { get; set; }
     }
 }

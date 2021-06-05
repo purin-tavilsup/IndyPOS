@@ -39,18 +39,26 @@ namespace IndyPOS
             _inventoryProductsDataService = inventoryProductsDataService;
 
             InitializeComponent();
+            InitializeInvoiceDataView();
 
             _saleInvoiceController = new SaleInvoiceController(_eventAggregator, _invoicesDataService, _inventoryProductsDataService);
             
+            eventAggregator.GetEvent<SaleInvoiceProductAddedEvent>().Subscribe(SaleInvoiceProductChanged);
+            eventAggregator.GetEvent<SaleInvoiceProductRemovedEvent>().Subscribe(SaleInvoiceProductChanged);
+        }
 
+        private void InitializeInvoiceDataView()
+        {
             InvoiceDataView.Columns.Clear();
             InvoiceDataView.ColumnCount = 5;
 
             InvoiceDataView.Columns[(int)InvoiceTableColumn.ProductCode].Name = "รหัสสินค้า";
             InvoiceDataView.Columns[(int)InvoiceTableColumn.ProductCode].Width = 200;
+            InvoiceDataView.Columns[(int)InvoiceTableColumn.ProductCode].ReadOnly = true;
 
             InvoiceDataView.Columns[(int)InvoiceTableColumn.Description].Name = "คำอธิบาย";
             InvoiceDataView.Columns[(int)InvoiceTableColumn.Description].Width = 500;
+            InvoiceDataView.Columns[(int)InvoiceTableColumn.Description].ReadOnly = true;
 
             InvoiceDataView.Columns[(int)InvoiceTableColumn.Quantity].Name = "จำนวน";
             InvoiceDataView.Columns[(int)InvoiceTableColumn.Quantity].Width = 100;
@@ -60,9 +68,7 @@ namespace IndyPOS
 
             InvoiceDataView.Columns[(int)InvoiceTableColumn.Total].Name = "ราคารวม";
             InvoiceDataView.Columns[(int)InvoiceTableColumn.Total].Width = 150;
-
-            eventAggregator.GetEvent<SaleInvoiceProductAddedEvent>().Subscribe(SaleInvoiceProductChanged);
-            eventAggregator.GetEvent<SaleInvoiceProductRemovedEvent>().Subscribe(SaleInvoiceProductChanged);
+            InvoiceDataView.Columns[(int)InvoiceTableColumn.Total].ReadOnly = true;
         }
 
         private void TestGetAllProductsButton_Click(object sender, EventArgs e)
@@ -81,6 +87,7 @@ namespace IndyPOS
         private void AddProductButton_Click(object sender, EventArgs e)
         {
             _saleInvoiceController.AddProductToSaleInvoice("8850999009674");
+            _saleInvoiceController.AddProductToSaleInvoice("8850999143002");
         }
 
         private void RemoveProductButton_Click(object sender, EventArgs e)
@@ -116,20 +123,24 @@ namespace IndyPOS
                     AddProductToInvoiceDataView(product);
                 }
             });
+
+            TotalLabel.UIThread(delegate
+            {
+                TotalLabel.Text = _saleInvoiceController.InvoiceTotal.ToString("0.00");
+            });
         }
 
         private void AddProductToInvoiceDataView(ISaleInvoiceProduct product)
         {
             var columnCount = InvoiceDataView.ColumnCount;
-            var index = InvoiceDataView.Rows.Count + 1;
             var productRow = new string[columnCount];
             var total = product.UnitPrice * product.Quantity;
 
             productRow[(int)InvoiceTableColumn.ProductCode] = product.Barcode;
             productRow[(int)InvoiceTableColumn.Description] = product.Description;
             productRow[(int)InvoiceTableColumn.Quantity] = product.Quantity.ToString();
-            productRow[(int)InvoiceTableColumn.UnitPrice] = product.UnitPrice.ToString();
-            productRow[(int)InvoiceTableColumn.Total] = total.ToString();
+            productRow[(int)InvoiceTableColumn.UnitPrice] = product.UnitPrice.ToString("0.00");
+            productRow[(int)InvoiceTableColumn.Total] = total.ToString("0.00");
 
             InvoiceDataView.Rows.Add(productRow);
         }
@@ -142,6 +153,20 @@ namespace IndyPOS
             var selectedRow = ((DataGridView)sender).Rows[e.RowIndex];
             var barcode = selectedRow.Cells[(int)InvoiceTableColumn.ProductCode].Value;
         }
-       
+
+        private void GetPaymentButton_Click(object sender, EventArgs e)
+        {
+            //
+        }
+
+        private void SaveSaleInvoiceButton_Click(object sender, EventArgs e)
+        {
+            //
+        }
+
+        private void CancelSaleInvoiceButton_Click(object sender, EventArgs e)
+        {
+            //
+        }
     }
 }

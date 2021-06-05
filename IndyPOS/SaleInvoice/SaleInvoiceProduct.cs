@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace IndyPOS
+namespace IndyPOS.SaleInvoice
 {
     public class SaleInvoiceProduct : ISaleInvoiceProduct
     {

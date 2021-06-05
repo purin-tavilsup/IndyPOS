@@ -15,6 +15,39 @@ namespace IndyPOS
         public InventoryPanel()
         {
             InitializeComponent();
+            InitializeProductCategories();
+        }
+
+        private void InitializeProductCategories()
+        {
+            var categories = Machine.StoreConstants.ProductCategories;
+
+            ProductCategoryListBox.Items.Clear();
+            
+            foreach (var item in categories)
+            {
+                ProductCategoryListBox.Items.Add(item.Value);
+            }
+        }
+
+        private void GetProductsByCategoryButton_Click(object sender, EventArgs e)
+        {
+            //
+        }
+
+        private void SearchProductByBarcodeButton_Click(object sender, EventArgs e)
+        {
+            //
+        }
+
+        private void AddProductButton_Click(object sender, EventArgs e)
+        {
+            //
+        }
+
+        private void RemoveProductButton_Click(object sender, EventArgs e)
+        {
+            //
         }
     }
 }

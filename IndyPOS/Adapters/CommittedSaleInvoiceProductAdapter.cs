@@ -106,6 +106,12 @@ namespace IndyPOS.Adapters
             }
         }
 
+        public int Quantity
+        {
+            get => _adaptee.Quantity;
+            set => _adaptee.Quantity = value;
+        }
+
         public string DateCreated
         {
             get => _adaptee.DateCreated;

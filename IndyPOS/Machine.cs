@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Prism.Events;
 using IndyPOS.DataServices;
+using IndyPOS.Constants;
 
 namespace IndyPOS
 {
