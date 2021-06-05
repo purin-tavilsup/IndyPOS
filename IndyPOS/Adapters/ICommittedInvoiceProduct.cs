@@ -4,9 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace IndyPOS.EventAggregator
+namespace IndyPOS.Adapters
 {
-    public class Class1
+    public interface ICommittedSaleInvoiceProduct
     {
     }
 }

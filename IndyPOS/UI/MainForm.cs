@@ -26,6 +26,7 @@ namespace IndyPOS
 
         private readonly IEventAggregator _eventAggregator;
         private readonly IInvoicesDataService _invoicesDataService;
+        private readonly IInventoryProductsDataService _inventoryProductsDataService;
 
         private UserControl _salesPanel;
         private UserControl _inventoryPanel;
@@ -36,10 +37,11 @@ namespace IndyPOS
         private UserControl _activePanel;
 
 
-        public MainForm(IEventAggregator eventAggregator, IInvoicesDataService invoicesDataService)
+        public MainForm(IEventAggregator eventAggregator, IInvoicesDataService invoicesDataService, IInventoryProductsDataService inventoryProductsDataService)
         {
             _eventAggregator = eventAggregator;
             _invoicesDataService = invoicesDataService;
+            _inventoryProductsDataService = inventoryProductsDataService;
 
             InitializeComponent();
 
@@ -48,7 +50,7 @@ namespace IndyPOS
 
         private void CreateUI()
         {
-            _salesPanel = new SalePanel(_eventAggregator, _invoicesDataService);
+            _salesPanel = new SalePanel(_eventAggregator, _invoicesDataService, _inventoryProductsDataService);
             _inventoryPanel = new InventoryPanel();
             _usersPanel = new UsersPanel();
             _reportsPanel = new ReportsPanel();

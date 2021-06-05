@@ -16,6 +16,7 @@ namespace IndyPOS
         private MainForm _mainForm;
         private readonly IEventAggregator _eventAggregator;
         private readonly IInvoicesDataService _invoicesDataService;
+        private readonly IInventoryProductsDataService _inventoryProductsDataService;
 
         public static Machine Instance => 
             _instance ?? (_instance = new Machine());
@@ -27,6 +28,7 @@ namespace IndyPOS
         {
             _eventAggregator = new Prism.Events.EventAggregator();
             _invoicesDataService = new InvoicesDataService();
+            _inventoryProductsDataService = new InventoryProductsDataService();
         }
 
         public void Startup()
@@ -68,7 +70,7 @@ namespace IndyPOS
             System.Windows.Forms.Application.EnableVisualStyles();
             System.Windows.Forms.Application.SetCompatibleTextRenderingDefault(false);
 
-            _mainForm = new MainForm(_eventAggregator, _invoicesDataService);
+            _mainForm = new MainForm(_eventAggregator, _invoicesDataService, _inventoryProductsDataService);
 
             System.Windows.Forms.Application.Run(_mainForm);
 

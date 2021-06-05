@@ -59,6 +59,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="DataServices\CustomersDataService.cs" />
+    <Compile Include="DataServices\IInventoryProductsDataService.cs" />
     <Compile Include="DataServices\IInvoicesDataService.cs" />
     <Compile Include="DataServices\InventoryProductsDataService.cs" />
     <Compile Include="DataServices\InvoicesDataService.cs" />

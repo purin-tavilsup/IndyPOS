@@ -8,11 +8,11 @@ using IndyPOS.Extensions;
 
 namespace IndyPOS.Adapters
 {
-    public class InvoiceProductAdapter : IInvoiceProduct
+    public class CommittedSaleInvoiceProductAdapter : ICommittedSaleInvoiceProduct
     {
         private InvoiceProductModel _adaptee;
 
-        public InvoiceProductAdapter(InvoiceProductModel adaptee)
+        public CommittedSaleInvoiceProductAdapter(InvoiceProductModel adaptee)
         {
             _adaptee = adaptee;
         }

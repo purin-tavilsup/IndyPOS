@@ -3,12 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using System.Data.SQLite;
-using Dapper;
 
 namespace IndyPOS.DataServices
 {
-    public class CustomersDataService : SQLiteDatabase
+    public interface IInventoryProductsDataService
     {
+        InventoryProductModel GetProductByBarcode(string barcode);
     }
 }

@@ -6,12 +6,8 @@ using System.Threading.Tasks;
 
 namespace IndyPOS.Adapters
 {
-    public interface IInvoiceProduct
+    public interface ISaleInvoiceProduct
     {
-        int InvoiceProductId { get; set; }
-
-        int InvoiceId { get; set; }
-
         int InventoryProductId { get; set; }
 
         string SKU { get; set; }
@@ -30,6 +26,6 @@ namespace IndyPOS.Adapters
 
         decimal UnitPrice { get; set; }
 
-        string DateCreated { get; set; }
+        int Quantity { get; set; }
     }
 }

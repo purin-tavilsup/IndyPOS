@@ -10,6 +10,9 @@ using System.Windows.Forms;
 using Prism.Events;
 using IndyPOS.DataServices;
 using IndyPOS.Adapters;
+using IndyPOS.Controllers;
+using IndyPOS.EventAggregator;
+using IndyPOS.Extensions;
 
 namespace IndyPOS
 {
@@ -17,31 +20,31 @@ namespace IndyPOS
     {
         private readonly IEventAggregator _eventAggregator;
         private readonly IInvoicesDataService _invoicesDataService;
+        private readonly IInventoryProductsDataService _inventoryProductsDataService;
+        private SaleInvoiceController _saleInvoiceController;
 
         private enum InvoiceTableColumn
         {
-            Line,
             ProductCode,
             Description,
             Quantity,
             UnitPrice,
-            Total,
-            Delete
+            Total
         }
 
-
-        public SalePanel(IEventAggregator eventAggregator, IInvoicesDataService invoicesDataService)
+        public SalePanel(IEventAggregator eventAggregator, IInvoicesDataService invoicesDataService, IInventoryProductsDataService inventoryProductsDataService)
         {
             _eventAggregator = eventAggregator;
             _invoicesDataService = invoicesDataService;
+            _inventoryProductsDataService = inventoryProductsDataService;
 
             InitializeComponent();
 
-            InvoiceDataView.Columns.Clear();
-            InvoiceDataView.ColumnCount = 6;
+            _saleInvoiceController = new SaleInvoiceController(_eventAggregator, _invoicesDataService, _inventoryProductsDataService);
+            
 
-            InvoiceDataView.Columns[(int)InvoiceTableColumn.Line].Name = "รายการ";
-            InvoiceDataView.Columns[(int)InvoiceTableColumn.Line].Width = 100;
+            InvoiceDataView.Columns.Clear();
+            InvoiceDataView.ColumnCount = 5;
 
             InvoiceDataView.Columns[(int)InvoiceTableColumn.ProductCode].Name = "รหัสสินค้า";
             InvoiceDataView.Columns[(int)InvoiceTableColumn.ProductCode].Width = 200;
@@ -58,45 +61,87 @@ namespace IndyPOS
             InvoiceDataView.Columns[(int)InvoiceTableColumn.Total].Name = "ราคารวม";
             InvoiceDataView.Columns[(int)InvoiceTableColumn.Total].Width = 150;
 
-            //eventAggregator.GetEvent<MessageSentEvent>().Subscribe(MessageReceived);
+            eventAggregator.GetEvent<SaleInvoiceProductAddedEvent>().Subscribe(SaleInvoiceProductChanged);
+            eventAggregator.GetEvent<SaleInvoiceProductRemovedEvent>().Subscribe(SaleInvoiceProductChanged);
         }
 
         private void TestGetAllProductsButton_Click(object sender, EventArgs e)
         {
-            var products = _invoicesDataService.GetProductsForSale().Select(x => new InventoryProductAdapter(x)).ToList();
+            //
             
-            //InvoiceDataView.Rows.Clear();
+            var selectedCell = InvoiceDataView.SelectedCells[0];
+            var rowIndex = selectedCell.RowIndex;
+            var columnIndex = selectedCell.ColumnIndex;
 
-            var index = 1;
-
-            foreach(var product in products)
-            {
-                var barcode = product.Barcode;
-                var description = product.Description;
-                var quantity = 1;
-                var unitPrice = product.UnitPrice;
-                var total = unitPrice * quantity;
-
-                var row = new string[] 
-                {
-                    index.ToString(),
-                    barcode,
-                    description,
-                    quantity.ToString(),
-                    product.UnitPrice.ToString(),
-                    total.ToString()
-                };
-                
-                InvoiceDataView.Rows.Add(row);
-
-                index++;
-            }
+            var selectedRow = InvoiceDataView.Rows[rowIndex];
+            var barcode = selectedRow.Cells[(int)InvoiceTableColumn.ProductCode].Value;
 
         }
 
         private void AddProductButton_Click(object sender, EventArgs e)
         {
-            //
+            _saleInvoiceController.AddProductToSaleInvoice("8850999009674");
         }
+
+        private void RemoveProductButton_Click(object sender, EventArgs e)
+        {
+            var barcode = GetProductBarcodeFromSelectedProduct();
+
+            _saleInvoiceController.RemoveProductFromSaleInvoice(barcode);
+        }
+
+        private string GetProductBarcodeFromSelectedProduct()
+        {
+            if (InvoiceDataView.SelectedCells.Count == 0)
+                return string.Empty;
+
+            var selectedCell = InvoiceDataView.SelectedCells[0];
+            var rowIndex = selectedCell.RowIndex;
+            var selectedRow = InvoiceDataView.Rows[rowIndex];
+            var barcode = selectedRow.Cells[(int)InvoiceTableColumn.ProductCode].Value as string;
+
+            return barcode;
+        }
+
+        private void SaleInvoiceProductChanged(string barcode)
+        {
+            InvoiceDataView.UIThread(delegate
+            {
+                InvoiceDataView.Rows.Clear();
+
+                var products = _saleInvoiceController.Products;
+
+                foreach (var product in products)
+                {
+                    AddProductToInvoiceDataView(product);
+                }
+            });
+        }
+
+        private void AddProductToInvoiceDataView(ISaleInvoiceProduct product)
+        {
+            var columnCount = InvoiceDataView.ColumnCount;
+            var index = InvoiceDataView.Rows.Count + 1;
+            var productRow = new string[columnCount];
+            var total = product.UnitPrice * product.Quantity;
+
+            productRow[(int)InvoiceTableColumn.ProductCode] = product.Barcode;
+            productRow[(int)InvoiceTableColumn.Description] = product.Description;
+            productRow[(int)InvoiceTableColumn.Quantity] = product.Quantity.ToString();
+            productRow[(int)InvoiceTableColumn.UnitPrice] = product.UnitPrice.ToString();
+            productRow[(int)InvoiceTableColumn.Total] = total.ToString();
+
+            InvoiceDataView.Rows.Add(productRow);
+        }
+
+        private void InvoiceDataView_CellEndEdit(object sender, DataGridViewCellEventArgs e)
+        {
+            if (e.ColumnIndex != (int)InvoiceTableColumn.Quantity)
+                return;
+
+            var selectedRow = ((DataGridView)sender).Rows[e.RowIndex];
+            var barcode = selectedRow.Cells[(int)InvoiceTableColumn.ProductCode].Value;
+        }
+       
     }
 }

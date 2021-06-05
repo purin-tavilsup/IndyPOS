@@ -91,12 +91,16 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Adapters\ICommittedInvoiceProduct.cs" />
     <Compile Include="Adapters\IInventoryProduct.cs" />
-    <Compile Include="Adapters\IInvoiceProduct.cs" />
+    <Compile Include="Adapters\ISaleInvoiceProduct.cs" />
     <Compile Include="Adapters\InventoryProductAdapter.cs" />
-    <Compile Include="Adapters\InvoiceProductAdapter.cs" />
+    <Compile Include="Adapters\CommittedSaleInvoiceProductAdapter.cs" />
     <Compile Include="BarcodeScanner.cs" />
+    <Compile Include="Controllers\SaleInvoiceController.cs" />
+    <Compile Include="Extensions\IInventoryProductExtensions.cs" />
     <Compile Include="Extensions\StringExtensions.cs" />
+    <Compile Include="SaleInvoiceProduct.cs" />
     <Compile Include="StoreConstants.cs" />
     <Compile Include="Extensions\UIControlExtensions.cs" />
     <Compile Include="Machine.cs" />
