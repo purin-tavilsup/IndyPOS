@@ -36,27 +36,19 @@ namespace IndyPOS
         {
             try
             {
-
                 var constants = Machine.StoreConstants;
 
-                //LoadConfig();
-
-                //Thread.Sleep(500);
-
-                //CreateHardwareControllers();
-                //CreateProcesses();
-
-                //Thread.Sleep(200);
+                // TODO: Implement Dependency Injection here. CastleWindsor or AutoFac
             }
             catch (Exception ex)
             {
-                //throw ex;
+                // TODO: Handle ex;
             }
         }
 
         public void Shutdown()
         {
-            //
+            // TODO: Dispose resources
         }
 
         public void Launch()
