@@ -97,6 +97,7 @@
     <Compile Include="Adapters\InventoryProductAdapter.cs" />
     <Compile Include="Adapters\CommittedSaleInvoiceProductAdapter.cs" />
     <Compile Include="BarcodeScanner.cs" />
+    <Compile Include="Controllers\InventoryController.cs" />
     <Compile Include="Controllers\SaleInvoiceController.cs" />
     <Compile Include="Extensions\IInventoryProductExtensions.cs" />
     <Compile Include="Extensions\StringExtensions.cs" />

@@ -50,8 +50,9 @@ namespace IndyPOS
 
         private void CreateUI()
         {
+            // TODO: this should be handled by Dependency Injection
             _salesPanel = new SalePanel(_eventAggregator, _invoicesDataService, _inventoryProductsDataService);
-            _inventoryPanel = new InventoryPanel();
+            _inventoryPanel = new InventoryPanel(_eventAggregator, _inventoryProductsDataService);
             _usersPanel = new UsersPanel();
             _reportsPanel = new ReportsPanel();
             _customerAccountsPanel = new CustomerAccountsPanel();

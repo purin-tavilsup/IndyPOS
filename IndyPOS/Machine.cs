@@ -63,6 +63,7 @@ namespace IndyPOS
             System.Windows.Forms.Application.EnableVisualStyles();
             System.Windows.Forms.Application.SetCompatibleTextRenderingDefault(false);
 
+            // TODO: this should be handled by Dependency Injection
             _mainForm = new MainForm(_eventAggregator, _invoicesDataService, _inventoryProductsDataService);
 
             System.Windows.Forms.Application.Run(_mainForm);

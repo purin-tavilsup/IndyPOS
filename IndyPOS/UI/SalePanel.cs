@@ -23,7 +23,7 @@ namespace IndyPOS
         private readonly IInventoryProductsDataService _inventoryProductsDataService;
         private SaleInvoiceController _saleInvoiceController;
 
-        private enum InvoiceTableColumn
+        private enum SaleInvoiceColumn
         {
             ProductCode,
             Description,
@@ -41,6 +41,7 @@ namespace IndyPOS
             InitializeComponent();
             InitializeInvoiceDataView();
 
+            // TODO: this should be handled by Dependency Injection
             _saleInvoiceController = new SaleInvoiceController(_eventAggregator, _invoicesDataService, _inventoryProductsDataService);
             
             eventAggregator.GetEvent<SaleInvoiceProductAddedEvent>().Subscribe(SaleInvoiceProductChanged);
@@ -49,43 +50,42 @@ namespace IndyPOS
 
         private void InitializeInvoiceDataView()
         {
+            #region Initialize all columns
+
             InvoiceDataView.Columns.Clear();
             InvoiceDataView.ColumnCount = 5;
 
-            InvoiceDataView.Columns[(int)InvoiceTableColumn.ProductCode].Name = "รหัสสินค้า";
-            InvoiceDataView.Columns[(int)InvoiceTableColumn.ProductCode].Width = 200;
-            InvoiceDataView.Columns[(int)InvoiceTableColumn.ProductCode].ReadOnly = true;
+            InvoiceDataView.Columns[(int)SaleInvoiceColumn.ProductCode].Name = "รหัสสินค้า";
+            InvoiceDataView.Columns[(int)SaleInvoiceColumn.ProductCode].Width = 200;
+            InvoiceDataView.Columns[(int)SaleInvoiceColumn.ProductCode].ReadOnly = true;
 
-            InvoiceDataView.Columns[(int)InvoiceTableColumn.Description].Name = "คำอธิบาย";
-            InvoiceDataView.Columns[(int)InvoiceTableColumn.Description].Width = 500;
-            InvoiceDataView.Columns[(int)InvoiceTableColumn.Description].ReadOnly = true;
+            InvoiceDataView.Columns[(int)SaleInvoiceColumn.Description].Name = "คำอธิบาย";
+            InvoiceDataView.Columns[(int)SaleInvoiceColumn.Description].Width = 500;
+            InvoiceDataView.Columns[(int)SaleInvoiceColumn.Description].ReadOnly = true;
 
-            InvoiceDataView.Columns[(int)InvoiceTableColumn.Quantity].Name = "จำนวน";
-            InvoiceDataView.Columns[(int)InvoiceTableColumn.Quantity].Width = 100;
+            InvoiceDataView.Columns[(int)SaleInvoiceColumn.Quantity].Name = "จำนวน";
+            InvoiceDataView.Columns[(int)SaleInvoiceColumn.Quantity].Width = 100;
+            InvoiceDataView.Columns[(int)SaleInvoiceColumn.Quantity].ReadOnly = true;
 
-            InvoiceDataView.Columns[(int)InvoiceTableColumn.UnitPrice].Name = "ราคาต่อหน่วย";
-            InvoiceDataView.Columns[(int)InvoiceTableColumn.UnitPrice].Width = 170;
+            InvoiceDataView.Columns[(int)SaleInvoiceColumn.UnitPrice].Name = "ราคาต่อหน่วย";
+            InvoiceDataView.Columns[(int)SaleInvoiceColumn.UnitPrice].Width = 170;
+            InvoiceDataView.Columns[(int)SaleInvoiceColumn.UnitPrice].ReadOnly = true;
 
-            InvoiceDataView.Columns[(int)InvoiceTableColumn.Total].Name = "ราคารวม";
-            InvoiceDataView.Columns[(int)InvoiceTableColumn.Total].Width = 150;
-            InvoiceDataView.Columns[(int)InvoiceTableColumn.Total].ReadOnly = true;
+            InvoiceDataView.Columns[(int)SaleInvoiceColumn.Total].Name = "ราคารวม";
+            InvoiceDataView.Columns[(int)SaleInvoiceColumn.Total].Width = 150;
+            InvoiceDataView.Columns[(int)SaleInvoiceColumn.Total].ReadOnly = true;
+
+            #endregion
         }
 
         private void TestGetAllProductsButton_Click(object sender, EventArgs e)
         {
-            //
-            
-            var selectedCell = InvoiceDataView.SelectedCells[0];
-            var rowIndex = selectedCell.RowIndex;
-            var columnIndex = selectedCell.ColumnIndex;
-
-            var selectedRow = InvoiceDataView.Rows[rowIndex];
-            var barcode = selectedRow.Cells[(int)InvoiceTableColumn.ProductCode].Value;
-
+            // Test
         }
 
         private void AddProductButton_Click(object sender, EventArgs e)
         {
+            // Test
             _saleInvoiceController.AddProductToSaleInvoice("8850999009674");
             _saleInvoiceController.AddProductToSaleInvoice("8850999143002");
         }
@@ -105,7 +105,7 @@ namespace IndyPOS
             var selectedCell = InvoiceDataView.SelectedCells[0];
             var rowIndex = selectedCell.RowIndex;
             var selectedRow = InvoiceDataView.Rows[rowIndex];
-            var barcode = selectedRow.Cells[(int)InvoiceTableColumn.ProductCode].Value as string;
+            var barcode = selectedRow.Cells[(int)SaleInvoiceColumn.ProductCode].Value as string;
 
             return barcode;
         }
@@ -136,37 +136,36 @@ namespace IndyPOS
             var productRow = new string[columnCount];
             var total = product.UnitPrice * product.Quantity;
 
-            productRow[(int)InvoiceTableColumn.ProductCode] = product.Barcode;
-            productRow[(int)InvoiceTableColumn.Description] = product.Description;
-            productRow[(int)InvoiceTableColumn.Quantity] = product.Quantity.ToString();
-            productRow[(int)InvoiceTableColumn.UnitPrice] = product.UnitPrice.ToString("0.00");
-            productRow[(int)InvoiceTableColumn.Total] = total.ToString("0.00");
+            productRow[(int)SaleInvoiceColumn.ProductCode] = product.Barcode;
+            productRow[(int)SaleInvoiceColumn.Description] = product.Description;
+            productRow[(int)SaleInvoiceColumn.Quantity] = product.Quantity.ToString();
+            productRow[(int)SaleInvoiceColumn.UnitPrice] = product.UnitPrice.ToString("0.00");
+            productRow[(int)SaleInvoiceColumn.Total] = total.ToString("0.00");
 
             InvoiceDataView.Rows.Add(productRow);
         }
-
-        private void InvoiceDataView_CellEndEdit(object sender, DataGridViewCellEventArgs e)
-        {
-            if (e.ColumnIndex != (int)InvoiceTableColumn.Quantity)
-                return;
-
-            var selectedRow = ((DataGridView)sender).Rows[e.RowIndex];
-            var barcode = selectedRow.Cells[(int)InvoiceTableColumn.ProductCode].Value;
-        }
-
+        
         private void GetPaymentButton_Click(object sender, EventArgs e)
         {
-            //
+            // TODO: Display a dialog for getting a payment
         }
 
         private void SaveSaleInvoiceButton_Click(object sender, EventArgs e)
         {
-            //
+            // TODO: Insert invoice, products, and payments to database  
         }
 
         private void CancelSaleInvoiceButton_Click(object sender, EventArgs e)
         {
-            //
+            // TODO: Call to _saleInvoiceController to clear products on invoice and reset invoice
+        }
+
+        private void InvoiceDataView_DoubleClick(object sender, EventArgs e)
+        {
+            //TODO: Display a dialog for editing the selected product
+            var barcode = GetProductBarcodeFromSelectedProduct();
+            // Test
+            MessageBox.Show("Barcode : " + barcode);
         }
     }
 }

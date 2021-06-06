@@ -34,20 +34,20 @@
             System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle3 = new System.Windows.Forms.DataGridViewCellStyle();
             System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle4 = new System.Windows.Forms.DataGridViewCellStyle();
             this.panel1 = new System.Windows.Forms.Panel();
-            this.panel2 = new System.Windows.Forms.Panel();
-            this.InventoryProductDataView = new System.Windows.Forms.DataGridView();
-            this.label1 = new System.Windows.Forms.Label();
-            this.panel3 = new System.Windows.Forms.Panel();
-            this.ProductCategoryListBox = new System.Windows.Forms.ListBox();
-            this.GetProductsByCategoryButton = new System.Windows.Forms.Button();
-            this.panel4 = new System.Windows.Forms.Panel();
-            this.BarcodeTextBox = new System.Windows.Forms.TextBox();
-            this.label2 = new System.Windows.Forms.Label();
-            this.SearchProductByBarcodeButton = new System.Windows.Forms.Button();
             this.panel9 = new System.Windows.Forms.Panel();
             this.AddProductButton = new System.Windows.Forms.Button();
             this.panel8 = new System.Windows.Forms.Panel();
             this.RemoveProductButton = new System.Windows.Forms.Button();
+            this.panel4 = new System.Windows.Forms.Panel();
+            this.SearchProductByBarcodeButton = new System.Windows.Forms.Button();
+            this.label2 = new System.Windows.Forms.Label();
+            this.BarcodeTextBox = new System.Windows.Forms.TextBox();
+            this.panel3 = new System.Windows.Forms.Panel();
+            this.GetProductsByCategoryButton = new System.Windows.Forms.Button();
+            this.ProductCategoryListBox = new System.Windows.Forms.ListBox();
+            this.label1 = new System.Windows.Forms.Label();
+            this.panel2 = new System.Windows.Forms.Panel();
+            this.ProductDataView = new System.Windows.Forms.DataGridView();
             this.ProductCode = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.Description = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.QuantityInStock = new System.Windows.Forms.DataGridViewTextBoxColumn();
@@ -59,12 +59,12 @@
             this.DateCreated = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.DateUpdated = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.panel1.SuspendLayout();
-            this.panel2.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.InventoryProductDataView)).BeginInit();
-            this.panel3.SuspendLayout();
-            this.panel4.SuspendLayout();
             this.panel9.SuspendLayout();
             this.panel8.SuspendLayout();
+            this.panel4.SuspendLayout();
+            this.panel3.SuspendLayout();
+            this.panel2.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.ProductDataView)).BeginInit();
             this.SuspendLayout();
             // 
             // panel1
@@ -79,166 +79,6 @@
             this.panel1.Name = "panel1";
             this.panel1.Size = new System.Drawing.Size(275, 700);
             this.panel1.TabIndex = 0;
-            // 
-            // panel2
-            // 
-            this.panel2.BackColor = System.Drawing.Color.DarkGray;
-            this.panel2.Controls.Add(this.InventoryProductDataView);
-            this.panel2.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.panel2.Location = new System.Drawing.Point(275, 0);
-            this.panel2.Name = "panel2";
-            this.panel2.Size = new System.Drawing.Size(1375, 700);
-            this.panel2.TabIndex = 1;
-            // 
-            // InventoryProductDataView
-            // 
-            this.InventoryProductDataView.AllowUserToResizeColumns = false;
-            this.InventoryProductDataView.AllowUserToResizeRows = false;
-            this.InventoryProductDataView.BackgroundColor = System.Drawing.Color.DarkGray;
-            this.InventoryProductDataView.ColumnHeadersBorderStyle = System.Windows.Forms.DataGridViewHeaderBorderStyle.Single;
-            dataGridViewCellStyle1.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleCenter;
-            dataGridViewCellStyle1.BackColor = System.Drawing.SystemColors.Control;
-            dataGridViewCellStyle1.Font = new System.Drawing.Font("Leelawadee", 15.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            dataGridViewCellStyle1.ForeColor = System.Drawing.SystemColors.WindowText;
-            dataGridViewCellStyle1.Padding = new System.Windows.Forms.Padding(10, 0, 0, 0);
-            dataGridViewCellStyle1.SelectionBackColor = System.Drawing.SystemColors.Highlight;
-            dataGridViewCellStyle1.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
-            dataGridViewCellStyle1.WrapMode = System.Windows.Forms.DataGridViewTriState.False;
-            this.InventoryProductDataView.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle1;
-            this.InventoryProductDataView.ColumnHeadersHeight = 50;
-            this.InventoryProductDataView.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.DisableResizing;
-            this.InventoryProductDataView.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
-            this.ProductCode,
-            this.Description,
-            this.QuantityInStock,
-            this.UnitPrice,
-            this.UnitCost,
-            this.Category,
-            this.Manufacturer,
-            this.Brand,
-            this.DateCreated,
-            this.DateUpdated});
-            this.InventoryProductDataView.EnableHeadersVisualStyles = false;
-            this.InventoryProductDataView.GridColor = System.Drawing.Color.DimGray;
-            this.InventoryProductDataView.Location = new System.Drawing.Point(6, 3);
-            this.InventoryProductDataView.MultiSelect = false;
-            this.InventoryProductDataView.Name = "InventoryProductDataView";
-            this.InventoryProductDataView.RowHeadersVisible = false;
-            this.InventoryProductDataView.RowHeadersWidth = 60;
-            this.InventoryProductDataView.RowHeadersWidthSizeMode = System.Windows.Forms.DataGridViewRowHeadersWidthSizeMode.DisableResizing;
-            dataGridViewCellStyle5.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleRight;
-            dataGridViewCellStyle5.Font = new System.Drawing.Font("Leelawadee", 14.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            dataGridViewCellStyle5.ForeColor = System.Drawing.SystemColors.WindowText;
-            dataGridViewCellStyle5.Padding = new System.Windows.Forms.Padding(0, 0, 20, 0);
-            dataGridViewCellStyle5.WrapMode = System.Windows.Forms.DataGridViewTriState.True;
-            this.InventoryProductDataView.RowsDefaultCellStyle = dataGridViewCellStyle5;
-            this.InventoryProductDataView.RowTemplate.DefaultCellStyle.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleRight;
-            this.InventoryProductDataView.RowTemplate.DefaultCellStyle.BackColor = System.Drawing.Color.White;
-            this.InventoryProductDataView.RowTemplate.DefaultCellStyle.Font = new System.Drawing.Font("Leelawadee", 14.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.InventoryProductDataView.RowTemplate.DefaultCellStyle.ForeColor = System.Drawing.SystemColors.WindowText;
-            this.InventoryProductDataView.RowTemplate.DefaultCellStyle.Padding = new System.Windows.Forms.Padding(0, 0, 20, 0);
-            this.InventoryProductDataView.RowTemplate.DefaultCellStyle.WrapMode = System.Windows.Forms.DataGridViewTriState.True;
-            this.InventoryProductDataView.RowTemplate.Height = 35;
-            this.InventoryProductDataView.Size = new System.Drawing.Size(1351, 674);
-            this.InventoryProductDataView.TabIndex = 2;
-            // 
-            // label1
-            // 
-            this.label1.BackColor = System.Drawing.Color.Silver;
-            this.label1.Font = new System.Drawing.Font("Leelawadee UI", 14.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label1.Location = new System.Drawing.Point(3, 0);
-            this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(255, 39);
-            this.label1.TabIndex = 3;
-            this.label1.Text = "ประเภทสินค้า";
-            this.label1.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
-            // 
-            // panel3
-            // 
-            this.panel3.BackColor = System.Drawing.Color.Silver;
-            this.panel3.Controls.Add(this.GetProductsByCategoryButton);
-            this.panel3.Controls.Add(this.ProductCategoryListBox);
-            this.panel3.Controls.Add(this.label1);
-            this.panel3.Location = new System.Drawing.Point(8, 3);
-            this.panel3.Name = "panel3";
-            this.panel3.Size = new System.Drawing.Size(261, 225);
-            this.panel3.TabIndex = 3;
-            // 
-            // ProductCategoryListBox
-            // 
-            this.ProductCategoryListBox.BackColor = System.Drawing.Color.Silver;
-            this.ProductCategoryListBox.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.ProductCategoryListBox.Font = new System.Drawing.Font("Leelawadee UI", 14.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.ProductCategoryListBox.FormattingEnabled = true;
-            this.ProductCategoryListBox.ItemHeight = 25;
-            this.ProductCategoryListBox.Items.AddRange(new object[] {
-            "อาหาร",
-            "เครื่องดื่ม",
-            "ขนม",
-            "เครื่องดื่มแอลกอฮอล์",
-            "วัสดุและอุปกรณ์ทั่วไป",
-            "วัสดุและอุปกรณ์การเกษตร"});
-            this.ProductCategoryListBox.Location = new System.Drawing.Point(8, 42);
-            this.ProductCategoryListBox.Name = "ProductCategoryListBox";
-            this.ProductCategoryListBox.Size = new System.Drawing.Size(242, 102);
-            this.ProductCategoryListBox.TabIndex = 3;
-            // 
-            // GetProductsByCategoryButton
-            // 
-            this.GetProductsByCategoryButton.BackColor = System.Drawing.Color.Gainsboro;
-            this.GetProductsByCategoryButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.GetProductsByCategoryButton.Font = new System.Drawing.Font("Leelawadee UI", 14.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.GetProductsByCategoryButton.Location = new System.Drawing.Point(8, 150);
-            this.GetProductsByCategoryButton.Name = "GetProductsByCategoryButton";
-            this.GetProductsByCategoryButton.Size = new System.Drawing.Size(242, 65);
-            this.GetProductsByCategoryButton.TabIndex = 4;
-            this.GetProductsByCategoryButton.Text = "แสดงสินค้า";
-            this.GetProductsByCategoryButton.UseVisualStyleBackColor = false;
-            this.GetProductsByCategoryButton.Click += new System.EventHandler(this.GetProductsByCategoryButton_Click);
-            // 
-            // panel4
-            // 
-            this.panel4.BackColor = System.Drawing.Color.Silver;
-            this.panel4.Controls.Add(this.SearchProductByBarcodeButton);
-            this.panel4.Controls.Add(this.label2);
-            this.panel4.Controls.Add(this.BarcodeTextBox);
-            this.panel4.Location = new System.Drawing.Point(8, 234);
-            this.panel4.Name = "panel4";
-            this.panel4.Size = new System.Drawing.Size(261, 152);
-            this.panel4.TabIndex = 3;
-            // 
-            // BarcodeTextBox
-            // 
-            this.BarcodeTextBox.Font = new System.Drawing.Font("Leelawadee UI", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.BarcodeTextBox.Location = new System.Drawing.Point(8, 42);
-            this.BarcodeTextBox.Name = "BarcodeTextBox";
-            this.BarcodeTextBox.Size = new System.Drawing.Size(242, 29);
-            this.BarcodeTextBox.TabIndex = 3;
-            this.BarcodeTextBox.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
-            // 
-            // label2
-            // 
-            this.label2.BackColor = System.Drawing.Color.Silver;
-            this.label2.Font = new System.Drawing.Font("Leelawadee UI", 14.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label2.Location = new System.Drawing.Point(3, 0);
-            this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(255, 39);
-            this.label2.TabIndex = 4;
-            this.label2.Text = "รหัสสินค้า";
-            this.label2.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
-            // 
-            // SearchProductByBarcodeButton
-            // 
-            this.SearchProductByBarcodeButton.BackColor = System.Drawing.Color.Gainsboro;
-            this.SearchProductByBarcodeButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.SearchProductByBarcodeButton.Font = new System.Drawing.Font("Leelawadee UI", 14.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.SearchProductByBarcodeButton.Location = new System.Drawing.Point(8, 77);
-            this.SearchProductByBarcodeButton.Name = "SearchProductByBarcodeButton";
-            this.SearchProductByBarcodeButton.Size = new System.Drawing.Size(242, 65);
-            this.SearchProductByBarcodeButton.TabIndex = 5;
-            this.SearchProductByBarcodeButton.Text = "ค้านหาสินค้า";
-            this.SearchProductByBarcodeButton.UseVisualStyleBackColor = false;
-            this.SearchProductByBarcodeButton.Click += new System.EventHandler(this.SearchProductByBarcodeButton_Click);
             // 
             // panel9
             // 
@@ -291,6 +131,167 @@
             this.RemoveProductButton.TextImageRelation = System.Windows.Forms.TextImageRelation.ImageAboveText;
             this.RemoveProductButton.UseVisualStyleBackColor = false;
             this.RemoveProductButton.Click += new System.EventHandler(this.RemoveProductButton_Click);
+            // 
+            // panel4
+            // 
+            this.panel4.BackColor = System.Drawing.Color.Silver;
+            this.panel4.Controls.Add(this.SearchProductByBarcodeButton);
+            this.panel4.Controls.Add(this.label2);
+            this.panel4.Controls.Add(this.BarcodeTextBox);
+            this.panel4.Location = new System.Drawing.Point(8, 234);
+            this.panel4.Name = "panel4";
+            this.panel4.Size = new System.Drawing.Size(261, 152);
+            this.panel4.TabIndex = 3;
+            // 
+            // SearchProductByBarcodeButton
+            // 
+            this.SearchProductByBarcodeButton.BackColor = System.Drawing.Color.Gainsboro;
+            this.SearchProductByBarcodeButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.SearchProductByBarcodeButton.Font = new System.Drawing.Font("Leelawadee UI", 14.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.SearchProductByBarcodeButton.Location = new System.Drawing.Point(8, 77);
+            this.SearchProductByBarcodeButton.Name = "SearchProductByBarcodeButton";
+            this.SearchProductByBarcodeButton.Size = new System.Drawing.Size(242, 65);
+            this.SearchProductByBarcodeButton.TabIndex = 5;
+            this.SearchProductByBarcodeButton.Text = "ค้านหาสินค้า";
+            this.SearchProductByBarcodeButton.UseVisualStyleBackColor = false;
+            this.SearchProductByBarcodeButton.Click += new System.EventHandler(this.SearchProductByBarcodeButton_Click);
+            // 
+            // label2
+            // 
+            this.label2.BackColor = System.Drawing.Color.Silver;
+            this.label2.Font = new System.Drawing.Font("Leelawadee UI", 14.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label2.Location = new System.Drawing.Point(3, 0);
+            this.label2.Name = "label2";
+            this.label2.Size = new System.Drawing.Size(255, 39);
+            this.label2.TabIndex = 4;
+            this.label2.Text = "รหัสสินค้า";
+            this.label2.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            // 
+            // BarcodeTextBox
+            // 
+            this.BarcodeTextBox.Font = new System.Drawing.Font("Leelawadee UI", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.BarcodeTextBox.Location = new System.Drawing.Point(8, 42);
+            this.BarcodeTextBox.Name = "BarcodeTextBox";
+            this.BarcodeTextBox.Size = new System.Drawing.Size(242, 29);
+            this.BarcodeTextBox.TabIndex = 3;
+            this.BarcodeTextBox.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
+            // 
+            // panel3
+            // 
+            this.panel3.BackColor = System.Drawing.Color.Silver;
+            this.panel3.Controls.Add(this.GetProductsByCategoryButton);
+            this.panel3.Controls.Add(this.ProductCategoryListBox);
+            this.panel3.Controls.Add(this.label1);
+            this.panel3.Location = new System.Drawing.Point(8, 3);
+            this.panel3.Name = "panel3";
+            this.panel3.Size = new System.Drawing.Size(261, 225);
+            this.panel3.TabIndex = 3;
+            // 
+            // GetProductsByCategoryButton
+            // 
+            this.GetProductsByCategoryButton.BackColor = System.Drawing.Color.Gainsboro;
+            this.GetProductsByCategoryButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.GetProductsByCategoryButton.Font = new System.Drawing.Font("Leelawadee UI", 14.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.GetProductsByCategoryButton.Location = new System.Drawing.Point(8, 150);
+            this.GetProductsByCategoryButton.Name = "GetProductsByCategoryButton";
+            this.GetProductsByCategoryButton.Size = new System.Drawing.Size(242, 65);
+            this.GetProductsByCategoryButton.TabIndex = 4;
+            this.GetProductsByCategoryButton.Text = "แสดงสินค้า";
+            this.GetProductsByCategoryButton.UseVisualStyleBackColor = false;
+            this.GetProductsByCategoryButton.Click += new System.EventHandler(this.GetProductsByCategoryButton_Click);
+            // 
+            // ProductCategoryListBox
+            // 
+            this.ProductCategoryListBox.BackColor = System.Drawing.Color.Silver;
+            this.ProductCategoryListBox.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.ProductCategoryListBox.Font = new System.Drawing.Font("Leelawadee UI", 14.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.ProductCategoryListBox.FormattingEnabled = true;
+            this.ProductCategoryListBox.ItemHeight = 25;
+            this.ProductCategoryListBox.Items.AddRange(new object[] {
+            "อาหาร",
+            "เครื่องดื่ม",
+            "ขนม",
+            "เครื่องดื่มแอลกอฮอล์",
+            "วัสดุและอุปกรณ์ทั่วไป",
+            "วัสดุและอุปกรณ์การเกษตร"});
+            this.ProductCategoryListBox.Location = new System.Drawing.Point(8, 42);
+            this.ProductCategoryListBox.Name = "ProductCategoryListBox";
+            this.ProductCategoryListBox.Size = new System.Drawing.Size(242, 102);
+            this.ProductCategoryListBox.TabIndex = 3;
+            // 
+            // label1
+            // 
+            this.label1.BackColor = System.Drawing.Color.Silver;
+            this.label1.Font = new System.Drawing.Font("Leelawadee UI", 14.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label1.Location = new System.Drawing.Point(3, 0);
+            this.label1.Name = "label1";
+            this.label1.Size = new System.Drawing.Size(255, 39);
+            this.label1.TabIndex = 3;
+            this.label1.Text = "ประเภทสินค้า";
+            this.label1.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            // 
+            // panel2
+            // 
+            this.panel2.BackColor = System.Drawing.Color.DarkGray;
+            this.panel2.Controls.Add(this.ProductDataView);
+            this.panel2.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.panel2.Location = new System.Drawing.Point(275, 0);
+            this.panel2.Name = "panel2";
+            this.panel2.Size = new System.Drawing.Size(1375, 700);
+            this.panel2.TabIndex = 1;
+            // 
+            // ProductDataView
+            // 
+            this.ProductDataView.AllowUserToResizeColumns = false;
+            this.ProductDataView.AllowUserToResizeRows = false;
+            this.ProductDataView.BackgroundColor = System.Drawing.Color.DarkGray;
+            this.ProductDataView.ColumnHeadersBorderStyle = System.Windows.Forms.DataGridViewHeaderBorderStyle.Single;
+            dataGridViewCellStyle1.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleCenter;
+            dataGridViewCellStyle1.BackColor = System.Drawing.SystemColors.Control;
+            dataGridViewCellStyle1.Font = new System.Drawing.Font("Leelawadee", 15.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            dataGridViewCellStyle1.ForeColor = System.Drawing.SystemColors.WindowText;
+            dataGridViewCellStyle1.Padding = new System.Windows.Forms.Padding(10, 0, 0, 0);
+            dataGridViewCellStyle1.SelectionBackColor = System.Drawing.SystemColors.Highlight;
+            dataGridViewCellStyle1.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
+            dataGridViewCellStyle1.WrapMode = System.Windows.Forms.DataGridViewTriState.False;
+            this.ProductDataView.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle1;
+            this.ProductDataView.ColumnHeadersHeight = 50;
+            this.ProductDataView.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.DisableResizing;
+            this.ProductDataView.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
+            this.ProductCode,
+            this.Description,
+            this.QuantityInStock,
+            this.UnitPrice,
+            this.UnitCost,
+            this.Category,
+            this.Manufacturer,
+            this.Brand,
+            this.DateCreated,
+            this.DateUpdated});
+            this.ProductDataView.EnableHeadersVisualStyles = false;
+            this.ProductDataView.GridColor = System.Drawing.Color.DimGray;
+            this.ProductDataView.Location = new System.Drawing.Point(6, 3);
+            this.ProductDataView.MultiSelect = false;
+            this.ProductDataView.Name = "ProductDataView";
+            this.ProductDataView.RowHeadersVisible = false;
+            this.ProductDataView.RowHeadersWidth = 60;
+            this.ProductDataView.RowHeadersWidthSizeMode = System.Windows.Forms.DataGridViewRowHeadersWidthSizeMode.DisableResizing;
+            dataGridViewCellStyle5.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleRight;
+            dataGridViewCellStyle5.Font = new System.Drawing.Font("Leelawadee", 14.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            dataGridViewCellStyle5.ForeColor = System.Drawing.SystemColors.WindowText;
+            dataGridViewCellStyle5.Padding = new System.Windows.Forms.Padding(0, 0, 20, 0);
+            dataGridViewCellStyle5.WrapMode = System.Windows.Forms.DataGridViewTriState.True;
+            this.ProductDataView.RowsDefaultCellStyle = dataGridViewCellStyle5;
+            this.ProductDataView.RowTemplate.DefaultCellStyle.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleRight;
+            this.ProductDataView.RowTemplate.DefaultCellStyle.BackColor = System.Drawing.Color.White;
+            this.ProductDataView.RowTemplate.DefaultCellStyle.Font = new System.Drawing.Font("Leelawadee", 14.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.ProductDataView.RowTemplate.DefaultCellStyle.ForeColor = System.Drawing.SystemColors.WindowText;
+            this.ProductDataView.RowTemplate.DefaultCellStyle.Padding = new System.Windows.Forms.Padding(0, 0, 20, 0);
+            this.ProductDataView.RowTemplate.DefaultCellStyle.WrapMode = System.Windows.Forms.DataGridViewTriState.True;
+            this.ProductDataView.RowTemplate.Height = 35;
+            this.ProductDataView.Size = new System.Drawing.Size(1351, 674);
+            this.ProductDataView.TabIndex = 2;
+            this.ProductDataView.DoubleClick += new System.EventHandler(this.ProductDataView_DoubleClick);
             // 
             // ProductCode
             // 
@@ -387,13 +388,13 @@
             this.Name = "InventoryPanel";
             this.Size = new System.Drawing.Size(1650, 700);
             this.panel1.ResumeLayout(false);
-            this.panel2.ResumeLayout(false);
-            ((System.ComponentModel.ISupportInitialize)(this.InventoryProductDataView)).EndInit();
-            this.panel3.ResumeLayout(false);
-            this.panel4.ResumeLayout(false);
-            this.panel4.PerformLayout();
             this.panel9.ResumeLayout(false);
             this.panel8.ResumeLayout(false);
+            this.panel4.ResumeLayout(false);
+            this.panel4.PerformLayout();
+            this.panel3.ResumeLayout(false);
+            this.panel2.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)(this.ProductDataView)).EndInit();
             this.ResumeLayout(false);
 
         }
@@ -402,7 +403,7 @@
 
         private System.Windows.Forms.Panel panel1;
         private System.Windows.Forms.Panel panel2;
-        private System.Windows.Forms.DataGridView InventoryProductDataView;
+        private System.Windows.Forms.DataGridView ProductDataView;
         private System.Windows.Forms.Panel panel3;
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.ListBox ProductCategoryListBox;

@@ -25,5 +25,21 @@ namespace IndyPOS.DataServices
                 return result;
             }
         }
+
+        public IList<InventoryProductModel> GetProductsByCategoryId(int categoryId)
+        {
+            using (var connection = GetDatabaseConnection())
+            {
+                connection.Open();
+
+                var results = connection.Query<InventoryProductModel>
+                    (
+                        "SELECT * FROM [InventoryProducts] WHERE [Category] = @category",
+                        new { category = categoryId }
+                    );
+
+                return results.ToList();
+            }
+        }
     }
 }
