@@ -28,5 +28,12 @@ namespace IndyPOS.Controllers
 
             return results.Select(p => new InventoryProductAdapter(p) as IInventoryProduct).ToList();
         }
+
+        public IInventoryProduct GetInventoryProductByBarcode(string barcode)
+        {
+            var result = _inventoryProductsDataService.GetProductByBarcode(barcode);
+
+            return result != null ? new InventoryProductAdapter(result) : null;
+        }
     }
 }

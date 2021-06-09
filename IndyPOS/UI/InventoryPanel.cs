@@ -151,17 +151,23 @@ namespace IndyPOS
             ProductDataView.Rows.Add(productRow);
         }
 
-        private void SearchProductByBarcodeButton_Click(object sender, EventArgs e)
+        private void SearchProduct_Click(object sender, EventArgs e)
         {
-            //
+            var input = SearchProductTextBox.Text.Trim();
+
+            if (SearchByBarcodeRadioButton.Checked)
+            {
+                var product = _inventoryController.GetInventoryProductByBarcode(input);
+
+                if (product == null)
+                    return;
+
+                ProductDataView.Rows.Clear();
+                AddProductToProductDataView(product);
+            }
         }
 
         private void AddProductButton_Click(object sender, EventArgs e)
-        {
-            //
-        }
-
-        private void RemoveProductButton_Click(object sender, EventArgs e)
         {
             //
         }

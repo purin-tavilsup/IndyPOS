@@ -36,12 +36,9 @@
             this.panel1 = new System.Windows.Forms.Panel();
             this.panel9 = new System.Windows.Forms.Panel();
             this.AddProductButton = new System.Windows.Forms.Button();
-            this.panel8 = new System.Windows.Forms.Panel();
-            this.RemoveProductButton = new System.Windows.Forms.Button();
             this.panel4 = new System.Windows.Forms.Panel();
-            this.SearchProductByBarcodeButton = new System.Windows.Forms.Button();
-            this.label2 = new System.Windows.Forms.Label();
-            this.BarcodeTextBox = new System.Windows.Forms.TextBox();
+            this.SearchProductButton = new System.Windows.Forms.Button();
+            this.SearchProductTextBox = new System.Windows.Forms.TextBox();
             this.panel3 = new System.Windows.Forms.Panel();
             this.GetProductsByCategoryButton = new System.Windows.Forms.Button();
             this.ProductCategoryListBox = new System.Windows.Forms.ListBox();
@@ -58,20 +55,22 @@
             this.Brand = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.DateCreated = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.DateUpdated = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.groupBox1 = new System.Windows.Forms.GroupBox();
+            this.SearchByKeywordRadioButton = new System.Windows.Forms.RadioButton();
+            this.SearchByBarcodeRadioButton = new System.Windows.Forms.RadioButton();
             this.panel1.SuspendLayout();
             this.panel9.SuspendLayout();
-            this.panel8.SuspendLayout();
             this.panel4.SuspendLayout();
             this.panel3.SuspendLayout();
             this.panel2.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.ProductDataView)).BeginInit();
+            this.groupBox1.SuspendLayout();
             this.SuspendLayout();
             // 
             // panel1
             // 
             this.panel1.BackColor = System.Drawing.Color.DarkGray;
             this.panel1.Controls.Add(this.panel9);
-            this.panel1.Controls.Add(this.panel8);
             this.panel1.Controls.Add(this.panel4);
             this.panel1.Controls.Add(this.panel3);
             this.panel1.Dock = System.Windows.Forms.DockStyle.Left;
@@ -85,7 +84,7 @@
             this.panel9.BackColor = System.Drawing.Color.Silver;
             this.panel9.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.panel9.Controls.Add(this.AddProductButton);
-            this.panel9.Location = new System.Drawing.Point(8, 392);
+            this.panel9.Location = new System.Drawing.Point(8, 465);
             this.panel9.Name = "panel9";
             this.panel9.Size = new System.Drawing.Size(261, 139);
             this.panel9.TabIndex = 18;
@@ -106,75 +105,38 @@
             this.AddProductButton.UseVisualStyleBackColor = false;
             this.AddProductButton.Click += new System.EventHandler(this.AddProductButton_Click);
             // 
-            // panel8
-            // 
-            this.panel8.BackColor = System.Drawing.Color.Silver;
-            this.panel8.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.panel8.Controls.Add(this.RemoveProductButton);
-            this.panel8.Location = new System.Drawing.Point(8, 537);
-            this.panel8.Name = "panel8";
-            this.panel8.Size = new System.Drawing.Size(261, 139);
-            this.panel8.TabIndex = 17;
-            // 
-            // RemoveProductButton
-            // 
-            this.RemoveProductButton.BackColor = System.Drawing.Color.Gainsboro;
-            this.RemoveProductButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.RemoveProductButton.Font = new System.Drawing.Font("Leelawadee", 15.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.RemoveProductButton.Image = global::IndyPOS.Properties.Resources.RemoveRectangle_50;
-            this.RemoveProductButton.Location = new System.Drawing.Point(3, 3);
-            this.RemoveProductButton.Name = "RemoveProductButton";
-            this.RemoveProductButton.Size = new System.Drawing.Size(253, 130);
-            this.RemoveProductButton.TabIndex = 7;
-            this.RemoveProductButton.Text = "ลบรายการสินค้า";
-            this.RemoveProductButton.TextAlign = System.Drawing.ContentAlignment.BottomCenter;
-            this.RemoveProductButton.TextImageRelation = System.Windows.Forms.TextImageRelation.ImageAboveText;
-            this.RemoveProductButton.UseVisualStyleBackColor = false;
-            this.RemoveProductButton.Click += new System.EventHandler(this.RemoveProductButton_Click);
-            // 
             // panel4
             // 
             this.panel4.BackColor = System.Drawing.Color.Silver;
-            this.panel4.Controls.Add(this.SearchProductByBarcodeButton);
-            this.panel4.Controls.Add(this.label2);
-            this.panel4.Controls.Add(this.BarcodeTextBox);
+            this.panel4.Controls.Add(this.groupBox1);
+            this.panel4.Controls.Add(this.SearchProductButton);
+            this.panel4.Controls.Add(this.SearchProductTextBox);
             this.panel4.Location = new System.Drawing.Point(8, 234);
             this.panel4.Name = "panel4";
-            this.panel4.Size = new System.Drawing.Size(261, 152);
+            this.panel4.Size = new System.Drawing.Size(261, 225);
             this.panel4.TabIndex = 3;
             // 
-            // SearchProductByBarcodeButton
+            // SearchProductButton
             // 
-            this.SearchProductByBarcodeButton.BackColor = System.Drawing.Color.Gainsboro;
-            this.SearchProductByBarcodeButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.SearchProductByBarcodeButton.Font = new System.Drawing.Font("Leelawadee UI", 14.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.SearchProductByBarcodeButton.Location = new System.Drawing.Point(8, 77);
-            this.SearchProductByBarcodeButton.Name = "SearchProductByBarcodeButton";
-            this.SearchProductByBarcodeButton.Size = new System.Drawing.Size(242, 65);
-            this.SearchProductByBarcodeButton.TabIndex = 5;
-            this.SearchProductByBarcodeButton.Text = "ค้านหาสินค้า";
-            this.SearchProductByBarcodeButton.UseVisualStyleBackColor = false;
-            this.SearchProductByBarcodeButton.Click += new System.EventHandler(this.SearchProductByBarcodeButton_Click);
+            this.SearchProductButton.BackColor = System.Drawing.Color.Gainsboro;
+            this.SearchProductButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.SearchProductButton.Font = new System.Drawing.Font("Leelawadee UI", 14.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.SearchProductButton.Location = new System.Drawing.Point(8, 152);
+            this.SearchProductButton.Name = "SearchProductButton";
+            this.SearchProductButton.Size = new System.Drawing.Size(242, 65);
+            this.SearchProductButton.TabIndex = 5;
+            this.SearchProductButton.Text = "ค้นหาสินค้า";
+            this.SearchProductButton.UseVisualStyleBackColor = false;
+            this.SearchProductButton.Click += new System.EventHandler(this.SearchProduct_Click);
             // 
-            // label2
+            // SearchProductTextBox
             // 
-            this.label2.BackColor = System.Drawing.Color.Silver;
-            this.label2.Font = new System.Drawing.Font("Leelawadee UI", 14.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label2.Location = new System.Drawing.Point(3, 0);
-            this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(255, 39);
-            this.label2.TabIndex = 4;
-            this.label2.Text = "รหัสสินค้า";
-            this.label2.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
-            // 
-            // BarcodeTextBox
-            // 
-            this.BarcodeTextBox.Font = new System.Drawing.Font("Leelawadee UI", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.BarcodeTextBox.Location = new System.Drawing.Point(8, 42);
-            this.BarcodeTextBox.Name = "BarcodeTextBox";
-            this.BarcodeTextBox.Size = new System.Drawing.Size(242, 29);
-            this.BarcodeTextBox.TabIndex = 3;
-            this.BarcodeTextBox.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
+            this.SearchProductTextBox.Font = new System.Drawing.Font("Leelawadee UI", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.SearchProductTextBox.Location = new System.Drawing.Point(8, 12);
+            this.SearchProductTextBox.Name = "SearchProductTextBox";
+            this.SearchProductTextBox.Size = new System.Drawing.Size(242, 29);
+            this.SearchProductTextBox.TabIndex = 3;
+            this.SearchProductTextBox.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
             // 
             // panel3
             // 
@@ -289,7 +251,7 @@
             this.ProductDataView.RowTemplate.DefaultCellStyle.Padding = new System.Windows.Forms.Padding(0, 0, 20, 0);
             this.ProductDataView.RowTemplate.DefaultCellStyle.WrapMode = System.Windows.Forms.DataGridViewTriState.True;
             this.ProductDataView.RowTemplate.Height = 35;
-            this.ProductDataView.Size = new System.Drawing.Size(1351, 674);
+            this.ProductDataView.Size = new System.Drawing.Size(1005, 674);
             this.ProductDataView.TabIndex = 2;
             this.ProductDataView.DoubleClick += new System.EventHandler(this.ProductDataView_DoubleClick);
             // 
@@ -378,6 +340,40 @@
             this.DateUpdated.ReadOnly = true;
             this.DateUpdated.Width = 250;
             // 
+            // groupBox1
+            // 
+            this.groupBox1.Controls.Add(this.SearchByBarcodeRadioButton);
+            this.groupBox1.Controls.Add(this.SearchByKeywordRadioButton);
+            this.groupBox1.Font = new System.Drawing.Font("Leelawadee UI", 14.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.groupBox1.Location = new System.Drawing.Point(8, 47);
+            this.groupBox1.Name = "groupBox1";
+            this.groupBox1.Size = new System.Drawing.Size(242, 99);
+            this.groupBox1.TabIndex = 3;
+            this.groupBox1.TabStop = false;
+            this.groupBox1.Text = "ค้นหาสินค้าด้วย";
+            // 
+            // SearchByKeywordRadioButton
+            // 
+            this.SearchByKeywordRadioButton.AutoSize = true;
+            this.SearchByKeywordRadioButton.Checked = true;
+            this.SearchByKeywordRadioButton.Location = new System.Drawing.Point(18, 28);
+            this.SearchByKeywordRadioButton.Name = "SearchByKeywordRadioButton";
+            this.SearchByKeywordRadioButton.Size = new System.Drawing.Size(179, 29);
+            this.SearchByKeywordRadioButton.TabIndex = 3;
+            this.SearchByKeywordRadioButton.TabStop = true;
+            this.SearchByKeywordRadioButton.Text = "ชื่อสินค้า (คำอธิบาย)";
+            this.SearchByKeywordRadioButton.UseVisualStyleBackColor = true;
+            // 
+            // SearchByBarcodeRadioButton
+            // 
+            this.SearchByBarcodeRadioButton.AutoSize = true;
+            this.SearchByBarcodeRadioButton.Location = new System.Drawing.Point(18, 59);
+            this.SearchByBarcodeRadioButton.Name = "SearchByBarcodeRadioButton";
+            this.SearchByBarcodeRadioButton.Size = new System.Drawing.Size(175, 29);
+            this.SearchByBarcodeRadioButton.TabIndex = 4;
+            this.SearchByBarcodeRadioButton.Text = "บาร์โค้ด (รหัสสินค้า)";
+            this.SearchByBarcodeRadioButton.UseVisualStyleBackColor = true;
+            // 
             // InventoryPanel
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -389,12 +385,13 @@
             this.Size = new System.Drawing.Size(1650, 700);
             this.panel1.ResumeLayout(false);
             this.panel9.ResumeLayout(false);
-            this.panel8.ResumeLayout(false);
             this.panel4.ResumeLayout(false);
             this.panel4.PerformLayout();
             this.panel3.ResumeLayout(false);
             this.panel2.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.ProductDataView)).EndInit();
+            this.groupBox1.ResumeLayout(false);
+            this.groupBox1.PerformLayout();
             this.ResumeLayout(false);
 
         }
@@ -409,13 +406,10 @@
         private System.Windows.Forms.ListBox ProductCategoryListBox;
         private System.Windows.Forms.Button GetProductsByCategoryButton;
         private System.Windows.Forms.Panel panel4;
-        private System.Windows.Forms.Button SearchProductByBarcodeButton;
-        private System.Windows.Forms.Label label2;
-        private System.Windows.Forms.TextBox BarcodeTextBox;
+        private System.Windows.Forms.Button SearchProductButton;
+        private System.Windows.Forms.TextBox SearchProductTextBox;
         private System.Windows.Forms.Panel panel9;
         private System.Windows.Forms.Button AddProductButton;
-        private System.Windows.Forms.Panel panel8;
-        private System.Windows.Forms.Button RemoveProductButton;
         private System.Windows.Forms.DataGridViewTextBoxColumn ProductCode;
         private System.Windows.Forms.DataGridViewTextBoxColumn Description;
         private System.Windows.Forms.DataGridViewTextBoxColumn QuantityInStock;
@@ -426,5 +420,8 @@
         private System.Windows.Forms.DataGridViewTextBoxColumn Brand;
         private System.Windows.Forms.DataGridViewTextBoxColumn DateCreated;
         private System.Windows.Forms.DataGridViewTextBoxColumn DateUpdated;
+        private System.Windows.Forms.GroupBox groupBox1;
+        private System.Windows.Forms.RadioButton SearchByBarcodeRadioButton;
+        private System.Windows.Forms.RadioButton SearchByKeywordRadioButton;
     }
 }
