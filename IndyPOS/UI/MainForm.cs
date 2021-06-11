@@ -1,14 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
-using Prism.Events;
-using IndyPOS.DataServices;
 
 namespace IndyPOS.UI
 {
@@ -23,10 +14,6 @@ namespace IndyPOS.UI
             CustomerAccounts,
             Settings
         }
-
-        //private readonly IEventAggregator _eventAggregator;
-        //private readonly IInvoicesDataService _invoicesDataService;
-        //private readonly IInventoryProductsDataService _inventoryProductsDataService;
 
         private SalePanel _salesPanel;
         private InventoryPanel _inventoryPanel;
@@ -43,10 +30,6 @@ namespace IndyPOS.UI
             CustomerAccountsPanel customerAccountsPanel, 
             SettingsPanel settingsPanel)
         {
-            //_eventAggregator = eventAggregator;
-            //_invoicesDataService = invoicesDataService;
-            //_inventoryProductsDataService = inventoryProductsDataService;
-
             InitializeComponent();
 
             _salesPanel = salesPanel;
@@ -55,17 +38,6 @@ namespace IndyPOS.UI
             _reportsPanel = reportsPanel;
             _customerAccountsPanel = customerAccountsPanel;
             _settingsPanel = settingsPanel;
-        }
-
-        private void CreateUI()
-        {
-            // TODO: this should be handled by Dependency Injection
-            //_salesPanel = new SalePanel(_eventAggregator, _invoicesDataService, _inventoryProductsDataService);
-            //_inventoryPanel = new InventoryPanel(_eventAggregator, _inventoryProductsDataService);
-            //_usersPanel = new UsersPanel();
-            //_reportsPanel = new ReportsPanel();
-            //_customerAccountsPanel = new CustomerAccountsPanel();
-            //_settingsPanel = new SettingsPanel();
         }
 
         private void SwitchToPanel(Panels panelName)
@@ -122,23 +94,13 @@ namespace IndyPOS.UI
 
                 ActivePanel.Controls.Remove(_activePanel);
             }
-
-            // Set origin location for the Panel to be shown
-            //panelToBeShown.Location = _panelLocation;
-
-            // Set Dock Style for the Panel
-            panelToBeShown.Dock = DockStyle.Fill;
-
-            // Add the Panel to Controls of MainForm
+            
             ActivePanel.Controls.Add(panelToBeShown);
 
-            // Bring the Panel to front
+            panelToBeShown.Dock = DockStyle.Fill;
             panelToBeShown.BringToFront();
-
-            // Make the Panel visible
             panelToBeShown.Visible = true;
-
-            // The Panel becomes Active Panel
+            
             _activePanel = panelToBeShown;
         }
 

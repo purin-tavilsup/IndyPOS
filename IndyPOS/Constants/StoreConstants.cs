@@ -1,10 +1,6 @@
-﻿using IndyPOS.Adapters;
-using IndyPOS.DataServices;
-using System;
+﻿using IndyPOS.DataServices;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace IndyPOS.Constants
 {

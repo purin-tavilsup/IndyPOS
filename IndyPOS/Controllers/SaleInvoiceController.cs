@@ -1,13 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using IndyPOS.Adapters;
 using IndyPOS.DataServices;
-using IndyPOS.Adapters;
+using IndyPOS.Events;
 using IndyPOS.Extensions;
 using Prism.Events;
-using IndyPOS.Events;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace IndyPOS.Controllers
 {
@@ -21,7 +18,9 @@ namespace IndyPOS.Controllers
 
         public decimal InvoiceTotal => Products.Sum(p => p.Quantity * p.UnitPrice);
 
-        public SaleInvoiceController(IEventAggregator eventAggregator, IInvoicesDataService invoicesDataService, IInventoryProductsDataService inventoryProductsDataService)
+        public SaleInvoiceController(IEventAggregator eventAggregator, 
+            IInvoicesDataService invoicesDataService, 
+            IInventoryProductsDataService inventoryProductsDataService)
         {
             _eventAggregator = eventAggregator;
             _invoicesDataService = invoicesDataService;

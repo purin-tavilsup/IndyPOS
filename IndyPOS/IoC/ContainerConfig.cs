@@ -1,15 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Autofac;
-using IndyPOS.Events;
+﻿using Autofac;
+using IndyPOS.Constants;
 using IndyPOS.DataServices;
 using Prism.Events;
+using System.Linq;
 using System.Reflection;
-using IndyPOS.UI;
-using IndyPOS.Constants;
 
 namespace IndyPOS.IoC
 {
@@ -40,10 +34,6 @@ namespace IndyPOS.IoC
                 .Where(t => t.Namespace.Contains("Controllers"))
                 .As(t => t.GetInterface("I" + t.Name))
                 .SingleInstance();
-
-            //builder.RegisterType<SQLiteDatabase>()
-            //    .AsSelf()
-            //    .SingleInstance();
 
             builder.RegisterType<InvoicesDataService>()
                 .As<IInvoicesDataService>();
