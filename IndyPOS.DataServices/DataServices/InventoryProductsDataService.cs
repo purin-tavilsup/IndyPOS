@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Data.SQLite;
 using Dapper;
+using IndyPOS.DataServices.Models;
 
 namespace IndyPOS.DataServices
 {

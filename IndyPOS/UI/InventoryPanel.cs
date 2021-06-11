@@ -12,14 +12,15 @@ using IndyPOS.Events;
 using Prism.Events;
 using IndyPOS.Controllers;
 using IndyPOS.Adapters;
+using IndyPOS.Constants;
 
 namespace IndyPOS.UI
 {
     public partial class InventoryPanel : UserControl
     {
         private readonly IEventAggregator _eventAggregator;
-        private readonly IInventoryProductsDataService _inventoryProductsDataService;
-        private InventoryController _inventoryController;
+        private readonly IInventoryController _inventoryController;
+        private readonly IStoreConstants _storeConstants;
         private IReadOnlyDictionary<int, string> _productCategoryDictionary;
 
         private enum ProductColumn
@@ -36,16 +37,12 @@ namespace IndyPOS.UI
             DateUpdated
         }
 
-        public InventoryPanel(IEventAggregator eventAggregator, IInventoryProductsDataService inventoryProductsDataService)
+        public InventoryPanel(IEventAggregator eventAggregator, IInventoryController inventoryController, IStoreConstants storeConstants)
         {
             _eventAggregator = eventAggregator;
-            _inventoryProductsDataService = inventoryProductsDataService;
-
-            // TODO: this should be handled by Dependency Injection
-            _inventoryController = new InventoryController(_eventAggregator, _inventoryProductsDataService);
-
-            _productCategoryDictionary = Machine.StoreConstants.ProductCategories;
-
+            _inventoryController = inventoryController;
+            _storeConstants = storeConstants;
+            _productCategoryDictionary = _storeConstants.ProductCategories;
 
             InitializeComponent();
             InitializeProductCategories();

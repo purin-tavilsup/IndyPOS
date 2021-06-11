@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using IndyPOS.Extensions;
+using IndyPOS.DataServices.Models;
 
 namespace IndyPOS.Adapters
 {

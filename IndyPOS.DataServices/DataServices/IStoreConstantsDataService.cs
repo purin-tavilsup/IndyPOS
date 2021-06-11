@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using IndyPOS.DataServices.Models;
+using System.Collections.Generic;
 
 namespace IndyPOS.DataServices
 {

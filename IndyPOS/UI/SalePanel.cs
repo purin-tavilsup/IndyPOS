@@ -19,9 +19,7 @@ namespace IndyPOS.UI
     public partial class SalePanel : UserControl
     {
         private readonly IEventAggregator _eventAggregator;
-        private readonly IInvoicesDataService _invoicesDataService;
-        private readonly IInventoryProductsDataService _inventoryProductsDataService;
-        private SaleInvoiceController _saleInvoiceController;
+        private ISaleInvoiceController _saleInvoiceController;
 
         private enum SaleInvoiceColumn
         {
@@ -32,17 +30,13 @@ namespace IndyPOS.UI
             Total
         }
 
-        public SalePanel(IEventAggregator eventAggregator, IInvoicesDataService invoicesDataService, IInventoryProductsDataService inventoryProductsDataService)
+        public SalePanel(IEventAggregator eventAggregator, ISaleInvoiceController saleInvoiceController)
         {
-            _eventAggregator = eventAggregator;
-            _invoicesDataService = invoicesDataService;
-            _inventoryProductsDataService = inventoryProductsDataService;
-
             InitializeComponent();
             InitializeInvoiceDataView();
 
-            // TODO: this should be handled by Dependency Injection
-            _saleInvoiceController = new SaleInvoiceController(_eventAggregator, _invoicesDataService, _inventoryProductsDataService);
+            _eventAggregator = eventAggregator;
+            _saleInvoiceController = saleInvoiceController;
             
             eventAggregator.GetEvent<SaleInvoiceProductAddedEvent>().Subscribe(SaleInvoiceProductChanged);
             eventAggregator.GetEvent<SaleInvoiceProductRemovedEvent>().Subscribe(SaleInvoiceProductChanged);

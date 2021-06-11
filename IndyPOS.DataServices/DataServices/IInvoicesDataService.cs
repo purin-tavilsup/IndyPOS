@@ -1,8 +1,5 @@
-﻿using System;
+﻿using IndyPOS.DataServices.Models;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace IndyPOS.DataServices
 {

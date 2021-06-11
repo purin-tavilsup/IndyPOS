@@ -9,6 +9,7 @@ using IndyPOS.DataServices;
 using Prism.Events;
 using System.Reflection;
 using IndyPOS.UI;
+using IndyPOS.Constants;
 
 namespace IndyPOS.IoC
 {
@@ -19,46 +20,50 @@ namespace IndyPOS.IoC
             var builder = new ContainerBuilder();
 
             builder.RegisterType<Machine>()
-                .As<IMachine>();
+                .As<IMachine>()
+                .SingleInstance();
 
             builder.RegisterType<EventAggregator>()
-                .As<IEventAggregator>();
+                .As<IEventAggregator>()
+                .SingleInstance();
 
-            //builder.RegisterType<MainForm>()
-            //    .AsSelf();
-
-            //builder.RegisterType<SalePanel>()
-            //    .AsSelf();
-
-            //builder.RegisterType<InventoryPanel>()
-            //    .AsSelf();
-
-            //builder.RegisterType<UsersPanel>()
-            //    .AsSelf();
-
-            //builder.RegisterType<ReportsPanel>()
-            //    .AsSelf();
-
-            //builder.RegisterType<SettingsPanel>()
-            //    .AsSelf();
-
-            //builder.RegisterType<CustomerAccountsPanel>()
-            //    .AsSelf();
-
-            //builder.RegisterType<AddNewProductForm>()
-            //    .AsSelf();
+            builder.RegisterType<StoreConstants>()
+                .As<IStoreConstants>()
+                .SingleInstance();
 
             builder.RegisterAssemblyTypes(Assembly.Load("IndyPOS"))
                 .Where(t => t.Namespace.Contains("UI"))
-                .AsSelf();
+                .AsSelf()
+                .SingleInstance();
 
             builder.RegisterAssemblyTypes(Assembly.Load("IndyPOS"))
                 .Where(t => t.Namespace.Contains("Controllers"))
-                .As(t => t.GetInterface("I" + t.Name));
+                .As(t => t.GetInterface("I" + t.Name))
+                .SingleInstance();
 
-            builder.RegisterAssemblyTypes(Assembly.Load("IndyPOS.DataServices"))
-                .Where(t => t.Namespace.Contains("DataServices"))
-                .As(t => t.GetInterface("I" + t.Name));
+            //builder.RegisterType<SQLiteDatabase>()
+            //    .AsSelf()
+            //    .SingleInstance();
+
+            builder.RegisterType<InvoicesDataService>()
+                .As<IInvoicesDataService>();
+
+            builder.RegisterType<InventoryProductsDataService>()
+                .As<IInventoryProductsDataService>();
+
+            builder.RegisterType<StoreConstantsDataService>()
+                .As<IStoreConstantsDataService>();
+
+            builder.RegisterType<CustomersDataService>()
+                .As<ICustomersDataService>();
+
+            builder.RegisterType<UsersDataService>()
+                .As<IUsersDataService>();
+
+            //builder.RegisterAssemblyTypes(Assembly.Load("IndyPOS.DataServices"))
+            //    .Except<SQLiteDatabase>()
+            //    .Where(t => t.Namespace.Contains("IndyPOS.DataServices"))
+            //    .As(t => t.GetInterfaces().FirstOrDefault(i => i.Name == "I" + t.Name));
 
             return builder.Build();
         }

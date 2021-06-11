@@ -24,39 +24,48 @@ namespace IndyPOS.UI
             Settings
         }
 
-        private readonly IEventAggregator _eventAggregator;
-        private readonly IInvoicesDataService _invoicesDataService;
-        private readonly IInventoryProductsDataService _inventoryProductsDataService;
+        //private readonly IEventAggregator _eventAggregator;
+        //private readonly IInvoicesDataService _invoicesDataService;
+        //private readonly IInventoryProductsDataService _inventoryProductsDataService;
 
-        private UserControl _salesPanel;
-        private UserControl _inventoryPanel;
-        private UserControl _usersPanel;
-        private UserControl _reportsPanel;
-        private UserControl _customerAccountsPanel;
-        private UserControl _settingsPanel;
+        private SalePanel _salesPanel;
+        private InventoryPanel _inventoryPanel;
+        private UsersPanel _usersPanel;
+        private ReportsPanel _reportsPanel;
+        private CustomerAccountsPanel _customerAccountsPanel;
+        private SettingsPanel _settingsPanel;
         private UserControl _activePanel;
 
-
-        public MainForm(IEventAggregator eventAggregator, IInvoicesDataService invoicesDataService, IInventoryProductsDataService inventoryProductsDataService)
+        public MainForm(SalePanel salesPanel, 
+            InventoryPanel inventoryPanel, 
+            UsersPanel usersPanel, 
+            ReportsPanel reportsPanel, 
+            CustomerAccountsPanel customerAccountsPanel, 
+            SettingsPanel settingsPanel)
         {
-            _eventAggregator = eventAggregator;
-            _invoicesDataService = invoicesDataService;
-            _inventoryProductsDataService = inventoryProductsDataService;
+            //_eventAggregator = eventAggregator;
+            //_invoicesDataService = invoicesDataService;
+            //_inventoryProductsDataService = inventoryProductsDataService;
 
             InitializeComponent();
 
-            CreateUI();
+            _salesPanel = salesPanel;
+            _inventoryPanel = inventoryPanel;
+            _usersPanel = usersPanel;
+            _reportsPanel = reportsPanel;
+            _customerAccountsPanel = customerAccountsPanel;
+            _settingsPanel = settingsPanel;
         }
 
         private void CreateUI()
         {
             // TODO: this should be handled by Dependency Injection
-            _salesPanel = new SalePanel(_eventAggregator, _invoicesDataService, _inventoryProductsDataService);
-            _inventoryPanel = new InventoryPanel(_eventAggregator, _inventoryProductsDataService);
-            _usersPanel = new UsersPanel();
-            _reportsPanel = new ReportsPanel();
-            _customerAccountsPanel = new CustomerAccountsPanel();
-            _settingsPanel = new SettingsPanel();
+            //_salesPanel = new SalePanel(_eventAggregator, _invoicesDataService, _inventoryProductsDataService);
+            //_inventoryPanel = new InventoryPanel(_eventAggregator, _inventoryProductsDataService);
+            //_usersPanel = new UsersPanel();
+            //_reportsPanel = new ReportsPanel();
+            //_customerAccountsPanel = new CustomerAccountsPanel();
+            //_settingsPanel = new SettingsPanel();
         }
 
         private void SwitchToPanel(Panels panelName)

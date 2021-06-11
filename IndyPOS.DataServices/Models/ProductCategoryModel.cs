@@ -1,4 +1,4 @@
-﻿namespace IndyPOS.DataServices
+﻿namespace IndyPOS.DataServices.Models
 {
     public class ProductCategoryModel
     {
