@@ -103,7 +103,10 @@ namespace IndyPOS.UI
         }
 
         private void GetProductsByCategoryButton_Click(object sender, EventArgs e)
-        { 
+        {
+            if (ProductCategoryListBox.SelectedItem == null)
+                return;
+
             var selectedCategoryValue = ProductCategoryListBox.SelectedItem.ToString();
             var category = _productCategoryDictionary.FirstOrDefault(x => x.Value == selectedCategoryValue);
             var categoryId = category.Key;
@@ -144,6 +147,9 @@ namespace IndyPOS.UI
         private void SearchProduct_Click(object sender, EventArgs e)
         {
             var input = SearchProductTextBox.Text.Trim();
+
+            if (string.IsNullOrWhiteSpace(input))
+                return;
 
             if (SearchByBarcodeRadioButton.Checked)
             {

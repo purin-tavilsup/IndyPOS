@@ -38,6 +38,8 @@ namespace IndyPOS.UI
             _reportsPanel = reportsPanel;
             _customerAccountsPanel = customerAccountsPanel;
             _settingsPanel = settingsPanel;
+
+            SaleButton.Select();
         }
 
         private void SwitchToPanel(Panels panelName)
@@ -94,10 +96,11 @@ namespace IndyPOS.UI
 
                 ActivePanel.Controls.Remove(_activePanel);
             }
-            
-            ActivePanel.Controls.Add(panelToBeShown);
 
             panelToBeShown.Dock = DockStyle.Fill;
+
+            ActivePanel.Controls.Add(panelToBeShown);
+            
             panelToBeShown.BringToFront();
             panelToBeShown.Visible = true;
             

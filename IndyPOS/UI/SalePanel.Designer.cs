@@ -87,7 +87,7 @@
             // label1
             // 
             this.label1.BackColor = System.Drawing.Color.Silver;
-            this.label1.Font = new System.Drawing.Font("Leelawadee UI", 20.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label1.Font = new System.Drawing.Font("Leelawadee UI", 18F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.label1.ForeColor = System.Drawing.Color.Black;
             this.label1.Location = new System.Drawing.Point(3, 3);
             this.label1.Name = "label1";
@@ -98,10 +98,10 @@
             // 
             // TotalLabel
             // 
-            this.TotalLabel.BackColor = System.Drawing.Color.Black;
+            this.TotalLabel.BackColor = System.Drawing.Color.WhiteSmoke;
             this.TotalLabel.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.TotalLabel.Font = new System.Drawing.Font("Leelawadee", 24F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.TotalLabel.ForeColor = System.Drawing.Color.LightGreen;
+            this.TotalLabel.ForeColor = System.Drawing.Color.DarkBlue;
             this.TotalLabel.Location = new System.Drawing.Point(3, 107);
             this.TotalLabel.Name = "TotalLabel";
             this.TotalLabel.Size = new System.Drawing.Size(159, 79);
@@ -111,10 +111,10 @@
             // 
             // label2
             // 
-            this.label2.BackColor = System.Drawing.Color.Black;
+            this.label2.BackColor = System.Drawing.Color.WhiteSmoke;
             this.label2.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.label2.Font = new System.Drawing.Font("Leelawadee", 18F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label2.ForeColor = System.Drawing.Color.LightGreen;
+            this.label2.ForeColor = System.Drawing.Color.DarkBlue;
             this.label2.Location = new System.Drawing.Point(160, 107);
             this.label2.Name = "label2";
             this.label2.Size = new System.Drawing.Size(59, 79);
@@ -138,7 +138,7 @@
             // 
             this.GetPaymentButton.BackColor = System.Drawing.Color.Gainsboro;
             this.GetPaymentButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.GetPaymentButton.Font = new System.Drawing.Font("Leelawadee", 15.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.GetPaymentButton.Font = new System.Drawing.Font("Leelawadee UI", 15.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.GetPaymentButton.Image = global::IndyPOS.Properties.Resources.Money_50;
             this.GetPaymentButton.Location = new System.Drawing.Point(3, 3);
             this.GetPaymentButton.Name = "GetPaymentButton";
@@ -152,10 +152,10 @@
             // 
             // label3
             // 
-            this.label3.BackColor = System.Drawing.Color.Black;
+            this.label3.BackColor = System.Drawing.Color.WhiteSmoke;
             this.label3.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.label3.Font = new System.Drawing.Font("Leelawadee", 24F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label3.ForeColor = System.Drawing.Color.LightGreen;
+            this.label3.ForeColor = System.Drawing.Color.DarkBlue;
             this.label3.Location = new System.Drawing.Point(3, 107);
             this.label3.Name = "label3";
             this.label3.Size = new System.Drawing.Size(159, 79);
@@ -165,10 +165,10 @@
             // 
             // label6
             // 
-            this.label6.BackColor = System.Drawing.Color.Black;
+            this.label6.BackColor = System.Drawing.Color.WhiteSmoke;
             this.label6.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.label6.Font = new System.Drawing.Font("Leelawadee", 18F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label6.ForeColor = System.Drawing.Color.LightGreen;
+            this.label6.ForeColor = System.Drawing.Color.DarkBlue;
             this.label6.Location = new System.Drawing.Point(160, 107);
             this.label6.Name = "label6";
             this.label6.Size = new System.Drawing.Size(59, 79);
@@ -191,7 +191,7 @@
             // label4
             // 
             this.label4.BackColor = System.Drawing.Color.Silver;
-            this.label4.Font = new System.Drawing.Font("Leelawadee UI", 20.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label4.Font = new System.Drawing.Font("Leelawadee UI", 18F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.label4.ForeColor = System.Drawing.Color.Black;
             this.label4.Location = new System.Drawing.Point(3, 3);
             this.label4.Name = "label4";
@@ -202,10 +202,10 @@
             // 
             // label5
             // 
-            this.label5.BackColor = System.Drawing.Color.Black;
+            this.label5.BackColor = System.Drawing.Color.WhiteSmoke;
             this.label5.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.label5.Font = new System.Drawing.Font("Leelawadee", 24F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label5.ForeColor = System.Drawing.Color.LightGreen;
+            this.label5.ForeColor = System.Drawing.Color.DarkBlue;
             this.label5.Location = new System.Drawing.Point(3, 107);
             this.label5.Name = "label5";
             this.label5.Size = new System.Drawing.Size(159, 79);
@@ -215,10 +215,10 @@
             // 
             // label7
             // 
-            this.label7.BackColor = System.Drawing.Color.Black;
+            this.label7.BackColor = System.Drawing.Color.WhiteSmoke;
             this.label7.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.label7.Font = new System.Drawing.Font("Leelawadee", 18F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label7.ForeColor = System.Drawing.Color.LightGreen;
+            this.label7.ForeColor = System.Drawing.Color.DarkBlue;
             this.label7.Location = new System.Drawing.Point(160, 107);
             this.label7.Name = "label7";
             this.label7.Size = new System.Drawing.Size(59, 79);
@@ -240,7 +240,7 @@
             // 
             this.SaveSaleInvoiceButton.BackColor = System.Drawing.Color.Gainsboro;
             this.SaveSaleInvoiceButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.SaveSaleInvoiceButton.Font = new System.Drawing.Font("Leelawadee", 15.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.SaveSaleInvoiceButton.Font = new System.Drawing.Font("Leelawadee UI", 15.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.SaveSaleInvoiceButton.Image = global::IndyPOS.Properties.Resources.Save_50;
             this.SaveSaleInvoiceButton.Location = new System.Drawing.Point(3, 3);
             this.SaveSaleInvoiceButton.Name = "SaveSaleInvoiceButton";
@@ -266,7 +266,7 @@
             // 
             this.CancelSaleInvoiceButton.BackColor = System.Drawing.Color.Gainsboro;
             this.CancelSaleInvoiceButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.CancelSaleInvoiceButton.Font = new System.Drawing.Font("Leelawadee", 15.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.CancelSaleInvoiceButton.Font = new System.Drawing.Font("Leelawadee UI", 15.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.CancelSaleInvoiceButton.Image = global::IndyPOS.Properties.Resources.RemoveCircle_50;
             this.CancelSaleInvoiceButton.Location = new System.Drawing.Point(3, 3);
             this.CancelSaleInvoiceButton.Name = "CancelSaleInvoiceButton";
@@ -400,7 +400,7 @@
             // 
             this.RemoveProductButton.BackColor = System.Drawing.Color.Gainsboro;
             this.RemoveProductButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.RemoveProductButton.Font = new System.Drawing.Font("Leelawadee", 15.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.RemoveProductButton.Font = new System.Drawing.Font("Leelawadee UI", 15.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.RemoveProductButton.Image = global::IndyPOS.Properties.Resources.RemoveRectangle_50;
             this.RemoveProductButton.Location = new System.Drawing.Point(3, 3);
             this.RemoveProductButton.Name = "RemoveProductButton";
@@ -426,7 +426,7 @@
             // 
             this.AddProductButton.BackColor = System.Drawing.Color.Gainsboro;
             this.AddProductButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.AddProductButton.Font = new System.Drawing.Font("Leelawadee", 15.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.AddProductButton.Font = new System.Drawing.Font("Leelawadee UI", 15.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.AddProductButton.Image = global::IndyPOS.Properties.Resources.PlusRectangle_50;
             this.AddProductButton.Location = new System.Drawing.Point(3, 3);
             this.AddProductButton.Name = "AddProductButton";

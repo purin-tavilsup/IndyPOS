@@ -1,13 +1,8 @@
-﻿using System;
+﻿using IndyPOS.Adapters;
+using IndyPOS.DataServices;
+using Prism.Events;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using IndyPOS.DataServices;
-using IndyPOS.Adapters;
-using IndyPOS.Extensions;
-using Prism.Events;
-using IndyPOS.Events;
 
 namespace IndyPOS.Controllers
 {

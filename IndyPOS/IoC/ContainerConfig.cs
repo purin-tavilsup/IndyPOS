@@ -50,11 +50,6 @@ namespace IndyPOS.IoC
             builder.RegisterType<UsersDataService>()
                 .As<IUsersDataService>();
 
-            //builder.RegisterAssemblyTypes(Assembly.Load("IndyPOS.DataServices"))
-            //    .Except<SQLiteDatabase>()
-            //    .Where(t => t.Namespace.Contains("IndyPOS.DataServices"))
-            //    .As(t => t.GetInterfaces().FirstOrDefault(i => i.Name == "I" + t.Name));
-
             return builder.Build();
         }
     }

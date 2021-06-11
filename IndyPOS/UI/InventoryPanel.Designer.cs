@@ -28,21 +28,12 @@
         /// </summary>
         private void InitializeComponent()
         {
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle1 = new System.Windows.Forms.DataGridViewCellStyle();
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle5 = new System.Windows.Forms.DataGridViewCellStyle();
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle2 = new System.Windows.Forms.DataGridViewCellStyle();
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle3 = new System.Windows.Forms.DataGridViewCellStyle();
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle4 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle11 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle15 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle12 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle13 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle14 = new System.Windows.Forms.DataGridViewCellStyle();
             this.panel1 = new System.Windows.Forms.Panel();
-            this.panel9 = new System.Windows.Forms.Panel();
-            this.AddProductButton = new System.Windows.Forms.Button();
-            this.panel4 = new System.Windows.Forms.Panel();
-            this.SearchProductButton = new System.Windows.Forms.Button();
-            this.SearchProductTextBox = new System.Windows.Forms.TextBox();
-            this.panel3 = new System.Windows.Forms.Panel();
-            this.GetProductsByCategoryButton = new System.Windows.Forms.Button();
-            this.ProductCategoryListBox = new System.Windows.Forms.ListBox();
-            this.label1 = new System.Windows.Forms.Label();
             this.panel2 = new System.Windows.Forms.Panel();
             this.ProductDataView = new System.Windows.Forms.DataGridView();
             this.ProductCode = new System.Windows.Forms.DataGridViewTextBoxColumn();
@@ -55,39 +46,196 @@
             this.Brand = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.DateCreated = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.DateUpdated = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.panel9 = new System.Windows.Forms.Panel();
+            this.AddProductButton = new System.Windows.Forms.Button();
+            this.panel4 = new System.Windows.Forms.Panel();
             this.groupBox1 = new System.Windows.Forms.GroupBox();
-            this.SearchByKeywordRadioButton = new System.Windows.Forms.RadioButton();
             this.SearchByBarcodeRadioButton = new System.Windows.Forms.RadioButton();
+            this.SearchByKeywordRadioButton = new System.Windows.Forms.RadioButton();
+            this.SearchProductButton = new System.Windows.Forms.Button();
+            this.SearchProductTextBox = new System.Windows.Forms.TextBox();
+            this.panel3 = new System.Windows.Forms.Panel();
+            this.GetProductsByCategoryButton = new System.Windows.Forms.Button();
+            this.ProductCategoryListBox = new System.Windows.Forms.ListBox();
+            this.label1 = new System.Windows.Forms.Label();
             this.panel1.SuspendLayout();
-            this.panel9.SuspendLayout();
-            this.panel4.SuspendLayout();
-            this.panel3.SuspendLayout();
             this.panel2.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.ProductDataView)).BeginInit();
+            this.panel9.SuspendLayout();
+            this.panel4.SuspendLayout();
             this.groupBox1.SuspendLayout();
+            this.panel3.SuspendLayout();
             this.SuspendLayout();
             // 
             // panel1
             // 
             this.panel1.BackColor = System.Drawing.Color.DarkGray;
-            this.panel1.Controls.Add(this.panel9);
-            this.panel1.Controls.Add(this.panel4);
-            this.panel1.Controls.Add(this.panel3);
+            this.panel1.Controls.Add(this.ProductDataView);
             this.panel1.Dock = System.Windows.Forms.DockStyle.Left;
             this.panel1.Location = new System.Drawing.Point(0, 0);
             this.panel1.Name = "panel1";
-            this.panel1.Size = new System.Drawing.Size(275, 700);
+            this.panel1.Size = new System.Drawing.Size(1137, 740);
             this.panel1.TabIndex = 0;
+            // 
+            // panel2
+            // 
+            this.panel2.BackColor = System.Drawing.Color.DarkGray;
+            this.panel2.Controls.Add(this.panel9);
+            this.panel2.Controls.Add(this.panel4);
+            this.panel2.Controls.Add(this.panel3);
+            this.panel2.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.panel2.Location = new System.Drawing.Point(1137, 0);
+            this.panel2.Name = "panel2";
+            this.panel2.Size = new System.Drawing.Size(284, 740);
+            this.panel2.TabIndex = 1;
+            // 
+            // ProductDataView
+            // 
+            this.ProductDataView.AllowUserToResizeColumns = false;
+            this.ProductDataView.AllowUserToResizeRows = false;
+            this.ProductDataView.BackgroundColor = System.Drawing.Color.DarkGray;
+            this.ProductDataView.ColumnHeadersBorderStyle = System.Windows.Forms.DataGridViewHeaderBorderStyle.Single;
+            dataGridViewCellStyle11.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleCenter;
+            dataGridViewCellStyle11.BackColor = System.Drawing.SystemColors.Control;
+            dataGridViewCellStyle11.Font = new System.Drawing.Font("Leelawadee", 15.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            dataGridViewCellStyle11.ForeColor = System.Drawing.SystemColors.WindowText;
+            dataGridViewCellStyle11.Padding = new System.Windows.Forms.Padding(10, 0, 0, 0);
+            dataGridViewCellStyle11.SelectionBackColor = System.Drawing.SystemColors.Highlight;
+            dataGridViewCellStyle11.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
+            dataGridViewCellStyle11.WrapMode = System.Windows.Forms.DataGridViewTriState.False;
+            this.ProductDataView.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle11;
+            this.ProductDataView.ColumnHeadersHeight = 50;
+            this.ProductDataView.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.DisableResizing;
+            this.ProductDataView.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
+            this.ProductCode,
+            this.Description,
+            this.QuantityInStock,
+            this.UnitPrice,
+            this.UnitCost,
+            this.Category,
+            this.Manufacturer,
+            this.Brand,
+            this.DateCreated,
+            this.DateUpdated});
+            this.ProductDataView.EnableHeadersVisualStyles = false;
+            this.ProductDataView.GridColor = System.Drawing.Color.DimGray;
+            this.ProductDataView.Location = new System.Drawing.Point(14, 15);
+            this.ProductDataView.MultiSelect = false;
+            this.ProductDataView.Name = "ProductDataView";
+            this.ProductDataView.RowHeadersVisible = false;
+            this.ProductDataView.RowHeadersWidth = 60;
+            this.ProductDataView.RowHeadersWidthSizeMode = System.Windows.Forms.DataGridViewRowHeadersWidthSizeMode.DisableResizing;
+            dataGridViewCellStyle15.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleRight;
+            dataGridViewCellStyle15.Font = new System.Drawing.Font("Leelawadee", 14.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            dataGridViewCellStyle15.ForeColor = System.Drawing.SystemColors.WindowText;
+            dataGridViewCellStyle15.Padding = new System.Windows.Forms.Padding(0, 0, 20, 0);
+            dataGridViewCellStyle15.WrapMode = System.Windows.Forms.DataGridViewTriState.True;
+            this.ProductDataView.RowsDefaultCellStyle = dataGridViewCellStyle15;
+            this.ProductDataView.RowTemplate.DefaultCellStyle.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleRight;
+            this.ProductDataView.RowTemplate.DefaultCellStyle.BackColor = System.Drawing.Color.White;
+            this.ProductDataView.RowTemplate.DefaultCellStyle.Font = new System.Drawing.Font("Leelawadee", 14.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.ProductDataView.RowTemplate.DefaultCellStyle.ForeColor = System.Drawing.SystemColors.WindowText;
+            this.ProductDataView.RowTemplate.DefaultCellStyle.Padding = new System.Windows.Forms.Padding(0, 0, 20, 0);
+            this.ProductDataView.RowTemplate.DefaultCellStyle.WrapMode = System.Windows.Forms.DataGridViewTriState.True;
+            this.ProductDataView.RowTemplate.Height = 35;
+            this.ProductDataView.Size = new System.Drawing.Size(1120, 707);
+            this.ProductDataView.TabIndex = 2;
+            this.ProductDataView.DoubleClick += new System.EventHandler(this.ProductDataView_DoubleClick);
+            // 
+            // ProductCode
+            // 
+            this.ProductCode.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.None;
+            this.ProductCode.HeaderText = "รหัสสินค้า";
+            this.ProductCode.Name = "ProductCode";
+            this.ProductCode.ReadOnly = true;
+            this.ProductCode.Width = 200;
+            // 
+            // Description
+            // 
+            this.Description.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.None;
+            dataGridViewCellStyle12.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleCenter;
+            dataGridViewCellStyle12.BackColor = System.Drawing.Color.White;
+            dataGridViewCellStyle12.Font = new System.Drawing.Font("Leelawadee", 15.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            dataGridViewCellStyle12.ForeColor = System.Drawing.SystemColors.WindowText;
+            dataGridViewCellStyle12.WrapMode = System.Windows.Forms.DataGridViewTriState.True;
+            this.Description.DefaultCellStyle = dataGridViewCellStyle12;
+            this.Description.HeaderText = "คำอธิบาย";
+            this.Description.Name = "Description";
+            this.Description.ReadOnly = true;
+            this.Description.Width = 500;
+            // 
+            // QuantityInStock
+            // 
+            this.QuantityInStock.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.None;
+            this.QuantityInStock.HeaderText = "จำนวนในคลัง";
+            this.QuantityInStock.Name = "QuantityInStock";
+            this.QuantityInStock.ReadOnly = true;
+            this.QuantityInStock.Width = 150;
+            // 
+            // UnitPrice
+            // 
+            this.UnitPrice.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.None;
+            dataGridViewCellStyle13.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleCenter;
+            this.UnitPrice.DefaultCellStyle = dataGridViewCellStyle13;
+            this.UnitPrice.HeaderText = "ราคาขาย";
+            this.UnitPrice.Name = "UnitPrice";
+            this.UnitPrice.ReadOnly = true;
+            this.UnitPrice.Width = 150;
+            // 
+            // UnitCost
+            // 
+            this.UnitCost.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.None;
+            dataGridViewCellStyle14.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleCenter;
+            this.UnitCost.DefaultCellStyle = dataGridViewCellStyle14;
+            this.UnitCost.HeaderText = "ราคาซื้อ";
+            this.UnitCost.Name = "UnitCost";
+            this.UnitCost.ReadOnly = true;
+            this.UnitCost.Width = 150;
+            // 
+            // Category
+            // 
+            this.Category.HeaderText = "ประเภท";
+            this.Category.Name = "Category";
+            this.Category.ReadOnly = true;
+            this.Category.Width = 250;
+            // 
+            // Manufacturer
+            // 
+            this.Manufacturer.HeaderText = "ผู้ผลิต";
+            this.Manufacturer.Name = "Manufacturer";
+            this.Manufacturer.ReadOnly = true;
+            this.Manufacturer.Width = 150;
+            // 
+            // Brand
+            // 
+            this.Brand.HeaderText = "ยี่ห้อ";
+            this.Brand.Name = "Brand";
+            this.Brand.ReadOnly = true;
+            this.Brand.Width = 150;
+            // 
+            // DateCreated
+            // 
+            this.DateCreated.HeaderText = "วันที่นำเข้า";
+            this.DateCreated.Name = "DateCreated";
+            this.DateCreated.ReadOnly = true;
+            this.DateCreated.Width = 250;
+            // 
+            // DateUpdated
+            // 
+            this.DateUpdated.HeaderText = "วันที่อัพเดท";
+            this.DateUpdated.Name = "DateUpdated";
+            this.DateUpdated.ReadOnly = true;
+            this.DateUpdated.Width = 250;
             // 
             // panel9
             // 
             this.panel9.BackColor = System.Drawing.Color.Silver;
             this.panel9.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.panel9.Controls.Add(this.AddProductButton);
-            this.panel9.Location = new System.Drawing.Point(8, 465);
+            this.panel9.Location = new System.Drawing.Point(6, 477);
             this.panel9.Name = "panel9";
             this.panel9.Size = new System.Drawing.Size(261, 139);
-            this.panel9.TabIndex = 18;
+            this.panel9.TabIndex = 21;
             // 
             // AddProductButton
             // 
@@ -108,13 +256,48 @@
             // panel4
             // 
             this.panel4.BackColor = System.Drawing.Color.Silver;
+            this.panel4.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.panel4.Controls.Add(this.groupBox1);
             this.panel4.Controls.Add(this.SearchProductButton);
             this.panel4.Controls.Add(this.SearchProductTextBox);
-            this.panel4.Location = new System.Drawing.Point(8, 234);
+            this.panel4.Location = new System.Drawing.Point(6, 246);
             this.panel4.Name = "panel4";
             this.panel4.Size = new System.Drawing.Size(261, 225);
-            this.panel4.TabIndex = 3;
+            this.panel4.TabIndex = 19;
+            // 
+            // groupBox1
+            // 
+            this.groupBox1.Controls.Add(this.SearchByBarcodeRadioButton);
+            this.groupBox1.Controls.Add(this.SearchByKeywordRadioButton);
+            this.groupBox1.Font = new System.Drawing.Font("Leelawadee UI", 14.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.groupBox1.Location = new System.Drawing.Point(8, 47);
+            this.groupBox1.Name = "groupBox1";
+            this.groupBox1.Size = new System.Drawing.Size(242, 99);
+            this.groupBox1.TabIndex = 3;
+            this.groupBox1.TabStop = false;
+            this.groupBox1.Text = "ค้นหาสินค้าด้วย";
+            // 
+            // SearchByBarcodeRadioButton
+            // 
+            this.SearchByBarcodeRadioButton.AutoSize = true;
+            this.SearchByBarcodeRadioButton.Location = new System.Drawing.Point(18, 59);
+            this.SearchByBarcodeRadioButton.Name = "SearchByBarcodeRadioButton";
+            this.SearchByBarcodeRadioButton.Size = new System.Drawing.Size(175, 29);
+            this.SearchByBarcodeRadioButton.TabIndex = 4;
+            this.SearchByBarcodeRadioButton.Text = "บาร์โค้ด (รหัสสินค้า)";
+            this.SearchByBarcodeRadioButton.UseVisualStyleBackColor = true;
+            // 
+            // SearchByKeywordRadioButton
+            // 
+            this.SearchByKeywordRadioButton.AutoSize = true;
+            this.SearchByKeywordRadioButton.Checked = true;
+            this.SearchByKeywordRadioButton.Location = new System.Drawing.Point(18, 28);
+            this.SearchByKeywordRadioButton.Name = "SearchByKeywordRadioButton";
+            this.SearchByKeywordRadioButton.Size = new System.Drawing.Size(179, 29);
+            this.SearchByKeywordRadioButton.TabIndex = 3;
+            this.SearchByKeywordRadioButton.TabStop = true;
+            this.SearchByKeywordRadioButton.Text = "ชื่อสินค้า (คำอธิบาย)";
+            this.SearchByKeywordRadioButton.UseVisualStyleBackColor = true;
             // 
             // SearchProductButton
             // 
@@ -141,13 +324,14 @@
             // panel3
             // 
             this.panel3.BackColor = System.Drawing.Color.Silver;
+            this.panel3.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.panel3.Controls.Add(this.GetProductsByCategoryButton);
             this.panel3.Controls.Add(this.ProductCategoryListBox);
             this.panel3.Controls.Add(this.label1);
-            this.panel3.Location = new System.Drawing.Point(8, 3);
+            this.panel3.Location = new System.Drawing.Point(6, 15);
             this.panel3.Name = "panel3";
             this.panel3.Size = new System.Drawing.Size(261, 225);
-            this.panel3.TabIndex = 3;
+            this.panel3.TabIndex = 20;
             // 
             // GetProductsByCategoryButton
             // 
@@ -192,206 +376,24 @@
             this.label1.Text = "ประเภทสินค้า";
             this.label1.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             // 
-            // panel2
-            // 
-            this.panel2.BackColor = System.Drawing.Color.DarkGray;
-            this.panel2.Controls.Add(this.ProductDataView);
-            this.panel2.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.panel2.Location = new System.Drawing.Point(275, 0);
-            this.panel2.Name = "panel2";
-            this.panel2.Size = new System.Drawing.Size(1375, 700);
-            this.panel2.TabIndex = 1;
-            // 
-            // ProductDataView
-            // 
-            this.ProductDataView.AllowUserToResizeColumns = false;
-            this.ProductDataView.AllowUserToResizeRows = false;
-            this.ProductDataView.BackgroundColor = System.Drawing.Color.DarkGray;
-            this.ProductDataView.ColumnHeadersBorderStyle = System.Windows.Forms.DataGridViewHeaderBorderStyle.Single;
-            dataGridViewCellStyle1.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleCenter;
-            dataGridViewCellStyle1.BackColor = System.Drawing.SystemColors.Control;
-            dataGridViewCellStyle1.Font = new System.Drawing.Font("Leelawadee", 15.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            dataGridViewCellStyle1.ForeColor = System.Drawing.SystemColors.WindowText;
-            dataGridViewCellStyle1.Padding = new System.Windows.Forms.Padding(10, 0, 0, 0);
-            dataGridViewCellStyle1.SelectionBackColor = System.Drawing.SystemColors.Highlight;
-            dataGridViewCellStyle1.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
-            dataGridViewCellStyle1.WrapMode = System.Windows.Forms.DataGridViewTriState.False;
-            this.ProductDataView.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle1;
-            this.ProductDataView.ColumnHeadersHeight = 50;
-            this.ProductDataView.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.DisableResizing;
-            this.ProductDataView.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
-            this.ProductCode,
-            this.Description,
-            this.QuantityInStock,
-            this.UnitPrice,
-            this.UnitCost,
-            this.Category,
-            this.Manufacturer,
-            this.Brand,
-            this.DateCreated,
-            this.DateUpdated});
-            this.ProductDataView.EnableHeadersVisualStyles = false;
-            this.ProductDataView.GridColor = System.Drawing.Color.DimGray;
-            this.ProductDataView.Location = new System.Drawing.Point(6, 3);
-            this.ProductDataView.MultiSelect = false;
-            this.ProductDataView.Name = "ProductDataView";
-            this.ProductDataView.RowHeadersVisible = false;
-            this.ProductDataView.RowHeadersWidth = 60;
-            this.ProductDataView.RowHeadersWidthSizeMode = System.Windows.Forms.DataGridViewRowHeadersWidthSizeMode.DisableResizing;
-            dataGridViewCellStyle5.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleRight;
-            dataGridViewCellStyle5.Font = new System.Drawing.Font("Leelawadee", 14.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            dataGridViewCellStyle5.ForeColor = System.Drawing.SystemColors.WindowText;
-            dataGridViewCellStyle5.Padding = new System.Windows.Forms.Padding(0, 0, 20, 0);
-            dataGridViewCellStyle5.WrapMode = System.Windows.Forms.DataGridViewTriState.True;
-            this.ProductDataView.RowsDefaultCellStyle = dataGridViewCellStyle5;
-            this.ProductDataView.RowTemplate.DefaultCellStyle.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleRight;
-            this.ProductDataView.RowTemplate.DefaultCellStyle.BackColor = System.Drawing.Color.White;
-            this.ProductDataView.RowTemplate.DefaultCellStyle.Font = new System.Drawing.Font("Leelawadee", 14.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.ProductDataView.RowTemplate.DefaultCellStyle.ForeColor = System.Drawing.SystemColors.WindowText;
-            this.ProductDataView.RowTemplate.DefaultCellStyle.Padding = new System.Windows.Forms.Padding(0, 0, 20, 0);
-            this.ProductDataView.RowTemplate.DefaultCellStyle.WrapMode = System.Windows.Forms.DataGridViewTriState.True;
-            this.ProductDataView.RowTemplate.Height = 35;
-            this.ProductDataView.Size = new System.Drawing.Size(1005, 674);
-            this.ProductDataView.TabIndex = 2;
-            this.ProductDataView.DoubleClick += new System.EventHandler(this.ProductDataView_DoubleClick);
-            // 
-            // ProductCode
-            // 
-            this.ProductCode.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.None;
-            this.ProductCode.HeaderText = "รหัสสินค้า";
-            this.ProductCode.Name = "ProductCode";
-            this.ProductCode.ReadOnly = true;
-            this.ProductCode.Width = 200;
-            // 
-            // Description
-            // 
-            this.Description.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.None;
-            dataGridViewCellStyle2.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleCenter;
-            dataGridViewCellStyle2.BackColor = System.Drawing.Color.White;
-            dataGridViewCellStyle2.Font = new System.Drawing.Font("Leelawadee", 15.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            dataGridViewCellStyle2.ForeColor = System.Drawing.SystemColors.WindowText;
-            dataGridViewCellStyle2.WrapMode = System.Windows.Forms.DataGridViewTriState.True;
-            this.Description.DefaultCellStyle = dataGridViewCellStyle2;
-            this.Description.HeaderText = "คำอธิบาย";
-            this.Description.Name = "Description";
-            this.Description.ReadOnly = true;
-            this.Description.Width = 500;
-            // 
-            // QuantityInStock
-            // 
-            this.QuantityInStock.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.None;
-            this.QuantityInStock.HeaderText = "จำนวนในคลัง";
-            this.QuantityInStock.Name = "QuantityInStock";
-            this.QuantityInStock.ReadOnly = true;
-            this.QuantityInStock.Width = 150;
-            // 
-            // UnitPrice
-            // 
-            this.UnitPrice.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.None;
-            dataGridViewCellStyle3.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleCenter;
-            this.UnitPrice.DefaultCellStyle = dataGridViewCellStyle3;
-            this.UnitPrice.HeaderText = "ราคาขาย";
-            this.UnitPrice.Name = "UnitPrice";
-            this.UnitPrice.ReadOnly = true;
-            this.UnitPrice.Width = 150;
-            // 
-            // UnitCost
-            // 
-            this.UnitCost.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.None;
-            dataGridViewCellStyle4.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleCenter;
-            this.UnitCost.DefaultCellStyle = dataGridViewCellStyle4;
-            this.UnitCost.HeaderText = "ราคาซื้อ";
-            this.UnitCost.Name = "UnitCost";
-            this.UnitCost.ReadOnly = true;
-            this.UnitCost.Width = 150;
-            // 
-            // Category
-            // 
-            this.Category.HeaderText = "ประเภท";
-            this.Category.Name = "Category";
-            this.Category.ReadOnly = true;
-            this.Category.Width = 250;
-            // 
-            // Manufacturer
-            // 
-            this.Manufacturer.HeaderText = "ผู้ผลิต";
-            this.Manufacturer.Name = "Manufacturer";
-            this.Manufacturer.ReadOnly = true;
-            this.Manufacturer.Width = 150;
-            // 
-            // Brand
-            // 
-            this.Brand.HeaderText = "ยี่ห้อ";
-            this.Brand.Name = "Brand";
-            this.Brand.ReadOnly = true;
-            this.Brand.Width = 150;
-            // 
-            // DateCreated
-            // 
-            this.DateCreated.HeaderText = "วันที่นำเข้า";
-            this.DateCreated.Name = "DateCreated";
-            this.DateCreated.ReadOnly = true;
-            this.DateCreated.Width = 250;
-            // 
-            // DateUpdated
-            // 
-            this.DateUpdated.HeaderText = "วันที่อัพเดท";
-            this.DateUpdated.Name = "DateUpdated";
-            this.DateUpdated.ReadOnly = true;
-            this.DateUpdated.Width = 250;
-            // 
-            // groupBox1
-            // 
-            this.groupBox1.Controls.Add(this.SearchByBarcodeRadioButton);
-            this.groupBox1.Controls.Add(this.SearchByKeywordRadioButton);
-            this.groupBox1.Font = new System.Drawing.Font("Leelawadee UI", 14.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.groupBox1.Location = new System.Drawing.Point(8, 47);
-            this.groupBox1.Name = "groupBox1";
-            this.groupBox1.Size = new System.Drawing.Size(242, 99);
-            this.groupBox1.TabIndex = 3;
-            this.groupBox1.TabStop = false;
-            this.groupBox1.Text = "ค้นหาสินค้าด้วย";
-            // 
-            // SearchByKeywordRadioButton
-            // 
-            this.SearchByKeywordRadioButton.AutoSize = true;
-            this.SearchByKeywordRadioButton.Checked = true;
-            this.SearchByKeywordRadioButton.Location = new System.Drawing.Point(18, 28);
-            this.SearchByKeywordRadioButton.Name = "SearchByKeywordRadioButton";
-            this.SearchByKeywordRadioButton.Size = new System.Drawing.Size(179, 29);
-            this.SearchByKeywordRadioButton.TabIndex = 3;
-            this.SearchByKeywordRadioButton.TabStop = true;
-            this.SearchByKeywordRadioButton.Text = "ชื่อสินค้า (คำอธิบาย)";
-            this.SearchByKeywordRadioButton.UseVisualStyleBackColor = true;
-            // 
-            // SearchByBarcodeRadioButton
-            // 
-            this.SearchByBarcodeRadioButton.AutoSize = true;
-            this.SearchByBarcodeRadioButton.Location = new System.Drawing.Point(18, 59);
-            this.SearchByBarcodeRadioButton.Name = "SearchByBarcodeRadioButton";
-            this.SearchByBarcodeRadioButton.Size = new System.Drawing.Size(175, 29);
-            this.SearchByBarcodeRadioButton.TabIndex = 4;
-            this.SearchByBarcodeRadioButton.Text = "บาร์โค้ด (รหัสสินค้า)";
-            this.SearchByBarcodeRadioButton.UseVisualStyleBackColor = true;
-            // 
             // InventoryPanel
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.BackColor = System.Drawing.Color.SlateGray;
+            this.BackColor = System.Drawing.Color.DarkGray;
             this.Controls.Add(this.panel2);
             this.Controls.Add(this.panel1);
             this.Name = "InventoryPanel";
-            this.Size = new System.Drawing.Size(1650, 700);
+            this.Size = new System.Drawing.Size(1421, 740);
             this.panel1.ResumeLayout(false);
+            this.panel2.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)(this.ProductDataView)).EndInit();
             this.panel9.ResumeLayout(false);
             this.panel4.ResumeLayout(false);
             this.panel4.PerformLayout();
-            this.panel3.ResumeLayout(false);
-            this.panel2.ResumeLayout(false);
-            ((System.ComponentModel.ISupportInitialize)(this.ProductDataView)).EndInit();
             this.groupBox1.ResumeLayout(false);
             this.groupBox1.PerformLayout();
+            this.panel3.ResumeLayout(false);
             this.ResumeLayout(false);
 
         }
@@ -401,15 +403,6 @@
         private System.Windows.Forms.Panel panel1;
         private System.Windows.Forms.Panel panel2;
         private System.Windows.Forms.DataGridView ProductDataView;
-        private System.Windows.Forms.Panel panel3;
-        private System.Windows.Forms.Label label1;
-        private System.Windows.Forms.ListBox ProductCategoryListBox;
-        private System.Windows.Forms.Button GetProductsByCategoryButton;
-        private System.Windows.Forms.Panel panel4;
-        private System.Windows.Forms.Button SearchProductButton;
-        private System.Windows.Forms.TextBox SearchProductTextBox;
-        private System.Windows.Forms.Panel panel9;
-        private System.Windows.Forms.Button AddProductButton;
         private System.Windows.Forms.DataGridViewTextBoxColumn ProductCode;
         private System.Windows.Forms.DataGridViewTextBoxColumn Description;
         private System.Windows.Forms.DataGridViewTextBoxColumn QuantityInStock;
@@ -420,8 +413,17 @@
         private System.Windows.Forms.DataGridViewTextBoxColumn Brand;
         private System.Windows.Forms.DataGridViewTextBoxColumn DateCreated;
         private System.Windows.Forms.DataGridViewTextBoxColumn DateUpdated;
+        private System.Windows.Forms.Panel panel9;
+        private System.Windows.Forms.Button AddProductButton;
+        private System.Windows.Forms.Panel panel4;
         private System.Windows.Forms.GroupBox groupBox1;
         private System.Windows.Forms.RadioButton SearchByBarcodeRadioButton;
         private System.Windows.Forms.RadioButton SearchByKeywordRadioButton;
+        private System.Windows.Forms.Button SearchProductButton;
+        private System.Windows.Forms.TextBox SearchProductTextBox;
+        private System.Windows.Forms.Panel panel3;
+        private System.Windows.Forms.Button GetProductsByCategoryButton;
+        private System.Windows.Forms.ListBox ProductCategoryListBox;
+        private System.Windows.Forms.Label label1;
     }
 }
