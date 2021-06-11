@@ -1,4 +1,4 @@
-﻿namespace IndyPOS
+﻿namespace IndyPOS.UI
 {
     partial class InventoryPanel
     {

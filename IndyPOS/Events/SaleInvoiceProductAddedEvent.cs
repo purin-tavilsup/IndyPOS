@@ -1,6 +1,6 @@
 ﻿using Prism.Events;
 
-namespace IndyPOS.EventAggregator
+namespace IndyPOS.Events
 {
     /// <summary>
     /// Event for notifying a product has been added to sale invoice.

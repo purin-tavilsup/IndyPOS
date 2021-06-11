@@ -59,11 +59,13 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="DataServices\CustomersDataService.cs" />
+    <Compile Include="DataServices\ICustomersDataService.cs" />
     <Compile Include="DataServices\IInventoryProductsDataService.cs" />
     <Compile Include="DataServices\IInvoicesDataService.cs" />
     <Compile Include="DataServices\InventoryProductsDataService.cs" />
     <Compile Include="DataServices\InvoicesDataService.cs" />
     <Compile Include="DataServices\IStoreConstantsDataService.cs" />
+    <Compile Include="DataServices\IUsersDataService.cs" />
     <Compile Include="DataServices\StoreConstantsDataService.cs" />
     <Compile Include="DataServices\SQLiteDatabase.cs" />
     <Compile Include="Models\InventoryProductModel.cs" />

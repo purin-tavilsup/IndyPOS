@@ -11,10 +11,10 @@ using Prism.Events;
 using IndyPOS.DataServices;
 using IndyPOS.Adapters;
 using IndyPOS.Controllers;
-using IndyPOS.EventAggregator;
+using IndyPOS.Events;
 using IndyPOS.Extensions;
 
-namespace IndyPOS
+namespace IndyPOS.UI
 {
     public partial class SalePanel : UserControl
     {

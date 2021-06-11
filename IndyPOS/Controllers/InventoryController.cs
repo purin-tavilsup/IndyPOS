@@ -7,11 +7,11 @@ using IndyPOS.DataServices;
 using IndyPOS.Adapters;
 using IndyPOS.Extensions;
 using Prism.Events;
-using IndyPOS.EventAggregator;
+using IndyPOS.Events;
 
 namespace IndyPOS.Controllers
 {
-    public class InventoryController
+    public class InventoryController : IInventoryController
     {
         private readonly IEventAggregator _eventAggregator;
         private readonly IInventoryProductsDataService _inventoryProductsDataService;

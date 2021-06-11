@@ -1,4 +1,6 @@
-﻿using System;
+﻿using Autofac;
+using IndyPOS.IoC;
+using System;
 using System.Linq;
 
 namespace IndyPOS
@@ -28,7 +30,15 @@ namespace IndyPOS
                 System.Threading.Thread.Sleep(1000);
             }
 
-            Machine.Instance.Launch();
+            System.Windows.Forms.Application.EnableVisualStyles();
+            System.Windows.Forms.Application.SetCompatibleTextRenderingDefault(false);
+
+            var container = ContainerConfig.Configure();
+
+            using (var scope = container.BeginLifetimeScope())
+            {
+                scope.Resolve<IMachine>().Launch();
+            }
         }
     }
 }

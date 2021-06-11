@@ -10,7 +10,7 @@ using System.Windows.Forms;
 using Prism.Events;
 using IndyPOS.DataServices;
 
-namespace IndyPOS
+namespace IndyPOS.UI
 {
     public partial class MainForm : Form
     {

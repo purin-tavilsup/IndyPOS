@@ -8,12 +8,12 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using IndyPOS.DataServices;
-using IndyPOS.EventAggregator;
+using IndyPOS.Events;
 using Prism.Events;
 using IndyPOS.Controllers;
 using IndyPOS.Adapters;
 
-namespace IndyPOS
+namespace IndyPOS.UI
 {
     public partial class InventoryPanel : UserControl
     {

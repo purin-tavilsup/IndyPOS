@@ -8,7 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
-namespace IndyPOS
+namespace IndyPOS.UI
 {
     public partial class CustomerAccountsPanel : UserControl
     {

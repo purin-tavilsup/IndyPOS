@@ -8,7 +8,7 @@ using Dapper;
 
 namespace IndyPOS.DataServices
 {
-    public class UsersDataService : SQLiteDatabase
+    public class UsersDataService : SQLiteDatabase, IUsersDataService
     {
     }
 }
