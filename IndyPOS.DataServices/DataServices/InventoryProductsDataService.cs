@@ -38,5 +38,45 @@ namespace IndyPOS.DataServices
                 return results.ToList();
             }
         }
+
+        public void AddProduct(InventoryProductModel product)
+        {
+            using (var connection = GetDatabaseConnection())
+            {
+                connection.Open();
+
+                //
+            }
+        }
+
+        public void UpdateProduct(InventoryProductModel product)
+        {
+            using (var connection = GetDatabaseConnection())
+            {
+                connection.Open();
+
+                //
+            }
+        }
+
+        public void RemoveProduct(InventoryProductModel product)
+        {
+            using (var connection = GetDatabaseConnection())
+            {
+                connection.Open();
+
+                //
+            }
+        }
+
+        public void RemoveProductByBarcode(string barcode)
+        {
+            using (var connection = GetDatabaseConnection())
+            {
+                connection.Open();
+
+                //
+            }
+        }
     }
 }

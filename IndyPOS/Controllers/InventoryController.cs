@@ -30,5 +30,15 @@ namespace IndyPOS.Controllers
 
             return result != null ? new InventoryProductAdapter(result) : null;
         }
+
+        public void AddNewProduct(IInventoryProduct product)
+        {
+            //
+        }
+
+        public void UpdateProduct(IInventoryProduct product)
+        {
+            //
+        }
     }
 }

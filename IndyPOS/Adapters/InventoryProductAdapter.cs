@@ -21,7 +21,6 @@ namespace IndyPOS.Adapters
         public int InventoryProductId
         {
             get => _adaptee.InventoryProductId;
-            set => _adaptee.InventoryProductId = value;
         }
 
         public string SKU
@@ -110,19 +109,16 @@ namespace IndyPOS.Adapters
         public int Revision
         {
             get => _adaptee.Revision;
-            set => _adaptee.Revision = value;
         }
 
         public string DateCreated
         {
             get => _adaptee.DateCreated;
-            set => _adaptee.DateCreated = value;
         }
 
         public string DateUpdated
         {
             get => _adaptee.DateUpdated;
-            set => _adaptee.DateUpdated = value;
         }
     }
 }

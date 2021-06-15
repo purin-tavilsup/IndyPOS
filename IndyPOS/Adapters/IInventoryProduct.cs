@@ -8,7 +8,7 @@ namespace IndyPOS.Adapters
 {
     public interface IInventoryProduct
     {
-        int InventoryProductId { get; set; }
+        int InventoryProductId { get; }
 
         string SKU { get; set; }
 
@@ -30,10 +30,10 @@ namespace IndyPOS.Adapters
 
         string Comment { get; set; }
 
-        int Revision { get; set; }
+        int Revision { get; }
 
-        string DateCreated { get; set; }
+        string DateCreated { get; }
 
-        string DateUpdated { get; set; }
+        string DateUpdated { get; }
     }
 }

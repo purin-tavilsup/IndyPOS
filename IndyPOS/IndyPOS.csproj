@@ -107,16 +107,23 @@
     <Compile Include="Extensions\IInventoryProductExtensions.cs" />
     <Compile Include="Extensions\StringExtensions.cs" />
     <Compile Include="IMachine.cs" />
+    <Compile Include="Inventory\InventoryProduct.cs" />
     <Compile Include="IoC\ContainerConfig.cs" />
     <Compile Include="SaleInvoice\SaleInvoiceProduct.cs" />
     <Compile Include="Constants\StoreConstants.cs" />
     <Compile Include="Extensions\UIControlExtensions.cs" />
     <Compile Include="Machine.cs" />
-    <Compile Include="UI\AddNewProductForm.cs">
+    <Compile Include="UI\UpdateInventoryProductForm.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="UI\AddNewProductForm.Designer.cs">
-      <DependentUpon>AddNewProductForm.cs</DependentUpon>
+    <Compile Include="UI\UpdateInventoryProductForm.Designer.cs">
+      <DependentUpon>UpdateInventoryProductForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="UI\AddNewInventoryProductForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\AddNewInventoryProductForm.Designer.cs">
+      <DependentUpon>AddNewInventoryProductForm.cs</DependentUpon>
     </Compile>
     <Compile Include="UI\CustomerAccountsPanel.cs">
       <SubType>UserControl</SubType>
@@ -162,8 +169,11 @@
     <Compile Include="UI\UsersPanel.Designer.cs">
       <DependentUpon>UsersPanel.cs</DependentUpon>
     </Compile>
-    <EmbeddedResource Include="UI\AddNewProductForm.resx">
-      <DependentUpon>AddNewProductForm.cs</DependentUpon>
+    <EmbeddedResource Include="UI\UpdateInventoryProductForm.resx">
+      <DependentUpon>UpdateInventoryProductForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="UI\AddNewInventoryProductForm.resx">
+      <DependentUpon>AddNewInventoryProductForm.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="UI\CustomerAccountsPanel.resx">
       <DependentUpon>CustomerAccountsPanel.cs</DependentUpon>

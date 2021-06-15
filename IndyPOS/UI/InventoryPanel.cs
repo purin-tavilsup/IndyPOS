@@ -15,6 +15,8 @@ namespace IndyPOS.UI
         private readonly IInventoryController _inventoryController;
         private readonly IStoreConstants _storeConstants;
         private IReadOnlyDictionary<int, string> _productCategoryDictionary;
+        private readonly AddNewInventoryProductForm _addNewProductForm;
+        private readonly UpdateInventoryProductForm _updateProductForm;
 
         private enum ProductColumn
         {
@@ -30,12 +32,18 @@ namespace IndyPOS.UI
             DateUpdated
         }
 
-        public InventoryPanel(IEventAggregator eventAggregator, IInventoryController inventoryController, IStoreConstants storeConstants)
+        public InventoryPanel(IEventAggregator eventAggregator, 
+            IInventoryController inventoryController, 
+            IStoreConstants storeConstants, 
+            AddNewInventoryProductForm addNewProductForm,
+            UpdateInventoryProductForm updateProductForm)
         {
             _eventAggregator = eventAggregator;
             _inventoryController = inventoryController;
             _storeConstants = storeConstants;
             _productCategoryDictionary = _storeConstants.ProductCategories;
+            _addNewProductForm = addNewProductForm;
+            _updateProductForm = updateProductForm;
 
             InitializeComponent();
             InitializeProductCategories();
@@ -165,15 +173,18 @@ namespace IndyPOS.UI
 
         private void AddProductButton_Click(object sender, EventArgs e)
         {
-            //
+            _addNewProductForm.ShowDialog();
         }
 
         private void ProductDataView_DoubleClick(object sender, EventArgs e)
         {
             //TODO: Display a dialog for editing the selected product
             var barcode = GetProductBarcodeFromSelectedProduct();
-            // Test
-            MessageBox.Show("Barcode : " + barcode);
+            var product = _inventoryController.GetInventoryProductByBarcode(barcode);
+
+            _updateProductForm.ShowDialog(product);
+
+            //_inventoryController.UpdateProduct(product);
         }
 
         private string GetProductBarcodeFromSelectedProduct()
