@@ -1,21 +1,21 @@
-﻿using IndyPOS.Constants;
+﻿using IndyPOS.Adapters;
+using IndyPOS.Constants;
+using IndyPOS.Controllers;
 using Prism.Events;
 using System;
 using System.Collections.Generic;
-using System.Windows.Forms;
 using System.Linq;
-using IndyPOS.Controllers;
-using IndyPOS.Inventory;
-using IndyPOS.Adapters;
+using System.Windows.Forms;
 
 namespace IndyPOS.UI
 {
-    public partial class UpdateInventoryProductForm : Form
+	public partial class UpdateInventoryProductForm : Form
     {
         private readonly IEventAggregator _eventAggregator;
         private readonly IStoreConstants _storeConstants;
         private readonly IInventoryController _inventoryController;
         private IReadOnlyDictionary<int, string> _productCategoryDictionary;
+        private IInventoryProduct _product;
 
         public UpdateInventoryProductForm(IEventAggregator eventAggregator, 
             IStoreConstants storeConstants, 
@@ -32,23 +32,26 @@ namespace IndyPOS.UI
 
         public void ShowDialog(IInventoryProduct product)
         {
-            ProductCodeTextBox.Text = product.Barcode;
+            _product = product;
+            ProductCodeTextBox.Text = _product.Barcode;
             ProductCodeTextBox.ReadOnly = true;
 
-            PopulateProductProperties(product);
+            PopulateProductProperties();
+
+            CancelUpdateProductButton.Select();
+
             ShowDialog();
         }
 
-        private void PopulateProductProperties(IInventoryProduct product)
+        private void PopulateProductProperties()
         {
-            DescriptionTextBox.Text = product.Description;
-            QuantityTextBox.Text = product.QuantityInStock.ToString();
-            UnitPriceTextBox.Text = product.UnitPrice.ToString("0.00");
-            UnitCostTextBox.Text = product.UnitCost.HasValue ? product.UnitCost.Value.ToString("0.00") : string.Empty;
-            CategoryComboBox.Text = _productCategoryDictionary[product.Category];
-            ManufacturerTextBox.Text = product.Manufacturer;
-            BrandTextBox.Text = product.Brand;
-            CommentTextBox.Text = product.Comment;
+            DescriptionTextBox.Text = _product.Description;
+            QuantityTextBox.Text = _product.QuantityInStock.ToString();
+            UnitPriceTextBox.Text = _product.UnitPrice.ToString("0.00");
+            UnitCostTextBox.Text = _product.UnitCost.HasValue ? _product.UnitCost.Value.ToString("0.00") : string.Empty;
+            CategoryComboBox.Text = _productCategoryDictionary[_product.Category];
+            ManufacturerTextBox.Text = _product.Manufacturer;
+            BrandTextBox.Text = _product.Brand;
         }
 
         private bool ValidateProductEntry()
@@ -112,34 +115,30 @@ namespace IndyPOS.UI
             }
         }
 
-        private void SaveProductEntryButton_Click(object sender, EventArgs e)
+        private void UpdateProductButton_Click(object sender, EventArgs e)
         {
             if (!ValidateProductEntry())
                 return;
 
-            var product = CreateNewProduct();
+            var updatedProduct = UpdateProduct(_product);
 
-            _inventoryController.AddNewProduct(product);
+            _inventoryController.UpdateProduct(updatedProduct);
 
             Close();
         }
 
-        private IInventoryProduct CreateNewProduct()
+        private IInventoryProduct UpdateProduct(IInventoryProduct product)
         {
-            var quantity = int.Parse(QuantityTextBox.Text.Trim());
-            var unitPrice = decimal.Parse(UnitPriceTextBox.Text.Trim());
             var category = _productCategoryDictionary.FirstOrDefault(x => x.Value == CategoryComboBox.Text);
             var categoryId = category.Key;
 
-            var product = new InventoryProduct
-            {
-                Barcode = ProductCodeTextBox.Text.Trim(),
-                Description = DescriptionTextBox.Text.Trim(),
-                QuantityInStock = quantity,
-                UnitPrice = unitPrice,
-                Category = categoryId
-            };
+            // Required Attributes
+            product.Description = DescriptionTextBox.Text.Trim();
+            product.QuantityInStock = int.Parse(QuantityTextBox.Text.Trim());
+            product.UnitPrice = decimal.Parse(UnitPriceTextBox.Text.Trim());
+            product.Category = categoryId;
 
+            // Optional Attributes
             if (decimal.TryParse(UnitCostTextBox.Text.Trim(), out var unitCost))
                 product.UnitCost = unitCost;
 
@@ -149,15 +148,19 @@ namespace IndyPOS.UI
             if (!string.IsNullOrWhiteSpace(BrandTextBox.Text))
                 product.Brand = BrandTextBox.Text;
 
-            if (!string.IsNullOrWhiteSpace(CommentTextBox.Text))
-                product.Comment = CommentTextBox.Text;
-
             return product;
         }
 
-        private void CancelProductEntryButton_Click(object sender, EventArgs e)
+        private void CancelUpdateProductButton_Click(object sender, EventArgs e)
         {
             Close();
         }
-    }
+
+		private void RemoveProductButton_Click(object sender, EventArgs e)
+		{
+            _inventoryController.RemoveProductByBarcode(_product.Barcode);
+
+            Close();
+        }
+	}
 }

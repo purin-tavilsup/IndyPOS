@@ -100,17 +100,6 @@ namespace IndyPOS.Adapters
             set => _adaptee.QuantityInStock = value;
         }
 
-        public string Comment
-        {
-            get => _adaptee.Comment;
-            set => _adaptee.Comment = value;
-        }
-
-        public int Revision
-        {
-            get => _adaptee.Revision;
-        }
-
         public string DateCreated
         {
             get => _adaptee.DateCreated;

@@ -29,10 +29,6 @@ namespace IndyPOS.Inventory
 
         public int QuantityInStock { get; set; }
 
-        public string Comment { get; set; }
-
-        public int Revision { get; }
-
         public string DateCreated { get; }
 
         public string DateUpdated { get; }

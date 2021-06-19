@@ -28,10 +28,6 @@ namespace IndyPOS.DataServices.Models
 
         public int QuantityInStock { get; set; }
 
-        public string Comment { get; set; }
-
-        public int Revision { get; set; }
-
         public string DateCreated { get; set; }
 
         public string DateUpdated { get; set; }

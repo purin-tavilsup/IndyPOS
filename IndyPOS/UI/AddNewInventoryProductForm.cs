@@ -1,16 +1,16 @@
-﻿using IndyPOS.Constants;
+﻿using IndyPOS.Adapters;
+using IndyPOS.Constants;
+using IndyPOS.Controllers;
+using IndyPOS.Inventory;
 using Prism.Events;
 using System;
 using System.Collections.Generic;
-using System.Windows.Forms;
 using System.Linq;
-using IndyPOS.Controllers;
-using IndyPOS.Inventory;
-using IndyPOS.Adapters;
+using System.Windows.Forms;
 
 namespace IndyPOS.UI
 {
-    public partial class AddNewInventoryProductForm : Form
+	public partial class AddNewInventoryProductForm : Form
     {
         private readonly IEventAggregator _eventAggregator;
         private readonly IStoreConstants _storeConstants;
@@ -44,6 +44,8 @@ namespace IndyPOS.UI
                 ProductCodeTextBox.ReadOnly = true;
             }
 
+            CancelProductEntryButton.Select();
+
             base.ShowDialog();
         }
 
@@ -57,7 +59,6 @@ namespace IndyPOS.UI
             CategoryComboBox.Text = "เลือกประเภทสินค้า";
             ManufacturerTextBox.Text = string.Empty;
             BrandTextBox.Text = string.Empty;
-            CommentTextBox.Text = string.Empty;
         }
 
         private bool ValidateProductEntry()
@@ -135,6 +136,7 @@ namespace IndyPOS.UI
 
         private IInventoryProduct CreateNewProduct()
         {
+            // Required Attributes
             var quantity = int.Parse(QuantityTextBox.Text.Trim());
             var unitPrice = decimal.Parse(UnitPriceTextBox.Text.Trim());
             var category = _productCategoryDictionary.FirstOrDefault(x => x.Value == CategoryComboBox.Text);
@@ -149,6 +151,7 @@ namespace IndyPOS.UI
                 Category = categoryId
             };
 
+            // Optional Attributes
             if (decimal.TryParse(UnitCostTextBox.Text.Trim(), out var unitCost))
                 product.UnitCost = unitCost;
 
@@ -157,9 +160,6 @@ namespace IndyPOS.UI
 
             if (!string.IsNullOrWhiteSpace(BrandTextBox.Text))
                 product.Brand = BrandTextBox.Text;
-
-            if (!string.IsNullOrWhiteSpace(CommentTextBox.Text))
-                product.Comment = CommentTextBox.Text;
 
             return product;
         }

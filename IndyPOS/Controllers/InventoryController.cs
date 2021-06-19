@@ -40,5 +40,10 @@ namespace IndyPOS.Controllers
         {
             //
         }
+
+        public void RemoveProductByBarcode(string barcode)
+		{
+            //
+		}
     }
 }

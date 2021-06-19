@@ -28,10 +28,6 @@ namespace IndyPOS.Adapters
 
         int QuantityInStock { get; set; }
 
-        string Comment { get; set; }
-
-        int Revision { get; }
-
         string DateCreated { get; }
 
         string DateUpdated { get; }

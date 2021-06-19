@@ -9,6 +9,6 @@ namespace IndyPOS
 {
     public class BarcodeScanner
     {
-        private readonly SerialPort _serialPort;
+        //private readonly SerialPort _serialPort;
     }
 }
