@@ -11,6 +11,7 @@ namespace IndyPOS.UI
     public partial class SalePanel : UserControl
     {
         private readonly IEventAggregator _eventAggregator;
+        private readonly AcceptPaymentForm _acceptPaymentForm;
         private ISaleInvoiceController _saleInvoiceController;
 
         private enum SaleInvoiceColumn
@@ -22,14 +23,15 @@ namespace IndyPOS.UI
             Total
         }
 
-        public SalePanel(IEventAggregator eventAggregator, ISaleInvoiceController saleInvoiceController)
+        public SalePanel(IEventAggregator eventAggregator, ISaleInvoiceController saleInvoiceController, AcceptPaymentForm acceptPaymentForm)
         {
             InitializeComponent();
             InitializeInvoiceDataView();
 
             _eventAggregator = eventAggregator;
             _saleInvoiceController = saleInvoiceController;
-            
+            _acceptPaymentForm = acceptPaymentForm;
+
             eventAggregator.GetEvent<SaleInvoiceProductAddedEvent>().Subscribe(SaleInvoiceProductChanged);
             eventAggregator.GetEvent<SaleInvoiceProductRemovedEvent>().Subscribe(SaleInvoiceProductChanged);
         }
@@ -134,6 +136,7 @@ namespace IndyPOS.UI
         private void GetPaymentButton_Click(object sender, EventArgs e)
         {
             // TODO: Display a dialog for getting a payment
+            _acceptPaymentForm.ShowDialog();
         }
 
         private void SaveSaleInvoiceButton_Click(object sender, EventArgs e)

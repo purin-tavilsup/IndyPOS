@@ -257,7 +257,7 @@
 			this.CancelProductEntryButton.Name = "CancelProductEntryButton";
 			this.CancelProductEntryButton.Size = new System.Drawing.Size(218, 87);
 			this.CancelProductEntryButton.TabIndex = 7;
-			this.CancelProductEntryButton.Text = "     ยกเลิก";
+			this.CancelProductEntryButton.Text = "   ยกเลิก";
 			this.CancelProductEntryButton.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
 			this.CancelProductEntryButton.TextImageRelation = System.Windows.Forms.TextImageRelation.ImageBeforeText;
 			this.CancelProductEntryButton.UseVisualStyleBackColor = false;
@@ -283,7 +283,7 @@
 			this.SaveProductEntryButton.Name = "SaveProductEntryButton";
 			this.SaveProductEntryButton.Size = new System.Drawing.Size(223, 87);
 			this.SaveProductEntryButton.TabIndex = 7;
-			this.SaveProductEntryButton.Text = "     บันทึกสินค้า";
+			this.SaveProductEntryButton.Text = "   บันทึกสินค้า";
 			this.SaveProductEntryButton.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
 			this.SaveProductEntryButton.TextImageRelation = System.Windows.Forms.TextImageRelation.ImageBeforeText;
 			this.SaveProductEntryButton.UseVisualStyleBackColor = false;
