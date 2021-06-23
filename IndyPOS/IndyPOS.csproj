@@ -102,6 +102,7 @@
     <Compile Include="Controllers\InventoryController.cs" />
     <Compile Include="Controllers\ISaleInvoiceController.cs" />
     <Compile Include="Controllers\SaleInvoiceController.cs" />
+    <Compile Include="Enums\PaymentTypes.cs" />
     <Compile Include="Events\SaleInvoiceProductAddedEvent.cs" />
     <Compile Include="Events\SaleInvoiceProductRemovedEvent.cs" />
     <Compile Include="Extensions\IInventoryProductExtensions.cs" />
@@ -347,6 +348,24 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\Payment_Cash_100.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Money_Gray_80.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Payment_KLK_Gray_100.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Payment_MoneyTransfer_Gray_100.jpg" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Payment_PracharatCard_Gray_100.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Payment_WeLove_Gray_100.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Payment_WeWin_Gray_100.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="..\packages\Stub.System.Data.SQLite.Core.NetFramework.1.0.114.0\build\net46\Stub.System.Data.SQLite.Core.NetFramework.targets" Condition="Exists('..\packages\Stub.System.Data.SQLite.Core.NetFramework.1.0.114.0\build\net46\Stub.System.Data.SQLite.Core.NetFramework.targets')" />

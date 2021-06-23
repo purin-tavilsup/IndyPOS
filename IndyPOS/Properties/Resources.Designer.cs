@@ -133,6 +133,16 @@ namespace IndyPOS.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
+        internal static System.Drawing.Bitmap Money_Gray_80 {
+            get {
+                object obj = ResourceManager.GetObject("Money_Gray_80", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
         internal static System.Drawing.Bitmap Payment_Cash2_100 {
             get {
                 object obj = ResourceManager.GetObject("Payment_Cash2_100", resourceCulture);
@@ -153,9 +163,29 @@ namespace IndyPOS.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
+        internal static System.Drawing.Bitmap Payment_KLK_Gray_100 {
+            get {
+                object obj = ResourceManager.GetObject("Payment_KLK_Gray_100", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
         internal static System.Drawing.Bitmap Payment_MoneyTransfer_100 {
             get {
                 object obj = ResourceManager.GetObject("Payment_MoneyTransfer_100", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap Payment_MoneyTransfer_Gray_100 {
+            get {
+                object obj = ResourceManager.GetObject("Payment_MoneyTransfer_Gray_100", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
@@ -173,9 +203,9 @@ namespace IndyPOS.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
-        internal static System.Drawing.Bitmap Payment_Prompt_Pay_100 {
+        internal static System.Drawing.Bitmap Payment_PracharatCard_Gray_100 {
             get {
-                object obj = ResourceManager.GetObject("Payment_Prompt_Pay_100", resourceCulture);
+                object obj = ResourceManager.GetObject("Payment_PracharatCard_Gray_100", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
@@ -193,9 +223,29 @@ namespace IndyPOS.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
+        internal static System.Drawing.Bitmap Payment_WeLove_Gray_100 {
+            get {
+                object obj = ResourceManager.GetObject("Payment_WeLove_Gray_100", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
         internal static System.Drawing.Bitmap Payment_WeWin_100 {
             get {
                 object obj = ResourceManager.GetObject("Payment_WeWin_100", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap Payment_WeWin_Gray_100 {
+            get {
+                object obj = ResourceManager.GetObject("Payment_WeWin_Gray_100", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
