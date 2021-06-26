@@ -19,6 +19,9 @@ namespace IndyPOS.UI
         private IReadOnlyDictionary<int, string> _paymentTypeDictionary;
         private PaymentType _selectedPaymentType;
         private bool _isPaymentTypeSelected;
+        private decimal _amount;
+        private string _pendingStringValue;
+        private IList<decimal> _values;
 
         public AcceptPaymentForm(IEventAggregator eventAggregator, 
             IStoreConstants storeConstants, 
@@ -30,6 +33,8 @@ namespace IndyPOS.UI
             _paymentTypeDictionary = _storeConstants.PaymentTypes;
 
             InitializeComponent();
+
+            _values = new List<decimal>();
         }
 
         private void ResetPaymentTypeSelection()
@@ -50,6 +55,10 @@ namespace IndyPOS.UI
 
         public new void ShowDialog()
         {
+            _amount = 0m;
+            _pendingStringValue = string.Empty;
+            _values.Clear();
+
             ResetPaymentTypeSelection();
             CancelAcceptPaymentButton.Select();
 
@@ -155,5 +164,191 @@ namespace IndyPOS.UI
             PayByWelfareCardButton.Image = Properties.Resources.Payment_PracharatCard_Gray_100;
             PayByWeLoveButton.Image = Properties.Resources.Payment_WeLove_100;
         }
-	}
+
+		private void Add20Button_Click(object sender, EventArgs e)
+		{
+            _pendingStringValue = string.Empty;
+
+            var value = 20m;
+
+            _values.Add(value);
+            _amount = _values.Sum();
+
+            DisplayValue(value);
+        }
+
+		private void Add50Button_Click(object sender, EventArgs e)
+		{
+            _pendingStringValue = string.Empty;
+
+            var value = 50m;
+
+            _values.Add(value);
+            _amount = _values.Sum();
+
+            DisplayValue(value);
+        }
+
+		private void Add100Button_Click(object sender, EventArgs e)
+		{
+            _pendingStringValue = string.Empty;
+
+            var value = 100m;
+
+            _values.Add(value);
+            _amount = _values.Sum();
+
+            DisplayValue(value);
+        }
+
+		private void Add500Button_Click(object sender, EventArgs e)
+		{
+            _pendingStringValue = string.Empty;
+
+            var value = 500m;
+
+            _values.Add(value);
+            _amount = _values.Sum();
+
+            DisplayValue(value);
+        }
+
+		private void Add1000Button_Click(object sender, EventArgs e)
+		{
+            _pendingStringValue = string.Empty;
+
+            var value = 1000m;
+
+            _values.Add(value);
+            _amount = _values.Sum();
+
+            DisplayValue(value);
+        }
+
+		private void Digit1Button_Click(object sender, EventArgs e)
+		{
+            _pendingStringValue += "1";
+
+            DisplayValue(_pendingStringValue);
+        }
+
+		private void Digit2Button_Click(object sender, EventArgs e)
+		{
+            _pendingStringValue += "2";
+
+            DisplayValue(_pendingStringValue);
+        }
+
+		private void Digit3Button_Click(object sender, EventArgs e)
+		{
+            _pendingStringValue += "3";
+
+            DisplayValue(_pendingStringValue);
+        }
+
+		private void Digit4Button_Click(object sender, EventArgs e)
+		{
+            _pendingStringValue += "4";
+
+            DisplayValue(_pendingStringValue);
+        }
+
+		private void Digit5Button_Click(object sender, EventArgs e)
+		{
+            _pendingStringValue += "5";
+
+            DisplayValue(_pendingStringValue);
+        }
+
+		private void Digit6Button_Click(object sender, EventArgs e)
+		{
+            _pendingStringValue += "6";
+
+            DisplayValue(_pendingStringValue);
+        }
+
+		private void Digit7Button_Click(object sender, EventArgs e)
+		{
+            _pendingStringValue += "7";
+
+            DisplayValue(_pendingStringValue);
+        }
+
+		private void Digit8Button_Click(object sender, EventArgs e)
+		{
+            _pendingStringValue += "8";
+
+            DisplayValue(_pendingStringValue);
+        }
+
+		private void Digit9Button_Click(object sender, EventArgs e)
+		{
+            _pendingStringValue += "9";
+
+            DisplayValue(_pendingStringValue);
+        }
+
+		private void DecimalPointButton_Click(object sender, EventArgs e)
+		{
+            if (_pendingStringValue.Contains("."))
+                return;
+
+            var decimalPoint = string.IsNullOrEmpty(_pendingStringValue) ? "0." : ".";
+
+            _pendingStringValue += decimalPoint;
+
+            DisplayValue(_pendingStringValue);
+        }
+
+		private void PlusButton_Click(object sender, EventArgs e)
+		{
+            CalculateLatestAmount();
+            DisplayValue(_amount);
+        }
+
+        private void CalculateLatestAmount()
+		{
+            if (string.IsNullOrEmpty(_pendingStringValue))
+                return;
+
+            var value = decimal.Parse(_pendingStringValue);
+
+            _values.Add(value);
+            _amount = _values.Sum();
+
+            _pendingStringValue = string.Empty;
+        }
+
+		private void Digit0Button_Click(object sender, EventArgs e)
+		{
+            _pendingStringValue += "0";
+
+            DisplayValue(_pendingStringValue);
+        }
+
+		private void ClearButton_Click(object sender, EventArgs e)
+		{
+            _amount = 0m;
+            _values.Clear();
+            _pendingStringValue = string.Empty;
+
+            DisplayValue(_amount);
+        }
+
+		private void EqualButton_Click(object sender, EventArgs e)
+		{
+            CalculateLatestAmount();
+            DisplayValue(_amount);
+        }
+
+        private void DisplayValue(decimal value)
+		{
+            DisplayValue(value.ToString("0.00"));
+        }
+
+        private void DisplayValue(string value)
+        {
+            PaymentAmountLabel.Text = value;
+        }
+    }
 }

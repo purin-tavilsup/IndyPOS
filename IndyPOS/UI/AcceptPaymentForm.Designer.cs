@@ -53,12 +53,14 @@
 			this.PaymentTypeLabel = new System.Windows.Forms.Label();
 			this.label4 = new System.Windows.Forms.Label();
 			this.panel29 = new System.Windows.Forms.Panel();
+			this.panel31 = new System.Windows.Forms.Panel();
+			this.EqualButton = new System.Windows.Forms.Button();
 			this.panel23 = new System.Windows.Forms.Panel();
 			this.ClearButton = new System.Windows.Forms.Button();
 			this.panel19 = new System.Windows.Forms.Panel();
 			this.PlusButton = new System.Windows.Forms.Button();
 			this.panel18 = new System.Windows.Forms.Panel();
-			this.MinusButton = new System.Windows.Forms.Button();
+			this.DecimalPointButton = new System.Windows.Forms.Button();
 			this.panel17 = new System.Windows.Forms.Panel();
 			this.Add500Button = new System.Windows.Forms.Button();
 			this.panel16 = new System.Windows.Forms.Panel();
@@ -101,6 +103,7 @@
 			this.panel27.SuspendLayout();
 			this.panel28.SuspendLayout();
 			this.panel29.SuspendLayout();
+			this.panel31.SuspendLayout();
 			this.panel23.SuspendLayout();
 			this.panel19.SuspendLayout();
 			this.panel18.SuspendLayout();
@@ -428,6 +431,7 @@
 			// 
 			this.panel29.BackColor = System.Drawing.Color.DarkGray;
 			this.panel29.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+			this.panel29.Controls.Add(this.panel31);
 			this.panel29.Controls.Add(this.panel23);
 			this.panel29.Controls.Add(this.panel19);
 			this.panel29.Controls.Add(this.panel18);
@@ -451,6 +455,31 @@
 			this.panel29.Size = new System.Drawing.Size(530, 433);
 			this.panel29.TabIndex = 49;
 			// 
+			// panel31
+			// 
+			this.panel31.BackColor = System.Drawing.Color.Silver;
+			this.panel31.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+			this.panel31.Controls.Add(this.EqualButton);
+			this.panel31.Location = new System.Drawing.Point(139, 345);
+			this.panel31.Name = "panel31";
+			this.panel31.Size = new System.Drawing.Size(252, 78);
+			this.panel31.TabIndex = 58;
+			// 
+			// EqualButton
+			// 
+			this.EqualButton.BackColor = System.Drawing.Color.Gainsboro;
+			this.EqualButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+			this.EqualButton.Font = new System.Drawing.Font("Leelawadee UI", 27.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+			this.EqualButton.ForeColor = System.Drawing.Color.Black;
+			this.EqualButton.Location = new System.Drawing.Point(3, 3);
+			this.EqualButton.Name = "EqualButton";
+			this.EqualButton.Size = new System.Drawing.Size(244, 70);
+			this.EqualButton.TabIndex = 7;
+			this.EqualButton.Text = "=";
+			this.EqualButton.TextImageRelation = System.Windows.Forms.TextImageRelation.ImageAboveText;
+			this.EqualButton.UseVisualStyleBackColor = false;
+			this.EqualButton.Click += new System.EventHandler(this.EqualButton_Click);
+			// 
 			// panel23
 			// 
 			this.panel23.BackColor = System.Drawing.Color.Silver;
@@ -458,7 +487,7 @@
 			this.panel23.Controls.Add(this.ClearButton);
 			this.panel23.Location = new System.Drawing.Point(10, 345);
 			this.panel23.Name = "panel23";
-			this.panel23.Size = new System.Drawing.Size(381, 78);
+			this.panel23.Size = new System.Drawing.Size(123, 78);
 			this.panel23.TabIndex = 57;
 			// 
 			// ClearButton
@@ -469,11 +498,12 @@
 			this.ClearButton.ForeColor = System.Drawing.Color.Black;
 			this.ClearButton.Location = new System.Drawing.Point(3, 3);
 			this.ClearButton.Name = "ClearButton";
-			this.ClearButton.Size = new System.Drawing.Size(373, 70);
+			this.ClearButton.Size = new System.Drawing.Size(115, 70);
 			this.ClearButton.TabIndex = 7;
 			this.ClearButton.Text = "Clear";
 			this.ClearButton.TextImageRelation = System.Windows.Forms.TextImageRelation.ImageAboveText;
 			this.ClearButton.UseVisualStyleBackColor = false;
+			this.ClearButton.Click += new System.EventHandler(this.ClearButton_Click);
 			// 
 			// panel19
 			// 
@@ -489,7 +519,7 @@
 			// 
 			this.PlusButton.BackColor = System.Drawing.Color.Gainsboro;
 			this.PlusButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-			this.PlusButton.Font = new System.Drawing.Font("Leelawadee UI", 24F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+			this.PlusButton.Font = new System.Drawing.Font("Leelawadee UI", 27.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
 			this.PlusButton.ForeColor = System.Drawing.Color.Black;
 			this.PlusButton.Location = new System.Drawing.Point(3, 3);
 			this.PlusButton.Name = "PlusButton";
@@ -498,30 +528,32 @@
 			this.PlusButton.Text = "+";
 			this.PlusButton.TextImageRelation = System.Windows.Forms.TextImageRelation.ImageAboveText;
 			this.PlusButton.UseVisualStyleBackColor = false;
+			this.PlusButton.Click += new System.EventHandler(this.PlusButton_Click);
 			// 
 			// panel18
 			// 
 			this.panel18.BackColor = System.Drawing.Color.Silver;
 			this.panel18.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-			this.panel18.Controls.Add(this.MinusButton);
+			this.panel18.Controls.Add(this.DecimalPointButton);
 			this.panel18.Location = new System.Drawing.Point(10, 261);
 			this.panel18.Name = "panel18";
 			this.panel18.Size = new System.Drawing.Size(123, 78);
 			this.panel18.TabIndex = 55;
 			// 
-			// MinusButton
+			// DecimalPointButton
 			// 
-			this.MinusButton.BackColor = System.Drawing.Color.Gainsboro;
-			this.MinusButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-			this.MinusButton.Font = new System.Drawing.Font("Leelawadee UI", 24F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-			this.MinusButton.ForeColor = System.Drawing.Color.Black;
-			this.MinusButton.Location = new System.Drawing.Point(3, 3);
-			this.MinusButton.Name = "MinusButton";
-			this.MinusButton.Size = new System.Drawing.Size(115, 70);
-			this.MinusButton.TabIndex = 7;
-			this.MinusButton.Text = "-";
-			this.MinusButton.TextImageRelation = System.Windows.Forms.TextImageRelation.ImageAboveText;
-			this.MinusButton.UseVisualStyleBackColor = false;
+			this.DecimalPointButton.BackColor = System.Drawing.Color.Gainsboro;
+			this.DecimalPointButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+			this.DecimalPointButton.Font = new System.Drawing.Font("Leelawadee UI", 27.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+			this.DecimalPointButton.ForeColor = System.Drawing.Color.Black;
+			this.DecimalPointButton.Location = new System.Drawing.Point(3, 3);
+			this.DecimalPointButton.Name = "DecimalPointButton";
+			this.DecimalPointButton.Size = new System.Drawing.Size(115, 70);
+			this.DecimalPointButton.TabIndex = 7;
+			this.DecimalPointButton.Text = ".";
+			this.DecimalPointButton.TextImageRelation = System.Windows.Forms.TextImageRelation.ImageAboveText;
+			this.DecimalPointButton.UseVisualStyleBackColor = false;
+			this.DecimalPointButton.Click += new System.EventHandler(this.DecimalPointButton_Click);
 			// 
 			// panel17
 			// 
@@ -538,7 +570,7 @@
 			this.Add500Button.BackColor = System.Drawing.Color.Gainsboro;
 			this.Add500Button.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
 			this.Add500Button.Font = new System.Drawing.Font("Leelawadee UI", 15.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-			this.Add500Button.ForeColor = System.Drawing.Color.DarkCyan;
+			this.Add500Button.ForeColor = System.Drawing.Color.SteelBlue;
 			this.Add500Button.Location = new System.Drawing.Point(3, 3);
 			this.Add500Button.Name = "Add500Button";
 			this.Add500Button.Size = new System.Drawing.Size(115, 70);
@@ -546,6 +578,7 @@
 			this.Add500Button.Text = "500";
 			this.Add500Button.TextImageRelation = System.Windows.Forms.TextImageRelation.ImageAboveText;
 			this.Add500Button.UseVisualStyleBackColor = false;
+			this.Add500Button.Click += new System.EventHandler(this.Add500Button_Click);
 			// 
 			// panel16
 			// 
@@ -562,7 +595,7 @@
 			this.Add50Button.BackColor = System.Drawing.Color.Gainsboro;
 			this.Add50Button.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
 			this.Add50Button.Font = new System.Drawing.Font("Leelawadee UI", 15.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-			this.Add50Button.ForeColor = System.Drawing.Color.DarkCyan;
+			this.Add50Button.ForeColor = System.Drawing.Color.SteelBlue;
 			this.Add50Button.Location = new System.Drawing.Point(3, 3);
 			this.Add50Button.Name = "Add50Button";
 			this.Add50Button.Size = new System.Drawing.Size(115, 70);
@@ -570,6 +603,7 @@
 			this.Add50Button.Text = "50";
 			this.Add50Button.TextImageRelation = System.Windows.Forms.TextImageRelation.ImageAboveText;
 			this.Add50Button.UseVisualStyleBackColor = false;
+			this.Add50Button.Click += new System.EventHandler(this.Add50Button_Click);
 			// 
 			// panel15
 			// 
@@ -586,7 +620,7 @@
 			this.Add20Button.BackColor = System.Drawing.Color.Gainsboro;
 			this.Add20Button.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
 			this.Add20Button.Font = new System.Drawing.Font("Leelawadee UI", 15.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-			this.Add20Button.ForeColor = System.Drawing.Color.DarkCyan;
+			this.Add20Button.ForeColor = System.Drawing.Color.SteelBlue;
 			this.Add20Button.Location = new System.Drawing.Point(3, 3);
 			this.Add20Button.Name = "Add20Button";
 			this.Add20Button.Size = new System.Drawing.Size(115, 70);
@@ -594,6 +628,7 @@
 			this.Add20Button.Text = "20";
 			this.Add20Button.TextImageRelation = System.Windows.Forms.TextImageRelation.ImageAboveText;
 			this.Add20Button.UseVisualStyleBackColor = false;
+			this.Add20Button.Click += new System.EventHandler(this.Add20Button_Click);
 			// 
 			// panel14
 			// 
@@ -610,7 +645,7 @@
 			this.Add100Button.BackColor = System.Drawing.Color.Gainsboro;
 			this.Add100Button.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
 			this.Add100Button.Font = new System.Drawing.Font("Leelawadee UI", 15.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-			this.Add100Button.ForeColor = System.Drawing.Color.DarkCyan;
+			this.Add100Button.ForeColor = System.Drawing.Color.SteelBlue;
 			this.Add100Button.Location = new System.Drawing.Point(3, 3);
 			this.Add100Button.Name = "Add100Button";
 			this.Add100Button.Size = new System.Drawing.Size(115, 70);
@@ -618,6 +653,7 @@
 			this.Add100Button.Text = "100";
 			this.Add100Button.TextImageRelation = System.Windows.Forms.TextImageRelation.ImageAboveText;
 			this.Add100Button.UseVisualStyleBackColor = false;
+			this.Add100Button.Click += new System.EventHandler(this.Add100Button_Click);
 			// 
 			// panel13
 			// 
@@ -634,7 +670,7 @@
 			this.Add1000Button.BackColor = System.Drawing.Color.Gainsboro;
 			this.Add1000Button.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
 			this.Add1000Button.Font = new System.Drawing.Font("Leelawadee UI", 15.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-			this.Add1000Button.ForeColor = System.Drawing.Color.DarkCyan;
+			this.Add1000Button.ForeColor = System.Drawing.Color.SteelBlue;
 			this.Add1000Button.Location = new System.Drawing.Point(3, 3);
 			this.Add1000Button.Name = "Add1000Button";
 			this.Add1000Button.Size = new System.Drawing.Size(115, 70);
@@ -642,6 +678,7 @@
 			this.Add1000Button.Text = "1000";
 			this.Add1000Button.TextImageRelation = System.Windows.Forms.TextImageRelation.ImageAboveText;
 			this.Add1000Button.UseVisualStyleBackColor = false;
+			this.Add1000Button.Click += new System.EventHandler(this.Add1000Button_Click);
 			// 
 			// panel12
 			// 
@@ -666,6 +703,7 @@
 			this.Digit0Button.Text = "0";
 			this.Digit0Button.TextImageRelation = System.Windows.Forms.TextImageRelation.ImageAboveText;
 			this.Digit0Button.UseVisualStyleBackColor = false;
+			this.Digit0Button.Click += new System.EventHandler(this.Digit0Button_Click);
 			// 
 			// panel8
 			// 
@@ -690,6 +728,7 @@
 			this.Digit3Button.Text = "3";
 			this.Digit3Button.TextImageRelation = System.Windows.Forms.TextImageRelation.ImageAboveText;
 			this.Digit3Button.UseVisualStyleBackColor = false;
+			this.Digit3Button.Click += new System.EventHandler(this.Digit3Button_Click);
 			// 
 			// panel10
 			// 
@@ -714,6 +753,7 @@
 			this.Digit2Button.Text = "2";
 			this.Digit2Button.TextImageRelation = System.Windows.Forms.TextImageRelation.ImageAboveText;
 			this.Digit2Button.UseVisualStyleBackColor = false;
+			this.Digit2Button.Click += new System.EventHandler(this.Digit2Button_Click);
 			// 
 			// panel11
 			// 
@@ -738,6 +778,7 @@
 			this.Digit1Button.Text = "1";
 			this.Digit1Button.TextImageRelation = System.Windows.Forms.TextImageRelation.ImageAboveText;
 			this.Digit1Button.UseVisualStyleBackColor = false;
+			this.Digit1Button.Click += new System.EventHandler(this.Digit1Button_Click);
 			// 
 			// panel3
 			// 
@@ -762,6 +803,7 @@
 			this.Digit6Button.Text = "6";
 			this.Digit6Button.TextImageRelation = System.Windows.Forms.TextImageRelation.ImageAboveText;
 			this.Digit6Button.UseVisualStyleBackColor = false;
+			this.Digit6Button.Click += new System.EventHandler(this.Digit6Button_Click);
 			// 
 			// panel4
 			// 
@@ -786,6 +828,7 @@
 			this.Digit5Button.Text = "5";
 			this.Digit5Button.TextImageRelation = System.Windows.Forms.TextImageRelation.ImageAboveText;
 			this.Digit5Button.UseVisualStyleBackColor = false;
+			this.Digit5Button.Click += new System.EventHandler(this.Digit5Button_Click);
 			// 
 			// panel5
 			// 
@@ -810,6 +853,7 @@
 			this.Digit4Button.Text = "4";
 			this.Digit4Button.TextImageRelation = System.Windows.Forms.TextImageRelation.ImageAboveText;
 			this.Digit4Button.UseVisualStyleBackColor = false;
+			this.Digit4Button.Click += new System.EventHandler(this.Digit4Button_Click);
 			// 
 			// panel2
 			// 
@@ -834,6 +878,7 @@
 			this.Digit9Button.Text = "9";
 			this.Digit9Button.TextImageRelation = System.Windows.Forms.TextImageRelation.ImageAboveText;
 			this.Digit9Button.UseVisualStyleBackColor = false;
+			this.Digit9Button.Click += new System.EventHandler(this.Digit9Button_Click);
 			// 
 			// panel1
 			// 
@@ -858,6 +903,7 @@
 			this.Digit8Button.Text = "8";
 			this.Digit8Button.TextImageRelation = System.Windows.Forms.TextImageRelation.ImageAboveText;
 			this.Digit8Button.UseVisualStyleBackColor = false;
+			this.Digit8Button.Click += new System.EventHandler(this.Digit8Button_Click);
 			// 
 			// panel9
 			// 
@@ -882,6 +928,7 @@
 			this.Digit7Button.Text = "7";
 			this.Digit7Button.TextImageRelation = System.Windows.Forms.TextImageRelation.ImageAboveText;
 			this.Digit7Button.UseVisualStyleBackColor = false;
+			this.Digit7Button.Click += new System.EventHandler(this.Digit7Button_Click);
 			// 
 			// panel30
 			// 
@@ -921,6 +968,7 @@
 			this.panel27.ResumeLayout(false);
 			this.panel28.ResumeLayout(false);
 			this.panel29.ResumeLayout(false);
+			this.panel31.ResumeLayout(false);
 			this.panel23.ResumeLayout(false);
 			this.panel19.ResumeLayout(false);
 			this.panel18.ResumeLayout(false);
@@ -973,7 +1021,7 @@
 		private System.Windows.Forms.Panel panel19;
 		private System.Windows.Forms.Button PlusButton;
 		private System.Windows.Forms.Panel panel18;
-		private System.Windows.Forms.Button MinusButton;
+		private System.Windows.Forms.Button DecimalPointButton;
 		private System.Windows.Forms.Panel panel17;
 		private System.Windows.Forms.Button Add500Button;
 		private System.Windows.Forms.Panel panel16;
@@ -1008,5 +1056,7 @@
 		private System.Windows.Forms.Button ClearButton;
 		private System.Windows.Forms.Label PaymentTypeLabel;
 		private System.Windows.Forms.Panel panel30;
+		private System.Windows.Forms.Panel panel31;
+		private System.Windows.Forms.Button EqualButton;
 	}
 }
