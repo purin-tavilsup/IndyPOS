@@ -118,35 +118,8 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <assembly alias="System.Windows.Forms" name="System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" />
-  <data name="Customer_Acounts_80" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Resources\Customer Acounts_80.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
-  </data>
-  <data name="Inventory_80" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Resources\Inventory_80.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
-  </data>
-  <data name="Money_80" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Resources\Money_80.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
-  </data>
-  <data name="Payment_80" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Resources\Payment_80.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
-  </data>
-  <data name="POS_80" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Resources\POS_80.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
-  </data>
   <data name="Reports_80" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\Reports_80.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
-  </data>
-  <data name="Save_80" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Resources\Save_80.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
-  </data>
-  <data name="Settings_80" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Resources\Settings_80.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
-  </data>
-  <data name="Shopping_Cart2_80" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Resources\Shopping Cart2_80.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
-  </data>
-  <data name="Users_80" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Resources\Users_80.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
   <data name="Customer_Acounts_50" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\Customer Acounts_50.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
@@ -178,13 +151,76 @@
   <data name="ShoppingCart_50" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\ShoppingCart_50.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
-  <data name="Users_50" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Resources\Users_50.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
-  </data>
   <data name="Login_50" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\Login_50.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
   <data name="Logout_50" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\Logout_50.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="Cashier_50" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Cashier_50.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="Receipt_50" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Receipt_50.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="Trash_50" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Trash_50.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="User_50" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\User_50.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="User_Add_50" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\User_Add_50.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="User_Edit_50" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\User_Edit_50.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="User_Login_50" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\User_Login_50.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="User_Logout_50" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\User_Logout_50.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="User_Remove_50" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\User_Remove_50.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="Money_80" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Money_80.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="Payment_Cash2_100" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Payment_Cash_100.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="Payment_KLK_100" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Payment_KLK_100.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="Payment_MoneyTransfer_100" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Payment_MoneyTransfer_100.jpg;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="Payment_PracharatCard_100" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Payment_PracharatCard_100.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="Payment_WeLove_100" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Payment_WeLove_100.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="Payment_WeWin_100" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Payment_WeWin_100.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="Money_Gray_80" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Money_Gray_80.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="Payment_KLK_Gray_100" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Payment_KLK_Gray_100.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="Payment_MoneyTransfer_Gray_100" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Payment_MoneyTransfer_Gray_100.jpg;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="Payment_PracharatCard_Gray_100" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Payment_PracharatCard_Gray_100.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="Payment_WeLove_Gray_100" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Payment_WeLove_Gray_100.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="Payment_WeWin_Gray_100" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Payment_WeWin_Gray_100.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
 </root>

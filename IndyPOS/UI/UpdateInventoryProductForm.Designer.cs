@@ -260,7 +260,7 @@
 			this.CancelUpdateProductButton.Name = "CancelUpdateProductButton";
 			this.CancelUpdateProductButton.Size = new System.Drawing.Size(218, 87);
 			this.CancelUpdateProductButton.TabIndex = 7;
-			this.CancelUpdateProductButton.Text = "     ยกเลิก";
+			this.CancelUpdateProductButton.Text = "   ยกเลิก";
 			this.CancelUpdateProductButton.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
 			this.CancelUpdateProductButton.TextImageRelation = System.Windows.Forms.TextImageRelation.ImageBeforeText;
 			this.CancelUpdateProductButton.UseVisualStyleBackColor = false;
@@ -286,7 +286,7 @@
 			this.UpdateProductButton.Name = "UpdateProductButton";
 			this.UpdateProductButton.Size = new System.Drawing.Size(223, 87);
 			this.UpdateProductButton.TabIndex = 7;
-			this.UpdateProductButton.Text = "     อัพเดทสินค้า";
+			this.UpdateProductButton.Text = "  อัพเดทสินค้า";
 			this.UpdateProductButton.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
 			this.UpdateProductButton.TextImageRelation = System.Windows.Forms.TextImageRelation.ImageBeforeText;
 			this.UpdateProductButton.UseVisualStyleBackColor = false;
@@ -297,9 +297,9 @@
 			this.panel8.BackColor = System.Drawing.Color.Silver;
 			this.panel8.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
 			this.panel8.Controls.Add(this.RemoveProductButton);
-			this.panel8.Location = new System.Drawing.Point(43, 512);
+			this.panel8.Location = new System.Drawing.Point(394, 512);
 			this.panel8.Name = "panel8";
-			this.panel8.Size = new System.Drawing.Size(232, 96);
+			this.panel8.Size = new System.Drawing.Size(226, 96);
 			this.panel8.TabIndex = 23;
 			// 
 			// RemoveProductButton
@@ -307,12 +307,12 @@
 			this.RemoveProductButton.BackColor = System.Drawing.Color.Gainsboro;
 			this.RemoveProductButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
 			this.RemoveProductButton.Font = new System.Drawing.Font("Leelawadee UI", 15.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-			this.RemoveProductButton.Image = global::IndyPOS.Properties.Resources.RemoveRectangle_50;
-			this.RemoveProductButton.Location = new System.Drawing.Point(3, 3);
+			this.RemoveProductButton.Image = global::IndyPOS.Properties.Resources.Trash_50;
+			this.RemoveProductButton.Location = new System.Drawing.Point(3, 4);
 			this.RemoveProductButton.Name = "RemoveProductButton";
-			this.RemoveProductButton.Size = new System.Drawing.Size(223, 87);
+			this.RemoveProductButton.Size = new System.Drawing.Size(218, 87);
 			this.RemoveProductButton.TabIndex = 7;
-			this.RemoveProductButton.Text = "     ลบสินค้า";
+			this.RemoveProductButton.Text = "   ลบสินค้า";
 			this.RemoveProductButton.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
 			this.RemoveProductButton.TextImageRelation = System.Windows.Forms.TextImageRelation.ImageBeforeText;
 			this.RemoveProductButton.UseVisualStyleBackColor = false;

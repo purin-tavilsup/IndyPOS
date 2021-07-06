@@ -11,7 +11,8 @@ namespace IndyPOS.UI
     public partial class SalePanel : UserControl
     {
         private readonly IEventAggregator _eventAggregator;
-        private ISaleInvoiceController _saleInvoiceController;
+        private readonly AcceptPaymentForm _acceptPaymentForm;
+        private readonly ISaleInvoiceController _saleInvoiceController;
 
         private enum SaleInvoiceColumn
         {
@@ -22,16 +23,19 @@ namespace IndyPOS.UI
             Total
         }
 
-        public SalePanel(IEventAggregator eventAggregator, ISaleInvoiceController saleInvoiceController)
+        public SalePanel(IEventAggregator eventAggregator, ISaleInvoiceController saleInvoiceController, AcceptPaymentForm acceptPaymentForm)
         {
             InitializeComponent();
             InitializeInvoiceDataView();
 
             _eventAggregator = eventAggregator;
             _saleInvoiceController = saleInvoiceController;
-            
+            _acceptPaymentForm = acceptPaymentForm;
+
             eventAggregator.GetEvent<SaleInvoiceProductAddedEvent>().Subscribe(SaleInvoiceProductChanged);
             eventAggregator.GetEvent<SaleInvoiceProductRemovedEvent>().Subscribe(SaleInvoiceProductChanged);
+            eventAggregator.GetEvent<PaymentAddedEvent>().Subscribe(PaymentChanged);
+            eventAggregator.GetEvent<NewSaleStartedEvent>().Subscribe(ResetSaleInvoiceScreen);
         }
 
         private void InitializeInvoiceDataView()
@@ -133,17 +137,31 @@ namespace IndyPOS.UI
         
         private void GetPaymentButton_Click(object sender, EventArgs e)
         {
-            // TODO: Display a dialog for getting a payment
+            _acceptPaymentForm.ShowDialog();
         }
 
         private void SaveSaleInvoiceButton_Click(object sender, EventArgs e)
         {
-            // TODO: Insert invoice, products, and payments to database  
+            if (_saleInvoiceController.Products.Count == 0)
+			{
+                MessageBox.Show("ไม่สามารถบันทึกการขายได้ เนื่องจากไม่มีสินค้าในรายการ", "การบันทึกการขาย");
+                return;
+			}
+                
+            if (_saleInvoiceController.InvoiceTotal > _saleInvoiceController.PaymentTotal)
+			{
+                MessageBox.Show("ไม่สามารถบันทึกการขายได้ เนื่องจากยังค้างค่าชำระสินค้า", "การบันทึกการขาย");
+                return;
+            }
+                
+            // TODO: Validate Payments, Insert invoice, products, and payments to database  
+
+            _saleInvoiceController.StartNewSale();
         }
 
         private void CancelSaleInvoiceButton_Click(object sender, EventArgs e)
         {
-            // TODO: Call to _saleInvoiceController to clear products on invoice and reset invoice
+            _saleInvoiceController.StartNewSale();
         }
 
         private void InvoiceDataView_DoubleClick(object sender, EventArgs e)
@@ -152,6 +170,24 @@ namespace IndyPOS.UI
             var barcode = GetProductBarcodeFromSelectedProduct();
             // Test
             MessageBox.Show("Barcode : " + barcode);
+        }
+
+        private void PaymentChanged()
+		{
+            TotalLabel.UIThread(delegate
+            {
+                TotalPaymentsLabel.Text = _saleInvoiceController.PaymentTotal.ToString("0.00");
+                ChangesLabel.Text = _saleInvoiceController.Changes.ToString("0.00");
+            });
+        }
+
+        private void ResetSaleInvoiceScreen()
+		{
+            InvoiceDataView.Rows.Clear();
+
+            TotalLabel.Text = _saleInvoiceController.InvoiceTotal.ToString("0.00");
+            TotalPaymentsLabel.Text = _saleInvoiceController.PaymentTotal.ToString("0.00");
+            ChangesLabel.Text = _saleInvoiceController.Changes.ToString("0.00");
         }
     }
 }
