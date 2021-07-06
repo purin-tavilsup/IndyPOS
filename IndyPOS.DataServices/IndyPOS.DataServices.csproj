@@ -71,6 +71,7 @@
     <Compile Include="Models\InventoryProductModel.cs" />
     <Compile Include="Models\InvoiceModel.cs" />
     <Compile Include="Models\InvoiceProductModel.cs" />
+    <Compile Include="Models\PaymentModel.cs" />
     <Compile Include="Models\PaymentTypeModel.cs" />
     <Compile Include="Models\ProductCategoryModel.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

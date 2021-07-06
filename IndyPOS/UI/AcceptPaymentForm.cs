@@ -15,21 +15,22 @@ namespace IndyPOS.UI
     {
         private readonly IEventAggregator _eventAggregator;
         private readonly IStoreConstants _storeConstants;
-        private readonly IInventoryController _inventoryController;
+        private readonly ISaleInvoiceController _saleInvoiceController;
+        private readonly IList<decimal> _values;
         private IReadOnlyDictionary<int, string> _paymentTypeDictionary;
         private PaymentType _selectedPaymentType;
         private bool _isPaymentTypeSelected;
         private decimal _amount;
         private string _pendingStringValue;
-        private IList<decimal> _values;
+        
 
         public AcceptPaymentForm(IEventAggregator eventAggregator, 
-            IStoreConstants storeConstants, 
-            IInventoryController inventoryController)
+            IStoreConstants storeConstants,
+            ISaleInvoiceController saleInvoiceController)
         {
             _eventAggregator = eventAggregator;
             _storeConstants = storeConstants;
-            _inventoryController = inventoryController;
+            _saleInvoiceController = saleInvoiceController;
             _paymentTypeDictionary = _storeConstants.PaymentTypes;
 
             InitializeComponent();
@@ -39,18 +40,18 @@ namespace IndyPOS.UI
 
         private void ResetPaymentTypeSelection()
 		{
-            PaymentTypeLabel.Text = string.Empty;
-            _isPaymentTypeSelected = false;
-
             // Default to cash
             _selectedPaymentType = PaymentType.Cash;
+            _isPaymentTypeSelected = true;
+
+            PaymentTypeLabel.Text = _paymentTypeDictionary[(int)_selectedPaymentType];
 
             PayByCashButton.Image = Properties.Resources.Money_80;
-            PayByMoneyTransferButton.Image = Properties.Resources.Payment_MoneyTransfer_100;
-            PayBy5050Button.Image = Properties.Resources.Payment_KLK_100;
-            PayByWeWinButton.Image = Properties.Resources.Payment_WeWin_100;
-            PayByWelfareCardButton.Image = Properties.Resources.Payment_PracharatCard_100;
-            PayByWeLoveButton.Image = Properties.Resources.Payment_WeLove_100;
+            PayByMoneyTransferButton.Image = Properties.Resources.Payment_MoneyTransfer_Gray_100;
+            PayBy5050Button.Image = Properties.Resources.Payment_KLK_Gray_100;
+            PayByWeWinButton.Image = Properties.Resources.Payment_WeWin_Gray_100;
+            PayByWelfareCardButton.Image = Properties.Resources.Payment_PracharatCard_Gray_100;
+            PayByWeLoveButton.Image = Properties.Resources.Payment_WeLove_Gray_100;
         }
 
         public new void ShowDialog()
@@ -67,6 +68,14 @@ namespace IndyPOS.UI
 
         private void SaveProductEntryButton_Click(object sender, EventArgs e)
         {
+            if (!_isPaymentTypeSelected)
+			{
+                MessageBox.Show("กรุณาเลือกวิธีการชำระเงิน", "วิธีการชำระเงิน");
+                return;
+			}
+                
+            _saleInvoiceController.AddPaymentToSaleInvoice(_selectedPaymentType, _amount);
+
             Close();
         }
 
@@ -174,7 +183,7 @@ namespace IndyPOS.UI
             _values.Add(value);
             _amount = _values.Sum();
 
-            DisplayValue(value);
+            DisplayValue(_amount);
         }
 
 		private void Add50Button_Click(object sender, EventArgs e)
@@ -186,7 +195,7 @@ namespace IndyPOS.UI
             _values.Add(value);
             _amount = _values.Sum();
 
-            DisplayValue(value);
+            DisplayValue(_amount);
         }
 
 		private void Add100Button_Click(object sender, EventArgs e)
@@ -198,7 +207,7 @@ namespace IndyPOS.UI
             _values.Add(value);
             _amount = _values.Sum();
 
-            DisplayValue(value);
+            DisplayValue(_amount);
         }
 
 		private void Add500Button_Click(object sender, EventArgs e)
@@ -210,7 +219,7 @@ namespace IndyPOS.UI
             _values.Add(value);
             _amount = _values.Sum();
 
-            DisplayValue(value);
+            DisplayValue(_amount);
         }
 
 		private void Add1000Button_Click(object sender, EventArgs e)
@@ -222,7 +231,7 @@ namespace IndyPOS.UI
             _values.Add(value);
             _amount = _values.Sum();
 
-            DisplayValue(value);
+            DisplayValue(_amount);
         }
 
 		private void Digit1Button_Click(object sender, EventArgs e)

@@ -93,6 +93,7 @@
   <ItemGroup>
     <Compile Include="Adapters\ICommittedInvoiceProduct.cs" />
     <Compile Include="Adapters\IInventoryProduct.cs" />
+    <Compile Include="Adapters\IPayment.cs" />
     <Compile Include="Adapters\ISaleInvoiceProduct.cs" />
     <Compile Include="Adapters\InventoryProductAdapter.cs" />
     <Compile Include="Adapters\CommittedSaleInvoiceProductAdapter.cs" />
@@ -103,6 +104,8 @@
     <Compile Include="Controllers\ISaleInvoiceController.cs" />
     <Compile Include="Controllers\SaleInvoiceController.cs" />
     <Compile Include="Enums\PaymentTypes.cs" />
+    <Compile Include="Events\NewSaleStartedEvent.cs" />
+    <Compile Include="Events\PaymentAddedEvent.cs" />
     <Compile Include="Events\SaleInvoiceProductAddedEvent.cs" />
     <Compile Include="Events\SaleInvoiceProductRemovedEvent.cs" />
     <Compile Include="Extensions\IInventoryProductExtensions.cs" />
@@ -110,6 +113,7 @@
     <Compile Include="IMachine.cs" />
     <Compile Include="Inventory\InventoryProduct.cs" />
     <Compile Include="IoC\ContainerConfig.cs" />
+    <Compile Include="SaleInvoice\Payment.cs" />
     <Compile Include="SaleInvoice\SaleInvoiceProduct.cs" />
     <Compile Include="Constants\StoreConstants.cs" />
     <Compile Include="Extensions\UIControlExtensions.cs" />

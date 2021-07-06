@@ -262,10 +262,10 @@
 			// 
 			// TitlePanel
 			// 
-			this.TitlePanel.BackColor = System.Drawing.Color.DarkGray;
+			this.TitlePanel.BackColor = System.Drawing.Color.Black;
 			this.TitlePanel.Controls.Add(this.label1);
 			this.TitlePanel.Dock = System.Windows.Forms.DockStyle.Top;
-			this.TitlePanel.ForeColor = System.Drawing.Color.Black;
+			this.TitlePanel.ForeColor = System.Drawing.Color.LightGreen;
 			this.TitlePanel.Location = new System.Drawing.Point(0, 0);
 			this.TitlePanel.Name = "TitlePanel";
 			this.TitlePanel.Size = new System.Drawing.Size(1412, 52);
@@ -299,6 +299,7 @@
 			this.Controls.Add(this.ActivePanel);
 			this.Controls.Add(this.TitlePanel);
 			this.Controls.Add(this.NavigationPanel);
+			this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedToolWindow;
 			this.Name = "MainForm";
 			this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
 			this.Text = "Indy POS";
