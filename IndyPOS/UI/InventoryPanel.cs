@@ -178,13 +178,10 @@ namespace IndyPOS.UI
 
         private void ProductDataView_DoubleClick(object sender, EventArgs e)
         {
-            //TODO: Display a dialog for editing the selected product
             var barcode = GetProductBarcodeFromSelectedProduct();
             var product = _inventoryController.GetInventoryProductByBarcode(barcode);
 
             _updateProductForm.ShowDialog(product);
-
-            //_inventoryController.UpdateProduct(product);
         }
 
         private string GetProductBarcodeFromSelectedProduct()

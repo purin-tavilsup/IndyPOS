@@ -108,6 +108,7 @@
     <Compile Include="Events\PaymentAddedEvent.cs" />
     <Compile Include="Events\SaleInvoiceProductAddedEvent.cs" />
     <Compile Include="Events\SaleInvoiceProductRemovedEvent.cs" />
+    <Compile Include="Events\SaleInvoiceProductUpdatedEvent.cs" />
     <Compile Include="Extensions\IInventoryProductExtensions.cs" />
     <Compile Include="Extensions\StringExtensions.cs" />
     <Compile Include="IMachine.cs" />
@@ -123,6 +124,12 @@
     </Compile>
     <Compile Include="UI\AcceptPaymentForm.Designer.cs">
       <DependentUpon>AcceptPaymentForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="UI\UpdateInvoiceProductForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\UpdateInvoiceProductForm.Designer.cs">
+      <DependentUpon>UpdateInvoiceProductForm.cs</DependentUpon>
     </Compile>
     <Compile Include="UI\UpdateInventoryProductForm.cs">
       <SubType>Form</SubType>
@@ -182,6 +189,9 @@
     </Compile>
     <EmbeddedResource Include="UI\AcceptPaymentForm.resx">
       <DependentUpon>AcceptPaymentForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="UI\UpdateInvoiceProductForm.resx">
+      <DependentUpon>UpdateInvoiceProductForm.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="UI\UpdateInventoryProductForm.resx">
       <DependentUpon>UpdateInventoryProductForm.cs</DependentUpon>

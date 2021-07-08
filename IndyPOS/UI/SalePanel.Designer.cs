@@ -55,7 +55,6 @@
 			this.Quantity = new System.Windows.Forms.DataGridViewTextBoxColumn();
 			this.UnitPrice = new System.Windows.Forms.DataGridViewTextBoxColumn();
 			this.Total = new System.Windows.Forms.DataGridViewTextBoxColumn();
-			this.TestGetAllProductsButton = new System.Windows.Forms.Button();
 			this.panel8 = new System.Windows.Forms.Panel();
 			this.RemoveProductButton = new System.Windows.Forms.Button();
 			this.panel9 = new System.Windows.Forms.Panel();
@@ -377,17 +376,6 @@
 			this.Total.ReadOnly = true;
 			this.Total.Width = 150;
 			// 
-			// TestGetAllProductsButton
-			// 
-			this.TestGetAllProductsButton.Font = new System.Drawing.Font("Microsoft Sans Serif", 14.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-			this.TestGetAllProductsButton.Location = new System.Drawing.Point(1174, 305);
-			this.TestGetAllProductsButton.Name = "TestGetAllProductsButton";
-			this.TestGetAllProductsButton.Size = new System.Drawing.Size(139, 65);
-			this.TestGetAllProductsButton.TabIndex = 2;
-			this.TestGetAllProductsButton.Text = "ทดสอบ";
-			this.TestGetAllProductsButton.UseVisualStyleBackColor = true;
-			this.TestGetAllProductsButton.Click += new System.EventHandler(this.TestGetAllProductsButton_Click);
-			// 
 			// panel8
 			// 
 			this.panel8.BackColor = System.Drawing.Color.Silver;
@@ -448,7 +436,6 @@
 			this.panel2.Controls.Add(this.panel6);
 			this.panel2.Controls.Add(this.panel8);
 			this.panel2.Controls.Add(this.panel5);
-			this.panel2.Controls.Add(this.TestGetAllProductsButton);
 			this.panel2.Controls.Add(this.panel4);
 			this.panel2.Controls.Add(this.InvoiceDataView);
 			this.panel2.Controls.Add(this.panel3);
@@ -497,7 +484,6 @@
         private System.Windows.Forms.Panel panel7;
         private System.Windows.Forms.Button CancelSaleInvoiceButton;
         private System.Windows.Forms.DataGridView InvoiceDataView;
-        private System.Windows.Forms.Button TestGetAllProductsButton;
         private System.Windows.Forms.Panel panel8;
         private System.Windows.Forms.Button RemoveProductButton;
         private System.Windows.Forms.Panel panel9;

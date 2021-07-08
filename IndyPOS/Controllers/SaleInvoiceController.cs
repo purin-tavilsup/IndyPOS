@@ -57,7 +57,7 @@ namespace IndyPOS.Controllers
             return amount >= 0 ? amount : 0m;
         }
 
-        public bool AddProductToSaleInvoice(string barcode)
+        public bool AddProduct(string barcode)
         {
             var success = true;
             var product = GetInventoryProductByBarcode(barcode);
@@ -81,7 +81,7 @@ namespace IndyPOS.Controllers
             return success;
         }
 
-        public bool RemoveProductFromSaleInvoice(string barcode)
+        public bool RemoveProduct(string barcode)
         {
             var success = true;
             var productToRemove = Products.FirstOrDefault(p => p.Barcode == barcode);
@@ -89,14 +89,7 @@ namespace IndyPOS.Controllers
             if (productToRemove == null)
                 return !success;
 
-            if (productToRemove.Quantity == 1)
-            {
-                Products.Remove(productToRemove);
-            }
-            else
-            {
-                productToRemove.Quantity--;
-            }
+            Products.Remove(productToRemove);
 
             _eventAggregator.GetEvent<SaleInvoiceProductRemovedEvent>().Publish(barcode);
 
@@ -110,7 +103,7 @@ namespace IndyPOS.Controllers
             return result != null ? new InventoryProductAdapter(result) : null;
         }
 
-        public bool AddPaymentToSaleInvoice(PaymentType paymentType, decimal paymentAmount)
+        public bool AddPayment(PaymentType paymentType, decimal paymentAmount)
 		{
             var success = true;
 
@@ -125,7 +118,21 @@ namespace IndyPOS.Controllers
             _eventAggregator.GetEvent<PaymentAddedEvent>().Publish();
 
             return success;
+        }
 
+        public bool UpdateProductQuantity(string barcode, int quantity)
+		{
+            var success = true;
+            var productToUpdate = Products.FirstOrDefault(p => p.Barcode == barcode);
+
+            if (productToUpdate == null)
+                return !success;
+
+            productToUpdate.Quantity = quantity;
+
+            _eventAggregator.GetEvent<SaleInvoiceProductUpdatedEvent>().Publish(barcode);
+
+            return success;
         }
     }
 }

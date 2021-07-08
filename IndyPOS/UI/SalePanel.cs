@@ -13,6 +13,7 @@ namespace IndyPOS.UI
         private readonly IEventAggregator _eventAggregator;
         private readonly AcceptPaymentForm _acceptPaymentForm;
         private readonly ISaleInvoiceController _saleInvoiceController;
+        private readonly UpdateInvoiceProductForm _updateProductForm;
 
         private enum SaleInvoiceColumn
         {
@@ -23,7 +24,10 @@ namespace IndyPOS.UI
             Total
         }
 
-        public SalePanel(IEventAggregator eventAggregator, ISaleInvoiceController saleInvoiceController, AcceptPaymentForm acceptPaymentForm)
+        public SalePanel(IEventAggregator eventAggregator, 
+            ISaleInvoiceController saleInvoiceController, 
+            AcceptPaymentForm acceptPaymentForm,
+            UpdateInvoiceProductForm updateProductForm)
         {
             InitializeComponent();
             InitializeInvoiceDataView();
@@ -31,11 +35,13 @@ namespace IndyPOS.UI
             _eventAggregator = eventAggregator;
             _saleInvoiceController = saleInvoiceController;
             _acceptPaymentForm = acceptPaymentForm;
+            _updateProductForm = updateProductForm;
 
-            eventAggregator.GetEvent<SaleInvoiceProductAddedEvent>().Subscribe(SaleInvoiceProductChanged);
-            eventAggregator.GetEvent<SaleInvoiceProductRemovedEvent>().Subscribe(SaleInvoiceProductChanged);
-            eventAggregator.GetEvent<PaymentAddedEvent>().Subscribe(PaymentChanged);
-            eventAggregator.GetEvent<NewSaleStartedEvent>().Subscribe(ResetSaleInvoiceScreen);
+            _eventAggregator.GetEvent<SaleInvoiceProductAddedEvent>().Subscribe(SaleInvoiceProductChanged);
+            _eventAggregator.GetEvent<SaleInvoiceProductRemovedEvent>().Subscribe(SaleInvoiceProductChanged);
+            _eventAggregator.GetEvent<SaleInvoiceProductUpdatedEvent>().Subscribe(SaleInvoiceProductChanged);
+            _eventAggregator.GetEvent<PaymentAddedEvent>().Subscribe(PaymentChanged);
+            _eventAggregator.GetEvent<NewSaleStartedEvent>().Subscribe(ResetSaleInvoiceScreen);
         }
 
         private void InitializeInvoiceDataView()
@@ -68,23 +74,18 @@ namespace IndyPOS.UI
             #endregion
         }
 
-        private void TestGetAllProductsButton_Click(object sender, EventArgs e)
-        {
-            // Test
-        }
-
         private void AddProductButton_Click(object sender, EventArgs e)
         {
             // Test
-            _saleInvoiceController.AddProductToSaleInvoice("8850999009674");
-            _saleInvoiceController.AddProductToSaleInvoice("8850999143002");
+            _saleInvoiceController.AddProduct("8850999009674");
+            _saleInvoiceController.AddProduct("8850999143002");
         }
 
         private void RemoveProductButton_Click(object sender, EventArgs e)
         {
             var barcode = GetProductBarcodeFromSelectedProduct();
 
-            _saleInvoiceController.RemoveProductFromSaleInvoice(barcode);
+            _saleInvoiceController.RemoveProduct(barcode);
         }
 
         private string GetProductBarcodeFromSelectedProduct()
@@ -166,10 +167,9 @@ namespace IndyPOS.UI
 
         private void InvoiceDataView_DoubleClick(object sender, EventArgs e)
         {
-            //TODO: Display a dialog for editing the selected product
             var barcode = GetProductBarcodeFromSelectedProduct();
-            // Test
-            MessageBox.Show("Barcode : " + barcode);
+
+            _updateProductForm.ShowDialog(barcode);
         }
 
         private void PaymentChanged()
