@@ -74,7 +74,7 @@ namespace IndyPOS.UI
                 return;
 			}
                 
-            _saleInvoiceController.AddPaymentToSaleInvoice(_selectedPaymentType, _amount);
+            _saleInvoiceController.AddPayment(_selectedPaymentType, _amount);
 
             Close();
         }
