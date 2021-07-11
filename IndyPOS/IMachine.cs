@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace IndyPOS
 {
-    public interface IMachine
+    public interface IMachine : IDisposable
     {
         void Launch();
     }

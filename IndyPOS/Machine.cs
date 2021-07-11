@@ -1,20 +1,44 @@
-﻿using IndyPOS.UI;
+﻿using IndyPOS.Devices;
+using IndyPOS.UI;
 
 namespace IndyPOS
 {
-    public class Machine : IMachine
+	public class Machine : IMachine
     {
-        private MainForm _mainForm;
+        private readonly MainForm _mainForm;
+        private readonly IBarcodeScanner _barcodeScanner;
 
-        public Machine(MainForm mainForm)
+        public Machine(MainForm mainForm, IBarcodeScanner barcodeScanner)
         {
             _mainForm = mainForm;
+            _barcodeScanner = barcodeScanner;
         }
-        
-        public void Launch()
+
+		public void Dispose()
+		{
+            Shutdown();
+		}
+
+		public void Launch()
         {
+            ConnectDevices();
             StartUI();
         }
+
+        public void Shutdown()
+		{
+            DisconnectDevices();
+        }
+
+        private void ConnectDevices()
+		{
+            _barcodeScanner.Connect();
+        }
+
+        private void DisconnectDevices()
+		{
+            _barcodeScanner?.Disconnect();
+		}
 
         private void StartUI()
         {

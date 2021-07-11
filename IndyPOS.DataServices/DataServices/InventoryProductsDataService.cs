@@ -13,13 +13,13 @@ namespace IndyPOS.DataServices
             {
                 connection.Open();
 
-                var result = connection.QueryFirst<InventoryProductModel>
+                var results = connection.Query<InventoryProductModel>
                     (
                         "SELECT * FROM [InventoryProducts] WHERE [Barcode] = @productBarcode",
                         new { productBarcode = barcode }
                     );
 
-                return result;
+                return results.FirstOrDefault();
             }
         }
 

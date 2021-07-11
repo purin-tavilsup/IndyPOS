@@ -1,6 +1,7 @@
 ﻿using Autofac;
 using IndyPOS.Constants;
 using IndyPOS.DataServices;
+using IndyPOS.Devices;
 using Prism.Events;
 using System.Linq;
 using System.Reflection;
@@ -49,6 +50,10 @@ namespace IndyPOS.IoC
 
             builder.RegisterType<UsersDataService>()
                 .As<IUsersDataService>();
+
+            builder.RegisterType<BarcodeScanner>()
+                .As<IBarcodeScanner>()
+                .SingleInstance();
 
             return builder.Build();
         }
