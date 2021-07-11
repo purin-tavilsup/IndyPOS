@@ -37,11 +37,17 @@ namespace IndyPOS.UI
             _acceptPaymentForm = acceptPaymentForm;
             _updateProductForm = updateProductForm;
 
+            SubscribeEvents();
+        }
+
+        private void SubscribeEvents()
+		{
             _eventAggregator.GetEvent<SaleInvoiceProductAddedEvent>().Subscribe(SaleInvoiceProductChanged);
             _eventAggregator.GetEvent<SaleInvoiceProductRemovedEvent>().Subscribe(SaleInvoiceProductChanged);
             _eventAggregator.GetEvent<SaleInvoiceProductUpdatedEvent>().Subscribe(SaleInvoiceProductChanged);
             _eventAggregator.GetEvent<PaymentAddedEvent>().Subscribe(PaymentChanged);
             _eventAggregator.GetEvent<NewSaleStartedEvent>().Subscribe(ResetSaleInvoiceScreen);
+            _eventAggregator.GetEvent<BarcodeReceivedEvent>().Subscribe(BarcodeReceived);
         }
 
         private void InitializeInvoiceDataView()
@@ -76,9 +82,7 @@ namespace IndyPOS.UI
 
         private void AddProductButton_Click(object sender, EventArgs e)
         {
-            // Test
-            _saleInvoiceController.AddProduct("8850999009674");
-            _saleInvoiceController.AddProduct("8850999143002");
+            //TODO: Add dialog for adding product manually
         }
 
         private void RemoveProductButton_Click(object sender, EventArgs e)
@@ -183,11 +187,27 @@ namespace IndyPOS.UI
 
         private void ResetSaleInvoiceScreen()
 		{
-            InvoiceDataView.Rows.Clear();
+            InvoiceDataView.UIThread(delegate
+            {
+                InvoiceDataView.Rows.Clear();
 
-            TotalLabel.Text = _saleInvoiceController.InvoiceTotal.ToString("0.00");
-            TotalPaymentsLabel.Text = _saleInvoiceController.PaymentTotal.ToString("0.00");
-            ChangesLabel.Text = _saleInvoiceController.Changes.ToString("0.00");
+                TotalLabel.Text = _saleInvoiceController.InvoiceTotal.ToString("0.00");
+                TotalPaymentsLabel.Text = _saleInvoiceController.PaymentTotal.ToString("0.00");
+                ChangesLabel.Text = _saleInvoiceController.Changes.ToString("0.00");
+            });
+        }
+
+        private void BarcodeReceived(string barcode)
+		{
+            if (!Visible)
+                return;
+
+            AddProductToInvoice(barcode);
+        }
+
+        private void AddProductToInvoice(string barcode)
+		{
+            _saleInvoiceController.AddProduct(barcode);
         }
     }
 }

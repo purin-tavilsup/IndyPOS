@@ -1,6 +1,8 @@
 ﻿using IndyPOS.Adapters;
 using IndyPOS.Constants;
 using IndyPOS.Controllers;
+using IndyPOS.Events;
+using IndyPOS.Extensions;
 using Prism.Events;
 using System;
 using System.Collections.Generic;
@@ -48,6 +50,8 @@ namespace IndyPOS.UI
             InitializeComponent();
             InitializeProductCategories();
             InitializeProductDataView();
+
+            _eventAggregator.GetEvent<BarcodeReceivedEvent>().Subscribe(BarcodeReceived);
         }
 
         private void InitializeProductCategories()
@@ -195,6 +199,44 @@ namespace IndyPOS.UI
             var barcode = selectedRow.Cells[(int)ProductColumn.ProductCode].Value as string;
 
             return barcode;
+        }
+
+        private void BarcodeReceived(string barcode)
+        {
+            if (!Visible)
+                return;
+
+            var product = SearchExistingProductByBarcode(barcode);
+
+            if (product != null)
+			{
+                ShowExistingProduct(product);
+                return;
+            }
+
+            AddNewProduct(barcode);
+        }
+
+        private IInventoryProduct SearchExistingProductByBarcode(string barcode)
+		{
+            return _inventoryController.GetInventoryProductByBarcode(barcode);
+        }
+
+        private void ShowExistingProduct(IInventoryProduct product)
+		{
+            ProductDataView.UIThread(delegate
+            {
+                ProductDataView.Rows.Clear();
+                AddProductToProductDataView(product);
+            });
+        }
+
+        private void AddNewProduct(string barcode)
+		{
+            _addNewProductForm.UIThread(delegate
+            {
+                _addNewProductForm.ShowDialog(barcode);
+            });
         }
     }
 }

@@ -15,12 +15,12 @@ namespace IndyPOS.UI
             Settings
         }
 
-        private SalePanel _salesPanel;
-        private InventoryPanel _inventoryPanel;
-        private UsersPanel _usersPanel;
-        private ReportsPanel _reportsPanel;
-        private CustomerAccountsPanel _customerAccountsPanel;
-        private SettingsPanel _settingsPanel;
+        private readonly SalePanel _salesPanel;
+        private readonly InventoryPanel _inventoryPanel;
+        private readonly UsersPanel _usersPanel;
+        private readonly ReportsPanel _reportsPanel;
+        private readonly CustomerAccountsPanel _customerAccountsPanel;
+        private readonly SettingsPanel _settingsPanel;
         private UserControl _activePanel;
 
         public MainForm(SalePanel salesPanel, 
@@ -29,15 +29,21 @@ namespace IndyPOS.UI
             ReportsPanel reportsPanel, 
             CustomerAccountsPanel customerAccountsPanel, 
             SettingsPanel settingsPanel)
-        {
+		{
             InitializeComponent();
 
             _salesPanel = salesPanel;
+            _salesPanel.Visible = false;
             _inventoryPanel = inventoryPanel;
+            _inventoryPanel.Visible = false;
             _usersPanel = usersPanel;
+            _usersPanel.Visible = false;
             _reportsPanel = reportsPanel;
+            _reportsPanel.Visible = false;
             _customerAccountsPanel = customerAccountsPanel;
+            _customerAccountsPanel.Visible = false;
             _settingsPanel = settingsPanel;
+            _settingsPanel.Visible = false;
 
             SaleButton.Select();
         }
@@ -136,5 +142,5 @@ namespace IndyPOS.UI
         {
             SwitchToPanel(Panels.Settings);
         }
-    }
+	}
 }

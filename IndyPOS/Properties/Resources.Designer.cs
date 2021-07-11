@@ -63,6 +63,26 @@ namespace IndyPOS.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
+        internal static System.Drawing.Bitmap barcode_scanner_2_50 {
+            get {
+                object obj = ResourceManager.GetObject("barcode_scanner_2_50", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap barcode_scanner_50 {
+            get {
+                object obj = ResourceManager.GetObject("barcode_scanner_50", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
         internal static System.Drawing.Bitmap Cashier_50 {
             get {
                 object obj = ResourceManager.GetObject("Cashier_50", resourceCulture);
