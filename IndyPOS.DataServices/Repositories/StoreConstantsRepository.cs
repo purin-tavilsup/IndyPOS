@@ -1,11 +1,11 @@
 ﻿using Dapper;
-using IndyPOS.DataServices.Models;
+using IndyPOS.DataAccess.Models;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace IndyPOS.DataServices
+namespace IndyPOS.DataAccess.Repositories
 {
-    public class StoreConstantsDataService : SQLiteDatabase, IStoreConstantsDataService
+    public class StoreConstantRepository : SQLiteDatabase, IStoreConstantRepository
     {
         public IList<PaymentTypeModel> GetPaymentTypes()
         {

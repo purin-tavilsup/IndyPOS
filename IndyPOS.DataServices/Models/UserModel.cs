@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace IndyPOS.DataServices.Models
+namespace IndyPOS.DataAccess.Models
 {
     public class UserModel
     {

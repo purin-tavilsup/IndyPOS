@@ -1,11 +1,11 @@
 ﻿using Dapper;
-using IndyPOS.DataServices.Models;
+using IndyPOS.DataAccess.Models;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace IndyPOS.DataServices
+namespace IndyPOS.DataAccess.Repositories
 {
-    public class InventoryProductsDataService : SQLiteDatabase, IInventoryProductsDataService
+    public class InventoryProductRepository : SQLiteDatabase, IInventoryProductRepository
     {
         public InventoryProductModel GetProductByBarcode(string barcode)
         {

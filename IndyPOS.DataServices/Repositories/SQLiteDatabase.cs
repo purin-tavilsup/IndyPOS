@@ -2,7 +2,7 @@
 using System.IO;
 using System.Data.SQLite;
 
-namespace IndyPOS.DataServices
+namespace IndyPOS.DataAccess.Repositories
 {
     public class SQLiteDatabase
     {

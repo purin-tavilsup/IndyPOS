@@ -7,8 +7,8 @@
     <ProjectGuid>{6032F51E-E3DF-47D5-9E74-A360BDBFB180}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>IndyPOS.DataServices</RootNamespace>
-    <AssemblyName>IndyPOS.DataServices</AssemblyName>
+    <RootNamespace>IndyPOS.DataAccess</RootNamespace>
+    <AssemblyName>IndyPOS.DataAccess</AssemblyName>
     <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <Deterministic>true</Deterministic>
@@ -58,24 +58,27 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="DataServices\CustomersDataService.cs" />
-    <Compile Include="DataServices\ICustomersDataService.cs" />
-    <Compile Include="DataServices\IInventoryProductsDataService.cs" />
-    <Compile Include="DataServices\IInvoicesDataService.cs" />
-    <Compile Include="DataServices\InventoryProductsDataService.cs" />
-    <Compile Include="DataServices\InvoicesDataService.cs" />
-    <Compile Include="DataServices\IStoreConstantsDataService.cs" />
-    <Compile Include="DataServices\IUsersDataService.cs" />
-    <Compile Include="DataServices\StoreConstantsDataService.cs" />
-    <Compile Include="DataServices\SQLiteDatabase.cs" />
+    <Compile Include="Repositories\CustomerRepository.cs" />
+    <Compile Include="Repositories\ICustomerRepository.cs" />
+    <Compile Include="Repositories\IInventoryProductRepository.cs" />
+    <Compile Include="Repositories\IInvoiceRepository.cs" />
+    <Compile Include="Repositories\InventoryProductRepository.cs" />
+    <Compile Include="Repositories\InvoiceRepository.cs" />
+    <Compile Include="Repositories\IPackPriceRepository.cs" />
+    <Compile Include="Repositories\IStoreConstantRepository.cs" />
+    <Compile Include="Repositories\IUserRepository.cs" />
+    <Compile Include="Repositories\PackPriceRepository.cs" />
+    <Compile Include="Repositories\StoreConstantsRepository.cs" />
+    <Compile Include="Repositories\SQLiteDatabase.cs" />
     <Compile Include="Models\InventoryProductModel.cs" />
     <Compile Include="Models\InvoiceModel.cs" />
     <Compile Include="Models\InvoiceProductModel.cs" />
+    <Compile Include="Models\PackPriceModel.cs" />
     <Compile Include="Models\PaymentModel.cs" />
     <Compile Include="Models\PaymentTypeModel.cs" />
     <Compile Include="Models\ProductCategoryModel.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="DataServices\UsersDataService.cs" />
+    <Compile Include="Repositories\UserRepository.cs" />
     <Compile Include="Models\UserModel.cs" />
     <Compile Include="Models\UserRoleModel.cs" />
   </ItemGroup>

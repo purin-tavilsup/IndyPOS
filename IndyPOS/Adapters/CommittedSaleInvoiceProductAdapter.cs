@@ -1,11 +1,11 @@
-﻿using IndyPOS.DataServices;
+﻿using IndyPOS.DataAccess.Repositories;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using IndyPOS.Extensions;
-using IndyPOS.DataServices.Models;
+using IndyPOS.DataAccess.Models;
 
 namespace IndyPOS.Adapters
 {

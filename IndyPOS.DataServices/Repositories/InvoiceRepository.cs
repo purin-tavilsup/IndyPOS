@@ -5,11 +5,11 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Data.SQLite;
 using Dapper;
-using IndyPOS.DataServices.Models;
+using IndyPOS.DataAccess.Models;
 
-namespace IndyPOS.DataServices
+namespace IndyPOS.DataAccess.Repositories
 {
-    public class InvoicesDataService : SQLiteDatabase, IInvoicesDataService
+    public class InvoiceRepository : SQLiteDatabase, IInvoiceRepository
     {
         public IList<InventoryProductModel> GetProductsForSale()
         {

@@ -1,6 +1,6 @@
 ﻿using Autofac;
 using IndyPOS.Constants;
-using IndyPOS.DataServices;
+using IndyPOS.DataAccess.Repositories;
 using IndyPOS.Devices;
 using Prism.Events;
 using System.Linq;
@@ -36,20 +36,22 @@ namespace IndyPOS.IoC
                 .As(t => t.GetInterface("I" + t.Name))
                 .SingleInstance();
 
-            builder.RegisterType<InvoicesDataService>()
-                .As<IInvoicesDataService>();
+            builder.RegisterType<InvoiceRepository>()
+                .As<IInvoiceRepository>();
 
-            builder.RegisterType<InventoryProductsDataService>()
-                .As<IInventoryProductsDataService>();
+            builder.RegisterType<InventoryProductRepository>()
+                .As<IInventoryProductRepository>();
 
-            builder.RegisterType<StoreConstantsDataService>()
-                .As<IStoreConstantsDataService>();
+            builder.RegisterType<StoreConstantRepository>()
+                .As<IStoreConstantRepository>();
 
-            builder.RegisterType<CustomersDataService>()
-                .As<ICustomersDataService>();
+            builder.RegisterType<CustomerRepository>()
+                .As<ICustomerRepository>();
 
-            builder.RegisterType<UsersDataService>()
-                .As<IUsersDataService>();
+            builder.RegisterType<UserRepository>()
+                .As<IUserRepository>();
+
+
 
             builder.RegisterType<BarcodeScanner>()
                 .As<IBarcodeScanner>()

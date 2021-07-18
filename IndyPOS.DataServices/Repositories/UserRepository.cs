@@ -6,9 +6,9 @@ using System.Threading.Tasks;
 using System.Data.SQLite;
 using Dapper;
 
-namespace IndyPOS.DataServices
+namespace IndyPOS.DataAccess.Repositories
 {
-    public class CustomersDataService : SQLiteDatabase, ICustomersDataService
+    public class UserRepository : SQLiteDatabase, IUserRepository
     {
     }
 }

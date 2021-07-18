@@ -4,9 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace IndyPOS.DataServices
+namespace IndyPOS.DataAccess.Repositories
 {
-    public interface IUsersDataService
-    {
-    }
+	public class PackPriceRepository : SQLiteDatabase, IPackPriceRepository
+	{
+	}
 }

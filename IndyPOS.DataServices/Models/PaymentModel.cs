@@ -1,4 +1,4 @@
-﻿namespace IndyPOS.DataServices.Models
+﻿namespace IndyPOS.DataAccess.Models
 {
 	public class PaymentModel
 	{

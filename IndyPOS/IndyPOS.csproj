@@ -249,12 +249,6 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\IndyPOS.DataServices\IndyPOS.DataServices.csproj">
-      <Project>{6032f51e-e3df-47d5-9e74-a360bdbfb180}</Project>
-      <Name>IndyPOS.DataServices</Name>
-    </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
     <None Include="Resources\Inventory_80.png" />
   </ItemGroup>
   <ItemGroup>
@@ -388,6 +382,12 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\barcode_scanner_50.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\IndyPOS.DataServices\IndyPOS.DataAccess.csproj">
+      <Project>{6032f51e-e3df-47d5-9e74-a360bdbfb180}</Project>
+      <Name>IndyPOS.DataAccess</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="..\packages\Stub.System.Data.SQLite.Core.NetFramework.1.0.114.0\build\net46\Stub.System.Data.SQLite.Core.NetFramework.targets" Condition="Exists('..\packages\Stub.System.Data.SQLite.Core.NetFramework.1.0.114.0\build\net46\Stub.System.Data.SQLite.Core.NetFramework.targets')" />

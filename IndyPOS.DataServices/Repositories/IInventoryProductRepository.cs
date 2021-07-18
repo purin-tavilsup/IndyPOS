@@ -1,9 +1,9 @@
-﻿using IndyPOS.DataServices.Models;
+﻿using IndyPOS.DataAccess.Models;
 using System.Collections.Generic;
 
-namespace IndyPOS.DataServices
+namespace IndyPOS.DataAccess.Repositories
 {
-    public interface IInventoryProductsDataService
+    public interface IInventoryProductRepository
     {
         InventoryProductModel GetProductByBarcode(string barcode);
 

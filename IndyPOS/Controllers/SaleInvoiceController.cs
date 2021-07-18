@@ -1,5 +1,5 @@
 ﻿using IndyPOS.Adapters;
-using IndyPOS.DataServices;
+using IndyPOS.DataAccess.Repositories;
 using IndyPOS.Enums;
 using IndyPOS.Events;
 using IndyPOS.Extensions;
@@ -13,8 +13,8 @@ namespace IndyPOS.Controllers
     public class SaleInvoiceController : ISaleInvoiceController
     {
         private readonly IEventAggregator _eventAggregator;
-        private readonly IInvoicesDataService _invoicesDataService;
-        private readonly IInventoryProductsDataService _inventoryProductsDataService;
+        private readonly IInvoiceRepository _invoicesRepository;
+        private readonly IInventoryProductRepository _inventoryProductsRepository;
 
         public IList<ISaleInvoiceProduct> Products { get; }
 
@@ -27,12 +27,12 @@ namespace IndyPOS.Controllers
         public decimal Changes => CalculateChanges();
 
         public SaleInvoiceController(IEventAggregator eventAggregator, 
-            IInvoicesDataService invoicesDataService, 
-            IInventoryProductsDataService inventoryProductsDataService)
+            IInvoiceRepository invoicesRepository, 
+            IInventoryProductRepository inventoryProductsRepository)
         {
             _eventAggregator = eventAggregator;
-            _invoicesDataService = invoicesDataService;
-            _inventoryProductsDataService = inventoryProductsDataService;
+            _invoicesRepository = invoicesRepository;
+            _inventoryProductsRepository = inventoryProductsRepository;
             Products = new List<ISaleInvoiceProduct>();
             Payments = new List<IPayment>();
         }
@@ -98,7 +98,7 @@ namespace IndyPOS.Controllers
 
         public IInventoryProduct GetInventoryProductByBarcode(string barcode)
         {
-            var result = _inventoryProductsDataService.GetProductByBarcode(barcode);
+            var result = _inventoryProductsRepository.GetProductByBarcode(barcode);
 
             return result != null ? new InventoryProductAdapter(result) : null;
         }
