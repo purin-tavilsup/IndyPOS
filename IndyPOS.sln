@@ -5,7 +5,7 @@ VisualStudioVersion = 16.0.31410.357
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IndyPOS", "IndyPOS\IndyPOS.csproj", "{2ED6DFC3-BF73-41B7-816C-D53312DA9C52}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IndyPOS.DataAccess", "IndyPOS.DataServices\IndyPOS.DataAccess.csproj", "{6032F51E-E3DF-47D5-9E74-A360BDBFB180}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IndyPOS.DataAccess", "IndyPOS.DataAccess\IndyPOS.DataAccess.csproj", "{6032F51E-E3DF-47D5-9E74-A360BDBFB180}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

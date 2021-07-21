@@ -1,6 +1,7 @@
 ﻿using Autofac;
 using IndyPOS.Constants;
 using IndyPOS.DataAccess.Repositories;
+using IndyPOS.DataAccess.SQLite.Repositories;
 using IndyPOS.Devices;
 using Prism.Events;
 using System.Linq;
@@ -8,7 +9,7 @@ using System.Reflection;
 
 namespace IndyPOS.IoC
 {
-    public static class ContainerConfig
+	public static class ContainerConfig
     {
         public static IContainer Configure()
         {

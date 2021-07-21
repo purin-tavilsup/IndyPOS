@@ -384,7 +384,7 @@
     <None Include="Resources\barcode_scanner_50.png" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\IndyPOS.DataServices\IndyPOS.DataAccess.csproj">
+    <ProjectReference Include="..\IndyPOS.DataAccess\IndyPOS.DataAccess.csproj">
       <Project>{6032f51e-e3df-47d5-9e74-a360bdbfb180}</Project>
       <Name>IndyPOS.DataAccess</Name>
     </ProjectReference>

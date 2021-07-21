@@ -11,9 +11,9 @@ namespace IndyPOS.Adapters
 {
     public class InventoryProductAdapter : IInventoryProduct
     {
-        private InventoryProductModel _adaptee;
+        private InventoryProduct _adaptee;
 
-        public InventoryProductAdapter(InventoryProductModel adaptee)
+        public InventoryProductAdapter(InventoryProduct adaptee)
         {
             _adaptee = adaptee;
         }
@@ -61,37 +61,14 @@ namespace IndyPOS.Adapters
 
         public decimal? UnitCost
         {
-            get
-            {
-                if (!_adaptee.UnitCost.HasValue())
-                    return null;
-
-                if (decimal.TryParse(_adaptee.UnitCost.Trim(), out var value))
-                    return value / 100m;
-
-                return null;
-            }
-
-            set
-            {
-                _adaptee.UnitCost = value.HasValue ? (value * 100).ToString() : null;
-            }
+            get => _adaptee.UnitCost;
+            set => _adaptee.UnitCost = value;
         }
 
         public decimal UnitPrice
         {
-            get
-            {
-                if (decimal.TryParse(_adaptee.UnitPrice.Trim(), out var value))
-                    return value / 100m;
-
-                return 0m;
-            }
-
-            set
-            {
-                _adaptee.UnitPrice = (value * 100).ToString();
-            }
+            get => _adaptee.UnitPrice;
+            set => _adaptee.UnitPrice = value;
         }
 
         public int QuantityInStock
