@@ -6,7 +6,7 @@ namespace IndyPOS.DataAccess.SQLite.Repositories
 {
     public class SQLiteDatabase
     {
-        protected static string DatabaseFilePath => Environment.CurrentDirectory + @"\Store.db";
+        protected static string DatabaseFilePath => Environment.CurrentDirectory + @"\SQLite\Store.db";
 
         private static readonly string Database = DatabaseFilePath + ";";
         private static readonly string Version = "Version=3;";

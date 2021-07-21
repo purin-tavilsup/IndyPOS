@@ -15,13 +15,14 @@ namespace IndyPOS.DataAccess.SQLite.Repositories
             {
                 connection.Open();
 
-                var sqlCoomand = "SELECT * FROM [InventoryProducts] WHERE [Barcode] = @productBarcode";
+                const string sqlCommand = "SELECT * FROM [InventoryProducts] WHERE [Barcode] = @productBarcode";
+
                 var sqlParameters = new
                 {
                     productBarcode = barcode
                 };
 
-                var results = connection.Query(sqlCoomand,sqlParameters);
+                var results = connection.Query(sqlCommand, sqlParameters);
 
                 return MapInventoryProducts(results).FirstOrDefault();
             }
@@ -33,13 +34,14 @@ namespace IndyPOS.DataAccess.SQLite.Repositories
             {
                 connection.Open();
 
-                var sqlCoomand = "SELECT * FROM [InventoryProducts] WHERE [Category] = @category";
+                const string sqlCommand = "SELECT * FROM [InventoryProducts] WHERE [Category] = @category";
+
                 var sqlParameters = new
                 {
                     category = categoryId
                 };
 
-                var results = connection.Query(sqlCoomand,sqlParameters);
+                var results = connection.Query(sqlCommand, sqlParameters);
 
                 return MapInventoryProducts(results);
             }
@@ -112,9 +114,9 @@ namespace IndyPOS.DataAccess.SQLite.Repositories
                 DateCreated = x.DateCreated,
 
                 DateUpdated = x.DateUpdated
-            });
+            }) ?? Enumerable.Empty<InventoryProduct>();
 
-            return products?.ToList();
+            return products.ToList();
         }
 
         private decimal? MapUnitCostToDecimal(string value)

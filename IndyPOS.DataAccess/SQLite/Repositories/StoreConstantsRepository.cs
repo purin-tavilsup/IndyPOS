@@ -14,14 +14,12 @@ namespace IndyPOS.DataAccess.SQLite.Repositories
             {
                 connection.Open();
 
-                var results = connection.Query<PaymentType>
-                    (
-                        @"SELECT * 
-                        FROM [PaymentTypes]",
-                        new DynamicParameters()
-                    );
+                const string sqlCommand =   @"SELECT * 
+                                            FROM [PaymentTypes]";
 
-                return results.ToList();
+                var results = connection.Query(sqlCommand, new DynamicParameters());
+
+                return MapPaymentTypes(results);
             }
         }
 
@@ -31,14 +29,12 @@ namespace IndyPOS.DataAccess.SQLite.Repositories
             {
                 connection.Open();
 
-                var results = connection.Query<UserRole>
-                    (
-                        @"SELECT * 
-                        FROM [UserRoles]",
-                        new DynamicParameters()
-                    );
+                const string sqlCommand =   @"SELECT * 
+                                            FROM [UserRoles]";
 
-                return results.ToList();
+                var results = connection.Query(sqlCommand, new DynamicParameters());
+
+                return MapUserRoles(results);
             }
         }
 
@@ -48,15 +44,49 @@ namespace IndyPOS.DataAccess.SQLite.Repositories
             {
                 connection.Open();
 
-                var results = connection.Query<ProductCategory>
-                    (
-                        @"SELECT * 
-                        FROM [ProductCategories]",
-                        new DynamicParameters()
-                    );
+                const string sqlCommand =   @"SELECT * 
+                                            FROM [ProductCategories]";
 
-                return results.ToList();
+                var results = connection.Query(sqlCommand, new DynamicParameters());
+
+                return MapProductCategories(results);
             }
+        }
+
+        private IList<PaymentType> MapPaymentTypes(IEnumerable<dynamic> results)
+        {
+            var types = results?.Select(x => new PaymentType
+            {
+                Id = (int)x.Id,
+
+                Type = x.Type
+            }) ?? Enumerable.Empty<PaymentType>();
+
+            return types.ToList();
+        }
+
+        private IList<UserRole> MapUserRoles(IEnumerable<dynamic> results)
+        {
+            var roles = results?.Select(x => new UserRole
+            {
+                Id = (int)x.Id,
+
+                Role = x.Role
+            }) ?? Enumerable.Empty<UserRole>();
+
+            return roles.ToList();
+        }
+
+        private IList<ProductCategory> MapProductCategories(IEnumerable<dynamic> results)
+        {
+            var categories = results?.Select(x => new ProductCategory
+            {
+                Id = (int)x.Id,
+
+                Category = x.Category
+            }) ?? Enumerable.Empty<ProductCategory>();
+
+            return categories.ToList();
         }
     }
 }
