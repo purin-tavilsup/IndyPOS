@@ -1,5 +1,6 @@
 ﻿using Autofac;
 using IndyPOS.Constants;
+using IndyPOS.DataAccess;
 using IndyPOS.DataAccess.Repositories;
 using IndyPOS.DataAccess.SQLite.Repositories;
 using IndyPOS.Devices;
@@ -37,6 +38,10 @@ namespace IndyPOS.IoC
                 .As(t => t.GetInterface("I" + t.Name))
                 .SingleInstance();
 
+            builder.RegisterType<DbConnectionProvider>()
+                .As<IDbConnectionProvider>()
+                .SingleInstance();
+
             builder.RegisterType<InvoiceRepository>()
                 .As<IInvoiceRepository>();
 
@@ -52,7 +57,8 @@ namespace IndyPOS.IoC
             builder.RegisterType<UserRepository>()
                 .As<IUserRepository>();
 
-
+            builder.RegisterType<PackPriceRepository>()
+                .As<IPackPriceRepository>();
 
             builder.RegisterType<BarcodeScanner>()
                 .As<IBarcodeScanner>()

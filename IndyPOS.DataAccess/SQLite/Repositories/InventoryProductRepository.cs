@@ -7,11 +7,18 @@ using IndyPOS.DataAccess.Extensions;
 
 namespace IndyPOS.DataAccess.SQLite.Repositories
 {
-    public class InventoryProductRepository : SQLiteDatabase, IInventoryProductRepository
+    public class InventoryProductRepository : IInventoryProductRepository
     {
+        private readonly IDbConnectionProvider _dbConnectionProvider;
+
+        public InventoryProductRepository(IDbConnectionProvider dbConnectionProvider)
+        {
+            _dbConnectionProvider = dbConnectionProvider;
+        }
+
         public InventoryProduct GetProductByBarcode(string barcode)
         {
-            using (var connection = GetDatabaseConnection())
+            using (var connection = _dbConnectionProvider.GetDbConnection())
             {
                 connection.Open();
 
@@ -30,7 +37,7 @@ namespace IndyPOS.DataAccess.SQLite.Repositories
 
         public IList<InventoryProduct> GetProductsByCategoryId(int categoryId)
         {
-            using (var connection = GetDatabaseConnection())
+            using (var connection = _dbConnectionProvider.GetDbConnection())
             {
                 connection.Open();
 
@@ -49,7 +56,7 @@ namespace IndyPOS.DataAccess.SQLite.Repositories
 
         public void AddProduct(InventoryProduct product)
         {
-            using (var connection = GetDatabaseConnection())
+            using (var connection = _dbConnectionProvider.GetDbConnection())
             {
                 connection.Open();
 
@@ -59,7 +66,7 @@ namespace IndyPOS.DataAccess.SQLite.Repositories
 
         public void UpdateProduct(InventoryProduct product)
         {
-            using (var connection = GetDatabaseConnection())
+            using (var connection = _dbConnectionProvider.GetDbConnection())
             {
                 connection.Open();
 
@@ -69,7 +76,7 @@ namespace IndyPOS.DataAccess.SQLite.Repositories
 
         public void RemoveProduct(InventoryProduct product)
         {
-            using (var connection = GetDatabaseConnection())
+            using (var connection = _dbConnectionProvider.GetDbConnection())
             {
                 connection.Open();
 
@@ -79,7 +86,7 @@ namespace IndyPOS.DataAccess.SQLite.Repositories
 
         public void RemoveProductByBarcode(string barcode)
         {
-            using (var connection = GetDatabaseConnection())
+            using (var connection = _dbConnectionProvider.GetDbConnection())
             {
                 connection.Open();
 

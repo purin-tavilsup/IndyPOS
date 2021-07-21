@@ -10,11 +10,18 @@ using IndyPOS.DataAccess.Repositories;
 
 namespace IndyPOS.DataAccess.SQLite.Repositories
 {
-    public class InvoiceRepository : SQLiteDatabase, IInvoiceRepository
+    public class InvoiceRepository : IInvoiceRepository
     {
+        private readonly IDbConnectionProvider _dbConnectionProvider;
+
+        public InvoiceRepository(IDbConnectionProvider dbConnectionProvider)
+        {
+            _dbConnectionProvider = dbConnectionProvider;
+        }
+
         public IList<InventoryProduct> GetProductsForSale()
         {
-            using (var connection = GetDatabaseConnection())
+            using (var connection = _dbConnectionProvider.GetDbConnection())
             {
                 connection.Open();
 

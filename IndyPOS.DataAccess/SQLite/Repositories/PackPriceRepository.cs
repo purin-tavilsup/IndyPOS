@@ -6,11 +6,18 @@ using IndyPOS.DataAccess.Repositories;
 
 namespace IndyPOS.DataAccess.SQLite.Repositories
 {
-	public class PackPriceRepository : SQLiteDatabase, IPackPriceRepository
+	public class PackPriceRepository : IPackPriceRepository
 	{
+        private readonly IDbConnectionProvider _dbConnectionProvider;
+
+        public PackPriceRepository(IDbConnectionProvider dbConnectionProvider)
+		{
+            _dbConnectionProvider = dbConnectionProvider;
+        }
+
         public IList<PackPrice> GetPackPricesByBarcode(string barcode)
         {
-            using (var connection = GetDatabaseConnection())
+            using (var connection = _dbConnectionProvider.GetDbConnection())
             {
                 connection.Open();
 

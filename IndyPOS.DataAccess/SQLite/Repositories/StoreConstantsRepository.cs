@@ -6,11 +6,18 @@ using IndyPOS.DataAccess.Models;
 
 namespace IndyPOS.DataAccess.SQLite.Repositories
 {
-    public class StoreConstantRepository : SQLiteDatabase, IStoreConstantRepository
+    public class StoreConstantRepository : IStoreConstantRepository
     {
+        private readonly IDbConnectionProvider _dbConnectionProvider;
+
+        public StoreConstantRepository(IDbConnectionProvider dbConnectionProvider)
+        {
+            _dbConnectionProvider = dbConnectionProvider;
+        }
+
         public IList<PaymentType> GetPaymentTypes()
         {
-            using (var connection = GetDatabaseConnection())
+            using (var connection = _dbConnectionProvider.GetDbConnection())
             {
                 connection.Open();
 
@@ -25,7 +32,7 @@ namespace IndyPOS.DataAccess.SQLite.Repositories
 
         public IList<UserRole> GetUserRoles()
         {
-            using (var connection = GetDatabaseConnection())
+            using (var connection = _dbConnectionProvider.GetDbConnection())
             {
                 connection.Open();
 
@@ -40,7 +47,7 @@ namespace IndyPOS.DataAccess.SQLite.Repositories
 
         public IList<ProductCategory> GetProductCategories()
         {
-            using (var connection = GetDatabaseConnection())
+            using (var connection = _dbConnectionProvider.GetDbConnection())
             {
                 connection.Open();
 

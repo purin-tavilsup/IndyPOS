@@ -9,7 +9,13 @@ using IndyPOS.DataAccess.Repositories;
 
 namespace IndyPOS.DataAccess.SQLite.Repositories
 {
-    public class UserRepository : SQLiteDatabase, IUserRepository
+    public class UserRepository : IUserRepository
     {
+        private readonly IDbConnectionProvider _dbConnectionProvider;
+
+        public UserRepository(IDbConnectionProvider dbConnectionProvider)
+        {
+            _dbConnectionProvider = dbConnectionProvider;
+        }
     }
 }
