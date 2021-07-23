@@ -1,4 +1,4 @@
-﻿namespace IndyPOS.Adapters
+﻿namespace IndyPOS.SaleInvoice
 {
 	public interface IPayment
 	{

@@ -3,6 +3,7 @@ using IndyPOS.DataAccess.Repositories;
 using IndyPOS.Enums;
 using IndyPOS.Events;
 using IndyPOS.Extensions;
+using IndyPOS.Inventory;
 using IndyPOS.SaleInvoice;
 using Prism.Events;
 using System.Collections.Generic;
@@ -10,7 +11,7 @@ using System.Linq;
 
 namespace IndyPOS.Controllers
 {
-    public class SaleInvoiceController : ISaleInvoiceController
+	public class SaleInvoiceController : ISaleInvoiceController
     {
         private readonly IEventAggregator _eventAggregator;
         private readonly IInvoiceRepository _invoicesRepository;

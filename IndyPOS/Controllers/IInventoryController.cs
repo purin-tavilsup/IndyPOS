@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using IndyPOS.Adapters;
+using IndyPOS.Inventory;
 
 namespace IndyPOS.Controllers
 {

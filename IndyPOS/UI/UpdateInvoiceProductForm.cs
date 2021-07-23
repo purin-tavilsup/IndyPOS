@@ -1,5 +1,6 @@
 ﻿using IndyPOS.Adapters;
 using IndyPOS.Constants;
+using IndyPOS.SaleInvoice;
 using IndyPOS.Controllers;
 using Prism.Events;
 using System;

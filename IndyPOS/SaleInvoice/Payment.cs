@@ -1,6 +1,4 @@
-﻿using IndyPOS.Adapters;
-
-namespace IndyPOS.SaleInvoice
+﻿namespace IndyPOS.SaleInvoice
 {
 	public class Payment : IPayment
 	{

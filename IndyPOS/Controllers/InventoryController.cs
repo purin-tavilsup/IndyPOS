@@ -1,5 +1,6 @@
 ﻿using IndyPOS.Adapters;
 using IndyPOS.DataAccess.Repositories;
+using IndyPOS.Inventory;
 using Prism.Events;
 using System.Collections.Generic;
 using System.Linq;

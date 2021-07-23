@@ -4,11 +4,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace IndyPOS.Adapters
+namespace IndyPOS.Inventory
 {
-    public interface ISaleInvoiceProduct
+    public interface IInventoryProduct
     {
-        int InventoryProductId { get; set; }
+        int InventoryProductId { get; }
 
         string SKU { get; set; }
 
@@ -26,6 +26,10 @@ namespace IndyPOS.Adapters
 
         decimal UnitPrice { get; set; }
 
-        int Quantity { get; set; }
+        int QuantityInStock { get; set; }
+
+        string DateCreated { get; }
+
+        string DateUpdated { get; }
     }
 }

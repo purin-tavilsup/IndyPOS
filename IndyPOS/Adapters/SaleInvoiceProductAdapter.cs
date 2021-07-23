@@ -1,19 +1,13 @@
-﻿using IndyPOS.DataAccess.Repositories;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using IndyPOS.Extensions;
-using IndyPOS.DataAccess.Models;
+﻿using IndyPOS.DataAccess.Models;
+using IndyPOS.SaleInvoice;
 
 namespace IndyPOS.Adapters
 {
-    public class CommittedSaleInvoiceProductAdapter : ICommittedSaleInvoiceProduct
+	public class SaleInvoiceProductAdapter : ISaleInvoiceProduct
     {
         private InvoiceProduct _adaptee;
 
-        public CommittedSaleInvoiceProductAdapter(InvoiceProduct adaptee)
+        public SaleInvoiceProductAdapter(InvoiceProduct adaptee)
         {
             _adaptee = adaptee;
         }

@@ -1,19 +1,13 @@
-﻿using IndyPOS.DataAccess.Repositories;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using IndyPOS.Extensions;
-using IndyPOS.DataAccess.Models;
+﻿using IndyPOS.Inventory;
+using InventoryProductModel = IndyPOS.DataAccess.Models.InventoryProduct;
 
 namespace IndyPOS.Adapters
 {
-    public class InventoryProductAdapter : IInventoryProduct
+	public class InventoryProductAdapter : IInventoryProduct
     {
-        private InventoryProduct _adaptee;
+        private InventoryProductModel _adaptee;
 
-        public InventoryProductAdapter(InventoryProduct adaptee)
+        public InventoryProductAdapter(InventoryProductModel adaptee)
         {
             _adaptee = adaptee;
         }

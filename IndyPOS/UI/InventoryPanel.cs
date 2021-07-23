@@ -3,6 +3,7 @@ using IndyPOS.Constants;
 using IndyPOS.Controllers;
 using IndyPOS.Events;
 using IndyPOS.Extensions;
+using IndyPOS.Inventory;
 using Prism.Events;
 using System;
 using System.Collections.Generic;
