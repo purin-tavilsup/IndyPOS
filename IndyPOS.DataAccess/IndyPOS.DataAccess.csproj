@@ -85,15 +85,12 @@
     <Compile Include="Repositories\IInvoiceRepository.cs" />
     <Compile Include="SQLite\Repositories\InventoryProductRepository.cs" />
     <Compile Include="SQLite\Repositories\InvoiceRepository.cs" />
-    <Compile Include="Repositories\IPackPriceRepository.cs" />
     <Compile Include="Repositories\IStoreConstantRepository.cs" />
     <Compile Include="Repositories\IUserRepository.cs" />
-    <Compile Include="SQLite\Repositories\PackPriceRepository.cs" />
     <Compile Include="SQLite\Repositories\StoreConstantsRepository.cs" />
     <Compile Include="Models\InventoryProduct.cs" />
     <Compile Include="Models\Invoice.cs" />
     <Compile Include="Models\InvoiceProduct.cs" />
-    <Compile Include="Models\PackPrice.cs" />
     <Compile Include="Models\Payment.cs" />
     <Compile Include="Models\PaymentType.cs" />
     <Compile Include="Models\ProductCategory.cs" />

@@ -57,9 +57,6 @@ namespace IndyPOS.IoC
             builder.RegisterType<UserRepository>()
                 .As<IUserRepository>();
 
-            builder.RegisterType<PackPriceRepository>()
-                .As<IPackPriceRepository>();
-
             builder.RegisterType<BarcodeScanner>()
                 .As<IBarcodeScanner>()
                 .SingleInstance();
