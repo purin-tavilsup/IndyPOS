@@ -1,10 +1,8 @@
 
 IndyPOS/bin/
 IndyPOS/obj/
-IndyPOS.DataServices/bin/
-IndyPOS.DataServices/obj/
-IndyPOS.EventAggregator/bin/
-IndyPOS.EventAggregator/obj/
+IndyPOS.DataAccess/bin/
+IndyPOS.DataAccess/obj/
 packages/
 .vs/
 .vs/IndyPOS/v15/.suo

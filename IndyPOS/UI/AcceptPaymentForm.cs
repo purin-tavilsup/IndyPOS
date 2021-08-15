@@ -1,13 +1,11 @@
-﻿using IndyPOS.Adapters;
-using IndyPOS.Constants;
+﻿using IndyPOS.Constants;
 using IndyPOS.Controllers;
-using IndyPOS.Inventory;
+using IndyPOS.Enums;
 using Prism.Events;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Windows.Forms;
-using IndyPOS.Enums;
 
 namespace IndyPOS.UI
 {

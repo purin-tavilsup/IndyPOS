@@ -1,32 +1,33 @@
 ﻿using IndyPOS.Adapters;
-using IndyPOS.DataServices;
+using IndyPOS.DataAccess.Repositories;
+using IndyPOS.Inventory;
 using Prism.Events;
 using System.Collections.Generic;
 using System.Linq;
 
 namespace IndyPOS.Controllers
 {
-    public class InventoryController : IInventoryController
+	public class InventoryController : IInventoryController
     {
         private readonly IEventAggregator _eventAggregator;
-        private readonly IInventoryProductsDataService _inventoryProductsDataService;
+        private readonly IInventoryProductRepository _inventoryProductsRepository;
 
-        public InventoryController(IEventAggregator eventAggregator, IInventoryProductsDataService inventoryProductsDataService)
+        public InventoryController(IEventAggregator eventAggregator, IInventoryProductRepository inventoryProductsRepository)
         {
             _eventAggregator = eventAggregator;
-            _inventoryProductsDataService = inventoryProductsDataService;
+            _inventoryProductsRepository = inventoryProductsRepository;
         }
 
         public IList<IInventoryProduct> GetInventoryProductsByCategoryId(int categoryId)
         {
-            var results = _inventoryProductsDataService.GetProductsByCategoryId(categoryId);
+            var results = _inventoryProductsRepository.GetProductsByCategoryId(categoryId);
 
             return results.Select(p => new InventoryProductAdapter(p) as IInventoryProduct).ToList();
         }
 
         public IInventoryProduct GetInventoryProductByBarcode(string barcode)
         {
-            var result = _inventoryProductsDataService.GetProductByBarcode(barcode);
+            var result = _inventoryProductsRepository.GetProductByBarcode(barcode);
 
             return result != null ? new InventoryProductAdapter(result) : null;
         }

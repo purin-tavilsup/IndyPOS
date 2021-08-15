@@ -1,9 +1,11 @@
-﻿using IndyPOS.Adapters;
-
-namespace IndyPOS.SaleInvoice
+﻿namespace IndyPOS.SaleInvoice
 {
-    public class SaleInvoiceProduct : ISaleInvoiceProduct
+	public class SaleInvoiceProduct : ISaleInvoiceProduct
     {
+        public int InvoiceProductId { get; set; }
+
+        public int InvoiceId { get; set; }
+
         public int InventoryProductId { get; set; }
 
         public string SKU { get; set; }

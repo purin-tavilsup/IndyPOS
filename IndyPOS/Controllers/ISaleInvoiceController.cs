@@ -1,5 +1,7 @@
 ﻿using IndyPOS.Adapters;
 using IndyPOS.Enums;
+using IndyPOS.Inventory;
+using IndyPOS.SaleInvoice;
 using System.Collections.Generic;
 
 namespace IndyPOS.Controllers

@@ -1,6 +1,8 @@
 ﻿using Autofac;
 using IndyPOS.Constants;
-using IndyPOS.DataServices;
+using IndyPOS.DataAccess;
+using IndyPOS.DataAccess.Repositories;
+using IndyPOS.DataAccess.SQLite.Repositories;
 using IndyPOS.Devices;
 using Prism.Events;
 using System.Linq;
@@ -8,7 +10,7 @@ using System.Reflection;
 
 namespace IndyPOS.IoC
 {
-    public static class ContainerConfig
+	public static class ContainerConfig
     {
         public static IContainer Configure()
         {
@@ -36,20 +38,24 @@ namespace IndyPOS.IoC
                 .As(t => t.GetInterface("I" + t.Name))
                 .SingleInstance();
 
-            builder.RegisterType<InvoicesDataService>()
-                .As<IInvoicesDataService>();
+            builder.RegisterType<DbConnectionProvider>()
+                .As<IDbConnectionProvider>()
+                .SingleInstance();
 
-            builder.RegisterType<InventoryProductsDataService>()
-                .As<IInventoryProductsDataService>();
+            builder.RegisterType<InvoiceRepository>()
+                .As<IInvoiceRepository>();
 
-            builder.RegisterType<StoreConstantsDataService>()
-                .As<IStoreConstantsDataService>();
+            builder.RegisterType<InventoryProductRepository>()
+                .As<IInventoryProductRepository>();
 
-            builder.RegisterType<CustomersDataService>()
-                .As<ICustomersDataService>();
+            builder.RegisterType<StoreConstantRepository>()
+                .As<IStoreConstantRepository>();
 
-            builder.RegisterType<UsersDataService>()
-                .As<IUsersDataService>();
+            builder.RegisterType<CustomerRepository>()
+                .As<ICustomerRepository>();
+
+            builder.RegisterType<UserRepository>()
+                .As<IUserRepository>();
 
             builder.RegisterType<BarcodeScanner>()
                 .As<IBarcodeScanner>()
