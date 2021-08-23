@@ -16,7 +16,6 @@ namespace IndyPOS.Extensions
             var saleInvoiceProduct = new SaleInvoiceProduct
             {
                 InventoryProductId = inventoryProduct.InventoryProductId,
-                SKU = inventoryProduct.SKU,
                 Barcode = inventoryProduct.Barcode,
                 Description = inventoryProduct.Description,
                 Manufacturer = inventoryProduct.Manufacturer,

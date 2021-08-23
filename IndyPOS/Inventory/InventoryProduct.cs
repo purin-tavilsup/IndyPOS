@@ -1,17 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using IndyPOS.Adapters;
-
-namespace IndyPOS.Inventory
+﻿namespace IndyPOS.Inventory
 {
-    public class InventoryProduct : IInventoryProduct
+	public class InventoryProduct : IInventoryProduct
     {
         public int InventoryProductId { get; }
-
-        public string SKU { get; set; }
 
         public string Barcode { get; set; }
 

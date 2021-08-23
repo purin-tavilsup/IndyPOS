@@ -52,7 +52,13 @@ namespace IndyPOS.UI
             InitializeProductCategories();
             InitializeProductDataView();
 
+            SubscribeEvents();
+        }
+
+        private void SubscribeEvents()
+        {
             _eventAggregator.GetEvent<BarcodeReceivedEvent>().Subscribe(BarcodeReceived);
+            _eventAggregator.GetEvent<InventoryProductAddedEvent>().Subscribe(NewInventoryProductAdded);
         }
 
         private void InitializeProductCategories()
@@ -73,43 +79,43 @@ namespace IndyPOS.UI
             ProductDataView.ColumnCount = 10;
 
             ProductDataView.Columns[(int)ProductColumn.ProductCode].Name = "รหัสสินค้า";
-            ProductDataView.Columns[(int)ProductColumn.ProductCode].Width = 200;
+            ProductDataView.Columns[(int)ProductColumn.ProductCode].Width = 130;
             ProductDataView.Columns[(int)ProductColumn.ProductCode].ReadOnly = true;
 
             ProductDataView.Columns[(int)ProductColumn.Description].Name = "คำอธิบาย";
-            ProductDataView.Columns[(int)ProductColumn.Description].Width = 500;
+            ProductDataView.Columns[(int)ProductColumn.Description].Width = 250;
             ProductDataView.Columns[(int)ProductColumn.Description].ReadOnly = true;
 
             ProductDataView.Columns[(int)ProductColumn.QuantityInStock].Name = "จำนวนในคลัง";
-            ProductDataView.Columns[(int)ProductColumn.QuantityInStock].Width = 150;
+            ProductDataView.Columns[(int)ProductColumn.QuantityInStock].Width = 100;
             ProductDataView.Columns[(int)ProductColumn.QuantityInStock].ReadOnly = true;
 
             ProductDataView.Columns[(int)ProductColumn.UnitPrice].Name = "ราคาขาย";
-            ProductDataView.Columns[(int)ProductColumn.UnitPrice].Width = 150;
+            ProductDataView.Columns[(int)ProductColumn.UnitPrice].Width = 100;
             ProductDataView.Columns[(int)ProductColumn.UnitPrice].ReadOnly = true;
 
             ProductDataView.Columns[(int)ProductColumn.UnitCost].Name = "ราคาซื้อ";
-            ProductDataView.Columns[(int)ProductColumn.UnitCost].Width = 150;
+            ProductDataView.Columns[(int)ProductColumn.UnitCost].Width = 100;
             ProductDataView.Columns[(int)ProductColumn.UnitCost].ReadOnly = true;
 
             ProductDataView.Columns[(int)ProductColumn.Category].Name = "ประเภทสินค้า";
-            ProductDataView.Columns[(int)ProductColumn.Category].Width = 250;
+            ProductDataView.Columns[(int)ProductColumn.Category].Width = 180;
             ProductDataView.Columns[(int)ProductColumn.Category].ReadOnly = true;
 
             ProductDataView.Columns[(int)ProductColumn.Manufacturer].Name = "ผู้ผลิต";
-            ProductDataView.Columns[(int)ProductColumn.Manufacturer].Width = 250;
+            ProductDataView.Columns[(int)ProductColumn.Manufacturer].Width = 100;
             ProductDataView.Columns[(int)ProductColumn.Manufacturer].ReadOnly = true;
 
             ProductDataView.Columns[(int)ProductColumn.Brand].Name = "ยี่ห้อ";
-            ProductDataView.Columns[(int)ProductColumn.Brand].Width = 250;
+            ProductDataView.Columns[(int)ProductColumn.Brand].Width = 100;
             ProductDataView.Columns[(int)ProductColumn.Brand].ReadOnly = true;
 
             ProductDataView.Columns[(int)ProductColumn.DateCreated].Name = "วันที่นำเข้า";
-            ProductDataView.Columns[(int)ProductColumn.DateCreated].Width = 250;
+            ProductDataView.Columns[(int)ProductColumn.DateCreated].Width = 150;
             ProductDataView.Columns[(int)ProductColumn.DateCreated].ReadOnly = true;
 
             ProductDataView.Columns[(int)ProductColumn.DateUpdated].Name = "วันที่อัพเดท";
-            ProductDataView.Columns[(int)ProductColumn.DateUpdated].Width = 250;
+            ProductDataView.Columns[(int)ProductColumn.DateUpdated].Width = 150;
             ProductDataView.Columns[(int)ProductColumn.DateUpdated].ReadOnly = true;
 
             #endregion
@@ -237,6 +243,20 @@ namespace IndyPOS.UI
             _addNewProductForm.UIThread(delegate
             {
                 _addNewProductForm.ShowDialog(barcode);
+            });
+        }
+
+        private void NewInventoryProductAdded(int inventoryProductId)
+		{
+            var product = _inventoryController.GetProductByInventoryProductId(inventoryProductId);
+
+            if (product == null) return;
+
+            ProductDataView.UIThread(delegate
+            {
+                ProductDataView.Rows.Clear();
+
+                AddProductToProductDataView(product);
             });
         }
     }

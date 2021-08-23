@@ -28,11 +28,11 @@
         /// </summary>
         private void InitializeComponent()
         {
-			System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle1 = new System.Windows.Forms.DataGridViewCellStyle();
-			System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle5 = new System.Windows.Forms.DataGridViewCellStyle();
-			System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle2 = new System.Windows.Forms.DataGridViewCellStyle();
-			System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle3 = new System.Windows.Forms.DataGridViewCellStyle();
-			System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle4 = new System.Windows.Forms.DataGridViewCellStyle();
+			System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle11 = new System.Windows.Forms.DataGridViewCellStyle();
+			System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle15 = new System.Windows.Forms.DataGridViewCellStyle();
+			System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle12 = new System.Windows.Forms.DataGridViewCellStyle();
+			System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle13 = new System.Windows.Forms.DataGridViewCellStyle();
+			System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle14 = new System.Windows.Forms.DataGridViewCellStyle();
 			this.panel3 = new System.Windows.Forms.Panel();
 			this.label1 = new System.Windows.Forms.Label();
 			this.TotalLabel = new System.Windows.Forms.Label();
@@ -50,16 +50,16 @@
 			this.panel7 = new System.Windows.Forms.Panel();
 			this.CancelSaleInvoiceButton = new System.Windows.Forms.Button();
 			this.InvoiceDataView = new System.Windows.Forms.DataGridView();
-			this.ProductCode = new System.Windows.Forms.DataGridViewTextBoxColumn();
-			this.Description = new System.Windows.Forms.DataGridViewTextBoxColumn();
-			this.Quantity = new System.Windows.Forms.DataGridViewTextBoxColumn();
-			this.UnitPrice = new System.Windows.Forms.DataGridViewTextBoxColumn();
-			this.Total = new System.Windows.Forms.DataGridViewTextBoxColumn();
 			this.panel8 = new System.Windows.Forms.Panel();
 			this.RemoveProductButton = new System.Windows.Forms.Button();
 			this.panel9 = new System.Windows.Forms.Panel();
 			this.AddProductButton = new System.Windows.Forms.Button();
 			this.panel2 = new System.Windows.Forms.Panel();
+			this.ProductCode = new System.Windows.Forms.DataGridViewTextBoxColumn();
+			this.Description = new System.Windows.Forms.DataGridViewTextBoxColumn();
+			this.Quantity = new System.Windows.Forms.DataGridViewTextBoxColumn();
+			this.UnitPrice = new System.Windows.Forms.DataGridViewTextBoxColumn();
+			this.Total = new System.Windows.Forms.DataGridViewTextBoxColumn();
 			this.panel3.SuspendLayout();
 			this.panel4.SuspendLayout();
 			this.panel5.SuspendLayout();
@@ -86,7 +86,7 @@
 			// label1
 			// 
 			this.label1.BackColor = System.Drawing.Color.Silver;
-			this.label1.Font = new System.Drawing.Font("Leelawadee UI", 18F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+			this.label1.Font = new System.Drawing.Font("Leelawadee UI", 15.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
 			this.label1.ForeColor = System.Drawing.Color.Black;
 			this.label1.Location = new System.Drawing.Point(3, 3);
 			this.label1.Name = "label1";
@@ -99,7 +99,7 @@
 			// 
 			this.TotalLabel.BackColor = System.Drawing.Color.WhiteSmoke;
 			this.TotalLabel.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-			this.TotalLabel.Font = new System.Drawing.Font("Leelawadee", 24F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+			this.TotalLabel.Font = new System.Drawing.Font("Leelawadee UI", 24F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
 			this.TotalLabel.ForeColor = System.Drawing.Color.DarkBlue;
 			this.TotalLabel.Location = new System.Drawing.Point(3, 107);
 			this.TotalLabel.Name = "TotalLabel";
@@ -112,7 +112,7 @@
 			// 
 			this.label2.BackColor = System.Drawing.Color.WhiteSmoke;
 			this.label2.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-			this.label2.Font = new System.Drawing.Font("Leelawadee", 18F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+			this.label2.Font = new System.Drawing.Font("Leelawadee UI", 15.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
 			this.label2.ForeColor = System.Drawing.Color.DarkBlue;
 			this.label2.Location = new System.Drawing.Point(160, 107);
 			this.label2.Name = "label2";
@@ -154,7 +154,7 @@
 			// 
 			this.TotalPaymentsLabel.BackColor = System.Drawing.Color.WhiteSmoke;
 			this.TotalPaymentsLabel.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-			this.TotalPaymentsLabel.Font = new System.Drawing.Font("Leelawadee", 24F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+			this.TotalPaymentsLabel.Font = new System.Drawing.Font("Leelawadee UI", 24F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
 			this.TotalPaymentsLabel.ForeColor = System.Drawing.Color.DarkBlue;
 			this.TotalPaymentsLabel.Location = new System.Drawing.Point(3, 107);
 			this.TotalPaymentsLabel.Name = "TotalPaymentsLabel";
@@ -167,7 +167,7 @@
 			// 
 			this.label6.BackColor = System.Drawing.Color.WhiteSmoke;
 			this.label6.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-			this.label6.Font = new System.Drawing.Font("Leelawadee", 18F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+			this.label6.Font = new System.Drawing.Font("Leelawadee UI", 15.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
 			this.label6.ForeColor = System.Drawing.Color.DarkBlue;
 			this.label6.Location = new System.Drawing.Point(160, 107);
 			this.label6.Name = "label6";
@@ -191,7 +191,7 @@
 			// label4
 			// 
 			this.label4.BackColor = System.Drawing.Color.Silver;
-			this.label4.Font = new System.Drawing.Font("Leelawadee UI", 18F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+			this.label4.Font = new System.Drawing.Font("Leelawadee UI", 15.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
 			this.label4.ForeColor = System.Drawing.Color.Black;
 			this.label4.Location = new System.Drawing.Point(3, 3);
 			this.label4.Name = "label4";
@@ -204,7 +204,7 @@
 			// 
 			this.ChangesLabel.BackColor = System.Drawing.Color.WhiteSmoke;
 			this.ChangesLabel.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-			this.ChangesLabel.Font = new System.Drawing.Font("Leelawadee", 24F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+			this.ChangesLabel.Font = new System.Drawing.Font("Leelawadee UI", 24F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
 			this.ChangesLabel.ForeColor = System.Drawing.Color.DarkBlue;
 			this.ChangesLabel.Location = new System.Drawing.Point(3, 107);
 			this.ChangesLabel.Name = "ChangesLabel";
@@ -217,7 +217,7 @@
 			// 
 			this.label7.BackColor = System.Drawing.Color.WhiteSmoke;
 			this.label7.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-			this.label7.Font = new System.Drawing.Font("Leelawadee", 18F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+			this.label7.Font = new System.Drawing.Font("Leelawadee UI", 15.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
 			this.label7.ForeColor = System.Drawing.Color.DarkBlue;
 			this.label7.Location = new System.Drawing.Point(160, 107);
 			this.label7.Name = "label7";
@@ -231,24 +231,24 @@
 			this.panel6.BackColor = System.Drawing.Color.Silver;
 			this.panel6.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
 			this.panel6.Controls.Add(this.SaveSaleInvoiceButton);
-			this.panel6.Location = new System.Drawing.Point(704, 502);
+			this.panel6.Location = new System.Drawing.Point(703, 392);
 			this.panel6.Name = "panel6";
-			this.panel6.Size = new System.Drawing.Size(232, 109);
+			this.panel6.Size = new System.Drawing.Size(154, 103);
 			this.panel6.TabIndex = 14;
 			// 
 			// SaveSaleInvoiceButton
 			// 
 			this.SaveSaleInvoiceButton.BackColor = System.Drawing.Color.Gainsboro;
 			this.SaveSaleInvoiceButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-			this.SaveSaleInvoiceButton.Font = new System.Drawing.Font("Leelawadee UI", 15.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+			this.SaveSaleInvoiceButton.Font = new System.Drawing.Font("Leelawadee UI", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
 			this.SaveSaleInvoiceButton.Image = global::IndyPOS.Properties.Resources.Save_50;
 			this.SaveSaleInvoiceButton.Location = new System.Drawing.Point(3, 3);
 			this.SaveSaleInvoiceButton.Name = "SaveSaleInvoiceButton";
-			this.SaveSaleInvoiceButton.Size = new System.Drawing.Size(223, 101);
+			this.SaveSaleInvoiceButton.Size = new System.Drawing.Size(146, 95);
 			this.SaveSaleInvoiceButton.TabIndex = 7;
 			this.SaveSaleInvoiceButton.Text = " บันทึกการขาย";
-			this.SaveSaleInvoiceButton.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
-			this.SaveSaleInvoiceButton.TextImageRelation = System.Windows.Forms.TextImageRelation.ImageBeforeText;
+			this.SaveSaleInvoiceButton.TextAlign = System.Drawing.ContentAlignment.BottomCenter;
+			this.SaveSaleInvoiceButton.TextImageRelation = System.Windows.Forms.TextImageRelation.ImageAboveText;
 			this.SaveSaleInvoiceButton.UseVisualStyleBackColor = false;
 			this.SaveSaleInvoiceButton.Click += new System.EventHandler(this.SaveSaleInvoiceButton_Click);
 			// 
@@ -257,25 +257,25 @@
 			this.panel7.BackColor = System.Drawing.Color.Silver;
 			this.panel7.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
 			this.panel7.Controls.Add(this.CancelSaleInvoiceButton);
-			this.panel7.Location = new System.Drawing.Point(942, 502);
+			this.panel7.Location = new System.Drawing.Point(863, 392);
 			this.panel7.Name = "panel7";
-			this.panel7.Size = new System.Drawing.Size(226, 109);
+			this.panel7.Size = new System.Drawing.Size(154, 103);
 			this.panel7.TabIndex = 15;
 			// 
 			// CancelSaleInvoiceButton
 			// 
 			this.CancelSaleInvoiceButton.BackColor = System.Drawing.Color.Gainsboro;
 			this.CancelSaleInvoiceButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-			this.CancelSaleInvoiceButton.Font = new System.Drawing.Font("Leelawadee UI", 15.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+			this.CancelSaleInvoiceButton.Font = new System.Drawing.Font("Leelawadee UI", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
 			this.CancelSaleInvoiceButton.ForeColor = System.Drawing.Color.Black;
 			this.CancelSaleInvoiceButton.Image = global::IndyPOS.Properties.Resources.RemoveRectangle_50;
 			this.CancelSaleInvoiceButton.Location = new System.Drawing.Point(3, 3);
 			this.CancelSaleInvoiceButton.Name = "CancelSaleInvoiceButton";
-			this.CancelSaleInvoiceButton.Size = new System.Drawing.Size(218, 101);
+			this.CancelSaleInvoiceButton.Size = new System.Drawing.Size(146, 95);
 			this.CancelSaleInvoiceButton.TabIndex = 7;
 			this.CancelSaleInvoiceButton.Text = " ยกเลิกการขาย";
-			this.CancelSaleInvoiceButton.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
-			this.CancelSaleInvoiceButton.TextImageRelation = System.Windows.Forms.TextImageRelation.ImageBeforeText;
+			this.CancelSaleInvoiceButton.TextAlign = System.Drawing.ContentAlignment.BottomCenter;
+			this.CancelSaleInvoiceButton.TextImageRelation = System.Windows.Forms.TextImageRelation.ImageAboveText;
 			this.CancelSaleInvoiceButton.UseVisualStyleBackColor = false;
 			this.CancelSaleInvoiceButton.Click += new System.EventHandler(this.CancelSaleInvoiceButton_Click);
 			// 
@@ -285,16 +285,15 @@
 			this.InvoiceDataView.AllowUserToResizeRows = false;
 			this.InvoiceDataView.BackgroundColor = System.Drawing.Color.DarkGray;
 			this.InvoiceDataView.ColumnHeadersBorderStyle = System.Windows.Forms.DataGridViewHeaderBorderStyle.Single;
-			dataGridViewCellStyle1.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleCenter;
-			dataGridViewCellStyle1.BackColor = System.Drawing.SystemColors.Control;
-			dataGridViewCellStyle1.Font = new System.Drawing.Font("Leelawadee", 15.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-			dataGridViewCellStyle1.ForeColor = System.Drawing.SystemColors.WindowText;
-			dataGridViewCellStyle1.Padding = new System.Windows.Forms.Padding(10, 0, 0, 0);
-			dataGridViewCellStyle1.SelectionBackColor = System.Drawing.SystemColors.Highlight;
-			dataGridViewCellStyle1.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
-			dataGridViewCellStyle1.WrapMode = System.Windows.Forms.DataGridViewTriState.False;
-			this.InvoiceDataView.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle1;
-			this.InvoiceDataView.ColumnHeadersHeight = 50;
+			dataGridViewCellStyle11.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleCenter;
+			dataGridViewCellStyle11.BackColor = System.Drawing.SystemColors.Control;
+			dataGridViewCellStyle11.Font = new System.Drawing.Font("Leelawadee UI", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+			dataGridViewCellStyle11.ForeColor = System.Drawing.SystemColors.WindowText;
+			dataGridViewCellStyle11.SelectionBackColor = System.Drawing.SystemColors.Highlight;
+			dataGridViewCellStyle11.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
+			dataGridViewCellStyle11.WrapMode = System.Windows.Forms.DataGridViewTriState.False;
+			this.InvoiceDataView.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle11;
+			this.InvoiceDataView.ColumnHeadersHeight = 30;
 			this.InvoiceDataView.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.DisableResizing;
 			this.InvoiceDataView.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
             this.ProductCode,
@@ -310,91 +309,40 @@
 			this.InvoiceDataView.RowHeadersVisible = false;
 			this.InvoiceDataView.RowHeadersWidth = 60;
 			this.InvoiceDataView.RowHeadersWidthSizeMode = System.Windows.Forms.DataGridViewRowHeadersWidthSizeMode.DisableResizing;
-			dataGridViewCellStyle5.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleRight;
-			dataGridViewCellStyle5.Font = new System.Drawing.Font("Leelawadee", 14.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-			dataGridViewCellStyle5.ForeColor = System.Drawing.SystemColors.WindowText;
-			dataGridViewCellStyle5.Padding = new System.Windows.Forms.Padding(0, 0, 20, 0);
-			dataGridViewCellStyle5.WrapMode = System.Windows.Forms.DataGridViewTriState.True;
-			this.InvoiceDataView.RowsDefaultCellStyle = dataGridViewCellStyle5;
-			this.InvoiceDataView.RowTemplate.DefaultCellStyle.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleRight;
+			dataGridViewCellStyle15.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleCenter;
+			dataGridViewCellStyle15.Font = new System.Drawing.Font("Leelawadee UI", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+			dataGridViewCellStyle15.ForeColor = System.Drawing.SystemColors.WindowText;
+			dataGridViewCellStyle15.WrapMode = System.Windows.Forms.DataGridViewTriState.True;
+			this.InvoiceDataView.RowsDefaultCellStyle = dataGridViewCellStyle15;
+			this.InvoiceDataView.RowTemplate.DefaultCellStyle.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleCenter;
 			this.InvoiceDataView.RowTemplate.DefaultCellStyle.BackColor = System.Drawing.Color.White;
-			this.InvoiceDataView.RowTemplate.DefaultCellStyle.Font = new System.Drawing.Font("Leelawadee", 14.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+			this.InvoiceDataView.RowTemplate.DefaultCellStyle.Font = new System.Drawing.Font("Leelawadee UI", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
 			this.InvoiceDataView.RowTemplate.DefaultCellStyle.ForeColor = System.Drawing.SystemColors.WindowText;
-			this.InvoiceDataView.RowTemplate.DefaultCellStyle.Padding = new System.Windows.Forms.Padding(0, 0, 20, 0);
 			this.InvoiceDataView.RowTemplate.DefaultCellStyle.WrapMode = System.Windows.Forms.DataGridViewTriState.True;
 			this.InvoiceDataView.RowTemplate.Height = 35;
-			this.InvoiceDataView.Size = new System.Drawing.Size(1154, 480);
+			this.InvoiceDataView.Size = new System.Drawing.Size(683, 480);
 			this.InvoiceDataView.TabIndex = 1;
 			this.InvoiceDataView.DoubleClick += new System.EventHandler(this.InvoiceDataView_DoubleClick);
-			// 
-			// ProductCode
-			// 
-			this.ProductCode.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.None;
-			this.ProductCode.HeaderText = "รหัสสินค้า";
-			this.ProductCode.Name = "ProductCode";
-			this.ProductCode.ReadOnly = true;
-			this.ProductCode.Width = 200;
-			// 
-			// Description
-			// 
-			this.Description.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.None;
-			dataGridViewCellStyle2.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleCenter;
-			dataGridViewCellStyle2.BackColor = System.Drawing.Color.White;
-			dataGridViewCellStyle2.Font = new System.Drawing.Font("Leelawadee", 15.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-			dataGridViewCellStyle2.ForeColor = System.Drawing.SystemColors.WindowText;
-			dataGridViewCellStyle2.WrapMode = System.Windows.Forms.DataGridViewTriState.True;
-			this.Description.DefaultCellStyle = dataGridViewCellStyle2;
-			this.Description.HeaderText = "คำอธิบาย";
-			this.Description.Name = "Description";
-			this.Description.ReadOnly = true;
-			this.Description.Width = 500;
-			// 
-			// Quantity
-			// 
-			this.Quantity.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.None;
-			this.Quantity.HeaderText = "จำนวน";
-			this.Quantity.Name = "Quantity";
-			this.Quantity.ReadOnly = true;
-			// 
-			// UnitPrice
-			// 
-			this.UnitPrice.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.None;
-			dataGridViewCellStyle3.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleCenter;
-			this.UnitPrice.DefaultCellStyle = dataGridViewCellStyle3;
-			this.UnitPrice.HeaderText = "ราคาต่อหน่วย";
-			this.UnitPrice.Name = "UnitPrice";
-			this.UnitPrice.ReadOnly = true;
-			this.UnitPrice.Width = 170;
-			// 
-			// Total
-			// 
-			this.Total.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.None;
-			dataGridViewCellStyle4.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleCenter;
-			this.Total.DefaultCellStyle = dataGridViewCellStyle4;
-			this.Total.HeaderText = "ราคารวม";
-			this.Total.Name = "Total";
-			this.Total.ReadOnly = true;
-			this.Total.Width = 150;
 			// 
 			// panel8
 			// 
 			this.panel8.BackColor = System.Drawing.Color.Silver;
 			this.panel8.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
 			this.panel8.Controls.Add(this.RemoveProductButton);
-			this.panel8.Location = new System.Drawing.Point(1174, 160);
+			this.panel8.Location = new System.Drawing.Point(863, 15);
 			this.panel8.Name = "panel8";
-			this.panel8.Size = new System.Drawing.Size(224, 139);
+			this.panel8.Size = new System.Drawing.Size(154, 103);
 			this.panel8.TabIndex = 15;
 			// 
 			// RemoveProductButton
 			// 
 			this.RemoveProductButton.BackColor = System.Drawing.Color.Gainsboro;
 			this.RemoveProductButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-			this.RemoveProductButton.Font = new System.Drawing.Font("Leelawadee UI", 15.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+			this.RemoveProductButton.Font = new System.Drawing.Font("Leelawadee UI", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
 			this.RemoveProductButton.Image = global::IndyPOS.Properties.Resources.Trash_50;
 			this.RemoveProductButton.Location = new System.Drawing.Point(3, 3);
 			this.RemoveProductButton.Name = "RemoveProductButton";
-			this.RemoveProductButton.Size = new System.Drawing.Size(216, 130);
+			this.RemoveProductButton.Size = new System.Drawing.Size(146, 95);
 			this.RemoveProductButton.TabIndex = 7;
 			this.RemoveProductButton.Text = "ลบรายการสินค้า";
 			this.RemoveProductButton.TextAlign = System.Drawing.ContentAlignment.BottomCenter;
@@ -407,20 +355,20 @@
 			this.panel9.BackColor = System.Drawing.Color.Silver;
 			this.panel9.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
 			this.panel9.Controls.Add(this.AddProductButton);
-			this.panel9.Location = new System.Drawing.Point(1174, 15);
+			this.panel9.Location = new System.Drawing.Point(703, 15);
 			this.panel9.Name = "panel9";
-			this.panel9.Size = new System.Drawing.Size(224, 139);
+			this.panel9.Size = new System.Drawing.Size(154, 103);
 			this.panel9.TabIndex = 16;
 			// 
 			// AddProductButton
 			// 
 			this.AddProductButton.BackColor = System.Drawing.Color.Gainsboro;
 			this.AddProductButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-			this.AddProductButton.Font = new System.Drawing.Font("Leelawadee UI", 15.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+			this.AddProductButton.Font = new System.Drawing.Font("Leelawadee UI", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
 			this.AddProductButton.Image = global::IndyPOS.Properties.Resources.PlusRectangle_50;
 			this.AddProductButton.Location = new System.Drawing.Point(3, 3);
 			this.AddProductButton.Name = "AddProductButton";
-			this.AddProductButton.Size = new System.Drawing.Size(216, 130);
+			this.AddProductButton.Size = new System.Drawing.Size(146, 95);
 			this.AddProductButton.TabIndex = 7;
 			this.AddProductButton.Text = "เพิ่มรายการสินค้า";
 			this.AddProductButton.TextAlign = System.Drawing.ContentAlignment.BottomCenter;
@@ -443,6 +391,53 @@
 			this.panel2.Name = "panel2";
 			this.panel2.Size = new System.Drawing.Size(1405, 700);
 			this.panel2.TabIndex = 2;
+			// 
+			// ProductCode
+			// 
+			this.ProductCode.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.None;
+			this.ProductCode.HeaderText = "รหัสสินค้า";
+			this.ProductCode.Name = "ProductCode";
+			this.ProductCode.ReadOnly = true;
+			this.ProductCode.Width = 130;
+			// 
+			// Description
+			// 
+			this.Description.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.None;
+			dataGridViewCellStyle12.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleCenter;
+			dataGridViewCellStyle12.BackColor = System.Drawing.Color.White;
+			dataGridViewCellStyle12.Font = new System.Drawing.Font("Leelawadee", 15.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+			dataGridViewCellStyle12.ForeColor = System.Drawing.SystemColors.WindowText;
+			dataGridViewCellStyle12.WrapMode = System.Windows.Forms.DataGridViewTriState.True;
+			this.Description.DefaultCellStyle = dataGridViewCellStyle12;
+			this.Description.HeaderText = "คำอธิบาย";
+			this.Description.Name = "Description";
+			this.Description.ReadOnly = true;
+			this.Description.Width = 250;
+			// 
+			// Quantity
+			// 
+			this.Quantity.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.None;
+			this.Quantity.HeaderText = "จำนวน";
+			this.Quantity.Name = "Quantity";
+			this.Quantity.ReadOnly = true;
+			// 
+			// UnitPrice
+			// 
+			this.UnitPrice.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.None;
+			dataGridViewCellStyle13.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleCenter;
+			this.UnitPrice.DefaultCellStyle = dataGridViewCellStyle13;
+			this.UnitPrice.HeaderText = "ราคาต่อหน่วย";
+			this.UnitPrice.Name = "UnitPrice";
+			this.UnitPrice.ReadOnly = true;
+			// 
+			// Total
+			// 
+			this.Total.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.None;
+			dataGridViewCellStyle14.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleCenter;
+			this.Total.DefaultCellStyle = dataGridViewCellStyle14;
+			this.Total.HeaderText = "ราคารวม";
+			this.Total.Name = "Total";
+			this.Total.ReadOnly = true;
 			// 
 			// SalePanel
 			// 
@@ -489,10 +484,10 @@
         private System.Windows.Forms.Panel panel9;
         private System.Windows.Forms.Button AddProductButton;
         private System.Windows.Forms.Panel panel2;
-        private System.Windows.Forms.DataGridViewTextBoxColumn ProductCode;
-        private System.Windows.Forms.DataGridViewTextBoxColumn Description;
-        private System.Windows.Forms.DataGridViewTextBoxColumn Quantity;
-        private System.Windows.Forms.DataGridViewTextBoxColumn UnitPrice;
-        private System.Windows.Forms.DataGridViewTextBoxColumn Total;
-    }
+		private System.Windows.Forms.DataGridViewTextBoxColumn ProductCode;
+		private System.Windows.Forms.DataGridViewTextBoxColumn Description;
+		private System.Windows.Forms.DataGridViewTextBoxColumn Quantity;
+		private System.Windows.Forms.DataGridViewTextBoxColumn UnitPrice;
+		private System.Windows.Forms.DataGridViewTextBoxColumn Total;
+	}
 }

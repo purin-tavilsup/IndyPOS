@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using IndyPOS.DataAccess.Repositories;
 using IndyPOS.DataAccess.Extensions;
+using System;
 
 namespace IndyPOS.DataAccess.SQLite.Repositories
 {
@@ -22,7 +23,8 @@ namespace IndyPOS.DataAccess.SQLite.Repositories
             {
                 connection.Open();
 
-                const string sqlCommand = "SELECT * FROM [InventoryProducts] WHERE [Barcode] = @productBarcode";
+                const string sqlCommand = @"SELECT * FROM InventoryProducts 
+                WHERE Barcode = @productBarcode";
 
                 var sqlParameters = new
                 {
@@ -41,7 +43,8 @@ namespace IndyPOS.DataAccess.SQLite.Repositories
             {
                 connection.Open();
 
-                const string sqlCommand = "SELECT * FROM [InventoryProducts] WHERE [Category] = @category";
+                const string sqlCommand = @"SELECT * FROM InventoryProducts 
+                WHERE Category = @category";
 
                 var sqlParameters = new
                 {
@@ -54,13 +57,75 @@ namespace IndyPOS.DataAccess.SQLite.Repositories
             }
         }
 
-        public void AddProduct(InventoryProduct product)
+        public InventoryProduct GetProductByInventoryProductId(int id)
         {
             using (var connection = _dbConnectionProvider.GetDbConnection())
             {
                 connection.Open();
 
-                //
+                const string sqlCommand = @"SELECT * FROM InventoryProducts 
+                WHERE InventoryProductId = @inventoryProductId";
+
+                var sqlParameters = new
+                {
+                    inventoryProductId = id
+                };
+
+                var results = connection.Query(sqlCommand, sqlParameters);
+
+                return MapInventoryProducts(results).FirstOrDefault();
+            }
+        }
+
+        public int AddProduct(InventoryProduct product)
+        {
+            using (var connection = _dbConnectionProvider.GetDbConnection())
+            {
+                connection.Open();
+
+                const string sqlCommand = @"INSERT INTO InventoryProducts
+                (
+                    Barcode,
+                    Description,
+                    Manufacturer,
+                    Brand,
+                    Category,
+                    UnitCost,
+                    UnitPrice,
+                    QuantityInStock,
+                    DateCreated
+                )
+                VALUES
+                (
+                    @Barcode,
+                    @Description,
+                    @Manufacturer,
+                    @Brand,
+                    @Category,
+                    @UnitCost,
+                    @UnitPrice,
+                    @QuantityInStock,
+                    datetime('now','localtime')
+                );
+                SELECT last_insert_rowid()";
+
+				var sqlParameters = new
+				{
+					product.Barcode,
+					product.Description,
+					product.Manufacturer,
+					product.Brand,
+					product.Category,
+                    UnitCost = MapMoneyToString(product.UnitCost),
+                    UnitPrice = MapMoneyToString(product.UnitPrice),
+					product.QuantityInStock
+                };
+
+                var inventoryProductId = connection.Query<int>(sqlCommand, sqlParameters).FirstOrDefault();
+
+                if (inventoryProductId < 1) throw new Exception("Failed to get the last insert Row ID after adding a product.");
+
+                return inventoryProductId;
             }
         }
 
@@ -100,8 +165,6 @@ namespace IndyPOS.DataAccess.SQLite.Repositories
             {
                 InventoryProductId = (int)x.InventoryProductId,
 
-                SKU = x.SKU,
-
                 Barcode = x.Barcode,
 
                 Description = x.Description,
@@ -112,9 +175,9 @@ namespace IndyPOS.DataAccess.SQLite.Repositories
 
                 Category = (int)x.Category,
 
-                UnitCost = MapUnitCostToDecimal(x.UnitCost),
+                UnitCost = MapMoneyToNullableDecimal(x.UnitCost),
 
-                UnitPrice = MapUnitPriceToDecimal(x.UnitPrice),
+                UnitPrice = MapMoneyToDecimal(x.UnitPrice),
 
                 QuantityInStock = (int)x.QuantityInStock,
 
@@ -126,7 +189,7 @@ namespace IndyPOS.DataAccess.SQLite.Repositories
             return products.ToList();
         }
 
-        private decimal? MapUnitCostToDecimal(string value)
+        private decimal? MapMoneyToNullableDecimal(string value)
 		{
             if (!value.HasValue())
                 return null;
@@ -137,12 +200,22 @@ namespace IndyPOS.DataAccess.SQLite.Repositories
             return null;
         }
 
-        private decimal MapUnitPriceToDecimal(string value)
+        private decimal MapMoneyToDecimal(string value)
         {
             if (decimal.TryParse(value.Trim(), out var result))
                 return result / 100m;
 
             return 0m;
+        }
+
+        private string MapMoneyToString(decimal? value)
+        {
+            if (!value.HasValue)
+                return null;
+
+            var result = Math.Round(value.GetValueOrDefault(), 2, MidpointRounding.AwayFromZero) * 100m;
+
+            return result.ToString();
         }
     }
 }

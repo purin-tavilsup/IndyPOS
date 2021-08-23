@@ -7,7 +7,7 @@ namespace IndyPOS.DataAccess
 {
 	public class DbConnectionProvider : IDbConnectionProvider
 	{
-		private static string DatabaseFilePath => Environment.CurrentDirectory + @"\SQLite\Store.db";
+		private static string DatabaseFilePath => @"C:\ProgramData\IndyPOS\db\Store.db";
 		private static readonly string Database = $"{DatabaseFilePath};";
 		private static readonly string Version = "Version=3;";
 

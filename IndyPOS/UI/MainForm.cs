@@ -142,5 +142,10 @@ namespace IndyPOS.UI
         {
             SwitchToPanel(Panels.Settings);
         }
+
+		private void CloseButton_Click(object sender, EventArgs e)
+		{
+            Close();
+		}
 	}
 }

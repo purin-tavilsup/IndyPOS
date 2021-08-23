@@ -9,7 +9,9 @@ namespace IndyPOS.DataAccess.Repositories
 
         IList<InventoryProduct> GetProductsByCategoryId(int categoryId);
 
-        void AddProduct(InventoryProduct product);
+        InventoryProduct GetProductByInventoryProductId(int id);
+
+        int AddProduct(InventoryProduct product);
 
         void UpdateProduct(InventoryProduct product);
 

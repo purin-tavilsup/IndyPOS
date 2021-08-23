@@ -111,6 +111,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Events\InventoryProductAddedEvent.cs" />
     <Compile Include="Inventory\IInventoryProduct.cs" />
     <Compile Include="SaleInvoice\IPayment.cs" />
     <Compile Include="SaleInvoice\ISaleInvoiceProduct.cs" />
