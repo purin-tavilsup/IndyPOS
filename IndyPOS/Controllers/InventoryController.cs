@@ -20,9 +20,9 @@ namespace IndyPOS.Controllers
             _inventoryProductsRepository = inventoryProductsRepository;
         }
 
-        public IList<IInventoryProduct> GetInventoryProductsByCategoryId(int categoryId)
+        public IList<IInventoryProduct> GetInventoryProductsByCategoryId(int id)
         {
-            var results = _inventoryProductsRepository.GetProductsByCategoryId(categoryId);
+            var results = _inventoryProductsRepository.GetProductsByCategoryId(id);
 
             return results.Select(p => new InventoryProductAdapter(p) as IInventoryProduct).ToList();
         }
@@ -63,18 +63,49 @@ namespace IndyPOS.Controllers
             }
             catch(Exception ex)
 			{
-                throw new Exception($"Error occurred while trying to add an inventory product. {ex.Message}", ex);
+                throw new Exception($"Error occurred while trying to add the inventory product. {ex.Message}", ex);
 			}
         }
 
         public void UpdateProduct(IInventoryProduct product)
         {
-            //
+            var productModel = new DataAccess.Models.InventoryProduct
+            {
+                InventoryProductId = product.InventoryProductId,
+                Barcode = product.Barcode,
+                Description = product.Description,
+                Manufacturer = product.Manufacturer,
+                Brand = product.Brand,
+                Category = product.Category,
+                UnitCost = product.UnitCost,
+                UnitPrice = product.UnitPrice,
+                QuantityInStock = product.QuantityInStock
+            };
+
+            try
+            {
+                _inventoryProductsRepository.UpdateProduct(productModel);
+
+                _eventAggregator.GetEvent<InventoryProductUpdatedEvent>().Publish(productModel.InventoryProductId);
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Error occurred while trying to update the inventory product. {ex.Message}", ex);
+            }
         }
 
-        public void RemoveProductByBarcode(string barcode)
+        public void RemoveProductByInventoryProductId(int id)
 		{
-            //
-		}
+            try
+            {
+                _inventoryProductsRepository.RemoveProductByInventoryProductId(id);
+
+                _eventAggregator.GetEvent<InventoryProductDeletedEvent>().Publish();
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Error occurred while trying to delete the inventory product. {ex.Message}", ex);
+            }
+        }
     }
 }

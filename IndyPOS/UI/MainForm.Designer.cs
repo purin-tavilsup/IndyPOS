@@ -29,6 +29,8 @@
         private void InitializeComponent()
         {
 			this.NavigationPanel = new System.Windows.Forms.Panel();
+			this.panel8 = new System.Windows.Forms.Panel();
+			this.CloseButton = new System.Windows.Forms.Button();
 			this.panel2 = new System.Windows.Forms.Panel();
 			this.InventoryButton = new System.Windows.Forms.Button();
 			this.panel6 = new System.Windows.Forms.Panel();
@@ -46,9 +48,8 @@
 			this.TitlePanel = new System.Windows.Forms.Panel();
 			this.label1 = new System.Windows.Forms.Label();
 			this.ActivePanel = new System.Windows.Forms.Panel();
-			this.panel8 = new System.Windows.Forms.Panel();
-			this.CloseButton = new System.Windows.Forms.Button();
 			this.NavigationPanel.SuspendLayout();
+			this.panel8.SuspendLayout();
 			this.panel2.SuspendLayout();
 			this.panel6.SuspendLayout();
 			this.panel7.SuspendLayout();
@@ -57,12 +58,11 @@
 			this.panel3.SuspendLayout();
 			this.panel4.SuspendLayout();
 			this.TitlePanel.SuspendLayout();
-			this.panel8.SuspendLayout();
 			this.SuspendLayout();
 			// 
 			// NavigationPanel
 			// 
-			this.NavigationPanel.BackColor = System.Drawing.Color.DarkGray;
+			this.NavigationPanel.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(64)))), ((int)(((byte)(64)))), ((int)(((byte)(64)))));
 			this.NavigationPanel.Controls.Add(this.panel8);
 			this.NavigationPanel.Controls.Add(this.panel2);
 			this.NavigationPanel.Controls.Add(this.panel6);
@@ -76,6 +76,33 @@
 			this.NavigationPanel.Name = "NavigationPanel";
 			this.NavigationPanel.Size = new System.Drawing.Size(1412, 132);
 			this.NavigationPanel.TabIndex = 0;
+			// 
+			// panel8
+			// 
+			this.panel8.BackColor = System.Drawing.Color.Silver;
+			this.panel8.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+			this.panel8.Controls.Add(this.CloseButton);
+			this.panel8.Location = new System.Drawing.Point(1020, 10);
+			this.panel8.Name = "panel8";
+			this.panel8.Size = new System.Drawing.Size(138, 108);
+			this.panel8.TabIndex = 7;
+			// 
+			// CloseButton
+			// 
+			this.CloseButton.BackColor = System.Drawing.Color.Gainsboro;
+			this.CloseButton.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
+			this.CloseButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+			this.CloseButton.Font = new System.Drawing.Font("Leelawadee UI", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+			this.CloseButton.Image = global::IndyPOS.Properties.Resources.CloseWindows_50;
+			this.CloseButton.Location = new System.Drawing.Point(3, 3);
+			this.CloseButton.Name = "CloseButton";
+			this.CloseButton.Size = new System.Drawing.Size(130, 100);
+			this.CloseButton.TabIndex = 5;
+			this.CloseButton.Text = "ออกจากโปรแกรม";
+			this.CloseButton.TextAlign = System.Drawing.ContentAlignment.BottomCenter;
+			this.CloseButton.TextImageRelation = System.Windows.Forms.TextImageRelation.ImageAboveText;
+			this.CloseButton.UseVisualStyleBackColor = false;
+			this.CloseButton.Click += new System.EventHandler(this.CloseButton_Click);
 			// 
 			// panel2
 			// 
@@ -266,7 +293,7 @@
 			// 
 			// TitlePanel
 			// 
-			this.TitlePanel.BackColor = System.Drawing.Color.Black;
+			this.TitlePanel.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(64)))), ((int)(((byte)(64)))), ((int)(((byte)(64)))));
 			this.TitlePanel.Controls.Add(this.label1);
 			this.TitlePanel.Dock = System.Windows.Forms.DockStyle.Top;
 			this.TitlePanel.ForeColor = System.Drawing.Color.LightGreen;
@@ -278,9 +305,10 @@
 			// label1
 			// 
 			this.label1.Font = new System.Drawing.Font("Leelawadee UI", 18F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-			this.label1.Location = new System.Drawing.Point(3, 0);
+			this.label1.ForeColor = System.Drawing.Color.WhiteSmoke;
+			this.label1.Location = new System.Drawing.Point(3, 9);
 			this.label1.Name = "label1";
-			this.label1.Size = new System.Drawing.Size(100, 48);
+			this.label1.Size = new System.Drawing.Size(100, 39);
 			this.label1.TabIndex = 0;
 			this.label1.Text = "รุ่งรัศมิ์";
 			this.label1.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
@@ -293,33 +321,6 @@
 			this.ActivePanel.Name = "ActivePanel";
 			this.ActivePanel.Size = new System.Drawing.Size(1412, 697);
 			this.ActivePanel.TabIndex = 3;
-			// 
-			// panel8
-			// 
-			this.panel8.BackColor = System.Drawing.Color.Silver;
-			this.panel8.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-			this.panel8.Controls.Add(this.CloseButton);
-			this.panel8.Location = new System.Drawing.Point(1020, 10);
-			this.panel8.Name = "panel8";
-			this.panel8.Size = new System.Drawing.Size(138, 108);
-			this.panel8.TabIndex = 7;
-			// 
-			// CloseButton
-			// 
-			this.CloseButton.BackColor = System.Drawing.Color.Gainsboro;
-			this.CloseButton.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
-			this.CloseButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-			this.CloseButton.Font = new System.Drawing.Font("Leelawadee UI", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-			this.CloseButton.Image = global::IndyPOS.Properties.Resources.CloseWindows_50;
-			this.CloseButton.Location = new System.Drawing.Point(3, 3);
-			this.CloseButton.Name = "CloseButton";
-			this.CloseButton.Size = new System.Drawing.Size(130, 100);
-			this.CloseButton.TabIndex = 5;
-			this.CloseButton.Text = "ออกจากโปรแกรม";
-			this.CloseButton.TextAlign = System.Drawing.ContentAlignment.BottomCenter;
-			this.CloseButton.TextImageRelation = System.Windows.Forms.TextImageRelation.ImageAboveText;
-			this.CloseButton.UseVisualStyleBackColor = false;
-			this.CloseButton.Click += new System.EventHandler(this.CloseButton_Click);
 			// 
 			// MainForm
 			// 
@@ -336,6 +337,7 @@
 			this.Text = "Indy POS";
 			this.Shown += new System.EventHandler(this.MainForm_Shown);
 			this.NavigationPanel.ResumeLayout(false);
+			this.panel8.ResumeLayout(false);
 			this.panel2.ResumeLayout(false);
 			this.panel6.ResumeLayout(false);
 			this.panel7.ResumeLayout(false);
@@ -344,7 +346,6 @@
 			this.panel3.ResumeLayout(false);
 			this.panel4.ResumeLayout(false);
 			this.TitlePanel.ResumeLayout(false);
-			this.panel8.ResumeLayout(false);
 			this.ResumeLayout(false);
 
         }

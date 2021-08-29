@@ -28,11 +28,11 @@
         /// </summary>
         private void InitializeComponent()
         {
-			System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle11 = new System.Windows.Forms.DataGridViewCellStyle();
-			System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle15 = new System.Windows.Forms.DataGridViewCellStyle();
-			System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle12 = new System.Windows.Forms.DataGridViewCellStyle();
-			System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle13 = new System.Windows.Forms.DataGridViewCellStyle();
-			System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle14 = new System.Windows.Forms.DataGridViewCellStyle();
+			System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle1 = new System.Windows.Forms.DataGridViewCellStyle();
+			System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle5 = new System.Windows.Forms.DataGridViewCellStyle();
+			System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle2 = new System.Windows.Forms.DataGridViewCellStyle();
+			System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle3 = new System.Windows.Forms.DataGridViewCellStyle();
+			System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle4 = new System.Windows.Forms.DataGridViewCellStyle();
 			this.panel3 = new System.Windows.Forms.Panel();
 			this.label1 = new System.Windows.Forms.Label();
 			this.TotalLabel = new System.Windows.Forms.Label();
@@ -50,16 +50,16 @@
 			this.panel7 = new System.Windows.Forms.Panel();
 			this.CancelSaleInvoiceButton = new System.Windows.Forms.Button();
 			this.InvoiceDataView = new System.Windows.Forms.DataGridView();
-			this.panel8 = new System.Windows.Forms.Panel();
-			this.RemoveProductButton = new System.Windows.Forms.Button();
-			this.panel9 = new System.Windows.Forms.Panel();
-			this.AddProductButton = new System.Windows.Forms.Button();
-			this.panel2 = new System.Windows.Forms.Panel();
 			this.ProductCode = new System.Windows.Forms.DataGridViewTextBoxColumn();
 			this.Description = new System.Windows.Forms.DataGridViewTextBoxColumn();
 			this.Quantity = new System.Windows.Forms.DataGridViewTextBoxColumn();
 			this.UnitPrice = new System.Windows.Forms.DataGridViewTextBoxColumn();
 			this.Total = new System.Windows.Forms.DataGridViewTextBoxColumn();
+			this.panel8 = new System.Windows.Forms.Panel();
+			this.RemoveProductButton = new System.Windows.Forms.Button();
+			this.panel9 = new System.Windows.Forms.Panel();
+			this.AddProductButton = new System.Windows.Forms.Button();
+			this.panel2 = new System.Windows.Forms.Panel();
 			this.panel3.SuspendLayout();
 			this.panel4.SuspendLayout();
 			this.panel5.SuspendLayout();
@@ -231,7 +231,7 @@
 			this.panel6.BackColor = System.Drawing.Color.Silver;
 			this.panel6.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
 			this.panel6.Controls.Add(this.SaveSaleInvoiceButton);
-			this.panel6.Location = new System.Drawing.Point(703, 392);
+			this.panel6.Location = new System.Drawing.Point(703, 591);
 			this.panel6.Name = "panel6";
 			this.panel6.Size = new System.Drawing.Size(154, 103);
 			this.panel6.TabIndex = 14;
@@ -257,7 +257,7 @@
 			this.panel7.BackColor = System.Drawing.Color.Silver;
 			this.panel7.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
 			this.panel7.Controls.Add(this.CancelSaleInvoiceButton);
-			this.panel7.Location = new System.Drawing.Point(863, 392);
+			this.panel7.Location = new System.Drawing.Point(863, 591);
 			this.panel7.Name = "panel7";
 			this.panel7.Size = new System.Drawing.Size(154, 103);
 			this.panel7.TabIndex = 15;
@@ -283,17 +283,15 @@
 			// 
 			this.InvoiceDataView.AllowUserToResizeColumns = false;
 			this.InvoiceDataView.AllowUserToResizeRows = false;
-			this.InvoiceDataView.BackgroundColor = System.Drawing.Color.DarkGray;
+			this.InvoiceDataView.BackgroundColor = System.Drawing.Color.Silver;
 			this.InvoiceDataView.ColumnHeadersBorderStyle = System.Windows.Forms.DataGridViewHeaderBorderStyle.Single;
-			dataGridViewCellStyle11.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleCenter;
-			dataGridViewCellStyle11.BackColor = System.Drawing.SystemColors.Control;
-			dataGridViewCellStyle11.Font = new System.Drawing.Font("Leelawadee UI", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-			dataGridViewCellStyle11.ForeColor = System.Drawing.SystemColors.WindowText;
-			dataGridViewCellStyle11.SelectionBackColor = System.Drawing.SystemColors.Highlight;
-			dataGridViewCellStyle11.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
-			dataGridViewCellStyle11.WrapMode = System.Windows.Forms.DataGridViewTriState.False;
-			this.InvoiceDataView.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle11;
-			this.InvoiceDataView.ColumnHeadersHeight = 30;
+			dataGridViewCellStyle1.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleCenter;
+			dataGridViewCellStyle1.BackColor = System.Drawing.Color.Silver;
+			dataGridViewCellStyle1.Font = new System.Drawing.Font("Leelawadee UI", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+			dataGridViewCellStyle1.SelectionBackColor = System.Drawing.Color.Gray;
+			dataGridViewCellStyle1.WrapMode = System.Windows.Forms.DataGridViewTriState.False;
+			this.InvoiceDataView.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle1;
+			this.InvoiceDataView.ColumnHeadersHeight = 40;
 			this.InvoiceDataView.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.DisableResizing;
 			this.InvoiceDataView.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
             this.ProductCode,
@@ -309,20 +307,66 @@
 			this.InvoiceDataView.RowHeadersVisible = false;
 			this.InvoiceDataView.RowHeadersWidth = 60;
 			this.InvoiceDataView.RowHeadersWidthSizeMode = System.Windows.Forms.DataGridViewRowHeadersWidthSizeMode.DisableResizing;
-			dataGridViewCellStyle15.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleCenter;
-			dataGridViewCellStyle15.Font = new System.Drawing.Font("Leelawadee UI", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-			dataGridViewCellStyle15.ForeColor = System.Drawing.SystemColors.WindowText;
-			dataGridViewCellStyle15.WrapMode = System.Windows.Forms.DataGridViewTriState.True;
-			this.InvoiceDataView.RowsDefaultCellStyle = dataGridViewCellStyle15;
+			dataGridViewCellStyle5.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleCenter;
+			dataGridViewCellStyle5.BackColor = System.Drawing.Color.Gainsboro;
+			dataGridViewCellStyle5.Font = new System.Drawing.Font("Leelawadee UI", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+			dataGridViewCellStyle5.WrapMode = System.Windows.Forms.DataGridViewTriState.True;
+			this.InvoiceDataView.RowsDefaultCellStyle = dataGridViewCellStyle5;
 			this.InvoiceDataView.RowTemplate.DefaultCellStyle.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleCenter;
-			this.InvoiceDataView.RowTemplate.DefaultCellStyle.BackColor = System.Drawing.Color.White;
+			this.InvoiceDataView.RowTemplate.DefaultCellStyle.BackColor = System.Drawing.Color.Gainsboro;
 			this.InvoiceDataView.RowTemplate.DefaultCellStyle.Font = new System.Drawing.Font("Leelawadee UI", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-			this.InvoiceDataView.RowTemplate.DefaultCellStyle.ForeColor = System.Drawing.SystemColors.WindowText;
 			this.InvoiceDataView.RowTemplate.DefaultCellStyle.WrapMode = System.Windows.Forms.DataGridViewTriState.True;
 			this.InvoiceDataView.RowTemplate.Height = 35;
 			this.InvoiceDataView.Size = new System.Drawing.Size(683, 480);
 			this.InvoiceDataView.TabIndex = 1;
 			this.InvoiceDataView.DoubleClick += new System.EventHandler(this.InvoiceDataView_DoubleClick);
+			// 
+			// ProductCode
+			// 
+			this.ProductCode.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.None;
+			this.ProductCode.HeaderText = "รหัสสินค้า";
+			this.ProductCode.Name = "ProductCode";
+			this.ProductCode.ReadOnly = true;
+			this.ProductCode.Width = 130;
+			// 
+			// Description
+			// 
+			this.Description.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.None;
+			dataGridViewCellStyle2.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleCenter;
+			dataGridViewCellStyle2.BackColor = System.Drawing.Color.White;
+			dataGridViewCellStyle2.Font = new System.Drawing.Font("Leelawadee", 15.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+			dataGridViewCellStyle2.ForeColor = System.Drawing.SystemColors.WindowText;
+			dataGridViewCellStyle2.WrapMode = System.Windows.Forms.DataGridViewTriState.True;
+			this.Description.DefaultCellStyle = dataGridViewCellStyle2;
+			this.Description.HeaderText = "คำอธิบาย";
+			this.Description.Name = "Description";
+			this.Description.ReadOnly = true;
+			this.Description.Width = 250;
+			// 
+			// Quantity
+			// 
+			this.Quantity.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.None;
+			this.Quantity.HeaderText = "จำนวน";
+			this.Quantity.Name = "Quantity";
+			this.Quantity.ReadOnly = true;
+			// 
+			// UnitPrice
+			// 
+			this.UnitPrice.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.None;
+			dataGridViewCellStyle3.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleCenter;
+			this.UnitPrice.DefaultCellStyle = dataGridViewCellStyle3;
+			this.UnitPrice.HeaderText = "ราคาต่อหน่วย";
+			this.UnitPrice.Name = "UnitPrice";
+			this.UnitPrice.ReadOnly = true;
+			// 
+			// Total
+			// 
+			this.Total.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.None;
+			dataGridViewCellStyle4.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleCenter;
+			this.Total.DefaultCellStyle = dataGridViewCellStyle4;
+			this.Total.HeaderText = "ราคารวม";
+			this.Total.Name = "Total";
+			this.Total.ReadOnly = true;
 			// 
 			// panel8
 			// 
@@ -365,7 +409,7 @@
 			this.AddProductButton.BackColor = System.Drawing.Color.Gainsboro;
 			this.AddProductButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
 			this.AddProductButton.Font = new System.Drawing.Font("Leelawadee UI", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-			this.AddProductButton.Image = global::IndyPOS.Properties.Resources.PlusRectangle_50;
+			this.AddProductButton.Image = global::IndyPOS.Properties.Resources.Add_50;
 			this.AddProductButton.Location = new System.Drawing.Point(3, 3);
 			this.AddProductButton.Name = "AddProductButton";
 			this.AddProductButton.Size = new System.Drawing.Size(146, 95);
@@ -389,55 +433,8 @@
 			this.panel2.Controls.Add(this.panel3);
 			this.panel2.Location = new System.Drawing.Point(0, 0);
 			this.panel2.Name = "panel2";
-			this.panel2.Size = new System.Drawing.Size(1405, 700);
+			this.panel2.Size = new System.Drawing.Size(1221, 700);
 			this.panel2.TabIndex = 2;
-			// 
-			// ProductCode
-			// 
-			this.ProductCode.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.None;
-			this.ProductCode.HeaderText = "รหัสสินค้า";
-			this.ProductCode.Name = "ProductCode";
-			this.ProductCode.ReadOnly = true;
-			this.ProductCode.Width = 130;
-			// 
-			// Description
-			// 
-			this.Description.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.None;
-			dataGridViewCellStyle12.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleCenter;
-			dataGridViewCellStyle12.BackColor = System.Drawing.Color.White;
-			dataGridViewCellStyle12.Font = new System.Drawing.Font("Leelawadee", 15.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-			dataGridViewCellStyle12.ForeColor = System.Drawing.SystemColors.WindowText;
-			dataGridViewCellStyle12.WrapMode = System.Windows.Forms.DataGridViewTriState.True;
-			this.Description.DefaultCellStyle = dataGridViewCellStyle12;
-			this.Description.HeaderText = "คำอธิบาย";
-			this.Description.Name = "Description";
-			this.Description.ReadOnly = true;
-			this.Description.Width = 250;
-			// 
-			// Quantity
-			// 
-			this.Quantity.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.None;
-			this.Quantity.HeaderText = "จำนวน";
-			this.Quantity.Name = "Quantity";
-			this.Quantity.ReadOnly = true;
-			// 
-			// UnitPrice
-			// 
-			this.UnitPrice.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.None;
-			dataGridViewCellStyle13.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleCenter;
-			this.UnitPrice.DefaultCellStyle = dataGridViewCellStyle13;
-			this.UnitPrice.HeaderText = "ราคาต่อหน่วย";
-			this.UnitPrice.Name = "UnitPrice";
-			this.UnitPrice.ReadOnly = true;
-			// 
-			// Total
-			// 
-			this.Total.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.None;
-			dataGridViewCellStyle14.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleCenter;
-			this.Total.DefaultCellStyle = dataGridViewCellStyle14;
-			this.Total.HeaderText = "ราคารวม";
-			this.Total.Name = "Total";
-			this.Total.ReadOnly = true;
 			// 
 			// SalePanel
 			// 

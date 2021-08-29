@@ -20,6 +20,7 @@ namespace IndyPOS.UI
         private IReadOnlyDictionary<int, string> _productCategoryDictionary;
         private readonly AddNewInventoryProductForm _addNewProductForm;
         private readonly UpdateInventoryProductForm _updateProductForm;
+        private int? _lastQueryCategoryId;
 
         private enum ProductColumn
         {
@@ -59,6 +60,8 @@ namespace IndyPOS.UI
         {
             _eventAggregator.GetEvent<BarcodeReceivedEvent>().Subscribe(BarcodeReceived);
             _eventAggregator.GetEvent<InventoryProductAddedEvent>().Subscribe(NewInventoryProductAdded);
+            _eventAggregator.GetEvent<InventoryProductUpdatedEvent>().Subscribe(InventoryProductUpdated);
+            _eventAggregator.GetEvent<InventoryProductDeletedEvent>().Subscribe(InventoryProductDeleted);
         }
 
         private void InitializeProductCategories()
@@ -99,15 +102,15 @@ namespace IndyPOS.UI
             ProductDataView.Columns[(int)ProductColumn.UnitCost].ReadOnly = true;
 
             ProductDataView.Columns[(int)ProductColumn.Category].Name = "ประเภทสินค้า";
-            ProductDataView.Columns[(int)ProductColumn.Category].Width = 180;
+            ProductDataView.Columns[(int)ProductColumn.Category].Width = 200;
             ProductDataView.Columns[(int)ProductColumn.Category].ReadOnly = true;
 
             ProductDataView.Columns[(int)ProductColumn.Manufacturer].Name = "ผู้ผลิต";
-            ProductDataView.Columns[(int)ProductColumn.Manufacturer].Width = 100;
+            ProductDataView.Columns[(int)ProductColumn.Manufacturer].Width = 200;
             ProductDataView.Columns[(int)ProductColumn.Manufacturer].ReadOnly = true;
 
             ProductDataView.Columns[(int)ProductColumn.Brand].Name = "ยี่ห้อ";
-            ProductDataView.Columns[(int)ProductColumn.Brand].Width = 100;
+            ProductDataView.Columns[(int)ProductColumn.Brand].Width = 200;
             ProductDataView.Columns[(int)ProductColumn.Brand].ReadOnly = true;
 
             ProductDataView.Columns[(int)ProductColumn.DateCreated].Name = "วันที่นำเข้า";
@@ -130,7 +133,14 @@ namespace IndyPOS.UI
             var category = _productCategoryDictionary.FirstOrDefault(x => x.Value == selectedCategoryValue);
             var categoryId = category.Key;
 
-            var products = _inventoryController.GetInventoryProductsByCategoryId(categoryId);
+            _lastQueryCategoryId = categoryId;
+
+            ShowProductsByCategoryId(categoryId);
+        }
+
+        private void ShowProductsByCategoryId(int id)
+		{
+            var products = _inventoryController.GetInventoryProductsByCategoryId(id);
 
             ProductDataView.Rows.Clear();
 
@@ -161,25 +171,6 @@ namespace IndyPOS.UI
             productRow[(int)ProductColumn.DateUpdated] = product.DateUpdated;
 
             ProductDataView.Rows.Add(productRow);
-        }
-
-        private void SearchProduct_Click(object sender, EventArgs e)
-        {
-            var input = SearchProductTextBox.Text.Trim();
-
-            if (string.IsNullOrWhiteSpace(input))
-                return;
-
-            if (SearchByBarcodeRadioButton.Checked)
-            {
-                var product = _inventoryController.GetInventoryProductByBarcode(input);
-
-                if (product == null)
-                    return;
-
-                ProductDataView.Rows.Clear();
-                AddProductToProductDataView(product);
-            }
         }
 
         private void AddProductButton_Click(object sender, EventArgs e)
@@ -231,17 +222,24 @@ namespace IndyPOS.UI
 
         private void ShowExistingProduct(IInventoryProduct product)
 		{
+            ClearLastQueryHistory();
+
             ProductDataView.UIThread(delegate
             {
                 ProductDataView.Rows.Clear();
+
                 AddProductToProductDataView(product);
             });
         }
 
         private void AddNewProduct(string barcode)
 		{
+            ClearLastQueryHistory();
+
             _addNewProductForm.UIThread(delegate
             {
+                ProductDataView.Rows.Clear();
+
                 _addNewProductForm.ShowDialog(barcode);
             });
         }
@@ -258,6 +256,27 @@ namespace IndyPOS.UI
 
                 AddProductToProductDataView(product);
             });
+        }
+
+        private void InventoryProductUpdated(int inventoryProductId)
+		{
+            if (!_lastQueryCategoryId.HasValue)
+                return;
+
+            ShowProductsByCategoryId(_lastQueryCategoryId.GetValueOrDefault());
+        }
+
+        private void InventoryProductDeleted()
+		{
+            if (!_lastQueryCategoryId.HasValue)
+                return;
+
+            ShowProductsByCategoryId(_lastQueryCategoryId.GetValueOrDefault());
+        }
+
+        private void ClearLastQueryHistory()
+		{
+            _lastQueryCategoryId = null;
         }
     }
 }

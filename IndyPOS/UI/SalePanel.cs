@@ -174,6 +174,8 @@ namespace IndyPOS.UI
         {
             var barcode = GetProductBarcodeFromSelectedProduct();
 
+            if (!barcode.HasValue()) return;
+
             _updateProductForm.ShowDialog(barcode);
         }
 

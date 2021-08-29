@@ -1,14 +1,14 @@
 ﻿using Dapper;
+using IndyPOS.DataAccess.Extensions;
 using IndyPOS.DataAccess.Models;
+using IndyPOS.DataAccess.Repositories;
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using IndyPOS.DataAccess.Repositories;
-using IndyPOS.DataAccess.Extensions;
-using System;
 
 namespace IndyPOS.DataAccess.SQLite.Repositories
 {
-    public class InventoryProductRepository : IInventoryProductRepository
+	public class InventoryProductRepository : IInventoryProductRepository
     {
         private readonly IDbConnectionProvider _dbConnectionProvider;
 
@@ -37,7 +37,7 @@ namespace IndyPOS.DataAccess.SQLite.Repositories
             }
         }
 
-        public IList<InventoryProduct> GetProductsByCategoryId(int categoryId)
+        public IList<InventoryProduct> GetProductsByCategoryId(int id)
         {
             using (var connection = _dbConnectionProvider.GetDbConnection())
             {
@@ -48,7 +48,7 @@ namespace IndyPOS.DataAccess.SQLite.Repositories
 
                 var sqlParameters = new
                 {
-                    category = categoryId
+                    category = id
                 };
 
                 var results = connection.Query(sqlCommand, sqlParameters);
@@ -135,27 +135,60 @@ namespace IndyPOS.DataAccess.SQLite.Repositories
             {
                 connection.Open();
 
-                //
+                const string sqlCommand = @"UPDATE InventoryProducts
+                SET
+                    Description = @Description,
+                    Manufacturer = @Manufacturer,
+                    Brand = @Brand,
+                    Category = @Category,
+                    UnitCost = @UnitCost,
+                    UnitPrice = @UnitPrice,
+                    QuantityInStock = @QuantityInStock,
+                    DateUpdated = datetime('now','localtime')
+                WHERE InventoryProductId = @InventoryProductId";
+
+                var sqlParameters = new
+                {
+                    product.InventoryProductId,
+                    product.Description,
+                    product.Manufacturer,
+                    product.Brand,
+                    product.Category,
+                    UnitCost = MapMoneyToString(product.UnitCost),
+                    UnitPrice = MapMoneyToString(product.UnitPrice),
+                    product.QuantityInStock
+                };
+
+                var affectedRowsCount = connection.Execute(sqlCommand, sqlParameters);
+
+                if (affectedRowsCount != 1)
+                    throw new Exception("Failed to update the product.");
             }
         }
 
         public void RemoveProduct(InventoryProduct product)
         {
-            using (var connection = _dbConnectionProvider.GetDbConnection())
-            {
-                connection.Open();
-
-                //
-            }
+            RemoveProductByInventoryProductId(product.InventoryProductId);
         }
 
-        public void RemoveProductByBarcode(string barcode)
+        public void RemoveProductByInventoryProductId(int id)
         {
             using (var connection = _dbConnectionProvider.GetDbConnection())
             {
                 connection.Open();
 
-                //
+                const string sqlCommand = @"DELETE FROM InventoryProducts
+                WHERE InventoryProductId = @InventoryProductId";
+
+                var sqlParameters = new
+                {
+                    InventoryProductId = id
+                };
+
+                var affectedRowsCount = connection.Execute(sqlCommand, sqlParameters);
+
+                if (affectedRowsCount != 1)
+                    throw new Exception("Failed to delete the product.");
             }
         }
 

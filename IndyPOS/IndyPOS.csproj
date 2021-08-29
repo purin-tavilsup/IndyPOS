@@ -112,6 +112,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Events\InventoryProductAddedEvent.cs" />
+    <Compile Include="Events\InventoryProductDeletedEvent.cs" />
+    <Compile Include="Events\InventoryProductUpdatedEvent.cs" />
     <Compile Include="Inventory\IInventoryProduct.cs" />
     <Compile Include="SaleInvoice\IPayment.cs" />
     <Compile Include="SaleInvoice\ISaleInvoiceProduct.cs" />

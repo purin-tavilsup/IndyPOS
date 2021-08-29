@@ -1,5 +1,4 @@
-﻿using IndyPOS.Adapters;
-using IndyPOS.Constants;
+﻿using IndyPOS.Constants;
 using IndyPOS.Controllers;
 using IndyPOS.Inventory;
 using Prism.Events;

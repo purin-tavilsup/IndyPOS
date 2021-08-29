@@ -1,5 +1,4 @@
-﻿using IndyPOS.Adapters;
-using IndyPOS.Constants;
+﻿using IndyPOS.Constants;
 using IndyPOS.Controllers;
 using IndyPOS.Inventory;
 using Prism.Events;
@@ -159,7 +158,7 @@ namespace IndyPOS.UI
 
 		private void RemoveProductButton_Click(object sender, EventArgs e)
 		{
-            _inventoryController.RemoveProductByBarcode(_product.Barcode);
+            _inventoryController.RemoveProductByInventoryProductId(_product.InventoryProductId);
 
             Close();
         }
