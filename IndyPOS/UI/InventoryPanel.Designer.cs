@@ -28,9 +28,9 @@
         /// </summary>
         private void InitializeComponent()
         {
-			System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle10 = new System.Windows.Forms.DataGridViewCellStyle();
-			System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle11 = new System.Windows.Forms.DataGridViewCellStyle();
-			System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle12 = new System.Windows.Forms.DataGridViewCellStyle();
+			System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle4 = new System.Windows.Forms.DataGridViewCellStyle();
+			System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle5 = new System.Windows.Forms.DataGridViewCellStyle();
+			System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle6 = new System.Windows.Forms.DataGridViewCellStyle();
 			this.panel1 = new System.Windows.Forms.Panel();
 			this.ProductDataView = new System.Windows.Forms.DataGridView();
 			this.ProductCode = new System.Windows.Forms.DataGridViewTextBoxColumn();
@@ -61,24 +61,24 @@
 			// 
 			this.panel1.BackColor = System.Drawing.Color.DarkGray;
 			this.panel1.Controls.Add(this.ProductDataView);
-			this.panel1.Dock = System.Windows.Forms.DockStyle.Left;
+			this.panel1.Dock = System.Windows.Forms.DockStyle.Fill;
 			this.panel1.Location = new System.Drawing.Point(0, 0);
 			this.panel1.Name = "panel1";
-			this.panel1.Size = new System.Drawing.Size(1137, 740);
+			this.panel1.Size = new System.Drawing.Size(1137, 697);
 			this.panel1.TabIndex = 0;
 			// 
 			// ProductDataView
 			// 
 			this.ProductDataView.AllowUserToResizeColumns = false;
 			this.ProductDataView.AllowUserToResizeRows = false;
-			this.ProductDataView.BackgroundColor = System.Drawing.Color.Silver;
+			this.ProductDataView.BackgroundColor = System.Drawing.Color.DarkGray;
 			this.ProductDataView.ColumnHeadersBorderStyle = System.Windows.Forms.DataGridViewHeaderBorderStyle.Single;
-			dataGridViewCellStyle10.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleCenter;
-			dataGridViewCellStyle10.BackColor = System.Drawing.Color.Silver;
-			dataGridViewCellStyle10.Font = new System.Drawing.Font("Leelawadee UI", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-			dataGridViewCellStyle10.SelectionBackColor = System.Drawing.Color.Gray;
-			dataGridViewCellStyle10.WrapMode = System.Windows.Forms.DataGridViewTriState.False;
-			this.ProductDataView.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle10;
+			dataGridViewCellStyle4.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleCenter;
+			dataGridViewCellStyle4.BackColor = System.Drawing.Color.Silver;
+			dataGridViewCellStyle4.Font = new System.Drawing.Font("Leelawadee UI", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+			dataGridViewCellStyle4.SelectionBackColor = System.Drawing.Color.Gray;
+			dataGridViewCellStyle4.WrapMode = System.Windows.Forms.DataGridViewTriState.False;
+			this.ProductDataView.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle4;
 			this.ProductDataView.ColumnHeadersHeight = 40;
 			this.ProductDataView.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.DisableResizing;
 			this.ProductDataView.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
@@ -92,33 +92,34 @@
             this.Brand,
             this.DateCreated,
             this.DateUpdated});
-			dataGridViewCellStyle11.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleCenter;
-			dataGridViewCellStyle11.BackColor = System.Drawing.SystemColors.Window;
-			dataGridViewCellStyle11.Font = new System.Drawing.Font("Leelawadee UI", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-			dataGridViewCellStyle11.ForeColor = System.Drawing.SystemColors.ControlText;
-			dataGridViewCellStyle11.SelectionBackColor = System.Drawing.SystemColors.Highlight;
-			dataGridViewCellStyle11.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
-			dataGridViewCellStyle11.WrapMode = System.Windows.Forms.DataGridViewTriState.False;
-			this.ProductDataView.DefaultCellStyle = dataGridViewCellStyle11;
+			dataGridViewCellStyle5.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleCenter;
+			dataGridViewCellStyle5.BackColor = System.Drawing.SystemColors.Window;
+			dataGridViewCellStyle5.Font = new System.Drawing.Font("Leelawadee UI", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+			dataGridViewCellStyle5.ForeColor = System.Drawing.SystemColors.ControlText;
+			dataGridViewCellStyle5.SelectionBackColor = System.Drawing.SystemColors.Highlight;
+			dataGridViewCellStyle5.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
+			dataGridViewCellStyle5.WrapMode = System.Windows.Forms.DataGridViewTriState.False;
+			this.ProductDataView.DefaultCellStyle = dataGridViewCellStyle5;
+			this.ProductDataView.Dock = System.Windows.Forms.DockStyle.Fill;
 			this.ProductDataView.EnableHeadersVisualStyles = false;
 			this.ProductDataView.GridColor = System.Drawing.Color.DimGray;
-			this.ProductDataView.Location = new System.Drawing.Point(14, 15);
+			this.ProductDataView.Location = new System.Drawing.Point(0, 0);
 			this.ProductDataView.MultiSelect = false;
 			this.ProductDataView.Name = "ProductDataView";
 			this.ProductDataView.RowHeadersVisible = false;
 			this.ProductDataView.RowHeadersWidth = 60;
 			this.ProductDataView.RowHeadersWidthSizeMode = System.Windows.Forms.DataGridViewRowHeadersWidthSizeMode.DisableResizing;
-			dataGridViewCellStyle12.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleCenter;
-			dataGridViewCellStyle12.BackColor = System.Drawing.Color.Gainsboro;
-			dataGridViewCellStyle12.Font = new System.Drawing.Font("Leelawadee UI", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-			dataGridViewCellStyle12.WrapMode = System.Windows.Forms.DataGridViewTriState.True;
-			this.ProductDataView.RowsDefaultCellStyle = dataGridViewCellStyle12;
+			dataGridViewCellStyle6.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleCenter;
+			dataGridViewCellStyle6.BackColor = System.Drawing.Color.Gainsboro;
+			dataGridViewCellStyle6.Font = new System.Drawing.Font("Leelawadee UI", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+			dataGridViewCellStyle6.WrapMode = System.Windows.Forms.DataGridViewTriState.True;
+			this.ProductDataView.RowsDefaultCellStyle = dataGridViewCellStyle6;
 			this.ProductDataView.RowTemplate.DefaultCellStyle.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleCenter;
 			this.ProductDataView.RowTemplate.DefaultCellStyle.BackColor = System.Drawing.Color.Gainsboro;
 			this.ProductDataView.RowTemplate.DefaultCellStyle.Font = new System.Drawing.Font("Leelawadee UI", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
 			this.ProductDataView.RowTemplate.DefaultCellStyle.WrapMode = System.Windows.Forms.DataGridViewTriState.True;
 			this.ProductDataView.RowTemplate.Height = 35;
-			this.ProductDataView.Size = new System.Drawing.Size(1120, 666);
+			this.ProductDataView.Size = new System.Drawing.Size(1137, 697);
 			this.ProductDataView.TabIndex = 2;
 			this.ProductDataView.DoubleClick += new System.EventHandler(this.ProductDataView_DoubleClick);
 			// 
@@ -199,10 +200,10 @@
 			this.panel2.BackColor = System.Drawing.Color.DarkGray;
 			this.panel2.Controls.Add(this.panel9);
 			this.panel2.Controls.Add(this.panel3);
-			this.panel2.Dock = System.Windows.Forms.DockStyle.Fill;
+			this.panel2.Dock = System.Windows.Forms.DockStyle.Right;
 			this.panel2.Location = new System.Drawing.Point(1137, 0);
 			this.panel2.Name = "panel2";
-			this.panel2.Size = new System.Drawing.Size(284, 740);
+			this.panel2.Size = new System.Drawing.Size(284, 697);
 			this.panel2.TabIndex = 1;
 			// 
 			// panel9
@@ -210,7 +211,7 @@
 			this.panel9.BackColor = System.Drawing.Color.Silver;
 			this.panel9.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
 			this.panel9.Controls.Add(this.AddProductButton);
-			this.panel9.Location = new System.Drawing.Point(6, 336);
+			this.panel9.Location = new System.Drawing.Point(11, 336);
 			this.panel9.Name = "panel9";
 			this.panel9.Size = new System.Drawing.Size(261, 103);
 			this.panel9.TabIndex = 21;
@@ -221,14 +222,14 @@
 			this.AddProductButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
 			this.AddProductButton.Font = new System.Drawing.Font("Leelawadee UI", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
 			this.AddProductButton.ForeColor = System.Drawing.Color.Black;
-			this.AddProductButton.Image = global::IndyPOS.Properties.Resources.Add_50;
+			this.AddProductButton.Image = global::IndyPOS.Properties.Resources.Plus_50;
 			this.AddProductButton.Location = new System.Drawing.Point(3, 3);
 			this.AddProductButton.Name = "AddProductButton";
 			this.AddProductButton.Size = new System.Drawing.Size(253, 95);
 			this.AddProductButton.TabIndex = 7;
 			this.AddProductButton.Text = "เพิ่มรายการสินค้า";
-			this.AddProductButton.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
-			this.AddProductButton.TextImageRelation = System.Windows.Forms.TextImageRelation.ImageBeforeText;
+			this.AddProductButton.TextAlign = System.Drawing.ContentAlignment.BottomCenter;
+			this.AddProductButton.TextImageRelation = System.Windows.Forms.TextImageRelation.ImageAboveText;
 			this.AddProductButton.UseVisualStyleBackColor = false;
 			this.AddProductButton.Click += new System.EventHandler(this.AddProductButton_Click);
 			// 
@@ -239,7 +240,7 @@
 			this.panel3.Controls.Add(this.GetProductsByCategoryButton);
 			this.panel3.Controls.Add(this.ProductCategoryListBox);
 			this.panel3.Controls.Add(this.label1);
-			this.panel3.Location = new System.Drawing.Point(6, 15);
+			this.panel3.Location = new System.Drawing.Point(11, 15);
 			this.panel3.Name = "panel3";
 			this.panel3.Size = new System.Drawing.Size(261, 315);
 			this.panel3.TabIndex = 20;
@@ -256,8 +257,8 @@
 			this.GetProductsByCategoryButton.Size = new System.Drawing.Size(242, 95);
 			this.GetProductsByCategoryButton.TabIndex = 4;
 			this.GetProductsByCategoryButton.Text = "แสดงสินค้า";
-			this.GetProductsByCategoryButton.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
-			this.GetProductsByCategoryButton.TextImageRelation = System.Windows.Forms.TextImageRelation.ImageBeforeText;
+			this.GetProductsByCategoryButton.TextAlign = System.Drawing.ContentAlignment.BottomCenter;
+			this.GetProductsByCategoryButton.TextImageRelation = System.Windows.Forms.TextImageRelation.ImageAboveText;
 			this.GetProductsByCategoryButton.UseVisualStyleBackColor = false;
 			this.GetProductsByCategoryButton.Click += new System.EventHandler(this.GetProductsByCategoryButton_Click);
 			// 
@@ -284,7 +285,7 @@
 			// 
 			this.label1.BackColor = System.Drawing.Color.Silver;
 			this.label1.Font = new System.Drawing.Font("Leelawadee UI", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-			this.label1.Location = new System.Drawing.Point(3, 0);
+			this.label1.Location = new System.Drawing.Point(8, 0);
 			this.label1.Name = "label1";
 			this.label1.Size = new System.Drawing.Size(255, 39);
 			this.label1.TabIndex = 3;
@@ -296,10 +297,10 @@
 			this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
 			this.BackColor = System.Drawing.Color.DarkGray;
-			this.Controls.Add(this.panel2);
 			this.Controls.Add(this.panel1);
+			this.Controls.Add(this.panel2);
 			this.Name = "InventoryPanel";
-			this.Size = new System.Drawing.Size(1421, 740);
+			this.Size = new System.Drawing.Size(1421, 697);
 			this.panel1.ResumeLayout(false);
 			((System.ComponentModel.ISupportInitialize)(this.ProductDataView)).EndInit();
 			this.panel2.ResumeLayout(false);

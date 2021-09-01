@@ -46,6 +46,10 @@
 			this.panel4 = new System.Windows.Forms.Panel();
 			this.ReportsButton = new System.Windows.Forms.Button();
 			this.TitlePanel = new System.Windows.Forms.Panel();
+			this.panel9 = new System.Windows.Forms.Panel();
+			this.ResizeWindows = new System.Windows.Forms.PictureBox();
+			this.MinimizeWindows = new System.Windows.Forms.PictureBox();
+			this.CloseWindows = new System.Windows.Forms.PictureBox();
 			this.label1 = new System.Windows.Forms.Label();
 			this.ActivePanel = new System.Windows.Forms.Panel();
 			this.NavigationPanel.SuspendLayout();
@@ -58,11 +62,15 @@
 			this.panel3.SuspendLayout();
 			this.panel4.SuspendLayout();
 			this.TitlePanel.SuspendLayout();
+			this.panel9.SuspendLayout();
+			((System.ComponentModel.ISupportInitialize)(this.ResizeWindows)).BeginInit();
+			((System.ComponentModel.ISupportInitialize)(this.MinimizeWindows)).BeginInit();
+			((System.ComponentModel.ISupportInitialize)(this.CloseWindows)).BeginInit();
 			this.SuspendLayout();
 			// 
 			// NavigationPanel
 			// 
-			this.NavigationPanel.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(64)))), ((int)(((byte)(64)))), ((int)(((byte)(64)))));
+			this.NavigationPanel.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(40)))), ((int)(((byte)(40)))), ((int)(((byte)(40)))));
 			this.NavigationPanel.Controls.Add(this.panel8);
 			this.NavigationPanel.Controls.Add(this.panel2);
 			this.NavigationPanel.Controls.Add(this.panel6);
@@ -293,7 +301,8 @@
 			// 
 			// TitlePanel
 			// 
-			this.TitlePanel.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(64)))), ((int)(((byte)(64)))), ((int)(((byte)(64)))));
+			this.TitlePanel.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(40)))), ((int)(((byte)(40)))), ((int)(((byte)(40)))));
+			this.TitlePanel.Controls.Add(this.panel9);
 			this.TitlePanel.Controls.Add(this.label1);
 			this.TitlePanel.Dock = System.Windows.Forms.DockStyle.Top;
 			this.TitlePanel.ForeColor = System.Drawing.Color.LightGreen;
@@ -301,6 +310,47 @@
 			this.TitlePanel.Name = "TitlePanel";
 			this.TitlePanel.Size = new System.Drawing.Size(1412, 52);
 			this.TitlePanel.TabIndex = 1;
+			// 
+			// panel9
+			// 
+			this.panel9.Controls.Add(this.ResizeWindows);
+			this.panel9.Controls.Add(this.MinimizeWindows);
+			this.panel9.Controls.Add(this.CloseWindows);
+			this.panel9.Dock = System.Windows.Forms.DockStyle.Right;
+			this.panel9.Location = new System.Drawing.Point(1233, 0);
+			this.panel9.Name = "panel9";
+			this.panel9.Size = new System.Drawing.Size(179, 52);
+			this.panel9.TabIndex = 4;
+			// 
+			// ResizeWindows
+			// 
+			this.ResizeWindows.Image = global::IndyPOS.Properties.Resources.maximize_window_24px;
+			this.ResizeWindows.Location = new System.Drawing.Point(78, 13);
+			this.ResizeWindows.Name = "ResizeWindows";
+			this.ResizeWindows.Size = new System.Drawing.Size(24, 24);
+			this.ResizeWindows.TabIndex = 2;
+			this.ResizeWindows.TabStop = false;
+			this.ResizeWindows.Click += new System.EventHandler(this.ResizeWindows_Click);
+			// 
+			// MinimizeWindows
+			// 
+			this.MinimizeWindows.Image = global::IndyPOS.Properties.Resources.minimize_window_24px;
+			this.MinimizeWindows.Location = new System.Drawing.Point(14, 13);
+			this.MinimizeWindows.Name = "MinimizeWindows";
+			this.MinimizeWindows.Size = new System.Drawing.Size(24, 24);
+			this.MinimizeWindows.TabIndex = 3;
+			this.MinimizeWindows.TabStop = false;
+			this.MinimizeWindows.Click += new System.EventHandler(this.MinimizeWindows_Click);
+			// 
+			// CloseWindows
+			// 
+			this.CloseWindows.Image = global::IndyPOS.Properties.Resources.close_window_24px;
+			this.CloseWindows.Location = new System.Drawing.Point(142, 13);
+			this.CloseWindows.Name = "CloseWindows";
+			this.CloseWindows.Size = new System.Drawing.Size(24, 24);
+			this.CloseWindows.TabIndex = 1;
+			this.CloseWindows.TabStop = false;
+			this.CloseWindows.Click += new System.EventHandler(this.CloseWindows_Click);
 			// 
 			// label1
 			// 
@@ -346,6 +396,10 @@
 			this.panel3.ResumeLayout(false);
 			this.panel4.ResumeLayout(false);
 			this.TitlePanel.ResumeLayout(false);
+			this.panel9.ResumeLayout(false);
+			((System.ComponentModel.ISupportInitialize)(this.ResizeWindows)).EndInit();
+			((System.ComponentModel.ISupportInitialize)(this.MinimizeWindows)).EndInit();
+			((System.ComponentModel.ISupportInitialize)(this.CloseWindows)).EndInit();
 			this.ResumeLayout(false);
 
         }
@@ -372,6 +426,10 @@
         private System.Windows.Forms.Panel panel4;
 		private System.Windows.Forms.Panel panel8;
 		private System.Windows.Forms.Button CloseButton;
+		private System.Windows.Forms.PictureBox MinimizeWindows;
+		private System.Windows.Forms.PictureBox ResizeWindows;
+		private System.Windows.Forms.PictureBox CloseWindows;
+		private System.Windows.Forms.Panel panel9;
 	}
 }
 

@@ -147,5 +147,32 @@ namespace IndyPOS.UI
 		{
             Close();
 		}
+
+		private void MinimizeWindows_Click(object sender, EventArgs e)
+		{
+            WindowState = FormWindowState.Minimized;
+		}
+
+		private void ResizeWindows_Click(object sender, EventArgs e)
+		{
+            var currentState = WindowState;
+
+            switch(currentState)
+			{
+                case FormWindowState.Maximized:
+                    WindowState = FormWindowState.Normal;
+                    ResizeWindows.Image = Properties.Resources.maximize_window_24px;
+                    break;
+                case FormWindowState.Normal:
+                    WindowState = FormWindowState.Maximized;
+                    ResizeWindows.Image = Properties.Resources.restore_window_24px;
+                    break;
+			}
+        }
+
+		private void CloseWindows_Click(object sender, EventArgs e)
+		{
+            Close();
+        }
 	}
 }
