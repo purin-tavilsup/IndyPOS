@@ -1,23 +1,20 @@
-﻿using System;
+﻿using IndyPOS.Inventory;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using IndyPOS.Adapters;
-using IndyPOS.Inventory;
 
 namespace IndyPOS.Controllers
 {
-    public interface IInventoryController
+	public interface IInventoryController
     {
-        IList<IInventoryProduct> GetInventoryProductsByCategoryId(int categoryId);
+        IList<IInventoryProduct> GetInventoryProductsByCategoryId(int id);
 
         IInventoryProduct GetInventoryProductByBarcode(string barcode);
+
+        IInventoryProduct GetProductByInventoryProductId(int id);
 
         void AddNewProduct(IInventoryProduct product);
 
         void UpdateProduct(IInventoryProduct product);
 
-        void RemoveProductByBarcode(string barcode);
+        void RemoveProductByInventoryProductId(int id);
     }
 }

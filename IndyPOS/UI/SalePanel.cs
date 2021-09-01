@@ -59,11 +59,11 @@ namespace IndyPOS.UI
             InvoiceDataView.ColumnCount = 5;
 
             InvoiceDataView.Columns[(int)SaleInvoiceColumn.ProductCode].Name = "รหัสสินค้า";
-            InvoiceDataView.Columns[(int)SaleInvoiceColumn.ProductCode].Width = 200;
+            InvoiceDataView.Columns[(int)SaleInvoiceColumn.ProductCode].Width = 130;
             InvoiceDataView.Columns[(int)SaleInvoiceColumn.ProductCode].ReadOnly = true;
 
             InvoiceDataView.Columns[(int)SaleInvoiceColumn.Description].Name = "คำอธิบาย";
-            InvoiceDataView.Columns[(int)SaleInvoiceColumn.Description].Width = 500;
+            InvoiceDataView.Columns[(int)SaleInvoiceColumn.Description].Width = 250;
             InvoiceDataView.Columns[(int)SaleInvoiceColumn.Description].ReadOnly = true;
 
             InvoiceDataView.Columns[(int)SaleInvoiceColumn.Quantity].Name = "จำนวน";
@@ -71,11 +71,11 @@ namespace IndyPOS.UI
             InvoiceDataView.Columns[(int)SaleInvoiceColumn.Quantity].ReadOnly = true;
 
             InvoiceDataView.Columns[(int)SaleInvoiceColumn.UnitPrice].Name = "ราคาต่อหน่วย";
-            InvoiceDataView.Columns[(int)SaleInvoiceColumn.UnitPrice].Width = 170;
+            InvoiceDataView.Columns[(int)SaleInvoiceColumn.UnitPrice].Width = 100;
             InvoiceDataView.Columns[(int)SaleInvoiceColumn.UnitPrice].ReadOnly = true;
 
             InvoiceDataView.Columns[(int)SaleInvoiceColumn.Total].Name = "ราคารวม";
-            InvoiceDataView.Columns[(int)SaleInvoiceColumn.Total].Width = 150;
+            InvoiceDataView.Columns[(int)SaleInvoiceColumn.Total].Width = 100;
             InvoiceDataView.Columns[(int)SaleInvoiceColumn.Total].ReadOnly = true;
 
             #endregion
@@ -173,6 +173,8 @@ namespace IndyPOS.UI
         private void InvoiceDataView_DoubleClick(object sender, EventArgs e)
         {
             var barcode = GetProductBarcodeFromSelectedProduct();
+
+            if (!barcode.HasValue()) return;
 
             _updateProductForm.ShowDialog(barcode);
         }

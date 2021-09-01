@@ -7,14 +7,16 @@ namespace IndyPOS.DataAccess.Repositories
     {
         InventoryProduct GetProductByBarcode(string barcode);
 
-        IList<InventoryProduct> GetProductsByCategoryId(int categoryId);
+        IList<InventoryProduct> GetProductsByCategoryId(int id);
 
-        void AddProduct(InventoryProduct product);
+        InventoryProduct GetProductByInventoryProductId(int id);
+
+        int AddProduct(InventoryProduct product);
 
         void UpdateProduct(InventoryProduct product);
 
         void RemoveProduct(InventoryProduct product);
 
-        void RemoveProductByBarcode(string barcode);
+        void RemoveProductByInventoryProductId(int id);
     }
 }

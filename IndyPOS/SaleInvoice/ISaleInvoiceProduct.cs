@@ -8,8 +8,6 @@
 
         int InventoryProductId { get; set; }
 
-        string SKU { get; set; }
-
         string Barcode { get; set; }
 
         string Description { get; set; }

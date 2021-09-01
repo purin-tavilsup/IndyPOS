@@ -92,6 +92,7 @@
 			this.panel9 = new System.Windows.Forms.Panel();
 			this.Digit7Button = new System.Windows.Forms.Button();
 			this.panel30 = new System.Windows.Forms.Panel();
+			this.panel32 = new System.Windows.Forms.Panel();
 			this.panel7.SuspendLayout();
 			this.panel6.SuspendLayout();
 			this.panel20.SuspendLayout();
@@ -123,11 +124,12 @@
 			this.panel1.SuspendLayout();
 			this.panel9.SuspendLayout();
 			this.panel30.SuspendLayout();
+			this.panel32.SuspendLayout();
 			this.SuspendLayout();
 			// 
 			// label1
 			// 
-			this.label1.BackColor = System.Drawing.Color.Black;
+			this.label1.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(40)))), ((int)(((byte)(40)))), ((int)(((byte)(40)))));
 			this.label1.Dock = System.Windows.Forms.DockStyle.Top;
 			this.label1.Font = new System.Drawing.Font("Leelawadee UI", 14.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
 			this.label1.ForeColor = System.Drawing.Color.WhiteSmoke;
@@ -140,49 +142,53 @@
 			// 
 			// panel7
 			// 
-			this.panel7.BackColor = System.Drawing.Color.LightCoral;
+			this.panel7.BackColor = System.Drawing.Color.Silver;
 			this.panel7.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
 			this.panel7.Controls.Add(this.CancelAcceptPaymentButton);
-			this.panel7.Location = new System.Drawing.Point(767, 584);
+			this.panel7.Location = new System.Drawing.Point(861, 13);
 			this.panel7.Name = "panel7";
-			this.panel7.Size = new System.Drawing.Size(226, 96);
+			this.panel7.Size = new System.Drawing.Size(133, 103);
 			this.panel7.TabIndex = 22;
 			// 
 			// CancelAcceptPaymentButton
 			// 
 			this.CancelAcceptPaymentButton.BackColor = System.Drawing.Color.Gainsboro;
 			this.CancelAcceptPaymentButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-			this.CancelAcceptPaymentButton.Font = new System.Drawing.Font("Leelawadee UI", 18F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+			this.CancelAcceptPaymentButton.Font = new System.Drawing.Font("Leelawadee UI", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+			this.CancelAcceptPaymentButton.Image = global::IndyPOS.Properties.Resources.Cross_50;
 			this.CancelAcceptPaymentButton.Location = new System.Drawing.Point(3, 3);
 			this.CancelAcceptPaymentButton.Name = "CancelAcceptPaymentButton";
-			this.CancelAcceptPaymentButton.Size = new System.Drawing.Size(218, 87);
+			this.CancelAcceptPaymentButton.Size = new System.Drawing.Size(125, 95);
 			this.CancelAcceptPaymentButton.TabIndex = 7;
 			this.CancelAcceptPaymentButton.Text = "ยกเลิก";
-			this.CancelAcceptPaymentButton.TextImageRelation = System.Windows.Forms.TextImageRelation.ImageBeforeText;
+			this.CancelAcceptPaymentButton.TextAlign = System.Drawing.ContentAlignment.BottomCenter;
+			this.CancelAcceptPaymentButton.TextImageRelation = System.Windows.Forms.TextImageRelation.ImageAboveText;
 			this.CancelAcceptPaymentButton.UseVisualStyleBackColor = false;
 			this.CancelAcceptPaymentButton.Click += new System.EventHandler(this.CancelAcceptPaymentButton_Click);
 			// 
 			// panel6
 			// 
-			this.panel6.BackColor = System.Drawing.Color.LightGreen;
+			this.panel6.BackColor = System.Drawing.Color.Silver;
 			this.panel6.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
 			this.panel6.Controls.Add(this.AcceptPaymentButton);
-			this.panel6.Location = new System.Drawing.Point(463, 584);
+			this.panel6.Location = new System.Drawing.Point(21, 13);
 			this.panel6.Name = "panel6";
-			this.panel6.Size = new System.Drawing.Size(232, 96);
+			this.panel6.Size = new System.Drawing.Size(133, 103);
 			this.panel6.TabIndex = 21;
 			// 
 			// AcceptPaymentButton
 			// 
 			this.AcceptPaymentButton.BackColor = System.Drawing.Color.Gainsboro;
 			this.AcceptPaymentButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-			this.AcceptPaymentButton.Font = new System.Drawing.Font("Leelawadee UI", 18F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+			this.AcceptPaymentButton.Font = new System.Drawing.Font("Leelawadee UI", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+			this.AcceptPaymentButton.Image = global::IndyPOS.Properties.Resources.Check_50;
 			this.AcceptPaymentButton.Location = new System.Drawing.Point(3, 3);
 			this.AcceptPaymentButton.Name = "AcceptPaymentButton";
-			this.AcceptPaymentButton.Size = new System.Drawing.Size(223, 87);
+			this.AcceptPaymentButton.Size = new System.Drawing.Size(125, 95);
 			this.AcceptPaymentButton.TabIndex = 7;
 			this.AcceptPaymentButton.Text = "รับเงิน";
-			this.AcceptPaymentButton.TextImageRelation = System.Windows.Forms.TextImageRelation.ImageBeforeText;
+			this.AcceptPaymentButton.TextAlign = System.Drawing.ContentAlignment.BottomCenter;
+			this.AcceptPaymentButton.TextImageRelation = System.Windows.Forms.TextImageRelation.ImageAboveText;
 			this.AcceptPaymentButton.UseVisualStyleBackColor = false;
 			this.AcceptPaymentButton.Click += new System.EventHandler(this.SaveProductEntryButton_Click);
 			// 
@@ -345,17 +351,17 @@
 			this.panel27.Controls.Add(this.label3);
 			this.panel27.Location = new System.Drawing.Point(463, 52);
 			this.panel27.Name = "panel27";
-			this.panel27.Size = new System.Drawing.Size(530, 87);
+			this.panel27.Size = new System.Drawing.Size(530, 58);
 			this.panel27.TabIndex = 47;
 			// 
 			// label2
 			// 
 			this.label2.BackColor = System.Drawing.Color.Silver;
-			this.label2.Font = new System.Drawing.Font("Leelawadee UI", 18F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+			this.label2.Font = new System.Drawing.Font("Leelawadee UI", 15.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
 			this.label2.ForeColor = System.Drawing.Color.Black;
 			this.label2.Location = new System.Drawing.Point(3, 3);
 			this.label2.Name = "label2";
-			this.label2.Size = new System.Drawing.Size(126, 79);
+			this.label2.Size = new System.Drawing.Size(126, 50);
 			this.label2.TabIndex = 1;
 			this.label2.Text = "จำนวนเงิน";
 			this.label2.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
@@ -364,11 +370,11 @@
 			// 
 			this.PaymentAmountLabel.BackColor = System.Drawing.Color.WhiteSmoke;
 			this.PaymentAmountLabel.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-			this.PaymentAmountLabel.Font = new System.Drawing.Font("Leelawadee UI", 24F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+			this.PaymentAmountLabel.Font = new System.Drawing.Font("Leelawadee UI", 15.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
 			this.PaymentAmountLabel.ForeColor = System.Drawing.Color.DarkBlue;
 			this.PaymentAmountLabel.Location = new System.Drawing.Point(135, 3);
 			this.PaymentAmountLabel.Name = "PaymentAmountLabel";
-			this.PaymentAmountLabel.Size = new System.Drawing.Size(300, 79);
+			this.PaymentAmountLabel.Size = new System.Drawing.Size(300, 50);
 			this.PaymentAmountLabel.TabIndex = 0;
 			this.PaymentAmountLabel.Text = "0.00";
 			this.PaymentAmountLabel.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
@@ -377,11 +383,11 @@
 			// 
 			this.label3.BackColor = System.Drawing.Color.WhiteSmoke;
 			this.label3.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-			this.label3.Font = new System.Drawing.Font("Leelawadee UI", 18F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+			this.label3.Font = new System.Drawing.Font("Leelawadee UI", 15.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
 			this.label3.ForeColor = System.Drawing.Color.DarkBlue;
 			this.label3.Location = new System.Drawing.Point(433, 3);
 			this.label3.Name = "label3";
-			this.label3.Size = new System.Drawing.Size(92, 79);
+			this.label3.Size = new System.Drawing.Size(92, 50);
 			this.label3.TabIndex = 8;
 			this.label3.Text = "บาท";
 			this.label3.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
@@ -397,7 +403,7 @@
 			this.panel28.Controls.Add(this.panel22);
 			this.panel28.Controls.Add(this.panel25);
 			this.panel28.ForeColor = System.Drawing.Color.Black;
-			this.panel28.Location = new System.Drawing.Point(21, 145);
+			this.panel28.Location = new System.Drawing.Point(21, 116);
 			this.panel28.Name = "panel28";
 			this.panel28.Size = new System.Drawing.Size(419, 420);
 			this.panel28.TabIndex = 48;
@@ -406,11 +412,11 @@
 			// 
 			this.PaymentTypeLabel.BackColor = System.Drawing.Color.WhiteSmoke;
 			this.PaymentTypeLabel.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-			this.PaymentTypeLabel.Font = new System.Drawing.Font("Leelawadee UI", 18F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+			this.PaymentTypeLabel.Font = new System.Drawing.Font("Leelawadee UI", 15.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
 			this.PaymentTypeLabel.ForeColor = System.Drawing.Color.DarkBlue;
 			this.PaymentTypeLabel.Location = new System.Drawing.Point(205, 3);
 			this.PaymentTypeLabel.Name = "PaymentTypeLabel";
-			this.PaymentTypeLabel.Size = new System.Drawing.Size(209, 79);
+			this.PaymentTypeLabel.Size = new System.Drawing.Size(209, 50);
 			this.PaymentTypeLabel.TabIndex = 48;
 			this.PaymentTypeLabel.Text = "เงินสด";
 			this.PaymentTypeLabel.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
@@ -418,11 +424,11 @@
 			// label4
 			// 
 			this.label4.BackColor = System.Drawing.Color.Silver;
-			this.label4.Font = new System.Drawing.Font("Leelawadee UI", 18F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+			this.label4.Font = new System.Drawing.Font("Leelawadee UI", 15.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
 			this.label4.ForeColor = System.Drawing.Color.Black;
 			this.label4.Location = new System.Drawing.Point(4, 2);
 			this.label4.Name = "label4";
-			this.label4.Size = new System.Drawing.Size(195, 79);
+			this.label4.Size = new System.Drawing.Size(195, 51);
 			this.label4.TabIndex = 47;
 			this.label4.Text = "วิธีการชำระเงิน:";
 			this.label4.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
@@ -450,7 +456,7 @@
 			this.panel29.Controls.Add(this.panel2);
 			this.panel29.Controls.Add(this.panel1);
 			this.panel29.Controls.Add(this.panel9);
-			this.panel29.Location = new System.Drawing.Point(463, 145);
+			this.panel29.Location = new System.Drawing.Point(463, 116);
 			this.panel29.Name = "panel29";
 			this.panel29.Size = new System.Drawing.Size(530, 433);
 			this.panel29.TabIndex = 49;
@@ -470,7 +476,7 @@
 			this.EqualButton.BackColor = System.Drawing.Color.Gainsboro;
 			this.EqualButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
 			this.EqualButton.Font = new System.Drawing.Font("Leelawadee UI", 27.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-			this.EqualButton.ForeColor = System.Drawing.Color.Black;
+			this.EqualButton.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(40)))), ((int)(((byte)(40)))), ((int)(((byte)(40)))));
 			this.EqualButton.Location = new System.Drawing.Point(3, 3);
 			this.EqualButton.Name = "EqualButton";
 			this.EqualButton.Size = new System.Drawing.Size(244, 70);
@@ -495,7 +501,7 @@
 			this.ClearButton.BackColor = System.Drawing.Color.Gainsboro;
 			this.ClearButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
 			this.ClearButton.Font = new System.Drawing.Font("Leelawadee UI", 15.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-			this.ClearButton.ForeColor = System.Drawing.Color.Black;
+			this.ClearButton.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(40)))), ((int)(((byte)(40)))), ((int)(((byte)(40)))));
 			this.ClearButton.Location = new System.Drawing.Point(3, 3);
 			this.ClearButton.Name = "ClearButton";
 			this.ClearButton.Size = new System.Drawing.Size(115, 70);
@@ -520,7 +526,7 @@
 			this.PlusButton.BackColor = System.Drawing.Color.Gainsboro;
 			this.PlusButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
 			this.PlusButton.Font = new System.Drawing.Font("Leelawadee UI", 27.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-			this.PlusButton.ForeColor = System.Drawing.Color.Black;
+			this.PlusButton.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(40)))), ((int)(((byte)(40)))), ((int)(((byte)(40)))));
 			this.PlusButton.Location = new System.Drawing.Point(3, 3);
 			this.PlusButton.Name = "PlusButton";
 			this.PlusButton.Size = new System.Drawing.Size(115, 70);
@@ -545,7 +551,7 @@
 			this.DecimalPointButton.BackColor = System.Drawing.Color.Gainsboro;
 			this.DecimalPointButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
 			this.DecimalPointButton.Font = new System.Drawing.Font("Leelawadee UI", 27.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-			this.DecimalPointButton.ForeColor = System.Drawing.Color.Black;
+			this.DecimalPointButton.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(40)))), ((int)(((byte)(40)))), ((int)(((byte)(40)))));
 			this.DecimalPointButton.Location = new System.Drawing.Point(3, 3);
 			this.DecimalPointButton.Name = "DecimalPointButton";
 			this.DecimalPointButton.Size = new System.Drawing.Size(115, 70);
@@ -695,7 +701,7 @@
 			this.Digit0Button.BackColor = System.Drawing.Color.Gainsboro;
 			this.Digit0Button.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
 			this.Digit0Button.Font = new System.Drawing.Font("Leelawadee UI", 15.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-			this.Digit0Button.ForeColor = System.Drawing.Color.Black;
+			this.Digit0Button.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(40)))), ((int)(((byte)(40)))), ((int)(((byte)(40)))));
 			this.Digit0Button.Location = new System.Drawing.Point(3, 3);
 			this.Digit0Button.Name = "Digit0Button";
 			this.Digit0Button.Size = new System.Drawing.Size(115, 70);
@@ -720,7 +726,7 @@
 			this.Digit3Button.BackColor = System.Drawing.Color.Gainsboro;
 			this.Digit3Button.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
 			this.Digit3Button.Font = new System.Drawing.Font("Leelawadee UI", 15.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-			this.Digit3Button.ForeColor = System.Drawing.Color.Black;
+			this.Digit3Button.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(40)))), ((int)(((byte)(40)))), ((int)(((byte)(40)))));
 			this.Digit3Button.Location = new System.Drawing.Point(3, 3);
 			this.Digit3Button.Name = "Digit3Button";
 			this.Digit3Button.Size = new System.Drawing.Size(115, 70);
@@ -745,7 +751,7 @@
 			this.Digit2Button.BackColor = System.Drawing.Color.Gainsboro;
 			this.Digit2Button.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
 			this.Digit2Button.Font = new System.Drawing.Font("Leelawadee UI", 15.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-			this.Digit2Button.ForeColor = System.Drawing.Color.Black;
+			this.Digit2Button.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(40)))), ((int)(((byte)(40)))), ((int)(((byte)(40)))));
 			this.Digit2Button.Location = new System.Drawing.Point(3, 3);
 			this.Digit2Button.Name = "Digit2Button";
 			this.Digit2Button.Size = new System.Drawing.Size(115, 70);
@@ -770,7 +776,7 @@
 			this.Digit1Button.BackColor = System.Drawing.Color.Gainsboro;
 			this.Digit1Button.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
 			this.Digit1Button.Font = new System.Drawing.Font("Leelawadee UI", 15.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-			this.Digit1Button.ForeColor = System.Drawing.Color.Black;
+			this.Digit1Button.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(40)))), ((int)(((byte)(40)))), ((int)(((byte)(40)))));
 			this.Digit1Button.Location = new System.Drawing.Point(3, 3);
 			this.Digit1Button.Name = "Digit1Button";
 			this.Digit1Button.Size = new System.Drawing.Size(115, 70);
@@ -795,7 +801,7 @@
 			this.Digit6Button.BackColor = System.Drawing.Color.Gainsboro;
 			this.Digit6Button.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
 			this.Digit6Button.Font = new System.Drawing.Font("Leelawadee UI", 15.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-			this.Digit6Button.ForeColor = System.Drawing.Color.Black;
+			this.Digit6Button.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(40)))), ((int)(((byte)(40)))), ((int)(((byte)(40)))));
 			this.Digit6Button.Location = new System.Drawing.Point(3, 3);
 			this.Digit6Button.Name = "Digit6Button";
 			this.Digit6Button.Size = new System.Drawing.Size(115, 70);
@@ -820,7 +826,7 @@
 			this.Digit5Button.BackColor = System.Drawing.Color.Gainsboro;
 			this.Digit5Button.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
 			this.Digit5Button.Font = new System.Drawing.Font("Leelawadee UI", 15.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-			this.Digit5Button.ForeColor = System.Drawing.Color.Black;
+			this.Digit5Button.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(40)))), ((int)(((byte)(40)))), ((int)(((byte)(40)))));
 			this.Digit5Button.Location = new System.Drawing.Point(3, 3);
 			this.Digit5Button.Name = "Digit5Button";
 			this.Digit5Button.Size = new System.Drawing.Size(115, 70);
@@ -845,7 +851,7 @@
 			this.Digit4Button.BackColor = System.Drawing.Color.Gainsboro;
 			this.Digit4Button.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
 			this.Digit4Button.Font = new System.Drawing.Font("Leelawadee UI", 15.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-			this.Digit4Button.ForeColor = System.Drawing.Color.Black;
+			this.Digit4Button.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(40)))), ((int)(((byte)(40)))), ((int)(((byte)(40)))));
 			this.Digit4Button.Location = new System.Drawing.Point(3, 3);
 			this.Digit4Button.Name = "Digit4Button";
 			this.Digit4Button.Size = new System.Drawing.Size(115, 70);
@@ -870,7 +876,7 @@
 			this.Digit9Button.BackColor = System.Drawing.Color.Gainsboro;
 			this.Digit9Button.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
 			this.Digit9Button.Font = new System.Drawing.Font("Leelawadee UI", 15.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-			this.Digit9Button.ForeColor = System.Drawing.Color.Black;
+			this.Digit9Button.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(40)))), ((int)(((byte)(40)))), ((int)(((byte)(40)))));
 			this.Digit9Button.Location = new System.Drawing.Point(3, 3);
 			this.Digit9Button.Name = "Digit9Button";
 			this.Digit9Button.Size = new System.Drawing.Size(115, 70);
@@ -895,7 +901,7 @@
 			this.Digit8Button.BackColor = System.Drawing.Color.Gainsboro;
 			this.Digit8Button.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
 			this.Digit8Button.Font = new System.Drawing.Font("Leelawadee UI", 15.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-			this.Digit8Button.ForeColor = System.Drawing.Color.Black;
+			this.Digit8Button.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(40)))), ((int)(((byte)(40)))), ((int)(((byte)(40)))));
 			this.Digit8Button.Location = new System.Drawing.Point(3, 3);
 			this.Digit8Button.Name = "Digit8Button";
 			this.Digit8Button.Size = new System.Drawing.Size(115, 70);
@@ -920,7 +926,7 @@
 			this.Digit7Button.BackColor = System.Drawing.Color.Gainsboro;
 			this.Digit7Button.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
 			this.Digit7Button.Font = new System.Drawing.Font("Leelawadee UI", 15.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-			this.Digit7Button.ForeColor = System.Drawing.Color.Black;
+			this.Digit7Button.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(40)))), ((int)(((byte)(40)))), ((int)(((byte)(40)))));
 			this.Digit7Button.Location = new System.Drawing.Point(3, 3);
 			this.Digit7Button.Name = "Digit7Button";
 			this.Digit7Button.Size = new System.Drawing.Size(115, 70);
@@ -938,21 +944,31 @@
 			this.panel30.Controls.Add(this.label4);
 			this.panel30.Location = new System.Drawing.Point(21, 52);
 			this.panel30.Name = "panel30";
-			this.panel30.Size = new System.Drawing.Size(419, 87);
+			this.panel30.Size = new System.Drawing.Size(419, 58);
 			this.panel30.TabIndex = 50;
+			// 
+			// panel32
+			// 
+			this.panel32.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(40)))), ((int)(((byte)(40)))), ((int)(((byte)(40)))));
+			this.panel32.Controls.Add(this.panel6);
+			this.panel32.Controls.Add(this.panel7);
+			this.panel32.Dock = System.Windows.Forms.DockStyle.Bottom;
+			this.panel32.Location = new System.Drawing.Point(0, 561);
+			this.panel32.Name = "panel32";
+			this.panel32.Size = new System.Drawing.Size(1010, 130);
+			this.panel32.TabIndex = 51;
 			// 
 			// AcceptPaymentForm
 			// 
 			this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
 			this.BackColor = System.Drawing.Color.Gray;
-			this.ClientSize = new System.Drawing.Size(1010, 695);
+			this.ClientSize = new System.Drawing.Size(1010, 691);
+			this.Controls.Add(this.panel32);
 			this.Controls.Add(this.panel30);
 			this.Controls.Add(this.panel29);
 			this.Controls.Add(this.panel28);
 			this.Controls.Add(this.panel27);
-			this.Controls.Add(this.panel7);
-			this.Controls.Add(this.panel6);
 			this.Controls.Add(this.label1);
 			this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.None;
 			this.Name = "AcceptPaymentForm";
@@ -988,6 +1004,7 @@
 			this.panel1.ResumeLayout(false);
 			this.panel9.ResumeLayout(false);
 			this.panel30.ResumeLayout(false);
+			this.panel32.ResumeLayout(false);
 			this.ResumeLayout(false);
 
         }
@@ -1058,5 +1075,6 @@
 		private System.Windows.Forms.Panel panel30;
 		private System.Windows.Forms.Panel panel31;
 		private System.Windows.Forms.Button EqualButton;
+		private System.Windows.Forms.Panel panel32;
 	}
 }

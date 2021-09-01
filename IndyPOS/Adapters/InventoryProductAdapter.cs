@@ -17,12 +17,6 @@ namespace IndyPOS.Adapters
             get => _adaptee.InventoryProductId;
         }
 
-        public string SKU
-        {
-            get => _adaptee.SKU;
-            set => _adaptee.SKU = value;
-        }
-
         public string Barcode
         {
             get => _adaptee.Barcode;

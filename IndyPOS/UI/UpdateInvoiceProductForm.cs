@@ -28,18 +28,18 @@ namespace IndyPOS.UI
         {
             _product = GetProductByBarcode(barcode);
 
-            PopulateProductProperties();
+            PopulateProductProperties(_product);
 
             CancelUpdateProductButton.Select();
 
             ShowDialog();
         }
 
-        private void PopulateProductProperties()
+        private void PopulateProductProperties(ISaleInvoiceProduct product)
         {
-            ProductCodeLabel.Text = _product.Barcode;
-            DescriptionLabel.Text = _product.Description;
-            QuantityTextBox.Text = _product.Quantity.ToString();
+            ProductCodeLabel.Text = product.Barcode;
+            DescriptionLabel.Text = product.Description;
+            QuantityTextBox.Text = product.Quantity.ToString();
         }
 
         private bool ValidateProductEntry()
