@@ -111,6 +111,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Enums\Panels.cs" />
+    <Compile Include="Events\ActiveSubpanelChangedEvent.cs" />
     <Compile Include="Events\InventoryProductAddedEvent.cs" />
     <Compile Include="Events\InventoryProductDeletedEvent.cs" />
     <Compile Include="Events\InventoryProductUpdatedEvent.cs" />

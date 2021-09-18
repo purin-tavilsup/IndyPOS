@@ -244,6 +244,7 @@
 			this.CustomerAccountsButton.TextAlign = System.Drawing.ContentAlignment.BottomCenter;
 			this.CustomerAccountsButton.TextImageRelation = System.Windows.Forms.TextImageRelation.ImageAboveText;
 			this.CustomerAccountsButton.UseVisualStyleBackColor = false;
+			this.CustomerAccountsButton.Click += new System.EventHandler(this.CustomerAccountsButton_Click);
 			// 
 			// panel3
 			// 

@@ -1,6 +1,6 @@
-﻿using IndyPOS.Adapters;
-using IndyPOS.Constants;
+﻿using IndyPOS.Constants;
 using IndyPOS.Controllers;
+using IndyPOS.Enums;
 using IndyPOS.Events;
 using IndyPOS.Extensions;
 using IndyPOS.Inventory;
@@ -12,7 +12,7 @@ using System.Windows.Forms;
 
 namespace IndyPOS.UI
 {
-    public partial class InventoryPanel : UserControl
+	public partial class InventoryPanel : UserControl
     {
         private readonly IEventAggregator _eventAggregator;
         private readonly IInventoryController _inventoryController;
@@ -21,6 +21,7 @@ namespace IndyPOS.UI
         private readonly AddNewInventoryProductForm _addNewProductForm;
         private readonly UpdateInventoryProductForm _updateProductForm;
         private int? _lastQueryCategoryId;
+        private Subpanel _activeSubpanel;
 
         private enum ProductColumn
         {
@@ -62,6 +63,7 @@ namespace IndyPOS.UI
             _eventAggregator.GetEvent<InventoryProductAddedEvent>().Subscribe(NewInventoryProductAdded);
             _eventAggregator.GetEvent<InventoryProductUpdatedEvent>().Subscribe(InventoryProductUpdated);
             _eventAggregator.GetEvent<InventoryProductDeletedEvent>().Subscribe(InventoryProductDeleted);
+            _eventAggregator.GetEvent<ActiveSubpanelChangedEvent>().Subscribe(ActiveSubpanelChanged);
         }
 
         private void InitializeProductCategories()
@@ -122,6 +124,11 @@ namespace IndyPOS.UI
             ProductDataView.Columns[(int)ProductColumn.DateUpdated].ReadOnly = true;
 
             #endregion
+        }
+
+        private void ActiveSubpanelChanged(Subpanel activeSubpanel)
+        {
+            _activeSubpanel = activeSubpanel;
         }
 
         private void GetProductsByCategoryButton_Click(object sender, EventArgs e)
@@ -201,7 +208,7 @@ namespace IndyPOS.UI
 
         private void BarcodeReceived(string barcode)
         {
-            if (!Visible)
+            if (_activeSubpanel != Subpanel.Inventory)
                 return;
 
             var product = SearchExistingProductByBarcode(barcode);
@@ -236,7 +243,7 @@ namespace IndyPOS.UI
 		{
             ClearLastQueryHistory();
 
-            _addNewProductForm.UIThread(delegate
+            ProductDataView.UIThread(delegate
             {
                 ProductDataView.Rows.Clear();
 

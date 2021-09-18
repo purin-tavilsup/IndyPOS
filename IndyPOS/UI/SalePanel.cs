@@ -3,6 +3,7 @@ using IndyPOS.Controllers;
 using IndyPOS.SaleInvoice;
 using IndyPOS.Events;
 using IndyPOS.Extensions;
+using IndyPOS.Enums;
 using Prism.Events;
 using System;
 using System.Windows.Forms;
@@ -15,6 +16,7 @@ namespace IndyPOS.UI
         private readonly AcceptPaymentForm _acceptPaymentForm;
         private readonly ISaleInvoiceController _saleInvoiceController;
         private readonly UpdateInvoiceProductForm _updateProductForm;
+        private Subpanel _activeSubpanel;
 
         private enum SaleInvoiceColumn
         {
@@ -49,6 +51,7 @@ namespace IndyPOS.UI
             _eventAggregator.GetEvent<PaymentAddedEvent>().Subscribe(PaymentChanged);
             _eventAggregator.GetEvent<NewSaleStartedEvent>().Subscribe(ResetSaleInvoiceScreen);
             _eventAggregator.GetEvent<BarcodeReceivedEvent>().Subscribe(BarcodeReceived);
+            _eventAggregator.GetEvent<ActiveSubpanelChangedEvent>().Subscribe(ActiveSubpanelChanged);
         }
 
         private void InitializeInvoiceDataView()
@@ -81,9 +84,16 @@ namespace IndyPOS.UI
             #endregion
         }
 
+        private void ActiveSubpanelChanged(Subpanel activeSubpanel)
+		{
+            _activeSubpanel = activeSubpanel;
+		}
+
         private void AddProductButton_Click(object sender, EventArgs e)
         {
             //TODO: Add dialog for adding product manually
+
+            _saleInvoiceController.CompleteSale();
         }
 
         private void RemoveProductButton_Click(object sender, EventArgs e)
@@ -162,6 +172,10 @@ namespace IndyPOS.UI
                 
             // TODO: Validate Payments, Insert invoice, products, and payments to database  
 
+            // Save Invoice
+            // Save Products
+            // Save Payments
+
             _saleInvoiceController.StartNewSale();
         }
 
@@ -202,7 +216,7 @@ namespace IndyPOS.UI
 
         private void BarcodeReceived(string barcode)
 		{
-            if (!Visible)
+            if (_activeSubpanel != Subpanel.Sales)
                 return;
 
             AddProductToInvoice(barcode);

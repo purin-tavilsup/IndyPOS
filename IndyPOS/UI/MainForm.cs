@@ -1,34 +1,29 @@
-﻿using System;
+﻿using IndyPOS.Enums;
+using IndyPOS.Events;
+using Prism.Events;
+using System;
 using System.Windows.Forms;
 
 namespace IndyPOS.UI
 {
-    public partial class MainForm : Form
+	public partial class MainForm : Form
     {
-        public enum Panels
-        {
-            Sales = 0,
-            Inventory,
-            Users,
-            Reports,
-            CustomerAccounts,
-            Settings
-        }
-
         private readonly SalePanel _salesPanel;
         private readonly InventoryPanel _inventoryPanel;
         private readonly UsersPanel _usersPanel;
         private readonly ReportsPanel _reportsPanel;
         private readonly CustomerAccountsPanel _customerAccountsPanel;
         private readonly SettingsPanel _settingsPanel;
+        private readonly IEventAggregator _eventAggregator;
         private UserControl _activePanel;
 
         public MainForm(SalePanel salesPanel, 
-            InventoryPanel inventoryPanel, 
-            UsersPanel usersPanel, 
-            ReportsPanel reportsPanel, 
-            CustomerAccountsPanel customerAccountsPanel, 
-            SettingsPanel settingsPanel)
+                        InventoryPanel inventoryPanel, 
+                        UsersPanel usersPanel, 
+                        ReportsPanel reportsPanel, 
+                        CustomerAccountsPanel customerAccountsPanel, 
+                        SettingsPanel settingsPanel,
+                        IEventAggregator eventAggregator)
 		{
             InitializeComponent();
 
@@ -44,56 +39,57 @@ namespace IndyPOS.UI
             _customerAccountsPanel.Visible = false;
             _settingsPanel = settingsPanel;
             _settingsPanel.Visible = false;
+            _eventAggregator = eventAggregator;
 
             SaleButton.Select();
         }
 
-        private void SwitchToPanel(Panels panelName)
+        private void SwitchToPanel(Subpanel subpanelToShow)
         {
-            UserControl panelToBeShown = null;
+            UserControl panelToShow = null;
 
-            switch (panelName)
+            switch (subpanelToShow)
             {
-                case Panels.Sales:
+                case Subpanel.Sales:
 
-                    panelToBeShown = _salesPanel;
-
-                    break;
-
-                case Panels.Inventory:
-
-                    panelToBeShown = _inventoryPanel;
+                    panelToShow = _salesPanel;
 
                     break;
 
-                case Panels.Users:
+                case Subpanel.Inventory:
 
-                    panelToBeShown = _usersPanel;
-
-                    break;
-
-                case Panels.Reports:
-
-                    panelToBeShown = _reportsPanel;
+                    panelToShow = _inventoryPanel;
 
                     break;
 
-                case Panels.CustomerAccounts:
+                case Subpanel.Users:
 
-                    panelToBeShown = _customerAccountsPanel;
+                    panelToShow = _usersPanel;
 
                     break;
 
-                case Panels.Settings:
+                case Subpanel.Reports:
 
-                    panelToBeShown = _settingsPanel;
+                    panelToShow = _reportsPanel;
+
+                    break;
+
+                case Subpanel.CustomerAccounts:
+
+                    panelToShow = _customerAccountsPanel;
+
+                    break;
+
+                case Subpanel.Settings:
+
+                    panelToShow = _settingsPanel;
 
                     break;
             }
 
             if (_activePanel != null)
             {
-                if (_activePanel.Name == panelToBeShown.Name)
+                if (_activePanel.Name == panelToShow.Name)
                 {
                     return;
                 }
@@ -103,44 +99,46 @@ namespace IndyPOS.UI
                 ActivePanel.Controls.Remove(_activePanel);
             }
 
-            panelToBeShown.Dock = DockStyle.Fill;
+            panelToShow.Dock = DockStyle.Fill;
 
-            ActivePanel.Controls.Add(panelToBeShown);
+            ActivePanel.Controls.Add(panelToShow);
             
-            panelToBeShown.BringToFront();
-            panelToBeShown.Visible = true;
+            panelToShow.BringToFront();
+            panelToShow.Visible = true;
             
-            _activePanel = panelToBeShown;
+            _activePanel = panelToShow;
+
+            _eventAggregator.GetEvent<ActiveSubpanelChangedEvent>().Publish(subpanelToShow);
         }
 
         private void MainForm_Shown(object sender, EventArgs e)
         {
-            SwitchToPanel(Panels.Sales);
+			SwitchToPanel(Subpanel.Sales);
         }
 
         private void SaleButton_Click(object sender, EventArgs e)
         {
-            SwitchToPanel(Panels.Sales);
+			SwitchToPanel(Subpanel.Sales);
         }
 
         private void InventoryButton_Click(object sender, EventArgs e)
         {
-            SwitchToPanel(Panels.Inventory);
+			SwitchToPanel(Subpanel.Inventory);
         }
 
         private void UsersButton_Click(object sender, EventArgs e)
         {
-            SwitchToPanel(Panels.Users);
+			SwitchToPanel(Subpanel.Users);
         }
 
         private void ReportsButton_Click(object sender, EventArgs e)
         {
-            SwitchToPanel(Panels.Reports);
+			SwitchToPanel(Subpanel.Reports);
         }
 
         private void SettingsButton_Click(object sender, EventArgs e)
         {
-            SwitchToPanel(Panels.Settings);
+			SwitchToPanel(Subpanel.Settings);
         }
 
 		private void CloseButton_Click(object sender, EventArgs e)
@@ -174,5 +172,10 @@ namespace IndyPOS.UI
 		{
             Close();
         }
+
+		private void CustomerAccountsButton_Click(object sender, EventArgs e)
+		{
+            SwitchToPanel(Subpanel.CustomerAccounts);
+		}
 	}
 }

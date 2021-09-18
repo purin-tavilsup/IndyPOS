@@ -6,6 +6,7 @@ using IndyPOS.Extensions;
 using IndyPOS.Inventory;
 using IndyPOS.SaleInvoice;
 using Prism.Events;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -135,5 +136,11 @@ namespace IndyPOS.Controllers
 
             return success;
         }
+
+        public void CompleteSale()
+		{
+            var results1 = _invoicesRepository.GetInvoicesByDate(new DateTime(2021, 9, 4));
+            var results2 = _invoicesRepository.GetInvoicesByDateRange(new DateTime(2021, 9, 1), new DateTime(2021, 9, 4));
+		}
     }
 }
