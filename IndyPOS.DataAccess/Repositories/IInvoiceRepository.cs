@@ -23,5 +23,7 @@ namespace IndyPOS.DataAccess.Repositories
         IList<InvoiceProduct> GetInvoiceProductsByDate(DateTime date);
 
         int AddPayment(Payment payment);
+
+        IList<Payment> GetPaymentsByInvoiceId(int id);
     }
 }

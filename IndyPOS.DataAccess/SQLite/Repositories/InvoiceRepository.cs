@@ -279,6 +279,32 @@ namespace IndyPOS.DataAccess.SQLite.Repositories
             return GetInvoiceProductsByDateRange(date, date);
         }
 
+        public IList<Payment> GetPaymentsByInvoiceId(int id)
+        {
+            using (var connection = _dbConnectionProvider.GetDbConnection())
+            {
+                connection.Open();
+
+                const string sqlCommand = @"SELECT
+                PaymentId,
+                InvoiceId,
+                PaymentTypeId,
+                Amount,
+                DateCreated
+                FROM Payments 
+                WHERE InvoiceId = @invoiceId";
+
+                var sqlParameters = new
+                {
+                    invoiceId = id
+                };
+
+                var results = connection.Query(sqlCommand, sqlParameters);
+
+                return MapPayments(results);
+            }
+        }
+
         private string MapStartDateToString(DateTime date)
 		{
             var dateString = date.ToString("yyyy-MM-dd");
@@ -341,6 +367,24 @@ namespace IndyPOS.DataAccess.SQLite.Repositories
             }) ?? Enumerable.Empty<InvoiceProduct>();
 
             return products.ToList();
+        }
+
+        private IList<Payment> MapPayments(IEnumerable<dynamic> results)
+        {
+            var payments = results?.Select(x => new Payment
+            {
+                PaymentId = (int)x.PaymentId,
+
+                InvoiceId = (int)x.InvoiceId,
+
+                PaymentTypeId = (int)x.PaymentTypeId,
+
+                Amount = MapMoneyToDecimal(x.Amount),
+
+                DateCreated = x.DateCreated
+            }) ?? Enumerable.Empty<Payment>();
+
+            return payments.ToList();
         }
 
         private decimal? MapMoneyToNullableDecimal(string value)
