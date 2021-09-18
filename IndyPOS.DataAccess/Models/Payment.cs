@@ -8,7 +8,7 @@
 
 		public int PaymentTypeId { get; set; }
 
-		public string Amount { get; set; }
+		public decimal Amount { get; set; }
 
 		public string DateCreated { get; set; }
 	}
