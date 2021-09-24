@@ -65,6 +65,18 @@ namespace IndyPOS.Adapters
             set => _adaptee.QuantityInStock = value;
         }
 
+        public decimal? GroupPrice
+        {
+            get => _adaptee.GroupPrice;
+            set => _adaptee.GroupPrice = value;
+        }
+
+        public int? GroupPriceQuantity
+        {
+            get => _adaptee.GroupPriceQuantity;
+            set => _adaptee.GroupPriceQuantity = value;
+        }
+
         public string DateCreated
         {
             get => _adaptee.DateCreated;

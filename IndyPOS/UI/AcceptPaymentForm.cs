@@ -64,7 +64,7 @@ namespace IndyPOS.UI
             base.ShowDialog();
         }
 
-        private void SaveProductEntryButton_Click(object sender, EventArgs e)
+        private void AcceptPaymentButton_Click(object sender, EventArgs e)
         {
             if (!_isPaymentTypeSelected)
 			{

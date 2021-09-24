@@ -23,5 +23,9 @@
         decimal UnitPrice { get; set; }
 
         int Quantity { get; set; }
+
+        decimal? GroupPrice { get; set; }
+
+        int? GroupPriceQuantity { get; set; }
     }
 }

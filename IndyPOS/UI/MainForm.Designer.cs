@@ -80,7 +80,7 @@
 			this.NavigationPanel.Controls.Add(this.panel3);
 			this.NavigationPanel.Controls.Add(this.panel4);
 			this.NavigationPanel.Dock = System.Windows.Forms.DockStyle.Bottom;
-			this.NavigationPanel.Location = new System.Drawing.Point(0, 749);
+			this.NavigationPanel.Location = new System.Drawing.Point(0, 888);
 			this.NavigationPanel.Name = "NavigationPanel";
 			this.NavigationPanel.Size = new System.Drawing.Size(1412, 132);
 			this.NavigationPanel.TabIndex = 0;
@@ -100,7 +100,8 @@
 			this.CloseButton.BackColor = System.Drawing.Color.Gainsboro;
 			this.CloseButton.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
 			this.CloseButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-			this.CloseButton.Font = new System.Drawing.Font("Leelawadee UI", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+			this.CloseButton.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+			this.CloseButton.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(40)))), ((int)(((byte)(40)))), ((int)(((byte)(40)))));
 			this.CloseButton.Image = global::IndyPOS.Properties.Resources.CloseWindows_50;
 			this.CloseButton.Location = new System.Drawing.Point(3, 3);
 			this.CloseButton.Name = "CloseButton";
@@ -127,7 +128,8 @@
 			this.InventoryButton.BackColor = System.Drawing.Color.Gainsboro;
 			this.InventoryButton.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
 			this.InventoryButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-			this.InventoryButton.Font = new System.Drawing.Font("Leelawadee UI", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+			this.InventoryButton.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+			this.InventoryButton.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(40)))), ((int)(((byte)(40)))), ((int)(((byte)(40)))));
 			this.InventoryButton.Image = global::IndyPOS.Properties.Resources.Inventory_50;
 			this.InventoryButton.ImageAlign = System.Drawing.ContentAlignment.BottomCenter;
 			this.InventoryButton.Location = new System.Drawing.Point(3, 3);
@@ -154,7 +156,8 @@
 			this.LogInButton.BackColor = System.Drawing.Color.Gainsboro;
 			this.LogInButton.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
 			this.LogInButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-			this.LogInButton.Font = new System.Drawing.Font("Leelawadee UI", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+			this.LogInButton.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+			this.LogInButton.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(40)))), ((int)(((byte)(40)))), ((int)(((byte)(40)))));
 			this.LogInButton.Image = global::IndyPOS.Properties.Resources.Login_50;
 			this.LogInButton.Location = new System.Drawing.Point(3, 3);
 			this.LogInButton.Name = "LogInButton";
@@ -180,7 +183,8 @@
 			this.SettingsButton.BackColor = System.Drawing.Color.Gainsboro;
 			this.SettingsButton.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
 			this.SettingsButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-			this.SettingsButton.Font = new System.Drawing.Font("Leelawadee UI", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+			this.SettingsButton.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+			this.SettingsButton.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(40)))), ((int)(((byte)(40)))), ((int)(((byte)(40)))));
 			this.SettingsButton.Image = global::IndyPOS.Properties.Resources.Settings_50;
 			this.SettingsButton.Location = new System.Drawing.Point(3, 3);
 			this.SettingsButton.Name = "SettingsButton";
@@ -207,7 +211,8 @@
 			this.SaleButton.BackColor = System.Drawing.Color.Gainsboro;
 			this.SaleButton.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
 			this.SaleButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-			this.SaleButton.Font = new System.Drawing.Font("Leelawadee UI", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+			this.SaleButton.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+			this.SaleButton.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(40)))), ((int)(((byte)(40)))), ((int)(((byte)(40)))));
 			this.SaleButton.Image = global::IndyPOS.Properties.Resources.Cashier_50;
 			this.SaleButton.Location = new System.Drawing.Point(3, 3);
 			this.SaleButton.Name = "SaleButton";
@@ -234,7 +239,8 @@
 			this.CustomerAccountsButton.BackColor = System.Drawing.Color.Gainsboro;
 			this.CustomerAccountsButton.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
 			this.CustomerAccountsButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-			this.CustomerAccountsButton.Font = new System.Drawing.Font("Leelawadee UI", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+			this.CustomerAccountsButton.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+			this.CustomerAccountsButton.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(40)))), ((int)(((byte)(40)))), ((int)(((byte)(40)))));
 			this.CustomerAccountsButton.Image = global::IndyPOS.Properties.Resources.Customer_Acounts_50;
 			this.CustomerAccountsButton.Location = new System.Drawing.Point(3, 3);
 			this.CustomerAccountsButton.Name = "CustomerAccountsButton";
@@ -261,7 +267,8 @@
 			this.UsersButton.BackColor = System.Drawing.Color.Gainsboro;
 			this.UsersButton.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
 			this.UsersButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-			this.UsersButton.Font = new System.Drawing.Font("Leelawadee UI", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+			this.UsersButton.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+			this.UsersButton.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(40)))), ((int)(((byte)(40)))), ((int)(((byte)(40)))));
 			this.UsersButton.Image = global::IndyPOS.Properties.Resources.User_50;
 			this.UsersButton.ImageAlign = System.Drawing.ContentAlignment.BottomCenter;
 			this.UsersButton.Location = new System.Drawing.Point(3, 3);
@@ -288,7 +295,8 @@
 			this.ReportsButton.BackColor = System.Drawing.Color.Gainsboro;
 			this.ReportsButton.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
 			this.ReportsButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-			this.ReportsButton.Font = new System.Drawing.Font("Leelawadee UI", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+			this.ReportsButton.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+			this.ReportsButton.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(40)))), ((int)(((byte)(40)))), ((int)(((byte)(40)))));
 			this.ReportsButton.Image = global::IndyPOS.Properties.Resources.Reports_50;
 			this.ReportsButton.Location = new System.Drawing.Point(3, 3);
 			this.ReportsButton.Name = "ReportsButton";
@@ -306,6 +314,7 @@
 			this.TitlePanel.Controls.Add(this.panel9);
 			this.TitlePanel.Controls.Add(this.label1);
 			this.TitlePanel.Dock = System.Windows.Forms.DockStyle.Top;
+			this.TitlePanel.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
 			this.TitlePanel.ForeColor = System.Drawing.Color.LightGreen;
 			this.TitlePanel.Location = new System.Drawing.Point(0, 0);
 			this.TitlePanel.Name = "TitlePanel";
@@ -355,7 +364,7 @@
 			// 
 			// label1
 			// 
-			this.label1.Font = new System.Drawing.Font("Leelawadee UI", 18F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+			this.label1.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 18F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
 			this.label1.ForeColor = System.Drawing.Color.WhiteSmoke;
 			this.label1.Location = new System.Drawing.Point(3, 9);
 			this.label1.Name = "label1";
@@ -370,7 +379,7 @@
 			this.ActivePanel.Dock = System.Windows.Forms.DockStyle.Fill;
 			this.ActivePanel.Location = new System.Drawing.Point(0, 52);
 			this.ActivePanel.Name = "ActivePanel";
-			this.ActivePanel.Size = new System.Drawing.Size(1412, 697);
+			this.ActivePanel.Size = new System.Drawing.Size(1412, 836);
 			this.ActivePanel.TabIndex = 3;
 			// 
 			// MainForm
@@ -378,7 +387,7 @@
 			this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
 			this.BackColor = System.Drawing.Color.LightGray;
-			this.ClientSize = new System.Drawing.Size(1412, 881);
+			this.ClientSize = new System.Drawing.Size(1412, 1020);
 			this.Controls.Add(this.ActivePanel);
 			this.Controls.Add(this.TitlePanel);
 			this.Controls.Add(this.NavigationPanel);
@@ -386,6 +395,7 @@
 			this.Name = "MainForm";
 			this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
 			this.Text = "Indy POS";
+			this.Load += new System.EventHandler(this.MainForm_Load);
 			this.Shown += new System.EventHandler(this.MainForm_Shown);
 			this.NavigationPanel.ResumeLayout(false);
 			this.panel8.ResumeLayout(false);

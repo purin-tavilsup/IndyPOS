@@ -30,6 +30,8 @@ namespace IndyPOS.UI
             QuantityInStock,
             UnitPrice,
             UnitCost,
+            GroupPrice,
+            GroupPriceQuantity,
             Category,
             Manufacturer,
             Brand,
@@ -81,27 +83,35 @@ namespace IndyPOS.UI
             #region Initialize all columns
 
             ProductDataView.Columns.Clear();
-            ProductDataView.ColumnCount = 10;
+            ProductDataView.ColumnCount = 12;
 
             ProductDataView.Columns[(int)ProductColumn.ProductCode].Name = "รหัสสินค้า";
-            ProductDataView.Columns[(int)ProductColumn.ProductCode].Width = 130;
+            ProductDataView.Columns[(int)ProductColumn.ProductCode].Width = 150;
             ProductDataView.Columns[(int)ProductColumn.ProductCode].ReadOnly = true;
 
             ProductDataView.Columns[(int)ProductColumn.Description].Name = "คำอธิบาย";
-            ProductDataView.Columns[(int)ProductColumn.Description].Width = 250;
+            ProductDataView.Columns[(int)ProductColumn.Description].Width = 300;
             ProductDataView.Columns[(int)ProductColumn.Description].ReadOnly = true;
 
             ProductDataView.Columns[(int)ProductColumn.QuantityInStock].Name = "จำนวนในคลัง";
-            ProductDataView.Columns[(int)ProductColumn.QuantityInStock].Width = 100;
+            ProductDataView.Columns[(int)ProductColumn.QuantityInStock].Width = 150;
             ProductDataView.Columns[(int)ProductColumn.QuantityInStock].ReadOnly = true;
 
             ProductDataView.Columns[(int)ProductColumn.UnitPrice].Name = "ราคาขาย";
-            ProductDataView.Columns[(int)ProductColumn.UnitPrice].Width = 100;
+            ProductDataView.Columns[(int)ProductColumn.UnitPrice].Width = 150;
             ProductDataView.Columns[(int)ProductColumn.UnitPrice].ReadOnly = true;
 
             ProductDataView.Columns[(int)ProductColumn.UnitCost].Name = "ราคาซื้อ";
-            ProductDataView.Columns[(int)ProductColumn.UnitCost].Width = 100;
+            ProductDataView.Columns[(int)ProductColumn.UnitCost].Width = 150;
             ProductDataView.Columns[(int)ProductColumn.UnitCost].ReadOnly = true;
+
+            ProductDataView.Columns[(int)ProductColumn.GroupPrice].Name = "ราคาขายต่อกลุ่ม";
+            ProductDataView.Columns[(int)ProductColumn.GroupPrice].Width = 170;
+            ProductDataView.Columns[(int)ProductColumn.GroupPrice].ReadOnly = true;
+
+            ProductDataView.Columns[(int)ProductColumn.GroupPriceQuantity].Name = "จำนวนต่อกลุ่ม";
+            ProductDataView.Columns[(int)ProductColumn.GroupPriceQuantity].Width = 150;
+            ProductDataView.Columns[(int)ProductColumn.GroupPriceQuantity].ReadOnly = true;
 
             ProductDataView.Columns[(int)ProductColumn.Category].Name = "ประเภทสินค้า";
             ProductDataView.Columns[(int)ProductColumn.Category].Width = 200;
@@ -116,11 +126,11 @@ namespace IndyPOS.UI
             ProductDataView.Columns[(int)ProductColumn.Brand].ReadOnly = true;
 
             ProductDataView.Columns[(int)ProductColumn.DateCreated].Name = "วันที่นำเข้า";
-            ProductDataView.Columns[(int)ProductColumn.DateCreated].Width = 150;
+            ProductDataView.Columns[(int)ProductColumn.DateCreated].Width = 200;
             ProductDataView.Columns[(int)ProductColumn.DateCreated].ReadOnly = true;
 
             ProductDataView.Columns[(int)ProductColumn.DateUpdated].Name = "วันที่อัพเดท";
-            ProductDataView.Columns[(int)ProductColumn.DateUpdated].Width = 150;
+            ProductDataView.Columns[(int)ProductColumn.DateUpdated].Width = 200;
             ProductDataView.Columns[(int)ProductColumn.DateUpdated].ReadOnly = true;
 
             #endregion
@@ -131,25 +141,14 @@ namespace IndyPOS.UI
             _activeSubpanel = activeSubpanel;
         }
 
-        private void GetProductsByCategoryButton_Click(object sender, EventArgs e)
-        {
-            if (ProductCategoryListBox.SelectedItem == null)
-                return;
-
-            var selectedCategoryValue = ProductCategoryListBox.SelectedItem.ToString();
-            var category = _productCategoryDictionary.FirstOrDefault(x => x.Value == selectedCategoryValue);
-            var categoryId = category.Key;
-
-            _lastQueryCategoryId = categoryId;
-
-            ShowProductsByCategoryId(categoryId);
-        }
-
-        private void ShowProductsByCategoryId(int id)
+		private void ShowProductsByCategoryId(int id)
 		{
             var products = _inventoryController.GetInventoryProductsByCategoryId(id);
 
             ProductDataView.Rows.Clear();
+
+            if (products.Count == 0)
+                return;
 
             foreach (var product in products)
             {
@@ -285,5 +284,19 @@ namespace IndyPOS.UI
 		{
             _lastQueryCategoryId = null;
         }
-    }
+
+		private void ProductCategoryListBox_SelectedIndexChanged(object sender, EventArgs e)
+		{
+            if (ProductCategoryListBox.SelectedItem == null)
+                return;
+
+            var selectedCategoryValue = ProductCategoryListBox.SelectedItem.ToString();
+            var category = _productCategoryDictionary.FirstOrDefault(x => x.Value == selectedCategoryValue);
+            var categoryId = category.Key;
+
+            _lastQueryCategoryId = categoryId;
+
+            ShowProductsByCategoryId(categoryId);
+        }
+	}
 }

@@ -1,5 +1,4 @@
-﻿using IndyPOS.Adapters;
-using IndyPOS.Enums;
+﻿using IndyPOS.Enums;
 using IndyPOS.Inventory;
 using IndyPOS.SaleInvoice;
 using System.Collections.Generic;
@@ -8,9 +7,9 @@ namespace IndyPOS.Controllers
 {
 	public interface ISaleInvoiceController
     {
-        IList<ISaleInvoiceProduct> Products { get; }
+        IReadOnlyCollection<ISaleInvoiceProduct> Products { get; }
 
-        IList<IPayment> Payments { get; }
+        IReadOnlyCollection<IPayment> Payments { get; }
 
         decimal InvoiceTotal { get; }
 
@@ -22,15 +21,13 @@ namespace IndyPOS.Controllers
 
         void CompleteSale();
 
-        void ClearProductsAndPayments();
-
         bool AddProduct(string barcode);
 
         bool RemoveProduct(string barcode);
 
-        IInventoryProduct GetInventoryProductByBarcode(string barcode);
-
         bool AddPayment(PaymentType paymentType, decimal paymentAmount);
+
+        IInventoryProduct GetInventoryProductByBarcode(string barcode);
 
         bool UpdateProductQuantity(string barcode, int quantity);
     }

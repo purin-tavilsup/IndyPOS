@@ -39,7 +39,7 @@ namespace IndyPOS.UI
             }
             else
             {
-                ProductCodeTextBox.Text = productBarcode;
+                ProductCodeTextBox.Texts = productBarcode;
                 ProductCodeTextBox.ReadOnly = true;
             }
 
@@ -50,14 +50,14 @@ namespace IndyPOS.UI
 
         private void ResetProductEntry()
         {
-            ProductCodeTextBox.Text = string.Empty;
-            DescriptionTextBox.Text = string.Empty;
-            QuantityTextBox.Text = string.Empty;
-            UnitPriceTextBox.Text = string.Empty;
-            UnitCostTextBox.Text = string.Empty;
+            ProductCodeTextBox.Texts = string.Empty;
+            DescriptionTextBox.Texts = string.Empty;
+            QuantityTextBox.Texts = string.Empty;
+            UnitPriceTextBox.Texts = string.Empty;
+            UnitCostTextBox.Texts = string.Empty;
             CategoryComboBox.Text = "เลือกประเภทสินค้า";
-            ManufacturerTextBox.Text = string.Empty;
-            BrandTextBox.Text = string.Empty;
+            ManufacturerTextBox.Texts = string.Empty;
+            BrandTextBox.Texts = string.Empty;
         }
 
         private bool ValidateProductEntry()
@@ -136,29 +136,35 @@ namespace IndyPOS.UI
         private IInventoryProduct CreateNewProduct()
         {
             // Required Attributes
-            var quantity = int.Parse(QuantityTextBox.Text.Trim());
-            var unitPrice = decimal.Parse(UnitPriceTextBox.Text.Trim());
+            var quantity = int.Parse(QuantityTextBox.Texts.Trim());
+            var unitPrice = decimal.Parse(UnitPriceTextBox.Texts.Trim());
             var category = _productCategoryDictionary.FirstOrDefault(x => x.Value == CategoryComboBox.Text);
             var categoryId = category.Key;
 
             var product = new InventoryProduct
             {
-                Barcode = ProductCodeTextBox.Text.Trim(),
-                Description = DescriptionTextBox.Text.Trim(),
+                Barcode = ProductCodeTextBox.Texts.Trim(),
+                Description = DescriptionTextBox.Texts.Trim(),
                 QuantityInStock = quantity,
                 UnitPrice = unitPrice,
                 Category = categoryId
             };
 
             // Optional Attributes
-            if (decimal.TryParse(UnitCostTextBox.Text.Trim(), out var unitCost))
+            if (decimal.TryParse(UnitCostTextBox.Texts.Trim(), out var unitCost))
                 product.UnitCost = unitCost;
 
-            if (!string.IsNullOrWhiteSpace(ManufacturerTextBox.Text))
-                product.Manufacturer = ManufacturerTextBox.Text;
+            if (!string.IsNullOrWhiteSpace(ManufacturerTextBox.Texts))
+                product.Manufacturer = ManufacturerTextBox.Texts;
 
-            if (!string.IsNullOrWhiteSpace(BrandTextBox.Text))
-                product.Brand = BrandTextBox.Text;
+            if (!string.IsNullOrWhiteSpace(BrandTextBox.Texts))
+                product.Brand = BrandTextBox.Texts;
+
+            if (decimal.TryParse(GroupPriceTextBox.Texts.Trim(), out var groupPrice))
+                product.GroupPrice = groupPrice;
+
+            if (int.TryParse(GroupPriceQuantityTextBox.Texts.Trim(), out var groupPriceQuantity))
+                product.GroupPriceQuantity = groupPriceQuantity;
 
             return product;
         }

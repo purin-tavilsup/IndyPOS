@@ -4,6 +4,8 @@
     {
         public int InvoiceProductId { get; set; }
 
+        public int Priority { get; set; }
+
         public int InvoiceId { get; set; }
 
         public int InventoryProductId { get; set; }

@@ -52,7 +52,7 @@
 			// 
 			this.label1.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(40)))), ((int)(((byte)(40)))), ((int)(((byte)(40)))));
 			this.label1.Dock = System.Windows.Forms.DockStyle.Top;
-			this.label1.Font = new System.Drawing.Font("Leelawadee UI", 14.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+			this.label1.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 14.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
 			this.label1.ForeColor = System.Drawing.Color.WhiteSmoke;
 			this.label1.Location = new System.Drawing.Point(0, 0);
 			this.label1.Name = "label1";
@@ -64,7 +64,7 @@
 			// label2
 			// 
 			this.label2.BackColor = System.Drawing.Color.LightGray;
-			this.label2.Font = new System.Drawing.Font("Leelawadee UI", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+			this.label2.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
 			this.label2.Location = new System.Drawing.Point(16, 52);
 			this.label2.Name = "label2";
 			this.label2.Size = new System.Drawing.Size(137, 27);
@@ -75,7 +75,7 @@
 			// label3
 			// 
 			this.label3.BackColor = System.Drawing.Color.LightGray;
-			this.label3.Font = new System.Drawing.Font("Leelawadee UI", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+			this.label3.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
 			this.label3.Location = new System.Drawing.Point(16, 84);
 			this.label3.Name = "label3";
 			this.label3.Size = new System.Drawing.Size(137, 27);
@@ -86,7 +86,7 @@
 			// label4
 			// 
 			this.label4.BackColor = System.Drawing.Color.LightGray;
-			this.label4.Font = new System.Drawing.Font("Leelawadee UI", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+			this.label4.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
 			this.label4.Location = new System.Drawing.Point(16, 116);
 			this.label4.Name = "label4";
 			this.label4.Size = new System.Drawing.Size(137, 27);
@@ -97,10 +97,10 @@
 			// QuantityTextBox
 			// 
 			this.QuantityTextBox.BackColor = System.Drawing.Color.WhiteSmoke;
-			this.QuantityTextBox.Font = new System.Drawing.Font("Leelawadee UI", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+			this.QuantityTextBox.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
 			this.QuantityTextBox.Location = new System.Drawing.Point(159, 116);
 			this.QuantityTextBox.Name = "QuantityTextBox";
-			this.QuantityTextBox.Size = new System.Drawing.Size(293, 27);
+			this.QuantityTextBox.Size = new System.Drawing.Size(293, 25);
 			this.QuantityTextBox.TabIndex = 15;
 			this.QuantityTextBox.Text = "1";
 			this.QuantityTextBox.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
@@ -119,7 +119,7 @@
 			// 
 			this.CancelUpdateProductButton.BackColor = System.Drawing.Color.Gainsboro;
 			this.CancelUpdateProductButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-			this.CancelUpdateProductButton.Font = new System.Drawing.Font("Leelawadee UI", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+			this.CancelUpdateProductButton.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
 			this.CancelUpdateProductButton.Image = global::IndyPOS.Properties.Resources.Cross_50;
 			this.CancelUpdateProductButton.Location = new System.Drawing.Point(3, 3);
 			this.CancelUpdateProductButton.Name = "CancelUpdateProductButton";
@@ -145,8 +145,8 @@
 			// 
 			this.UpdateProductButton.BackColor = System.Drawing.Color.Gainsboro;
 			this.UpdateProductButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-			this.UpdateProductButton.Font = new System.Drawing.Font("Leelawadee UI", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-			this.UpdateProductButton.Image = global::IndyPOS.Properties.Resources.Save_50;
+			this.UpdateProductButton.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+			this.UpdateProductButton.Image = global::IndyPOS.Properties.Resources.Check_50;
 			this.UpdateProductButton.Location = new System.Drawing.Point(3, 3);
 			this.UpdateProductButton.Name = "UpdateProductButton";
 			this.UpdateProductButton.Size = new System.Drawing.Size(125, 95);
@@ -171,7 +171,7 @@
 			// 
 			this.RemoveProductButton.BackColor = System.Drawing.Color.Gainsboro;
 			this.RemoveProductButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-			this.RemoveProductButton.Font = new System.Drawing.Font("Leelawadee UI", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+			this.RemoveProductButton.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
 			this.RemoveProductButton.Image = global::IndyPOS.Properties.Resources.Trash_50;
 			this.RemoveProductButton.Location = new System.Drawing.Point(3, 4);
 			this.RemoveProductButton.Name = "RemoveProductButton";
@@ -186,7 +186,7 @@
 			// ProductCodeLabel
 			// 
 			this.ProductCodeLabel.BackColor = System.Drawing.Color.WhiteSmoke;
-			this.ProductCodeLabel.Font = new System.Drawing.Font("Leelawadee UI", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+			this.ProductCodeLabel.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
 			this.ProductCodeLabel.Location = new System.Drawing.Point(159, 52);
 			this.ProductCodeLabel.Name = "ProductCodeLabel";
 			this.ProductCodeLabel.Size = new System.Drawing.Size(293, 27);
@@ -196,7 +196,7 @@
 			// DescriptionLabel
 			// 
 			this.DescriptionLabel.BackColor = System.Drawing.Color.WhiteSmoke;
-			this.DescriptionLabel.Font = new System.Drawing.Font("Leelawadee UI", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+			this.DescriptionLabel.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
 			this.DescriptionLabel.Location = new System.Drawing.Point(159, 84);
 			this.DescriptionLabel.Name = "DescriptionLabel";
 			this.DescriptionLabel.Size = new System.Drawing.Size(293, 27);

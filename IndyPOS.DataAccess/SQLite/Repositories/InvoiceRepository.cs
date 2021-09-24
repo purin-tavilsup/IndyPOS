@@ -63,6 +63,7 @@ namespace IndyPOS.DataAccess.SQLite.Repositories
                 const string sqlCommand = @"INSERT INTO InvoiceProducts
                 (
                     InvoiceId,
+                    Priority,
                     InventoryProductId,
                     Barcode,
                     Description,
@@ -77,6 +78,7 @@ namespace IndyPOS.DataAccess.SQLite.Repositories
                 VALUES
                 (
                     @InvoiceId,
+                    @Priority,
                     @InventoryProductId,
                     @Barcode,
 					@Description,
@@ -93,6 +95,7 @@ namespace IndyPOS.DataAccess.SQLite.Repositories
 				var sqlParameters = new
 				{
                     product.InvoiceId,
+                    product.Priority,
                     product.InventoryProductId,
                     product.Barcode,
                     product.Description,
@@ -215,6 +218,7 @@ namespace IndyPOS.DataAccess.SQLite.Repositories
 
                 const string sqlCommand = @"SELECT
                 InvoiceProductId,
+                Priority,
                 InvoiceId,
                 InventoryProductId,
                 Barcode,
@@ -248,6 +252,7 @@ namespace IndyPOS.DataAccess.SQLite.Repositories
 
                 const string sqlCommand = @"SELECT
                 InvoiceProductId,
+                Priority,
                 InvoiceId,
                 InventoryProductId,
                 Barcode,
@@ -342,6 +347,8 @@ namespace IndyPOS.DataAccess.SQLite.Repositories
             var products = results?.Select(x => new InvoiceProduct
             {
                 InvoiceProductId = (int)x.InvoiceProductId,
+
+                Priority = (int)x.Priority,
 
                 InvoiceId = (int)x.InvoiceId,
 

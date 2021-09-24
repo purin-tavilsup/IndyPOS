@@ -93,6 +93,8 @@ namespace IndyPOS.DataAccess.SQLite.Repositories
                     UnitCost,
                     UnitPrice,
                     QuantityInStock,
+                    GroupPrice,
+                    GroupPriceQuantity,
                     DateCreated
                 )
                 VALUES
@@ -105,6 +107,8 @@ namespace IndyPOS.DataAccess.SQLite.Repositories
                     @UnitCost,
                     @UnitPrice,
                     @QuantityInStock,
+                    @GroupPrice,
+                    @GroupPriceQuantity,
                     datetime('now','localtime')
                 );
                 SELECT last_insert_rowid()";
@@ -118,7 +122,9 @@ namespace IndyPOS.DataAccess.SQLite.Repositories
 					product.Category,
                     UnitCost = MapMoneyToString(product.UnitCost),
                     UnitPrice = MapMoneyToString(product.UnitPrice),
-					product.QuantityInStock
+					product.QuantityInStock,
+                    product.GroupPrice,
+                    product.GroupPriceQuantity
                 };
 
                 var inventoryProductId = connection.Query<int>(sqlCommand, sqlParameters).FirstOrDefault();
@@ -144,6 +150,8 @@ namespace IndyPOS.DataAccess.SQLite.Repositories
                     UnitCost = @UnitCost,
                     UnitPrice = @UnitPrice,
                     QuantityInStock = @QuantityInStock,
+                    GroupPrice,
+                    GroupPriceQuantity,
                     DateUpdated = datetime('now','localtime')
                 WHERE InventoryProductId = @InventoryProductId";
 
@@ -156,7 +164,9 @@ namespace IndyPOS.DataAccess.SQLite.Repositories
                     product.Category,
                     UnitCost = MapMoneyToString(product.UnitCost),
                     UnitPrice = MapMoneyToString(product.UnitPrice),
-                    product.QuantityInStock
+                    product.QuantityInStock,
+                    product.GroupPrice,
+                    product.GroupPriceQuantity
                 };
 
                 var affectedRowsCount = connection.Execute(sqlCommand, sqlParameters);
@@ -213,6 +223,10 @@ namespace IndyPOS.DataAccess.SQLite.Repositories
                 UnitPrice = MapMoneyToDecimal(x.UnitPrice),
 
                 QuantityInStock = (int)x.QuantityInStock,
+
+                GroupPrice = MapMoneyToNullableDecimal(x.GroupPrice),
+
+                GroupPriceQuantity = (int?)x.GroupPriceQuantity,
 
                 DateCreated = x.DateCreated,
 

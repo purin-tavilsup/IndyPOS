@@ -41,6 +41,9 @@ namespace IndyPOS.UI
             _updateProductForm = updateProductForm;
 
             SubscribeEvents();
+
+            _saleInvoiceController.StartNewSale();
+            AddProductToInvoice("8850250011613");
         }
 
         private void SubscribeEvents()
@@ -62,11 +65,11 @@ namespace IndyPOS.UI
             InvoiceDataView.ColumnCount = 5;
 
             InvoiceDataView.Columns[(int)SaleInvoiceColumn.ProductCode].Name = "รหัสสินค้า";
-            InvoiceDataView.Columns[(int)SaleInvoiceColumn.ProductCode].Width = 130;
+            InvoiceDataView.Columns[(int)SaleInvoiceColumn.ProductCode].Width = 150;
             InvoiceDataView.Columns[(int)SaleInvoiceColumn.ProductCode].ReadOnly = true;
 
             InvoiceDataView.Columns[(int)SaleInvoiceColumn.Description].Name = "คำอธิบาย";
-            InvoiceDataView.Columns[(int)SaleInvoiceColumn.Description].Width = 250;
+            InvoiceDataView.Columns[(int)SaleInvoiceColumn.Description].Width = 300;
             InvoiceDataView.Columns[(int)SaleInvoiceColumn.Description].ReadOnly = true;
 
             InvoiceDataView.Columns[(int)SaleInvoiceColumn.Quantity].Name = "จำนวน";
@@ -74,11 +77,11 @@ namespace IndyPOS.UI
             InvoiceDataView.Columns[(int)SaleInvoiceColumn.Quantity].ReadOnly = true;
 
             InvoiceDataView.Columns[(int)SaleInvoiceColumn.UnitPrice].Name = "ราคาต่อหน่วย";
-            InvoiceDataView.Columns[(int)SaleInvoiceColumn.UnitPrice].Width = 100;
+            InvoiceDataView.Columns[(int)SaleInvoiceColumn.UnitPrice].Width = 150;
             InvoiceDataView.Columns[(int)SaleInvoiceColumn.UnitPrice].ReadOnly = true;
 
             InvoiceDataView.Columns[(int)SaleInvoiceColumn.Total].Name = "ราคารวม";
-            InvoiceDataView.Columns[(int)SaleInvoiceColumn.Total].Width = 100;
+            InvoiceDataView.Columns[(int)SaleInvoiceColumn.Total].Width = 150;
             InvoiceDataView.Columns[(int)SaleInvoiceColumn.Total].ReadOnly = true;
 
             #endregion
@@ -88,20 +91,6 @@ namespace IndyPOS.UI
 		{
             _activeSubpanel = activeSubpanel;
 		}
-
-        private void AddProductButton_Click(object sender, EventArgs e)
-        {
-            //TODO: Add dialog for adding product manually
-
-            _saleInvoiceController.CompleteSale();
-        }
-
-        private void RemoveProductButton_Click(object sender, EventArgs e)
-        {
-            var barcode = GetProductBarcodeFromSelectedProduct();
-
-            _saleInvoiceController.RemoveProduct(barcode);
-        }
 
         private string GetProductBarcodeFromSelectedProduct()
         {
@@ -158,6 +147,7 @@ namespace IndyPOS.UI
 
         private void SaveSaleInvoiceButton_Click(object sender, EventArgs e)
         {
+            //TODO: Move validations to controller
             if (_saleInvoiceController.Products.Count == 0)
 			{
                 MessageBox.Show("ไม่สามารถบันทึกการขายได้ เนื่องจากไม่มีสินค้าในรายการ", "การบันทึกการขาย");
@@ -169,13 +159,10 @@ namespace IndyPOS.UI
                 MessageBox.Show("ไม่สามารถบันทึกการขายได้ เนื่องจากยังค้างค่าชำระสินค้า", "การบันทึกการขาย");
                 return;
             }
-                
+
             // TODO: Validate Payments, Insert invoice, products, and payments to database  
 
-            // Save Invoice
-            // Save Products
-            // Save Payments
-
+            _saleInvoiceController.CompleteSale();
             _saleInvoiceController.StartNewSale();
         }
 

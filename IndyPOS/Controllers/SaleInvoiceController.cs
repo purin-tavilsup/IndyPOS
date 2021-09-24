@@ -6,7 +6,6 @@ using IndyPOS.Extensions;
 using IndyPOS.Inventory;
 using IndyPOS.SaleInvoice;
 using Prism.Events;
-using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -17,46 +16,36 @@ namespace IndyPOS.Controllers
         private readonly IEventAggregator _eventAggregator;
         private readonly IInvoiceRepository _invoicesRepository;
         private readonly IInventoryProductRepository _inventoryProductsRepository;
+        private ISaleInvoice _saleInvoice;
 
-        public IList<ISaleInvoiceProduct> Products { get; }
+        public IReadOnlyCollection<ISaleInvoiceProduct> Products => (IReadOnlyCollection<ISaleInvoiceProduct>)_saleInvoice.Products;
 
-        public IList<IPayment> Payments { get; }
+        public IReadOnlyCollection<IPayment> Payments => (IReadOnlyCollection<IPayment>)_saleInvoice.Payments;
 
-        public decimal InvoiceTotal => Products.Sum(p => p.Quantity * p.UnitPrice);
+        public decimal InvoiceTotal => _saleInvoice.InvoiceTotal;
 
-        public decimal PaymentTotal => Payments.Sum(p => p.Amount);
+        public decimal PaymentTotal => _saleInvoice.PaymentTotal;
 
-        public decimal Changes => CalculateChanges();
+        public decimal Changes => _saleInvoice.Changes;
 
-        public SaleInvoiceController(IEventAggregator eventAggregator, 
+        public int UserId { get; set; }
+
+        public int? CustomerId { get; set; }
+
+        public SaleInvoiceController(IEventAggregator eventAggregator,
             IInvoiceRepository invoicesRepository, 
             IInventoryProductRepository inventoryProductsRepository)
         {
             _eventAggregator = eventAggregator;
             _invoicesRepository = invoicesRepository;
             _inventoryProductsRepository = inventoryProductsRepository;
-            Products = new List<ISaleInvoiceProduct>();
-            Payments = new List<IPayment>();
         }
 
         public void StartNewSale()
         {
-            ClearProductsAndPayments();
+            _saleInvoice = new SaleInvoice.SaleInvoice();
 
             _eventAggregator.GetEvent<NewSaleStartedEvent>().Publish();
-        }
-
-        public void ClearProductsAndPayments()
-		{
-            Products.Clear();
-            Payments.Clear();
-        }
-
-        private decimal CalculateChanges()
-		{
-            var amount = PaymentTotal - InvoiceTotal;
-
-            return amount >= 0 ? amount : 0m;
         }
 
         public bool AddProduct(string barcode)
@@ -67,17 +56,8 @@ namespace IndyPOS.Controllers
             if (product == null)
                 return !success;
 
-            var existingProduct = Products.FirstOrDefault(p => p.Barcode == barcode);
+            _saleInvoice.Products.Add(product.ToSaleInvoiceProduct());
 
-            if (existingProduct == null)
-            {
-                Products.Add(product.ToSaleInvoiceProduct());
-            }
-            else
-            {
-                existingProduct.Quantity++;
-            }
-            
             _eventAggregator.GetEvent<SaleInvoiceProductAddedEvent>().Publish(barcode);
 
             return success;
@@ -86,12 +66,12 @@ namespace IndyPOS.Controllers
         public bool RemoveProduct(string barcode)
         {
             var success = true;
-            var productToRemove = Products.FirstOrDefault(p => p.Barcode == barcode);
+            var productToRemove = _saleInvoice.Products.FirstOrDefault(p => p.Barcode == barcode);
 
             if (productToRemove == null)
                 return !success;
 
-            Products.Remove(productToRemove);
+            _saleInvoice.Products.Remove(productToRemove);
 
             _eventAggregator.GetEvent<SaleInvoiceProductRemovedEvent>().Publish(barcode);
 
@@ -115,7 +95,7 @@ namespace IndyPOS.Controllers
 				Amount = paymentAmount
 			};
 
-            Payments.Add(payment);
+            _saleInvoice.Payments.Add(payment);
 
             _eventAggregator.GetEvent<PaymentAddedEvent>().Publish();
 
@@ -125,7 +105,7 @@ namespace IndyPOS.Controllers
         public bool UpdateProductQuantity(string barcode, int quantity)
 		{
             var success = true;
-            var productToUpdate = Products.FirstOrDefault(p => p.Barcode == barcode);
+            var productToUpdate = _saleInvoice.Products.FirstOrDefault(p => p.Barcode == barcode);
 
             if (productToUpdate == null)
                 return !success;
@@ -139,8 +119,63 @@ namespace IndyPOS.Controllers
 
         public void CompleteSale()
 		{
-            var results1 = _invoicesRepository.GetInvoicesByDate(new DateTime(2021, 9, 4));
-            var results2 = _invoicesRepository.GetInvoicesByDateRange(new DateTime(2021, 9, 1), new DateTime(2021, 9, 4));
+            var invoiceId = AddInvoiceToDatabase(_saleInvoice.InvoiceTotal, UserId, CustomerId);
+
+            AddProductsToDatabase(_saleInvoice.Products, invoiceId);
+            AddPaymentsToDatabase(_saleInvoice.Payments, invoiceId);
 		}
+
+        private int AddInvoiceToDatabase(decimal total, int userId, int? customerId)
+		{
+            return _invoicesRepository.AddInvoice(new DataAccess.Models.Invoice
+            {
+                Total = total,
+                UserId = userId,
+                CustomerId = customerId
+            });
+        }
+
+        private void AddProductsToDatabase(IList<ISaleInvoiceProduct> products, int invoiceId)
+		{
+            foreach(var product in products)
+			{
+                AddProductToDatabase(product, invoiceId);
+            }
+		}
+
+        private void AddProductToDatabase(ISaleInvoiceProduct product, int invoiceId)
+        {
+            _invoicesRepository.AddInvoiceProduct(new DataAccess.Models.InvoiceProduct
+            {
+                InvoiceId = invoiceId,
+                InventoryProductId = product.InventoryProductId,
+                Barcode = product.Barcode,
+                Description = product.Description,
+                Manufacturer = product.Manufacturer,
+                Brand = product.Brand,
+                Category = product.Category,
+                UnitCost = product.UnitCost,
+                UnitPrice = product.UnitPrice,
+                Quantity = product.Quantity
+            });
+        }
+
+        private void AddPaymentsToDatabase(IList<IPayment> payments, int invoiceId)
+        {
+            foreach(var payment in payments)
+			{
+                AddPaymentToDatabase(payment, invoiceId);
+            }
+        }
+
+        private void AddPaymentToDatabase(IPayment payment, int invoiceId)
+        {
+			_invoicesRepository.AddPayment(new DataAccess.Models.Payment
+            {
+                InvoiceId = invoiceId,
+                PaymentTypeId = payment.PaymentTypeId,
+                Amount = payment.Amount
+            });
+        }
     }
 }

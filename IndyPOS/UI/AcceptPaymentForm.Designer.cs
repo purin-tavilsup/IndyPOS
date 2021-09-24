@@ -131,7 +131,7 @@
 			// 
 			this.label1.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(40)))), ((int)(((byte)(40)))), ((int)(((byte)(40)))));
 			this.label1.Dock = System.Windows.Forms.DockStyle.Top;
-			this.label1.Font = new System.Drawing.Font("Leelawadee UI", 14.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+			this.label1.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 18F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
 			this.label1.ForeColor = System.Drawing.Color.WhiteSmoke;
 			this.label1.Location = new System.Drawing.Point(0, 0);
 			this.label1.Name = "label1";
@@ -154,7 +154,8 @@
 			// 
 			this.CancelAcceptPaymentButton.BackColor = System.Drawing.Color.Gainsboro;
 			this.CancelAcceptPaymentButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-			this.CancelAcceptPaymentButton.Font = new System.Drawing.Font("Leelawadee UI", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+			this.CancelAcceptPaymentButton.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+			this.CancelAcceptPaymentButton.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(40)))), ((int)(((byte)(40)))), ((int)(((byte)(40)))));
 			this.CancelAcceptPaymentButton.Image = global::IndyPOS.Properties.Resources.Cross_50;
 			this.CancelAcceptPaymentButton.Location = new System.Drawing.Point(3, 3);
 			this.CancelAcceptPaymentButton.Name = "CancelAcceptPaymentButton";
@@ -180,7 +181,8 @@
 			// 
 			this.AcceptPaymentButton.BackColor = System.Drawing.Color.Gainsboro;
 			this.AcceptPaymentButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-			this.AcceptPaymentButton.Font = new System.Drawing.Font("Leelawadee UI", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+			this.AcceptPaymentButton.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+			this.AcceptPaymentButton.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(40)))), ((int)(((byte)(40)))), ((int)(((byte)(40)))));
 			this.AcceptPaymentButton.Image = global::IndyPOS.Properties.Resources.Check_50;
 			this.AcceptPaymentButton.Location = new System.Drawing.Point(3, 3);
 			this.AcceptPaymentButton.Name = "AcceptPaymentButton";
@@ -190,7 +192,7 @@
 			this.AcceptPaymentButton.TextAlign = System.Drawing.ContentAlignment.BottomCenter;
 			this.AcceptPaymentButton.TextImageRelation = System.Windows.Forms.TextImageRelation.ImageAboveText;
 			this.AcceptPaymentButton.UseVisualStyleBackColor = false;
-			this.AcceptPaymentButton.Click += new System.EventHandler(this.SaveProductEntryButton_Click);
+			this.AcceptPaymentButton.Click += new System.EventHandler(this.AcceptPaymentButton_Click);
 			// 
 			// panel20
 			// 
@@ -357,8 +359,8 @@
 			// label2
 			// 
 			this.label2.BackColor = System.Drawing.Color.Silver;
-			this.label2.Font = new System.Drawing.Font("Leelawadee UI", 15.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-			this.label2.ForeColor = System.Drawing.Color.Black;
+			this.label2.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 15.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+			this.label2.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(40)))), ((int)(((byte)(40)))), ((int)(((byte)(40)))));
 			this.label2.Location = new System.Drawing.Point(3, 3);
 			this.label2.Name = "label2";
 			this.label2.Size = new System.Drawing.Size(126, 50);
@@ -370,7 +372,7 @@
 			// 
 			this.PaymentAmountLabel.BackColor = System.Drawing.Color.WhiteSmoke;
 			this.PaymentAmountLabel.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-			this.PaymentAmountLabel.Font = new System.Drawing.Font("Leelawadee UI", 15.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+			this.PaymentAmountLabel.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 20.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
 			this.PaymentAmountLabel.ForeColor = System.Drawing.Color.DarkBlue;
 			this.PaymentAmountLabel.Location = new System.Drawing.Point(135, 3);
 			this.PaymentAmountLabel.Name = "PaymentAmountLabel";
@@ -383,7 +385,7 @@
 			// 
 			this.label3.BackColor = System.Drawing.Color.WhiteSmoke;
 			this.label3.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-			this.label3.Font = new System.Drawing.Font("Leelawadee UI", 15.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+			this.label3.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 15.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
 			this.label3.ForeColor = System.Drawing.Color.DarkBlue;
 			this.label3.Location = new System.Drawing.Point(433, 3);
 			this.label3.Name = "label3";
@@ -412,7 +414,7 @@
 			// 
 			this.PaymentTypeLabel.BackColor = System.Drawing.Color.WhiteSmoke;
 			this.PaymentTypeLabel.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-			this.PaymentTypeLabel.Font = new System.Drawing.Font("Leelawadee UI", 15.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+			this.PaymentTypeLabel.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 15.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
 			this.PaymentTypeLabel.ForeColor = System.Drawing.Color.DarkBlue;
 			this.PaymentTypeLabel.Location = new System.Drawing.Point(205, 3);
 			this.PaymentTypeLabel.Name = "PaymentTypeLabel";
@@ -424,8 +426,8 @@
 			// label4
 			// 
 			this.label4.BackColor = System.Drawing.Color.Silver;
-			this.label4.Font = new System.Drawing.Font("Leelawadee UI", 15.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-			this.label4.ForeColor = System.Drawing.Color.Black;
+			this.label4.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 15.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+			this.label4.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(40)))), ((int)(((byte)(40)))), ((int)(((byte)(40)))));
 			this.label4.Location = new System.Drawing.Point(4, 2);
 			this.label4.Name = "label4";
 			this.label4.Size = new System.Drawing.Size(195, 51);
@@ -475,7 +477,7 @@
 			// 
 			this.EqualButton.BackColor = System.Drawing.Color.Gainsboro;
 			this.EqualButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-			this.EqualButton.Font = new System.Drawing.Font("Leelawadee UI", 27.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+			this.EqualButton.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 20.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
 			this.EqualButton.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(40)))), ((int)(((byte)(40)))), ((int)(((byte)(40)))));
 			this.EqualButton.Location = new System.Drawing.Point(3, 3);
 			this.EqualButton.Name = "EqualButton";
@@ -500,7 +502,7 @@
 			// 
 			this.ClearButton.BackColor = System.Drawing.Color.Gainsboro;
 			this.ClearButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-			this.ClearButton.Font = new System.Drawing.Font("Leelawadee UI", 15.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+			this.ClearButton.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 20.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
 			this.ClearButton.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(40)))), ((int)(((byte)(40)))), ((int)(((byte)(40)))));
 			this.ClearButton.Location = new System.Drawing.Point(3, 3);
 			this.ClearButton.Name = "ClearButton";
@@ -525,7 +527,7 @@
 			// 
 			this.PlusButton.BackColor = System.Drawing.Color.Gainsboro;
 			this.PlusButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-			this.PlusButton.Font = new System.Drawing.Font("Leelawadee UI", 27.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+			this.PlusButton.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 20.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
 			this.PlusButton.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(40)))), ((int)(((byte)(40)))), ((int)(((byte)(40)))));
 			this.PlusButton.Location = new System.Drawing.Point(3, 3);
 			this.PlusButton.Name = "PlusButton";
@@ -550,7 +552,7 @@
 			// 
 			this.DecimalPointButton.BackColor = System.Drawing.Color.Gainsboro;
 			this.DecimalPointButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-			this.DecimalPointButton.Font = new System.Drawing.Font("Leelawadee UI", 27.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+			this.DecimalPointButton.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 20.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
 			this.DecimalPointButton.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(40)))), ((int)(((byte)(40)))), ((int)(((byte)(40)))));
 			this.DecimalPointButton.Location = new System.Drawing.Point(3, 3);
 			this.DecimalPointButton.Name = "DecimalPointButton";
@@ -575,7 +577,7 @@
 			// 
 			this.Add500Button.BackColor = System.Drawing.Color.Gainsboro;
 			this.Add500Button.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-			this.Add500Button.Font = new System.Drawing.Font("Leelawadee UI", 15.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+			this.Add500Button.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 20.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
 			this.Add500Button.ForeColor = System.Drawing.Color.SteelBlue;
 			this.Add500Button.Location = new System.Drawing.Point(3, 3);
 			this.Add500Button.Name = "Add500Button";
@@ -600,7 +602,7 @@
 			// 
 			this.Add50Button.BackColor = System.Drawing.Color.Gainsboro;
 			this.Add50Button.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-			this.Add50Button.Font = new System.Drawing.Font("Leelawadee UI", 15.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+			this.Add50Button.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 20.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
 			this.Add50Button.ForeColor = System.Drawing.Color.SteelBlue;
 			this.Add50Button.Location = new System.Drawing.Point(3, 3);
 			this.Add50Button.Name = "Add50Button";
@@ -625,7 +627,7 @@
 			// 
 			this.Add20Button.BackColor = System.Drawing.Color.Gainsboro;
 			this.Add20Button.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-			this.Add20Button.Font = new System.Drawing.Font("Leelawadee UI", 15.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+			this.Add20Button.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 20.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
 			this.Add20Button.ForeColor = System.Drawing.Color.SteelBlue;
 			this.Add20Button.Location = new System.Drawing.Point(3, 3);
 			this.Add20Button.Name = "Add20Button";
@@ -650,7 +652,7 @@
 			// 
 			this.Add100Button.BackColor = System.Drawing.Color.Gainsboro;
 			this.Add100Button.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-			this.Add100Button.Font = new System.Drawing.Font("Leelawadee UI", 15.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+			this.Add100Button.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 20.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
 			this.Add100Button.ForeColor = System.Drawing.Color.SteelBlue;
 			this.Add100Button.Location = new System.Drawing.Point(3, 3);
 			this.Add100Button.Name = "Add100Button";
@@ -675,7 +677,7 @@
 			// 
 			this.Add1000Button.BackColor = System.Drawing.Color.Gainsboro;
 			this.Add1000Button.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-			this.Add1000Button.Font = new System.Drawing.Font("Leelawadee UI", 15.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+			this.Add1000Button.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 20.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
 			this.Add1000Button.ForeColor = System.Drawing.Color.SteelBlue;
 			this.Add1000Button.Location = new System.Drawing.Point(3, 3);
 			this.Add1000Button.Name = "Add1000Button";
@@ -700,7 +702,7 @@
 			// 
 			this.Digit0Button.BackColor = System.Drawing.Color.Gainsboro;
 			this.Digit0Button.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-			this.Digit0Button.Font = new System.Drawing.Font("Leelawadee UI", 15.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+			this.Digit0Button.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 20.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
 			this.Digit0Button.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(40)))), ((int)(((byte)(40)))), ((int)(((byte)(40)))));
 			this.Digit0Button.Location = new System.Drawing.Point(3, 3);
 			this.Digit0Button.Name = "Digit0Button";
@@ -725,7 +727,7 @@
 			// 
 			this.Digit3Button.BackColor = System.Drawing.Color.Gainsboro;
 			this.Digit3Button.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-			this.Digit3Button.Font = new System.Drawing.Font("Leelawadee UI", 15.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+			this.Digit3Button.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 20.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
 			this.Digit3Button.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(40)))), ((int)(((byte)(40)))), ((int)(((byte)(40)))));
 			this.Digit3Button.Location = new System.Drawing.Point(3, 3);
 			this.Digit3Button.Name = "Digit3Button";
@@ -750,7 +752,7 @@
 			// 
 			this.Digit2Button.BackColor = System.Drawing.Color.Gainsboro;
 			this.Digit2Button.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-			this.Digit2Button.Font = new System.Drawing.Font("Leelawadee UI", 15.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+			this.Digit2Button.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 20.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
 			this.Digit2Button.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(40)))), ((int)(((byte)(40)))), ((int)(((byte)(40)))));
 			this.Digit2Button.Location = new System.Drawing.Point(3, 3);
 			this.Digit2Button.Name = "Digit2Button";
@@ -775,7 +777,7 @@
 			// 
 			this.Digit1Button.BackColor = System.Drawing.Color.Gainsboro;
 			this.Digit1Button.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-			this.Digit1Button.Font = new System.Drawing.Font("Leelawadee UI", 15.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+			this.Digit1Button.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 20.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
 			this.Digit1Button.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(40)))), ((int)(((byte)(40)))), ((int)(((byte)(40)))));
 			this.Digit1Button.Location = new System.Drawing.Point(3, 3);
 			this.Digit1Button.Name = "Digit1Button";
@@ -800,7 +802,7 @@
 			// 
 			this.Digit6Button.BackColor = System.Drawing.Color.Gainsboro;
 			this.Digit6Button.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-			this.Digit6Button.Font = new System.Drawing.Font("Leelawadee UI", 15.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+			this.Digit6Button.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 20.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
 			this.Digit6Button.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(40)))), ((int)(((byte)(40)))), ((int)(((byte)(40)))));
 			this.Digit6Button.Location = new System.Drawing.Point(3, 3);
 			this.Digit6Button.Name = "Digit6Button";
@@ -825,7 +827,7 @@
 			// 
 			this.Digit5Button.BackColor = System.Drawing.Color.Gainsboro;
 			this.Digit5Button.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-			this.Digit5Button.Font = new System.Drawing.Font("Leelawadee UI", 15.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+			this.Digit5Button.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 20.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
 			this.Digit5Button.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(40)))), ((int)(((byte)(40)))), ((int)(((byte)(40)))));
 			this.Digit5Button.Location = new System.Drawing.Point(3, 3);
 			this.Digit5Button.Name = "Digit5Button";
@@ -850,7 +852,7 @@
 			// 
 			this.Digit4Button.BackColor = System.Drawing.Color.Gainsboro;
 			this.Digit4Button.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-			this.Digit4Button.Font = new System.Drawing.Font("Leelawadee UI", 15.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+			this.Digit4Button.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 20.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
 			this.Digit4Button.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(40)))), ((int)(((byte)(40)))), ((int)(((byte)(40)))));
 			this.Digit4Button.Location = new System.Drawing.Point(3, 3);
 			this.Digit4Button.Name = "Digit4Button";
@@ -875,7 +877,7 @@
 			// 
 			this.Digit9Button.BackColor = System.Drawing.Color.Gainsboro;
 			this.Digit9Button.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-			this.Digit9Button.Font = new System.Drawing.Font("Leelawadee UI", 15.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+			this.Digit9Button.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 20.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
 			this.Digit9Button.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(40)))), ((int)(((byte)(40)))), ((int)(((byte)(40)))));
 			this.Digit9Button.Location = new System.Drawing.Point(3, 3);
 			this.Digit9Button.Name = "Digit9Button";
@@ -900,7 +902,7 @@
 			// 
 			this.Digit8Button.BackColor = System.Drawing.Color.Gainsboro;
 			this.Digit8Button.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-			this.Digit8Button.Font = new System.Drawing.Font("Leelawadee UI", 15.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+			this.Digit8Button.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 20.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
 			this.Digit8Button.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(40)))), ((int)(((byte)(40)))), ((int)(((byte)(40)))));
 			this.Digit8Button.Location = new System.Drawing.Point(3, 3);
 			this.Digit8Button.Name = "Digit8Button";
@@ -925,7 +927,7 @@
 			// 
 			this.Digit7Button.BackColor = System.Drawing.Color.Gainsboro;
 			this.Digit7Button.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-			this.Digit7Button.Font = new System.Drawing.Font("Leelawadee UI", 15.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+			this.Digit7Button.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 20.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
 			this.Digit7Button.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(40)))), ((int)(((byte)(40)))), ((int)(((byte)(40)))));
 			this.Digit7Button.Location = new System.Drawing.Point(3, 3);
 			this.Digit7Button.Name = "Digit7Button";

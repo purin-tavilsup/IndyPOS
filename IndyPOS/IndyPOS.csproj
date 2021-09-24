@@ -118,6 +118,7 @@
     <Compile Include="Events\InventoryProductUpdatedEvent.cs" />
     <Compile Include="Inventory\IInventoryProduct.cs" />
     <Compile Include="SaleInvoice\IPayment.cs" />
+    <Compile Include="SaleInvoice\ISaleInvoice.cs" />
     <Compile Include="SaleInvoice\ISaleInvoiceProduct.cs" />
     <Compile Include="Adapters\InventoryProductAdapter.cs" />
     <Compile Include="Adapters\SaleInvoiceProductAdapter.cs" />
@@ -141,6 +142,7 @@
     <Compile Include="Inventory\InventoryProduct.cs" />
     <Compile Include="IoC\ContainerConfig.cs" />
     <Compile Include="SaleInvoice\Payment.cs" />
+    <Compile Include="SaleInvoice\SaleInvoice.cs" />
     <Compile Include="SaleInvoice\SaleInvoiceProduct.cs" />
     <Compile Include="Constants\StoreConstants.cs" />
     <Compile Include="Extensions\UIControlExtensions.cs" />
@@ -411,6 +413,10 @@
     <ProjectReference Include="..\IndyPOS.DataAccess\IndyPOS.DataAccess.csproj">
       <Project>{6032f51e-e3df-47d5-9e74-a360bdbfb180}</Project>
       <Name>IndyPOS.DataAccess</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\ModernUI\ModernUI.csproj">
+      <Project>{fbd12602-ae7f-4629-8a8f-05a22569aac9}</Project>
+      <Name>ModernUI</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>

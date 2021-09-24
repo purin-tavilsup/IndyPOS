@@ -177,5 +177,11 @@ namespace IndyPOS.UI
 		{
             SwitchToPanel(Subpanel.CustomerAccounts);
 		}
+
+		private void MainForm_Load(object sender, EventArgs e)
+		{
+            WindowState = FormWindowState.Maximized;
+            ResizeWindows.Image = Properties.Resources.restore_window_24px;
+        }
 	}
 }

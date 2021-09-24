@@ -25,5 +25,9 @@
         public decimal UnitPrice { get; set; }
 
         public int Quantity { get; set; }
+
+        public decimal? GroupPrice { get; set; }
+
+        public int? GroupPriceQuantity { get; set; }
     }
 }

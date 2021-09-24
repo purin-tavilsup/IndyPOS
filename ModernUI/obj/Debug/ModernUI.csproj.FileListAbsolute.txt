@@ -1,0 +1,8 @@
+D:\Git\IndyPOS\ModernUI\bin\Debug\ModernUI.dll
+D:\Git\IndyPOS\ModernUI\bin\Debug\ModernUI.pdb
+D:\Git\IndyPOS\ModernUI\obj\Debug\ModernUI.csproj.CoreCompileInputs.cache
+D:\Git\IndyPOS\ModernUI\obj\Debug\ModernUI.dll
+D:\Git\IndyPOS\ModernUI\obj\Debug\ModernUI.pdb
+D:\Git\IndyPOS\ModernUI\obj\Debug\ModernUI.csproj.GenerateResource.cache
+D:\Git\IndyPOS\ModernUI\obj\Debug\ModernUI.ModernTextBox.resources
+D:\Git\IndyPOS\ModernUI\obj\Debug\ModernUI.csproj.AssemblyReference.cache

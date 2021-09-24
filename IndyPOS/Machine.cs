@@ -43,8 +43,6 @@ namespace IndyPOS
         private void StartUI()
         {
             System.Windows.Forms.Application.Run(_mainForm);
-
-            _mainForm.BringToFront();
         }
     }
 }

@@ -20,6 +20,10 @@
 
         int QuantityInStock { get; set; }
 
+        decimal? GroupPrice { get; set; }
+
+        int? GroupPriceQuantity { get; set; }
+
         string DateCreated { get; }
 
         string DateUpdated { get; }
