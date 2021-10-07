@@ -5,5 +5,7 @@
 		public int PaymentTypeId { get; set; }
 
 		public decimal Amount { get; set; }
+
+		public int Priority { get; set; }
 	}
 }

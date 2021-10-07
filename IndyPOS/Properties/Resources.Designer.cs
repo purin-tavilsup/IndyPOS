@@ -213,6 +213,16 @@ namespace IndyPOS.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
+        internal static System.Drawing.Bitmap Minus_35 {
+            get {
+                object obj = ResourceManager.GetObject("Minus_35", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
         internal static System.Drawing.Bitmap Minus_50 {
             get {
                 object obj = ResourceManager.GetObject("Minus_50", resourceCulture);
@@ -376,6 +386,16 @@ namespace IndyPOS.Properties {
         internal static System.Drawing.Bitmap Payment_WeWin_Gray_100 {
             get {
                 object obj = ResourceManager.GetObject("Payment_WeWin_Gray_100", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap Plus_35 {
+            get {
+                object obj = ResourceManager.GetObject("Plus_35", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }

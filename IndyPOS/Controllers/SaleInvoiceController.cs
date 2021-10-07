@@ -1,4 +1,5 @@
 ﻿using IndyPOS.Adapters;
+using IndyPOS.Constants;
 using IndyPOS.DataAccess.Repositories;
 using IndyPOS.Enums;
 using IndyPOS.Events;
@@ -56,11 +57,29 @@ namespace IndyPOS.Controllers
             if (product == null)
                 return !success;
 
-            _saleInvoice.Products.Add(product.ToSaleInvoiceProduct());
+            var invoiceProduct = product.ToSaleInvoiceProduct();
+
+            invoiceProduct.Priority = GetNextProductPriority(_saleInvoice.Products);
+
+            _saleInvoice.Products.Add(invoiceProduct);
 
             _eventAggregator.GetEvent<SaleInvoiceProductAddedEvent>().Publish(barcode);
 
             return success;
+        }
+
+        private int GetNextProductPriority(IList<ISaleInvoiceProduct> products)
+		{
+            return products.Count > 0 ? 
+                products.Max(p => p.Priority) + 1 :
+                1;
+        }
+
+        private int GetNextPaymentPriority(IList<IPayment> payments)
+        {
+            return payments.Count > 0 ?
+                payments.Max(p => p.Priority) + 1 :
+                1;
         }
 
         public bool RemoveProduct(string barcode)
@@ -92,7 +111,8 @@ namespace IndyPOS.Controllers
             var payment = new Payment
 			{
 				PaymentTypeId = (int)paymentType,
-				Amount = paymentAmount
+                Priority = GetNextPaymentPriority(_saleInvoice.Payments),
+                Amount = paymentAmount
 			};
 
             _saleInvoice.Payments.Add(payment);

@@ -123,7 +123,7 @@ namespace IndyPOS.DataAccess.SQLite.Repositories
                     UnitCost = MapMoneyToString(product.UnitCost),
                     UnitPrice = MapMoneyToString(product.UnitPrice),
 					product.QuantityInStock,
-                    product.GroupPrice,
+                    GroupPrice = MapMoneyToString(product.GroupPrice),
                     product.GroupPriceQuantity
                 };
 
@@ -150,8 +150,8 @@ namespace IndyPOS.DataAccess.SQLite.Repositories
                     UnitCost = @UnitCost,
                     UnitPrice = @UnitPrice,
                     QuantityInStock = @QuantityInStock,
-                    GroupPrice,
-                    GroupPriceQuantity,
+                    GroupPrice = @GroupPrice,
+                    GroupPriceQuantity = @QuantityInStock,
                     DateUpdated = datetime('now','localtime')
                 WHERE InventoryProductId = @InventoryProductId";
 
@@ -165,7 +165,7 @@ namespace IndyPOS.DataAccess.SQLite.Repositories
                     UnitCost = MapMoneyToString(product.UnitCost),
                     UnitPrice = MapMoneyToString(product.UnitPrice),
                     product.QuantityInStock,
-                    product.GroupPrice,
+                    GroupPrice = MapMoneyToString(product.GroupPrice),
                     product.GroupPriceQuantity
                 };
 

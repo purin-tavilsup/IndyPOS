@@ -4,6 +4,8 @@
 	{
 		int PaymentTypeId { get; set; }
 
+		int Priority { get; set; }
+
 		decimal Amount { get; set; }
 	}
 }

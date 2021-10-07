@@ -58,6 +58,7 @@ namespace IndyPOS.UI
             _pendingStringValue = string.Empty;
             _values.Clear();
 
+            DisplayValue(_amount);
             ResetPaymentTypeSelection();
             CancelAcceptPaymentButton.Select();
 

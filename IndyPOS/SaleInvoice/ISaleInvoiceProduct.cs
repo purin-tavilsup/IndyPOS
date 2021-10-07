@@ -4,6 +4,8 @@
     {
         int InvoiceProductId { get; set; }
 
+        int Priority { get; set; }
+
         int InvoiceId { get; set; }
 
         int InventoryProductId { get; set; }

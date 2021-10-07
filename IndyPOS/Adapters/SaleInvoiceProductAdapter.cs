@@ -87,5 +87,11 @@ namespace IndyPOS.Adapters
             get => _adaptee.DateCreated;
             set => _adaptee.DateCreated = value;
         }
-    }
+
+		public int Priority
+        { 
+            get => _adaptee.Priority;
+            set => _adaptee.Priority = value;
+        }
+	}
 }

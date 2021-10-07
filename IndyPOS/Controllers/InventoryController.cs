@@ -79,7 +79,9 @@ namespace IndyPOS.Controllers
                 Category = product.Category,
                 UnitCost = product.UnitCost,
                 UnitPrice = product.UnitPrice,
-                QuantityInStock = product.QuantityInStock
+                QuantityInStock = product.QuantityInStock,
+                GroupPrice = product.GroupPrice,
+                GroupPriceQuantity = product.GroupPriceQuantity
             };
 
             try

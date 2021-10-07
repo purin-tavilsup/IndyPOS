@@ -55,7 +55,9 @@ namespace IndyPOS.UI
             QuantityTextBox.Texts = string.Empty;
             UnitPriceTextBox.Texts = string.Empty;
             UnitCostTextBox.Texts = string.Empty;
-            CategoryComboBox.Text = "เลือกประเภทสินค้า";
+            CategoryComboBox.Texts = "เลือกประเภทสินค้า";
+            GroupPriceTextBox.Texts = string.Empty;
+            GroupPriceQuantityTextBox.Texts = string.Empty;
             ManufacturerTextBox.Texts = string.Empty;
             BrandTextBox.Texts = string.Empty;
         }
@@ -102,7 +104,7 @@ namespace IndyPOS.UI
                 return false;
             }
 
-            if (!_productCategoryDictionary.Values.Contains(CategoryComboBox.Text.Trim()))
+            if (!_productCategoryDictionary.Values.Contains(CategoryComboBox.Texts.Trim()))
             {
                 MessageBox.Show("กรุณาเลือกประเภทสินค้าให้ถูกต้อง", "ประเภทสินค้าไม่ถูกต้อง");
                 return false;
@@ -138,7 +140,7 @@ namespace IndyPOS.UI
             // Required Attributes
             var quantity = int.Parse(QuantityTextBox.Texts.Trim());
             var unitPrice = decimal.Parse(UnitPriceTextBox.Texts.Trim());
-            var category = _productCategoryDictionary.FirstOrDefault(x => x.Value == CategoryComboBox.Text);
+            var category = _productCategoryDictionary.FirstOrDefault(x => x.Value == CategoryComboBox.Texts);
             var categoryId = category.Key;
 
             var product = new InventoryProduct

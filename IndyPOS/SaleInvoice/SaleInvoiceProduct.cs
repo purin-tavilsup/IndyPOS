@@ -29,5 +29,7 @@
         public decimal? GroupPrice { get; set; }
 
         public int? GroupPriceQuantity { get; set; }
+
+		public int Priority { get; set; }
     }
 }

@@ -49,7 +49,9 @@ namespace IndyPOS.UI
             QuantityTextBox.Texts = _product.QuantityInStock.ToString();
             UnitPriceTextBox.Texts = _product.UnitPrice.ToString("0.00");
             UnitCostTextBox.Texts = _product.UnitCost.HasValue ? _product.UnitCost.Value.ToString("0.00") : string.Empty;
-            CategoryComboBox.Text = _productCategoryDictionary[_product.Category];
+            CategoryComboBox.Texts = _productCategoryDictionary[_product.Category];
+            GroupPriceTextBox.Texts = _product.GroupPrice.HasValue ? _product.GroupPrice.Value.ToString("0.00") : string.Empty;
+            GroupPriceQuantityTextBox.Texts = _product.GroupPriceQuantity.HasValue ? _product.GroupPriceQuantity.Value.ToString("0.00") : string.Empty;
             ManufacturerTextBox.Texts = _product.Manufacturer;
             BrandTextBox.Texts = _product.Brand;
         }
@@ -96,7 +98,7 @@ namespace IndyPOS.UI
                 return false;
             }
 
-            if (!_productCategoryDictionary.Values.Contains(CategoryComboBox.Text.Trim()))
+            if (!_productCategoryDictionary.Values.Contains(CategoryComboBox.Texts.Trim()))
             {
                 MessageBox.Show("กรุณาเลือกประเภทสินค้าให้ถูกต้อง", "ประเภทสินค้าไม่ถูกต้อง");
                 return false;
@@ -129,7 +131,7 @@ namespace IndyPOS.UI
 
         private IInventoryProduct UpdateProduct(IInventoryProduct product)
         {
-            var category = _productCategoryDictionary.FirstOrDefault(x => x.Value == CategoryComboBox.Text);
+            var category = _productCategoryDictionary.FirstOrDefault(x => x.Value == CategoryComboBox.Texts);
             var categoryId = category.Key;
 
             // Required Attributes

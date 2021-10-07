@@ -70,11 +70,11 @@ namespace IndyPOS.UI
 
         private void InitializeProductCategories()
         {
-           ProductCategoryListBox.Items.Clear();
-            
+            CategoryComboBox.Items.Clear();
+
             foreach (var item in _productCategoryDictionary)
             {
-                ProductCategoryListBox.Items.Add(item.Value);
+                CategoryComboBox.Items.Add(item.Value);
             }
         }
 
@@ -285,12 +285,12 @@ namespace IndyPOS.UI
             _lastQueryCategoryId = null;
         }
 
-		private void ProductCategoryListBox_SelectedIndexChanged(object sender, EventArgs e)
+		private void CategoryComboBox_SelectedIndexChanged(object sender, EventArgs e)
 		{
-            if (ProductCategoryListBox.SelectedItem == null)
+           if (CategoryComboBox.SelectedItem == null)
                 return;
 
-            var selectedCategoryValue = ProductCategoryListBox.SelectedItem.ToString();
+            var selectedCategoryValue = CategoryComboBox.SelectedItem.ToString();
             var category = _productCategoryDictionary.FirstOrDefault(x => x.Value == selectedCategoryValue);
             var categoryId = category.Key;
 
@@ -298,5 +298,5 @@ namespace IndyPOS.UI
 
             ShowProductsByCategoryId(categoryId);
         }
-	}
+    }
 }
