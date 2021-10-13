@@ -57,7 +57,7 @@
 			// 
 			this.NavigationPanel.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(25)))), ((int)(((byte)(25)))), ((int)(((byte)(25)))));
 			this.NavigationPanel.Dock = System.Windows.Forms.DockStyle.Bottom;
-			this.NavigationPanel.Location = new System.Drawing.Point(0, 979);
+			this.NavigationPanel.Location = new System.Drawing.Point(0, 1024);
 			this.NavigationPanel.Name = "NavigationPanel";
 			this.NavigationPanel.Size = new System.Drawing.Size(1412, 41);
 			this.NavigationPanel.TabIndex = 0;
@@ -70,9 +70,9 @@
 			this.CloseButton.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
 			this.CloseButton.ForeColor = System.Drawing.Color.DarkGray;
 			this.CloseButton.Image = global::IndyPOS.Properties.Resources.CloseWindows_50;
-			this.CloseButton.Location = new System.Drawing.Point(3, 745);
+			this.CloseButton.Location = new System.Drawing.Point(3, 850);
 			this.CloseButton.Name = "CloseButton";
-			this.CloseButton.Size = new System.Drawing.Size(292, 100);
+			this.CloseButton.Size = new System.Drawing.Size(292, 115);
 			this.CloseButton.TabIndex = 5;
 			this.CloseButton.Text = "ออกจากโปรแกรม";
 			this.CloseButton.TextAlign = System.Drawing.ContentAlignment.BottomCenter;
@@ -89,9 +89,9 @@
 			this.InventoryButton.ForeColor = System.Drawing.Color.DarkGray;
 			this.InventoryButton.Image = global::IndyPOS.Properties.Resources.Inventory_50;
 			this.InventoryButton.ImageAlign = System.Drawing.ContentAlignment.BottomCenter;
-			this.InventoryButton.Location = new System.Drawing.Point(3, 109);
+			this.InventoryButton.Location = new System.Drawing.Point(3, 124);
 			this.InventoryButton.Name = "InventoryButton";
-			this.InventoryButton.Size = new System.Drawing.Size(292, 100);
+			this.InventoryButton.Size = new System.Drawing.Size(292, 115);
 			this.InventoryButton.TabIndex = 1;
 			this.InventoryButton.Text = "การจัดการสินค้า";
 			this.InventoryButton.TextImageRelation = System.Windows.Forms.TextImageRelation.ImageAboveText;
@@ -106,9 +106,9 @@
 			this.LogInButton.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
 			this.LogInButton.ForeColor = System.Drawing.Color.DarkGray;
 			this.LogInButton.Image = global::IndyPOS.Properties.Resources.Login_50;
-			this.LogInButton.Location = new System.Drawing.Point(3, 639);
+			this.LogInButton.Location = new System.Drawing.Point(3, 729);
 			this.LogInButton.Name = "LogInButton";
-			this.LogInButton.Size = new System.Drawing.Size(292, 100);
+			this.LogInButton.Size = new System.Drawing.Size(292, 115);
 			this.LogInButton.TabIndex = 5;
 			this.LogInButton.Text = "เข้าสู่ระบบ";
 			this.LogInButton.TextAlign = System.Drawing.ContentAlignment.BottomCenter;
@@ -123,9 +123,9 @@
 			this.SettingsButton.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
 			this.SettingsButton.ForeColor = System.Drawing.Color.DarkGray;
 			this.SettingsButton.Image = global::IndyPOS.Properties.Resources.Settings_50;
-			this.SettingsButton.Location = new System.Drawing.Point(3, 533);
+			this.SettingsButton.Location = new System.Drawing.Point(3, 608);
 			this.SettingsButton.Name = "SettingsButton";
-			this.SettingsButton.Size = new System.Drawing.Size(292, 100);
+			this.SettingsButton.Size = new System.Drawing.Size(292, 115);
 			this.SettingsButton.TabIndex = 4;
 			this.SettingsButton.Text = "การตั้งค่า";
 			this.SettingsButton.TextAlign = System.Drawing.ContentAlignment.BottomCenter;
@@ -143,7 +143,7 @@
 			this.SaleButton.Image = global::IndyPOS.Properties.Resources.Cashier_50;
 			this.SaleButton.Location = new System.Drawing.Point(3, 3);
 			this.SaleButton.Name = "SaleButton";
-			this.SaleButton.Size = new System.Drawing.Size(292, 100);
+			this.SaleButton.Size = new System.Drawing.Size(292, 115);
 			this.SaleButton.TabIndex = 0;
 			this.SaleButton.Text = "ขายสินค้า";
 			this.SaleButton.TextAlign = System.Drawing.ContentAlignment.BottomCenter;
@@ -159,9 +159,9 @@
 			this.CustomerAccountsButton.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
 			this.CustomerAccountsButton.ForeColor = System.Drawing.Color.DarkGray;
 			this.CustomerAccountsButton.Image = global::IndyPOS.Properties.Resources.Customer_Acounts_50;
-			this.CustomerAccountsButton.Location = new System.Drawing.Point(3, 427);
+			this.CustomerAccountsButton.Location = new System.Drawing.Point(3, 487);
 			this.CustomerAccountsButton.Name = "CustomerAccountsButton";
-			this.CustomerAccountsButton.Size = new System.Drawing.Size(292, 100);
+			this.CustomerAccountsButton.Size = new System.Drawing.Size(292, 115);
 			this.CustomerAccountsButton.TabIndex = 3;
 			this.CustomerAccountsButton.Text = "บัญชีลูกค้า";
 			this.CustomerAccountsButton.TextAlign = System.Drawing.ContentAlignment.BottomCenter;
@@ -178,9 +178,9 @@
 			this.UsersButton.ForeColor = System.Drawing.Color.DarkGray;
 			this.UsersButton.Image = global::IndyPOS.Properties.Resources.User_50;
 			this.UsersButton.ImageAlign = System.Drawing.ContentAlignment.BottomCenter;
-			this.UsersButton.Location = new System.Drawing.Point(3, 215);
+			this.UsersButton.Location = new System.Drawing.Point(3, 245);
 			this.UsersButton.Name = "UsersButton";
-			this.UsersButton.Size = new System.Drawing.Size(292, 100);
+			this.UsersButton.Size = new System.Drawing.Size(292, 115);
 			this.UsersButton.TabIndex = 2;
 			this.UsersButton.Text = "การจัดการผู้ใช้";
 			this.UsersButton.TextImageRelation = System.Windows.Forms.TextImageRelation.ImageAboveText;
@@ -195,9 +195,9 @@
 			this.ReportsButton.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
 			this.ReportsButton.ForeColor = System.Drawing.Color.DarkGray;
 			this.ReportsButton.Image = global::IndyPOS.Properties.Resources.Reports_50;
-			this.ReportsButton.Location = new System.Drawing.Point(3, 321);
+			this.ReportsButton.Location = new System.Drawing.Point(3, 366);
 			this.ReportsButton.Name = "ReportsButton";
-			this.ReportsButton.Size = new System.Drawing.Size(292, 100);
+			this.ReportsButton.Size = new System.Drawing.Size(292, 115);
 			this.ReportsButton.TabIndex = 3;
 			this.ReportsButton.Text = "รายงาน";
 			this.ReportsButton.TextAlign = System.Drawing.ContentAlignment.BottomCenter;
@@ -276,7 +276,7 @@
 			this.ActivePanel.Dock = System.Windows.Forms.DockStyle.Fill;
 			this.ActivePanel.Location = new System.Drawing.Point(298, 52);
 			this.ActivePanel.Name = "ActivePanel";
-			this.ActivePanel.Size = new System.Drawing.Size(1114, 927);
+			this.ActivePanel.Size = new System.Drawing.Size(1114, 972);
 			this.ActivePanel.TabIndex = 3;
 			// 
 			// ControlPanel
@@ -292,7 +292,7 @@
 			this.ControlPanel.Dock = System.Windows.Forms.DockStyle.Left;
 			this.ControlPanel.Location = new System.Drawing.Point(0, 52);
 			this.ControlPanel.Name = "ControlPanel";
-			this.ControlPanel.Size = new System.Drawing.Size(298, 927);
+			this.ControlPanel.Size = new System.Drawing.Size(298, 972);
 			this.ControlPanel.TabIndex = 4;
 			// 
 			// MainForm
@@ -300,7 +300,7 @@
 			this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
 			this.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(30)))), ((int)(((byte)(30)))), ((int)(((byte)(30)))));
-			this.ClientSize = new System.Drawing.Size(1412, 1020);
+			this.ClientSize = new System.Drawing.Size(1412, 1065);
 			this.Controls.Add(this.ActivePanel);
 			this.Controls.Add(this.ControlPanel);
 			this.Controls.Add(this.TitlePanel);

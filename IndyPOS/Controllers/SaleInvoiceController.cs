@@ -49,9 +49,16 @@ namespace IndyPOS.Controllers
             _eventAggregator.GetEvent<NewSaleStartedEvent>().Publish();
         }
 
+        public void RemoveAllPayments()
+		{
+			_saleInvoice.Payments.Clear();
+
+            _eventAggregator.GetEvent<AllPaymentsRemovedEvent>().Publish();
+		}
+
         public bool AddProduct(string barcode)
-        {
-            var success = true;
+        { 
+			var success = true;
             var product = GetInventoryProductByBarcode(barcode);
 
             if (product == null)
@@ -70,16 +77,12 @@ namespace IndyPOS.Controllers
 
         private int GetNextProductPriority(IList<ISaleInvoiceProduct> products)
 		{
-            return products.Count > 0 ? 
-                products.Max(p => p.Priority) + 1 :
-                1;
+            return products.Count > 0 ? products.Max(p => p.Priority) + 1 : 1;
         }
 
         private int GetNextPaymentPriority(IList<IPayment> payments)
         {
-            return payments.Count > 0 ?
-                payments.Max(p => p.Priority) + 1 :
-                1;
+            return payments.Count > 0 ? payments.Max(p => p.Priority) + 1 : 1;
         }
 
         public bool RemoveProduct(string barcode)
@@ -137,12 +140,27 @@ namespace IndyPOS.Controllers
             return success;
         }
 
-        public void CompleteSale()
+        public IList<string> ValidateSaleInvoice()
+		{
+			var message = new List<string>();
+
+            if (!_saleInvoice.Products.Any()) 
+				message.Add("ไม่มีสินค้าในรายการ");
+
+            if (InvoiceTotal > PaymentTotal)
+                message.Add("ค้างค่าชำระสินค้า");
+
+			return message;
+		}
+
+		public void CompleteSale()
 		{
             var invoiceId = AddInvoiceToDatabase(_saleInvoice.InvoiceTotal, UserId, CustomerId);
 
             AddProductsToDatabase(_saleInvoice.Products, invoiceId);
             AddPaymentsToDatabase(_saleInvoice.Payments, invoiceId);
+
+            //TODO: Adjust quantity of inventory products
 		}
 
         private int AddInvoiceToDatabase(decimal total, int userId, int? customerId)

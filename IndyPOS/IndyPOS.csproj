@@ -113,6 +113,7 @@
   <ItemGroup>
     <Compile Include="Enums\Panels.cs" />
     <Compile Include="Events\ActiveSubpanelChangedEvent.cs" />
+    <Compile Include="Events\AllPaymentsRemovedEvent.cs" />
     <Compile Include="Events\InventoryProductAddedEvent.cs" />
     <Compile Include="Events\InventoryProductDeletedEvent.cs" />
     <Compile Include="Events\InventoryProductUpdatedEvent.cs" />
@@ -152,6 +153,12 @@
     </Compile>
     <Compile Include="UI\AcceptPaymentForm.Designer.cs">
       <DependentUpon>AcceptPaymentForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="UI\MessageForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\MessageForm.Designer.cs">
+      <DependentUpon>MessageForm.cs</DependentUpon>
     </Compile>
     <Compile Include="UI\UpdateInvoiceProductForm.cs">
       <SubType>Form</SubType>
@@ -217,6 +224,9 @@
     </Compile>
     <EmbeddedResource Include="UI\AcceptPaymentForm.resx">
       <DependentUpon>AcceptPaymentForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="UI\MessageForm.resx">
+      <DependentUpon>MessageForm.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="UI\UpdateInvoiceProductForm.resx">
       <DependentUpon>UpdateInvoiceProductForm.cs</DependentUpon>
@@ -475,6 +485,15 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\Plus_35.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Cross_35.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Attention_48.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Check_35.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="..\packages\Stub.System.Data.SQLite.Core.NetFramework.1.0.114.0\build\net46\Stub.System.Data.SQLite.Core.NetFramework.targets" Condition="Exists('..\packages\Stub.System.Data.SQLite.Core.NetFramework.1.0.114.0\build\net46\Stub.System.Data.SQLite.Core.NetFramework.targets')" />

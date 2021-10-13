@@ -9,6 +9,7 @@ using System;
 using System.Windows.Forms;
 using IndyPOS.Constants;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace IndyPOS.UI
 {
@@ -19,8 +20,9 @@ namespace IndyPOS.UI
         private readonly ISaleInvoiceController _saleInvoiceController;
         private readonly UpdateInvoiceProductForm _updateProductForm;
         private readonly IStoreConstants _storeConstants;
-        private IReadOnlyDictionary<int, string> _paymentTypeDictionary;
-        private Subpanel _activeSubpanel;
+        private readonly IReadOnlyDictionary<int, string> _paymentTypeDictionary;
+        private Subpanel _activeSubPanel;
+		private readonly MessageForm _messageForm;
 
         private enum SaleInvoiceColumn
         {
@@ -40,10 +42,11 @@ namespace IndyPOS.UI
         }
 
         public SalePanel(IEventAggregator eventAggregator, 
-            ISaleInvoiceController saleInvoiceController,
-            IStoreConstants storeConstants,
-            AcceptPaymentForm acceptPaymentForm,
-            UpdateInvoiceProductForm updateProductForm)
+						 ISaleInvoiceController saleInvoiceController, 
+						 IStoreConstants storeConstants,
+						 AcceptPaymentForm acceptPaymentForm, 
+						 UpdateInvoiceProductForm updateProductForm,
+						 MessageForm messageForm)
         {
             InitializeComponent();
             InitializeInvoiceDataView();
@@ -55,13 +58,15 @@ namespace IndyPOS.UI
             _paymentTypeDictionary = _storeConstants.PaymentTypes;
             _acceptPaymentForm = acceptPaymentForm;
             _updateProductForm = updateProductForm;
+			_messageForm = messageForm;
 
             SubscribeEvents();
 
             _saleInvoiceController.StartNewSale();
+            AddProductToInvoice("8850999009674");
+            AddProductToInvoice("8850250012238");
             AddProductToInvoice("8850250011613");
-            AddProductToInvoice("8850250011613");
-            AddProductToInvoice("8850250011613");
+            AddProductToInvoice("8850999143002");
         }
 
         private void SubscribeEvents()
@@ -70,10 +75,12 @@ namespace IndyPOS.UI
             _eventAggregator.GetEvent<SaleInvoiceProductRemovedEvent>().Subscribe(SaleInvoiceProductChanged);
             _eventAggregator.GetEvent<SaleInvoiceProductUpdatedEvent>().Subscribe(SaleInvoiceProductChanged);
             _eventAggregator.GetEvent<PaymentAddedEvent>().Subscribe(PaymentChanged);
+            _eventAggregator.GetEvent<AllPaymentsRemovedEvent>().Subscribe(PaymentChanged);
             _eventAggregator.GetEvent<NewSaleStartedEvent>().Subscribe(ResetSaleInvoiceScreen);
             _eventAggregator.GetEvent<BarcodeReceivedEvent>().Subscribe(BarcodeReceived);
-            _eventAggregator.GetEvent<ActiveSubpanelChangedEvent>().Subscribe(ActiveSubpanelChanged);
-        }
+            _eventAggregator.GetEvent<ActiveSubpanelChangedEvent>().Subscribe(ActiveSubPanelChanged);
+            
+		}
 
         private void InitializeInvoiceDataView()
         {
@@ -124,16 +131,16 @@ namespace IndyPOS.UI
             PaymentDataView.Columns[(int)PaymentColumn.PaymentType].Width = 300;
             PaymentDataView.Columns[(int)PaymentColumn.PaymentType].ReadOnly = true;
 
-            PaymentDataView.Columns[(int)PaymentColumn.PaymentAmount].Name = "จำนวนเงินที่ชำระ";
+            PaymentDataView.Columns[(int)PaymentColumn.PaymentAmount].Name = "จำนวนเงิน";
             PaymentDataView.Columns[(int)PaymentColumn.PaymentAmount].Width = 250;
             PaymentDataView.Columns[(int)PaymentColumn.PaymentAmount].ReadOnly = true;
 
             #endregion
         }
 
-		private void ActiveSubpanelChanged(Subpanel activeSubpanel)
+		private void ActiveSubPanelChanged(Subpanel activeSubPanel)
 		{
-            _activeSubpanel = activeSubpanel;
+            _activeSubPanel = activeSubPanel;
 		}
 
         private string GetProductBarcodeFromSelectedProduct()
@@ -203,25 +210,26 @@ namespace IndyPOS.UI
         }
 
         private void SaveSaleInvoiceButton_Click(object sender, EventArgs e)
-        {
-            //TODO: Move validations to controller
-            if (_saleInvoiceController.Products.Count == 0)
+		{
+			var errorMessages = _saleInvoiceController.ValidateSaleInvoice();
+
+			if (errorMessages.Any())
 			{
-                MessageBox.Show("ไม่สามารถบันทึกการขายได้ เนื่องจากไม่มีสินค้าในรายการ", "การบันทึกการขาย");
+				var message = "ไม่สามารถบันทึกการขายได้ :" + Environment.NewLine + Environment.NewLine;
+
+				foreach (var item in errorMessages)
+				{
+					message += $"- {item}" + Environment.NewLine;
+				}
+
+				_messageForm.Show(message, false);
+
                 return;
 			}
-                
-            if (_saleInvoiceController.InvoiceTotal > _saleInvoiceController.PaymentTotal)
-			{
-                MessageBox.Show("ไม่สามารถบันทึกการขายได้ เนื่องจากยังค้างค่าชำระสินค้า", "การบันทึกการขาย");
-                return;
-            }
 
-            // TODO: Validate Payments, Insert invoice, products, and payments to database  
-
-            _saleInvoiceController.CompleteSale();
-            _saleInvoiceController.StartNewSale();
-        }
+			_saleInvoiceController.CompleteSale();
+			_saleInvoiceController.StartNewSale();
+		}
 
         private void CancelSaleInvoiceButton_Click(object sender, EventArgs e)
         {
@@ -277,7 +285,7 @@ namespace IndyPOS.UI
 
         private void BarcodeReceived(string barcode)
 		{
-            if (_activeSubpanel != Subpanel.Sales)
+            if (_activeSubPanel != Subpanel.Sales)
                 return;
 
             AddProductToInvoice(barcode);
@@ -287,5 +295,10 @@ namespace IndyPOS.UI
 		{
             _saleInvoiceController.AddProduct(barcode);
         }
-    }
+
+		private void ClearAllPaymentsButton_Click(object sender, EventArgs e)
+		{
+            _saleInvoiceController.RemoveAllPayments();
+		}
+	}
 }

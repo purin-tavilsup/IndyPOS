@@ -19,7 +19,11 @@ namespace IndyPOS.Controllers
 
         void StartNewSale();
 
+		IList<string> ValidateSaleInvoice();
+
         void CompleteSale();
+
+        void RemoveAllPayments();
 
         bool AddProduct(string barcode);
 

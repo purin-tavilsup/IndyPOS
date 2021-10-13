@@ -15,21 +15,24 @@ namespace IndyPOS.UI
         private readonly IStoreConstants _storeConstants;
         private readonly ISaleInvoiceController _saleInvoiceController;
         private readonly IList<decimal> _values;
-        private IReadOnlyDictionary<int, string> _paymentTypeDictionary;
+		private readonly MessageForm _messageForm;
+        private readonly IReadOnlyDictionary<int, string> _paymentTypeDictionary;
         private PaymentType _selectedPaymentType;
         private bool _isPaymentTypeSelected;
         private decimal _amount;
         private string _pendingStringValue;
         
 
-        public AcceptPaymentForm(IEventAggregator eventAggregator, 
-            IStoreConstants storeConstants,
-            ISaleInvoiceController saleInvoiceController)
+        public AcceptPaymentForm(IEventAggregator eventAggregator,
+								 IStoreConstants storeConstants,
+								 ISaleInvoiceController saleInvoiceController,
+								 MessageForm messageForm)
         {
             _eventAggregator = eventAggregator;
             _storeConstants = storeConstants;
             _saleInvoiceController = saleInvoiceController;
             _paymentTypeDictionary = _storeConstants.PaymentTypes;
+			_messageForm = messageForm;
 
             InitializeComponent();
 
@@ -69,7 +72,8 @@ namespace IndyPOS.UI
         {
             if (!_isPaymentTypeSelected)
 			{
-                MessageBox.Show("กรุณาเลือกวิธีการชำระเงิน", "วิธีการชำระเงิน");
+				_messageForm.Show("กรุณาเลือกวิธีการชำระเงิน", false);
+
                 return;
 			}
                 

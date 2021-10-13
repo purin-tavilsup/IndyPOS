@@ -73,6 +73,16 @@ namespace IndyPOS.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
+        internal static System.Drawing.Bitmap Attention_48 {
+            get {
+                object obj = ResourceManager.GetObject("Attention_48", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
         internal static System.Drawing.Bitmap barcode_scanner_2_50 {
             get {
                 object obj = ResourceManager.GetObject("barcode_scanner_2_50", resourceCulture);
@@ -103,6 +113,16 @@ namespace IndyPOS.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
+        internal static System.Drawing.Bitmap Check_35 {
+            get {
+                object obj = ResourceManager.GetObject("Check_35", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
         internal static System.Drawing.Bitmap Check_50 {
             get {
                 object obj = ResourceManager.GetObject("Check_50", resourceCulture);
@@ -126,6 +146,16 @@ namespace IndyPOS.Properties {
         internal static System.Drawing.Bitmap CloseWindows_50 {
             get {
                 object obj = ResourceManager.GetObject("CloseWindows_50", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap Cross_35 {
+            get {
+                object obj = ResourceManager.GetObject("Cross_35", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
