@@ -215,14 +215,14 @@ namespace IndyPOS.UI
 
 			if (errorMessages.Any())
 			{
-				var message = "ไม่สามารถบันทึกการขายได้ :" + Environment.NewLine + Environment.NewLine;
+				var message = string.Empty;
 
 				foreach (var item in errorMessages)
 				{
 					message += $"- {item}" + Environment.NewLine;
 				}
 
-				_messageForm.Show(message, false);
+				_messageForm.Show(message, "ไม่สามารถบันทึกการขายได้");
 
                 return;
 			}

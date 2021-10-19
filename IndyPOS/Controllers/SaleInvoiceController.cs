@@ -156,14 +156,27 @@ namespace IndyPOS.Controllers
 		public void CompleteSale()
 		{
             var invoiceId = AddInvoiceToDatabase(_saleInvoice.InvoiceTotal, UserId, CustomerId);
-
-            AddProductsToDatabase(_saleInvoice.Products, invoiceId);
+            AddInvoiceProductsToDatabase(_saleInvoice.Products, invoiceId);
             AddPaymentsToDatabase(_saleInvoice.Payments, invoiceId);
-
-            //TODO: Adjust quantity of inventory products
+			UpdateInventoryProductsSoldOnInvoice(_saleInvoice.Products);
 		}
 
-        private int AddInvoiceToDatabase(decimal total, int userId, int? customerId)
+        private void UpdateInventoryProductsSoldOnInvoice(IList<ISaleInvoiceProduct> products)
+		{
+			var productGroups = products.GroupBy(p => p.InventoryProductId);
+
+			foreach (var group in productGroups)
+			{
+				var id = group.Key;
+				var quantity = group.Sum(p => p.Quantity);
+				var product = _inventoryProductsRepository.GetProductById(id);
+				var newQuantity = product.QuantityInStock - quantity;
+
+                _inventoryProductsRepository.UpdateProductQuantityById(id, newQuantity);
+			}
+		}
+
+		private int AddInvoiceToDatabase(decimal total, int userId, int? customerId)
 		{
             return _invoicesRepository.AddInvoice(new DataAccess.Models.Invoice
             {
@@ -173,7 +186,7 @@ namespace IndyPOS.Controllers
             });
         }
 
-        private void AddProductsToDatabase(IList<ISaleInvoiceProduct> products, int invoiceId)
+        private void AddInvoiceProductsToDatabase(IList<ISaleInvoiceProduct> products, int invoiceId)
 		{
             foreach(var product in products)
 			{

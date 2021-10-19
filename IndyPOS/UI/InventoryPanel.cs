@@ -252,7 +252,7 @@ namespace IndyPOS.UI
 
         private void NewInventoryProductAdded(int inventoryProductId)
 		{
-            var product = _inventoryController.GetProductByInventoryProductId(inventoryProductId);
+            var product = _inventoryController.GetProductById(inventoryProductId);
 
             if (product == null) return;
 

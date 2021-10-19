@@ -11,12 +11,16 @@ namespace IndyPOS.UI
     {
         private readonly IEventAggregator _eventAggregator;
         private readonly ISaleInvoiceController _saleInvoiceController;
+		private readonly MessageForm _messageForm;
         private ISaleInvoiceProduct _product;
 
-        public UpdateInvoiceProductForm(IEventAggregator eventAggregator, ISaleInvoiceController saleInvoiceController)
+        public UpdateInvoiceProductForm(IEventAggregator eventAggregator, 
+										ISaleInvoiceController saleInvoiceController,
+										MessageForm messageForm)
         {
             _eventAggregator = eventAggregator;
             _saleInvoiceController = saleInvoiceController;
+			_messageForm = messageForm;
 
             InitializeComponent();
         }
@@ -45,13 +49,13 @@ namespace IndyPOS.UI
             {
                 if (quantity < 1)
                 {
-                    MessageBox.Show("กรุณาใส่จำนวนสินค้าให้ถูกต้อง", "จำนวนสินค้าไม่ถูกต้อง");
+                    _messageForm.Show("กรุณาใส่จำนวนสินค้าให้ถูกต้อง", "จำนวนสินค้าไม่ถูกต้อง");
                     return false;
                 }
             }
             else
             {
-                MessageBox.Show("กรุณาใส่จำนวนสินค้าให้ถูกต้อง", "จำนวนสินค้าไม่ถูกต้อง");
+                _messageForm.Show("กรุณาใส่จำนวนสินค้าให้ถูกต้อง", "จำนวนสินค้าไม่ถูกต้อง");
                 return false;
             }
 

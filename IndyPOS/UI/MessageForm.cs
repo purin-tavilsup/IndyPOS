@@ -1,13 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using IndyPOS.Extensions;
+using System;
 using System.Windows.Forms;
-using IndyPOS.Extensions;
 
 namespace IndyPOS.UI
 {
@@ -19,20 +12,12 @@ namespace IndyPOS.UI
 		{
 			InitializeComponent();
 		}
-
-		public DialogResult Show(string message)
+		
+		public DialogResult Show(string message, string caption = null, bool cancelButtonVisible = false, string acceptButtonText = null, string cancelButtonText = null)
 		{
-			MessageTextBox.Texts = message;
-			CancelButton.Visible = true;
-			AcceptButton.Select();
+			if (caption.HasValue())
+				CaptionLabel.Text = caption;
 
-			ShowDialog();
-
-			return _response;
-		}
-
-		public DialogResult Show(string message, bool cancelButtonVisible, string acceptButtonText = null, string cancelButtonText = null)
-		{
 			if (acceptButtonText.HasValue())
 				AcceptButton.Text = acceptButtonText;
 

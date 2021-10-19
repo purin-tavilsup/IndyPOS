@@ -57,7 +57,7 @@ namespace IndyPOS.DataAccess.SQLite.Repositories
             }
         }
 
-        public InventoryProduct GetProductByInventoryProductId(int id)
+        public InventoryProduct GetProductById(int id)
         {
             using (var connection = _dbConnectionProvider.GetDbConnection())
             {
@@ -176,12 +176,36 @@ namespace IndyPOS.DataAccess.SQLite.Repositories
             }
         }
 
+		public void UpdateProductQuantityById(int id, int quantity)
+		{
+			using (var connection = _dbConnectionProvider.GetDbConnection())
+			{
+				connection.Open();
+
+				const string sqlCommand = @"UPDATE InventoryProducts
+                SET
+                    QuantityInStock = @QuantityInStock
+                WHERE InventoryProductId = @InventoryProductId";
+
+				var sqlParameters = new
+									{
+										InventoryProductId = id,
+										QuantityInStock = quantity
+									};
+
+				var affectedRowsCount = connection.Execute(sqlCommand, sqlParameters);
+
+				if (affectedRowsCount != 1)
+					throw new Exception("Failed to update product's quantity.");
+			}
+		}
+
         public void RemoveProduct(InventoryProduct product)
         {
-            RemoveProductByInventoryProductId(product.InventoryProductId);
+            RemoveProductById(product.InventoryProductId);
         }
 
-        public void RemoveProductByInventoryProductId(int id)
+        public void RemoveProductById(int id)
         {
             using (var connection = _dbConnectionProvider.GetDbConnection())
             {

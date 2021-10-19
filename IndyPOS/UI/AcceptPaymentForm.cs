@@ -21,8 +21,7 @@ namespace IndyPOS.UI
         private bool _isPaymentTypeSelected;
         private decimal _amount;
         private string _pendingStringValue;
-        
-
+		
         public AcceptPaymentForm(IEventAggregator eventAggregator,
 								 IStoreConstants storeConstants,
 								 ISaleInvoiceController saleInvoiceController,
@@ -72,7 +71,7 @@ namespace IndyPOS.UI
         {
             if (!_isPaymentTypeSelected)
 			{
-				_messageForm.Show("กรุณาเลือกวิธีการชำระเงิน", false);
+				_messageForm.Show("กรุณาเลือกวิธีการชำระเงิน", "วิธีการชำระเงินยังไม่ถูกเลือก");
 
                 return;
 			}

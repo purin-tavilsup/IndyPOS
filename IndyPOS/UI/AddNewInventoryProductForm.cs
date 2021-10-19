@@ -69,18 +69,14 @@ namespace IndyPOS.UI
         {
             if (string.IsNullOrWhiteSpace(ProductCodeTextBox.Text))
 			{
-				var message = "รหัสสินค้าไม่ถูกต้อง" + Environment.NewLine + "กรุณาใส่รหัสสินค้าหรือบาร์โค้ดให้ถูกต้อง";
-
-				_messageForm.Show(message, false);
+				_messageForm.Show("กรุณาใส่รหัสสินค้าหรือบาร์โค้ดให้ถูกต้อง", "รหัสสินค้าไม่ถูกต้อง");
                 
                 return false;
             }
                 
             if (string.IsNullOrWhiteSpace(DescriptionTextBox.Text))
             {
-				var message = "คำอธิบายสินค้าไม่ถูกต้อง" + Environment.NewLine + "กรุณาใส่คำอธิบายสินค้าให้ถูกต้อง";
-
-				_messageForm.Show(message, false);
+				_messageForm.Show("กรุณาใส่คำอธิบายสินค้าให้ถูกต้อง", "คำอธิบายสินค้าไม่ถูกต้อง");
                 
                 return false;
             }
@@ -89,18 +85,14 @@ namespace IndyPOS.UI
             {
                 if (quantity < 1)
                 {
-					var message = "จำนวนสินค้าไม่ถูกต้อง" + Environment.NewLine + "กรุณาใส่จำนวนสินค้าให้ถูกต้อง";
-
-					_messageForm.Show(message, false);
+					_messageForm.Show("กรุณาใส่จำนวนสินค้าให้ถูกต้อง", "จำนวนสินค้าไม่ถูกต้อง");
 
                     return false;
                 }
             }
             else
             {
-				var message = "จำนวนสินค้าไม่ถูกต้อง" + Environment.NewLine + "กรุณาใส่จำนวนสินค้าให้ถูกต้อง";
-
-				_messageForm.Show(message, false);
+				_messageForm.Show("กรุณาใส่จำนวนสินค้าให้ถูกต้อง", "จำนวนสินค้าไม่ถูกต้อง");
 
                 return false;
             }
@@ -109,27 +101,21 @@ namespace IndyPOS.UI
             {
                 if (unitPrice < 0m)
                 {
-					var message = "ราคาขายไม่ถูกต้อง" + Environment.NewLine + "กรุณาใส่ราคาขายให้ถูกต้อง";
-
-					_messageForm.Show(message, false);
+					_messageForm.Show("กรุณาใส่ราคาขายให้ถูกต้อง", "ราคาขายไม่ถูกต้อง");
 
                     return false;
                 }
             }
             else
             {
-				var message = "ราคาขายไม่ถูกต้อง" + Environment.NewLine + "กรุณาใส่ราคาขายให้ถูกต้อง";
-
-				_messageForm.Show(message, false);
+				_messageForm.Show("กรุณาใส่ราคาขายให้ถูกต้อง", "ราคาขายไม่ถูกต้อง");
                 
                 return false;
             }
 
             if (!_productCategoryDictionary.Values.Contains(CategoryComboBox.Texts.Trim()))
             {
-				var message = "ประเภทสินค้าไม่ถูกต้อง" + Environment.NewLine + "กรุณาเลือกประเภทสินค้าให้ถูกต้อง";
-
-				_messageForm.Show(message, false);
+				_messageForm.Show("กรุณาเลือกประเภทสินค้าให้ถูกต้อง", "ประเภทสินค้าไม่ถูกต้อง");
                 
                 return false;
             }

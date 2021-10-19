@@ -34,9 +34,9 @@ namespace IndyPOS.Controllers
             return result != null ? new InventoryProductAdapter(result) : null;
         }
 
-        public IInventoryProduct GetProductByInventoryProductId(int id)
+        public IInventoryProduct GetProductById(int id)
         {
-            var result = _inventoryProductsRepository.GetProductByInventoryProductId(id);
+            var result = _inventoryProductsRepository.GetProductById(id);
 
             return result != null ? new InventoryProductAdapter(result) : null;
         }
@@ -96,11 +96,11 @@ namespace IndyPOS.Controllers
             }
         }
 
-        public void RemoveProductByInventoryProductId(int id)
+        public void RemoveProductById(int id)
 		{
             try
             {
-                _inventoryProductsRepository.RemoveProductByInventoryProductId(id);
+                _inventoryProductsRepository.RemoveProductById(id);
 
                 _eventAggregator.GetEvent<InventoryProductDeletedEvent>().Publish();
             }

@@ -9,12 +9,12 @@ namespace IndyPOS.Controllers
 
         IInventoryProduct GetInventoryProductByBarcode(string barcode);
 
-        IInventoryProduct GetProductByInventoryProductId(int id);
+        IInventoryProduct GetProductById(int id);
 
         void AddNewProduct(IInventoryProduct product);
 
         void UpdateProduct(IInventoryProduct product);
 
-        void RemoveProductByInventoryProductId(int id);
+        void RemoveProductById(int id);
     }
 }

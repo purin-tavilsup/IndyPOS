@@ -14,17 +14,20 @@ namespace IndyPOS.UI
         private readonly IEventAggregator _eventAggregator;
         private readonly IStoreConstants _storeConstants;
         private readonly IInventoryController _inventoryController;
+		private readonly MessageForm _messageForm;
         private IReadOnlyDictionary<int, string> _productCategoryDictionary;
         private IInventoryProduct _product;
 
         public UpdateInventoryProductForm(IEventAggregator eventAggregator, 
-            IStoreConstants storeConstants, 
-            IInventoryController inventoryController)
+										  IStoreConstants storeConstants, 
+										  IInventoryController inventoryController,
+										  MessageForm messageForm)
         {
             _eventAggregator = eventAggregator;
             _storeConstants = storeConstants;
             _inventoryController = inventoryController;
             _productCategoryDictionary = _storeConstants.ProductCategories;
+			_messageForm = messageForm;
 
             InitializeComponent();
             InitializeProductCategories();
@@ -60,13 +63,13 @@ namespace IndyPOS.UI
         {
             if (string.IsNullOrWhiteSpace(ProductCodeTextBox.Texts))
             {
-                MessageBox.Show("กรุณาใส่รหัสสินค้าหรือบาร์โค้ดให้ถูกต้อง", "รหัสสินค้าไม่ถูกต้อง");
+				_messageForm.Show("กรุณาใส่รหัสสินค้าหรือบาร์โค้ดให้ถูกต้อง", "รหัสสินค้าไม่ถูกต้อง");
                 return false;
             }
                 
             if (string.IsNullOrWhiteSpace(DescriptionTextBox.Texts))
             {
-                MessageBox.Show("กรุณาใส่คำอธิบายสินค้าให้ถูกต้อง", "คำอธิบายสินค้าไม่ถูกต้อง");
+                _messageForm.Show("กรุณาใส่คำอธิบายสินค้าให้ถูกต้อง", "คำอธิบายสินค้าไม่ถูกต้อง");
                 return false;
             }
 
@@ -74,13 +77,13 @@ namespace IndyPOS.UI
             {
                 if (quantity < 1)
                 {
-                    MessageBox.Show("กรุณาใส่จำนวนสินค้าให้ถูกต้อง", "จำนวนสินค้าไม่ถูกต้อง");
+                    _messageForm.Show("กรุณาใส่จำนวนสินค้าให้ถูกต้อง", "จำนวนสินค้าไม่ถูกต้อง");
                     return false;
                 }
             }
             else
             {
-                MessageBox.Show("กรุณาใส่จำนวนสินค้าให้ถูกต้อง", "จำนวนสินค้าไม่ถูกต้อง");
+                _messageForm.Show("กรุณาใส่จำนวนสินค้าให้ถูกต้อง", "จำนวนสินค้าไม่ถูกต้อง");
                 return false;
             }
 
@@ -88,19 +91,19 @@ namespace IndyPOS.UI
             {
                 if (unitPrice < 0m)
                 {
-                    MessageBox.Show("กรุณาใส่ราคาขายให้ถูกต้อง", "ราคาขายไม่ถูกต้อง");
+                    _messageForm.Show("กรุณาใส่ราคาขายให้ถูกต้อง", "ราคาขายไม่ถูกต้อง");
                     return false;
                 }
             }
             else
             {
-                MessageBox.Show("กรุณาใส่ราคาขายให้ถูกต้อง", "ราคาขายไม่ถูกต้อง");
+                _messageForm.Show("กรุณาใส่ราคาขายให้ถูกต้อง", "ราคาขายไม่ถูกต้อง");
                 return false;
             }
 
             if (!_productCategoryDictionary.Values.Contains(CategoryComboBox.Texts.Trim()))
             {
-                MessageBox.Show("กรุณาเลือกประเภทสินค้าให้ถูกต้อง", "ประเภทสินค้าไม่ถูกต้อง");
+                _messageForm.Show("กรุณาเลือกประเภทสินค้าให้ถูกต้อง", "ประเภทสินค้าไม่ถูกต้อง");
                 return false;
             }
 
@@ -166,7 +169,7 @@ namespace IndyPOS.UI
 
 		private void RemoveProductButton_Click(object sender, EventArgs e)
 		{
-            _inventoryController.RemoveProductByInventoryProductId(_product.InventoryProductId);
+            _inventoryController.RemoveProductById(_product.InventoryProductId);
 
             Close();
         }
