@@ -47,7 +47,7 @@ namespace IndyPOS.UI
         {
             if(int.TryParse(QuantityTextBox.Texts.Trim(), out var quantity))
             {
-                if (quantity < 1)
+                if (quantity < 0)
                 {
                     _messageForm.Show("กรุณาใส่จำนวนสินค้าให้ถูกต้อง", "จำนวนสินค้าไม่ถูกต้อง");
                     return false;
@@ -69,8 +69,15 @@ namespace IndyPOS.UI
 
             var quantity = int.Parse(QuantityTextBox.Texts.Trim());
 
-            _saleInvoiceController.UpdateProductQuantity(_product.Barcode, quantity);
-
+			if (quantity == 0)
+			{
+				_saleInvoiceController.RemoveProduct(_product.Barcode);
+			}
+			else
+			{
+				_saleInvoiceController.UpdateProductQuantity(_product.Barcode, quantity);
+			}
+            
             Close();
         }
 
