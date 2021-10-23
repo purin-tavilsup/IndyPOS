@@ -25,7 +25,7 @@ namespace IndyPOS.Controllers
 
         void RemoveAllPayments();
 
-        bool AddProduct(string barcode);
+        bool AddProduct(string barcode, int quantity = 1);
 
         bool RemoveProduct(string barcode);
 

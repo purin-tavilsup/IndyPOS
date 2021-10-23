@@ -64,6 +64,7 @@ namespace IndyPOS.UI
 
             _saleInvoiceController.StartNewSale();
             AddProductToInvoice("8850999009674");
+			AddProductToInvoice("8850999009674");
             AddProductToInvoice("8850250012238");
             AddProductToInvoice("8850250011613");
             AddProductToInvoice("8850999143002");
@@ -156,7 +157,7 @@ namespace IndyPOS.UI
             return barcode;
         }
 
-        private void SaleInvoiceProductChanged(string barcode)
+        private void SaleInvoiceProductChanged()
         {
             InvoiceDataView.UIThread(delegate
             {
@@ -295,6 +296,11 @@ namespace IndyPOS.UI
 		{
             _saleInvoiceController.AddProduct(barcode);
         }
+
+		private void AddProductToInvoice(string barcode, int quantity)
+		{
+			_saleInvoiceController.AddProduct(barcode, quantity);
+		}
 
 		private void ClearAllPaymentsButton_Click(object sender, EventArgs e)
 		{

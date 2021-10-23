@@ -56,23 +56,23 @@ namespace IndyPOS.Controllers
             _eventAggregator.GetEvent<AllPaymentsRemovedEvent>().Publish();
 		}
 
-        public bool AddProduct(string barcode)
+        public bool AddProduct(string barcode, int quantity = 1)
         { 
-			var success = true;
             var product = GetInventoryProductByBarcode(barcode);
 
             if (product == null)
-                return !success;
+                return false;
 
             var invoiceProduct = product.ToSaleInvoiceProduct();
 
             invoiceProduct.Priority = GetNextProductPriority(_saleInvoice.Products);
+			invoiceProduct.Quantity = quantity;
 
             _saleInvoice.Products.Add(invoiceProduct);
 
-            _eventAggregator.GetEvent<SaleInvoiceProductAddedEvent>().Publish(barcode);
+            _eventAggregator.GetEvent<SaleInvoiceProductAddedEvent>().Publish();
 
-            return success;
+            return true;
         }
 
         private int GetNextProductPriority(IList<ISaleInvoiceProduct> products)
@@ -95,7 +95,7 @@ namespace IndyPOS.Controllers
 
             _saleInvoice.Products.Remove(productToRemove);
 
-            _eventAggregator.GetEvent<SaleInvoiceProductRemovedEvent>().Publish(barcode);
+            _eventAggregator.GetEvent<SaleInvoiceProductRemovedEvent>().Publish();
 
             return success;
         }
@@ -134,11 +134,25 @@ namespace IndyPOS.Controllers
                 return !success;
 
             productToUpdate.Quantity = quantity;
+			productToUpdate.UnitPrice = DetermineUnitPrice(productToUpdate);
 
-            _eventAggregator.GetEvent<SaleInvoiceProductUpdatedEvent>().Publish(barcode);
+            _eventAggregator.GetEvent<SaleInvoiceProductUpdatedEvent>().Publish();
 
             return success;
         }
+
+        private decimal DetermineUnitPrice(ISaleInvoiceProduct product)
+		{
+            if (!product.GroupPriceQuantity.HasValue || !product.GroupPrice.HasValue)
+                return product.UnitPrice;
+
+			if (product.Quantity == product.GroupPriceQuantity)
+                return product.GroupPrice.Value / product.GroupPriceQuantity.Value;
+            
+			var inventoryProduct = _inventoryProductsRepository.GetProductById(product.InventoryProductId);
+
+			return inventoryProduct.UnitPrice;
+		}
 
         public IList<string> ValidateSaleInvoice()
 		{
