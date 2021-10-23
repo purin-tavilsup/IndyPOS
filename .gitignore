@@ -9,3 +9,6 @@ packages/
 .vs/IndyPOS/v15/Server/sqlite3/storage.ide
 .vs/IndyPOS/v15/Server/sqlite3/storage.ide-shm
 .vs/IndyPOS/v15/Server/sqlite3/storage.ide-wal
+
+ModernUI/obj/
+ModernUI/bin/
