@@ -170,7 +170,9 @@ namespace IndyPOS.UI
             productRow[(int)ProductColumn.QuantityInStock] = product.QuantityInStock.ToString();
             productRow[(int)ProductColumn.UnitPrice] = product.UnitPrice.ToString("0.00");
             productRow[(int)ProductColumn.UnitCost] = product.UnitCost?.ToString("0.00") ?? string.Empty;
-            productRow[(int)ProductColumn.Category] = category;
+            productRow[(int)ProductColumn.GroupPrice] = product.GroupPrice?.ToString("0.00") ?? string.Empty;
+			productRow[(int)ProductColumn.GroupPriceQuantity] = product.GroupPriceQuantity?.ToString() ?? string.Empty;
+			productRow[(int)ProductColumn.Category] = category;
             productRow[(int)ProductColumn.Manufacturer] = product.Manufacturer;
             productRow[(int)ProductColumn.Brand] = product.Brand;
             productRow[(int)ProductColumn.DateCreated] = product.DateCreated;
@@ -276,8 +278,8 @@ namespace IndyPOS.UI
 		{
             if (!_lastQueryCategoryId.HasValue)
                 return;
-
-            ShowProductsByCategoryId(_lastQueryCategoryId.GetValueOrDefault());
+			
+			ShowProductsByCategoryId(_lastQueryCategoryId.GetValueOrDefault());
         }
 
         private void ClearLastQueryHistory()
@@ -287,16 +289,15 @@ namespace IndyPOS.UI
 
 		private void CategoryComboBox_SelectedIndexChanged(object sender, EventArgs e)
 		{
-           if (CategoryComboBox.SelectedItem == null)
+			if (CategoryComboBox.SelectedItem == null)
                 return;
-
-            var selectedCategoryValue = CategoryComboBox.SelectedItem.ToString();
-            var category = _productCategoryDictionary.FirstOrDefault(x => x.Value == selectedCategoryValue);
-            var categoryId = category.Key;
-
-            _lastQueryCategoryId = categoryId;
-
-            ShowProductsByCategoryId(categoryId);
+			var selectedCategoryValue = CategoryComboBox.SelectedItem.ToString(); 
+			var category = _productCategoryDictionary.FirstOrDefault(x => x.Value == selectedCategoryValue); 
+			var categoryId = category.Key;
+			
+			_lastQueryCategoryId = categoryId;
+			
+			ShowProductsByCategoryId(categoryId);
         }
     }
 }
