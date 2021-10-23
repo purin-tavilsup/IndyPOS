@@ -153,11 +153,23 @@ namespace IndyPOS.UI
             if (!string.IsNullOrWhiteSpace(BrandTextBox.Texts))
                 product.Brand = BrandTextBox.Texts;
 
-            if (decimal.TryParse(GroupPriceTextBox.Texts.Trim(), out var groupPrice))
-                product.GroupPrice = groupPrice;
+			if (decimal.TryParse(GroupPriceTextBox.Texts.Trim(), out var groupPrice))
+			{
+				product.GroupPrice = groupPrice;
+			}
+			else
+			{
+				product.GroupPrice = null;
+			}
 
-            if (int.TryParse(GroupPriceQuantityTextBox.Texts.Trim(), out var groupPriceQuantity))
-                product.GroupPriceQuantity = groupPriceQuantity;
+			if (int.TryParse(GroupPriceQuantityTextBox.Texts.Trim(), out var groupPriceQuantity))
+			{
+				product.GroupPriceQuantity = groupPriceQuantity;
+			}
+			else
+			{
+				product.GroupPriceQuantity = null;
+			}
 
             return product;
         }
