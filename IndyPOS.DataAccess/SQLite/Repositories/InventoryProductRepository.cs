@@ -57,7 +57,7 @@ namespace IndyPOS.DataAccess.SQLite.Repositories
             }
         }
 
-        public InventoryProduct GetProductByInventoryProductId(int id)
+        public InventoryProduct GetProductById(int id)
         {
             using (var connection = _dbConnectionProvider.GetDbConnection())
             {
@@ -93,6 +93,8 @@ namespace IndyPOS.DataAccess.SQLite.Repositories
                     UnitCost,
                     UnitPrice,
                     QuantityInStock,
+                    GroupPrice,
+                    GroupPriceQuantity,
                     DateCreated
                 )
                 VALUES
@@ -105,6 +107,8 @@ namespace IndyPOS.DataAccess.SQLite.Repositories
                     @UnitCost,
                     @UnitPrice,
                     @QuantityInStock,
+                    @GroupPrice,
+                    @GroupPriceQuantity,
                     datetime('now','localtime')
                 );
                 SELECT last_insert_rowid()";
@@ -118,7 +122,9 @@ namespace IndyPOS.DataAccess.SQLite.Repositories
 					product.Category,
                     UnitCost = MapMoneyToString(product.UnitCost),
                     UnitPrice = MapMoneyToString(product.UnitPrice),
-					product.QuantityInStock
+					product.QuantityInStock,
+                    GroupPrice = MapMoneyToString(product.GroupPrice),
+                    product.GroupPriceQuantity
                 };
 
                 var inventoryProductId = connection.Query<int>(sqlCommand, sqlParameters).FirstOrDefault();
@@ -144,6 +150,8 @@ namespace IndyPOS.DataAccess.SQLite.Repositories
                     UnitCost = @UnitCost,
                     UnitPrice = @UnitPrice,
                     QuantityInStock = @QuantityInStock,
+                    GroupPrice = @GroupPrice,
+                    GroupPriceQuantity = @GroupPriceQuantity,
                     DateUpdated = datetime('now','localtime')
                 WHERE InventoryProductId = @InventoryProductId";
 
@@ -156,7 +164,9 @@ namespace IndyPOS.DataAccess.SQLite.Repositories
                     product.Category,
                     UnitCost = MapMoneyToString(product.UnitCost),
                     UnitPrice = MapMoneyToString(product.UnitPrice),
-                    product.QuantityInStock
+                    product.QuantityInStock,
+                    GroupPrice = MapMoneyToString(product.GroupPrice),
+                    product.GroupPriceQuantity
                 };
 
                 var affectedRowsCount = connection.Execute(sqlCommand, sqlParameters);
@@ -166,12 +176,36 @@ namespace IndyPOS.DataAccess.SQLite.Repositories
             }
         }
 
+		public void UpdateProductQuantityById(int id, int quantity)
+		{
+			using (var connection = _dbConnectionProvider.GetDbConnection())
+			{
+				connection.Open();
+
+				const string sqlCommand = @"UPDATE InventoryProducts
+                SET
+                    QuantityInStock = @QuantityInStock
+                WHERE InventoryProductId = @InventoryProductId";
+
+				var sqlParameters = new
+									{
+										InventoryProductId = id,
+										QuantityInStock = quantity
+									};
+
+				var affectedRowsCount = connection.Execute(sqlCommand, sqlParameters);
+
+				if (affectedRowsCount != 1)
+					throw new Exception("Failed to update product's quantity.");
+			}
+		}
+
         public void RemoveProduct(InventoryProduct product)
         {
-            RemoveProductByInventoryProductId(product.InventoryProductId);
+            RemoveProductById(product.InventoryProductId);
         }
 
-        public void RemoveProductByInventoryProductId(int id)
+        public void RemoveProductById(int id)
         {
             using (var connection = _dbConnectionProvider.GetDbConnection())
             {
@@ -213,6 +247,10 @@ namespace IndyPOS.DataAccess.SQLite.Repositories
                 UnitPrice = MapMoneyToDecimal(x.UnitPrice),
 
                 QuantityInStock = (int)x.QuantityInStock,
+
+                GroupPrice = MapMoneyToNullableDecimal(x.GroupPrice),
+
+                GroupPriceQuantity = (int?)x.GroupPriceQuantity,
 
                 DateCreated = x.DateCreated,
 

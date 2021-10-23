@@ -111,11 +111,15 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Enums\Panels.cs" />
+    <Compile Include="Events\ActiveSubpanelChangedEvent.cs" />
+    <Compile Include="Events\AllPaymentsRemovedEvent.cs" />
     <Compile Include="Events\InventoryProductAddedEvent.cs" />
     <Compile Include="Events\InventoryProductDeletedEvent.cs" />
     <Compile Include="Events\InventoryProductUpdatedEvent.cs" />
     <Compile Include="Inventory\IInventoryProduct.cs" />
     <Compile Include="SaleInvoice\IPayment.cs" />
+    <Compile Include="SaleInvoice\ISaleInvoice.cs" />
     <Compile Include="SaleInvoice\ISaleInvoiceProduct.cs" />
     <Compile Include="Adapters\InventoryProductAdapter.cs" />
     <Compile Include="Adapters\SaleInvoiceProductAdapter.cs" />
@@ -133,12 +137,13 @@
     <Compile Include="Events\SaleInvoiceProductAddedEvent.cs" />
     <Compile Include="Events\SaleInvoiceProductRemovedEvent.cs" />
     <Compile Include="Events\SaleInvoiceProductUpdatedEvent.cs" />
-    <Compile Include="Extensions\IInventoryProductExtensions.cs" />
+    <Compile Include="Extensions\InventoryProductExtensions.cs" />
     <Compile Include="Extensions\StringExtensions.cs" />
     <Compile Include="IMachine.cs" />
     <Compile Include="Inventory\InventoryProduct.cs" />
     <Compile Include="IoC\ContainerConfig.cs" />
     <Compile Include="SaleInvoice\Payment.cs" />
+    <Compile Include="SaleInvoice\SaleInvoice.cs" />
     <Compile Include="SaleInvoice\SaleInvoiceProduct.cs" />
     <Compile Include="Constants\StoreConstants.cs" />
     <Compile Include="Extensions\UIControlExtensions.cs" />
@@ -148,6 +153,12 @@
     </Compile>
     <Compile Include="UI\AcceptPaymentForm.Designer.cs">
       <DependentUpon>AcceptPaymentForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="UI\MessageForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\MessageForm.Designer.cs">
+      <DependentUpon>MessageForm.cs</DependentUpon>
     </Compile>
     <Compile Include="UI\UpdateInvoiceProductForm.cs">
       <SubType>Form</SubType>
@@ -213,6 +224,9 @@
     </Compile>
     <EmbeddedResource Include="UI\AcceptPaymentForm.resx">
       <DependentUpon>AcceptPaymentForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="UI\MessageForm.resx">
+      <DependentUpon>MessageForm.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="UI\UpdateInvoiceProductForm.resx">
       <DependentUpon>UpdateInvoiceProductForm.cs</DependentUpon>
@@ -410,6 +424,10 @@
       <Project>{6032f51e-e3df-47d5-9e74-a360bdbfb180}</Project>
       <Name>IndyPOS.DataAccess</Name>
     </ProjectReference>
+    <ProjectReference Include="..\ModernUI\ModernUI.csproj">
+      <Project>{fbd12602-ae7f-4629-8a8f-05a22569aac9}</Project>
+      <Name>ModernUI</Name>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\CloseWindows_50.png" />
@@ -461,6 +479,21 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\QuestionMark_Circle_50.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Minus_35.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Plus_35.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Cross_35.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Attention_48.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Check_35.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="..\packages\Stub.System.Data.SQLite.Core.NetFramework.1.0.114.0\build\net46\Stub.System.Data.SQLite.Core.NetFramework.targets" Condition="Exists('..\packages\Stub.System.Data.SQLite.Core.NetFramework.1.0.114.0\build\net46\Stub.System.Data.SQLite.Core.NetFramework.targets')" />

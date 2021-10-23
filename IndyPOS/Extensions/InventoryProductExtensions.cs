@@ -1,15 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using IndyPOS.Adapters;
-using IndyPOS.Inventory;
+﻿using IndyPOS.Inventory;
 using IndyPOS.SaleInvoice;
 
 namespace IndyPOS.Extensions
 {
-    public static class IInventoryProductExtensions
+	public static class InventoryProductExtensions
     {
         public static ISaleInvoiceProduct ToSaleInvoiceProduct(this IInventoryProduct inventoryProduct)
         {
@@ -23,7 +17,9 @@ namespace IndyPOS.Extensions
                 Category = inventoryProduct.Category,
                 UnitCost = inventoryProduct.UnitCost,
                 UnitPrice = inventoryProduct.UnitPrice,
-                Quantity = 1
+                Quantity = 1,
+                GroupPrice = inventoryProduct.GroupPrice,
+                GroupPriceQuantity = inventoryProduct.GroupPriceQuantity
             };
 
             return saleInvoiceProduct;

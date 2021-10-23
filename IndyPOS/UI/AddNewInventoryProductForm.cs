@@ -14,16 +14,19 @@ namespace IndyPOS.UI
         private readonly IEventAggregator _eventAggregator;
         private readonly IStoreConstants _storeConstants;
         private readonly IInventoryController _inventoryController;
-        private IReadOnlyDictionary<int, string> _productCategoryDictionary;
+        private readonly IReadOnlyDictionary<int, string> _productCategoryDictionary;
+		private readonly MessageForm _messageForm;
 
         public AddNewInventoryProductForm(IEventAggregator eventAggregator, 
-            IStoreConstants storeConstants, 
-            IInventoryController inventoryController)
+										  IStoreConstants storeConstants, 
+										  IInventoryController inventoryController,
+										  MessageForm messageForm)
         {
             _eventAggregator = eventAggregator;
             _storeConstants = storeConstants;
             _inventoryController = inventoryController;
             _productCategoryDictionary = _storeConstants.ProductCategories;
+			_messageForm = messageForm;
 
             InitializeComponent();
             InitializeProductCategories();
@@ -39,7 +42,7 @@ namespace IndyPOS.UI
             }
             else
             {
-                ProductCodeTextBox.Text = productBarcode;
+                ProductCodeTextBox.Texts = productBarcode;
                 ProductCodeTextBox.ReadOnly = true;
             }
 
@@ -50,27 +53,31 @@ namespace IndyPOS.UI
 
         private void ResetProductEntry()
         {
-            ProductCodeTextBox.Text = string.Empty;
-            DescriptionTextBox.Text = string.Empty;
-            QuantityTextBox.Text = string.Empty;
-            UnitPriceTextBox.Text = string.Empty;
-            UnitCostTextBox.Text = string.Empty;
-            CategoryComboBox.Text = "เลือกประเภทสินค้า";
-            ManufacturerTextBox.Text = string.Empty;
-            BrandTextBox.Text = string.Empty;
+            ProductCodeTextBox.Texts = string.Empty;
+            DescriptionTextBox.Texts = string.Empty;
+            QuantityTextBox.Texts = string.Empty;
+            UnitPriceTextBox.Texts = string.Empty;
+            UnitCostTextBox.Texts = string.Empty;
+            CategoryComboBox.Texts = "เลือกประเภทสินค้า";
+            GroupPriceTextBox.Texts = string.Empty;
+            GroupPriceQuantityTextBox.Texts = string.Empty;
+            ManufacturerTextBox.Texts = string.Empty;
+            BrandTextBox.Texts = string.Empty;
         }
 
         private bool ValidateProductEntry()
         {
             if (string.IsNullOrWhiteSpace(ProductCodeTextBox.Text))
-            {
-                MessageBox.Show("กรุณาใส่รหัสสินค้าหรือบาร์โค้ดให้ถูกต้อง", "รหัสสินค้าไม่ถูกต้อง");
+			{
+				_messageForm.Show("กรุณาใส่รหัสสินค้าหรือบาร์โค้ดให้ถูกต้อง", "รหัสสินค้าไม่ถูกต้อง");
+                
                 return false;
             }
                 
             if (string.IsNullOrWhiteSpace(DescriptionTextBox.Text))
             {
-                MessageBox.Show("กรุณาใส่คำอธิบายสินค้าให้ถูกต้อง", "คำอธิบายสินค้าไม่ถูกต้อง");
+				_messageForm.Show("กรุณาใส่คำอธิบายสินค้าให้ถูกต้อง", "คำอธิบายสินค้าไม่ถูกต้อง");
+                
                 return false;
             }
 
@@ -78,13 +85,15 @@ namespace IndyPOS.UI
             {
                 if (quantity < 1)
                 {
-                    MessageBox.Show("กรุณาใส่จำนวนสินค้าให้ถูกต้อง", "จำนวนสินค้าไม่ถูกต้อง");
+					_messageForm.Show("กรุณาใส่จำนวนสินค้าให้ถูกต้อง", "จำนวนสินค้าไม่ถูกต้อง");
+
                     return false;
                 }
             }
             else
             {
-                MessageBox.Show("กรุณาใส่จำนวนสินค้าให้ถูกต้อง", "จำนวนสินค้าไม่ถูกต้อง");
+				_messageForm.Show("กรุณาใส่จำนวนสินค้าให้ถูกต้อง", "จำนวนสินค้าไม่ถูกต้อง");
+
                 return false;
             }
 
@@ -92,19 +101,22 @@ namespace IndyPOS.UI
             {
                 if (unitPrice < 0m)
                 {
-                    MessageBox.Show("กรุณาใส่ราคาขายให้ถูกต้อง", "ราคาขายไม่ถูกต้อง");
+					_messageForm.Show("กรุณาใส่ราคาขายให้ถูกต้อง", "ราคาขายไม่ถูกต้อง");
+
                     return false;
                 }
             }
             else
             {
-                MessageBox.Show("กรุณาใส่ราคาขายให้ถูกต้อง", "ราคาขายไม่ถูกต้อง");
+				_messageForm.Show("กรุณาใส่ราคาขายให้ถูกต้อง", "ราคาขายไม่ถูกต้อง");
+                
                 return false;
             }
 
-            if (!_productCategoryDictionary.Values.Contains(CategoryComboBox.Text.Trim()))
+            if (!_productCategoryDictionary.Values.Contains(CategoryComboBox.Texts.Trim()))
             {
-                MessageBox.Show("กรุณาเลือกประเภทสินค้าให้ถูกต้อง", "ประเภทสินค้าไม่ถูกต้อง");
+				_messageForm.Show("กรุณาเลือกประเภทสินค้าให้ถูกต้อง", "ประเภทสินค้าไม่ถูกต้อง");
+                
                 return false;
             }
 
@@ -136,29 +148,35 @@ namespace IndyPOS.UI
         private IInventoryProduct CreateNewProduct()
         {
             // Required Attributes
-            var quantity = int.Parse(QuantityTextBox.Text.Trim());
-            var unitPrice = decimal.Parse(UnitPriceTextBox.Text.Trim());
-            var category = _productCategoryDictionary.FirstOrDefault(x => x.Value == CategoryComboBox.Text);
+            var quantity = int.Parse(QuantityTextBox.Texts.Trim());
+            var unitPrice = decimal.Parse(UnitPriceTextBox.Texts.Trim());
+            var category = _productCategoryDictionary.FirstOrDefault(x => x.Value == CategoryComboBox.Texts);
             var categoryId = category.Key;
 
             var product = new InventoryProduct
             {
-                Barcode = ProductCodeTextBox.Text.Trim(),
-                Description = DescriptionTextBox.Text.Trim(),
+                Barcode = ProductCodeTextBox.Texts.Trim(),
+                Description = DescriptionTextBox.Texts.Trim(),
                 QuantityInStock = quantity,
                 UnitPrice = unitPrice,
                 Category = categoryId
             };
 
             // Optional Attributes
-            if (decimal.TryParse(UnitCostTextBox.Text.Trim(), out var unitCost))
+            if (decimal.TryParse(UnitCostTextBox.Texts.Trim(), out var unitCost))
                 product.UnitCost = unitCost;
 
-            if (!string.IsNullOrWhiteSpace(ManufacturerTextBox.Text))
-                product.Manufacturer = ManufacturerTextBox.Text;
+            if (!string.IsNullOrWhiteSpace(ManufacturerTextBox.Texts))
+                product.Manufacturer = ManufacturerTextBox.Texts;
 
-            if (!string.IsNullOrWhiteSpace(BrandTextBox.Text))
-                product.Brand = BrandTextBox.Text;
+            if (!string.IsNullOrWhiteSpace(BrandTextBox.Texts))
+                product.Brand = BrandTextBox.Texts;
+
+            if (decimal.TryParse(GroupPriceTextBox.Texts.Trim(), out var groupPrice))
+                product.GroupPrice = groupPrice;
+
+            if (int.TryParse(GroupPriceQuantityTextBox.Texts.Trim(), out var groupPriceQuantity))
+                product.GroupPriceQuantity = groupPriceQuantity;
 
             return product;
         }

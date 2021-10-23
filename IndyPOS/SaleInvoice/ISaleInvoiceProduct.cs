@@ -4,6 +4,8 @@
     {
         int InvoiceProductId { get; set; }
 
+        int Priority { get; set; }
+
         int InvoiceId { get; set; }
 
         int InventoryProductId { get; set; }
@@ -23,5 +25,9 @@
         decimal UnitPrice { get; set; }
 
         int Quantity { get; set; }
+
+        decimal? GroupPrice { get; set; }
+
+        int? GroupPriceQuantity { get; set; }
     }
 }
