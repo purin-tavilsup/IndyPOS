@@ -137,7 +137,7 @@
     <Compile Include="Events\SaleInvoiceProductAddedEvent.cs" />
     <Compile Include="Events\SaleInvoiceProductRemovedEvent.cs" />
     <Compile Include="Events\SaleInvoiceProductUpdatedEvent.cs" />
-    <Compile Include="Extensions\IInventoryProductExtensions.cs" />
+    <Compile Include="Extensions\InventoryProductExtensions.cs" />
     <Compile Include="Extensions\StringExtensions.cs" />
     <Compile Include="IMachine.cs" />
     <Compile Include="Inventory\InventoryProduct.cs" />

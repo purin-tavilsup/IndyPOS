@@ -3,7 +3,7 @@ using IndyPOS.SaleInvoice;
 
 namespace IndyPOS.Extensions
 {
-	public static class IInventoryProductExtensions
+	public static class InventoryProductExtensions
     {
         public static ISaleInvoiceProduct ToSaleInvoiceProduct(this IInventoryProduct inventoryProduct)
         {
