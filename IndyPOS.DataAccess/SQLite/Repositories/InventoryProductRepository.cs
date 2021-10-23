@@ -151,7 +151,7 @@ namespace IndyPOS.DataAccess.SQLite.Repositories
                     UnitPrice = @UnitPrice,
                     QuantityInStock = @QuantityInStock,
                     GroupPrice = @GroupPrice,
-                    GroupPriceQuantity = @QuantityInStock,
+                    GroupPriceQuantity = @GroupPriceQuantity,
                     DateUpdated = datetime('now','localtime')
                 WHERE InventoryProductId = @InventoryProductId";
 
