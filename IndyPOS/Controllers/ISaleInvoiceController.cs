@@ -25,14 +25,14 @@ namespace IndyPOS.Controllers
 
         void RemoveAllPayments();
 
-        bool AddProduct(string barcode, int quantity = 1);
+        void AddProduct(string barcode);
 
-        bool RemoveProduct(string barcode);
+        void RemoveProduct(ISaleInvoiceProduct product);
 
-        bool AddPayment(PaymentType paymentType, decimal paymentAmount);
+        void AddPayment(PaymentType paymentType, decimal paymentAmount);
 
         IInventoryProduct GetInventoryProductByBarcode(string barcode);
 
-        bool UpdateProductQuantity(string barcode, int quantity);
+        void UpdateProductQuantity(int inventoryProductId, int priority, int quantity);
     }
 }
