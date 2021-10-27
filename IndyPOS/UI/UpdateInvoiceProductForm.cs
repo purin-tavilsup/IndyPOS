@@ -25,9 +25,10 @@ namespace IndyPOS.UI
             InitializeComponent();
         }
 
-        public void ShowDialog(string barcode)
+        public void ShowDialog(string barcode, int priority)
         {
-            _product = GetProductByBarcode(barcode);
+            _product = _saleInvoiceController.Products.FirstOrDefault(p => p.Barcode == barcode && 
+																		   p.Priority == priority);
 
             PopulateProductProperties(_product);
 
@@ -47,7 +48,7 @@ namespace IndyPOS.UI
         {
             if(int.TryParse(QuantityTextBox.Texts.Trim(), out var quantity))
             {
-                if (quantity < 1)
+                if (quantity < 0)
                 {
                     _messageForm.Show("กรุณาใส่จำนวนสินค้าให้ถูกต้อง", "จำนวนสินค้าไม่ถูกต้อง");
                     return false;
@@ -69,8 +70,15 @@ namespace IndyPOS.UI
 
             var quantity = int.Parse(QuantityTextBox.Texts.Trim());
 
-            _saleInvoiceController.UpdateProductQuantity(_product.Barcode, quantity);
-
+			if (quantity == 0)
+			{
+				_saleInvoiceController.RemoveProduct(_product);
+			}
+			else
+			{
+				_saleInvoiceController.UpdateProductQuantity(_product.InventoryProductId, _product.Priority, quantity);
+			}
+            
             Close();
         }
 
@@ -79,35 +87,28 @@ namespace IndyPOS.UI
             Close();
         }
 
-        private ISaleInvoiceProduct GetProductByBarcode(string barcode)
-		{
-            return _saleInvoiceController.Products.FirstOrDefault(p => p.Barcode == barcode);
-		}
-
         private void RemoveProductButton_Click(object sender, EventArgs e)
 		{
-            _saleInvoiceController.RemoveProduct(_product.Barcode);
+            _saleInvoiceController.RemoveProduct(_product);
 
             Close();
         }
 
 		private void IncreaseQuantityPicBox_Click(object sender, EventArgs e)
 		{
-            if(int.TryParse(QuantityTextBox.Texts.Trim(), out var quantity))
-			{
-                QuantityTextBox.Texts = $"{quantity + 1}";
-            }
-        }
+			if (!int.TryParse(QuantityTextBox.Texts.Trim(), out var quantity)) return;
+
+			QuantityTextBox.Texts = $"{quantity + 1}";
+		}
 
 		private void DecreaseQuantityPicBox_Click(object sender, EventArgs e)
 		{
-            if (int.TryParse(QuantityTextBox.Texts.Trim(), out var quantity))
-            {
-                if (quantity == 0)
-                    return;
+			if (!int.TryParse(QuantityTextBox.Texts.Trim(), out var quantity)) return;
 
-                QuantityTextBox.Texts = $"{quantity - 1}";
-            }
-        }
+			if (quantity == 0)
+				return;
+
+			QuantityTextBox.Texts = $"{quantity - 1}";
+		}
 	}
 }

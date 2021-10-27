@@ -33,9 +33,9 @@ namespace IndyPOS.Controllers
 
         public int? CustomerId { get; set; }
 
-        public SaleInvoiceController(IEventAggregator eventAggregator,
-            IInvoiceRepository invoicesRepository, 
-            IInventoryProductRepository inventoryProductsRepository)
+        public SaleInvoiceController(IEventAggregator eventAggregator, 
+									 IInvoiceRepository invoicesRepository, 
+									 IInventoryProductRepository inventoryProductsRepository)
         {
             _eventAggregator = eventAggregator;
             _invoicesRepository = invoicesRepository;
@@ -56,23 +56,21 @@ namespace IndyPOS.Controllers
             _eventAggregator.GetEvent<AllPaymentsRemovedEvent>().Publish();
 		}
 
-        public bool AddProduct(string barcode)
+        public void AddProduct(string barcode)
         { 
-			var success = true;
             var product = GetInventoryProductByBarcode(barcode);
 
             if (product == null)
-                return !success;
+                return;
 
             var invoiceProduct = product.ToSaleInvoiceProduct();
 
             invoiceProduct.Priority = GetNextProductPriority(_saleInvoice.Products);
+			invoiceProduct.Quantity = 1;
 
             _saleInvoice.Products.Add(invoiceProduct);
 
-            _eventAggregator.GetEvent<SaleInvoiceProductAddedEvent>().Publish(barcode);
-
-            return success;
+            _eventAggregator.GetEvent<SaleInvoiceProductAddedEvent>().Publish();
         }
 
         private int GetNextProductPriority(IList<ISaleInvoiceProduct> products)
@@ -85,19 +83,11 @@ namespace IndyPOS.Controllers
             return payments.Count > 0 ? payments.Max(p => p.Priority) + 1 : 1;
         }
 
-        public bool RemoveProduct(string barcode)
+        public void RemoveProduct(ISaleInvoiceProduct product)
         {
-            var success = true;
-            var productToRemove = _saleInvoice.Products.FirstOrDefault(p => p.Barcode == barcode);
+            _saleInvoice.Products.Remove(product);
 
-            if (productToRemove == null)
-                return !success;
-
-            _saleInvoice.Products.Remove(productToRemove);
-
-            _eventAggregator.GetEvent<SaleInvoiceProductRemovedEvent>().Publish(barcode);
-
-            return success;
+            _eventAggregator.GetEvent<SaleInvoiceProductRemovedEvent>().Publish();
         }
 
         public IInventoryProduct GetInventoryProductByBarcode(string barcode)
@@ -107,10 +97,15 @@ namespace IndyPOS.Controllers
             return result != null ? new InventoryProductAdapter(result) : null;
         }
 
-        public bool AddPayment(PaymentType paymentType, decimal paymentAmount)
+		private IInventoryProduct GetInventoryProductById(int id)
 		{
-            var success = true;
+			var result = _inventoryProductsRepository.GetProductById(id);
 
+			return result != null ? new InventoryProductAdapter(result) : null;
+		}
+
+        public void AddPayment(PaymentType paymentType, decimal paymentAmount)
+		{
             var payment = new Payment
 			{
 				PaymentTypeId = (int)paymentType,
@@ -121,24 +116,109 @@ namespace IndyPOS.Controllers
             _saleInvoice.Payments.Add(payment);
 
             _eventAggregator.GetEvent<PaymentAddedEvent>().Publish();
-
-            return success;
         }
 
-        public bool UpdateProductQuantity(string barcode, int quantity)
+        public void UpdateProductQuantity(int inventoryProductId, int priority, int quantity)
 		{
-            var success = true;
-            var productToUpdate = _saleInvoice.Products.FirstOrDefault(p => p.Barcode == barcode);
+            var productToUpdate = _saleInvoice.Products.FirstOrDefault(p => p.InventoryProductId == inventoryProductId &&
+																			p.Priority == priority);
 
             if (productToUpdate == null)
-                return !success;
+                return;
 
-            productToUpdate.Quantity = quantity;
+			if (productToUpdate.Quantity == quantity)
+				return;
 
-            _eventAggregator.GetEvent<SaleInvoiceProductUpdatedEvent>().Publish(barcode);
-
-            return success;
+			if (productToUpdate.Quantity < quantity)
+			{
+				IncreaseProductQuantity(productToUpdate, quantity);
+			}
+			else
+			{
+				DecreaseProductQuantity(productToUpdate, quantity);
+			}
         }
+
+		private void IncreaseProductQuantity(ISaleInvoiceProduct product, int quantity)
+		{
+			if (!product.GroupPriceQuantity.HasValue && !product.GroupPrice.HasValue ||
+				product.GroupPriceQuantity.HasValue && quantity < product.GroupPriceQuantity.Value)
+			{
+				product.Quantity = quantity;
+
+				_eventAggregator.GetEvent<SaleInvoiceProductUpdatedEvent>().Publish();
+
+				return;
+			}
+
+			var groupPrice = product.GroupPrice.GetValueOrDefault();
+			var groupPriceQuantity = product.GroupPriceQuantity.GetValueOrDefault();
+
+            // Update base product
+			product.Quantity = groupPriceQuantity;
+			product.UnitPrice = groupPrice / groupPriceQuantity;
+
+			_eventAggregator.GetEvent<SaleInvoiceProductUpdatedEvent>().Publish();
+
+			var remainingQuantity = quantity - groupPriceQuantity;
+			var productId = product.InventoryProductId;
+
+            // Add new line products for remaining quantity
+			while (remainingQuantity > 0)
+			{
+				var quantityToAdd = remainingQuantity > groupPriceQuantity 
+										? groupPriceQuantity 
+										: remainingQuantity;
+
+				AddProduct(productId, quantityToAdd);
+
+				remainingQuantity -= groupPriceQuantity;
+			}
+		}
+
+		private void AddProduct(int inventoryProductId, int quantity)
+		{ 
+			var product = GetInventoryProductById(inventoryProductId);
+
+			if (product == null)
+				return;
+
+			var invoiceProduct = product.ToSaleInvoiceProduct();
+			var unitPrice = invoiceProduct.GroupPrice.HasValue && invoiceProduct.GroupPriceQuantity == quantity
+								? invoiceProduct.GroupPrice.Value / invoiceProduct.GroupPriceQuantity.Value
+								: invoiceProduct.UnitPrice;
+
+			invoiceProduct.Priority = GetNextProductPriority(_saleInvoice.Products);
+			invoiceProduct.Quantity = quantity;
+			invoiceProduct.UnitPrice = unitPrice;
+
+			_saleInvoice.Products.Add(invoiceProduct);
+
+			_eventAggregator.GetEvent<SaleInvoiceProductAddedEvent>().Publish();
+		}
+
+		private void DecreaseProductQuantity(ISaleInvoiceProduct product, int quantity)
+		{
+			if (product.GroupPriceQuantity.HasValue &&
+				product.GroupPrice.HasValue &&
+				product.Quantity == product.GroupPriceQuantity)
+			{
+				product.Quantity = quantity;
+
+				var inventoryProduct = _inventoryProductsRepository.GetProductById(product.InventoryProductId);
+
+				// Restore original unit price
+				product.UnitPrice = inventoryProduct.UnitPrice;
+
+				_eventAggregator.GetEvent<SaleInvoiceProductUpdatedEvent>().Publish();
+
+				return;
+			}
+            
+			product.Quantity = quantity;
+
+			_eventAggregator.GetEvent<SaleInvoiceProductUpdatedEvent>().Publish();
+		}
 
         public IList<string> ValidateSaleInvoice()
 		{

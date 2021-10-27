@@ -64,6 +64,7 @@ namespace IndyPOS.UI
 
             _saleInvoiceController.StartNewSale();
             AddProductToInvoice("8850999009674");
+			AddProductToInvoice("8850999009674");
             AddProductToInvoice("8850250012238");
             AddProductToInvoice("8850250011613");
             AddProductToInvoice("8850999143002");
@@ -143,20 +144,7 @@ namespace IndyPOS.UI
             _activeSubPanel = activeSubPanel;
 		}
 
-        private string GetProductBarcodeFromSelectedProduct()
-        {
-            if (InvoiceDataView.SelectedCells.Count == 0)
-                return string.Empty;
-
-            var selectedCell = InvoiceDataView.SelectedCells[0];
-            var rowIndex = selectedCell.RowIndex;
-            var selectedRow = InvoiceDataView.Rows[rowIndex];
-            var barcode = selectedRow.Cells[(int)SaleInvoiceColumn.ProductCode].Value as string;
-
-            return barcode;
-        }
-
-        private void SaleInvoiceProductChanged(string barcode)
+		private void SaleInvoiceProductChanged()
         {
             InvoiceDataView.UIThread(delegate
             {
@@ -238,11 +226,21 @@ namespace IndyPOS.UI
 
         private void InvoiceDataView_DoubleClick(object sender, EventArgs e)
         {
-            var barcode = GetProductBarcodeFromSelectedProduct();
+            if (InvoiceDataView.SelectedCells.Count == 0)
+				return;
 
-            if (!barcode.HasValue()) return;
+			var selectedCell = InvoiceDataView.SelectedCells[0];
+			var rowIndex = selectedCell.RowIndex;
+			var selectedRow = InvoiceDataView.Rows[rowIndex];
+			var barcode = selectedRow.Cells[(int)SaleInvoiceColumn.ProductCode].Value as string;
 
-            _updateProductForm.ShowDialog(barcode);
+			if (!barcode.HasValue()) 
+				return;
+
+			if (!int.TryParse(selectedRow.Cells[(int) SaleInvoiceColumn.Priority].Value as string, out var priority))
+				return;
+
+            _updateProductForm.ShowDialog(barcode, priority);
         }
 
         private void PaymentChanged()
