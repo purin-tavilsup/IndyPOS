@@ -1,5 +1,5 @@
 ﻿using IndyPOS.Inventory;
-using IndyPOS.SaleInvoice;
+using IndyPOS.Sales;
 
 namespace IndyPOS.Extensions
 {

@@ -1,6 +1,6 @@
 ﻿using IndyPOS.Enums;
 using IndyPOS.Inventory;
-using IndyPOS.SaleInvoice;
+using IndyPOS.Sales;
 using System.Collections.Generic;
 
 namespace IndyPOS.Controllers

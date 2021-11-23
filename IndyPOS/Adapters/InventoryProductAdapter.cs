@@ -5,19 +5,16 @@ namespace IndyPOS.Adapters
 {
 	public class InventoryProductAdapter : IInventoryProduct
     {
-        private InventoryProductModel _adaptee;
+        private readonly InventoryProductModel _adaptee;
 
         public InventoryProductAdapter(InventoryProductModel adaptee)
         {
             _adaptee = adaptee;
         }
 
-        public int InventoryProductId
-        {
-            get => _adaptee.InventoryProductId;
-        }
+        public int InventoryProductId => _adaptee.InventoryProductId;
 
-        public string Barcode
+		public string Barcode
         {
             get => _adaptee.Barcode;
             set => _adaptee.Barcode = value;
@@ -77,14 +74,8 @@ namespace IndyPOS.Adapters
             set => _adaptee.GroupPriceQuantity = value;
         }
 
-        public string DateCreated
-        {
-            get => _adaptee.DateCreated;
-        }
+        public string DateCreated => _adaptee.DateCreated;
 
-        public string DateUpdated
-        {
-            get => _adaptee.DateUpdated;
-        }
-    }
+		public string DateUpdated => _adaptee.DateUpdated;
+	}
 }

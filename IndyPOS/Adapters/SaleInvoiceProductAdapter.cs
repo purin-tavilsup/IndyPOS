@@ -1,5 +1,5 @@
 ﻿using IndyPOS.DataAccess.Models;
-using IndyPOS.SaleInvoice;
+using IndyPOS.Sales;
 
 namespace IndyPOS.Adapters
 {
