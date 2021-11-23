@@ -1,11 +1,11 @@
 ﻿using Autofac;
 using IndyPOS.Constants;
+using IndyPOS.Cryptography;
 using IndyPOS.DataAccess;
 using IndyPOS.DataAccess.Repositories;
 using IndyPOS.DataAccess.SQLite.Repositories;
 using IndyPOS.Devices;
 using Prism.Events;
-using System.Linq;
 using System.Reflection;
 
 namespace IndyPOS.IoC
@@ -17,49 +17,53 @@ namespace IndyPOS.IoC
             var builder = new ContainerBuilder();
 
             builder.RegisterType<Machine>()
-                .As<IMachine>()
-                .SingleInstance();
+				   .As<IMachine>()
+				   .SingleInstance();
 
             builder.RegisterType<EventAggregator>()
-                .As<IEventAggregator>()
-                .SingleInstance();
+				   .As<IEventAggregator>()
+				   .SingleInstance();
 
             builder.RegisterType<StoreConstants>()
-                .As<IStoreConstants>()
-                .SingleInstance();
+				   .As<IStoreConstants>()
+				   .SingleInstance();
 
             builder.RegisterAssemblyTypes(Assembly.Load("IndyPOS"))
-                .Where(t => t.Namespace.Contains("UI"))
-                .AsSelf()
-                .SingleInstance();
+				   .Where(t => t.Namespace.Contains("UI"))
+				   .AsSelf()
+				   .SingleInstance();
 
             builder.RegisterAssemblyTypes(Assembly.Load("IndyPOS"))
-                .Where(t => t.Namespace.Contains("Controllers"))
-                .As(t => t.GetInterface("I" + t.Name))
-                .SingleInstance();
+				   .Where(t => t.Namespace.Contains("Controllers"))
+				   .As(t => t.GetInterface("I" + t.Name))
+				   .SingleInstance();
 
             builder.RegisterType<DbConnectionProvider>()
-                .As<IDbConnectionProvider>()
-                .SingleInstance();
+				   .As<IDbConnectionProvider>()
+				   .SingleInstance();
 
             builder.RegisterType<InvoiceRepository>()
-                .As<IInvoiceRepository>();
+				   .As<IInvoiceRepository>();
 
             builder.RegisterType<InventoryProductRepository>()
-                .As<IInventoryProductRepository>();
+				   .As<IInventoryProductRepository>();
 
             builder.RegisterType<StoreConstantRepository>()
-                .As<IStoreConstantRepository>();
+				   .As<IStoreConstantRepository>();
 
             builder.RegisterType<CustomerRepository>()
-                .As<ICustomerRepository>();
+				   .As<ICustomerRepository>();
 
             builder.RegisterType<UserRepository>()
-                .As<IUserRepository>();
+				   .As<IUserRepository>();
 
             builder.RegisterType<BarcodeScanner>()
-                .As<IBarcodeScanner>()
-                .SingleInstance();
+				   .As<IBarcodeScanner>()
+				   .SingleInstance();
+
+			builder.RegisterType<CryptographyHelper>()
+				   .As<ICryptographyHelper>()
+				   .SingleInstance();
 
             return builder.Build();
         }

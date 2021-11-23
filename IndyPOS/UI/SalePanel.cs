@@ -1,6 +1,6 @@
 ﻿using IndyPOS.Adapters;
 using IndyPOS.Controllers;
-using IndyPOS.SaleInvoice;
+using IndyPOS.Sales;
 using IndyPOS.Events;
 using IndyPOS.Extensions;
 using IndyPOS.Enums;

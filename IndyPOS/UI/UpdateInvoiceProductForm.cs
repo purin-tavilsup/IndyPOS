@@ -1,5 +1,5 @@
 ﻿using IndyPOS.Controllers;
-using IndyPOS.SaleInvoice;
+using IndyPOS.Sales;
 using Prism.Events;
 using System;
 using System.Linq;

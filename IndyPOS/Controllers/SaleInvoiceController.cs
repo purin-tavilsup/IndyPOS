@@ -1,18 +1,17 @@
 ﻿using IndyPOS.Adapters;
-using IndyPOS.Constants;
 using IndyPOS.DataAccess.Repositories;
 using IndyPOS.Enums;
 using IndyPOS.Events;
 using IndyPOS.Extensions;
 using IndyPOS.Inventory;
-using IndyPOS.SaleInvoice;
+using IndyPOS.Sales;
 using Prism.Events;
 using System.Collections.Generic;
 using System.Linq;
 
 namespace IndyPOS.Controllers
 {
-	public class SaleInvoiceController : ISaleInvoiceController
+    public class SaleInvoiceController : ISaleInvoiceController
     {
         private readonly IEventAggregator _eventAggregator;
         private readonly IInvoiceRepository _invoicesRepository;
@@ -44,7 +43,7 @@ namespace IndyPOS.Controllers
 
         public void StartNewSale()
         {
-            _saleInvoice = new SaleInvoice.SaleInvoice();
+            _saleInvoice = new SaleInvoice();
 
             _eventAggregator.GetEvent<NewSaleStartedEvent>().Publish();
         }

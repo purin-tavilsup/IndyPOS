@@ -1,4 +1,4 @@
-﻿namespace IndyPOS.SaleInvoice
+﻿namespace IndyPOS.Sales
 {
 	public class Payment : IPayment
 	{

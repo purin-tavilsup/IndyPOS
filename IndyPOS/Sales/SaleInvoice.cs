@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 
-namespace IndyPOS.SaleInvoice
+namespace IndyPOS.Sales
 {
 	public class SaleInvoice : ISaleInvoice
 	{

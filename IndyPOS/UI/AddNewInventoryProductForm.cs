@@ -67,21 +67,21 @@ namespace IndyPOS.UI
 
         private bool ValidateProductEntry()
         {
-            if (string.IsNullOrWhiteSpace(ProductCodeTextBox.Text))
+            if (string.IsNullOrWhiteSpace(ProductCodeTextBox.Texts))
 			{
 				_messageForm.Show("กรุณาใส่รหัสสินค้าหรือบาร์โค้ดให้ถูกต้อง", "รหัสสินค้าไม่ถูกต้อง");
                 
                 return false;
             }
                 
-            if (string.IsNullOrWhiteSpace(DescriptionTextBox.Text))
+            if (string.IsNullOrWhiteSpace(DescriptionTextBox.Texts))
             {
 				_messageForm.Show("กรุณาใส่คำอธิบายสินค้าให้ถูกต้อง", "คำอธิบายสินค้าไม่ถูกต้อง");
                 
                 return false;
             }
 
-            if(int.TryParse(QuantityTextBox.Text.Trim(), out var quantity))
+            if(int.TryParse(QuantityTextBox.Texts.Trim(), out var quantity))
             {
                 if (quantity < 1)
                 {
@@ -97,7 +97,7 @@ namespace IndyPOS.UI
                 return false;
             }
 
-            if (decimal.TryParse(UnitPriceTextBox.Text.Trim(), out var unitPrice))
+            if (decimal.TryParse(UnitPriceTextBox.Texts.Trim(), out var unitPrice))
             {
                 if (unitPrice < 0m)
                 {

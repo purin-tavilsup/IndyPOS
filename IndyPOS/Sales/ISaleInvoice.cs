@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace IndyPOS.SaleInvoice
+namespace IndyPOS.Sales
 {
 	public interface ISaleInvoice
 	{

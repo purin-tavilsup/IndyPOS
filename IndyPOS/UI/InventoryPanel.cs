@@ -17,11 +17,11 @@ namespace IndyPOS.UI
         private readonly IEventAggregator _eventAggregator;
         private readonly IInventoryController _inventoryController;
         private readonly IStoreConstants _storeConstants;
-        private IReadOnlyDictionary<int, string> _productCategoryDictionary;
+        private readonly IReadOnlyDictionary<int, string> _productCategoryDictionary;
         private readonly AddNewInventoryProductForm _addNewProductForm;
         private readonly UpdateInventoryProductForm _updateProductForm;
         private int? _lastQueryCategoryId;
-        private Subpanel _activeSubpanel;
+        private Subpanel _activeSubPanel;
 
         private enum ProductColumn
         {
@@ -40,10 +40,10 @@ namespace IndyPOS.UI
         }
 
         public InventoryPanel(IEventAggregator eventAggregator, 
-            IInventoryController inventoryController, 
-            IStoreConstants storeConstants, 
-            AddNewInventoryProductForm addNewProductForm,
-            UpdateInventoryProductForm updateProductForm)
+							  IInventoryController inventoryController, 
+							  IStoreConstants storeConstants, 
+							  AddNewInventoryProductForm addNewProductForm, 
+							  UpdateInventoryProductForm updateProductForm)
         {
             _eventAggregator = eventAggregator;
             _inventoryController = inventoryController;
@@ -65,7 +65,7 @@ namespace IndyPOS.UI
             _eventAggregator.GetEvent<InventoryProductAddedEvent>().Subscribe(NewInventoryProductAdded);
             _eventAggregator.GetEvent<InventoryProductUpdatedEvent>().Subscribe(InventoryProductUpdated);
             _eventAggregator.GetEvent<InventoryProductDeletedEvent>().Subscribe(InventoryProductDeleted);
-            _eventAggregator.GetEvent<ActiveSubpanelChangedEvent>().Subscribe(ActiveSubpanelChanged);
+            _eventAggregator.GetEvent<ActiveSubpanelChangedEvent>().Subscribe(ActiveSubPanelChanged);
         }
 
         private void InitializeProductCategories()
@@ -136,9 +136,9 @@ namespace IndyPOS.UI
             #endregion
         }
 
-        private void ActiveSubpanelChanged(Subpanel activeSubpanel)
+        private void ActiveSubPanelChanged(Subpanel activeSubPanel)
         {
-            _activeSubpanel = activeSubpanel;
+            _activeSubPanel = activeSubPanel;
         }
 
 		private void ShowProductsByCategoryId(int id)
@@ -209,7 +209,7 @@ namespace IndyPOS.UI
 
         private void BarcodeReceived(string barcode)
         {
-            if (_activeSubpanel != Subpanel.Inventory)
+            if (_activeSubPanel != Subpanel.Inventory)
                 return;
 
             var product = SearchExistingProductByBarcode(barcode);
