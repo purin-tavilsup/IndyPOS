@@ -94,21 +94,21 @@ namespace IndyPOS.UI
             Close();
         }
 
-		private void IncreaseQuantityPicBox_Click(object sender, EventArgs e)
-		{
+        private void IncreaseQuantityButton_Click(object sender, EventArgs e)
+        {
 			if (!int.TryParse(QuantityTextBox.Texts.Trim(), out var quantity)) return;
 
 			QuantityTextBox.Texts = $"{quantity + 1}";
-		}
+        }
 
-		private void DecreaseQuantityPicBox_Click(object sender, EventArgs e)
-		{
+        private void DecreaseQuantityButton_Click(object sender, EventArgs e)
+        {
 			if (!int.TryParse(QuantityTextBox.Texts.Trim(), out var quantity)) return;
 
 			if (quantity == 0)
 				return;
 
 			QuantityTextBox.Texts = $"{quantity - 1}";
-		}
-	}
+        }
+    }
 }
