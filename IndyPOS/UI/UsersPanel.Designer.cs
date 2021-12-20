@@ -28,8 +28,8 @@
         /// </summary>
         private void InitializeComponent()
         {
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle1 = new System.Windows.Forms.DataGridViewCellStyle();
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle2 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle3 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle4 = new System.Windows.Forms.DataGridViewCellStyle();
             this.panel1 = new System.Windows.Forms.Panel();
             this.UserDataView = new System.Windows.Forms.DataGridView();
             this.UserId = new System.Windows.Forms.DataGridViewTextBoxColumn();
@@ -39,7 +39,6 @@
             this.DateCreated = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.DateUpdated = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.panel3 = new System.Windows.Forms.Panel();
-            this.UpdateUserButton = new System.Windows.Forms.Button();
             this.UserRoleLabel = new System.Windows.Forms.Label();
             this.label2 = new System.Windows.Forms.Label();
             this.LastNameTextBox = new ModernUI.ModernTextBox();
@@ -51,9 +50,10 @@
             this.label7 = new System.Windows.Forms.Label();
             this.panel4 = new System.Windows.Forms.Panel();
             this.panel2 = new System.Windows.Forms.Panel();
-            this.AddUserButton = new System.Windows.Forms.Button();
             this.UserRoleComboBox = new ModernUI.ModernComboBox();
             this.label1 = new System.Windows.Forms.Label();
+            this.AddUserButton = new ModernUI.ModernButton();
+            this.UpdateUserButton = new ModernUI.ModernButton();
             this.panel1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.UserDataView)).BeginInit();
             this.panel3.SuspendLayout();
@@ -84,14 +84,14 @@
             this.UserDataView.BorderStyle = System.Windows.Forms.BorderStyle.None;
             this.UserDataView.CellBorderStyle = System.Windows.Forms.DataGridViewCellBorderStyle.SingleHorizontal;
             this.UserDataView.ColumnHeadersBorderStyle = System.Windows.Forms.DataGridViewHeaderBorderStyle.None;
-            dataGridViewCellStyle1.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleCenter;
-            dataGridViewCellStyle1.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(48)))), ((int)(((byte)(48)))), ((int)(((byte)(48)))));
-            dataGridViewCellStyle1.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 14.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            dataGridViewCellStyle1.ForeColor = System.Drawing.Color.Gainsboro;
-            dataGridViewCellStyle1.Padding = new System.Windows.Forms.Padding(10, 0, 0, 0);
-            dataGridViewCellStyle1.SelectionBackColor = System.Drawing.Color.Gray;
-            dataGridViewCellStyle1.WrapMode = System.Windows.Forms.DataGridViewTriState.False;
-            this.UserDataView.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle1;
+            dataGridViewCellStyle3.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleCenter;
+            dataGridViewCellStyle3.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(48)))), ((int)(((byte)(48)))), ((int)(((byte)(48)))));
+            dataGridViewCellStyle3.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 14.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            dataGridViewCellStyle3.ForeColor = System.Drawing.Color.Gainsboro;
+            dataGridViewCellStyle3.Padding = new System.Windows.Forms.Padding(10, 0, 0, 0);
+            dataGridViewCellStyle3.SelectionBackColor = System.Drawing.Color.Gray;
+            dataGridViewCellStyle3.WrapMode = System.Windows.Forms.DataGridViewTriState.False;
+            this.UserDataView.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle3;
             this.UserDataView.ColumnHeadersHeight = 50;
             this.UserDataView.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.DisableResizing;
             this.UserDataView.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
@@ -101,14 +101,14 @@
             this.UserRole,
             this.DateCreated,
             this.DateUpdated});
-            dataGridViewCellStyle2.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
-            dataGridViewCellStyle2.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
-            dataGridViewCellStyle2.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            dataGridViewCellStyle2.ForeColor = System.Drawing.Color.Gainsboro;
-            dataGridViewCellStyle2.SelectionBackColor = System.Drawing.Color.FromArgb(((int)(((byte)(48)))), ((int)(((byte)(48)))), ((int)(((byte)(48)))));
-            dataGridViewCellStyle2.SelectionForeColor = System.Drawing.Color.Gainsboro;
-            dataGridViewCellStyle2.WrapMode = System.Windows.Forms.DataGridViewTriState.False;
-            this.UserDataView.DefaultCellStyle = dataGridViewCellStyle2;
+            dataGridViewCellStyle4.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle4.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
+            dataGridViewCellStyle4.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            dataGridViewCellStyle4.ForeColor = System.Drawing.Color.Gainsboro;
+            dataGridViewCellStyle4.SelectionBackColor = System.Drawing.Color.FromArgb(((int)(((byte)(48)))), ((int)(((byte)(48)))), ((int)(((byte)(48)))));
+            dataGridViewCellStyle4.SelectionForeColor = System.Drawing.Color.Gainsboro;
+            dataGridViewCellStyle4.WrapMode = System.Windows.Forms.DataGridViewTriState.False;
+            this.UserDataView.DefaultCellStyle = dataGridViewCellStyle4;
             this.UserDataView.Dock = System.Windows.Forms.DockStyle.Fill;
             this.UserDataView.EnableHeadersVisualStyles = false;
             this.UserDataView.GridColor = System.Drawing.Color.DimGray;
@@ -192,23 +192,6 @@
             this.panel3.Name = "panel3";
             this.panel3.Size = new System.Drawing.Size(489, 631);
             this.panel3.TabIndex = 4;
-            // 
-            // UpdateUserButton
-            // 
-            this.UpdateUserButton.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
-            this.UpdateUserButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.UpdateUserButton.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.UpdateUserButton.ForeColor = System.Drawing.Color.Gainsboro;
-            this.UpdateUserButton.Image = global::IndyPOS.Properties.Resources.Check_35;
-            this.UpdateUserButton.Location = new System.Drawing.Point(32, 285);
-            this.UpdateUserButton.Name = "UpdateUserButton";
-            this.UpdateUserButton.Size = new System.Drawing.Size(261, 50);
-            this.UpdateUserButton.TabIndex = 70;
-            this.UpdateUserButton.Text = "   อัพเดทผู้ใช้งาน";
-            this.UpdateUserButton.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
-            this.UpdateUserButton.TextImageRelation = System.Windows.Forms.TextImageRelation.ImageBeforeText;
-            this.UpdateUserButton.UseVisualStyleBackColor = false;
-            this.UpdateUserButton.Click += new System.EventHandler(this.UpdateUserButton_Click);
             // 
             // UserRoleLabel
             // 
@@ -361,23 +344,6 @@
             this.panel2.Size = new System.Drawing.Size(270, 60);
             this.panel2.TabIndex = 8;
             // 
-            // AddUserButton
-            // 
-            this.AddUserButton.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
-            this.AddUserButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.AddUserButton.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.AddUserButton.ForeColor = System.Drawing.Color.Gainsboro;
-            this.AddUserButton.Image = global::IndyPOS.Properties.Resources.Plus_35;
-            this.AddUserButton.Location = new System.Drawing.Point(3, 4);
-            this.AddUserButton.Name = "AddUserButton";
-            this.AddUserButton.Size = new System.Drawing.Size(261, 50);
-            this.AddUserButton.TabIndex = 7;
-            this.AddUserButton.Text = "   เพิ่มผู้ใช้งาน";
-            this.AddUserButton.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
-            this.AddUserButton.TextImageRelation = System.Windows.Forms.TextImageRelation.ImageBeforeText;
-            this.AddUserButton.UseVisualStyleBackColor = false;
-            this.AddUserButton.Click += new System.EventHandler(this.AddUserButton_Click);
-            // 
             // UserRoleComboBox
             // 
             this.UserRoleComboBox.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
@@ -412,6 +378,46 @@
             this.label1.Text = "ประเภทผู้ใช้งาน";
             this.label1.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             // 
+            // AddUserButton
+            // 
+            this.AddUserButton.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
+            this.AddUserButton.BackgroundColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
+            this.AddUserButton.BorderColor = System.Drawing.Color.FromArgb(((int)(((byte)(37)))), ((int)(((byte)(182)))), ((int)(((byte)(210)))));
+            this.AddUserButton.BorderRadius = 19;
+            this.AddUserButton.BorderSize = 1;
+            this.AddUserButton.FlatAppearance.BorderSize = 0;
+            this.AddUserButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.AddUserButton.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.AddUserButton.ForeColor = System.Drawing.Color.White;
+            this.AddUserButton.Location = new System.Drawing.Point(3, 4);
+            this.AddUserButton.Name = "AddUserButton";
+            this.AddUserButton.Size = new System.Drawing.Size(261, 50);
+            this.AddUserButton.TabIndex = 10;
+            this.AddUserButton.Text = "เพิ่มผู้ใช้งาน";
+            this.AddUserButton.TextColor = System.Drawing.Color.White;
+            this.AddUserButton.UseVisualStyleBackColor = false;
+            this.AddUserButton.Click += new System.EventHandler(this.AddUserButton_Click);
+            // 
+            // UpdateUserButton
+            // 
+            this.UpdateUserButton.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
+            this.UpdateUserButton.BackgroundColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
+            this.UpdateUserButton.BorderColor = System.Drawing.Color.FromArgb(((int)(((byte)(50)))), ((int)(((byte)(190)))), ((int)(((byte)(166)))));
+            this.UpdateUserButton.BorderRadius = 19;
+            this.UpdateUserButton.BorderSize = 1;
+            this.UpdateUserButton.FlatAppearance.BorderSize = 0;
+            this.UpdateUserButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.UpdateUserButton.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.UpdateUserButton.ForeColor = System.Drawing.Color.White;
+            this.UpdateUserButton.Location = new System.Drawing.Point(171, 285);
+            this.UpdateUserButton.Name = "UpdateUserButton";
+            this.UpdateUserButton.Size = new System.Drawing.Size(272, 53);
+            this.UpdateUserButton.TabIndex = 71;
+            this.UpdateUserButton.Text = "อัพเดทผู้ใช้งาน";
+            this.UpdateUserButton.TextColor = System.Drawing.Color.White;
+            this.UpdateUserButton.UseVisualStyleBackColor = false;
+            this.UpdateUserButton.Click += new System.EventHandler(this.UpdateUserButton_Click);
+            // 
             // UsersPanel
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -435,7 +441,6 @@
 		private System.Windows.Forms.DataGridView UserDataView;
 		private System.Windows.Forms.Panel panel4;
 		private System.Windows.Forms.Panel panel2;
-		private System.Windows.Forms.Button AddUserButton;
 		private ModernUI.ModernComboBox UserRoleComboBox;
 		private System.Windows.Forms.Label label1;
 		private System.Windows.Forms.Panel panel3;
@@ -454,6 +459,7 @@
 		private System.Windows.Forms.DataGridViewTextBoxColumn UserRole;
 		private System.Windows.Forms.DataGridViewTextBoxColumn DateCreated;
 		private System.Windows.Forms.DataGridViewTextBoxColumn DateUpdated;
-        private System.Windows.Forms.Button UpdateUserButton;
+        private ModernUI.ModernButton AddUserButton;
+        private ModernUI.ModernButton UpdateUserButton;
     }
 }

@@ -64,7 +64,7 @@ namespace IndyPOS.UI
 
             _saleInvoiceController.StartNewSale();
             AddProductToInvoice("8850999009674");
-			AddProductToInvoice("8850999009674");
+            AddProductToInvoice("8850999009674");
             AddProductToInvoice("8850250012238");
             AddProductToInvoice("8850250011613");
             AddProductToInvoice("8850999143002");
