@@ -1,26 +1,24 @@
-﻿using System;
+﻿using IndyPOS.DataAccess.Models;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using IndyPOS.DataAccess.Models;
 
 namespace IndyPOS.DataAccess.Repositories
 {
     public interface IUserRepository
 	{
-		IList<User> GetUsers();
-
-		int AddUser(User user);
+		int CreateUser(User user);
 
 		void UpdateUser(User user);
 
-		User GetUserByUserId(int id);
+		User GetUserById(int id);
 
-		void AddUserCredential(int userId, string encryptedSecret);
+		IEnumerable<User> GetUsers();
 
-		UserCredential GetUserCredentialByUserId(int id);
+		void CreateUserCredential(int userId, string username, string password);
 
-		void UpdateUserCredential(int userId, string encryptedSecret);
+		UserCredential GetUserCredentialById(int id);
+
+		UserCredential GetUserCredentialByUsername(string username);
+
+		void UpdateUserCredentialById(int userId, string password);
 	}
 }

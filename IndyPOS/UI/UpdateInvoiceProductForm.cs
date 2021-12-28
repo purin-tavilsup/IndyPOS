@@ -2,11 +2,13 @@
 using IndyPOS.Sales;
 using Prism.Events;
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Windows.Forms;
 
 namespace IndyPOS.UI
 {
+    [ExcludeFromCodeCoverage]
 	public partial class UpdateInvoiceProductForm : Form
     {
         private readonly IEventAggregator _eventAggregator;

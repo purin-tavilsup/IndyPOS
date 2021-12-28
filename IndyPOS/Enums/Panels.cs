@@ -7,6 +7,7 @@
         Users,
         Reports,
         CustomerAccounts,
-        Settings
+        Settings,
+        UserLogIn
     }
 }

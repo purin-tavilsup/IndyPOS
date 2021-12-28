@@ -29,12 +29,12 @@ namespace IndyPOS.IoC
 				   .SingleInstance();
 
             builder.RegisterAssemblyTypes(Assembly.Load("IndyPOS"))
-				   .Where(t => t.Namespace.Contains("UI"))
+				   .Where(t => t.Namespace?.Contains("UI") ?? false)
 				   .AsSelf()
 				   .SingleInstance();
 
             builder.RegisterAssemblyTypes(Assembly.Load("IndyPOS"))
-				   .Where(t => t.Namespace.Contains("Controllers"))
+				   .Where(t => t.Namespace?.Contains("Controllers") ?? false)
 				   .As(t => t.GetInterface("I" + t.Name))
 				   .SingleInstance();
 

@@ -1,11 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Diagnostics.CodeAnalysis;
 
 namespace IndyPOS.DataAccess.Models
 {
+    [ExcludeFromCodeCoverage]
     public class User
     {
         public int UserId { get; set; }

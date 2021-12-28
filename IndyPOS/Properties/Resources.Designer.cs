@@ -183,6 +183,16 @@ namespace IndyPOS.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
+        internal static System.Drawing.Bitmap Hidden_25 {
+            get {
+                object obj = ResourceManager.GetObject("Hidden_25", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
         internal static System.Drawing.Bitmap Inventory_50 {
             get {
                 object obj = ResourceManager.GetObject("Inventory_50", resourceCulture);
@@ -206,6 +216,16 @@ namespace IndyPOS.Properties {
         internal static System.Drawing.Bitmap Login_50 {
             get {
                 object obj = ResourceManager.GetObject("Login_50", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap LogInPanel_50 {
+            get {
+                object obj = ResourceManager.GetObject("LogInPanel_50", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
@@ -563,6 +583,16 @@ namespace IndyPOS.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
+        internal static System.Drawing.Bitmap SettingsPanel_50 {
+            get {
+                object obj = ResourceManager.GetObject("SettingsPanel_50", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
         internal static System.Drawing.Bitmap ShoppingCart_50 {
             get {
                 object obj = ResourceManager.GetObject("ShoppingCart_50", resourceCulture);
@@ -656,6 +686,16 @@ namespace IndyPOS.Properties {
         internal static System.Drawing.Bitmap User_Remove_50 {
             get {
                 object obj = ResourceManager.GetObject("User_Remove_50", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap Visible_25 {
+            get {
+                object obj = ResourceManager.GetObject("Visible_25", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
