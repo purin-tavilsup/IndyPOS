@@ -19,7 +19,7 @@ namespace IndyPOS.DataAccess.SQLite.Repositories
             _dbConnectionProvider = dbConnectionProvider;
         }
 
-		public IList<User> GetUsers()
+		public IEnumerable<User> GetUsers()
 		{
 			using (var connection = _dbConnectionProvider.GetDbConnection())
 			{
@@ -40,7 +40,7 @@ namespace IndyPOS.DataAccess.SQLite.Repositories
 			}
 		}
 
-		public User GetUserByUserId(int id)
+		public User GetUserById(int id)
 		{
 			using (var connection = _dbConnectionProvider.GetDbConnection())
 			{
@@ -67,7 +67,7 @@ namespace IndyPOS.DataAccess.SQLite.Repositories
 			}
 		}
 
-		public int AddUser(User user)
+		public int CreateUser(User user)
         {
 			using (var connection = _dbConnectionProvider.GetDbConnection())
 			{
@@ -131,7 +131,7 @@ namespace IndyPOS.DataAccess.SQLite.Repositories
 			}
 		}
 
-		public UserCredential GetUserCredentialByUserId(int id)
+		public UserCredential GetUserCredentialById(int id)
 		{
 			using (var connection = _dbConnectionProvider.GetDbConnection())
 			{
@@ -139,9 +139,10 @@ namespace IndyPOS.DataAccess.SQLite.Repositories
 
 				const string sqlCommand = @"SELECT
                 UserId,
+				Username,
                 Password,
                 DateCreated,
-				DateUpdated,
+				DateUpdated
                 FROM UserCredentials
 				WHERE UserId = @userId";
 
@@ -156,7 +157,7 @@ namespace IndyPOS.DataAccess.SQLite.Repositories
 			}
 		}
 
-		public void AddUserCredential(int userId, string encryptedSecret)
+		public void CreateUserCredential(int userId, string username, string password)
 		{
 			using (var connection = _dbConnectionProvider.GetDbConnection())
 			{
@@ -165,12 +166,14 @@ namespace IndyPOS.DataAccess.SQLite.Repositories
 				const string sqlCommand = @"INSERT INTO UserCredentials
                 (
                     UserId,
+					Username,
                     Password,
                     DateCreated
                 )
                 VALUES
                 (
                     @UserId,
+					@Username,
                     @Password,
                     datetime('now','localtime')
                 );";
@@ -178,7 +181,8 @@ namespace IndyPOS.DataAccess.SQLite.Repositories
 				var sqlParameters = new
 				{
 					UserId = userId,
-					Password = encryptedSecret
+					Username = username,
+					Password = password
 				};
 
 				var affectedRowsCount = connection.Execute(sqlCommand, sqlParameters);
@@ -188,7 +192,33 @@ namespace IndyPOS.DataAccess.SQLite.Repositories
 			}
 		}
 
-		public void UpdateUserCredential(int userId, string encryptedSecret)
+		public UserCredential GetUserCredentialByUsername(string username)
+		{
+			using (var connection = _dbConnectionProvider.GetDbConnection())
+			{
+				connection.Open();
+
+				const string sqlCommand = @"SELECT
+                UserId,
+				Username,
+                Password,
+                DateCreated,
+				DateUpdated
+                FROM UserCredentials
+				WHERE Username = @Username";
+
+				var sqlParameters = new
+									{
+										Username = username
+									};
+
+				var result = connection.Query(sqlCommand, sqlParameters).FirstOrDefault();
+
+				return MapUserCredential(result);
+			}
+		}
+
+		public void UpdateUserCredentialById(int userId, string password)
         {
 			using (var connection = _dbConnectionProvider.GetDbConnection())
 			{
@@ -203,7 +233,7 @@ namespace IndyPOS.DataAccess.SQLite.Repositories
 				var sqlParameters = new
 				{
 					UserId = userId,
-					Password = encryptedSecret
+					Password = password
 				};
 
 				var affectedRowsCount = connection.Execute(sqlCommand, sqlParameters);
@@ -218,6 +248,7 @@ namespace IndyPOS.DataAccess.SQLite.Repositories
 			var credential = new UserCredential
 							 {
 								 UserId = (int) result.UserId,
+								 Username = result.Username,
 								 Password = result.Password,
 								 DateCreated = result.DateCreated,
 								 DateUpdated = result.DateUpdated

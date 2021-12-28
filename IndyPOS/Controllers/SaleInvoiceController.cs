@@ -8,6 +8,7 @@ using IndyPOS.Sales;
 using Prism.Events;
 using System.Collections.Generic;
 using System.Linq;
+using IndyPOS.Users;
 
 namespace IndyPOS.Controllers
 {
@@ -17,6 +18,7 @@ namespace IndyPOS.Controllers
         private readonly IInvoiceRepository _invoicesRepository;
         private readonly IInventoryProductRepository _inventoryProductsRepository;
         private ISaleInvoice _saleInvoice;
+		private IUser _loggedInUser;
 
         public IReadOnlyCollection<ISaleInvoiceProduct> Products => (IReadOnlyCollection<ISaleInvoiceProduct>)_saleInvoice.Products;
 
@@ -28,10 +30,6 @@ namespace IndyPOS.Controllers
 
         public decimal Changes => _saleInvoice.Changes;
 
-        public int UserId { get; set; }
-
-        public int? CustomerId { get; set; }
-
         public SaleInvoiceController(IEventAggregator eventAggregator, 
 									 IInvoiceRepository invoicesRepository, 
 									 IInventoryProductRepository inventoryProductsRepository)
@@ -39,7 +37,15 @@ namespace IndyPOS.Controllers
             _eventAggregator = eventAggregator;
             _invoicesRepository = invoicesRepository;
             _inventoryProductsRepository = inventoryProductsRepository;
-        }
+
+			SubscribeEvents();
+		}
+
+		private void SubscribeEvents()
+		{
+			_eventAggregator.GetEvent<UserLoggedInEvent>().Subscribe(OnUserLoggedIn);
+			_eventAggregator.GetEvent<UserLoggedOutEvent>().Subscribe(OnUserLoggedOut);
+		}
 
         public void StartNewSale()
         {
@@ -223,6 +229,9 @@ namespace IndyPOS.Controllers
 		{
 			var message = new List<string>();
 
+			if (_loggedInUser == null)
+				message.Add("ไม่พบผู้ใช้งานในระบบ");
+
             if (!_saleInvoice.Products.Any()) 
 				message.Add("ไม่มีสินค้าในรายการ");
 
@@ -234,7 +243,7 @@ namespace IndyPOS.Controllers
 
 		public void CompleteSale()
 		{
-            var invoiceId = AddInvoiceToDatabase(_saleInvoice.InvoiceTotal, UserId, CustomerId);
+            var invoiceId = AddInvoiceToDatabase(_saleInvoice.InvoiceTotal);
             AddInvoiceProductsToDatabase(_saleInvoice.Products, invoiceId);
             AddPaymentsToDatabase(_saleInvoice.Payments, invoiceId);
 			UpdateInventoryProductsSoldOnInvoice(_saleInvoice.Products);
@@ -255,13 +264,13 @@ namespace IndyPOS.Controllers
 			}
 		}
 
-		private int AddInvoiceToDatabase(decimal total, int userId, int? customerId)
+		private int AddInvoiceToDatabase(decimal total)
 		{
             return _invoicesRepository.AddInvoice(new DataAccess.Models.Invoice
             {
                 Total = total,
-                UserId = userId,
-                CustomerId = customerId
+                UserId = _loggedInUser.UserId,
+                CustomerId = null
             });
         }
 
@@ -307,5 +316,15 @@ namespace IndyPOS.Controllers
                 Amount = payment.Amount
             });
         }
+
+		private void OnUserLoggedIn(IUser loggedInUser)
+		{
+			_loggedInUser = loggedInUser;
+		}
+
+		private void OnUserLoggedOut()
+		{
+			_loggedInUser = null;
+		}
     }
 }

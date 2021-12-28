@@ -1,18 +1,19 @@
-﻿using IndyPOS.Adapters;
+﻿using IndyPOS.Constants;
 using IndyPOS.Controllers;
-using IndyPOS.Sales;
+using IndyPOS.Enums;
 using IndyPOS.Events;
 using IndyPOS.Extensions;
-using IndyPOS.Enums;
+using IndyPOS.Sales;
 using Prism.Events;
 using System;
-using System.Windows.Forms;
-using IndyPOS.Constants;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Windows.Forms;
 
 namespace IndyPOS.UI
 {
+    [ExcludeFromCodeCoverage]
     public partial class SalePanel : UserControl
     {
         private readonly IEventAggregator _eventAggregator;
@@ -79,7 +80,7 @@ namespace IndyPOS.UI
             _eventAggregator.GetEvent<AllPaymentsRemovedEvent>().Subscribe(PaymentChanged);
             _eventAggregator.GetEvent<NewSaleStartedEvent>().Subscribe(ResetSaleInvoiceScreen);
             _eventAggregator.GetEvent<BarcodeReceivedEvent>().Subscribe(BarcodeReceived);
-            _eventAggregator.GetEvent<ActiveSubpanelChangedEvent>().Subscribe(ActiveSubPanelChanged);
+            _eventAggregator.GetEvent<ActiveSubPanelChangedEvent>().Subscribe(ActiveSubPanelChanged);
             
 		}
 

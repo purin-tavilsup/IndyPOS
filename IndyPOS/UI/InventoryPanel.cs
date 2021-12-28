@@ -7,11 +7,13 @@ using IndyPOS.Inventory;
 using Prism.Events;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Windows.Forms;
 
 namespace IndyPOS.UI
 {
+    [ExcludeFromCodeCoverage]
 	public partial class InventoryPanel : UserControl
     {
         private readonly IEventAggregator _eventAggregator;
@@ -65,7 +67,7 @@ namespace IndyPOS.UI
             _eventAggregator.GetEvent<InventoryProductAddedEvent>().Subscribe(NewInventoryProductAdded);
             _eventAggregator.GetEvent<InventoryProductUpdatedEvent>().Subscribe(InventoryProductUpdated);
             _eventAggregator.GetEvent<InventoryProductDeletedEvent>().Subscribe(InventoryProductDeleted);
-            _eventAggregator.GetEvent<ActiveSubpanelChangedEvent>().Subscribe(ActiveSubPanelChanged);
+            _eventAggregator.GetEvent<ActiveSubPanelChangedEvent>().Subscribe(ActiveSubPanelChanged);
         }
 
         private void InitializeProductCategories()

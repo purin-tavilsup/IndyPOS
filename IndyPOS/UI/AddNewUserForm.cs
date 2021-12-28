@@ -1,19 +1,17 @@
 ﻿using IndyPOS.Constants;
 using IndyPOS.Controllers;
 using IndyPOS.Cryptography;
+using IndyPOS.Extensions;
+using IndyPOS.Users;
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
-using IndyPOS.Users;
 
 namespace IndyPOS.UI
 {
+	[ExcludeFromCodeCoverage]
     public partial class AddNewUserForm : Form
     {
         private readonly IUserController _userController;
@@ -47,19 +45,19 @@ namespace IndyPOS.UI
 
         private bool ValidateProductEntry()
         {
-            if (string.IsNullOrWhiteSpace(UserSecretTextBox.Texts.Trim()))
-            {
-                _messageForm.Show("กรุณาสร้างรหัสผ่าน", "รหัสผ่านไม่ถูกต้อง");
-
-                return false;
-            }
-
-            if (string.IsNullOrWhiteSpace(FirstNameTextBox.Texts.Trim()))
+            if (!FirstNameTextBox.Texts.HasValue())
             {
                 _messageForm.Show("กรุณาใส่ชื่อของผู้ใช้", "ชื่อของผู้ใช้ไม่ถูกต้อง");
 
                 return false;
             }
+
+			if (!LastNameTextBox.Texts.HasValue())
+			{
+				_messageForm.Show("กรุณาใส่นามสกุลของผู้ใช้", "นามสกุลของผู้ใช้ไม่ถูกต้อง");
+
+				return false;
+			}
 
             if (!_userRoleDictionary.Values.Contains(UserRoleComboBox.Texts.Trim()))
             {
@@ -67,6 +65,13 @@ namespace IndyPOS.UI
 
                 return false;
             }
+
+			if (!UserSecretTextBox.Texts.HasValue())
+			{
+				_messageForm.Show("กรุณาสร้างรหัสผ่าน", "รหัสผ่านไม่ถูกต้อง");
+
+				return false;
+			}
 
             return true;
         }
@@ -81,7 +86,8 @@ namespace IndyPOS.UI
             var selectedRole = UserRoleComboBox.SelectedItem.ToString();
             var role = _userRoleDictionary.FirstOrDefault(x => x.Value == selectedRole);
             var roleId = role.Key;
-            var encryptedSecret = _cryptographyHelper.Encrypt(UserSecretTextBox.Texts.Trim());
+			var username = UsernameLabel.Text;
+            var encryptedPassword = _cryptographyHelper.Encrypt(UserSecretTextBox.Texts.Trim());
 
             var newUser = new User
             {
@@ -90,7 +96,7 @@ namespace IndyPOS.UI
                 RoleId = roleId
             };
 
-            _userController.AddNewUser(newUser, encryptedSecret);
+            _userController.AddNewUser(newUser, username, encryptedPassword);
 
             Close();
         }
@@ -98,6 +104,36 @@ namespace IndyPOS.UI
         private void CancelUserEntryButton_Click(object sender, EventArgs e)
         {
             Close();
+        }
+
+        private void FirstNameTextBox_Leave(object sender, EventArgs e)
+		{
+			if (!FirstNameTextBox.Texts.HasValue())
+				return;
+
+			GenerateUserName();
+		}
+
+        private void LastNameTextBox_Leave(object sender, EventArgs e)
+		{
+            if (!LastNameTextBox.Texts.HasValue())
+                return;
+
+			GenerateUserName();
+		}
+
+		private void GenerateUserName()
+		{
+			UsernameLabel.Text = $"{FirstNameTextBox.Texts.Trim()}.{LastNameTextBox.Texts.Trim()}";
+		}
+
+        private void PasswordVisibilityButton_Click(object sender, EventArgs e)
+        {
+			UserSecretTextBox.PasswordChar = !UserSecretTextBox.PasswordChar;
+
+			PasswordVisibilityButton.Image = UserSecretTextBox.PasswordChar 
+												 ? Properties.Resources.Visible_25 
+												 : Properties.Resources.Hidden_25;
         }
     }
 }

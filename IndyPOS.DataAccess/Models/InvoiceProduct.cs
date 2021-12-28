@@ -1,5 +1,8 @@
-﻿namespace IndyPOS.DataAccess.Models
+﻿using System.Diagnostics.CodeAnalysis;
+
+namespace IndyPOS.DataAccess.Models
 {
+	[ExcludeFromCodeCoverage]
 	public class InvoiceProduct
     {
         public int InvoiceProductId { get; set; }

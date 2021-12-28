@@ -12,3 +12,9 @@ packages/
 
 ModernUI/obj/
 ModernUI/bin/
+
+_NCrunch_IndyPOS/
+
+*.ncrunchsolution
+
+IndyPOS.v3.ncrunchsolution.user

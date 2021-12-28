@@ -1,32 +1,70 @@
-﻿using System;
+﻿using IndyPOS.Adapters;
+using IndyPOS.DataAccess.Repositories;
+using IndyPOS.Events;
+using IndyPOS.Users;
+using Prism.Events;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using IndyPOS.Adapters;
-using IndyPOS.DataAccess.Repositories;
-using IndyPOS.Inventory;
-using IndyPOS.Users;
 
 namespace IndyPOS.Controllers
 {
-	public class UserController : IUserController
+    public class UserController : IUserController
 	{
 		private readonly IUserRepository _userRepository;
+		private readonly IEventAggregator _eventAggregator;
+		private IUser _loggedInUser;
 
-		public UserController(IUserRepository userRepository)
+		public UserController(IEventAggregator eventAggregator, IUserRepository userRepository)
 		{
+			_eventAggregator = eventAggregator;
 			_userRepository = userRepository;
 		}
 
-		public void AddNewUser(IUser user, string encryptedSecret)
-        {
-			var userId = AddNewUser(user);
+		public IUser LoggedInUser => _loggedInUser;
 
-			AddNewUserSecretByUserId(userId, encryptedSecret);
+		public bool IsLoggedIn => _loggedInUser != null;
+
+		public bool LogIn(string username, string password)
+		{
+			try
+			{
+				var userCredential = GetUserCredentialByUserName(username);
+
+				if (userCredential == null || userCredential.Password != password)
+					return false;
+
+				var user = GetUserById(userCredential.UserId);
+
+				if (user == null)
+					return false;
+
+				_loggedInUser = user;
+
+				_eventAggregator.GetEvent<UserLoggedInEvent>().Publish(_loggedInUser);
+
+				return true;
+			}
+			catch
+			{
+				return false;
+			}
 		}
 
-		private int AddNewUser(IUser user)
+		public void LogOut()
+		{
+			_loggedInUser = null;
+
+			_eventAggregator.GetEvent<UserLoggedOutEvent>().Publish();
+		}
+
+		public void AddNewUser(IUser user, string username, string password)
+        {
+			var userId = AddNewUserInternal(user);
+
+			AddNewUserCredentialById(userId, username, password);
+		}
+
+		private int AddNewUserInternal(IUser user)
         {
 			var userModel = new DataAccess.Models.User
 			{
@@ -35,24 +73,24 @@ namespace IndyPOS.Controllers
 				RoleId = user.RoleId
 			};
 
-			return _userRepository.AddUser(userModel);
+			return _userRepository.CreateUser(userModel);
 		}
 
-		private void AddNewUserSecretByUserId(int id, string encryptedSecret)
+		private void AddNewUserCredentialById(int id, string username, string password)
         {
-			_userRepository.AddUserCredential(id, encryptedSecret);
+			_userRepository.CreateUserCredential(id, username, password);
 		}
 
-		public IList<IUser> GetUsers()
+		public IEnumerable<IUser> GetUsers()
 		{
 			var results = _userRepository.GetUsers();
 
 			return results.Select(p => new UserAdapter(p) as IUser).ToList();
 		}
 
-		public IUser GetUserByUserId(int id)
+		public IUser GetUserById(int id)
         {
-			var result = _userRepository.GetUserByUserId(id);
+			var result = _userRepository.GetUserById(id);
 
 			return new UserAdapter(result);
         }
@@ -69,14 +107,23 @@ namespace IndyPOS.Controllers
 			_userRepository.UpdateUser(userModel);
 		}
 
-		public void UpdateUserSecretByUserId(int id, string encryptedSecret)
+		public void UpdateUserCredentialById(int userId, string password)
 		{
-			_userRepository.UpdateUserCredential(id, encryptedSecret);
+			_userRepository.UpdateUserCredentialById(userId, password);
 		}
 
-		private void GetUserCredentialByUserId(int id)
+		public IUserCredential GetUserCredentialById(int id)
 		{
-			var result = _userRepository.GetUserCredentialByUserId(id);
+			var result = _userRepository.GetUserCredentialById(id);
+
+			return new UserCredentialAdapter(result);
+		}
+
+		private IUserCredential GetUserCredentialByUserName(string username)
+		{
+			var result = _userRepository.GetUserCredentialByUsername(username);
+
+			return new UserCredentialAdapter(result);
 		}
 	}
 }

@@ -10,11 +10,11 @@ namespace IndyPOS.Cryptography
 
 		public string Encrypt(string input)
 		{
-			var data = UTF8Encoding.UTF8.GetBytes(input);
+			var data = Encoding.UTF8.GetBytes(input);
 
 			using (var md5 = new MD5CryptoServiceProvider())
 			{
-				var keys = md5.ComputeHash(UTF8Encoding.UTF8.GetBytes(Hash));
+				var keys = md5.ComputeHash(Encoding.UTF8.GetBytes(Hash));
 
 				using (var tripleDes = new TripleDESCryptoServiceProvider {Key = keys, Mode = CipherMode.ECB, Padding = PaddingMode.PKCS7})
 				{
@@ -32,14 +32,14 @@ namespace IndyPOS.Cryptography
 
 			using (var md5 = new MD5CryptoServiceProvider())
 			{
-				var keys = md5.ComputeHash(UTF8Encoding.UTF8.GetBytes(Hash));
+				var keys = md5.ComputeHash(Encoding.UTF8.GetBytes(Hash));
 
 				using (var tripDes = new TripleDESCryptoServiceProvider { Key = keys, Mode = CipherMode.ECB, Padding = PaddingMode.PKCS7 })
 				{
 					var transform = tripDes.CreateDecryptor();
 					var results = transform.TransformFinalBlock(data, 0, data.Length);
 
-					return UTF8Encoding.UTF8.GetString(results);
+					return Encoding.UTF8.GetString(results);
 				}
 			}
 		}

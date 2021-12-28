@@ -4,11 +4,13 @@ using IndyPOS.Enums;
 using Prism.Events;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Windows.Forms;
 
 namespace IndyPOS.UI
 {
+    [ExcludeFromCodeCoverage]
 	public partial class AcceptPaymentForm : Form
     {
         private readonly IEventAggregator _eventAggregator;

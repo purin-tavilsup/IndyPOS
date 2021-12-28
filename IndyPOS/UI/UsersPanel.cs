@@ -1,15 +1,17 @@
 ﻿using IndyPOS.Constants;
 using IndyPOS.Controllers;
 using IndyPOS.Cryptography;
+using IndyPOS.Extensions;
 using IndyPOS.Users;
 using System;
 using System.Collections.Generic;
-using System.Data;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Windows.Forms;
 
 namespace IndyPOS.UI
 {
+	[ExcludeFromCodeCoverage]
     public partial class UsersPanel : UserControl
     {
         private readonly IUserController _userController;
@@ -17,7 +19,6 @@ namespace IndyPOS.UI
 		private readonly ICryptographyHelper _cryptographyHelper;
 		private readonly AddNewUserForm _addNewUserForm;
 		private IUser _selectedUser;
-		private const string UnchangedSecret = "UnchangedSecret";
 
 		private enum UserColumn
 		{
@@ -40,9 +41,6 @@ namespace IndyPOS.UI
 			_addNewUserForm = addNewUserForm;
 
             InitializeComponent();
-
-			//_userController.GetUsers();
-			//_userController.UpdateUserPasswordByUserId(1, "SomeWords");
 
 			InitializeProductCategories();
 			InitializeUserDataView();
@@ -135,6 +133,7 @@ namespace IndyPOS.UI
 			var role = _userRoleDictionary.FirstOrDefault(x => x.Value == selectedRole);
 			var roleId = role.Key;
 
+			ResetUserDetails();
 			ShowUsersByRoleId(roleId);
 		}
 
@@ -160,41 +159,54 @@ namespace IndyPOS.UI
 
 		private void ShowUserDetailsById(int userId)
         {
-			_selectedUser = _userController.GetUserByUserId(userId);
-
+			_selectedUser = _userController.GetUserById(userId);
+			
 			if (_selectedUser == null)
 				return;
 
+			var userCredential = _userController.GetUserCredentialById(userId);
 			var userRole = _userRoleDictionary.ContainsKey(_selectedUser.RoleId) ?
-				_userRoleDictionary[_selectedUser.RoleId] :
-				"Unknown";
+							   _userRoleDictionary[_selectedUser.RoleId] :
+							   "Unknown";
 
-			FirstNameTextBox.Texts = _selectedUser.FirstName ?? string.Empty;
-			LastNameTextBox.Texts = _selectedUser.LastName ?? string.Empty;
+			FirstNameLabel.Text = _selectedUser.FirstName;
+			LastNameLabel.Text = _selectedUser.LastName;
 			UserRoleLabel.Text = userRole;
-			UserSecretTextBox.Texts = UnchangedSecret;
+			UsernameLabel.Text = userCredential.Username;
+			UserSecretTextBox.Texts = _cryptographyHelper.Decrypt(userCredential.Password);
 		}
+
+		private void ResetUserDetails()
+        {
+			FirstNameLabel.Text = string.Empty;
+			LastNameLabel.Text = string.Empty;
+			UserRoleLabel.Text = string.Empty;
+			UsernameLabel.Text = string.Empty;
+			UserSecretTextBox.Texts = string.Empty;
+        }
 
         private void UpdateUserButton_Click(object sender, EventArgs e)
         {
-			_selectedUser.FirstName = FirstNameTextBox.Texts.Trim();
-			_selectedUser.LastName = LastNameTextBox.Texts.Trim();
+			if (!UserSecretTextBox.Texts.HasValue())
+				return;
 
-			_userController.UpdateUser(_selectedUser);
+			var encryptedPassword = _cryptographyHelper.Encrypt(UserSecretTextBox.Texts.Trim());
 
-			if (UserSecretTextBox.Texts != UnchangedSecret)
-            {
-				var encryptedSecret = _cryptographyHelper.Encrypt(UserSecretTextBox.Texts.Trim());
-
-				_userController.UpdateUserSecretByUserId(_selectedUser.UserId, encryptedSecret);
-			}
-
-			ShowUsersByRoleId(_selectedUser.RoleId);
+			_userController.UpdateUserCredentialById(_selectedUser.UserId, encryptedPassword);
 		}
 
         private void AddUserButton_Click(object sender, EventArgs e)
         {
 			_addNewUserForm.ShowDialog();
+		}
+
+        private void PasswordVisibilityButton_Click(object sender, EventArgs e)
+		{
+			UserSecretTextBox.PasswordChar = !UserSecretTextBox.PasswordChar;
+
+			PasswordVisibilityButton.Image = UserSecretTextBox.PasswordChar 
+												 ? Properties.Resources.Visible_25 
+												 : Properties.Resources.Hidden_25;
 		}
     }
 }
