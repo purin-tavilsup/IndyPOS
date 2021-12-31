@@ -203,39 +203,9 @@ namespace IndyPOS.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
-        internal static System.Drawing.Bitmap Liquor_50 {
-            get {
-                object obj = ResourceManager.GetObject("Liquor_50", resourceCulture);
-                return ((System.Drawing.Bitmap)(obj));
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized resource of type System.Drawing.Bitmap.
-        /// </summary>
-        internal static System.Drawing.Bitmap Login_50 {
-            get {
-                object obj = ResourceManager.GetObject("Login_50", resourceCulture);
-                return ((System.Drawing.Bitmap)(obj));
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized resource of type System.Drawing.Bitmap.
-        /// </summary>
         internal static System.Drawing.Bitmap LogInPanel_50 {
             get {
                 object obj = ResourceManager.GetObject("LogInPanel_50", resourceCulture);
-                return ((System.Drawing.Bitmap)(obj));
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized resource of type System.Drawing.Bitmap.
-        /// </summary>
-        internal static System.Drawing.Bitmap Logout_50 {
-            get {
-                object obj = ResourceManager.GetObject("Logout_50", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
@@ -306,26 +276,6 @@ namespace IndyPOS.Properties {
         internal static System.Drawing.Bitmap Money_Gray_80 {
             get {
                 object obj = ResourceManager.GetObject("Money_Gray_80", resourceCulture);
-                return ((System.Drawing.Bitmap)(obj));
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized resource of type System.Drawing.Bitmap.
-        /// </summary>
-        internal static System.Drawing.Bitmap Pack_2_50 {
-            get {
-                object obj = ResourceManager.GetObject("Pack_2_50", resourceCulture);
-                return ((System.Drawing.Bitmap)(obj));
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized resource of type System.Drawing.Bitmap.
-        /// </summary>
-        internal static System.Drawing.Bitmap Pack_50 {
-            get {
-                object obj = ResourceManager.GetObject("Pack_50", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
@@ -573,39 +523,9 @@ namespace IndyPOS.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
-        internal static System.Drawing.Bitmap Settings_50 {
-            get {
-                object obj = ResourceManager.GetObject("Settings_50", resourceCulture);
-                return ((System.Drawing.Bitmap)(obj));
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized resource of type System.Drawing.Bitmap.
-        /// </summary>
         internal static System.Drawing.Bitmap SettingsPanel_50 {
             get {
                 object obj = ResourceManager.GetObject("SettingsPanel_50", resourceCulture);
-                return ((System.Drawing.Bitmap)(obj));
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized resource of type System.Drawing.Bitmap.
-        /// </summary>
-        internal static System.Drawing.Bitmap ShoppingCart_50 {
-            get {
-                object obj = ResourceManager.GetObject("ShoppingCart_50", resourceCulture);
-                return ((System.Drawing.Bitmap)(obj));
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized resource of type System.Drawing.Bitmap.
-        /// </summary>
-        internal static System.Drawing.Bitmap SoftDrink_50 {
-            get {
-                object obj = ResourceManager.GetObject("SoftDrink_50", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }

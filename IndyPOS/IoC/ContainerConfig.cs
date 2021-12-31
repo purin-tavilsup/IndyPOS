@@ -16,6 +16,10 @@ namespace IndyPOS.IoC
         {
             var builder = new ContainerBuilder();
 
+			builder.RegisterType<Config>()
+				   .As<IConfig>()
+				   .SingleInstance();
+
             builder.RegisterType<Machine>()
 				   .As<IMachine>()
 				   .SingleInstance();
@@ -59,6 +63,10 @@ namespace IndyPOS.IoC
 
             builder.RegisterType<BarcodeScanner>()
 				   .As<IBarcodeScanner>()
+				   .SingleInstance();
+
+			builder.RegisterType<ReceiptPrinter>()
+				   .As<IReceiptPrinter>()
 				   .SingleInstance();
 
 			builder.RegisterType<CryptographyHelper>()

@@ -5,10 +5,11 @@ using IndyPOS.Events;
 using IndyPOS.Extensions;
 using IndyPOS.Inventory;
 using IndyPOS.Sales;
+using IndyPOS.Users;
 using Prism.Events;
 using System.Collections.Generic;
 using System.Linq;
-using IndyPOS.Users;
+using IndyPOS.Devices;
 
 namespace IndyPOS.Controllers
 {
@@ -17,6 +18,7 @@ namespace IndyPOS.Controllers
         private readonly IEventAggregator _eventAggregator;
         private readonly IInvoiceRepository _invoicesRepository;
         private readonly IInventoryProductRepository _inventoryProductsRepository;
+		private readonly IReceiptPrinter _receiptPrinter;
         private ISaleInvoice _saleInvoice;
 		private IUser _loggedInUser;
 
@@ -32,11 +34,13 @@ namespace IndyPOS.Controllers
 
         public SaleInvoiceController(IEventAggregator eventAggregator, 
 									 IInvoiceRepository invoicesRepository, 
-									 IInventoryProductRepository inventoryProductsRepository)
+									 IInventoryProductRepository inventoryProductsRepository,
+									 IReceiptPrinter receiptPrinter)
         {
             _eventAggregator = eventAggregator;
             _invoicesRepository = invoicesRepository;
             _inventoryProductsRepository = inventoryProductsRepository;
+			_receiptPrinter = receiptPrinter;
 
 			SubscribeEvents();
 		}
@@ -78,12 +82,12 @@ namespace IndyPOS.Controllers
             _eventAggregator.GetEvent<SaleInvoiceProductAddedEvent>().Publish();
         }
 
-        private int GetNextProductPriority(IList<ISaleInvoiceProduct> products)
+        private int GetNextProductPriority(ICollection<ISaleInvoiceProduct> products)
 		{
             return products.Count > 0 ? products.Max(p => p.Priority) + 1 : 1;
         }
 
-        private int GetNextPaymentPriority(IList<IPayment> payments)
+        private int GetNextPaymentPriority(ICollection<IPayment> payments)
         {
             return payments.Count > 0 ? payments.Max(p => p.Priority) + 1 : 1;
         }
@@ -243,15 +247,20 @@ namespace IndyPOS.Controllers
 
 		public void CompleteSale()
 		{
-            var invoiceId = AddInvoiceToDatabase(_saleInvoice.InvoiceTotal);
-            AddInvoiceProductsToDatabase(_saleInvoice.Products, invoiceId);
-            AddPaymentsToDatabase(_saleInvoice.Payments, invoiceId);
-			UpdateInventoryProductsSoldOnInvoice(_saleInvoice.Products);
+            AddInvoiceToDatabase(_saleInvoice, _loggedInUser.UserId);
+			AddInvoiceProductsToDatabase(_saleInvoice);
+            AddPaymentsToDatabase(_saleInvoice);
+			UpdateInventoryProductsSoldOnInvoice(_saleInvoice);
 		}
 
-        private void UpdateInventoryProductsSoldOnInvoice(IList<ISaleInvoiceProduct> products)
+		public void PrintReceipt()
 		{
-			var productGroups = products.GroupBy(p => p.InventoryProductId);
+			_receiptPrinter.PrintReceipt(_saleInvoice, _loggedInUser);
+		}
+
+        private void UpdateInventoryProductsSoldOnInvoice(ISaleInvoice saleInvoice)
+		{
+			var productGroups = saleInvoice.Products.GroupBy(p => p.InventoryProductId);
 
 			foreach (var group in productGroups)
 			{
@@ -264,21 +273,23 @@ namespace IndyPOS.Controllers
 			}
 		}
 
-		private int AddInvoiceToDatabase(decimal total)
+		private void AddInvoiceToDatabase(ISaleInvoice saleInvoice, int userId)
 		{
-            return _invoicesRepository.AddInvoice(new DataAccess.Models.Invoice
-            {
-                Total = total,
-                UserId = _loggedInUser.UserId,
-                CustomerId = null
-            });
+            var  invoiceId = _invoicesRepository.AddInvoice(new DataAccess.Models.Invoice 
+															{ 
+																Total = saleInvoice.InvoiceTotal,
+																UserId = userId,
+																CustomerId = null
+															});
+
+			saleInvoice.SetSaleInvoiceId(invoiceId);
         }
 
-        private void AddInvoiceProductsToDatabase(IList<ISaleInvoiceProduct> products, int invoiceId)
+        private void AddInvoiceProductsToDatabase(ISaleInvoice saleInvoice)
 		{
-            foreach(var product in products)
+            foreach(var product in saleInvoice.Products)
 			{
-                AddProductToDatabase(product, invoiceId);
+                AddProductToDatabase(product, saleInvoice.Id.GetValueOrDefault());
             }
 		}
 
@@ -299,11 +310,11 @@ namespace IndyPOS.Controllers
             });
         }
 
-        private void AddPaymentsToDatabase(IList<IPayment> payments, int invoiceId)
+        private void AddPaymentsToDatabase(ISaleInvoice saleInvoice)
         {
-            foreach(var payment in payments)
+            foreach(var payment in saleInvoice.Payments)
 			{
-                AddPaymentToDatabase(payment, invoiceId);
+                AddPaymentToDatabase(payment, saleInvoice.Id.GetValueOrDefault());
             }
         }
 

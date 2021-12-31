@@ -78,7 +78,11 @@ namespace IndyPOS.UI
 
 			UserInputPanel.Visible = true;
 			LogInButton.Text = "Log In";
-        }
+
+			// Dev Mode
+			UserNameTextBox.Texts = "purin.tavilsup";
+			UserSecretTextBox.Texts = "abc123";
+		}
 
 		private void HideUserInput()
         {

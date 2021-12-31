@@ -217,6 +217,7 @@ namespace IndyPOS.UI
 			}
 
 			_saleInvoiceController.CompleteSale();
+            _saleInvoiceController.PrintReceipt();
 			_saleInvoiceController.StartNewSale();
 		}
 
