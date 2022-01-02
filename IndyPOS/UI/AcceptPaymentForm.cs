@@ -1,6 +1,7 @@
 ﻿using IndyPOS.Constants;
 using IndyPOS.Controllers;
 using IndyPOS.Enums;
+using IndyPOS.Extensions;
 using Prism.Events;
 using System;
 using System.Collections.Generic;
@@ -77,7 +78,9 @@ namespace IndyPOS.UI
 
                 return;
 			}
-                
+
+			CalculateLatestAmount();
+
             _saleInvoiceController.AddPayment(_selectedPaymentType, _amount);
 
             Close();
@@ -306,7 +309,7 @@ namespace IndyPOS.UI
             if (_pendingStringValue.Contains("."))
                 return;
 
-            var decimalPoint = string.IsNullOrEmpty(_pendingStringValue) ? "0." : ".";
+			var decimalPoint = _pendingStringValue.HasValue() ? "." : "0.";
 
             _pendingStringValue += decimalPoint;
 
@@ -321,7 +324,7 @@ namespace IndyPOS.UI
 
         private void CalculateLatestAmount()
 		{
-            if (string.IsNullOrEmpty(_pendingStringValue))
+            if (!_pendingStringValue.HasValue())
                 return;
 
             var value = decimal.Parse(_pendingStringValue);

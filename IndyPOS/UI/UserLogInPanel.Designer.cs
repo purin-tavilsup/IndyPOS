@@ -53,7 +53,7 @@
             this.PasswordVisibilityButton.Location = new System.Drawing.Point(441, 63);
             this.PasswordVisibilityButton.Name = "PasswordVisibilityButton";
             this.PasswordVisibilityButton.Size = new System.Drawing.Size(39, 39);
-            this.PasswordVisibilityButton.TabIndex = 84;
+            this.PasswordVisibilityButton.TabIndex = 81;
             this.PasswordVisibilityButton.TextColor = System.Drawing.Color.White;
             this.PasswordVisibilityButton.UseVisualStyleBackColor = false;
             this.PasswordVisibilityButton.Click += new System.EventHandler(this.PasswordVisibilityButton_Click);
@@ -103,7 +103,7 @@
             this.UserSecretTextBox.PasswordChar = true;
             this.UserSecretTextBox.ReadOnly = false;
             this.UserSecretTextBox.Size = new System.Drawing.Size(272, 39);
-            this.UserSecretTextBox.TabIndex = 81;
+            this.UserSecretTextBox.TabIndex = 84;
             this.UserSecretTextBox.TextAlign = System.Windows.Forms.HorizontalAlignment.Left;
             this.UserSecretTextBox.Texts = "";
             this.UserSecretTextBox.UnderlinedStyle = true;
@@ -134,7 +134,7 @@
             this.LogInButton.Location = new System.Drawing.Point(578, 362);
             this.LogInButton.Name = "LogInButton";
             this.LogInButton.Size = new System.Drawing.Size(174, 53);
-            this.LogInButton.TabIndex = 79;
+            this.LogInButton.TabIndex = 85;
             this.LogInButton.Text = "Login";
             this.LogInButton.TextColor = System.Drawing.Color.White;
             this.LogInButton.UseVisualStyleBackColor = false;

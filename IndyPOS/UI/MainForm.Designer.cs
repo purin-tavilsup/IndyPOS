@@ -30,7 +30,13 @@
         {
             this.NavigationPanel = new System.Windows.Forms.Panel();
             this.TitlePanel = new System.Windows.Forms.Panel();
+            this.panel1 = new System.Windows.Forms.Panel();
+            this.LoggedInUserLabel = new System.Windows.Forms.Label();
+            this.DateTimeLabel = new System.Windows.Forms.Label();
             this.panel9 = new System.Windows.Forms.Panel();
+            this.ResizeWindowsButton = new ModernUI.ModernButton();
+            this.CloseWindowsButton = new ModernUI.ModernButton();
+            this.MinimizeWindowsButton = new ModernUI.ModernButton();
             this.label1 = new System.Windows.Forms.Label();
             this.ActivePanel = new System.Windows.Forms.Panel();
             this.ControlPanel = new System.Windows.Forms.Panel();
@@ -42,16 +48,10 @@
             this.UsersButton = new System.Windows.Forms.Button();
             this.InventoryButton = new System.Windows.Forms.Button();
             this.SaleButton = new System.Windows.Forms.Button();
-            this.MinimizeWindowsButton = new ModernUI.ModernButton();
-            this.ResizeWindowsButton = new ModernUI.ModernButton();
-            this.CloseWindowsButton = new ModernUI.ModernButton();
-            this.LoggedInUserLabel = new System.Windows.Forms.Label();
-            this.DateTimeLabel = new System.Windows.Forms.Label();
-            this.panel1 = new System.Windows.Forms.Panel();
             this.TitlePanel.SuspendLayout();
+            this.panel1.SuspendLayout();
             this.panel9.SuspendLayout();
             this.ControlPanel.SuspendLayout();
-            this.panel1.SuspendLayout();
             this.SuspendLayout();
             // 
             // NavigationPanel
@@ -77,6 +77,38 @@
             this.TitlePanel.Size = new System.Drawing.Size(1412, 52);
             this.TitlePanel.TabIndex = 1;
             // 
+            // panel1
+            // 
+            this.panel1.Controls.Add(this.LoggedInUserLabel);
+            this.panel1.Controls.Add(this.DateTimeLabel);
+            this.panel1.Dock = System.Windows.Forms.DockStyle.Right;
+            this.panel1.Location = new System.Drawing.Point(588, 0);
+            this.panel1.Name = "panel1";
+            this.panel1.Size = new System.Drawing.Size(645, 52);
+            this.panel1.TabIndex = 7;
+            // 
+            // LoggedInUserLabel
+            // 
+            this.LoggedInUserLabel.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.LoggedInUserLabel.ForeColor = System.Drawing.Color.WhiteSmoke;
+            this.LoggedInUserLabel.Location = new System.Drawing.Point(3, 7);
+            this.LoggedInUserLabel.Name = "LoggedInUserLabel";
+            this.LoggedInUserLabel.Size = new System.Drawing.Size(257, 39);
+            this.LoggedInUserLabel.TabIndex = 5;
+            this.LoggedInUserLabel.Text = "User:";
+            this.LoggedInUserLabel.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            // 
+            // DateTimeLabel
+            // 
+            this.DateTimeLabel.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.DateTimeLabel.ForeColor = System.Drawing.Color.WhiteSmoke;
+            this.DateTimeLabel.Location = new System.Drawing.Point(266, 7);
+            this.DateTimeLabel.Name = "DateTimeLabel";
+            this.DateTimeLabel.Size = new System.Drawing.Size(373, 39);
+            this.DateTimeLabel.TabIndex = 6;
+            this.DateTimeLabel.Text = "Date:";
+            this.DateTimeLabel.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            // 
             // panel9
             // 
             this.panel9.Controls.Add(this.ResizeWindowsButton);
@@ -87,6 +119,66 @@
             this.panel9.Name = "panel9";
             this.panel9.Size = new System.Drawing.Size(179, 52);
             this.panel9.TabIndex = 4;
+            // 
+            // ResizeWindowsButton
+            // 
+            this.ResizeWindowsButton.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(25)))), ((int)(((byte)(25)))), ((int)(((byte)(25)))));
+            this.ResizeWindowsButton.BackgroundColor = System.Drawing.Color.FromArgb(((int)(((byte)(25)))), ((int)(((byte)(25)))), ((int)(((byte)(25)))));
+            this.ResizeWindowsButton.BorderColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
+            this.ResizeWindowsButton.BorderRadius = 19;
+            this.ResizeWindowsButton.BorderSize = 1;
+            this.ResizeWindowsButton.FlatAppearance.BorderSize = 0;
+            this.ResizeWindowsButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.ResizeWindowsButton.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.ResizeWindowsButton.ForeColor = System.Drawing.Color.White;
+            this.ResizeWindowsButton.Image = global::IndyPOS.Properties.Resources.maximize_window_24px;
+            this.ResizeWindowsButton.Location = new System.Drawing.Point(72, 9);
+            this.ResizeWindowsButton.Name = "ResizeWindowsButton";
+            this.ResizeWindowsButton.Size = new System.Drawing.Size(35, 35);
+            this.ResizeWindowsButton.TabIndex = 86;
+            this.ResizeWindowsButton.TextColor = System.Drawing.Color.White;
+            this.ResizeWindowsButton.UseVisualStyleBackColor = false;
+            this.ResizeWindowsButton.Click += new System.EventHandler(this.ResizeWindows_Click);
+            // 
+            // CloseWindowsButton
+            // 
+            this.CloseWindowsButton.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(25)))), ((int)(((byte)(25)))), ((int)(((byte)(25)))));
+            this.CloseWindowsButton.BackgroundColor = System.Drawing.Color.FromArgb(((int)(((byte)(25)))), ((int)(((byte)(25)))), ((int)(((byte)(25)))));
+            this.CloseWindowsButton.BorderColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
+            this.CloseWindowsButton.BorderRadius = 19;
+            this.CloseWindowsButton.BorderSize = 1;
+            this.CloseWindowsButton.FlatAppearance.BorderSize = 0;
+            this.CloseWindowsButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.CloseWindowsButton.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.CloseWindowsButton.ForeColor = System.Drawing.Color.White;
+            this.CloseWindowsButton.Image = global::IndyPOS.Properties.Resources.close_window_24px;
+            this.CloseWindowsButton.Location = new System.Drawing.Point(132, 9);
+            this.CloseWindowsButton.Name = "CloseWindowsButton";
+            this.CloseWindowsButton.Size = new System.Drawing.Size(35, 35);
+            this.CloseWindowsButton.TabIndex = 87;
+            this.CloseWindowsButton.TextColor = System.Drawing.Color.White;
+            this.CloseWindowsButton.UseVisualStyleBackColor = false;
+            this.CloseWindowsButton.Click += new System.EventHandler(this.CloseWindows_Click);
+            // 
+            // MinimizeWindowsButton
+            // 
+            this.MinimizeWindowsButton.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(25)))), ((int)(((byte)(25)))), ((int)(((byte)(25)))));
+            this.MinimizeWindowsButton.BackgroundColor = System.Drawing.Color.FromArgb(((int)(((byte)(25)))), ((int)(((byte)(25)))), ((int)(((byte)(25)))));
+            this.MinimizeWindowsButton.BorderColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
+            this.MinimizeWindowsButton.BorderRadius = 19;
+            this.MinimizeWindowsButton.BorderSize = 1;
+            this.MinimizeWindowsButton.FlatAppearance.BorderSize = 0;
+            this.MinimizeWindowsButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.MinimizeWindowsButton.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.MinimizeWindowsButton.ForeColor = System.Drawing.Color.White;
+            this.MinimizeWindowsButton.Image = global::IndyPOS.Properties.Resources.minimize_window_24px;
+            this.MinimizeWindowsButton.Location = new System.Drawing.Point(11, 9);
+            this.MinimizeWindowsButton.Name = "MinimizeWindowsButton";
+            this.MinimizeWindowsButton.Size = new System.Drawing.Size(35, 35);
+            this.MinimizeWindowsButton.TabIndex = 85;
+            this.MinimizeWindowsButton.TextColor = System.Drawing.Color.White;
+            this.MinimizeWindowsButton.UseVisualStyleBackColor = false;
+            this.MinimizeWindowsButton.Click += new System.EventHandler(this.MinimizeWindows_Click);
             // 
             // label1
             // 
@@ -268,98 +360,6 @@
             this.SaleButton.UseVisualStyleBackColor = false;
             this.SaleButton.Click += new System.EventHandler(this.SaleButton_Click);
             // 
-            // MinimizeWindowsButton
-            // 
-            this.MinimizeWindowsButton.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(25)))), ((int)(((byte)(25)))), ((int)(((byte)(25)))));
-            this.MinimizeWindowsButton.BackgroundColor = System.Drawing.Color.FromArgb(((int)(((byte)(25)))), ((int)(((byte)(25)))), ((int)(((byte)(25)))));
-            this.MinimizeWindowsButton.BorderColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
-            this.MinimizeWindowsButton.BorderRadius = 19;
-            this.MinimizeWindowsButton.BorderSize = 1;
-            this.MinimizeWindowsButton.FlatAppearance.BorderSize = 0;
-            this.MinimizeWindowsButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.MinimizeWindowsButton.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.MinimizeWindowsButton.ForeColor = System.Drawing.Color.White;
-            this.MinimizeWindowsButton.Image = global::IndyPOS.Properties.Resources.minimize_window_24px;
-            this.MinimizeWindowsButton.Location = new System.Drawing.Point(11, 9);
-            this.MinimizeWindowsButton.Name = "MinimizeWindowsButton";
-            this.MinimizeWindowsButton.Size = new System.Drawing.Size(35, 35);
-            this.MinimizeWindowsButton.TabIndex = 85;
-            this.MinimizeWindowsButton.TextColor = System.Drawing.Color.White;
-            this.MinimizeWindowsButton.UseVisualStyleBackColor = false;
-            this.MinimizeWindowsButton.Click += new System.EventHandler(this.MinimizeWindows_Click);
-            // 
-            // ResizeWindowsButton
-            // 
-            this.ResizeWindowsButton.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(25)))), ((int)(((byte)(25)))), ((int)(((byte)(25)))));
-            this.ResizeWindowsButton.BackgroundColor = System.Drawing.Color.FromArgb(((int)(((byte)(25)))), ((int)(((byte)(25)))), ((int)(((byte)(25)))));
-            this.ResizeWindowsButton.BorderColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
-            this.ResizeWindowsButton.BorderRadius = 19;
-            this.ResizeWindowsButton.BorderSize = 1;
-            this.ResizeWindowsButton.FlatAppearance.BorderSize = 0;
-            this.ResizeWindowsButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.ResizeWindowsButton.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.ResizeWindowsButton.ForeColor = System.Drawing.Color.White;
-            this.ResizeWindowsButton.Image = global::IndyPOS.Properties.Resources.maximize_window_24px;
-            this.ResizeWindowsButton.Location = new System.Drawing.Point(72, 9);
-            this.ResizeWindowsButton.Name = "ResizeWindowsButton";
-            this.ResizeWindowsButton.Size = new System.Drawing.Size(35, 35);
-            this.ResizeWindowsButton.TabIndex = 86;
-            this.ResizeWindowsButton.TextColor = System.Drawing.Color.White;
-            this.ResizeWindowsButton.UseVisualStyleBackColor = false;
-            this.ResizeWindowsButton.Click += new System.EventHandler(this.ResizeWindows_Click);
-            // 
-            // CloseWindowsButton
-            // 
-            this.CloseWindowsButton.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(25)))), ((int)(((byte)(25)))), ((int)(((byte)(25)))));
-            this.CloseWindowsButton.BackgroundColor = System.Drawing.Color.FromArgb(((int)(((byte)(25)))), ((int)(((byte)(25)))), ((int)(((byte)(25)))));
-            this.CloseWindowsButton.BorderColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
-            this.CloseWindowsButton.BorderRadius = 19;
-            this.CloseWindowsButton.BorderSize = 1;
-            this.CloseWindowsButton.FlatAppearance.BorderSize = 0;
-            this.CloseWindowsButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.CloseWindowsButton.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.CloseWindowsButton.ForeColor = System.Drawing.Color.White;
-            this.CloseWindowsButton.Image = global::IndyPOS.Properties.Resources.close_window_24px;
-            this.CloseWindowsButton.Location = new System.Drawing.Point(132, 9);
-            this.CloseWindowsButton.Name = "CloseWindowsButton";
-            this.CloseWindowsButton.Size = new System.Drawing.Size(35, 35);
-            this.CloseWindowsButton.TabIndex = 87;
-            this.CloseWindowsButton.TextColor = System.Drawing.Color.White;
-            this.CloseWindowsButton.UseVisualStyleBackColor = false;
-            this.CloseWindowsButton.Click += new System.EventHandler(this.CloseWindows_Click);
-            // 
-            // LoggedInUserLabel
-            // 
-            this.LoggedInUserLabel.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.LoggedInUserLabel.ForeColor = System.Drawing.Color.WhiteSmoke;
-            this.LoggedInUserLabel.Location = new System.Drawing.Point(3, 7);
-            this.LoggedInUserLabel.Name = "LoggedInUserLabel";
-            this.LoggedInUserLabel.Size = new System.Drawing.Size(284, 39);
-            this.LoggedInUserLabel.TabIndex = 5;
-            this.LoggedInUserLabel.Text = "User:";
-            this.LoggedInUserLabel.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
-            // 
-            // DateTimeLabel
-            // 
-            this.DateTimeLabel.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.DateTimeLabel.ForeColor = System.Drawing.Color.WhiteSmoke;
-            this.DateTimeLabel.Location = new System.Drawing.Point(293, 7);
-            this.DateTimeLabel.Name = "DateTimeLabel";
-            this.DateTimeLabel.Size = new System.Drawing.Size(434, 39);
-            this.DateTimeLabel.TabIndex = 6;
-            this.DateTimeLabel.Text = "Date:";
-            this.DateTimeLabel.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
-            // 
-            // panel1
-            // 
-            this.panel1.Controls.Add(this.LoggedInUserLabel);
-            this.panel1.Controls.Add(this.DateTimeLabel);
-            this.panel1.Dock = System.Windows.Forms.DockStyle.Right;
-            this.panel1.Location = new System.Drawing.Point(499, 0);
-            this.panel1.Name = "panel1";
-            this.panel1.Size = new System.Drawing.Size(734, 52);
-            this.panel1.TabIndex = 7;
-            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -377,9 +377,9 @@
             this.Load += new System.EventHandler(this.MainForm_Load);
             this.Shown += new System.EventHandler(this.MainForm_Shown);
             this.TitlePanel.ResumeLayout(false);
+            this.panel1.ResumeLayout(false);
             this.panel9.ResumeLayout(false);
             this.ControlPanel.ResumeLayout(false);
-            this.panel1.ResumeLayout(false);
             this.ResumeLayout(false);
 
         }

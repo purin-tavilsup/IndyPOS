@@ -5,6 +5,8 @@ namespace IndyPOS.Sales
 {
 	public class SaleInvoice : ISaleInvoice
 	{
+        public int? Id { get; private set; }
+
         public IList<ISaleInvoiceProduct> Products { get; }
 
         public IList<IPayment> Payments { get; }
@@ -14,10 +16,6 @@ namespace IndyPOS.Sales
         public decimal PaymentTotal => Payments.Sum(p => p.Amount);
 
         public decimal Changes => CalculateChanges();
-
-        public int UserId { get; set; }
-
-        public int? CustomerId { get; set; }
 
         public SaleInvoice()
 		{
@@ -30,6 +28,11 @@ namespace IndyPOS.Sales
             var amount = PaymentTotal - InvoiceTotal;
 
             return amount >= 0 ? amount : 0m;
+        }
+
+        public void SetSaleInvoiceId(int id)
+        {
+            Id = id;
         }
     }
 }

@@ -4,7 +4,9 @@ namespace IndyPOS.Sales
 {
 	public interface ISaleInvoice
 	{
-        IList<ISaleInvoiceProduct> Products { get; }
+        int? Id { get; }
+
+		IList<ISaleInvoiceProduct> Products { get; }
 
         IList<IPayment> Payments { get; }
 
@@ -14,8 +16,6 @@ namespace IndyPOS.Sales
 
         decimal Changes { get; }
 
-        int UserId { get; set; }
-
-        int? CustomerId { get; set; }
+        void SetSaleInvoiceId(int id);
     }
 }

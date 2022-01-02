@@ -68,10 +68,9 @@ namespace IndyPOS.UI
 
         private void DateTimeUpdateTimer_Tick(object sender, EventArgs e)
 		{
-			var date = DateTime.Now.ToString("dddd, dd MMMM yyyy");
-			var time = DateTime.Now.ToString("hh:mm tt");
+			var dateTime = DateTime.Now.ToString("dddd, dd MMMM yyyy hh:mm tt");
 
-			DateTimeLabel.Text = $"Date: {date} Time: {time}";
+			DateTimeLabel.Text = dateTime;
 		}
 
         private void SubscribeEvents()

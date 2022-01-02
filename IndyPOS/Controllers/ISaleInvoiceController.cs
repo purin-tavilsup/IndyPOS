@@ -23,6 +23,8 @@ namespace IndyPOS.Controllers
 
         void CompleteSale();
 
+		void PrintReceipt();
+
         void RemoveAllPayments();
 
         void AddProduct(string barcode);

@@ -124,7 +124,7 @@ namespace IndyPOS.UI
 
 		private void GenerateUserName()
 		{
-			UsernameLabel.Text = $"{FirstNameTextBox.Texts.Trim()}.{LastNameTextBox.Texts.Trim()}";
+			UsernameLabel.Text = $"{FirstNameTextBox.Texts.Trim().ToLower()}.{LastNameTextBox.Texts.Trim().ToLower()}";
 		}
 
         private void PasswordVisibilityButton_Click(object sender, EventArgs e)

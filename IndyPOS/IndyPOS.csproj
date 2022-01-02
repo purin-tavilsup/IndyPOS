@@ -62,9 +62,6 @@
     <Reference Include="Microsoft.Bcl.AsyncInterfaces, Version=6.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
       <HintPath>..\packages\Microsoft.Bcl.AsyncInterfaces.6.0.0\lib\net461\Microsoft.Bcl.AsyncInterfaces.dll</HintPath>
     </Reference>
-    <Reference Include="NLog, Version=4.0.0.0, Culture=neutral, PublicKeyToken=5120e14c03d0593c, processorArchitecture=MSIL">
-      <HintPath>..\packages\NLog.4.7.10\lib\net45\NLog.dll</HintPath>
-    </Reference>
     <Reference Include="Prism, Version=8.1.97.5141, Culture=neutral, PublicKeyToken=40ee6c3a2184dc59, processorArchitecture=MSIL">
       <HintPath>..\packages\Prism.Core.8.1.97\lib\net47\Prism.dll</HintPath>
     </Reference>
@@ -110,10 +107,13 @@
   <ItemGroup>
     <Compile Include="Adapters\UserAdapter.cs" />
     <Compile Include="Adapters\UserCredentialAdapter.cs" />
+    <Compile Include="Config.cs" />
     <Compile Include="Controllers\IUserController.cs" />
     <Compile Include="Controllers\UserController.cs" />
     <Compile Include="Cryptography\CryptographyHelper.cs" />
     <Compile Include="Cryptography\ICryptographyHelper.cs" />
+    <Compile Include="Devices\IReceiptPrinter.cs" />
+    <Compile Include="Devices\ReceiptPrinter.cs" />
     <Compile Include="Enums\Panels.cs" />
     <Compile Include="Events\ActiveSubpanelChangedEvent.cs" />
     <Compile Include="Events\AllPaymentsRemovedEvent.cs" />
@@ -122,6 +122,7 @@
     <Compile Include="Events\InventoryProductUpdatedEvent.cs" />
     <Compile Include="Events\UserLoggedInEvent.cs" />
     <Compile Include="Events\UserLoggedOutEvent.cs" />
+    <Compile Include="IConfig.cs" />
     <Compile Include="Inventory\IInventoryProduct.cs" />
     <Compile Include="Sales\IPayment.cs" />
     <Compile Include="Sales\ISaleInvoice.cs" />
@@ -164,6 +165,12 @@
     </Compile>
     <Compile Include="UI\AddNewUserForm.Designer.cs">
       <DependentUpon>AddNewUserForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="UI\PrintReceiptForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\PrintReceiptForm.Designer.cs">
+      <DependentUpon>PrintReceiptForm.cs</DependentUpon>
     </Compile>
     <Compile Include="UI\MessageForm.cs">
       <SubType>Form</SubType>
@@ -243,11 +250,15 @@
     <Compile Include="Users\IUserCredential.cs" />
     <Compile Include="Users\User.cs" />
     <Compile Include="Users\UserCredential.cs" />
+    <Compile Include="Utilities\PersistentXml.cs" />
     <EmbeddedResource Include="UI\AcceptPaymentForm.resx">
       <DependentUpon>AcceptPaymentForm.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="UI\AddNewUserForm.resx">
       <DependentUpon>AddNewUserForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="UI\PrintReceiptForm.resx">
+      <DependentUpon>PrintReceiptForm.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="UI\MessageForm.resx">
       <DependentUpon>MessageForm.cs</DependentUpon>
@@ -536,6 +547,9 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\Visible_25.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Receipt_80.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="..\packages\Stub.System.Data.SQLite.Core.NetFramework.1.0.115.5\build\net46\Stub.System.Data.SQLite.Core.NetFramework.targets" Condition="Exists('..\packages\Stub.System.Data.SQLite.Core.NetFramework.1.0.115.5\build\net46\Stub.System.Data.SQLite.Core.NetFramework.targets')" />
