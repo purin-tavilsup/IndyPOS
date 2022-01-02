@@ -39,6 +39,8 @@
             this.DateCreated = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.DateUpdated = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.panel3 = new System.Windows.Forms.Panel();
+            this.DeleteUserButton = new ModernUI.ModernButton();
+            this.PasswordVisibilityButton = new ModernUI.ModernButton();
             this.LastNameLabel = new System.Windows.Forms.Label();
             this.FirstNameLabel = new System.Windows.Forms.Label();
             this.UsernameLabel = new System.Windows.Forms.Label();
@@ -56,7 +58,6 @@
             this.AddUserButton = new ModernUI.ModernButton();
             this.UserRoleComboBox = new ModernUI.ModernComboBox();
             this.label1 = new System.Windows.Forms.Label();
-            this.PasswordVisibilityButton = new ModernUI.ModernButton();
             this.panel1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.UserDataView)).BeginInit();
             this.panel3.SuspendLayout();
@@ -180,6 +181,7 @@
             // 
             this.panel3.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
             this.panel3.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.panel3.Controls.Add(this.DeleteUserButton);
             this.panel3.Controls.Add(this.PasswordVisibilityButton);
             this.panel3.Controls.Add(this.LastNameLabel);
             this.panel3.Controls.Add(this.FirstNameLabel);
@@ -198,6 +200,46 @@
             this.panel3.Name = "panel3";
             this.panel3.Size = new System.Drawing.Size(489, 631);
             this.panel3.TabIndex = 4;
+            // 
+            // DeleteUserButton
+            // 
+            this.DeleteUserButton.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
+            this.DeleteUserButton.BackgroundColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
+            this.DeleteUserButton.BorderColor = System.Drawing.Color.FromArgb(((int)(((byte)(224)))), ((int)(((byte)(79)))), ((int)(((byte)(95)))));
+            this.DeleteUserButton.BorderRadius = 18;
+            this.DeleteUserButton.BorderSize = 1;
+            this.DeleteUserButton.FlatAppearance.BorderSize = 0;
+            this.DeleteUserButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.DeleteUserButton.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.DeleteUserButton.ForeColor = System.Drawing.Color.White;
+            this.DeleteUserButton.Location = new System.Drawing.Point(148, 333);
+            this.DeleteUserButton.Name = "DeleteUserButton";
+            this.DeleteUserButton.Size = new System.Drawing.Size(272, 53);
+            this.DeleteUserButton.TabIndex = 77;
+            this.DeleteUserButton.Text = "Delete";
+            this.DeleteUserButton.TextColor = System.Drawing.Color.White;
+            this.DeleteUserButton.UseVisualStyleBackColor = false;
+            this.DeleteUserButton.Click += new System.EventHandler(this.DeleteUserButton_Click);
+            // 
+            // PasswordVisibilityButton
+            // 
+            this.PasswordVisibilityButton.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
+            this.PasswordVisibilityButton.BackgroundColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
+            this.PasswordVisibilityButton.BorderColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
+            this.PasswordVisibilityButton.BorderRadius = 19;
+            this.PasswordVisibilityButton.BorderSize = 1;
+            this.PasswordVisibilityButton.FlatAppearance.BorderSize = 0;
+            this.PasswordVisibilityButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.PasswordVisibilityButton.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.PasswordVisibilityButton.ForeColor = System.Drawing.Color.White;
+            this.PasswordVisibilityButton.Image = global::IndyPOS.Properties.Resources.Visible_25;
+            this.PasswordVisibilityButton.Location = new System.Drawing.Point(426, 181);
+            this.PasswordVisibilityButton.Name = "PasswordVisibilityButton";
+            this.PasswordVisibilityButton.Size = new System.Drawing.Size(39, 39);
+            this.PasswordVisibilityButton.TabIndex = 76;
+            this.PasswordVisibilityButton.TextColor = System.Drawing.Color.White;
+            this.PasswordVisibilityButton.UseVisualStyleBackColor = false;
+            this.PasswordVisibilityButton.Click += new System.EventHandler(this.PasswordVisibilityButton_Click);
             // 
             // LastNameLabel
             // 
@@ -430,26 +472,6 @@
             this.label1.Text = "ประเภทผู้ใช้งาน";
             this.label1.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             // 
-            // PasswordVisibilityButton
-            // 
-            this.PasswordVisibilityButton.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
-            this.PasswordVisibilityButton.BackgroundColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
-            this.PasswordVisibilityButton.BorderColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
-            this.PasswordVisibilityButton.BorderRadius = 19;
-            this.PasswordVisibilityButton.BorderSize = 1;
-            this.PasswordVisibilityButton.FlatAppearance.BorderSize = 0;
-            this.PasswordVisibilityButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.PasswordVisibilityButton.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.PasswordVisibilityButton.ForeColor = System.Drawing.Color.White;
-            this.PasswordVisibilityButton.Image = global::IndyPOS.Properties.Resources.Visible_25;
-            this.PasswordVisibilityButton.Location = new System.Drawing.Point(426, 181);
-            this.PasswordVisibilityButton.Name = "PasswordVisibilityButton";
-            this.PasswordVisibilityButton.Size = new System.Drawing.Size(39, 39);
-            this.PasswordVisibilityButton.TabIndex = 76;
-            this.PasswordVisibilityButton.TextColor = System.Drawing.Color.White;
-            this.PasswordVisibilityButton.UseVisualStyleBackColor = false;
-            this.PasswordVisibilityButton.Click += new System.EventHandler(this.PasswordVisibilityButton_Click);
-            // 
             // UsersPanel
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -458,6 +480,7 @@
             this.Controls.Add(this.panel1);
             this.Name = "UsersPanel";
             this.Size = new System.Drawing.Size(1421, 697);
+            this.VisibleChanged += new System.EventHandler(this.UsersPanel_VisibleChanged);
             this.panel1.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.UserDataView)).EndInit();
             this.panel3.ResumeLayout(false);
@@ -496,5 +519,6 @@
         private System.Windows.Forms.Label LastNameLabel;
         private System.Windows.Forms.Label FirstNameLabel;
         private ModernUI.ModernButton PasswordVisibilityButton;
+        private ModernUI.ModernButton DeleteUserButton;
     }
 }

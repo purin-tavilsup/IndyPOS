@@ -1,4 +1,5 @@
-﻿using IndyPOS.Adapters;
+﻿using System;
+using IndyPOS.Adapters;
 using IndyPOS.DataAccess.Repositories;
 using IndyPOS.Events;
 using IndyPOS.Users;
@@ -62,6 +63,8 @@ namespace IndyPOS.Controllers
 			var userId = AddNewUserInternal(user);
 
 			AddNewUserCredentialById(userId, username, password);
+
+			_eventAggregator.GetEvent<UserAddedEvent>().Publish();
 		}
 
 		private int AddNewUserInternal(IUser user)
@@ -106,6 +109,21 @@ namespace IndyPOS.Controllers
 
 			_userRepository.UpdateUser(userModel);
 		}
+
+		public void RemoveUserById(int id)
+        {
+			try
+			{
+				_userRepository.RemoveUserCredentialById(id);
+				_userRepository.RemoveUserById(id);
+
+				_eventAggregator.GetEvent<UserRemovedEvent>().Publish();
+			}
+			catch (Exception ex)
+			{
+				throw new Exception($"Error occurred while trying to delete the user. {ex.Message}", ex);
+			}
+        }
 
 		public void UpdateUserCredentialById(int userId, string password)
 		{

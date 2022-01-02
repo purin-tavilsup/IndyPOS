@@ -8,6 +8,10 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Windows.Forms;
+using IndyPOS.Events;
+using Prism.Events;
+using IndyPOS.Enums;
+using UserRoleEnum = IndyPOS.Enums.UserRole;
 
 namespace IndyPOS.UI
 {
@@ -15,10 +19,13 @@ namespace IndyPOS.UI
     public partial class UsersPanel : UserControl
     {
         private readonly IUserController _userController;
+		private readonly IEventAggregator _eventAggregator;
 		private readonly IReadOnlyDictionary<int, string> _userRoleDictionary;
 		private readonly ICryptographyHelper _cryptographyHelper;
 		private readonly AddNewUserForm _addNewUserForm;
 		private IUser _selectedUser;
+
+		private int? _lastQueryRoleId;
 
 		private enum UserColumn
 		{
@@ -30,23 +37,27 @@ namespace IndyPOS.UI
 			DateUpdated
 		}
 
-        public UsersPanel(IUserController userController,
+        public UsersPanel(IEventAggregator eventAggregator,
+						  IUserController userController,
 						  IStoreConstants storeConstants,
 						  ICryptographyHelper cryptographyHelper,
 						  AddNewUserForm addNewUserForm)
 		{
 			_userController = userController;
+			_eventAggregator = eventAggregator;
 			_userRoleDictionary = storeConstants.UserRoles;
 			_cryptographyHelper = cryptographyHelper;
 			_addNewUserForm = addNewUserForm;
 
             InitializeComponent();
 
-			InitializeProductCategories();
+			InitializeUserRoles();
 			InitializeUserDataView();
+
+			SubscribeEvents();
 		}
 
-		private void InitializeProductCategories()
+		private void InitializeUserRoles()
 		{
 			UserRoleComboBox.Items.Clear();
 
@@ -54,6 +65,12 @@ namespace IndyPOS.UI
 			{
 				UserRoleComboBox.Items.Add(item.Value);
 			}
+		}
+
+		private void SubscribeEvents()
+		{
+			_eventAggregator.GetEvent<UserAddedEvent>().Subscribe(UserChanged);
+			_eventAggregator.GetEvent<UserRemovedEvent>().Subscribe(UserChanged);
 		}
 
 		private void InitializeUserDataView()
@@ -111,7 +128,7 @@ namespace IndyPOS.UI
 
 		private void ShowUsersByRoleId(int roleId)
         {
-			var users = _userController.GetUsers().Where(x => x.RoleId == roleId);
+			var users = GetUsersByRoleId(roleId);
 
 			UserDataView.Rows.Clear();
 
@@ -124,6 +141,18 @@ namespace IndyPOS.UI
             }
         }
 
+		private IList<IUser> GetUsersByRoleId(int roleId)
+        {
+			var loggedInUser = _userController.LoggedInUser;
+
+			if (loggedInUser.RoleId == (int) UserRoleEnum.Cashier)
+				return new List<IUser> { loggedInUser };
+
+			return _userController.GetUsers()
+								  .Where(x => x.RoleId == roleId)
+								  .ToList();
+		}
+
         private void UserRoleComboBox_SelectedIndexChanged(object sender, EventArgs e)
         {
 			if (UserRoleComboBox.SelectedItem == null)
@@ -132,6 +161,8 @@ namespace IndyPOS.UI
 			var selectedRole = UserRoleComboBox.SelectedItem.ToString();
 			var role = _userRoleDictionary.FirstOrDefault(x => x.Value == selectedRole);
 			var roleId = role.Key;
+
+			_lastQueryRoleId = roleId;
 
 			ResetUserDetails();
 			ShowUsersByRoleId(roleId);
@@ -157,6 +188,15 @@ namespace IndyPOS.UI
 			ShowUserDetailsById(userId);
 		}
 
+		private void UserChanged()
+        {
+			if (!_lastQueryRoleId.HasValue)
+				return;
+
+			ResetUserDetails();
+			ShowUsersByRoleId(_lastQueryRoleId.GetValueOrDefault());
+		}
+
 		private void ShowUserDetailsById(int userId)
         {
 			_selectedUser = _userController.GetUserById(userId);
@@ -165,9 +205,9 @@ namespace IndyPOS.UI
 				return;
 
 			var userCredential = _userController.GetUserCredentialById(userId);
-			var userRole = _userRoleDictionary.ContainsKey(_selectedUser.RoleId) ?
-							   _userRoleDictionary[_selectedUser.RoleId] :
-							   "Unknown";
+			var userRole = _userRoleDictionary.ContainsKey(_selectedUser.RoleId) 
+							   ? _userRoleDictionary[_selectedUser.RoleId] 
+							   : "Unknown";
 
 			FirstNameLabel.Text = _selectedUser.FirstName;
 			LastNameLabel.Text = _selectedUser.LastName;
@@ -207,6 +247,35 @@ namespace IndyPOS.UI
 			PasswordVisibilityButton.Image = UserSecretTextBox.PasswordChar 
 												 ? Properties.Resources.Visible_25 
 												 : Properties.Resources.Hidden_25;
+		}
+
+        private void DeleteUserButton_Click(object sender, EventArgs e)
+        {
+			_userController.RemoveUserById(_selectedUser.UserId);
+        }
+
+        private void UsersPanel_VisibleChanged(object sender, EventArgs e)
+		{
+			if (!_userController.IsLoggedIn)
+				return;
+
+			var loggedInUser = _userController.LoggedInUser;
+
+			if (loggedInUser.RoleId == (int) UserRoleEnum.Cashier)
+			{
+				AddUserButton.Visible = false;
+				DeleteUserButton.Visible = false;
+				UserRoleComboBox.SelectedIndex = loggedInUser.RoleId - 1;
+				UserRoleComboBox.Enabled = false;
+			}
+			else
+			{
+				AddUserButton.Visible = true;
+				DeleteUserButton.Visible = true;
+				UserRoleComboBox.Enabled = true;
+				UserRoleComboBox.SelectedIndex = loggedInUser.RoleId - 1;
+			}
+
 		}
     }
 }

@@ -22,7 +22,7 @@ namespace IndyPOS.UI
         private readonly UpdateInvoiceProductForm _updateProductForm;
         private readonly IStoreConstants _storeConstants;
         private readonly IReadOnlyDictionary<int, string> _paymentTypeDictionary;
-        private Subpanel _activeSubPanel;
+        private SubPanel _activeSubPanel;
 		private readonly MessageForm _messageForm;
 		private readonly PrintReceiptForm _printReceiptForm;
 
@@ -84,7 +84,6 @@ namespace IndyPOS.UI
             _eventAggregator.GetEvent<NewSaleStartedEvent>().Subscribe(ResetSaleInvoiceScreen);
             _eventAggregator.GetEvent<BarcodeReceivedEvent>().Subscribe(BarcodeReceived);
             _eventAggregator.GetEvent<ActiveSubPanelChangedEvent>().Subscribe(ActiveSubPanelChanged);
-            
 		}
 
         private void InitializeInvoiceDataView()
@@ -143,7 +142,7 @@ namespace IndyPOS.UI
             #endregion
         }
 
-		private void ActiveSubPanelChanged(Subpanel activeSubPanel)
+		private void ActiveSubPanelChanged(SubPanel activeSubPanel)
 		{
             _activeSubPanel = activeSubPanel;
 		}
@@ -290,7 +289,7 @@ namespace IndyPOS.UI
 
         private void BarcodeReceived(string barcode)
 		{
-            if (_activeSubPanel != Subpanel.Sales)
+            if (_activeSubPanel != SubPanel.Sales)
                 return;
 
             AddProductToInvoice(barcode);

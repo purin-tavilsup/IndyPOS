@@ -1,12 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Data.SQLite;
-using Dapper;
+﻿using Dapper;
 using IndyPOS.DataAccess.Models;
 using IndyPOS.DataAccess.Repositories;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace IndyPOS.DataAccess.SQLite.Repositories
 {
@@ -131,6 +128,27 @@ namespace IndyPOS.DataAccess.SQLite.Repositories
 			}
 		}
 
+		public void RemoveUserById(int id)
+		{
+			using (var connection = _dbConnectionProvider.GetDbConnection())
+			{
+				connection.Open();
+
+				const string sqlCommand = @"DELETE FROM Users
+                WHERE UserId = @UserId";
+
+				var sqlParameters = new
+									{
+										UserId = id
+									};
+
+				var affectedRowsCount = connection.Execute(sqlCommand, sqlParameters);
+
+				if (affectedRowsCount != 1)
+					throw new Exception("Failed to delete the user.");
+			}
+		}
+
 		public UserCredential GetUserCredentialById(int id)
 		{
 			using (var connection = _dbConnectionProvider.GetDbConnection())
@@ -153,7 +171,7 @@ namespace IndyPOS.DataAccess.SQLite.Repositories
 
 				var result = connection.Query(sqlCommand, sqlParameters).FirstOrDefault();
 
-				return MapUserCredential(result);
+				return result != null ? MapUserCredential(result) : null;
 			}
 		}
 
@@ -214,7 +232,7 @@ namespace IndyPOS.DataAccess.SQLite.Repositories
 
 				var result = connection.Query(sqlCommand, sqlParameters).FirstOrDefault();
 
-				return MapUserCredential(result);
+				return result != null ? MapUserCredential(result) : null;
 			}
 		}
 
@@ -243,6 +261,27 @@ namespace IndyPOS.DataAccess.SQLite.Repositories
 			}
 		}
 
+		public void RemoveUserCredentialById(int userId)
+		{
+			using (var connection = _dbConnectionProvider.GetDbConnection())
+			{
+				connection.Open();
+
+				const string sqlCommand = @"DELETE FROM UserCredentials
+                WHERE UserId = @UserId";
+
+				var sqlParameters = new
+									{
+										UserId = userId
+									};
+
+				var affectedRowsCount = connection.Execute(sqlCommand, sqlParameters);
+
+				if (affectedRowsCount != 1)
+					throw new Exception("Failed to delete the user credential.");
+			}
+		}
+
 		private UserCredential MapUserCredential(dynamic result)
 		{
 			var credential = new UserCredential
@@ -257,7 +296,7 @@ namespace IndyPOS.DataAccess.SQLite.Repositories
 			return credential;
 		}
 
-		private IList<User> MapUsers(IEnumerable<dynamic> results)
+		private IEnumerable<User> MapUsers(IEnumerable<dynamic> results)
 		{
 			var users = results?.Select(x => new User
 												{
