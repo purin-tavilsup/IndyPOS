@@ -79,49 +79,49 @@ namespace IndyPOS.UI
 			_eventAggregator.GetEvent<UserLoggedOutEvent>().Subscribe(OnUserLoggedOut);
 		}
 
-        private void SwitchToPanel(Subpanel subPanelToShow)
+        private void SwitchToPanel(SubPanel subPanelToShow)
         {
             UserControl panelToShow = _userLogInPanel;
 
             switch (subPanelToShow)
             {
-                case Subpanel.Sales:
+                case SubPanel.Sales:
 
                     panelToShow = _salesPanel;
 
                     break;
 
-                case Subpanel.Inventory:
+                case SubPanel.Inventory:
 
                     panelToShow = _inventoryPanel;
 
                     break;
 
-                case Subpanel.Users:
+                case SubPanel.Users:
 
                     panelToShow = _usersPanel;
 
                     break;
 
-                case Subpanel.Reports:
+                case SubPanel.Reports:
 
                     panelToShow = _reportsPanel;
 
                     break;
 
-                case Subpanel.CustomerAccounts:
+                case SubPanel.CustomerAccounts:
 
                     panelToShow = _customerAccountsPanel;
 
                     break;
 
-                case Subpanel.Settings:
+                case SubPanel.Settings:
 
                     panelToShow = _settingsPanel;
 
                     break;
 
-                case Subpanel.UserLogIn:
+                case SubPanel.UserLogIn:
 
                     panelToShow = _userLogInPanel;
 
@@ -154,7 +154,7 @@ namespace IndyPOS.UI
 
         private void MainForm_Shown(object sender, EventArgs e)
         {
-            SwitchToPanel(Subpanel.UserLogIn);
+            SwitchToPanel(SubPanel.UserLogIn);
         }
 
         private void SaleButton_Click(object sender, EventArgs e)
@@ -162,7 +162,7 @@ namespace IndyPOS.UI
 			if (!_isUserLoggedIn)
 				return;
 
-			SwitchToPanel(Subpanel.Sales);
+			SwitchToPanel(SubPanel.Sales);
 		}
 
         private void InventoryButton_Click(object sender, EventArgs e)
@@ -170,7 +170,7 @@ namespace IndyPOS.UI
 			if (!_isUserLoggedIn)
 				return;
 			
-			SwitchToPanel(Subpanel.Inventory);
+			SwitchToPanel(SubPanel.Inventory);
         }
 
         private void UsersButton_Click(object sender, EventArgs e)
@@ -178,7 +178,7 @@ namespace IndyPOS.UI
 			if (!_isUserLoggedIn)
 				return;
 
-			SwitchToPanel(Subpanel.Users);
+			SwitchToPanel(SubPanel.Users);
         }
 
         private void ReportsButton_Click(object sender, EventArgs e)
@@ -186,7 +186,7 @@ namespace IndyPOS.UI
 			if (!_isUserLoggedIn)
 				return; 
 			
-			SwitchToPanel(Subpanel.Reports);
+			SwitchToPanel(SubPanel.Reports);
         }
 
         private void SettingsButton_Click(object sender, EventArgs e)
@@ -194,7 +194,7 @@ namespace IndyPOS.UI
 			if (!_isUserLoggedIn)
 				return;
 			
-			SwitchToPanel(Subpanel.Settings);
+			SwitchToPanel(SubPanel.Settings);
         }
 
 		private void CustomerAccountsButton_Click(object sender, EventArgs e)
@@ -202,12 +202,12 @@ namespace IndyPOS.UI
 			if (!_isUserLoggedIn)
 				return;
 
-			SwitchToPanel(Subpanel.CustomerAccounts);
+			SwitchToPanel(SubPanel.CustomerAccounts);
 		}
 
 		private void LogInButton_Click(object sender, EventArgs e)
 		{
-			SwitchToPanel(Subpanel.UserLogIn);
+			SwitchToPanel(SubPanel.UserLogIn);
 		}
 
 		private void CloseButton_Click(object sender, EventArgs e)
@@ -256,7 +256,7 @@ namespace IndyPOS.UI
 
 			_isUserLoggedIn = true;
 
-			SwitchToPanel(Subpanel.Sales);
+			SwitchToPanel(SubPanel.Sales);
         }
 
         private void OnUserLoggedOut()

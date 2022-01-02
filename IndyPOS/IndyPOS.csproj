@@ -115,7 +115,8 @@
     <Compile Include="Devices\IReceiptPrinter.cs" />
     <Compile Include="Devices\ReceiptPrinter.cs" />
     <Compile Include="Enums\Panels.cs" />
-    <Compile Include="Events\ActiveSubpanelChangedEvent.cs" />
+    <Compile Include="Enums\UserRoles.cs" />
+    <Compile Include="Events\ActiveSubPanelChangedEvent.cs" />
     <Compile Include="Events\AllPaymentsRemovedEvent.cs" />
     <Compile Include="Events\InventoryProductAddedEvent.cs" />
     <Compile Include="Events\InventoryProductDeletedEvent.cs" />

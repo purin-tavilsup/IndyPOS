@@ -28,8 +28,8 @@
         /// </summary>
         private void InitializeComponent()
         {
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle3 = new System.Windows.Forms.DataGridViewCellStyle();
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle4 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle1 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle2 = new System.Windows.Forms.DataGridViewCellStyle();
             this.panel1 = new System.Windows.Forms.Panel();
             this.UserDataView = new System.Windows.Forms.DataGridView();
             this.UserId = new System.Windows.Forms.DataGridViewTextBoxColumn();
@@ -39,6 +39,7 @@
             this.DateCreated = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.DateUpdated = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.panel3 = new System.Windows.Forms.Panel();
+            this.DeleteUserButton = new ModernUI.ModernButton();
             this.PasswordVisibilityButton = new ModernUI.ModernButton();
             this.LastNameLabel = new System.Windows.Forms.Label();
             this.FirstNameLabel = new System.Windows.Forms.Label();
@@ -57,7 +58,6 @@
             this.AddUserButton = new ModernUI.ModernButton();
             this.UserRoleComboBox = new ModernUI.ModernComboBox();
             this.label1 = new System.Windows.Forms.Label();
-            this.DeleteUserButton = new ModernUI.ModernButton();
             this.panel1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.UserDataView)).BeginInit();
             this.panel3.SuspendLayout();
@@ -88,14 +88,14 @@
             this.UserDataView.BorderStyle = System.Windows.Forms.BorderStyle.None;
             this.UserDataView.CellBorderStyle = System.Windows.Forms.DataGridViewCellBorderStyle.SingleHorizontal;
             this.UserDataView.ColumnHeadersBorderStyle = System.Windows.Forms.DataGridViewHeaderBorderStyle.None;
-            dataGridViewCellStyle3.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleCenter;
-            dataGridViewCellStyle3.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(48)))), ((int)(((byte)(48)))), ((int)(((byte)(48)))));
-            dataGridViewCellStyle3.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 14.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            dataGridViewCellStyle3.ForeColor = System.Drawing.Color.Gainsboro;
-            dataGridViewCellStyle3.Padding = new System.Windows.Forms.Padding(10, 0, 0, 0);
-            dataGridViewCellStyle3.SelectionBackColor = System.Drawing.Color.Gray;
-            dataGridViewCellStyle3.WrapMode = System.Windows.Forms.DataGridViewTriState.False;
-            this.UserDataView.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle3;
+            dataGridViewCellStyle1.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleCenter;
+            dataGridViewCellStyle1.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(48)))), ((int)(((byte)(48)))), ((int)(((byte)(48)))));
+            dataGridViewCellStyle1.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 14.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            dataGridViewCellStyle1.ForeColor = System.Drawing.Color.Gainsboro;
+            dataGridViewCellStyle1.Padding = new System.Windows.Forms.Padding(10, 0, 0, 0);
+            dataGridViewCellStyle1.SelectionBackColor = System.Drawing.Color.Gray;
+            dataGridViewCellStyle1.WrapMode = System.Windows.Forms.DataGridViewTriState.False;
+            this.UserDataView.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle1;
             this.UserDataView.ColumnHeadersHeight = 50;
             this.UserDataView.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.DisableResizing;
             this.UserDataView.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
@@ -105,14 +105,14 @@
             this.UserRole,
             this.DateCreated,
             this.DateUpdated});
-            dataGridViewCellStyle4.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
-            dataGridViewCellStyle4.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
-            dataGridViewCellStyle4.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            dataGridViewCellStyle4.ForeColor = System.Drawing.Color.Gainsboro;
-            dataGridViewCellStyle4.SelectionBackColor = System.Drawing.Color.FromArgb(((int)(((byte)(48)))), ((int)(((byte)(48)))), ((int)(((byte)(48)))));
-            dataGridViewCellStyle4.SelectionForeColor = System.Drawing.Color.Gainsboro;
-            dataGridViewCellStyle4.WrapMode = System.Windows.Forms.DataGridViewTriState.False;
-            this.UserDataView.DefaultCellStyle = dataGridViewCellStyle4;
+            dataGridViewCellStyle2.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle2.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
+            dataGridViewCellStyle2.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            dataGridViewCellStyle2.ForeColor = System.Drawing.Color.Gainsboro;
+            dataGridViewCellStyle2.SelectionBackColor = System.Drawing.Color.FromArgb(((int)(((byte)(48)))), ((int)(((byte)(48)))), ((int)(((byte)(48)))));
+            dataGridViewCellStyle2.SelectionForeColor = System.Drawing.Color.Gainsboro;
+            dataGridViewCellStyle2.WrapMode = System.Windows.Forms.DataGridViewTriState.False;
+            this.UserDataView.DefaultCellStyle = dataGridViewCellStyle2;
             this.UserDataView.Dock = System.Windows.Forms.DockStyle.Fill;
             this.UserDataView.EnableHeadersVisualStyles = false;
             this.UserDataView.GridColor = System.Drawing.Color.DimGray;
@@ -200,6 +200,26 @@
             this.panel3.Name = "panel3";
             this.panel3.Size = new System.Drawing.Size(489, 631);
             this.panel3.TabIndex = 4;
+            // 
+            // DeleteUserButton
+            // 
+            this.DeleteUserButton.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
+            this.DeleteUserButton.BackgroundColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
+            this.DeleteUserButton.BorderColor = System.Drawing.Color.FromArgb(((int)(((byte)(224)))), ((int)(((byte)(79)))), ((int)(((byte)(95)))));
+            this.DeleteUserButton.BorderRadius = 18;
+            this.DeleteUserButton.BorderSize = 1;
+            this.DeleteUserButton.FlatAppearance.BorderSize = 0;
+            this.DeleteUserButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.DeleteUserButton.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.DeleteUserButton.ForeColor = System.Drawing.Color.White;
+            this.DeleteUserButton.Location = new System.Drawing.Point(148, 333);
+            this.DeleteUserButton.Name = "DeleteUserButton";
+            this.DeleteUserButton.Size = new System.Drawing.Size(272, 53);
+            this.DeleteUserButton.TabIndex = 77;
+            this.DeleteUserButton.Text = "Delete";
+            this.DeleteUserButton.TextColor = System.Drawing.Color.White;
+            this.DeleteUserButton.UseVisualStyleBackColor = false;
+            this.DeleteUserButton.Click += new System.EventHandler(this.DeleteUserButton_Click);
             // 
             // PasswordVisibilityButton
             // 
@@ -452,26 +472,6 @@
             this.label1.Text = "ประเภทผู้ใช้งาน";
             this.label1.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             // 
-            // DeleteUserButton
-            // 
-            this.DeleteUserButton.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
-            this.DeleteUserButton.BackgroundColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
-            this.DeleteUserButton.BorderColor = System.Drawing.Color.FromArgb(((int)(((byte)(224)))), ((int)(((byte)(79)))), ((int)(((byte)(95)))));
-            this.DeleteUserButton.BorderRadius = 18;
-            this.DeleteUserButton.BorderSize = 1;
-            this.DeleteUserButton.FlatAppearance.BorderSize = 0;
-            this.DeleteUserButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.DeleteUserButton.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.DeleteUserButton.ForeColor = System.Drawing.Color.White;
-            this.DeleteUserButton.Location = new System.Drawing.Point(148, 333);
-            this.DeleteUserButton.Name = "DeleteUserButton";
-            this.DeleteUserButton.Size = new System.Drawing.Size(272, 53);
-            this.DeleteUserButton.TabIndex = 77;
-            this.DeleteUserButton.Text = "Delete";
-            this.DeleteUserButton.TextColor = System.Drawing.Color.White;
-            this.DeleteUserButton.UseVisualStyleBackColor = false;
-            this.DeleteUserButton.Click += new System.EventHandler(this.DeleteUserButton_Click);
-            // 
             // UsersPanel
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -480,6 +480,7 @@
             this.Controls.Add(this.panel1);
             this.Name = "UsersPanel";
             this.Size = new System.Drawing.Size(1421, 697);
+            this.VisibleChanged += new System.EventHandler(this.UsersPanel_VisibleChanged);
             this.panel1.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.UserDataView)).EndInit();
             this.panel3.ResumeLayout(false);

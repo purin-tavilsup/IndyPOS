@@ -23,7 +23,7 @@ namespace IndyPOS.UI
         private readonly AddNewInventoryProductForm _addNewProductForm;
         private readonly UpdateInventoryProductForm _updateProductForm;
         private int? _lastQueryCategoryId;
-        private Subpanel _activeSubPanel;
+        private SubPanel _activeSubPanel;
 
         private enum ProductColumn
         {
@@ -138,7 +138,7 @@ namespace IndyPOS.UI
             #endregion
         }
 
-        private void ActiveSubPanelChanged(Subpanel activeSubPanel)
+        private void ActiveSubPanelChanged(SubPanel activeSubPanel)
         {
             _activeSubPanel = activeSubPanel;
         }
@@ -211,7 +211,7 @@ namespace IndyPOS.UI
 
         private void BarcodeReceived(string barcode)
         {
-            if (_activeSubPanel != Subpanel.Inventory)
+            if (_activeSubPanel != SubPanel.Inventory)
                 return;
 
             var product = SearchExistingProductByBarcode(barcode);

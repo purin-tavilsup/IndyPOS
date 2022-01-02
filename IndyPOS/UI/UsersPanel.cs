@@ -10,6 +10,8 @@ using System.Linq;
 using System.Windows.Forms;
 using IndyPOS.Events;
 using Prism.Events;
+using IndyPOS.Enums;
+using UserRoleEnum = IndyPOS.Enums.UserRole;
 
 namespace IndyPOS.UI
 {
@@ -49,13 +51,13 @@ namespace IndyPOS.UI
 
             InitializeComponent();
 
-			InitializeProductCategories();
+			InitializeUserRoles();
 			InitializeUserDataView();
 
 			SubscribeEvents();
 		}
 
-		private void InitializeProductCategories()
+		private void InitializeUserRoles()
 		{
 			UserRoleComboBox.Items.Clear();
 
@@ -126,9 +128,7 @@ namespace IndyPOS.UI
 
 		private void ShowUsersByRoleId(int roleId)
         {
-			var users = _userController.GetUsers()
-									   .Where(x => x.RoleId == roleId)
-									   .ToList();
+			var users = GetUsersByRoleId(roleId);
 
 			UserDataView.Rows.Clear();
 
@@ -140,6 +140,18 @@ namespace IndyPOS.UI
 				AddUserToUserDataView(user);
             }
         }
+
+		private IList<IUser> GetUsersByRoleId(int roleId)
+        {
+			var loggedInUser = _userController.LoggedInUser;
+
+			if (loggedInUser.RoleId == (int) UserRoleEnum.Cashier)
+				return new List<IUser> { loggedInUser };
+
+			return _userController.GetUsers()
+								  .Where(x => x.RoleId == roleId)
+								  .ToList();
+		}
 
         private void UserRoleComboBox_SelectedIndexChanged(object sender, EventArgs e)
         {
@@ -241,5 +253,29 @@ namespace IndyPOS.UI
         {
 			_userController.RemoveUserById(_selectedUser.UserId);
         }
+
+        private void UsersPanel_VisibleChanged(object sender, EventArgs e)
+		{
+			if (!_userController.IsLoggedIn)
+				return;
+
+			var loggedInUser = _userController.LoggedInUser;
+
+			if (loggedInUser.RoleId == (int) UserRoleEnum.Cashier)
+			{
+				AddUserButton.Visible = false;
+				DeleteUserButton.Visible = false;
+				UserRoleComboBox.SelectedIndex = loggedInUser.RoleId - 1;
+				UserRoleComboBox.Enabled = false;
+			}
+			else
+			{
+				AddUserButton.Visible = true;
+				DeleteUserButton.Visible = true;
+				UserRoleComboBox.Enabled = true;
+				UserRoleComboBox.SelectedIndex = loggedInUser.RoleId - 1;
+			}
+
+		}
     }
 }

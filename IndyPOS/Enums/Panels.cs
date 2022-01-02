@@ -1,6 +1,6 @@
 ﻿namespace IndyPOS.Enums
 {
-	public enum Subpanel
+	public enum SubPanel
     {
         Sales = 0,
         Inventory,
