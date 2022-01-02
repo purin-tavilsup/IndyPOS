@@ -8,6 +8,8 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Windows.Forms;
+using IndyPOS.Events;
+using Prism.Events;
 
 namespace IndyPOS.UI
 {
@@ -15,10 +17,13 @@ namespace IndyPOS.UI
     public partial class UsersPanel : UserControl
     {
         private readonly IUserController _userController;
+		private readonly IEventAggregator _eventAggregator;
 		private readonly IReadOnlyDictionary<int, string> _userRoleDictionary;
 		private readonly ICryptographyHelper _cryptographyHelper;
 		private readonly AddNewUserForm _addNewUserForm;
 		private IUser _selectedUser;
+
+		private int? _lastQueryRoleId;
 
 		private enum UserColumn
 		{
@@ -30,12 +35,14 @@ namespace IndyPOS.UI
 			DateUpdated
 		}
 
-        public UsersPanel(IUserController userController,
+        public UsersPanel(IEventAggregator eventAggregator,
+						  IUserController userController,
 						  IStoreConstants storeConstants,
 						  ICryptographyHelper cryptographyHelper,
 						  AddNewUserForm addNewUserForm)
 		{
 			_userController = userController;
+			_eventAggregator = eventAggregator;
 			_userRoleDictionary = storeConstants.UserRoles;
 			_cryptographyHelper = cryptographyHelper;
 			_addNewUserForm = addNewUserForm;
@@ -44,6 +51,8 @@ namespace IndyPOS.UI
 
 			InitializeProductCategories();
 			InitializeUserDataView();
+
+			SubscribeEvents();
 		}
 
 		private void InitializeProductCategories()
@@ -54,6 +63,11 @@ namespace IndyPOS.UI
 			{
 				UserRoleComboBox.Items.Add(item.Value);
 			}
+		}
+
+		private void SubscribeEvents()
+		{
+			_eventAggregator.GetEvent<UserRemovedEvent>().Subscribe(UserRemoved);
 		}
 
 		private void InitializeUserDataView()
@@ -111,7 +125,9 @@ namespace IndyPOS.UI
 
 		private void ShowUsersByRoleId(int roleId)
         {
-			var users = _userController.GetUsers().Where(x => x.RoleId == roleId);
+			var users = _userController.GetUsers()
+									   .Where(x => x.RoleId == roleId)
+									   .ToList();
 
 			UserDataView.Rows.Clear();
 
@@ -132,6 +148,8 @@ namespace IndyPOS.UI
 			var selectedRole = UserRoleComboBox.SelectedItem.ToString();
 			var role = _userRoleDictionary.FirstOrDefault(x => x.Value == selectedRole);
 			var roleId = role.Key;
+
+			_lastQueryRoleId = roleId;
 
 			ResetUserDetails();
 			ShowUsersByRoleId(roleId);
@@ -157,6 +175,15 @@ namespace IndyPOS.UI
 			ShowUserDetailsById(userId);
 		}
 
+		private void UserRemoved()
+        {
+			if (!_lastQueryRoleId.HasValue)
+				return;
+
+			ResetUserDetails();
+			ShowUsersByRoleId(_lastQueryRoleId.GetValueOrDefault());
+		}
+
 		private void ShowUserDetailsById(int userId)
         {
 			_selectedUser = _userController.GetUserById(userId);
@@ -165,9 +192,9 @@ namespace IndyPOS.UI
 				return;
 
 			var userCredential = _userController.GetUserCredentialById(userId);
-			var userRole = _userRoleDictionary.ContainsKey(_selectedUser.RoleId) ?
-							   _userRoleDictionary[_selectedUser.RoleId] :
-							   "Unknown";
+			var userRole = _userRoleDictionary.ContainsKey(_selectedUser.RoleId) 
+							   ? _userRoleDictionary[_selectedUser.RoleId] 
+							   : "Unknown";
 
 			FirstNameLabel.Text = _selectedUser.FirstName;
 			LastNameLabel.Text = _selectedUser.LastName;
@@ -208,5 +235,10 @@ namespace IndyPOS.UI
 												 ? Properties.Resources.Visible_25 
 												 : Properties.Resources.Hidden_25;
 		}
+
+        private void DeleteUserButton_Click(object sender, EventArgs e)
+        {
+			_userController.RemoveUserById(_selectedUser.UserId);
+        }
     }
 }

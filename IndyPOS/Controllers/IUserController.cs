@@ -17,6 +17,8 @@ namespace IndyPOS.Controllers
 
 		void UpdateUser(IUser user);
 
+		void RemoveUserById(int id);
+
 		void UpdateUserCredentialById(int userId, string password);
 
 		IUserCredential GetUserCredentialById(int id);

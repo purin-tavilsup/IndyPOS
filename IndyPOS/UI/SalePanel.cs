@@ -84,7 +84,6 @@ namespace IndyPOS.UI
             _eventAggregator.GetEvent<NewSaleStartedEvent>().Subscribe(ResetSaleInvoiceScreen);
             _eventAggregator.GetEvent<BarcodeReceivedEvent>().Subscribe(BarcodeReceived);
             _eventAggregator.GetEvent<ActiveSubPanelChangedEvent>().Subscribe(ActiveSubPanelChanged);
-            
 		}
 
         private void InitializeInvoiceDataView()

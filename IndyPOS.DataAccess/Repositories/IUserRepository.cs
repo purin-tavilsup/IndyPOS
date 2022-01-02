@@ -13,6 +13,8 @@ namespace IndyPOS.DataAccess.Repositories
 
 		IEnumerable<User> GetUsers();
 
+		void RemoveUserById(int id);
+
 		void CreateUserCredential(int userId, string username, string password);
 
 		UserCredential GetUserCredentialById(int id);
@@ -20,5 +22,7 @@ namespace IndyPOS.DataAccess.Repositories
 		UserCredential GetUserCredentialByUsername(string username);
 
 		void UpdateUserCredentialById(int userId, string password);
+
+		void RemoveUserCredentialById(int userId);
 	}
 }
