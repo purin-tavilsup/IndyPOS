@@ -120,6 +120,7 @@
     <Compile Include="Events\InventoryProductAddedEvent.cs" />
     <Compile Include="Events\InventoryProductDeletedEvent.cs" />
     <Compile Include="Events\InventoryProductUpdatedEvent.cs" />
+    <Compile Include="Events\UserAddedEvent.cs" />
     <Compile Include="Events\UserLoggedInEvent.cs" />
     <Compile Include="Events\UserLoggedOutEvent.cs" />
     <Compile Include="Events\UserRemovedEvent.cs" />

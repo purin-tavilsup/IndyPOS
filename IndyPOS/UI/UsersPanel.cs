@@ -67,7 +67,8 @@ namespace IndyPOS.UI
 
 		private void SubscribeEvents()
 		{
-			_eventAggregator.GetEvent<UserRemovedEvent>().Subscribe(UserRemoved);
+			_eventAggregator.GetEvent<UserAddedEvent>().Subscribe(UserChanged);
+			_eventAggregator.GetEvent<UserRemovedEvent>().Subscribe(UserChanged);
 		}
 
 		private void InitializeUserDataView()
@@ -175,7 +176,7 @@ namespace IndyPOS.UI
 			ShowUserDetailsById(userId);
 		}
 
-		private void UserRemoved()
+		private void UserChanged()
         {
 			if (!_lastQueryRoleId.HasValue)
 				return;

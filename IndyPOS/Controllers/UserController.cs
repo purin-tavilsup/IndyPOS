@@ -63,6 +63,8 @@ namespace IndyPOS.Controllers
 			var userId = AddNewUserInternal(user);
 
 			AddNewUserCredentialById(userId, username, password);
+
+			_eventAggregator.GetEvent<UserAddedEvent>().Publish();
 		}
 
 		private int AddNewUserInternal(IUser user)
