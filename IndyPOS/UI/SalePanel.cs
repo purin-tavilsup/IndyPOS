@@ -24,6 +24,7 @@ namespace IndyPOS.UI
         private readonly IReadOnlyDictionary<int, string> _paymentTypeDictionary;
         private Subpanel _activeSubPanel;
 		private readonly MessageForm _messageForm;
+		private readonly PrintReceiptForm _printReceiptForm;
 
         private enum SaleInvoiceColumn
         {
@@ -47,7 +48,8 @@ namespace IndyPOS.UI
 						 IStoreConstants storeConstants,
 						 AcceptPaymentForm acceptPaymentForm, 
 						 UpdateInvoiceProductForm updateProductForm,
-						 MessageForm messageForm)
+						 MessageForm messageForm,
+						 PrintReceiptForm printReceiptForm)
         {
             InitializeComponent();
             InitializeInvoiceDataView();
@@ -60,6 +62,7 @@ namespace IndyPOS.UI
             _acceptPaymentForm = acceptPaymentForm;
             _updateProductForm = updateProductForm;
 			_messageForm = messageForm;
+			_printReceiptForm = printReceiptForm;
 
             SubscribeEvents();
 
@@ -217,7 +220,9 @@ namespace IndyPOS.UI
 			}
 
 			_saleInvoiceController.CompleteSale();
-            _saleInvoiceController.PrintReceipt();
+
+            _printReceiptForm.ShowDialog();
+			
 			_saleInvoiceController.StartNewSale();
 		}
 

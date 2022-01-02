@@ -70,8 +70,8 @@
             this.ClearButton = new System.Windows.Forms.Button();
             this.panel30 = new System.Windows.Forms.Panel();
             this.panel1 = new System.Windows.Forms.Panel();
-            this.AcceptPaymentButton = new ModernUI.ModernButton();
             this.CancelAcceptPaymentButton = new ModernUI.ModernButton();
+            this.AcceptPaymentButton = new ModernUI.ModernButton();
             this.panel20.SuspendLayout();
             this.panel21.SuspendLayout();
             this.panel22.SuspendLayout();
@@ -677,26 +677,6 @@
             this.panel1.Size = new System.Drawing.Size(1180, 560);
             this.panel1.TabIndex = 51;
             // 
-            // AcceptPaymentButton
-            // 
-            this.AcceptPaymentButton.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
-            this.AcceptPaymentButton.BackgroundColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
-            this.AcceptPaymentButton.BorderColor = System.Drawing.Color.FromArgb(((int)(((byte)(50)))), ((int)(((byte)(190)))), ((int)(((byte)(166)))));
-            this.AcceptPaymentButton.BorderRadius = 19;
-            this.AcceptPaymentButton.BorderSize = 1;
-            this.AcceptPaymentButton.FlatAppearance.BorderSize = 0;
-            this.AcceptPaymentButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.AcceptPaymentButton.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.AcceptPaymentButton.ForeColor = System.Drawing.Color.White;
-            this.AcceptPaymentButton.Location = new System.Drawing.Point(1000, 54);
-            this.AcceptPaymentButton.Name = "AcceptPaymentButton";
-            this.AcceptPaymentButton.Size = new System.Drawing.Size(158, 70);
-            this.AcceptPaymentButton.TabIndex = 51;
-            this.AcceptPaymentButton.Text = "รับเงิน";
-            this.AcceptPaymentButton.TextColor = System.Drawing.Color.White;
-            this.AcceptPaymentButton.UseVisualStyleBackColor = false;
-            this.AcceptPaymentButton.Click += new System.EventHandler(this.AcceptPaymentButton_Click);
-            // 
             // CancelAcceptPaymentButton
             // 
             this.CancelAcceptPaymentButton.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
@@ -716,6 +696,26 @@
             this.CancelAcceptPaymentButton.TextColor = System.Drawing.Color.White;
             this.CancelAcceptPaymentButton.UseVisualStyleBackColor = false;
             this.CancelAcceptPaymentButton.Click += new System.EventHandler(this.CancelAcceptPaymentButton_Click);
+            // 
+            // AcceptPaymentButton
+            // 
+            this.AcceptPaymentButton.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
+            this.AcceptPaymentButton.BackgroundColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
+            this.AcceptPaymentButton.BorderColor = System.Drawing.Color.FromArgb(((int)(((byte)(50)))), ((int)(((byte)(190)))), ((int)(((byte)(166)))));
+            this.AcceptPaymentButton.BorderRadius = 19;
+            this.AcceptPaymentButton.BorderSize = 1;
+            this.AcceptPaymentButton.FlatAppearance.BorderSize = 0;
+            this.AcceptPaymentButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.AcceptPaymentButton.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.AcceptPaymentButton.ForeColor = System.Drawing.Color.White;
+            this.AcceptPaymentButton.Location = new System.Drawing.Point(1000, 54);
+            this.AcceptPaymentButton.Name = "AcceptPaymentButton";
+            this.AcceptPaymentButton.Size = new System.Drawing.Size(158, 70);
+            this.AcceptPaymentButton.TabIndex = 51;
+            this.AcceptPaymentButton.Text = "รับเงิน";
+            this.AcceptPaymentButton.TextColor = System.Drawing.Color.White;
+            this.AcceptPaymentButton.UseVisualStyleBackColor = false;
+            this.AcceptPaymentButton.Click += new System.EventHandler(this.AcceptPaymentButton_Click);
             // 
             // AcceptPaymentForm
             // 

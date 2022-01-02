@@ -8,7 +8,6 @@ namespace IndyPOS
 		public string StoreAddressLine1 { get; set; }
 		public string StoreAddressLine2 { get; set; }
 		public string StorePhoneNumber { get; set; }
-		public string StoreTaxId { get; set; }
 
 		public string PrinterName { get; set; }
 
@@ -18,7 +17,6 @@ namespace IndyPOS
 			StoreAddressLine1 = ((Config)persistentXml).StoreAddressLine1;
 			StoreAddressLine2 = ((Config)persistentXml).StoreAddressLine2;
 			StorePhoneNumber = ((Config)persistentXml).StorePhoneNumber;
-			StoreTaxId = ((Config)persistentXml).StoreTaxId;
 			PrinterName = ((Config)persistentXml).PrinterName;
         }
     }

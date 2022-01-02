@@ -1,14 +1,14 @@
-﻿using IndyPOS.Sales;
+﻿using IndyPOS.Constants;
+using IndyPOS.Sales;
 using IndyPOS.Users;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Printing;
-using IndyPOS.Constants;
 
 namespace IndyPOS.Devices
 {
-	public class ReceiptPrinter : IReceiptPrinter
+    public class ReceiptPrinter : IReceiptPrinter
 	{
 		private readonly IConfig _config;
 		private readonly IReadOnlyDictionary<int, string> _paymentTypeDictionary;
@@ -20,11 +20,11 @@ namespace IndyPOS.Devices
 		private readonly Font _lineFont;
 		private readonly Font _logoFont;
 
-		private const int SpaceOffset = 15;
+		private const int SpaceOffset = 11;
 		private const int LogoFontSize = 15;
 		private const int TextFontSize = 7;
 		private const int LineFontSize = 5;
-		private const int PriceColumn = 140;
+		private const int PriceColumn = 135;
 
 		private const string FontFamilyName = "FC Subject [Non-commercial] Reg";
 		private const string LineString = "-------------------------------------------------------";
@@ -83,7 +83,7 @@ namespace IndyPOS.Devices
 		{
 			PrintStoreName(graphics, _config.StoreName, position.X + 60, position.Y);
 
-			position.Y += SpaceOffset * 2;
+			position.Y += 30;
 			
 			PrintText(graphics, _config.StoreAddressLine1, position.X, position.Y);
 
@@ -94,10 +94,6 @@ namespace IndyPOS.Devices
 			position.Y += SpaceOffset;
 			
 			PrintText(graphics, $"Tel.: {_config.StorePhoneNumber}", position.X, position.Y);
-
-			position.Y += SpaceOffset;
-			
-			PrintText(graphics, $"Tax ID: {_config.StoreTaxId}", position.X, position.Y);
 
 			position.Y += SpaceOffset;
 
@@ -147,7 +143,7 @@ namespace IndyPOS.Devices
 
 				position.Y += SpaceOffset;
 
-				PrintText(graphics, $"{product.Quantity} x {product.UnitPrice:N}", position.X, position.Y);
+				PrintText(graphics, $"{product.Quantity} x {product.UnitPrice:N}", position.X + 10, position.Y);
 
 				var total = product.Quantity * product.UnitPrice;
 

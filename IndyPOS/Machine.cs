@@ -26,7 +26,7 @@ namespace IndyPOS
 		{
 			LoadConfig();
             ConnectDevices();
-            StartUI();
+            StartUserInterface();
         }
 
 		private void LoadConfig()
@@ -54,7 +54,6 @@ namespace IndyPOS
 				_config.StoreAddressLine1 = "134 หมู่ 4 ต.คำชะอี อ.คำชะอี";
 				_config.StoreAddressLine2 = "จ.มุกดาหาร 49110";
                 _config.StorePhoneNumber = "084-602-9150";
-				_config.StoreTaxId = "1234567890";
 				_config.PrinterName = "XP-58";
 
                 _config.Save();
@@ -77,7 +76,7 @@ namespace IndyPOS
             _barcodeScanner?.Disconnect();
 		}
 
-        private void StartUI()
+        private void StartUserInterface()
         {
             System.Windows.Forms.Application.Run(_mainForm);
         }
