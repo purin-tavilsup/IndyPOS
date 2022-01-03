@@ -87,5 +87,7 @@ namespace IndyPOS.Adapters
             get => _adaptee.Priority;
             set => _adaptee.Priority = value;
         }
+
+		public bool IsTrackable => _adaptee.IsTrackable;
 	}
 }

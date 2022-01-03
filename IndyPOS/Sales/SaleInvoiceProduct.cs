@@ -29,5 +29,7 @@
         public int? GroupPriceQuantity { get; set; }
 
 		public int Priority { get; set; }
+
+        public bool IsTrackable { get; set; }
     }
 }

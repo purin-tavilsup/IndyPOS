@@ -51,7 +51,8 @@ namespace IndyPOS.Controllers
                 Brand = product.Brand,
                 Category = product.Category,
                 UnitPrice = product.UnitPrice,
-                QuantityInStock = product.QuantityInStock
+                QuantityInStock = product.QuantityInStock,
+                IsTrackable = true
             };
 
             try

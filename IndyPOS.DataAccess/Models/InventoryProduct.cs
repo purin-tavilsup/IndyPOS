@@ -25,6 +25,8 @@ namespace IndyPOS.DataAccess.Models
 
         public int? GroupPriceQuantity { get; set; }
 
+        public bool IsTrackable { get; set; }
+
         public string DateCreated { get; set; }
 
         public string DateUpdated { get; set; }

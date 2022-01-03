@@ -179,13 +179,13 @@ namespace IndyPOS.Controllers
 										? groupPriceQuantity 
 										: remainingQuantity;
 
-				AddProduct(productId, quantityToAdd);
+				AddProductInternal(productId, quantityToAdd);
 
 				remainingQuantity -= groupPriceQuantity;
 			}
 		}
 
-		private void AddProduct(int inventoryProductId, int quantity)
+		private void AddProductInternal(int inventoryProductId, int quantity)
 		{ 
 			var product = GetInventoryProductById(inventoryProductId);
 
@@ -260,7 +260,9 @@ namespace IndyPOS.Controllers
 
         private void UpdateInventoryProductsSoldOnInvoice(ISaleInvoice saleInvoice)
 		{
-			var productGroups = saleInvoice.Products.GroupBy(p => p.InventoryProductId);
+			var productGroups = saleInvoice.Products
+										   .Where(p => p.IsTrackable)
+										   .GroupBy(p => p.InventoryProductId);
 
 			foreach (var group in productGroups)
 			{

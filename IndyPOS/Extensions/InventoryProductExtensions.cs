@@ -18,7 +18,8 @@ namespace IndyPOS.Extensions
                 UnitPrice = inventoryProduct.UnitPrice,
                 Quantity = 1,
                 GroupPrice = inventoryProduct.GroupPrice,
-                GroupPriceQuantity = inventoryProduct.GroupPriceQuantity
+                GroupPriceQuantity = inventoryProduct.GroupPriceQuantity,
+				IsTrackable = inventoryProduct.IsTrackable
             };
 
             return saleInvoiceProduct;

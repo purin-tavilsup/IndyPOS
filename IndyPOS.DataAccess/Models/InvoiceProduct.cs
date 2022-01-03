@@ -27,6 +27,8 @@ namespace IndyPOS.DataAccess.Models
 
         public int Quantity { get; set; }
 
+		public bool IsTrackable { get; set; }
+
         public string DateCreated { get; set; }
     }
 }

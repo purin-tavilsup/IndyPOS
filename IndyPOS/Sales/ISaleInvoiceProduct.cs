@@ -27,5 +27,7 @@
         decimal? GroupPrice { get; set; }
 
         int? GroupPriceQuantity { get; set; }
+
+        bool IsTrackable { get; }
     }
 }

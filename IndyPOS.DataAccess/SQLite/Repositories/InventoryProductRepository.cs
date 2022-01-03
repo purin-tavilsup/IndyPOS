@@ -94,6 +94,7 @@ namespace IndyPOS.DataAccess.SQLite.Repositories
                     QuantityInStock,
                     GroupPrice,
                     GroupPriceQuantity,
+					IsTrackable,
                     DateCreated
                 )
                 VALUES
@@ -107,6 +108,7 @@ namespace IndyPOS.DataAccess.SQLite.Repositories
                     @QuantityInStock,
                     @GroupPrice,
                     @GroupPriceQuantity,
+					@IsTrackable,
                     datetime('now','localtime')
                 );
                 SELECT last_insert_rowid()";
@@ -121,7 +123,8 @@ namespace IndyPOS.DataAccess.SQLite.Repositories
                     UnitPrice = MapMoneyToString(product.UnitPrice),
 					product.QuantityInStock,
                     GroupPrice = MapMoneyToString(product.GroupPrice),
-                    product.GroupPriceQuantity
+                    product.GroupPriceQuantity,
+					IsTrackable = product.IsTrackable ? 1 : 0
                 };
 
                 var inventoryProductId = connection.Query<int>(sqlCommand, sqlParameters).FirstOrDefault();
@@ -244,6 +247,8 @@ namespace IndyPOS.DataAccess.SQLite.Repositories
                 GroupPrice = MapMoneyToNullableDecimal(x.GroupPrice),
 
                 GroupPriceQuantity = (int?)x.GroupPriceQuantity,
+
+				IsTrackable = x.IsTrackable == 1,
 
                 DateCreated = x.DateCreated,
 

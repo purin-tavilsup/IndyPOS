@@ -22,6 +22,8 @@
 
         public int? GroupPriceQuantity { get; set; }
 
+        public bool IsTrackable { get; }
+
         public string DateCreated { get; }
 
         public string DateUpdated { get; }
