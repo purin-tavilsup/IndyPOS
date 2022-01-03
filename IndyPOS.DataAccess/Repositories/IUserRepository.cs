@@ -5,13 +5,13 @@ namespace IndyPOS.DataAccess.Repositories
 {
     public interface IUserRepository
 	{
-		int CreateUser(User user);
+		int CreateUser(UserAccount user);
 
-		void UpdateUser(User user);
+		void UpdateUser(UserAccount user);
 
-		User GetUserById(int id);
+		UserAccount GetUserById(int id);
 
-		IEnumerable<User> GetUsers();
+		IEnumerable<UserAccount> GetUsers();
 
 		void RemoveUserById(int id);
 

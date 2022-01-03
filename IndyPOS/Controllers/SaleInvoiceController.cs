@@ -1,5 +1,6 @@
 ﻿using IndyPOS.Adapters;
 using IndyPOS.DataAccess.Repositories;
+using IndyPOS.Devices;
 using IndyPOS.Enums;
 using IndyPOS.Events;
 using IndyPOS.Extensions;
@@ -9,7 +10,6 @@ using IndyPOS.Users;
 using Prism.Events;
 using System.Collections.Generic;
 using System.Linq;
-using IndyPOS.Devices;
 
 namespace IndyPOS.Controllers
 {
@@ -20,7 +20,7 @@ namespace IndyPOS.Controllers
         private readonly IInventoryProductRepository _inventoryProductsRepository;
 		private readonly IReceiptPrinter _receiptPrinter;
         private ISaleInvoice _saleInvoice;
-		private IUser _loggedInUser;
+		private IUserAccount _loggedInUser;
 
         public IReadOnlyCollection<ISaleInvoiceProduct> Products => (IReadOnlyCollection<ISaleInvoiceProduct>)_saleInvoice.Products;
 
@@ -329,7 +329,7 @@ namespace IndyPOS.Controllers
             });
         }
 
-		private void OnUserLoggedIn(IUser loggedInUser)
+		private void OnUserLoggedIn(IUserAccount loggedInUser)
 		{
 			_loggedInUser = loggedInUser;
 		}

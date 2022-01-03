@@ -22,7 +22,7 @@ namespace IndyPOS.UI
 		private readonly IReadOnlyDictionary<int, string> _userRoleDictionary;
 		private readonly ICryptographyHelper _cryptographyHelper;
 		private readonly AddNewUserForm _addNewUserForm;
-		private IUser _selectedUser;
+		private IUserAccount _selectedUser;
 
 		private int? _lastQueryRoleId;
 
@@ -106,7 +106,7 @@ namespace IndyPOS.UI
             #endregion
         }
 
-		private void AddUserToUserDataView(IUser user)
+		private void AddUserToUserDataView(IUserAccount user)
         {
 			var columnCount = UserDataView.ColumnCount;
 			var userRow = new string[columnCount];
@@ -140,12 +140,12 @@ namespace IndyPOS.UI
             }
         }
 
-		private IList<IUser> GetUsersByRoleId(int roleId)
+		private IList<IUserAccount> GetUsersByRoleId(int roleId)
         {
 			var loggedInUser = _userController.LoggedInUser;
 
 			if (loggedInUser.RoleId == (int) UserRoleEnum.Cashier)
-				return new List<IUser> { loggedInUser };
+				return new List<IUserAccount> { loggedInUser };
 
 			return _userController.GetUsers()
 								  .Where(x => x.RoleId == roleId)

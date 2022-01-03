@@ -1,13 +1,13 @@
 ﻿using IndyPOS.Users;
-using UserModel = IndyPOS.DataAccess.Models.User;
+using UserAccountModel = IndyPOS.DataAccess.Models.UserAccount;
 
 namespace IndyPOS.Adapters
 {
-	public class UserAdapter : IUser
+	public class UserAccountAdapter : IUserAccount
 	{
-		private readonly UserModel _adaptee;
+		private readonly UserAccountModel _adaptee;
 
-		public UserAdapter(UserModel adaptee)
+		public UserAccountAdapter(UserAccountModel adaptee)
 		{
 			_adaptee = adaptee;
 		}

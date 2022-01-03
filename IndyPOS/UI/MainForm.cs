@@ -21,7 +21,7 @@ namespace IndyPOS.UI
         private readonly IEventAggregator _eventAggregator;
         private UserControl _activePanel;
 		private bool _isUserLoggedIn;
-		private IUser _loggedInUser;
+		private IUserAccount _loggedInUser;
 		private Timer _dateTimeUpdateTimer;
 
         public MainForm(SalePanel salesPanel, 
@@ -253,7 +253,7 @@ namespace IndyPOS.UI
 			ResizeWindowsButton.Image = Properties.Resources.restore_window_24px;
         }
 
-        private void OnUserLoggedIn(IUser loggedInUser)
+        private void OnUserLoggedIn(IUserAccount loggedInUser)
 		{
 			_loggedInUser = loggedInUser;
 

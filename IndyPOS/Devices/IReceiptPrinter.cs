@@ -5,6 +5,6 @@ namespace IndyPOS.Devices
 {
     public interface IReceiptPrinter
 	{
-		void PrintReceipt(ISaleInvoice saleInvoice, IUser loggedInUser);
+		void PrintReceipt(ISaleInvoice saleInvoice, IUserAccount loggedInUser);
 	}
 }

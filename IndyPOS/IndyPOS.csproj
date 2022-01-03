@@ -105,10 +105,12 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Adapters\UserAdapter.cs" />
+    <Compile Include="Adapters\UserAccountAdapter.cs" />
     <Compile Include="Adapters\UserCredentialAdapter.cs" />
     <Compile Include="Config.cs" />
+    <Compile Include="Controllers\IReportController.cs" />
     <Compile Include="Controllers\IUserController.cs" />
+    <Compile Include="Controllers\ReportController.cs" />
     <Compile Include="Controllers\UserController.cs" />
     <Compile Include="Cryptography\CryptographyHelper.cs" />
     <Compile Include="Cryptography\ICryptographyHelper.cs" />
@@ -249,9 +251,11 @@
     <Compile Include="UI\UsersPanel.Designer.cs">
       <DependentUpon>UsersPanel.cs</DependentUpon>
     </Compile>
-    <Compile Include="Users\IUser.cs" />
+    <Compile Include="Users\IUserAccount.cs" />
+    <Compile Include="Users\IUserAccountHelper.cs" />
     <Compile Include="Users\IUserCredential.cs" />
-    <Compile Include="Users\User.cs" />
+    <Compile Include="Users\UserAccount.cs" />
+    <Compile Include="Users\UserAccountHelper.cs" />
     <Compile Include="Users\UserCredential.cs" />
     <Compile Include="Utilities\PersistentXml.cs" />
     <EmbeddedResource Include="UI\AcceptPaymentForm.resx">

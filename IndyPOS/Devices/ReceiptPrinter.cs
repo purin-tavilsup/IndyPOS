@@ -13,7 +13,7 @@ namespace IndyPOS.Devices
 		private readonly IConfig _config;
 		private readonly IReadOnlyDictionary<int, string> _paymentTypeDictionary;
 		private ISaleInvoice _saleInvoice;
-		private IUser _loggedInUser;
+		private IUserAccount _loggedInUser;
         private readonly PrintDocument _printDocument;
 		private readonly SolidBrush _brush;
 		private readonly Font _textFont;
@@ -44,7 +44,7 @@ namespace IndyPOS.Devices
 			_printDocument.PrintPage += PrintPageHandler;
 		}
 
-		public void PrintReceipt(ISaleInvoice saleInvoice, IUser loggedInUser)
+		public void PrintReceipt(ISaleInvoice saleInvoice, IUserAccount loggedInUser)
 		{
 			_saleInvoice = saleInvoice;
 			_loggedInUser = loggedInUser;

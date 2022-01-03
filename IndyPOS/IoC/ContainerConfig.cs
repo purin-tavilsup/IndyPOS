@@ -5,12 +5,13 @@ using IndyPOS.DataAccess;
 using IndyPOS.DataAccess.Repositories;
 using IndyPOS.DataAccess.SQLite.Repositories;
 using IndyPOS.Devices;
+using IndyPOS.Users;
 using Prism.Events;
 using System.Reflection;
 
 namespace IndyPOS.IoC
 {
-	public static class ContainerConfig
+    public static class ContainerConfig
     {
         public static IContainer Configure()
         {
@@ -71,6 +72,10 @@ namespace IndyPOS.IoC
 
 			builder.RegisterType<CryptographyHelper>()
 				   .As<ICryptographyHelper>()
+				   .SingleInstance();
+
+			builder.RegisterType<UserAccountHelper>()
+				   .As<IUserAccountHelper>()
 				   .SingleInstance();
 
             return builder.Build();

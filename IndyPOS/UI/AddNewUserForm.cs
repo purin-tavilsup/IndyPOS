@@ -20,9 +20,9 @@ namespace IndyPOS.UI
         private readonly MessageForm _messageForm;
 
         public AddNewUserForm(IUserController userController,
-                                IStoreConstants storeConstants,
-                                ICryptographyHelper cryptographyHelper,
-                                MessageForm messageForm)
+							  IStoreConstants storeConstants,
+							  ICryptographyHelper cryptographyHelper,
+							  MessageForm messageForm)
         {
             _userController = userController;
             _userRoleDictionary = storeConstants.UserRoles;
@@ -89,7 +89,7 @@ namespace IndyPOS.UI
 			var username = UsernameLabel.Text;
             var encryptedPassword = _cryptographyHelper.Encrypt(UserSecretTextBox.Texts.Trim());
 
-            var newUser = new User
+            var newUser = new UserAccount
             {
                 FirstName = firstName,
                 LastName = lastName,

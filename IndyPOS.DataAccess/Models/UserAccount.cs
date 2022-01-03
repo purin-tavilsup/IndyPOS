@@ -3,7 +3,7 @@
 namespace IndyPOS.DataAccess.Models
 {
     [ExcludeFromCodeCoverage]
-    public class User
+    public class UserAccount
     {
         public int UserId { get; set; }
         
