@@ -32,11 +32,15 @@
             System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle2 = new System.Windows.Forms.DataGridViewCellStyle();
             this.panel1 = new System.Windows.Forms.Panel();
             this.ProductDataView = new System.Windows.Forms.DataGridView();
+            this.panel4 = new System.Windows.Forms.Panel();
+            this.panel2 = new System.Windows.Forms.Panel();
+            this.AddProductButton = new ModernUI.ModernButton();
+            this.CategoryComboBox = new ModernUI.ModernComboBox();
+            this.label1 = new System.Windows.Forms.Label();
             this.ProductCode = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.Description = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.QuantityInStock = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.UnitPrice = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.UnitCost = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.GroupPrice = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.GroupPriceQuantity = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.Category = new System.Windows.Forms.DataGridViewTextBoxColumn();
@@ -44,11 +48,6 @@
             this.Brand = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.DateCreated = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.DateUpdated = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.panel4 = new System.Windows.Forms.Panel();
-            this.panel2 = new System.Windows.Forms.Panel();
-            this.CategoryComboBox = new ModernUI.ModernComboBox();
-            this.label1 = new System.Windows.Forms.Label();
-            this.AddProductButton = new ModernUI.ModernButton();
             this.panel1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.ProductDataView)).BeginInit();
             this.panel4.SuspendLayout();
@@ -92,7 +91,6 @@
             this.Description,
             this.QuantityInStock,
             this.UnitPrice,
-            this.UnitCost,
             this.GroupPrice,
             this.GroupPriceQuantity,
             this.Category,
@@ -130,6 +128,81 @@
             this.ProductDataView.TabIndex = 2;
             this.ProductDataView.DoubleClick += new System.EventHandler(this.ProductDataView_DoubleClick);
             // 
+            // panel4
+            // 
+            this.panel4.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
+            this.panel4.Controls.Add(this.panel2);
+            this.panel4.Controls.Add(this.CategoryComboBox);
+            this.panel4.Controls.Add(this.label1);
+            this.panel4.Dock = System.Windows.Forms.DockStyle.Top;
+            this.panel4.Location = new System.Drawing.Point(3, 3);
+            this.panel4.Name = "panel4";
+            this.panel4.Size = new System.Drawing.Size(1415, 60);
+            this.panel4.TabIndex = 3;
+            // 
+            // panel2
+            // 
+            this.panel2.Controls.Add(this.AddProductButton);
+            this.panel2.Dock = System.Windows.Forms.DockStyle.Right;
+            this.panel2.Location = new System.Drawing.Point(1145, 0);
+            this.panel2.Name = "panel2";
+            this.panel2.Size = new System.Drawing.Size(270, 60);
+            this.panel2.TabIndex = 8;
+            // 
+            // AddProductButton
+            // 
+            this.AddProductButton.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
+            this.AddProductButton.BackgroundColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
+            this.AddProductButton.BorderColor = System.Drawing.Color.FromArgb(((int)(((byte)(37)))), ((int)(((byte)(182)))), ((int)(((byte)(210)))));
+            this.AddProductButton.BorderRadius = 19;
+            this.AddProductButton.BorderSize = 1;
+            this.AddProductButton.FlatAppearance.BorderSize = 0;
+            this.AddProductButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.AddProductButton.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.AddProductButton.ForeColor = System.Drawing.Color.White;
+            this.AddProductButton.Location = new System.Drawing.Point(3, 4);
+            this.AddProductButton.Name = "AddProductButton";
+            this.AddProductButton.Size = new System.Drawing.Size(264, 50);
+            this.AddProductButton.TabIndex = 9;
+            this.AddProductButton.Text = "เพิ่มรายการสินค้า";
+            this.AddProductButton.TextColor = System.Drawing.Color.White;
+            this.AddProductButton.UseVisualStyleBackColor = false;
+            this.AddProductButton.Click += new System.EventHandler(this.AddProductButton_Click);
+            // 
+            // CategoryComboBox
+            // 
+            this.CategoryComboBox.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
+            this.CategoryComboBox.BorderColor = System.Drawing.Color.DimGray;
+            this.CategoryComboBox.BorderSize = 1;
+            this.CategoryComboBox.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDown;
+            this.CategoryComboBox.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.CategoryComboBox.ForeColor = System.Drawing.Color.Gainsboro;
+            this.CategoryComboBox.IconColor = System.Drawing.Color.Gainsboro;
+            this.CategoryComboBox.ListBackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
+            this.CategoryComboBox.ListTextColor = System.Drawing.Color.Gainsboro;
+            this.CategoryComboBox.Location = new System.Drawing.Point(184, 3);
+            this.CategoryComboBox.MinimumSize = new System.Drawing.Size(200, 35);
+            this.CategoryComboBox.Name = "CategoryComboBox";
+            this.CategoryComboBox.Padding = new System.Windows.Forms.Padding(1);
+            this.CategoryComboBox.SelectedIndex = -1;
+            this.CategoryComboBox.SelectedItem = null;
+            this.CategoryComboBox.Size = new System.Drawing.Size(300, 54);
+            this.CategoryComboBox.TabIndex = 0;
+            this.CategoryComboBox.Texts = "เลือกประเภทสินค้า";
+            this.CategoryComboBox.SelectedIndexChanged += new System.EventHandler(this.CategoryComboBox_SelectedIndexChanged);
+            // 
+            // label1
+            // 
+            this.label1.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
+            this.label1.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label1.ForeColor = System.Drawing.Color.Gainsboro;
+            this.label1.Location = new System.Drawing.Point(3, 10);
+            this.label1.Name = "label1";
+            this.label1.Size = new System.Drawing.Size(175, 35);
+            this.label1.TabIndex = 3;
+            this.label1.Text = "ประเภทสินค้า";
+            this.label1.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            // 
             // ProductCode
             // 
             this.ProductCode.HeaderText = "รหัสสินค้า";
@@ -157,13 +230,6 @@
             this.UnitPrice.Name = "UnitPrice";
             this.UnitPrice.ReadOnly = true;
             this.UnitPrice.Width = 150;
-            // 
-            // UnitCost
-            // 
-            this.UnitCost.HeaderText = "ราคาซื้อ";
-            this.UnitCost.Name = "UnitCost";
-            this.UnitCost.ReadOnly = true;
-            this.UnitCost.Width = 150;
             // 
             // GroupPrice
             // 
@@ -214,81 +280,6 @@
             this.DateUpdated.ReadOnly = true;
             this.DateUpdated.Width = 150;
             // 
-            // panel4
-            // 
-            this.panel4.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
-            this.panel4.Controls.Add(this.panel2);
-            this.panel4.Controls.Add(this.CategoryComboBox);
-            this.panel4.Controls.Add(this.label1);
-            this.panel4.Dock = System.Windows.Forms.DockStyle.Top;
-            this.panel4.Location = new System.Drawing.Point(3, 3);
-            this.panel4.Name = "panel4";
-            this.panel4.Size = new System.Drawing.Size(1415, 60);
-            this.panel4.TabIndex = 3;
-            // 
-            // panel2
-            // 
-            this.panel2.Controls.Add(this.AddProductButton);
-            this.panel2.Dock = System.Windows.Forms.DockStyle.Right;
-            this.panel2.Location = new System.Drawing.Point(1145, 0);
-            this.panel2.Name = "panel2";
-            this.panel2.Size = new System.Drawing.Size(270, 60);
-            this.panel2.TabIndex = 8;
-            // 
-            // CategoryComboBox
-            // 
-            this.CategoryComboBox.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
-            this.CategoryComboBox.BorderColor = System.Drawing.Color.DimGray;
-            this.CategoryComboBox.BorderSize = 1;
-            this.CategoryComboBox.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDown;
-            this.CategoryComboBox.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.CategoryComboBox.ForeColor = System.Drawing.Color.Gainsboro;
-            this.CategoryComboBox.IconColor = System.Drawing.Color.Gainsboro;
-            this.CategoryComboBox.ListBackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
-            this.CategoryComboBox.ListTextColor = System.Drawing.Color.Gainsboro;
-            this.CategoryComboBox.Location = new System.Drawing.Point(184, 3);
-            this.CategoryComboBox.MinimumSize = new System.Drawing.Size(200, 35);
-            this.CategoryComboBox.Name = "CategoryComboBox";
-            this.CategoryComboBox.Padding = new System.Windows.Forms.Padding(1);
-            this.CategoryComboBox.SelectedIndex = -1;
-            this.CategoryComboBox.SelectedItem = null;
-            this.CategoryComboBox.Size = new System.Drawing.Size(300, 54);
-            this.CategoryComboBox.TabIndex = 0;
-            this.CategoryComboBox.Texts = "เลือกประเภทสินค้า";
-            this.CategoryComboBox.SelectedIndexChanged += new System.EventHandler(this.CategoryComboBox_SelectedIndexChanged);
-            // 
-            // label1
-            // 
-            this.label1.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
-            this.label1.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label1.ForeColor = System.Drawing.Color.Gainsboro;
-            this.label1.Location = new System.Drawing.Point(3, 10);
-            this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(175, 35);
-            this.label1.TabIndex = 3;
-            this.label1.Text = "ประเภทสินค้า";
-            this.label1.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
-            // 
-            // AddProductButton
-            // 
-            this.AddProductButton.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
-            this.AddProductButton.BackgroundColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
-            this.AddProductButton.BorderColor = System.Drawing.Color.FromArgb(((int)(((byte)(37)))), ((int)(((byte)(182)))), ((int)(((byte)(210)))));
-            this.AddProductButton.BorderRadius = 19;
-            this.AddProductButton.BorderSize = 1;
-            this.AddProductButton.FlatAppearance.BorderSize = 0;
-            this.AddProductButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.AddProductButton.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.AddProductButton.ForeColor = System.Drawing.Color.White;
-            this.AddProductButton.Location = new System.Drawing.Point(3, 4);
-            this.AddProductButton.Name = "AddProductButton";
-            this.AddProductButton.Size = new System.Drawing.Size(264, 50);
-            this.AddProductButton.TabIndex = 9;
-            this.AddProductButton.Text = "เพิ่มรายการสินค้า";
-            this.AddProductButton.TextColor = System.Drawing.Color.White;
-            this.AddProductButton.UseVisualStyleBackColor = false;
-            this.AddProductButton.Click += new System.EventHandler(this.AddProductButton_Click);
-            // 
             // InventoryPanel
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -310,21 +301,20 @@
         private System.Windows.Forms.Panel panel1;
         private System.Windows.Forms.DataGridView ProductDataView;
         private System.Windows.Forms.Label label1;
-		private System.Windows.Forms.DataGridViewTextBoxColumn ProductCode;
-		private System.Windows.Forms.DataGridViewTextBoxColumn Description;
-		private System.Windows.Forms.DataGridViewTextBoxColumn QuantityInStock;
-		private System.Windows.Forms.DataGridViewTextBoxColumn UnitPrice;
-		private System.Windows.Forms.DataGridViewTextBoxColumn UnitCost;
-		private System.Windows.Forms.DataGridViewTextBoxColumn GroupPrice;
-		private System.Windows.Forms.DataGridViewTextBoxColumn GroupPriceQuantity;
-		private System.Windows.Forms.DataGridViewTextBoxColumn Category;
-		private System.Windows.Forms.DataGridViewTextBoxColumn Manufacturer;
-		private System.Windows.Forms.DataGridViewTextBoxColumn Brand;
-		private System.Windows.Forms.DataGridViewTextBoxColumn DateCreated;
-		private System.Windows.Forms.DataGridViewTextBoxColumn DateUpdated;
 		private System.Windows.Forms.Panel panel4;
 		private ModernUI.ModernComboBox CategoryComboBox;
 		private System.Windows.Forms.Panel panel2;
         private ModernUI.ModernButton AddProductButton;
+        private System.Windows.Forms.DataGridViewTextBoxColumn ProductCode;
+        private System.Windows.Forms.DataGridViewTextBoxColumn Description;
+        private System.Windows.Forms.DataGridViewTextBoxColumn QuantityInStock;
+        private System.Windows.Forms.DataGridViewTextBoxColumn UnitPrice;
+        private System.Windows.Forms.DataGridViewTextBoxColumn GroupPrice;
+        private System.Windows.Forms.DataGridViewTextBoxColumn GroupPriceQuantity;
+        private System.Windows.Forms.DataGridViewTextBoxColumn Category;
+        private System.Windows.Forms.DataGridViewTextBoxColumn Manufacturer;
+        private System.Windows.Forms.DataGridViewTextBoxColumn Brand;
+        private System.Windows.Forms.DataGridViewTextBoxColumn DateCreated;
+        private System.Windows.Forms.DataGridViewTextBoxColumn DateUpdated;
     }
 }

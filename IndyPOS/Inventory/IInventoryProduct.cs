@@ -14,8 +14,6 @@
 
         int Category { get; set; }
 
-        decimal? UnitCost { get; set; }
-
         decimal UnitPrice { get; set; }
 
         int QuantityInStock { get; set; }

@@ -35,27 +35,32 @@ namespace IndyPOS.UI
 		{
             InitializeComponent();
 
-            _salesPanel = salesPanel;
-            _salesPanel.Visible = false;
-            _inventoryPanel = inventoryPanel;
-            _inventoryPanel.Visible = false;
-            _usersPanel = usersPanel;
-            _usersPanel.Visible = false;
-            _reportsPanel = reportsPanel;
-            _reportsPanel.Visible = false;
-            _customerAccountsPanel = customerAccountsPanel;
-            _customerAccountsPanel.Visible = false;
-            _settingsPanel = settingsPanel;
-            _settingsPanel.Visible = false;
+			_salesPanel = salesPanel;
+			_salesPanel.Visible = false;
+			_inventoryPanel = inventoryPanel;
+			_inventoryPanel.Visible = false;
+			_usersPanel = usersPanel;
+			_usersPanel.Visible = false;
+			_reportsPanel = reportsPanel;
+			_reportsPanel.Visible = false;
+			_customerAccountsPanel = customerAccountsPanel;
+			_customerAccountsPanel.Visible = false;
+			_settingsPanel = settingsPanel;
+			_settingsPanel.Visible = false;
 			_userLogInPanel = userLogInPanel;
 			_userLogInPanel.Visible = false;
-            _eventAggregator = eventAggregator;
+			_eventAggregator = eventAggregator;
 			_isUserLoggedIn = false;
 
 			SubscribeEvents();
 			CreateDateTimeUpdateTimer();
 
             LogInButton.Select();
+		}
+
+        public void SetStoreName(string storeName)
+		{
+			StoreNameLabel.Text = storeName;
 		}
 
         private void CreateDateTimeUpdateTimer()

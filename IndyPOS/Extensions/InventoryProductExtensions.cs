@@ -15,7 +15,6 @@ namespace IndyPOS.Extensions
                 Manufacturer = inventoryProduct.Manufacturer,
                 Brand = inventoryProduct.Brand,
                 Category = inventoryProduct.Category,
-                UnitCost = inventoryProduct.UnitCost,
                 UnitPrice = inventoryProduct.UnitPrice,
                 Quantity = 1,
                 GroupPrice = inventoryProduct.GroupPrice,

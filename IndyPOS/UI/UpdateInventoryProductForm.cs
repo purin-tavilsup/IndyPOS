@@ -14,7 +14,6 @@ namespace IndyPOS.UI
 	public partial class UpdateInventoryProductForm : Form
     {
         private readonly IEventAggregator _eventAggregator;
-        private readonly IStoreConstants _storeConstants;
         private readonly IInventoryController _inventoryController;
 		private readonly MessageForm _messageForm;
         private IReadOnlyDictionary<int, string> _productCategoryDictionary;
@@ -26,9 +25,8 @@ namespace IndyPOS.UI
 										  MessageForm messageForm)
         {
             _eventAggregator = eventAggregator;
-            _storeConstants = storeConstants;
             _inventoryController = inventoryController;
-            _productCategoryDictionary = _storeConstants.ProductCategories;
+            _productCategoryDictionary = storeConstants.ProductCategories;
 			_messageForm = messageForm;
 
             InitializeComponent();
@@ -53,7 +51,6 @@ namespace IndyPOS.UI
             DescriptionTextBox.Texts = _product.Description;
             QuantityTextBox.Texts = _product.QuantityInStock.ToString();
             UnitPriceTextBox.Texts = _product.UnitPrice.ToString("0.00");
-            UnitCostTextBox.Texts = _product.UnitCost.HasValue ? _product.UnitCost.Value.ToString("0.00") : string.Empty;
             CategoryComboBox.Texts = _productCategoryDictionary[_product.Category];
             GroupPriceTextBox.Texts = _product.GroupPrice.HasValue ? _product.GroupPrice.Value.ToString("0.00") : string.Empty;
             GroupPriceQuantityTextBox.Texts = _product.GroupPriceQuantity.HasValue ? _product.GroupPriceQuantity.Value.ToString("0.00") : string.Empty;
@@ -146,10 +143,7 @@ namespace IndyPOS.UI
             product.Category = categoryId;
 
             // Optional Attributes
-            if (decimal.TryParse(UnitCostTextBox.Texts.Trim(), out var unitCost))
-                product.UnitCost = unitCost;
-
-            if (!string.IsNullOrWhiteSpace(ManufacturerTextBox.Texts))
+			if (!string.IsNullOrWhiteSpace(ManufacturerTextBox.Texts))
                 product.Manufacturer = ManufacturerTextBox.Texts;
 
             if (!string.IsNullOrWhiteSpace(BrandTextBox.Texts))

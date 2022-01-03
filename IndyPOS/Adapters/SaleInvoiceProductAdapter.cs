@@ -60,12 +60,6 @@ namespace IndyPOS.Adapters
             set => _adaptee.Category = value;
         }
 
-        public decimal? UnitCost
-        {
-            get => _adaptee.UnitCost;
-            set => _adaptee.UnitCost = value;
-        }
-
         public decimal UnitPrice
         {
             get => _adaptee.UnitPrice;

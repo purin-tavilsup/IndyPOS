@@ -34,8 +34,9 @@
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            this.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
             this.Name = "ReportsPanel";
-            this.Size = new System.Drawing.Size(801, 556);
+            this.Size = new System.Drawing.Size(1800, 970);
             this.ResumeLayout(false);
 
         }

@@ -36,24 +36,22 @@
             this.ManufacturerTextBox = new ModernUI.ModernTextBox();
             this.GroupPriceQuantityTextBox = new ModernUI.ModernTextBox();
             this.GroupPriceTextBox = new ModernUI.ModernTextBox();
-            this.UnitCostTextBox = new ModernUI.ModernTextBox();
             this.UnitPriceTextBox = new ModernUI.ModernTextBox();
             this.QuantityTextBox = new ModernUI.ModernTextBox();
             this.DescriptionTextBox = new ModernUI.ModernTextBox();
             this.ProductCodeTextBox = new ModernUI.ModernTextBox();
             this.panel2 = new System.Windows.Forms.Panel();
+            this.RemoveProductButton = new ModernUI.ModernButton();
+            this.CancelUpdateProductButton = new ModernUI.ModernButton();
+            this.UpdateProductButton = new ModernUI.ModernButton();
             this.label9 = new System.Windows.Forms.Label();
             this.label8 = new System.Windows.Forms.Label();
             this.label7 = new System.Windows.Forms.Label();
-            this.label6 = new System.Windows.Forms.Label();
             this.label5 = new System.Windows.Forms.Label();
             this.label4 = new System.Windows.Forms.Label();
             this.label3 = new System.Windows.Forms.Label();
             this.label2 = new System.Windows.Forms.Label();
             this.label1 = new System.Windows.Forms.Label();
-            this.RemoveProductButton = new ModernUI.ModernButton();
-            this.CancelUpdateProductButton = new ModernUI.ModernButton();
-            this.UpdateProductButton = new ModernUI.ModernButton();
             this.panel1.SuspendLayout();
             this.panel2.SuspendLayout();
             this.SuspendLayout();
@@ -68,7 +66,6 @@
             this.panel1.Controls.Add(this.ManufacturerTextBox);
             this.panel1.Controls.Add(this.GroupPriceQuantityTextBox);
             this.panel1.Controls.Add(this.GroupPriceTextBox);
-            this.panel1.Controls.Add(this.UnitCostTextBox);
             this.panel1.Controls.Add(this.UnitPriceTextBox);
             this.panel1.Controls.Add(this.QuantityTextBox);
             this.panel1.Controls.Add(this.DescriptionTextBox);
@@ -77,7 +74,6 @@
             this.panel1.Controls.Add(this.label9);
             this.panel1.Controls.Add(this.label8);
             this.panel1.Controls.Add(this.label7);
-            this.panel1.Controls.Add(this.label6);
             this.panel1.Controls.Add(this.label5);
             this.panel1.Controls.Add(this.label4);
             this.panel1.Controls.Add(this.label3);
@@ -100,7 +96,7 @@
             this.CategoryComboBox.IconColor = System.Drawing.Color.Gainsboro;
             this.CategoryComboBox.ListBackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
             this.CategoryComboBox.ListTextColor = System.Drawing.Color.Gainsboro;
-            this.CategoryComboBox.Location = new System.Drawing.Point(239, 395);
+            this.CategoryComboBox.Location = new System.Drawing.Point(239, 350);
             this.CategoryComboBox.MinimumSize = new System.Drawing.Size(200, 35);
             this.CategoryComboBox.Name = "CategoryComboBox";
             this.CategoryComboBox.SelectedIndex = -1;
@@ -114,7 +110,7 @@
             this.label11.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
             this.label11.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.label11.ForeColor = System.Drawing.Color.Gainsboro;
-            this.label11.Location = new System.Drawing.Point(100, 336);
+            this.label11.Location = new System.Drawing.Point(100, 291);
             this.label11.Name = "label11";
             this.label11.Size = new System.Drawing.Size(133, 39);
             this.label11.TabIndex = 57;
@@ -126,7 +122,7 @@
             this.label10.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
             this.label10.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.label10.ForeColor = System.Drawing.Color.Gainsboro;
-            this.label10.Location = new System.Drawing.Point(100, 291);
+            this.label10.Location = new System.Drawing.Point(100, 246);
             this.label10.Name = "label10";
             this.label10.Size = new System.Drawing.Size(133, 39);
             this.label10.TabIndex = 56;
@@ -140,7 +136,7 @@
             this.BrandTextBox.BorderSize = 1;
             this.BrandTextBox.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.BrandTextBox.ForeColor = System.Drawing.Color.Gainsboro;
-            this.BrandTextBox.Location = new System.Drawing.Point(239, 482);
+            this.BrandTextBox.Location = new System.Drawing.Point(239, 437);
             this.BrandTextBox.Multiline = false;
             this.BrandTextBox.Name = "BrandTextBox";
             this.BrandTextBox.Padding = new System.Windows.Forms.Padding(7);
@@ -159,7 +155,7 @@
             this.ManufacturerTextBox.BorderSize = 1;
             this.ManufacturerTextBox.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.ManufacturerTextBox.ForeColor = System.Drawing.Color.Gainsboro;
-            this.ManufacturerTextBox.Location = new System.Drawing.Point(239, 437);
+            this.ManufacturerTextBox.Location = new System.Drawing.Point(239, 392);
             this.ManufacturerTextBox.Multiline = false;
             this.ManufacturerTextBox.Name = "ManufacturerTextBox";
             this.ManufacturerTextBox.Padding = new System.Windows.Forms.Padding(7);
@@ -178,7 +174,7 @@
             this.GroupPriceQuantityTextBox.BorderSize = 1;
             this.GroupPriceQuantityTextBox.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.GroupPriceQuantityTextBox.ForeColor = System.Drawing.Color.Gainsboro;
-            this.GroupPriceQuantityTextBox.Location = new System.Drawing.Point(239, 336);
+            this.GroupPriceQuantityTextBox.Location = new System.Drawing.Point(239, 291);
             this.GroupPriceQuantityTextBox.Multiline = false;
             this.GroupPriceQuantityTextBox.Name = "GroupPriceQuantityTextBox";
             this.GroupPriceQuantityTextBox.Padding = new System.Windows.Forms.Padding(7);
@@ -197,7 +193,7 @@
             this.GroupPriceTextBox.BorderSize = 1;
             this.GroupPriceTextBox.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.GroupPriceTextBox.ForeColor = System.Drawing.Color.Gainsboro;
-            this.GroupPriceTextBox.Location = new System.Drawing.Point(239, 291);
+            this.GroupPriceTextBox.Location = new System.Drawing.Point(239, 246);
             this.GroupPriceTextBox.Multiline = false;
             this.GroupPriceTextBox.Name = "GroupPriceTextBox";
             this.GroupPriceTextBox.Padding = new System.Windows.Forms.Padding(7);
@@ -208,25 +204,6 @@
             this.GroupPriceTextBox.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
             this.GroupPriceTextBox.Texts = "";
             this.GroupPriceTextBox.UnderlinedStyle = true;
-            // 
-            // UnitCostTextBox
-            // 
-            this.UnitCostTextBox.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
-            this.UnitCostTextBox.BorderColor = System.Drawing.Color.DimGray;
-            this.UnitCostTextBox.BorderSize = 1;
-            this.UnitCostTextBox.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.UnitCostTextBox.ForeColor = System.Drawing.Color.Gainsboro;
-            this.UnitCostTextBox.Location = new System.Drawing.Point(239, 246);
-            this.UnitCostTextBox.Multiline = false;
-            this.UnitCostTextBox.Name = "UnitCostTextBox";
-            this.UnitCostTextBox.Padding = new System.Windows.Forms.Padding(7);
-            this.UnitCostTextBox.PasswordChar = false;
-            this.UnitCostTextBox.ReadOnly = false;
-            this.UnitCostTextBox.Size = new System.Drawing.Size(310, 39);
-            this.UnitCostTextBox.TabIndex = 51;
-            this.UnitCostTextBox.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
-            this.UnitCostTextBox.Texts = "";
-            this.UnitCostTextBox.UnderlinedStyle = true;
             // 
             // UnitPriceTextBox
             // 
@@ -316,115 +293,6 @@
             this.panel2.Size = new System.Drawing.Size(667, 93);
             this.panel2.TabIndex = 46;
             // 
-            // label9
-            // 
-            this.label9.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
-            this.label9.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label9.ForeColor = System.Drawing.Color.Gainsboro;
-            this.label9.Location = new System.Drawing.Point(100, 482);
-            this.label9.Name = "label9";
-            this.label9.Size = new System.Drawing.Size(133, 39);
-            this.label9.TabIndex = 45;
-            this.label9.Text = "ยี่ห้อ";
-            this.label9.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
-            // 
-            // label8
-            // 
-            this.label8.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
-            this.label8.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label8.ForeColor = System.Drawing.Color.Gainsboro;
-            this.label8.Location = new System.Drawing.Point(100, 437);
-            this.label8.Name = "label8";
-            this.label8.Size = new System.Drawing.Size(133, 39);
-            this.label8.TabIndex = 44;
-            this.label8.Text = "ผู้ผลิต";
-            this.label8.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
-            // 
-            // label7
-            // 
-            this.label7.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
-            this.label7.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label7.ForeColor = System.Drawing.Color.Gainsboro;
-            this.label7.Location = new System.Drawing.Point(100, 399);
-            this.label7.Name = "label7";
-            this.label7.Size = new System.Drawing.Size(133, 32);
-            this.label7.TabIndex = 43;
-            this.label7.Text = "ประเภทสินค้า";
-            this.label7.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
-            // 
-            // label6
-            // 
-            this.label6.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
-            this.label6.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label6.ForeColor = System.Drawing.Color.Gainsboro;
-            this.label6.Location = new System.Drawing.Point(100, 246);
-            this.label6.Name = "label6";
-            this.label6.Size = new System.Drawing.Size(133, 35);
-            this.label6.TabIndex = 42;
-            this.label6.Text = "ราคาซื้อ";
-            this.label6.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
-            // 
-            // label5
-            // 
-            this.label5.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
-            this.label5.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label5.ForeColor = System.Drawing.Color.Gainsboro;
-            this.label5.Location = new System.Drawing.Point(100, 201);
-            this.label5.Name = "label5";
-            this.label5.Size = new System.Drawing.Size(133, 39);
-            this.label5.TabIndex = 41;
-            this.label5.Text = "ราคาขาย";
-            this.label5.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
-            // 
-            // label4
-            // 
-            this.label4.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
-            this.label4.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label4.ForeColor = System.Drawing.Color.Gainsboro;
-            this.label4.Location = new System.Drawing.Point(100, 156);
-            this.label4.Name = "label4";
-            this.label4.Size = new System.Drawing.Size(133, 39);
-            this.label4.TabIndex = 40;
-            this.label4.Text = "จำนวน";
-            this.label4.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
-            // 
-            // label3
-            // 
-            this.label3.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
-            this.label3.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label3.ForeColor = System.Drawing.Color.Gainsboro;
-            this.label3.Location = new System.Drawing.Point(100, 111);
-            this.label3.Name = "label3";
-            this.label3.Size = new System.Drawing.Size(133, 39);
-            this.label3.TabIndex = 39;
-            this.label3.Text = "คำอธิบาย";
-            this.label3.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
-            // 
-            // label2
-            // 
-            this.label2.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
-            this.label2.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label2.ForeColor = System.Drawing.Color.Gainsboro;
-            this.label2.Location = new System.Drawing.Point(100, 66);
-            this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(133, 39);
-            this.label2.TabIndex = 38;
-            this.label2.Text = "รหัสสินค้า";
-            this.label2.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
-            // 
-            // label1
-            // 
-            this.label1.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(25)))), ((int)(((byte)(25)))), ((int)(((byte)(25)))));
-            this.label1.Dock = System.Windows.Forms.DockStyle.Top;
-            this.label1.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 14.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label1.ForeColor = System.Drawing.Color.WhiteSmoke;
-            this.label1.Location = new System.Drawing.Point(0, 0);
-            this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(667, 39);
-            this.label1.TabIndex = 37;
-            this.label1.Text = "อัพเดทสินค้า";
-            this.label1.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
-            // 
             // RemoveProductButton
             // 
             this.RemoveProductButton.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
@@ -488,6 +356,103 @@
             this.UpdateProductButton.UseVisualStyleBackColor = false;
             this.UpdateProductButton.Click += new System.EventHandler(this.UpdateProductButton_Click);
             // 
+            // label9
+            // 
+            this.label9.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
+            this.label9.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label9.ForeColor = System.Drawing.Color.Gainsboro;
+            this.label9.Location = new System.Drawing.Point(100, 437);
+            this.label9.Name = "label9";
+            this.label9.Size = new System.Drawing.Size(133, 39);
+            this.label9.TabIndex = 45;
+            this.label9.Text = "ยี่ห้อ";
+            this.label9.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            // 
+            // label8
+            // 
+            this.label8.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
+            this.label8.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label8.ForeColor = System.Drawing.Color.Gainsboro;
+            this.label8.Location = new System.Drawing.Point(100, 392);
+            this.label8.Name = "label8";
+            this.label8.Size = new System.Drawing.Size(133, 39);
+            this.label8.TabIndex = 44;
+            this.label8.Text = "ผู้ผลิต";
+            this.label8.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            // 
+            // label7
+            // 
+            this.label7.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
+            this.label7.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label7.ForeColor = System.Drawing.Color.Gainsboro;
+            this.label7.Location = new System.Drawing.Point(100, 354);
+            this.label7.Name = "label7";
+            this.label7.Size = new System.Drawing.Size(133, 32);
+            this.label7.TabIndex = 43;
+            this.label7.Text = "ประเภทสินค้า";
+            this.label7.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            // 
+            // label5
+            // 
+            this.label5.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
+            this.label5.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label5.ForeColor = System.Drawing.Color.Gainsboro;
+            this.label5.Location = new System.Drawing.Point(100, 201);
+            this.label5.Name = "label5";
+            this.label5.Size = new System.Drawing.Size(133, 39);
+            this.label5.TabIndex = 41;
+            this.label5.Text = "ราคาขาย";
+            this.label5.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            // 
+            // label4
+            // 
+            this.label4.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
+            this.label4.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label4.ForeColor = System.Drawing.Color.Gainsboro;
+            this.label4.Location = new System.Drawing.Point(100, 156);
+            this.label4.Name = "label4";
+            this.label4.Size = new System.Drawing.Size(133, 39);
+            this.label4.TabIndex = 40;
+            this.label4.Text = "จำนวน";
+            this.label4.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            // 
+            // label3
+            // 
+            this.label3.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
+            this.label3.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label3.ForeColor = System.Drawing.Color.Gainsboro;
+            this.label3.Location = new System.Drawing.Point(100, 111);
+            this.label3.Name = "label3";
+            this.label3.Size = new System.Drawing.Size(133, 39);
+            this.label3.TabIndex = 39;
+            this.label3.Text = "คำอธิบาย";
+            this.label3.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            // 
+            // label2
+            // 
+            this.label2.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
+            this.label2.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label2.ForeColor = System.Drawing.Color.Gainsboro;
+            this.label2.Location = new System.Drawing.Point(100, 66);
+            this.label2.Name = "label2";
+            this.label2.Size = new System.Drawing.Size(133, 39);
+            this.label2.TabIndex = 38;
+            this.label2.Text = "รหัสสินค้า";
+            this.label2.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            // 
+            // label1
+            // 
+            this.label1.BackColor = System.Drawing.Color.DarkSlateGray;
+            this.label1.Dock = System.Windows.Forms.DockStyle.Top;
+            this.label1.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 14.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label1.ForeColor = System.Drawing.Color.WhiteSmoke;
+            this.label1.Location = new System.Drawing.Point(0, 0);
+            this.label1.Name = "label1";
+            this.label1.Size = new System.Drawing.Size(667, 39);
+            this.label1.TabIndex = 37;
+            this.label1.Text = "อัพเดทสินค้า";
+            this.label1.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            // 
             // UpdateInventoryProductForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -515,7 +480,6 @@
 		private ModernUI.ModernTextBox ManufacturerTextBox;
 		private ModernUI.ModernTextBox GroupPriceQuantityTextBox;
 		private ModernUI.ModernTextBox GroupPriceTextBox;
-		private ModernUI.ModernTextBox UnitCostTextBox;
 		private ModernUI.ModernTextBox UnitPriceTextBox;
 		private ModernUI.ModernTextBox QuantityTextBox;
 		private ModernUI.ModernTextBox DescriptionTextBox;
@@ -524,7 +488,6 @@
 		private System.Windows.Forms.Label label9;
 		private System.Windows.Forms.Label label8;
 		private System.Windows.Forms.Label label7;
-		private System.Windows.Forms.Label label6;
 		private System.Windows.Forms.Label label5;
 		private System.Windows.Forms.Label label4;
 		private System.Windows.Forms.Label label3;

@@ -1,21 +1,20 @@
 ﻿using IndyPOS.Constants;
 using IndyPOS.Controllers;
 using IndyPOS.Cryptography;
+using IndyPOS.Events;
 using IndyPOS.Extensions;
 using IndyPOS.Users;
+using Prism.Events;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Windows.Forms;
-using IndyPOS.Events;
-using Prism.Events;
-using IndyPOS.Enums;
 using UserRoleEnum = IndyPOS.Enums.UserRole;
 
 namespace IndyPOS.UI
 {
-	[ExcludeFromCodeCoverage]
+    [ExcludeFromCodeCoverage]
     public partial class UsersPanel : UserControl
     {
         private readonly IUserController _userController;

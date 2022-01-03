@@ -59,7 +59,6 @@ namespace IndyPOS.UI
             DescriptionTextBox.Texts = string.Empty;
             QuantityTextBox.Texts = string.Empty;
             UnitPriceTextBox.Texts = string.Empty;
-            UnitCostTextBox.Texts = string.Empty;
             CategoryComboBox.Texts = "เลือกประเภทสินค้า";
             GroupPriceTextBox.Texts = string.Empty;
             GroupPriceQuantityTextBox.Texts = string.Empty;
@@ -165,9 +164,6 @@ namespace IndyPOS.UI
             };
 
             // Optional Attributes
-            if (decimal.TryParse(UnitCostTextBox.Texts.Trim(), out var unitCost))
-                product.UnitCost = unitCost;
-
             if (!string.IsNullOrWhiteSpace(ManufacturerTextBox.Texts))
                 product.Manufacturer = ManufacturerTextBox.Texts;
 

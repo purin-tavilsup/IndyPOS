@@ -1,5 +1,4 @@
 ﻿using Dapper;
-using IndyPOS.DataAccess.Extensions;
 using IndyPOS.DataAccess.Models;
 using IndyPOS.DataAccess.Repositories;
 using System;
@@ -8,7 +7,7 @@ using System.Linq;
 
 namespace IndyPOS.DataAccess.SQLite.Repositories
 {
-	public class InvoiceRepository : IInvoiceRepository
+    public class InvoiceRepository : IInvoiceRepository
     {
         private readonly IDbConnectionProvider _dbConnectionProvider;
 
@@ -70,7 +69,6 @@ namespace IndyPOS.DataAccess.SQLite.Repositories
                     Manufacturer,
                     Brand,
                     Category,
-                    UnitCost,
                     UnitPrice,
                     Quantity,
                     DateCreated
@@ -85,7 +83,6 @@ namespace IndyPOS.DataAccess.SQLite.Repositories
                     @Manufacturer,
                     @Brand,
                     @Category,
-                    @UnitCost,
                     @UnitPrice,
                     @Quantity,
                     datetime('now','localtime')
@@ -102,7 +99,6 @@ namespace IndyPOS.DataAccess.SQLite.Repositories
                     product.Manufacturer,
                     product.Brand,
                     product.Category,
-                    product.UnitCost,
                     product.UnitPrice,
                     product.Quantity
                 };
@@ -226,7 +222,6 @@ namespace IndyPOS.DataAccess.SQLite.Repositories
                 Manufacturer,
                 Brand,
                 Category,
-                UnitCost,
                 UnitPrice,
                 Quantity,
                 DateCreated
@@ -260,7 +255,6 @@ namespace IndyPOS.DataAccess.SQLite.Repositories
                 Manufacturer,
                 Brand,
                 Category,
-                UnitCost,
                 UnitPrice,
                 Quantity,
                 DateCreated
@@ -364,8 +358,6 @@ namespace IndyPOS.DataAccess.SQLite.Repositories
 
                 Category = (int)x.Category,
 
-                UnitCost = MapMoneyToDecimal(x.UnitCost),
-
                 UnitPrice = MapMoneyToDecimal(x.UnitPrice),
 
                 Quantity = (int)x.Quantity,
@@ -392,17 +384,6 @@ namespace IndyPOS.DataAccess.SQLite.Repositories
             }) ?? Enumerable.Empty<Payment>();
 
             return payments.ToList();
-        }
-
-        private decimal? MapMoneyToNullableDecimal(string value)
-        {
-            if (!value.HasValue())
-                return null;
-
-            if (decimal.TryParse(value.Trim(), out var result))
-                return result / 100m;
-
-            return null;
         }
 
         private decimal MapMoneyToDecimal(string value)

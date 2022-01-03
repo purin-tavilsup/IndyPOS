@@ -78,6 +78,8 @@ namespace IndyPOS
 
         private void StartUserInterface()
         {
+			_mainForm.SetStoreName(_config.StoreName);
+
             System.Windows.Forms.Application.Run(_mainForm);
         }
     }

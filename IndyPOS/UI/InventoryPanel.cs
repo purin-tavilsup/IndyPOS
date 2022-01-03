@@ -18,7 +18,6 @@ namespace IndyPOS.UI
     {
         private readonly IEventAggregator _eventAggregator;
         private readonly IInventoryController _inventoryController;
-        private readonly IStoreConstants _storeConstants;
         private readonly IReadOnlyDictionary<int, string> _productCategoryDictionary;
         private readonly AddNewInventoryProductForm _addNewProductForm;
         private readonly UpdateInventoryProductForm _updateProductForm;
@@ -31,7 +30,6 @@ namespace IndyPOS.UI
             Description,
             QuantityInStock,
             UnitPrice,
-            UnitCost,
             GroupPrice,
             GroupPriceQuantity,
             Category,
@@ -49,8 +47,7 @@ namespace IndyPOS.UI
         {
             _eventAggregator = eventAggregator;
             _inventoryController = inventoryController;
-            _storeConstants = storeConstants;
-            _productCategoryDictionary = _storeConstants.ProductCategories;
+            _productCategoryDictionary = storeConstants.ProductCategories;
             _addNewProductForm = addNewProductForm;
             _updateProductForm = updateProductForm;
 
@@ -102,10 +99,6 @@ namespace IndyPOS.UI
             ProductDataView.Columns[(int)ProductColumn.UnitPrice].Name = "ราคาขาย";
             ProductDataView.Columns[(int)ProductColumn.UnitPrice].Width = 150;
             ProductDataView.Columns[(int)ProductColumn.UnitPrice].ReadOnly = true;
-
-            ProductDataView.Columns[(int)ProductColumn.UnitCost].Name = "ราคาซื้อ";
-            ProductDataView.Columns[(int)ProductColumn.UnitCost].Width = 150;
-            ProductDataView.Columns[(int)ProductColumn.UnitCost].ReadOnly = true;
 
             ProductDataView.Columns[(int)ProductColumn.GroupPrice].Name = "ราคาขายต่อกลุ่ม";
             ProductDataView.Columns[(int)ProductColumn.GroupPrice].Width = 170;
@@ -171,7 +164,6 @@ namespace IndyPOS.UI
             productRow[(int)ProductColumn.Description] = product.Description;
             productRow[(int)ProductColumn.QuantityInStock] = product.QuantityInStock.ToString();
             productRow[(int)ProductColumn.UnitPrice] = product.UnitPrice.ToString("0.00");
-            productRow[(int)ProductColumn.UnitCost] = product.UnitCost?.ToString("0.00") ?? string.Empty;
             productRow[(int)ProductColumn.GroupPrice] = product.GroupPrice?.ToString("0.00") ?? string.Empty;
 			productRow[(int)ProductColumn.GroupPriceQuantity] = product.GroupPriceQuantity?.ToString() ?? string.Empty;
 			productRow[(int)ProductColumn.Category] = category;

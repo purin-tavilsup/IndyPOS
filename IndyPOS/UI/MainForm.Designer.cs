@@ -37,7 +37,7 @@
             this.ResizeWindowsButton = new ModernUI.ModernButton();
             this.CloseWindowsButton = new ModernUI.ModernButton();
             this.MinimizeWindowsButton = new ModernUI.ModernButton();
-            this.label1 = new System.Windows.Forms.Label();
+            this.StoreNameLabel = new System.Windows.Forms.Label();
             this.ActivePanel = new System.Windows.Forms.Panel();
             this.ControlPanel = new System.Windows.Forms.Panel();
             this.CloseButton = new System.Windows.Forms.Button();
@@ -68,7 +68,7 @@
             this.TitlePanel.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(25)))), ((int)(((byte)(25)))), ((int)(((byte)(25)))));
             this.TitlePanel.Controls.Add(this.panel1);
             this.TitlePanel.Controls.Add(this.panel9);
-            this.TitlePanel.Controls.Add(this.label1);
+            this.TitlePanel.Controls.Add(this.StoreNameLabel);
             this.TitlePanel.Dock = System.Windows.Forms.DockStyle.Top;
             this.TitlePanel.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.TitlePanel.ForeColor = System.Drawing.Color.LightGreen;
@@ -180,16 +180,16 @@
             this.MinimizeWindowsButton.UseVisualStyleBackColor = false;
             this.MinimizeWindowsButton.Click += new System.EventHandler(this.MinimizeWindows_Click);
             // 
-            // label1
+            // StoreNameLabel
             // 
-            this.label1.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 18F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label1.ForeColor = System.Drawing.Color.WhiteSmoke;
-            this.label1.Location = new System.Drawing.Point(3, 9);
-            this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(100, 39);
-            this.label1.TabIndex = 0;
-            this.label1.Text = "รุ่งรัศมิ์";
-            this.label1.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            this.StoreNameLabel.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 18F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.StoreNameLabel.ForeColor = System.Drawing.Color.WhiteSmoke;
+            this.StoreNameLabel.Location = new System.Drawing.Point(12, 9);
+            this.StoreNameLabel.Name = "StoreNameLabel";
+            this.StoreNameLabel.Size = new System.Drawing.Size(418, 39);
+            this.StoreNameLabel.TabIndex = 0;
+            this.StoreNameLabel.Text = "Store Name";
+            this.StoreNameLabel.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
             // 
             // ActivePanel
             // 
@@ -396,7 +396,7 @@
         private System.Windows.Forms.Button ReportsButton;
         private System.Windows.Forms.Button CustomerAccountsButton;
         private System.Windows.Forms.Button LogInButton;
-        private System.Windows.Forms.Label label1;
+        private System.Windows.Forms.Label StoreNameLabel;
 		private System.Windows.Forms.Button CloseButton;
 		private System.Windows.Forms.Panel panel9;
 		private System.Windows.Forms.Panel ControlPanel;

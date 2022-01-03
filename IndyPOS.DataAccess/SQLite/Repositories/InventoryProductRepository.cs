@@ -90,7 +90,6 @@ namespace IndyPOS.DataAccess.SQLite.Repositories
                     Manufacturer,
                     Brand,
                     Category,
-                    UnitCost,
                     UnitPrice,
                     QuantityInStock,
                     GroupPrice,
@@ -104,7 +103,6 @@ namespace IndyPOS.DataAccess.SQLite.Repositories
                     @Manufacturer,
                     @Brand,
                     @Category,
-                    @UnitCost,
                     @UnitPrice,
                     @QuantityInStock,
                     @GroupPrice,
@@ -120,7 +118,6 @@ namespace IndyPOS.DataAccess.SQLite.Repositories
 					product.Manufacturer,
 					product.Brand,
 					product.Category,
-                    UnitCost = MapMoneyToString(product.UnitCost),
                     UnitPrice = MapMoneyToString(product.UnitPrice),
 					product.QuantityInStock,
                     GroupPrice = MapMoneyToString(product.GroupPrice),
@@ -147,7 +144,6 @@ namespace IndyPOS.DataAccess.SQLite.Repositories
                     Manufacturer = @Manufacturer,
                     Brand = @Brand,
                     Category = @Category,
-                    UnitCost = @UnitCost,
                     UnitPrice = @UnitPrice,
                     QuantityInStock = @QuantityInStock,
                     GroupPrice = @GroupPrice,
@@ -162,7 +158,6 @@ namespace IndyPOS.DataAccess.SQLite.Repositories
                     product.Manufacturer,
                     product.Brand,
                     product.Category,
-                    UnitCost = MapMoneyToString(product.UnitCost),
                     UnitPrice = MapMoneyToString(product.UnitPrice),
                     product.QuantityInStock,
                     GroupPrice = MapMoneyToString(product.GroupPrice),
@@ -241,8 +236,6 @@ namespace IndyPOS.DataAccess.SQLite.Repositories
                 Brand = x.Brand,
 
                 Category = (int)x.Category,
-
-                UnitCost = MapMoneyToNullableDecimal(x.UnitCost),
 
                 UnitPrice = MapMoneyToDecimal(x.UnitPrice),
 
