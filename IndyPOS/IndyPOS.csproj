@@ -126,6 +126,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Adapters\FinalInvoiceAdapter.cs" />
+    <Compile Include="Adapters\FinalInvoicePaymentAdapter.cs" />
     <Compile Include="Adapters\UserAccountAdapter.cs" />
     <Compile Include="Adapters\UserCredentialAdapter.cs" />
     <Compile Include="Barcode\BarcodeHelper.cs" />
@@ -156,6 +157,7 @@
     <Compile Include="IConfig.cs" />
     <Compile Include="Inventory\IInventoryProduct.cs" />
     <Compile Include="Sales\IFinalInvoice.cs" />
+    <Compile Include="Sales\IFinalInvoicePayment.cs" />
     <Compile Include="Sales\IFinalInvoiceProduct.cs" />
     <Compile Include="Sales\IPayment.cs" />
     <Compile Include="Sales\ISaleInvoice.cs" />

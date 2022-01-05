@@ -86,7 +86,7 @@
             // TotalLabel
             // 
             this.TotalLabel.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(40)))), ((int)(((byte)(40)))), ((int)(((byte)(40)))));
-            this.TotalLabel.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 26.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.TotalLabel.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 27.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.TotalLabel.ForeColor = System.Drawing.Color.PaleGreen;
             this.TotalLabel.Location = new System.Drawing.Point(3, 107);
             this.TotalLabel.Name = "TotalLabel";
@@ -98,7 +98,7 @@
             // TotalPaymentsLabel
             // 
             this.TotalPaymentsLabel.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(40)))), ((int)(((byte)(40)))), ((int)(((byte)(40)))));
-            this.TotalPaymentsLabel.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 26.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.TotalPaymentsLabel.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 27.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.TotalPaymentsLabel.ForeColor = System.Drawing.Color.PaleGreen;
             this.TotalPaymentsLabel.Location = new System.Drawing.Point(3, 297);
             this.TotalPaymentsLabel.Name = "TotalPaymentsLabel";
@@ -122,7 +122,7 @@
             // ChangesLabel
             // 
             this.ChangesLabel.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(40)))), ((int)(((byte)(40)))), ((int)(((byte)(40)))));
-            this.ChangesLabel.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 26.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.ChangesLabel.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 27.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.ChangesLabel.ForeColor = System.Drawing.Color.PaleGreen;
             this.ChangesLabel.Location = new System.Drawing.Point(3, 487);
             this.ChangesLabel.Name = "ChangesLabel";

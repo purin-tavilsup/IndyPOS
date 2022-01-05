@@ -243,7 +243,7 @@
             this.panel2.Controls.Add(this.label6);
             this.panel2.Controls.Add(this.label4);
             this.panel2.Controls.Add(this.ReceiptPrinterNameTextBox);
-            this.panel2.Location = new System.Drawing.Point(12, 281);
+            this.panel2.Location = new System.Drawing.Point(12, 272);
             this.panel2.Name = "panel2";
             this.panel2.Size = new System.Drawing.Size(460, 121);
             this.panel2.TabIndex = 82;
@@ -272,9 +272,9 @@
             this.SaveSettingsButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.SaveSettingsButton.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.SaveSettingsButton.ForeColor = System.Drawing.Color.White;
-            this.SaveSettingsButton.Location = new System.Drawing.Point(708, 605);
+            this.SaveSettingsButton.Location = new System.Drawing.Point(12, 539);
             this.SaveSettingsButton.Name = "SaveSettingsButton";
-            this.SaveSettingsButton.Size = new System.Drawing.Size(158, 53);
+            this.SaveSettingsButton.Size = new System.Drawing.Size(460, 53);
             this.SaveSettingsButton.TabIndex = 83;
             this.SaveSettingsButton.Text = "Save";
             this.SaveSettingsButton.TextColor = System.Drawing.Color.White;
@@ -287,7 +287,7 @@
             this.panel3.Controls.Add(this.label7);
             this.panel3.Controls.Add(this.label8);
             this.panel3.Controls.Add(this.BarcodeScannerPortNameTextBox);
-            this.panel3.Location = new System.Drawing.Point(12, 408);
+            this.panel3.Location = new System.Drawing.Point(12, 399);
             this.panel3.Name = "panel3";
             this.panel3.Size = new System.Drawing.Size(460, 121);
             this.panel3.TabIndex = 84;

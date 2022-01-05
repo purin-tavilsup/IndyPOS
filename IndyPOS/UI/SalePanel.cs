@@ -20,7 +20,6 @@ namespace IndyPOS.UI
         private readonly AcceptPaymentForm _acceptPaymentForm;
         private readonly ISaleInvoiceController _saleInvoiceController;
         private readonly UpdateInvoiceProductForm _updateProductForm;
-        private readonly IStoreConstants _storeConstants;
         private readonly IReadOnlyDictionary<int, string> _paymentTypeDictionary;
         private SubPanel _activeSubPanel;
 		private readonly MessageForm _messageForm;
@@ -61,8 +60,7 @@ namespace IndyPOS.UI
 
             _eventAggregator = eventAggregator;
             _saleInvoiceController = saleInvoiceController;
-            _storeConstants = storeConstants;
-            _paymentTypeDictionary = _storeConstants.PaymentTypes;
+            _paymentTypeDictionary = storeConstants.PaymentTypes;
             _acceptPaymentForm = acceptPaymentForm;
             _updateProductForm = updateProductForm;
 			_messageForm = messageForm;
@@ -73,7 +71,6 @@ namespace IndyPOS.UI
             SubscribeEvents();
 
             _saleInvoiceController.StartNewSale();
-            AddProductToInvoice("8850999009674");
             AddProductToInvoice("8850999009674");
             AddProductToInvoice("8850250012238");
             AddProductToInvoice("8850250011613");

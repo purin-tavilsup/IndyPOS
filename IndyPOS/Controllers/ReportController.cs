@@ -18,10 +18,13 @@ namespace IndyPOS.Controllers
 
 		private IEnumerable<IFinalInvoice> _invoices;
 		private IEnumerable<IFinalInvoiceProduct> _invoiceProducts;
+		private IEnumerable<IFinalInvoicePayment> _payments;
 
 		public IEnumerable<IFinalInvoice> Invoices => _invoices ?? new List<IFinalInvoice>();
 
 		public IEnumerable<IFinalInvoiceProduct> InvoiceProducts => _invoiceProducts ?? new List<IFinalInvoiceProduct>();
+
+		public IEnumerable<IFinalInvoicePayment> Payments => _payments ?? new List<IFinalInvoicePayment>();
 
 		public IEnumerable<IFinalInvoiceProduct> GeneralGoodsProducts => GetGeneralGoodsProducts();
 
@@ -72,12 +75,14 @@ namespace IndyPOS.Controllers
 
 			_invoices = GetInvoicesByDateRange(startDate, endDate);
 			_invoiceProducts = GetInvoiceProductsByDateRange(startDate, endDate);
+			_payments = GetPaymentsByDateRange(startDate, endDate);
 		}
 
 		public void LoadInvoicesByDateRange(DateTime startDate, DateTime endDate)
 		{
 			_invoices = GetInvoicesByDateRange(startDate, endDate);
 			_invoiceProducts = GetInvoiceProductsByDateRange(startDate, endDate);
+			_payments = GetPaymentsByDateRange(startDate, endDate);
 		}
 
 		private decimal GetInvoicesTotal()
@@ -124,6 +129,20 @@ namespace IndyPOS.Controllers
 			var results = _invoicesRepository.GetInvoiceProductsByDate(date);
 
 			return results.Select(x => new FinalInvoiceProductAdapter(x) as IFinalInvoiceProduct);
+		}
+
+		private IEnumerable<IFinalInvoicePayment> GetPaymentsByDateRange(DateTime startDate, DateTime endDate)
+		{
+			var results = _invoicesRepository.GetPaymentsByDateRange(startDate, endDate);
+
+			return results.Select(x => new FinalInvoicePaymentAdapter(x) as IFinalInvoicePayment);
+		}
+
+		public decimal GetPaymentsTotalByType(PaymentType type)
+		{
+			var paymentsByType = _payments.Where(x => x.PaymentTypeId == (int) type);
+
+			return paymentsByType.Sum(x => x.Amount);
 		}
     }
 }

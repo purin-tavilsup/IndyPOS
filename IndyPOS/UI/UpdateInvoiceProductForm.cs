@@ -55,11 +55,12 @@ namespace IndyPOS.UI
         {
             if(int.TryParse(QuantityTextBox.Texts.Trim(), out var quantity))
             {
-                if (quantity < 0)
-                {
-                    _messageForm.Show("กรุณาใส่จำนวนสินค้าให้ถูกต้อง", "จำนวนสินค้าไม่ถูกต้อง");
-                    return false;
-                }
+                // Need to support refund
+                //if (quantity < 0)
+                //{
+                //    _messageForm.Show("กรุณาใส่จำนวนสินค้าให้ถูกต้อง", "จำนวนสินค้าไม่ถูกต้อง");
+                //    return false;
+                //}
             }
             else
             {
@@ -125,8 +126,9 @@ namespace IndyPOS.UI
         {
 			if (!int.TryParse(QuantityTextBox.Texts.Trim(), out var quantity)) return;
 
-			if (quantity == 0)
-				return;
+            // Support Refund
+			//if (quantity == 0)
+			//	return;
 
 			QuantityTextBox.Texts = $"{quantity - 1}";
         }

@@ -27,5 +27,7 @@ namespace IndyPOS.Controllers
 		void LoadInvoicesByDateRange(DateTime startDate, DateTime endDate);
 
 		IEnumerable<IFinalInvoiceProduct> GetInvoiceProductsByDate(DateTime date);
+
+		decimal GetPaymentsTotalByType(PaymentType type);
 	}
 }

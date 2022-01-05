@@ -304,6 +304,33 @@ namespace IndyPOS.DataAccess.SQLite.Repositories
             }
         }
 
+		public IList<Payment> GetPaymentsByDateRange(DateTime start, DateTime end)
+		{
+			using (var connection = _dbConnectionProvider.GetDbConnection())
+			{
+				connection.Open();
+
+				const string sqlCommand = @"SELECT
+                PaymentId,
+                InvoiceId,
+                PaymentTypeId,
+                Amount,
+                DateCreated
+                FROM Payments 
+                WHERE DateCreated BETWEEN @startDate AND @endDate";
+
+				var sqlParameters = new
+									{
+										startDate = MapStartDateToString(start),
+										endDate = MapEndDateToString(end)
+									};
+
+				var results = connection.Query(sqlCommand, sqlParameters);
+
+				return MapPayments(results);
+			}
+		}
+
         private string MapStartDateToString(DateTime date)
 		{
             var dateString = date.ToString("yyyy-MM-dd");

@@ -26,10 +26,8 @@ namespace IndyPOS.UI.Reports
 			_fontFamily = new FontFamily(FontFamilyName);
         }
 		
-        private void ShowReportByTodayButton_Click(object sender, EventArgs e)
+		private void ShowReport()
 		{
-			_reportController.LoadInvoicesByPeriod(ReportPeriod.Today);
-
 			var invoicesTotal = _reportController.InvoicesTotal;
 
 			var generalGoodsProductsTotal = _reportController.GeneralGoodsProductsTotal;
@@ -39,6 +37,58 @@ namespace IndyPOS.UI.Reports
 			OverallSaleLabel.Text = $"{invoicesTotal:N}";
 			GeneralGoodsSaleLabel.Text = $"{generalGoodsProductsTotal:N}";
 			HardwareSaleLabel.Text = $"{hardwareProductsTotal:N}";
+
+			PaymentByCashLabel.Text = $"{_reportController.GetPaymentsTotalByType(PaymentType.Cash):N}";
+
+			PaymentByTransferLabel.Text = $"{_reportController.GetPaymentsTotalByType(PaymentType.MoneyTransfer):N}";
+
+			PaymentByKlkLabel.Text = $"{_reportController.GetPaymentsTotalByType(PaymentType.FiftyFifty):N}";
+
+			PaymentByM33Label.Text = $"{_reportController.GetPaymentsTotalByType(PaymentType.M33WeLove):N}";
+
+			PaymentByWeWinLabel.Text = $"{_reportController.GetPaymentsTotalByType(PaymentType.WeWin):N}";
+
+			PaymentByWelfareCardLabel.Text = $"{_reportController.GetPaymentsTotalByType(PaymentType.WelfareCard):N}";
+
+			PaymentByArLabel.Text = $"{_reportController.GetPaymentsTotalByType(PaymentType.AccountReceivable):N}";
+		}
+
+        private void ShowReportByTodayButton_Click(object sender, EventArgs e)
+		{
+			_reportController.LoadInvoicesByPeriod(ReportPeriod.Today);
+
+			ShowReport();
+		}
+
+        private void ShowReportByThisWeekButton_Click(object sender, EventArgs e)
+        {
+			_reportController.LoadInvoicesByPeriod(ReportPeriod.ThisWeek);
+
+			ShowReport();
+        }
+
+        private void ShowReportByThisMonthButton_Click(object sender, EventArgs e)
+        {
+			_reportController.LoadInvoicesByPeriod(ReportPeriod.ThisMonth);
+
+			ShowReport();
+        }
+
+        private void ShowReportByThisYearButton_Click(object sender, EventArgs e)
+        {
+			_reportController.LoadInvoicesByPeriod(ReportPeriod.ThisYear);
+
+			ShowReport();
+        }
+
+        private void ShowReportByDateRangeButton_Click(object sender, EventArgs e)
+		{
+			var startDate = StartDatePicker.Value;
+			var endDate = EndDatePicker.Value;
+
+			_reportController.LoadInvoicesByDateRange(startDate, endDate);
+
+			ShowReport();
 		}
     }
 }

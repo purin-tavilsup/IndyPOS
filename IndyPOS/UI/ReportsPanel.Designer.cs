@@ -30,11 +30,11 @@
         {
             this.panel2 = new System.Windows.Forms.Panel();
             this.label4 = new System.Windows.Forms.Label();
-            this.ActivePanel = new System.Windows.Forms.Panel();
             this.panel1 = new System.Windows.Forms.Panel();
-            this.ShowSalesHistoryButton = new ModernUI.ModernButton();
-            this.ShowInvoiceProductsButton = new ModernUI.ModernButton();
             this.ShowSalesOverviewReportButton = new ModernUI.ModernButton();
+            this.ShowInvoiceProductsButton = new ModernUI.ModernButton();
+            this.ShowSalesHistoryButton = new ModernUI.ModernButton();
+            this.ActivePanel = new System.Windows.Forms.Panel();
             this.panel2.SuspendLayout();
             this.panel1.SuspendLayout();
             this.SuspendLayout();
@@ -57,19 +57,10 @@
             this.label4.ForeColor = System.Drawing.Color.Gainsboro;
             this.label4.Location = new System.Drawing.Point(0, 0);
             this.label4.Name = "label4";
-            this.label4.Size = new System.Drawing.Size(879, 44);
+            this.label4.Size = new System.Drawing.Size(809, 44);
             this.label4.TabIndex = 84;
             this.label4.Text = " รายงานผลประกอบการ";
             this.label4.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
-            // 
-            // ActivePanel
-            // 
-            this.ActivePanel.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.ActivePanel.Location = new System.Drawing.Point(0, 44);
-            this.ActivePanel.Name = "ActivePanel";
-            this.ActivePanel.Size = new System.Drawing.Size(1613, 926);
-            this.ActivePanel.TabIndex = 94;
-            this.ActivePanel.VisibleChanged += new System.EventHandler(this.ActivePanel_VisibleChanged);
             // 
             // panel1
             // 
@@ -77,50 +68,10 @@
             this.panel1.Controls.Add(this.ShowInvoiceProductsButton);
             this.panel1.Controls.Add(this.ShowSalesHistoryButton);
             this.panel1.Dock = System.Windows.Forms.DockStyle.Right;
-            this.panel1.Location = new System.Drawing.Point(879, 0);
+            this.panel1.Location = new System.Drawing.Point(809, 0);
             this.panel1.Name = "panel1";
-            this.panel1.Size = new System.Drawing.Size(734, 44);
+            this.panel1.Size = new System.Drawing.Size(804, 44);
             this.panel1.TabIndex = 85;
-            // 
-            // ShowSalesHistoryButton
-            // 
-            this.ShowSalesHistoryButton.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
-            this.ShowSalesHistoryButton.BackgroundColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
-            this.ShowSalesHistoryButton.BorderColor = System.Drawing.Color.Gray;
-            this.ShowSalesHistoryButton.BorderRadius = 5;
-            this.ShowSalesHistoryButton.BorderSize = 1;
-            this.ShowSalesHistoryButton.FlatAppearance.BorderSize = 0;
-            this.ShowSalesHistoryButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.ShowSalesHistoryButton.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.ShowSalesHistoryButton.ForeColor = System.Drawing.Color.White;
-            this.ShowSalesHistoryButton.Location = new System.Drawing.Point(491, 3);
-            this.ShowSalesHistoryButton.Name = "ShowSalesHistoryButton";
-            this.ShowSalesHistoryButton.Size = new System.Drawing.Size(238, 37);
-            this.ShowSalesHistoryButton.TabIndex = 11;
-            this.ShowSalesHistoryButton.Text = "ประวัติการขาย";
-            this.ShowSalesHistoryButton.TextColor = System.Drawing.Color.White;
-            this.ShowSalesHistoryButton.UseVisualStyleBackColor = false;
-            this.ShowSalesHistoryButton.Click += new System.EventHandler(this.ShowSalesHistoryButton_Click);
-            // 
-            // ShowInvoiceProductsButton
-            // 
-            this.ShowInvoiceProductsButton.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
-            this.ShowInvoiceProductsButton.BackgroundColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
-            this.ShowInvoiceProductsButton.BorderColor = System.Drawing.Color.Gray;
-            this.ShowInvoiceProductsButton.BorderRadius = 5;
-            this.ShowInvoiceProductsButton.BorderSize = 1;
-            this.ShowInvoiceProductsButton.FlatAppearance.BorderSize = 0;
-            this.ShowInvoiceProductsButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.ShowInvoiceProductsButton.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.ShowInvoiceProductsButton.ForeColor = System.Drawing.Color.White;
-            this.ShowInvoiceProductsButton.Location = new System.Drawing.Point(247, 3);
-            this.ShowInvoiceProductsButton.Name = "ShowInvoiceProductsButton";
-            this.ShowInvoiceProductsButton.Size = new System.Drawing.Size(238, 37);
-            this.ShowInvoiceProductsButton.TabIndex = 12;
-            this.ShowInvoiceProductsButton.Text = "รายการสินค้าที่ขายไปในวันนี้";
-            this.ShowInvoiceProductsButton.TextColor = System.Drawing.Color.White;
-            this.ShowInvoiceProductsButton.UseVisualStyleBackColor = false;
-            this.ShowInvoiceProductsButton.Click += new System.EventHandler(this.ShowInvoiceProductsButton_Click);
             // 
             // ShowSalesOverviewReportButton
             // 
@@ -133,7 +84,7 @@
             this.ShowSalesOverviewReportButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.ShowSalesOverviewReportButton.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.ShowSalesOverviewReportButton.ForeColor = System.Drawing.Color.White;
-            this.ShowSalesOverviewReportButton.Location = new System.Drawing.Point(3, 3);
+            this.ShowSalesOverviewReportButton.Location = new System.Drawing.Point(13, 3);
             this.ShowSalesOverviewReportButton.Name = "ShowSalesOverviewReportButton";
             this.ShowSalesOverviewReportButton.Size = new System.Drawing.Size(238, 37);
             this.ShowSalesOverviewReportButton.TabIndex = 13;
@@ -141,6 +92,55 @@
             this.ShowSalesOverviewReportButton.TextColor = System.Drawing.Color.White;
             this.ShowSalesOverviewReportButton.UseVisualStyleBackColor = false;
             this.ShowSalesOverviewReportButton.Click += new System.EventHandler(this.ShowSalesOverviewReportButton_Click);
+            // 
+            // ShowInvoiceProductsButton
+            // 
+            this.ShowInvoiceProductsButton.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
+            this.ShowInvoiceProductsButton.BackgroundColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
+            this.ShowInvoiceProductsButton.BorderColor = System.Drawing.Color.Gray;
+            this.ShowInvoiceProductsButton.BorderRadius = 5;
+            this.ShowInvoiceProductsButton.BorderSize = 1;
+            this.ShowInvoiceProductsButton.FlatAppearance.BorderSize = 0;
+            this.ShowInvoiceProductsButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.ShowInvoiceProductsButton.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.ShowInvoiceProductsButton.ForeColor = System.Drawing.Color.White;
+            this.ShowInvoiceProductsButton.Location = new System.Drawing.Point(262, 3);
+            this.ShowInvoiceProductsButton.Name = "ShowInvoiceProductsButton";
+            this.ShowInvoiceProductsButton.Size = new System.Drawing.Size(238, 37);
+            this.ShowInvoiceProductsButton.TabIndex = 12;
+            this.ShowInvoiceProductsButton.Text = "รายการสินค้าที่ขายไปในวันนี้";
+            this.ShowInvoiceProductsButton.TextColor = System.Drawing.Color.White;
+            this.ShowInvoiceProductsButton.UseVisualStyleBackColor = false;
+            this.ShowInvoiceProductsButton.Click += new System.EventHandler(this.ShowInvoiceProductsButton_Click);
+            // 
+            // ShowSalesHistoryButton
+            // 
+            this.ShowSalesHistoryButton.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
+            this.ShowSalesHistoryButton.BackgroundColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
+            this.ShowSalesHistoryButton.BorderColor = System.Drawing.Color.Gray;
+            this.ShowSalesHistoryButton.BorderRadius = 5;
+            this.ShowSalesHistoryButton.BorderSize = 1;
+            this.ShowSalesHistoryButton.FlatAppearance.BorderSize = 0;
+            this.ShowSalesHistoryButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.ShowSalesHistoryButton.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.ShowSalesHistoryButton.ForeColor = System.Drawing.Color.White;
+            this.ShowSalesHistoryButton.Location = new System.Drawing.Point(511, 3);
+            this.ShowSalesHistoryButton.Name = "ShowSalesHistoryButton";
+            this.ShowSalesHistoryButton.Size = new System.Drawing.Size(238, 37);
+            this.ShowSalesHistoryButton.TabIndex = 11;
+            this.ShowSalesHistoryButton.Text = "ประวัติการขาย";
+            this.ShowSalesHistoryButton.TextColor = System.Drawing.Color.White;
+            this.ShowSalesHistoryButton.UseVisualStyleBackColor = false;
+            this.ShowSalesHistoryButton.Click += new System.EventHandler(this.ShowSalesHistoryButton_Click);
+            // 
+            // ActivePanel
+            // 
+            this.ActivePanel.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.ActivePanel.Location = new System.Drawing.Point(0, 44);
+            this.ActivePanel.Name = "ActivePanel";
+            this.ActivePanel.Size = new System.Drawing.Size(1613, 926);
+            this.ActivePanel.TabIndex = 94;
+            this.ActivePanel.VisibleChanged += new System.EventHandler(this.ActivePanel_VisibleChanged);
             // 
             // ReportsPanel
             // 
