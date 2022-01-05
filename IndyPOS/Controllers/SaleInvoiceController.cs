@@ -148,6 +148,22 @@ namespace IndyPOS.Controllers
 			}
         }
 
+		public void UpdateProductUnitPrice(int inventoryProductId, int priority, decimal unitPrice)
+        {
+			var productToUpdate = _saleInvoice.Products.FirstOrDefault(p => p.InventoryProductId == inventoryProductId &&
+																			p.Priority == priority);
+
+			if (productToUpdate == null)
+				return;
+
+			if (productToUpdate.UnitPrice == unitPrice)
+				return;
+
+			productToUpdate.UnitPrice = unitPrice;
+
+			_eventAggregator.GetEvent<SaleInvoiceProductUpdatedEvent>().Publish();
+		}
+
 		private void IncreaseProductQuantity(ISaleInvoiceProduct product, int quantity)
 		{
 			if (!product.GroupPriceQuantity.HasValue && !product.GroupPrice.HasValue ||
@@ -301,6 +317,7 @@ namespace IndyPOS.Controllers
             {
                 InvoiceId = invoiceId,
                 InventoryProductId = product.InventoryProductId,
+				Priority = product.Priority,
                 Barcode = product.Barcode,
                 Description = product.Description,
                 Manufacturer = product.Manufacturer,

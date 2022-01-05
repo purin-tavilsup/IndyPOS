@@ -16,14 +16,14 @@ namespace IndyPOS.UI
             InitializeComponent();
 		}
 
-        public void LoadSettings()
+        private void LoadSettings()
 		{
 			StoreNameTextBox.Texts = _config.StoreName;
 			StoreAddressLine1TextBox.Texts = _config.StoreAddressLine1;
 			StoreAddressLine2TextBox.Texts = _config.StoreAddressLine2;
 			StorePhoneTextBox.Texts = _config.StorePhoneNumber;
-
 			ReceiptPrinterNameTextBox.Texts = _config.PrinterName;
+			BarcodeScannerPortNameTextBox.Texts = _config.BarcodeScannerPortName;
 		}
 
 		private void SaveSettings()
@@ -32,8 +32,8 @@ namespace IndyPOS.UI
 			_config.StoreAddressLine1 = StoreAddressLine1TextBox.Texts.Trim();
 			_config.StoreAddressLine2 = StoreAddressLine2TextBox.Texts.Trim();
 			_config.StorePhoneNumber = StorePhoneTextBox.Texts.Trim();
-
 			_config.PrinterName = ReceiptPrinterNameTextBox.Texts.Trim();
+			_config.BarcodeScannerPortName = BarcodeScannerPortNameTextBox.Texts.Trim();
 		}
 
         private void SaveSettingsButton_Click(object sender, EventArgs e)

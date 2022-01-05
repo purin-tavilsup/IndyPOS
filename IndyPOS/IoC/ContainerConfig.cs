@@ -74,9 +74,9 @@ namespace IndyPOS.IoC
 				   .As<ICryptographyHelper>()
 				   .SingleInstance();
 
-			builder.RegisterType<UserAccountHelper>()
-				   .As<IUserAccountHelper>()
-				   .SingleInstance();
+            builder.RegisterType<UserAccountHelper>()
+                   .As<IUserAccountHelper>()
+                   .SingleInstance();
 
             return builder.Build();
         }

@@ -142,7 +142,7 @@ namespace IndyPOS.UI
 
                 _activePanel.Visible = false;
 
-                ActivePanel.Controls.Remove(_activePanel);
+                ActivePanel.Controls.Clear();
             }
 
             panelToShow.Dock = DockStyle.Fill;

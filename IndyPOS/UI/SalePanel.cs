@@ -25,6 +25,8 @@ namespace IndyPOS.UI
         private SubPanel _activeSubPanel;
 		private readonly MessageForm _messageForm;
 		private readonly PrintReceiptForm _printReceiptForm;
+		private readonly AddGeneralGoodsProductForm _addGeneralGoodsProductForm;
+		private readonly AddHardwareProductForm _addHardwareProductForm;
 
         private enum SaleInvoiceColumn
         {
@@ -49,7 +51,9 @@ namespace IndyPOS.UI
 						 AcceptPaymentForm acceptPaymentForm, 
 						 UpdateInvoiceProductForm updateProductForm,
 						 MessageForm messageForm,
-						 PrintReceiptForm printReceiptForm)
+						 PrintReceiptForm printReceiptForm,
+						 AddGeneralGoodsProductForm addGeneralGoodsProductForm,
+						 AddHardwareProductForm addHardwareProductForm)
         {
             InitializeComponent();
             InitializeInvoiceDataView();
@@ -63,6 +67,8 @@ namespace IndyPOS.UI
             _updateProductForm = updateProductForm;
 			_messageForm = messageForm;
 			_printReceiptForm = printReceiptForm;
+			_addGeneralGoodsProductForm = addGeneralGoodsProductForm;
+			_addHardwareProductForm = addHardwareProductForm;
 
             SubscribeEvents();
 
@@ -71,7 +77,6 @@ namespace IndyPOS.UI
             AddProductToInvoice("8850999009674");
             AddProductToInvoice("8850250012238");
             AddProductToInvoice("8850250011613");
-            AddProductToInvoice("NonTrackable");
         }
 
         private void SubscribeEvents()
@@ -304,5 +309,15 @@ namespace IndyPOS.UI
 		{
             _saleInvoiceController.RemoveAllPayments();
 		}
-	}
+
+        private void AddGeneralGoodsProductButton_Click(object sender, EventArgs e)
+        {
+			_addGeneralGoodsProductForm.Show();
+        }
+
+        private void AddHardwareProductButton_Click(object sender, EventArgs e)
+        {
+            _addHardwareProductForm.Show();
+        }
+    }
 }

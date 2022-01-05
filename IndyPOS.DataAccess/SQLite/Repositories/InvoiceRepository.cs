@@ -99,7 +99,7 @@ namespace IndyPOS.DataAccess.SQLite.Repositories
                     product.Manufacturer,
                     product.Brand,
                     product.Category,
-                    product.UnitPrice,
+					UnitPrice = MapMoneyToString(product.UnitPrice),
                     product.Quantity
                 };
 

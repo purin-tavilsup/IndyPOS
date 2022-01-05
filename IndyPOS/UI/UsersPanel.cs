@@ -208,11 +208,23 @@ namespace IndyPOS.UI
 							   ? _userRoleDictionary[_selectedUser.RoleId] 
 							   : "Unknown";
 
+			var loggedInUser = _userController.LoggedInUser;
+			var isVisibleToLoggedInUser = userId == loggedInUser.UserId;
+			var isVisibleToLoggedInUserRole = loggedInUser.RoleId != (int) UserRoleEnum.Cashier;
+
+			PasswordLabel.Visible = isVisibleToLoggedInUser;
+			UserPasswordTextBox.Visible = isVisibleToLoggedInUser;
+			PasswordVisibilityButton.Visible = isVisibleToLoggedInUser;
+			UpdateUserButton.Visible = isVisibleToLoggedInUser;
+			DeleteUserButton.Visible = isVisibleToLoggedInUserRole;
+
 			FirstNameLabel.Text = _selectedUser.FirstName;
 			LastNameLabel.Text = _selectedUser.LastName;
 			UserRoleLabel.Text = userRole;
 			UsernameLabel.Text = userCredential.Username;
-			UserSecretTextBox.Texts = _cryptographyHelper.Decrypt(userCredential.Password);
+
+			if (isVisibleToLoggedInUser) 
+				UserPasswordTextBox.Texts = _cryptographyHelper.Decrypt(userCredential.Password);
 		}
 
 		private void ResetUserDetails()
@@ -221,15 +233,21 @@ namespace IndyPOS.UI
 			LastNameLabel.Text = string.Empty;
 			UserRoleLabel.Text = string.Empty;
 			UsernameLabel.Text = string.Empty;
-			UserSecretTextBox.Texts = string.Empty;
+			UserPasswordTextBox.Texts = string.Empty;
+
+			PasswordLabel.Visible = false;
+			UserPasswordTextBox.Visible = false;
+			PasswordVisibilityButton.Visible = false;
+			UpdateUserButton.Visible = false;
+			DeleteUserButton.Visible = false;
         }
 
         private void UpdateUserButton_Click(object sender, EventArgs e)
         {
-			if (!UserSecretTextBox.Texts.HasValue())
+			if (!UserPasswordTextBox.Texts.HasValue())
 				return;
 
-			var encryptedPassword = _cryptographyHelper.Encrypt(UserSecretTextBox.Texts.Trim());
+			var encryptedPassword = _cryptographyHelper.Encrypt(UserPasswordTextBox.Texts.Trim());
 
 			_userController.UpdateUserCredentialById(_selectedUser.UserId, encryptedPassword);
 		}
@@ -241,9 +259,9 @@ namespace IndyPOS.UI
 
         private void PasswordVisibilityButton_Click(object sender, EventArgs e)
 		{
-			UserSecretTextBox.PasswordChar = !UserSecretTextBox.PasswordChar;
+			UserPasswordTextBox.PasswordChar = !UserPasswordTextBox.PasswordChar;
 
-			PasswordVisibilityButton.Image = UserSecretTextBox.PasswordChar 
+			PasswordVisibilityButton.Image = UserPasswordTextBox.PasswordChar 
 												 ? Properties.Resources.Visible_25 
 												 : Properties.Resources.Hidden_25;
 		}
@@ -263,14 +281,12 @@ namespace IndyPOS.UI
 			if (loggedInUser.RoleId == (int) UserRoleEnum.Cashier)
 			{
 				AddUserButton.Visible = false;
-				DeleteUserButton.Visible = false;
 				UserRoleComboBox.SelectedIndex = loggedInUser.RoleId - 1;
 				UserRoleComboBox.Enabled = false;
 			}
 			else
 			{
 				AddUserButton.Visible = true;
-				DeleteUserButton.Visible = true;
 				UserRoleComboBox.Enabled = true;
 				UserRoleComboBox.SelectedIndex = loggedInUser.RoleId - 1;
 			}

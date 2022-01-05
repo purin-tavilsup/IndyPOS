@@ -55,6 +55,7 @@ namespace IndyPOS
 				_config.StoreAddressLine2 = "จ.มุกดาหาร 49110";
                 _config.StorePhoneNumber = "084-602-9150";
 				_config.PrinterName = "XP-58";
+				_config.BarcodeScannerPortName = "COM4";
 
                 _config.Save();
 				_config.Load();

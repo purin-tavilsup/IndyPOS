@@ -11,13 +11,16 @@ namespace IndyPOS
 
 		public string PrinterName { get; set; }
 
+		public string BarcodeScannerPortName { get; set; }
+
 		protected override void UpdateMemberVariables(PersistentXml persistentXml)
         {
-			StoreName = ((Config)persistentXml).StoreName;
-			StoreAddressLine1 = ((Config)persistentXml).StoreAddressLine1;
-			StoreAddressLine2 = ((Config)persistentXml).StoreAddressLine2;
-			StorePhoneNumber = ((Config)persistentXml).StorePhoneNumber;
-			PrinterName = ((Config)persistentXml).PrinterName;
+			StoreName = ((Config) persistentXml).StoreName;
+			StoreAddressLine1 = ((Config) persistentXml).StoreAddressLine1;
+			StoreAddressLine2 = ((Config) persistentXml).StoreAddressLine2;
+			StorePhoneNumber = ((Config) persistentXml).StorePhoneNumber;
+			PrinterName = ((Config) persistentXml).PrinterName;
+			BarcodeScannerPortName = ((Config) persistentXml).BarcodeScannerPortName;
         }
     }
 }

@@ -10,4 +10,11 @@
         Settings,
         UserLogIn
     }
+
+	public enum ReportSubPanel
+	{
+		SalesReport = 0,
+		InvoiceProductsReport,
+		SalesHistoryReport
+	}
 }

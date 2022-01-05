@@ -83,12 +83,12 @@ namespace IndyPOS.UI
 
             _saleInvoiceController.AddPayment(_selectedPaymentType, _amount);
 
-            Close();
+            Hide();
         }
 
         private void CancelAcceptPaymentButton_Click(object sender, EventArgs e)
         {
-            Close();
+			Hide();
         }
 
 		private void PayByCashButton_Click(object sender, EventArgs e)

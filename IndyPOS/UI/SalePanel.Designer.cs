@@ -48,8 +48,10 @@
             this.panel8 = new System.Windows.Forms.Panel();
             this.label3 = new System.Windows.Forms.Label();
             this.panel9 = new System.Windows.Forms.Panel();
-            this.panel3 = new System.Windows.Forms.Panel();
             this.ClearAllPaymentsButton = new ModernUI.ModernButton();
+            this.panel3 = new System.Windows.Forms.Panel();
+            this.AddHardwareProductButton = new ModernUI.ModernButton();
+            this.AddGeneralGoodsProductButton = new ModernUI.ModernButton();
             this.PaymentDataView = new System.Windows.Forms.DataGridView();
             this.PaymentPriority = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.PaymentType = new System.Windows.Forms.DataGridViewTextBoxColumn();
@@ -64,6 +66,7 @@
             this.panel2.SuspendLayout();
             this.panel8.SuspendLayout();
             this.panel9.SuspendLayout();
+            this.panel3.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.PaymentDataView)).BeginInit();
             this.panel1.SuspendLayout();
             this.SuspendLayout();
@@ -280,15 +283,6 @@
             this.panel9.Size = new System.Drawing.Size(1434, 298);
             this.panel9.TabIndex = 4;
             // 
-            // panel3
-            // 
-            this.panel3.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
-            this.panel3.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.panel3.Location = new System.Drawing.Point(659, 43);
-            this.panel3.Name = "panel3";
-            this.panel3.Size = new System.Drawing.Size(772, 252);
-            this.panel3.TabIndex = 50;
-            // 
             // ClearAllPaymentsButton
             // 
             this.ClearAllPaymentsButton.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
@@ -308,6 +302,57 @@
             this.ClearAllPaymentsButton.TextColor = System.Drawing.Color.White;
             this.ClearAllPaymentsButton.UseVisualStyleBackColor = false;
             this.ClearAllPaymentsButton.Click += new System.EventHandler(this.ClearAllPaymentsButton_Click);
+            // 
+            // panel3
+            // 
+            this.panel3.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
+            this.panel3.Controls.Add(this.AddHardwareProductButton);
+            this.panel3.Controls.Add(this.AddGeneralGoodsProductButton);
+            this.panel3.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.panel3.Location = new System.Drawing.Point(659, 43);
+            this.panel3.Name = "panel3";
+            this.panel3.Size = new System.Drawing.Size(772, 252);
+            this.panel3.TabIndex = 50;
+            // 
+            // AddHardwareProductButton
+            // 
+            this.AddHardwareProductButton.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
+            this.AddHardwareProductButton.BackgroundColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
+            this.AddHardwareProductButton.BorderColor = System.Drawing.Color.Turquoise;
+            this.AddHardwareProductButton.BorderRadius = 5;
+            this.AddHardwareProductButton.BorderSize = 1;
+            this.AddHardwareProductButton.FlatAppearance.BorderSize = 0;
+            this.AddHardwareProductButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.AddHardwareProductButton.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 15.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.AddHardwareProductButton.ForeColor = System.Drawing.Color.White;
+            this.AddHardwareProductButton.Location = new System.Drawing.Point(6, 130);
+            this.AddHardwareProductButton.Name = "AddHardwareProductButton";
+            this.AddHardwareProductButton.Size = new System.Drawing.Size(375, 113);
+            this.AddHardwareProductButton.TabIndex = 10;
+            this.AddHardwareProductButton.Text = "เพิ่มสินค้า ฮาร์ดแวร์";
+            this.AddHardwareProductButton.TextColor = System.Drawing.Color.White;
+            this.AddHardwareProductButton.UseVisualStyleBackColor = false;
+            this.AddHardwareProductButton.Click += new System.EventHandler(this.AddHardwareProductButton_Click);
+            // 
+            // AddGeneralGoodsProductButton
+            // 
+            this.AddGeneralGoodsProductButton.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
+            this.AddGeneralGoodsProductButton.BackgroundColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
+            this.AddGeneralGoodsProductButton.BorderColor = System.Drawing.Color.Turquoise;
+            this.AddGeneralGoodsProductButton.BorderRadius = 5;
+            this.AddGeneralGoodsProductButton.BorderSize = 1;
+            this.AddGeneralGoodsProductButton.FlatAppearance.BorderSize = 0;
+            this.AddGeneralGoodsProductButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.AddGeneralGoodsProductButton.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 15.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.AddGeneralGoodsProductButton.ForeColor = System.Drawing.Color.White;
+            this.AddGeneralGoodsProductButton.Location = new System.Drawing.Point(6, 8);
+            this.AddGeneralGoodsProductButton.Name = "AddGeneralGoodsProductButton";
+            this.AddGeneralGoodsProductButton.Size = new System.Drawing.Size(375, 113);
+            this.AddGeneralGoodsProductButton.TabIndex = 9;
+            this.AddGeneralGoodsProductButton.Text = "เพิ่มสินค้า เบ็ดเตล็ด";
+            this.AddGeneralGoodsProductButton.TextColor = System.Drawing.Color.White;
+            this.AddGeneralGoodsProductButton.UseVisualStyleBackColor = false;
+            this.AddGeneralGoodsProductButton.Click += new System.EventHandler(this.AddGeneralGoodsProductButton_Click);
             // 
             // PaymentDataView
             // 
@@ -492,6 +537,7 @@
             this.panel2.ResumeLayout(false);
             this.panel8.ResumeLayout(false);
             this.panel9.ResumeLayout(false);
+            this.panel3.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.PaymentDataView)).EndInit();
             this.panel1.ResumeLayout(false);
             this.ResumeLayout(false);
@@ -527,5 +573,7 @@
 		private System.Windows.Forms.DataGridViewTextBoxColumn PaymentType;
 		private System.Windows.Forms.DataGridViewTextBoxColumn PaymentAmount;
         private ModernUI.ModernButton ClearAllPaymentsButton;
+        private ModernUI.ModernButton AddGeneralGoodsProductButton;
+        private ModernUI.ModernButton AddHardwareProductButton;
     }
 }

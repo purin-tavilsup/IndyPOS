@@ -36,5 +36,7 @@ namespace IndyPOS.Controllers
         IInventoryProduct GetInventoryProductByBarcode(string barcode);
 
         void UpdateProductQuantity(int inventoryProductId, int priority, int quantity);
-    }
+
+		void UpdateProductUnitPrice(int inventoryProductId, int priority, decimal unitPrice);
+	}
 }

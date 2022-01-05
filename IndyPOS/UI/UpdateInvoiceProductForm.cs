@@ -44,7 +44,12 @@ namespace IndyPOS.UI
             ProductCodeLabel.Text = product.Barcode;
             DescriptionLabel.Text = product.Description;
             QuantityTextBox.Texts = product.Quantity.ToString();
-        }
+
+			
+			UnitPriceTextBox.Texts = product.UnitPrice.ToString("0.00");
+			UnitPriceLabel.Visible = !product.IsTrackable;
+            UnitPriceTextBox.Visible = !product.IsTrackable;
+		}
 
         private bool ValidateQuantityEntry()
         {
@@ -60,6 +65,12 @@ namespace IndyPOS.UI
             {
                 _messageForm.Show("กรุณาใส่จำนวนสินค้าให้ถูกต้อง", "จำนวนสินค้าไม่ถูกต้อง");
                 return false;
+            }
+
+            if (UnitPriceTextBox.Visible && !decimal.TryParse(UnitPriceTextBox.Texts.Trim(), out _))
+            {
+				_messageForm.Show("กรุณาใส่ราคาสินค้าให้ถูกต้อง", "ราคาสินค้าไม่ถูกต้อง");
+				return false;
             }
 
             return true;
@@ -79,6 +90,13 @@ namespace IndyPOS.UI
 			else
 			{
 				_saleInvoiceController.UpdateProductQuantity(_product.InventoryProductId, _product.Priority, quantity);
+			}
+
+			if (!_product.IsTrackable)
+			{
+				var unitPrice = decimal.Parse(UnitPriceTextBox.Texts.Trim());
+
+                _saleInvoiceController.UpdateProductUnitPrice(_product.InventoryProductId, _product.Priority, unitPrice);
 			}
             
             Close();

@@ -42,6 +42,8 @@
             this.label4 = new System.Windows.Forms.Label();
             this.label3 = new System.Windows.Forms.Label();
             this.label2 = new System.Windows.Forms.Label();
+            this.UnitPriceTextBox = new ModernUI.ModernTextBox();
+            this.UnitPriceLabel = new System.Windows.Forms.Label();
             this.panel2.SuspendLayout();
             this.panel1.SuspendLayout();
             this.SuspendLayout();
@@ -71,6 +73,8 @@
             // panel2
             // 
             this.panel2.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
+            this.panel2.Controls.Add(this.UnitPriceTextBox);
+            this.panel2.Controls.Add(this.UnitPriceLabel);
             this.panel2.Controls.Add(this.DecreaseQuantityButton);
             this.panel2.Controls.Add(this.IncreaseQuantityButton);
             this.panel2.Controls.Add(this.panel1);
@@ -84,7 +88,7 @@
             this.panel2.Dock = System.Windows.Forms.DockStyle.Fill;
             this.panel2.Location = new System.Drawing.Point(1, 1);
             this.panel2.Name = "panel2";
-            this.panel2.Size = new System.Drawing.Size(658, 315);
+            this.panel2.Size = new System.Drawing.Size(658, 357);
             this.panel2.TabIndex = 30;
             // 
             // DecreaseQuantityButton
@@ -134,7 +138,7 @@
             this.panel1.Controls.Add(this.CancelUpdateProductButton);
             this.panel1.Controls.Add(this.UpdateProductButton);
             this.panel1.Dock = System.Windows.Forms.DockStyle.Bottom;
-            this.panel1.Location = new System.Drawing.Point(0, 219);
+            this.panel1.Location = new System.Drawing.Point(0, 261);
             this.panel1.MinimumSize = new System.Drawing.Size(39, 39);
             this.panel1.Name = "panel1";
             this.panel1.Size = new System.Drawing.Size(658, 96);
@@ -271,12 +275,43 @@
             this.label2.Text = "รหัสสินค้า";
             this.label2.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
             // 
+            // UnitPriceTextBox
+            // 
+            this.UnitPriceTextBox.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
+            this.UnitPriceTextBox.BorderColor = System.Drawing.Color.DimGray;
+            this.UnitPriceTextBox.BorderSize = 1;
+            this.UnitPriceTextBox.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.UnitPriceTextBox.ForeColor = System.Drawing.Color.Gainsboro;
+            this.UnitPriceTextBox.Location = new System.Drawing.Point(274, 201);
+            this.UnitPriceTextBox.Multiline = false;
+            this.UnitPriceTextBox.Name = "UnitPriceTextBox";
+            this.UnitPriceTextBox.Padding = new System.Windows.Forms.Padding(7);
+            this.UnitPriceTextBox.PasswordChar = false;
+            this.UnitPriceTextBox.ReadOnly = false;
+            this.UnitPriceTextBox.Size = new System.Drawing.Size(220, 39);
+            this.UnitPriceTextBox.TabIndex = 53;
+            this.UnitPriceTextBox.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
+            this.UnitPriceTextBox.Texts = "0.00";
+            this.UnitPriceTextBox.UnderlinedStyle = true;
+            // 
+            // UnitPriceLabel
+            // 
+            this.UnitPriceLabel.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
+            this.UnitPriceLabel.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.UnitPriceLabel.ForeColor = System.Drawing.Color.Gainsboro;
+            this.UnitPriceLabel.Location = new System.Drawing.Point(106, 201);
+            this.UnitPriceLabel.Name = "UnitPriceLabel";
+            this.UnitPriceLabel.Size = new System.Drawing.Size(117, 39);
+            this.UnitPriceLabel.TabIndex = 52;
+            this.UnitPriceLabel.Text = "ราคาขาย";
+            this.UnitPriceLabel.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            // 
             // UpdateInvoiceProductForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.Color.SlateGray;
-            this.ClientSize = new System.Drawing.Size(660, 317);
+            this.ClientSize = new System.Drawing.Size(660, 359);
             this.Controls.Add(this.panel2);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.None;
             this.Name = "UpdateInvoiceProductForm";
@@ -303,5 +338,7 @@
         private ModernUI.ModernButton DecreaseQuantityButton;
         private ModernUI.ModernButton CancelUpdateProductButton;
         private ModernUI.ModernButton RemoveProductButton;
+        private ModernUI.ModernTextBox UnitPriceTextBox;
+        private System.Windows.Forms.Label UnitPriceLabel;
     }
 }
