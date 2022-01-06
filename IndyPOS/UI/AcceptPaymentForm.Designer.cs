@@ -71,9 +71,12 @@
             this.ClearButton = new System.Windows.Forms.Button();
             this.panel30 = new System.Windows.Forms.Panel();
             this.panel1 = new System.Windows.Forms.Panel();
+            this.NotePanel = new System.Windows.Forms.Panel();
+            this.NoteTextBox = new ModernUI.ModernTextBox();
+            this.label10 = new System.Windows.Forms.Label();
+            this.RefundButton = new ModernUI.ModernButton();
             this.CancelAcceptPaymentButton = new ModernUI.ModernButton();
             this.AcceptPaymentButton = new ModernUI.ModernButton();
-            this.RefundButton = new ModernUI.ModernButton();
             this.panel20.SuspendLayout();
             this.panel21.SuspendLayout();
             this.panel22.SuspendLayout();
@@ -85,6 +88,7 @@
             this.panel29.SuspendLayout();
             this.panel30.SuspendLayout();
             this.panel1.SuspendLayout();
+            this.NotePanel.SuspendLayout();
             this.SuspendLayout();
             // 
             // label1
@@ -95,7 +99,7 @@
             this.label1.ForeColor = System.Drawing.Color.WhiteSmoke;
             this.label1.Location = new System.Drawing.Point(0, 0);
             this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(1243, 39);
+            this.label1.Size = new System.Drawing.Size(1425, 39);
             this.label1.TabIndex = 4;
             this.label1.Text = "รับเงิน";
             this.label1.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
@@ -257,7 +261,7 @@
             this.panel27.Controls.Add(this.label2);
             this.panel27.Controls.Add(this.PaymentAmountLabel);
             this.panel27.Controls.Add(this.label3);
-            this.panel27.Location = new System.Drawing.Point(448, 54);
+            this.panel27.Location = new System.Drawing.Point(558, 114);
             this.panel27.Name = "panel27";
             this.panel27.Size = new System.Drawing.Size(530, 58);
             this.panel27.TabIndex = 47;
@@ -310,7 +314,7 @@
             this.panel28.Controls.Add(this.panel22);
             this.panel28.Controls.Add(this.panel25);
             this.panel28.ForeColor = System.Drawing.Color.Black;
-            this.panel28.Location = new System.Drawing.Point(6, 118);
+            this.panel28.Location = new System.Drawing.Point(116, 178);
             this.panel28.Name = "panel28";
             this.panel28.Size = new System.Drawing.Size(419, 556);
             this.panel28.TabIndex = 48;
@@ -385,7 +389,7 @@
             this.panel29.Controls.Add(this.EqualButton);
             this.panel29.Controls.Add(this.DecimalPointButton);
             this.panel29.Controls.Add(this.ClearButton);
-            this.panel29.Location = new System.Drawing.Point(448, 118);
+            this.panel29.Location = new System.Drawing.Point(558, 178);
             this.panel29.Name = "panel29";
             this.panel29.Size = new System.Drawing.Size(530, 433);
             this.panel29.TabIndex = 49;
@@ -681,7 +685,7 @@
             this.panel30.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.panel30.Controls.Add(this.PaymentTypeLabel);
             this.panel30.Controls.Add(this.label4);
-            this.panel30.Location = new System.Drawing.Point(6, 54);
+            this.panel30.Location = new System.Drawing.Point(116, 114);
             this.panel30.Name = "panel30";
             this.panel30.Size = new System.Drawing.Size(419, 58);
             this.panel30.TabIndex = 50;
@@ -690,6 +694,7 @@
             // 
             this.panel1.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(30)))), ((int)(((byte)(30)))), ((int)(((byte)(30)))));
             this.panel1.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.panel1.Controls.Add(this.NotePanel);
             this.panel1.Controls.Add(this.RefundButton);
             this.panel1.Controls.Add(this.CancelAcceptPaymentButton);
             this.panel1.Controls.Add(this.AcceptPaymentButton);
@@ -701,8 +706,69 @@
             this.panel1.Dock = System.Windows.Forms.DockStyle.Fill;
             this.panel1.Location = new System.Drawing.Point(1, 1);
             this.panel1.Name = "panel1";
-            this.panel1.Size = new System.Drawing.Size(1245, 757);
+            this.panel1.Size = new System.Drawing.Size(1427, 812);
             this.panel1.TabIndex = 51;
+            // 
+            // NotePanel
+            // 
+            this.NotePanel.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.NotePanel.Controls.Add(this.NoteTextBox);
+            this.NotePanel.Controls.Add(this.label10);
+            this.NotePanel.Location = new System.Drawing.Point(558, 618);
+            this.NotePanel.Name = "NotePanel";
+            this.NotePanel.Size = new System.Drawing.Size(530, 116);
+            this.NotePanel.TabIndex = 54;
+            // 
+            // NoteTextBox
+            // 
+            this.NoteTextBox.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(30)))), ((int)(((byte)(30)))), ((int)(((byte)(30)))));
+            this.NoteTextBox.BorderColor = System.Drawing.Color.DimGray;
+            this.NoteTextBox.BorderSize = 1;
+            this.NoteTextBox.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 15.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.NoteTextBox.ForeColor = System.Drawing.Color.Gainsboro;
+            this.NoteTextBox.Location = new System.Drawing.Point(111, 36);
+            this.NoteTextBox.Multiline = false;
+            this.NoteTextBox.Name = "NoteTextBox";
+            this.NoteTextBox.Padding = new System.Windows.Forms.Padding(7);
+            this.NoteTextBox.PasswordChar = false;
+            this.NoteTextBox.ReadOnly = false;
+            this.NoteTextBox.Size = new System.Drawing.Size(390, 46);
+            this.NoteTextBox.TabIndex = 72;
+            this.NoteTextBox.TextAlign = System.Windows.Forms.HorizontalAlignment.Left;
+            this.NoteTextBox.Texts = "";
+            this.NoteTextBox.UnderlinedStyle = true;
+            // 
+            // label10
+            // 
+            this.label10.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(30)))), ((int)(((byte)(30)))), ((int)(((byte)(30)))));
+            this.label10.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 15.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label10.ForeColor = System.Drawing.Color.Gainsboro;
+            this.label10.Location = new System.Drawing.Point(19, 36);
+            this.label10.Name = "label10";
+            this.label10.Size = new System.Drawing.Size(86, 46);
+            this.label10.TabIndex = 71;
+            this.label10.Text = "Note:";
+            this.label10.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            // 
+            // RefundButton
+            // 
+            this.RefundButton.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
+            this.RefundButton.BackgroundColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
+            this.RefundButton.BorderColor = System.Drawing.Color.Khaki;
+            this.RefundButton.BorderRadius = 19;
+            this.RefundButton.BorderSize = 1;
+            this.RefundButton.FlatAppearance.BorderSize = 0;
+            this.RefundButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.RefundButton.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 14.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.RefundButton.ForeColor = System.Drawing.Color.White;
+            this.RefundButton.Location = new System.Drawing.Point(1110, 317);
+            this.RefundButton.Name = "RefundButton";
+            this.RefundButton.Size = new System.Drawing.Size(220, 70);
+            this.RefundButton.TabIndex = 53;
+            this.RefundButton.Text = "คืนเงิน";
+            this.RefundButton.TextColor = System.Drawing.Color.White;
+            this.RefundButton.UseVisualStyleBackColor = false;
+            this.RefundButton.Click += new System.EventHandler(this.RefundButton_Click);
             // 
             // CancelAcceptPaymentButton
             // 
@@ -715,7 +781,7 @@
             this.CancelAcceptPaymentButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.CancelAcceptPaymentButton.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 14.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.CancelAcceptPaymentButton.ForeColor = System.Drawing.Color.White;
-            this.CancelAcceptPaymentButton.Location = new System.Drawing.Point(1000, 456);
+            this.CancelAcceptPaymentButton.Location = new System.Drawing.Point(1110, 516);
             this.CancelAcceptPaymentButton.Name = "CancelAcceptPaymentButton";
             this.CancelAcceptPaymentButton.Size = new System.Drawing.Size(220, 70);
             this.CancelAcceptPaymentButton.TabIndex = 52;
@@ -735,7 +801,7 @@
             this.AcceptPaymentButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.AcceptPaymentButton.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 14.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.AcceptPaymentButton.ForeColor = System.Drawing.Color.White;
-            this.AcceptPaymentButton.Location = new System.Drawing.Point(1000, 54);
+            this.AcceptPaymentButton.Location = new System.Drawing.Point(1110, 114);
             this.AcceptPaymentButton.Name = "AcceptPaymentButton";
             this.AcceptPaymentButton.Size = new System.Drawing.Size(220, 70);
             this.AcceptPaymentButton.TabIndex = 51;
@@ -744,39 +810,17 @@
             this.AcceptPaymentButton.UseVisualStyleBackColor = false;
             this.AcceptPaymentButton.Click += new System.EventHandler(this.AcceptPaymentButton_Click);
             // 
-            // RefundButton
-            // 
-            this.RefundButton.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
-            this.RefundButton.BackgroundColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
-            this.RefundButton.BorderColor = System.Drawing.Color.Khaki;
-            this.RefundButton.BorderRadius = 19;
-            this.RefundButton.BorderSize = 1;
-            this.RefundButton.FlatAppearance.BorderSize = 0;
-            this.RefundButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.RefundButton.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 14.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.RefundButton.ForeColor = System.Drawing.Color.White;
-            this.RefundButton.Location = new System.Drawing.Point(1000, 257);
-            this.RefundButton.Name = "RefundButton";
-            this.RefundButton.Size = new System.Drawing.Size(220, 70);
-            this.RefundButton.TabIndex = 53;
-            this.RefundButton.Text = "คืนเงิน";
-            this.RefundButton.TextColor = System.Drawing.Color.White;
-            this.RefundButton.UseVisualStyleBackColor = false;
-            this.RefundButton.Click += new System.EventHandler(this.RefundButton_Click);
-            // 
             // AcceptPaymentForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.Color.SlateGray;
-            this.ClientSize = new System.Drawing.Size(1247, 759);
+            this.ClientSize = new System.Drawing.Size(1429, 814);
             this.Controls.Add(this.panel1);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.None;
             this.Name = "AcceptPaymentForm";
             this.Padding = new System.Windows.Forms.Padding(1);
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
-            this.TopMost = true;
-            this.WindowState = System.Windows.Forms.FormWindowState.Maximized;
             this.panel20.ResumeLayout(false);
             this.panel21.ResumeLayout(false);
             this.panel22.ResumeLayout(false);
@@ -788,6 +832,7 @@
             this.panel29.ResumeLayout(false);
             this.panel30.ResumeLayout(false);
             this.panel1.ResumeLayout(false);
+            this.NotePanel.ResumeLayout(false);
             this.ResumeLayout(false);
 
         }
@@ -840,5 +885,8 @@
         private ModernUI.ModernButton CancelAcceptPaymentButton;
         private ModernUI.ModernButton PayByArButton;
         private ModernUI.ModernButton RefundButton;
+        private System.Windows.Forms.Panel NotePanel;
+        private ModernUI.ModernTextBox NoteTextBox;
+        private System.Windows.Forms.Label label10;
     }
 }

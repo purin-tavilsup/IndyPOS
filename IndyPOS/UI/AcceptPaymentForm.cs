@@ -50,27 +50,39 @@ namespace IndyPOS.UI
             PaymentTypeLabel.Text = _paymentTypeDictionary[(int)_selectedPaymentType];
         }
 
-        public new void ShowDialog()
+        public new void Show()
         {
             _amount = 0m;
             _pendingStringValue = string.Empty;
             _values.Clear();
+			NoteTextBox.Texts = string.Empty;
 
             DisplayValue(_amount);
             ResetPaymentTypeSelection();
             CancelAcceptPaymentButton.Select();
 
-            base.ShowDialog();
+            base.Show();
         }
 
         private bool ValidatePaymentType()
 		{
-			if (_isPaymentTypeSelected)
-				return true;
+			if (!_isPaymentTypeSelected)
+            {
+				_messageForm.BringToFront();
+				_messageForm.Show("กรุณาเลือกวิธีการชำระเงิน", "วิธีการชำระเงินยังไม่ถูกเลือก");
 
-			_messageForm.Show("กรุณาเลือกวิธีการชำระเงิน", "วิธีการชำระเงินยังไม่ถูกเลือก");
+				return false;
+			}
 
-			return false;
+			if (_selectedPaymentType == PaymentType.AccountReceivable && !NoteTextBox.Texts.HasValue())
+			{
+				_messageForm.BringToFront();
+				_messageForm.Show("กรุณาใส่ Note สำหรับการลงบัญชี", "Note ไม่ถูกต้อง");
+
+				return false;
+			}
+
+			return true;
 		}
 
         private void AcceptPaymentButton_Click(object sender, EventArgs e)
@@ -80,7 +92,9 @@ namespace IndyPOS.UI
 
 			CalculateLatestAmount();
 
-            _saleInvoiceController.AddPayment(_selectedPaymentType, _amount);
+			var note = NoteTextBox.Texts.Trim();
+
+            _saleInvoiceController.AddPayment(_selectedPaymentType, _amount, note);
 
             Hide();
         }
@@ -92,7 +106,10 @@ namespace IndyPOS.UI
 
 			CalculateLatestAmount();
 
-			_saleInvoiceController.AddPayment(_selectedPaymentType, _amount * -1);
+			var note = NoteTextBox.Texts.Trim();
+			var refundAmount = _amount * -1;
+
+			_saleInvoiceController.AddPayment(_selectedPaymentType, refundAmount, note);
 
 			Hide();
 		}
@@ -336,7 +353,7 @@ namespace IndyPOS.UI
 
         private void DisplayValue(decimal value)
 		{
-            DisplayValue(value.ToString("0.00"));
+            DisplayValue($"{value:N}");
         }
 
         private void DisplayValue(string value)

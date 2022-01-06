@@ -29,5 +29,7 @@
         int? GroupPriceQuantity { get; set; }
 
         bool IsTrackable { get; }
+
+        string Note { get; set; }
     }
 }

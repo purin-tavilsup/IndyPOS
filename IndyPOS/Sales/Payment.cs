@@ -7,5 +7,7 @@
 		public decimal Amount { get; set; }
 
 		public int Priority { get; set; }
+
+		public string Note { get; set; }
 	}
 }

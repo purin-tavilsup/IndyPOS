@@ -29,12 +29,12 @@
         private void InitializeComponent()
         {
             this.PasswordVisibilityButton = new ModernUI.ModernButton();
-            this.UserNameTextBox = new ModernUI.ModernTextBox();
             this.label10 = new System.Windows.Forms.Label();
             this.UserSecretTextBox = new ModernUI.ModernTextBox();
             this.label2 = new System.Windows.Forms.Label();
             this.LogInButton = new ModernUI.ModernButton();
             this.UserInputPanel = new System.Windows.Forms.Panel();
+            this.UsersComboBox = new ModernUI.ModernComboBox();
             this.UserInputPanel.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -50,7 +50,7 @@
             this.PasswordVisibilityButton.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.PasswordVisibilityButton.ForeColor = System.Drawing.Color.White;
             this.PasswordVisibilityButton.Image = global::IndyPOS.Properties.Resources.Visible_25;
-            this.PasswordVisibilityButton.Location = new System.Drawing.Point(441, 63);
+            this.PasswordVisibilityButton.Location = new System.Drawing.Point(396, 79);
             this.PasswordVisibilityButton.Name = "PasswordVisibilityButton";
             this.PasswordVisibilityButton.Size = new System.Drawing.Size(39, 39);
             this.PasswordVisibilityButton.TabIndex = 81;
@@ -58,33 +58,14 @@
             this.PasswordVisibilityButton.UseVisualStyleBackColor = false;
             this.PasswordVisibilityButton.Click += new System.EventHandler(this.PasswordVisibilityButton_Click);
             // 
-            // UserNameTextBox
-            // 
-            this.UserNameTextBox.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(30)))), ((int)(((byte)(30)))), ((int)(((byte)(30)))));
-            this.UserNameTextBox.BorderColor = System.Drawing.Color.DimGray;
-            this.UserNameTextBox.BorderSize = 1;
-            this.UserNameTextBox.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.UserNameTextBox.ForeColor = System.Drawing.Color.Gainsboro;
-            this.UserNameTextBox.Location = new System.Drawing.Point(163, 18);
-            this.UserNameTextBox.Multiline = false;
-            this.UserNameTextBox.Name = "UserNameTextBox";
-            this.UserNameTextBox.Padding = new System.Windows.Forms.Padding(7);
-            this.UserNameTextBox.PasswordChar = false;
-            this.UserNameTextBox.ReadOnly = false;
-            this.UserNameTextBox.Size = new System.Drawing.Size(272, 39);
-            this.UserNameTextBox.TabIndex = 83;
-            this.UserNameTextBox.TextAlign = System.Windows.Forms.HorizontalAlignment.Left;
-            this.UserNameTextBox.Texts = "";
-            this.UserNameTextBox.UnderlinedStyle = true;
-            // 
             // label10
             // 
             this.label10.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(30)))), ((int)(((byte)(30)))), ((int)(((byte)(30)))));
             this.label10.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.label10.ForeColor = System.Drawing.Color.Gainsboro;
-            this.label10.Location = new System.Drawing.Point(20, 18);
+            this.label10.Location = new System.Drawing.Point(20, 34);
             this.label10.Name = "label10";
-            this.label10.Size = new System.Drawing.Size(137, 39);
+            this.label10.Size = new System.Drawing.Size(92, 39);
             this.label10.TabIndex = 82;
             this.label10.Text = "Username";
             this.label10.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
@@ -96,7 +77,7 @@
             this.UserSecretTextBox.BorderSize = 1;
             this.UserSecretTextBox.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.UserSecretTextBox.ForeColor = System.Drawing.Color.Gainsboro;
-            this.UserSecretTextBox.Location = new System.Drawing.Point(163, 63);
+            this.UserSecretTextBox.Location = new System.Drawing.Point(118, 79);
             this.UserSecretTextBox.Multiline = false;
             this.UserSecretTextBox.Name = "UserSecretTextBox";
             this.UserSecretTextBox.Padding = new System.Windows.Forms.Padding(7);
@@ -113,9 +94,9 @@
             this.label2.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(30)))), ((int)(((byte)(30)))), ((int)(((byte)(30)))));
             this.label2.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.label2.ForeColor = System.Drawing.Color.Gainsboro;
-            this.label2.Location = new System.Drawing.Point(20, 63);
+            this.label2.Location = new System.Drawing.Point(20, 79);
             this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(137, 39);
+            this.label2.Size = new System.Drawing.Size(92, 39);
             this.label2.TabIndex = 80;
             this.label2.Text = "Password";
             this.label2.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
@@ -129,11 +110,11 @@
             this.LogInButton.BorderSize = 1;
             this.LogInButton.FlatAppearance.BorderSize = 0;
             this.LogInButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.LogInButton.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.LogInButton.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 15.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.LogInButton.ForeColor = System.Drawing.Color.White;
-            this.LogInButton.Location = new System.Drawing.Point(578, 362);
+            this.LogInButton.Location = new System.Drawing.Point(421, 314);
             this.LogInButton.Name = "LogInButton";
-            this.LogInButton.Size = new System.Drawing.Size(174, 53);
+            this.LogInButton.Size = new System.Drawing.Size(463, 74);
             this.LogInButton.TabIndex = 85;
             this.LogInButton.Text = "Login";
             this.LogInButton.TextColor = System.Drawing.Color.White;
@@ -143,15 +124,35 @@
             // UserInputPanel
             // 
             this.UserInputPanel.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(30)))), ((int)(((byte)(30)))), ((int)(((byte)(30)))));
+            this.UserInputPanel.Controls.Add(this.UsersComboBox);
             this.UserInputPanel.Controls.Add(this.label10);
             this.UserInputPanel.Controls.Add(this.PasswordVisibilityButton);
             this.UserInputPanel.Controls.Add(this.label2);
-            this.UserInputPanel.Controls.Add(this.UserNameTextBox);
             this.UserInputPanel.Controls.Add(this.UserSecretTextBox);
-            this.UserInputPanel.Location = new System.Drawing.Point(415, 218);
+            this.UserInputPanel.Location = new System.Drawing.Point(421, 144);
             this.UserInputPanel.Name = "UserInputPanel";
-            this.UserInputPanel.Size = new System.Drawing.Size(500, 138);
+            this.UserInputPanel.Size = new System.Drawing.Size(463, 146);
             this.UserInputPanel.TabIndex = 85;
+            // 
+            // UsersComboBox
+            // 
+            this.UsersComboBox.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(30)))), ((int)(((byte)(30)))), ((int)(((byte)(30)))));
+            this.UsersComboBox.BorderColor = System.Drawing.Color.DimGray;
+            this.UsersComboBox.BorderSize = 0;
+            this.UsersComboBox.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDown;
+            this.UsersComboBox.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 14.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.UsersComboBox.ForeColor = System.Drawing.Color.Gainsboro;
+            this.UsersComboBox.IconColor = System.Drawing.Color.Gainsboro;
+            this.UsersComboBox.ListBackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
+            this.UsersComboBox.ListTextColor = System.Drawing.Color.Gainsboro;
+            this.UsersComboBox.Location = new System.Drawing.Point(118, 24);
+            this.UsersComboBox.MinimumSize = new System.Drawing.Size(200, 35);
+            this.UsersComboBox.Name = "UsersComboBox";
+            this.UsersComboBox.SelectedIndex = -1;
+            this.UsersComboBox.SelectedItem = null;
+            this.UsersComboBox.Size = new System.Drawing.Size(317, 49);
+            this.UsersComboBox.TabIndex = 83;
+            this.UsersComboBox.Texts = "ผู้ใช้งาน";
             // 
             // UserLogInPanel
             // 
@@ -171,11 +172,11 @@
         #endregion
 
         private ModernUI.ModernButton PasswordVisibilityButton;
-        private ModernUI.ModernTextBox UserNameTextBox;
         private System.Windows.Forms.Label label10;
         private ModernUI.ModernTextBox UserSecretTextBox;
         private System.Windows.Forms.Label label2;
         private ModernUI.ModernButton LogInButton;
         private System.Windows.Forms.Panel UserInputPanel;
+        private ModernUI.ModernComboBox UsersComboBox;
     }
 }

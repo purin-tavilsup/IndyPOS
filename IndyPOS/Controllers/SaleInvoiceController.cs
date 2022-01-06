@@ -65,12 +65,12 @@ namespace IndyPOS.Controllers
             _eventAggregator.GetEvent<AllPaymentsRemovedEvent>().Publish();
 		}
 
-        public void AddProduct(string barcode)
+        public bool AddProduct(string barcode)
         { 
             var product = GetInventoryProductByBarcode(barcode);
 
             if (product == null)
-                return;
+                return false;
 
             var invoiceProduct = product.ToSaleInvoiceProduct();
 
@@ -80,7 +80,9 @@ namespace IndyPOS.Controllers
             _saleInvoice.Products.Add(invoiceProduct);
 
             _eventAggregator.GetEvent<SaleInvoiceProductAddedEvent>().Publish();
-        }
+
+			return true;
+		}
 
         private int GetNextProductPriority(ICollection<ISaleInvoiceProduct> products)
 		{
@@ -113,13 +115,14 @@ namespace IndyPOS.Controllers
 			return result != null ? new InventoryProductAdapter(result) : null;
 		}
 
-        public void AddPayment(PaymentType paymentType, decimal paymentAmount)
+        public void AddPayment(PaymentType paymentType, decimal paymentAmount, string note)
 		{
             var payment = new Payment
 			{
 				PaymentTypeId = (int)paymentType,
                 Priority = GetNextPaymentPriority(_saleInvoice.Payments),
-                Amount = paymentAmount
+                Amount = paymentAmount,
+				Note = note
 			};
 
             _saleInvoice.Payments.Add(payment);
@@ -148,7 +151,7 @@ namespace IndyPOS.Controllers
 			}
         }
 
-		public void UpdateProductUnitPrice(int inventoryProductId, int priority, decimal unitPrice)
+		public void UpdateProductUnitPrice(int inventoryProductId, int priority, decimal unitPrice, string note)
         {
 			var productToUpdate = _saleInvoice.Products.FirstOrDefault(p => p.InventoryProductId == inventoryProductId &&
 																			p.Priority == priority);
@@ -160,6 +163,7 @@ namespace IndyPOS.Controllers
 				return;
 
 			productToUpdate.UnitPrice = unitPrice;
+			productToUpdate.Note = note;
 
 			_eventAggregator.GetEvent<SaleInvoiceProductUpdatedEvent>().Publish();
 		}
@@ -324,7 +328,8 @@ namespace IndyPOS.Controllers
                 Brand = product.Brand,
                 Category = product.Category,
                 UnitPrice = product.UnitPrice,
-                Quantity = product.Quantity
+                Quantity = product.Quantity,
+				Note = product.Note
             });
         }
 
@@ -342,7 +347,8 @@ namespace IndyPOS.Controllers
             {
                 InvoiceId = invoiceId,
                 PaymentTypeId = payment.PaymentTypeId,
-                Amount = payment.Amount
+                Amount = payment.Amount,
+				Note = payment.Note
             });
         }
 

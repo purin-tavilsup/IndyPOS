@@ -34,14 +34,16 @@ namespace IndyPOS.UI
             Description,
             Quantity,
             UnitPrice,
-            Total
+            Total,
+            Note
         }
 
         private enum PaymentColumn
         {
             PaymentPriority,
             PaymentType,
-            PaymentAmount
+            PaymentAmount,
+            Note
         }
 
         public SalePanel(IEventAggregator eventAggregator, 
@@ -71,9 +73,6 @@ namespace IndyPOS.UI
             SubscribeEvents();
 
             _saleInvoiceController.StartNewSale();
-            AddProductToInvoice("8850999009674");
-            AddProductToInvoice("8850250012238");
-            AddProductToInvoice("8850250011613");
         }
 
         private void SubscribeEvents()
@@ -93,7 +92,7 @@ namespace IndyPOS.UI
             #region Initialize all columns
 
             InvoiceDataView.Columns.Clear();
-            InvoiceDataView.ColumnCount = 6;
+            InvoiceDataView.ColumnCount = 7;
 
             InvoiceDataView.Columns[(int)SaleInvoiceColumn.Priority].Name = "ลำดับ";
             InvoiceDataView.Columns[(int)SaleInvoiceColumn.Priority].Width = 100;
@@ -119,6 +118,10 @@ namespace IndyPOS.UI
             InvoiceDataView.Columns[(int)SaleInvoiceColumn.Total].Width = 150;
             InvoiceDataView.Columns[(int)SaleInvoiceColumn.Total].ReadOnly = true;
 
+			InvoiceDataView.Columns[(int)SaleInvoiceColumn.Note].Name = "Note";
+			InvoiceDataView.Columns[(int)SaleInvoiceColumn.Note].Width = 200;
+			InvoiceDataView.Columns[(int)SaleInvoiceColumn.Note].ReadOnly = true;
+
             #endregion
         }
 
@@ -127,7 +130,7 @@ namespace IndyPOS.UI
 			#region Initialize all columns
 
             PaymentDataView.Columns.Clear();
-            PaymentDataView.ColumnCount = 3;
+            PaymentDataView.ColumnCount = 4;
 
             PaymentDataView.Columns[(int)PaymentColumn.PaymentPriority].Name = "ลำดับ";
             PaymentDataView.Columns[(int)PaymentColumn.PaymentPriority].Width = 100;
@@ -140,6 +143,10 @@ namespace IndyPOS.UI
             PaymentDataView.Columns[(int)PaymentColumn.PaymentAmount].Name = "จำนวนเงิน";
             PaymentDataView.Columns[(int)PaymentColumn.PaymentAmount].Width = 250;
             PaymentDataView.Columns[(int)PaymentColumn.PaymentAmount].ReadOnly = true;
+
+			PaymentDataView.Columns[(int)PaymentColumn.Note].Name = "Note";
+			PaymentDataView.Columns[(int)PaymentColumn.Note].Width = 200;
+			PaymentDataView.Columns[(int)PaymentColumn.Note].ReadOnly = true;
 
             #endregion
         }
@@ -165,7 +172,7 @@ namespace IndyPOS.UI
 
             TotalLabel.UIThread(delegate
             {
-                TotalLabel.Text = _saleInvoiceController.InvoiceTotal.ToString("0.00");
+                TotalLabel.Text = $"{_saleInvoiceController.InvoiceTotal:N}";
             });
         }
 
@@ -175,12 +182,13 @@ namespace IndyPOS.UI
             var productRow = new string[columnCount];
             var total = product.UnitPrice * product.Quantity;
 
-            productRow[(int)SaleInvoiceColumn.Priority] = product.Priority.ToString();
+            productRow[(int)SaleInvoiceColumn.Priority] = $"{product.Priority}";
             productRow[(int)SaleInvoiceColumn.ProductCode] = product.Barcode;
             productRow[(int)SaleInvoiceColumn.Description] = product.Description;
-            productRow[(int)SaleInvoiceColumn.Quantity] = product.Quantity.ToString();
-            productRow[(int)SaleInvoiceColumn.UnitPrice] = product.UnitPrice.ToString("0.00");
-            productRow[(int)SaleInvoiceColumn.Total] = total.ToString("0.00");
+            productRow[(int)SaleInvoiceColumn.Quantity] = $"{product.Quantity}";
+            productRow[(int)SaleInvoiceColumn.UnitPrice] = $"{product.UnitPrice:N}";
+            productRow[(int)SaleInvoiceColumn.Total] = $"{total:N}";
+			productRow[(int)SaleInvoiceColumn.Note] = product.Note;
 
             InvoiceDataView.Rows.Add(productRow);
         }
@@ -190,16 +198,17 @@ namespace IndyPOS.UI
             var columnCount = PaymentDataView.ColumnCount;
             var paymentRow = new string[columnCount];
 
-            paymentRow[(int)PaymentColumn.PaymentPriority] = payment.Priority.ToString();
+            paymentRow[(int)PaymentColumn.PaymentPriority] = $"{payment.Priority}";
             paymentRow[(int)PaymentColumn.PaymentType] = _paymentTypeDictionary[payment.PaymentTypeId];
-            paymentRow[(int)PaymentColumn.PaymentAmount] = payment.Amount.ToString("0.00");
+            paymentRow[(int)PaymentColumn.PaymentAmount] = $"{payment.Amount:N}";
+			paymentRow[(int) PaymentColumn.Note] = payment.Note;
 
             PaymentDataView.Rows.Add(paymentRow);
         }
 
         private void GetPaymentButton_Click(object sender, EventArgs e)
         {
-            _acceptPaymentForm.ShowDialog();
+            _acceptPaymentForm.Show();
         }
 
         private void SaveSaleInvoiceButton_Click(object sender, EventArgs e)
@@ -267,8 +276,8 @@ namespace IndyPOS.UI
 
             TotalLabel.UIThread(delegate
             {
-                TotalPaymentsLabel.Text = _saleInvoiceController.PaymentTotal.ToString("0.00");
-                ChangesLabel.Text = _saleInvoiceController.Changes.ToString("0.00");
+                TotalPaymentsLabel.Text = $"{_saleInvoiceController.PaymentTotal:N}";
+                ChangesLabel.Text = $"{_saleInvoiceController.Changes:N}";
             });
         }
 
@@ -278,9 +287,9 @@ namespace IndyPOS.UI
             {
                 InvoiceDataView.Rows.Clear();
 
-                TotalLabel.Text = _saleInvoiceController.InvoiceTotal.ToString("0.00");
-                TotalPaymentsLabel.Text = _saleInvoiceController.PaymentTotal.ToString("0.00");
-                ChangesLabel.Text = _saleInvoiceController.Changes.ToString("0.00");
+				TotalLabel.Text = $"{_saleInvoiceController.InvoiceTotal:N}";
+                TotalPaymentsLabel.Text = $"{_saleInvoiceController.PaymentTotal:N}";
+                ChangesLabel.Text = $"{_saleInvoiceController.Changes:N}";
             });
 
             PaymentDataView.UIThread(delegate
@@ -299,7 +308,10 @@ namespace IndyPOS.UI
 
         private void AddProductToInvoice(string barcode)
 		{
-            _saleInvoiceController.AddProduct(barcode);
+            var success = _saleInvoiceController.AddProduct(barcode);
+
+            if (!success)
+				_messageForm.Show($"ไม่พบรหัสสินค้า {barcode} ในระบบ กรุณาเพิ่มสินค้านี้เข้าในระบบก่อนเริ่มการขาย", "ไม่สามารถเพิ่มสินค้าได้");
         }
 
 		private void ClearAllPaymentsButton_Click(object sender, EventArgs e)

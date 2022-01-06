@@ -12,5 +12,7 @@
 
 		string DateCreated { get; }
 
+		string Note { get; }
+
     }
 }

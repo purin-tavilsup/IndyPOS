@@ -21,5 +21,7 @@ namespace IndyPOS.Adapters
 		public decimal Amount => _adaptee.Amount;
 
 		public string DateCreated => _adaptee.DateCreated;
+
+		public string Note => _adaptee.Note;
 	}
 }

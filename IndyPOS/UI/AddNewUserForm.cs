@@ -30,10 +30,10 @@ namespace IndyPOS.UI
             _messageForm = messageForm;
 
             InitializeComponent();
-            InitializeProductCategories();
+            InitializeUserRoles();
         }
 
-        private void InitializeProductCategories()
+        private void InitializeUserRoles()
         {
             UserRoleComboBox.Items.Clear();
 
@@ -98,13 +98,22 @@ namespace IndyPOS.UI
 
             _userController.AddNewUser(newUser, username, encryptedPassword);
 
-            Close();
+			ClearUserEntry();
+
+            Hide();
         }
 
         private void CancelUserEntryButton_Click(object sender, EventArgs e)
         {
-            Close();
+            Hide();
         }
+
+		private void ClearUserEntry()
+		{
+			FirstNameTextBox.Texts = string.Empty;
+			LastNameTextBox.Texts = string.Empty;
+			UserSecretTextBox.Texts = string.Empty;
+		}
 
         private void FirstNameTextBox_Leave(object sender, EventArgs e)
 		{

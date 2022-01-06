@@ -8,8 +8,6 @@
 
         public int InventoryProductId { get; set; }
 
-        public string SKU { get; set; }
-
         public string Barcode { get; set; }
 
         public string Description { get; set; }
@@ -31,5 +29,7 @@
 		public int Priority { get; set; }
 
         public bool IsTrackable { get; set; }
+
+        public string Note { get; set; }
     }
 }

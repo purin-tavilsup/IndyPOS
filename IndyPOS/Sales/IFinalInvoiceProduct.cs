@@ -27,5 +27,7 @@
 		bool IsTrackable { get; }
 
 		string DateCreated { get; }
+
+		string Note { get;  }
     }
 }

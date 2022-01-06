@@ -1,12 +1,9 @@
-﻿using System;
+﻿using IndyPOS.Controllers;
+using IndyPOS.Enums;
+using System;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using System.Windows.Forms;
 using System.Windows.Media;
-using IndyPOS.Controllers;
-using IndyPOS.Enums;
-using LiveCharts;
-using LiveCharts.Wpf;
 
 namespace IndyPOS.UI.Reports
 {
@@ -76,9 +73,9 @@ namespace IndyPOS.UI.Reports
 
         private void ShowReportByThisYearButton_Click(object sender, EventArgs e)
         {
-			_reportController.LoadInvoicesByPeriod(ReportPeriod.ThisYear);
+			//_reportController.LoadInvoicesByPeriod(ReportPeriod.ThisYear);
 
-			ShowReport();
+			//ShowReport();
         }
 
         private void ShowReportByDateRangeButton_Click(object sender, EventArgs e)

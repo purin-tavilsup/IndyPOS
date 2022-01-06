@@ -2,6 +2,7 @@
 using IndyPOS.Sales;
 using System;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Windows.Forms;
 
 namespace IndyPOS.UI.Reports
@@ -10,7 +11,7 @@ namespace IndyPOS.UI.Reports
     public partial class InvoiceProductsReportPanel : UserControl
     {
 		private readonly IReportController _reportController;
-		private decimal _accumulatedSaleAmount = 0m;
+		private decimal _accumulatedSaleAmount;
 
 		private enum ProductColumn
 		{
@@ -21,7 +22,8 @@ namespace IndyPOS.UI.Reports
 			UnitPrice,
 			Total,
 			Accumulation,
-			DateCreated
+			DateCreated,
+			Note
 		}
 
         public InvoiceProductsReportPanel(IReportController reportController)
@@ -37,7 +39,7 @@ namespace IndyPOS.UI.Reports
 			#region Initialize all columns
 
 			InvoiceProductsDataView.Columns.Clear();
-			InvoiceProductsDataView.ColumnCount = 8;
+			InvoiceProductsDataView.ColumnCount = 9;
 
 			InvoiceProductsDataView.Columns[(int)ProductColumn.InvoiceId].Name = "Invoice ID";
 			InvoiceProductsDataView.Columns[(int)ProductColumn.InvoiceId].Width = 200;
@@ -71,6 +73,10 @@ namespace IndyPOS.UI.Reports
 			InvoiceProductsDataView.Columns[(int)ProductColumn.DateCreated].Width = 200;
 			InvoiceProductsDataView.Columns[(int)ProductColumn.DateCreated].ReadOnly = true;
 
+			InvoiceProductsDataView.Columns[(int)ProductColumn.Note].Name = "Note";
+			InvoiceProductsDataView.Columns[(int)ProductColumn.Note].Width = 200;
+			InvoiceProductsDataView.Columns[(int)ProductColumn.Note].ReadOnly = true;
+
 			#endregion
 		}
 
@@ -83,15 +89,18 @@ namespace IndyPOS.UI.Reports
 			_accumulatedSaleAmount += total;
 
 			productRow[(int) ProductColumn.InvoiceId] = $"{product.InvoiceId: 0000000000}";
-			productRow[(int)ProductColumn.ProductCode] = product.Barcode;
-			productRow[(int)ProductColumn.Description] = product.Description;
-			productRow[(int)ProductColumn.Quantity] = product.Quantity.ToString();
-			productRow[(int)ProductColumn.UnitPrice] = product.UnitPrice.ToString("0.00");
-			productRow[(int)ProductColumn.Total] = total.ToString("0.00");
-			productRow[(int)ProductColumn.Accumulation] = _accumulatedSaleAmount.ToString("0.00");
+			productRow[(int) ProductColumn.ProductCode] = product.Barcode;
+			productRow[(int) ProductColumn.Description] = product.Description;
+			productRow[(int) ProductColumn.Quantity] = product.Quantity.ToString();
+			productRow[(int) ProductColumn.UnitPrice] = $"{product.UnitPrice:N}";
+			productRow[(int) ProductColumn.Total] = $"{total:N}";
+			productRow[(int) ProductColumn.Accumulation] = $"{_accumulatedSaleAmount:N}";
 			productRow[(int) ProductColumn.DateCreated] = product.DateCreated;
+			productRow[(int) ProductColumn.Note] = product.Note;
 
-			InvoiceProductsDataView.Rows.Add(productRow);
+			var objects = productRow.Select(x => (object) x).ToArray();
+
+			InvoiceProductsDataView.Rows.Add(objects);
 		}
 
         private void InvoiceProductsReportPanel_VisibleChanged(object sender, EventArgs e)

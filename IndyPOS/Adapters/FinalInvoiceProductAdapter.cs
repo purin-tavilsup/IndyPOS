@@ -37,5 +37,7 @@ namespace IndyPOS.Adapters
 		public bool IsTrackable => _adaptee.IsTrackable;
 
 		public string DateCreated => _adaptee.DateCreated;
+
+		public string Note => _adaptee.Note;
 	}
 }
