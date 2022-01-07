@@ -28,6 +28,7 @@
         /// </summary>
         private void InitializeComponent()
         {
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(AddNewInventoryProductForm));
             this.panel1 = new System.Windows.Forms.Panel();
             this.CategoryComboBox = new ModernUI.ModernComboBox();
             this.GroupPriceQuantityTextBox = new ModernUI.ModernTextBox();
@@ -436,6 +437,7 @@
             this.ClientSize = new System.Drawing.Size(681, 639);
             this.Controls.Add(this.panel1);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.None;
+            this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.Name = "AddNewInventoryProductForm";
             this.Padding = new System.Windows.Forms.Padding(1);
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;

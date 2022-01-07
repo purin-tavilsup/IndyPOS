@@ -28,6 +28,7 @@
         /// </summary>
         private void InitializeComponent()
         {
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(AddNewUserForm));
             this.panel2 = new System.Windows.Forms.Panel();
             this.CancelUserEntryButton = new ModernUI.ModernButton();
             this.SaveUserEntryButton = new ModernUI.ModernButton();
@@ -312,6 +313,7 @@
             this.ClientSize = new System.Drawing.Size(681, 403);
             this.Controls.Add(this.panel1);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.None;
+            this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.Name = "AddNewUserForm";
             this.Padding = new System.Windows.Forms.Padding(1);
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;

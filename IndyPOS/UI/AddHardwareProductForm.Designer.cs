@@ -28,6 +28,7 @@
         /// </summary>
         private void InitializeComponent()
         {
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(AddHardwareProductForm));
             this.CancelProductEntryButton = new ModernUI.ModernButton();
             this.label1 = new System.Windows.Forms.Label();
             this.modernButton1 = new ModernUI.ModernButton();
@@ -96,6 +97,7 @@
             this.Controls.Add(this.label1);
             this.Controls.Add(this.CancelProductEntryButton);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.None;
+            this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.Name = "AddHardwareProductForm";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "AddInvoiceProductForm";

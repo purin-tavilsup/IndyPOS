@@ -6,7 +6,11 @@ using IndyPOS.Sales;
 using IndyPOS.Users;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
+using System.IO;
 using System.Linq;
+using CsvHelper;
+using CsvHelper.Configuration;
 
 namespace IndyPOS.Controllers
 {
@@ -144,5 +148,20 @@ namespace IndyPOS.Controllers
 
 			return paymentsByType.Sum(x => x.Amount);
 		}
+
+		public void WriteReportToCsvFileByDate(DateTime date)
+		{
+
+			var invoices = _invoicesRepository.GetInvoicesByDate(date);
+			var products = _invoicesRepository.GetInvoiceProductsByDate(date);
+			var payments = _invoicesRepository.GetPaymentsByDate(date);
+
+
+			using (var writer = new StreamWriter("path\\to\\file.csv"))
+			using (var csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
+			{
+				csv.WriteRecords(invoices);
+			}
+        }
     }
 }

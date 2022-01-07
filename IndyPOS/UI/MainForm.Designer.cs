@@ -28,6 +28,7 @@
         /// </summary>
         private void InitializeComponent()
         {
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MainForm));
             this.NavigationPanel = new System.Windows.Forms.Panel();
             this.TitlePanel = new System.Windows.Forms.Panel();
             this.panel1 = new System.Windows.Forms.Panel();
@@ -48,10 +49,12 @@
             this.UsersButton = new System.Windows.Forms.Button();
             this.InventoryButton = new System.Windows.Forms.Button();
             this.SaleButton = new System.Windows.Forms.Button();
+            this.pictureBox2 = new System.Windows.Forms.PictureBox();
             this.TitlePanel.SuspendLayout();
             this.panel1.SuspendLayout();
             this.panel9.SuspendLayout();
             this.ControlPanel.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.pictureBox2)).BeginInit();
             this.SuspendLayout();
             // 
             // NavigationPanel
@@ -60,12 +63,13 @@
             this.NavigationPanel.Dock = System.Windows.Forms.DockStyle.Bottom;
             this.NavigationPanel.Location = new System.Drawing.Point(0, 1024);
             this.NavigationPanel.Name = "NavigationPanel";
-            this.NavigationPanel.Size = new System.Drawing.Size(1412, 41);
+            this.NavigationPanel.Size = new System.Drawing.Size(1800, 41);
             this.NavigationPanel.TabIndex = 0;
             // 
             // TitlePanel
             // 
             this.TitlePanel.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(25)))), ((int)(((byte)(25)))), ((int)(((byte)(25)))));
+            this.TitlePanel.Controls.Add(this.pictureBox2);
             this.TitlePanel.Controls.Add(this.panel1);
             this.TitlePanel.Controls.Add(this.panel9);
             this.TitlePanel.Controls.Add(this.StoreNameLabel);
@@ -74,7 +78,7 @@
             this.TitlePanel.ForeColor = System.Drawing.Color.LightGreen;
             this.TitlePanel.Location = new System.Drawing.Point(0, 0);
             this.TitlePanel.Name = "TitlePanel";
-            this.TitlePanel.Size = new System.Drawing.Size(1412, 52);
+            this.TitlePanel.Size = new System.Drawing.Size(1800, 52);
             this.TitlePanel.TabIndex = 1;
             // 
             // panel1
@@ -82,7 +86,7 @@
             this.panel1.Controls.Add(this.LoggedInUserLabel);
             this.panel1.Controls.Add(this.DateTimeLabel);
             this.panel1.Dock = System.Windows.Forms.DockStyle.Right;
-            this.panel1.Location = new System.Drawing.Point(588, 0);
+            this.panel1.Location = new System.Drawing.Point(976, 0);
             this.panel1.Name = "panel1";
             this.panel1.Size = new System.Drawing.Size(645, 52);
             this.panel1.TabIndex = 7;
@@ -115,7 +119,7 @@
             this.panel9.Controls.Add(this.CloseWindowsButton);
             this.panel9.Controls.Add(this.MinimizeWindowsButton);
             this.panel9.Dock = System.Windows.Forms.DockStyle.Right;
-            this.panel9.Location = new System.Drawing.Point(1233, 0);
+            this.panel9.Location = new System.Drawing.Point(1621, 0);
             this.panel9.Name = "panel9";
             this.panel9.Size = new System.Drawing.Size(179, 52);
             this.panel9.TabIndex = 4;
@@ -184,9 +188,9 @@
             // 
             this.StoreNameLabel.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 18F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.StoreNameLabel.ForeColor = System.Drawing.Color.WhiteSmoke;
-            this.StoreNameLabel.Location = new System.Drawing.Point(12, 9);
+            this.StoreNameLabel.Location = new System.Drawing.Point(80, 9);
             this.StoreNameLabel.Name = "StoreNameLabel";
-            this.StoreNameLabel.Size = new System.Drawing.Size(418, 39);
+            this.StoreNameLabel.Size = new System.Drawing.Size(890, 39);
             this.StoreNameLabel.TabIndex = 0;
             this.StoreNameLabel.Text = "Store Name";
             this.StoreNameLabel.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
@@ -197,7 +201,7 @@
             this.ActivePanel.Dock = System.Windows.Forms.DockStyle.Fill;
             this.ActivePanel.Location = new System.Drawing.Point(298, 52);
             this.ActivePanel.Name = "ActivePanel";
-            this.ActivePanel.Size = new System.Drawing.Size(1114, 972);
+            this.ActivePanel.Size = new System.Drawing.Size(1502, 972);
             this.ActivePanel.TabIndex = 3;
             // 
             // ControlPanel
@@ -360,17 +364,28 @@
             this.SaleButton.UseVisualStyleBackColor = false;
             this.SaleButton.Click += new System.EventHandler(this.SaleButton_Click);
             // 
+            // pictureBox2
+            // 
+            this.pictureBox2.Image = global::IndyPOS.Properties.Resources.Rungrat_Store_Logo;
+            this.pictureBox2.Location = new System.Drawing.Point(12, 2);
+            this.pictureBox2.Name = "pictureBox2";
+            this.pictureBox2.Size = new System.Drawing.Size(50, 50);
+            this.pictureBox2.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
+            this.pictureBox2.TabIndex = 88;
+            this.pictureBox2.TabStop = false;
+            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(30)))), ((int)(((byte)(30)))), ((int)(((byte)(30)))));
-            this.ClientSize = new System.Drawing.Size(1412, 1065);
+            this.ClientSize = new System.Drawing.Size(1800, 1065);
             this.Controls.Add(this.ActivePanel);
             this.Controls.Add(this.ControlPanel);
             this.Controls.Add(this.TitlePanel);
             this.Controls.Add(this.NavigationPanel);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.None;
+            this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.Name = "MainForm";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "Indy POS";
@@ -380,6 +395,7 @@
             this.panel1.ResumeLayout(false);
             this.panel9.ResumeLayout(false);
             this.ControlPanel.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)(this.pictureBox2)).EndInit();
             this.ResumeLayout(false);
 
         }
@@ -406,6 +422,7 @@
         private System.Windows.Forms.Label LoggedInUserLabel;
         private System.Windows.Forms.Label DateTimeLabel;
         private System.Windows.Forms.Panel panel1;
+        private System.Windows.Forms.PictureBox pictureBox2;
     }
 }
 

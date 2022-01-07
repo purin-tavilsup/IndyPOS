@@ -313,6 +313,11 @@ namespace IndyPOS.DataAccess.SQLite.Repositories
             }
         }
 
+		public IList<Payment> GetPaymentsByDate(DateTime date)
+		{
+			return GetPaymentsByDateRange(date, date);
+		}
+
 		public IList<Payment> GetPaymentsByDateRange(DateTime start, DateTime end)
 		{
 			using (var connection = _dbConnectionProvider.GetDbConnection())

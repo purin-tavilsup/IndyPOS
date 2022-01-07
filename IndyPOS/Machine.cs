@@ -32,6 +32,7 @@ namespace IndyPOS
 		private void LoadConfig()
 		{
 			const string directoryPath = @"C:\ProgramData\IndyPOS\Config";
+			const string defaultReportDirectory = @"C:\ProgramData\IndyPOS\Report";
 			
 			if (!Directory.Exists(directoryPath))
 			{
@@ -50,12 +51,14 @@ namespace IndyPOS
 			else
 			{
 				// Set default values for now
+				_config.StoreFullName = "รุ่งรัศมิ์";
 				_config.StoreName = "รุ่งรัศมิ์";
 				_config.StoreAddressLine1 = "134 หมู่ 4 ต.คำชะอี อ.คำชะอี";
 				_config.StoreAddressLine2 = "จ.มุกดาหาร 49110";
                 _config.StorePhoneNumber = "084-602-9150";
 				_config.PrinterName = "XP-58";
 				_config.BarcodeScannerPortName = "COM4";
+				_config.ReportDirectory = defaultReportDirectory;
 
                 _config.Save();
 				_config.Load();
@@ -79,7 +82,7 @@ namespace IndyPOS
 
         private void StartUserInterface()
         {
-			_mainForm.SetStoreName(_config.StoreName);
+			_mainForm.SetStoreName(_config.StoreFullName);
 
             System.Windows.Forms.Application.Run(_mainForm);
         }

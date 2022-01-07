@@ -29,6 +29,7 @@ namespace IndyPOS.UI
 		/// </summary>
 		private void InitializeComponent()
 		{
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MessageForm));
             this.panel1 = new System.Windows.Forms.Panel();
             this.CancelButton = new ModernUI.ModernButton();
             this.AcceptButton = new ModernUI.ModernButton();
@@ -149,12 +150,13 @@ namespace IndyPOS.UI
             // 
             // MessageForm
             // 
-			this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
+            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
-			this.ClientSize = new System.Drawing.Size(580, 223);
+            this.ClientSize = new System.Drawing.Size(580, 223);
             this.Controls.Add(this.panel1);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.None;
+            this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.MaximizeBox = false;
             this.MinimizeBox = false;
             this.Name = "MessageForm";

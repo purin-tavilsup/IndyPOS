@@ -35,7 +35,9 @@
             this.LogInButton = new ModernUI.ModernButton();
             this.UserInputPanel = new System.Windows.Forms.Panel();
             this.UsersComboBox = new ModernUI.ModernComboBox();
+            this.pictureBox1 = new System.Windows.Forms.PictureBox();
             this.UserInputPanel.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
             this.SuspendLayout();
             // 
             // PasswordVisibilityButton
@@ -112,7 +114,7 @@
             this.LogInButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.LogInButton.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 15.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.LogInButton.ForeColor = System.Drawing.Color.White;
-            this.LogInButton.Location = new System.Drawing.Point(421, 314);
+            this.LogInButton.Location = new System.Drawing.Point(437, 682);
             this.LogInButton.Name = "LogInButton";
             this.LogInButton.Size = new System.Drawing.Size(463, 74);
             this.LogInButton.TabIndex = 85;
@@ -129,7 +131,7 @@
             this.UserInputPanel.Controls.Add(this.PasswordVisibilityButton);
             this.UserInputPanel.Controls.Add(this.label2);
             this.UserInputPanel.Controls.Add(this.UserSecretTextBox);
-            this.UserInputPanel.Location = new System.Drawing.Point(421, 144);
+            this.UserInputPanel.Location = new System.Drawing.Point(437, 512);
             this.UserInputPanel.Name = "UserInputPanel";
             this.UserInputPanel.Size = new System.Drawing.Size(463, 146);
             this.UserInputPanel.TabIndex = 85;
@@ -154,17 +156,31 @@
             this.UsersComboBox.TabIndex = 83;
             this.UsersComboBox.Texts = "ผู้ใช้งาน";
             // 
+            // pictureBox1
+            // 
+            this.pictureBox1.Image = global::IndyPOS.Properties.Resources.Rungrat_Store_Logo;
+            this.pictureBox1.Location = new System.Drawing.Point(492, 156);
+            this.pictureBox1.Name = "pictureBox1";
+            this.pictureBox1.Size = new System.Drawing.Size(350, 350);
+            this.pictureBox1.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
+            this.pictureBox1.TabIndex = 86;
+            this.pictureBox1.TabStop = false;
+            // 
             // UserLogInPanel
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(30)))), ((int)(((byte)(30)))), ((int)(((byte)(30)))));
+            this.BackgroundImageLayout = System.Windows.Forms.ImageLayout.None;
             this.Controls.Add(this.UserInputPanel);
             this.Controls.Add(this.LogInButton);
+            this.Controls.Add(this.pictureBox1);
+            this.DoubleBuffered = true;
             this.Name = "UserLogInPanel";
-            this.Size = new System.Drawing.Size(1421, 697);
+            this.Size = new System.Drawing.Size(1421, 782);
             this.VisibleChanged += new System.EventHandler(this.UserLogInPanel_VisibleChanged);
             this.UserInputPanel.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).EndInit();
             this.ResumeLayout(false);
 
         }
@@ -178,5 +194,6 @@
         private ModernUI.ModernButton LogInButton;
         private System.Windows.Forms.Panel UserInputPanel;
         private ModernUI.ModernComboBox UsersComboBox;
+        private System.Windows.Forms.PictureBox pictureBox1;
     }
 }

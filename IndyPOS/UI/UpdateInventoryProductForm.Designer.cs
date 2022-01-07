@@ -28,7 +28,11 @@
         /// </summary>
         private void InitializeComponent()
         {
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(UpdateInventoryProductForm));
             this.panel1 = new System.Windows.Forms.Panel();
+            this.DecreaseQuantityButton = new ModernUI.ModernButton();
+            this.IncreaseQuantityButton = new ModernUI.ModernButton();
+            this.QuantityLabel = new System.Windows.Forms.Label();
             this.CategoryComboBox = new ModernUI.ModernComboBox();
             this.label11 = new System.Windows.Forms.Label();
             this.label10 = new System.Windows.Forms.Label();
@@ -52,9 +56,6 @@
             this.label3 = new System.Windows.Forms.Label();
             this.label2 = new System.Windows.Forms.Label();
             this.label1 = new System.Windows.Forms.Label();
-            this.QuantityLabel = new System.Windows.Forms.Label();
-            this.IncreaseQuantityButton = new ModernUI.ModernButton();
-            this.DecreaseQuantityButton = new ModernUI.ModernButton();
             this.panel1.SuspendLayout();
             this.panel2.SuspendLayout();
             this.SuspendLayout();
@@ -90,6 +91,57 @@
             this.panel1.Name = "panel1";
             this.panel1.Size = new System.Drawing.Size(934, 648);
             this.panel1.TabIndex = 0;
+            // 
+            // DecreaseQuantityButton
+            // 
+            this.DecreaseQuantityButton.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
+            this.DecreaseQuantityButton.BackgroundColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
+            this.DecreaseQuantityButton.BorderColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
+            this.DecreaseQuantityButton.BorderRadius = 19;
+            this.DecreaseQuantityButton.BorderSize = 1;
+            this.DecreaseQuantityButton.FlatAppearance.BorderSize = 0;
+            this.DecreaseQuantityButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.DecreaseQuantityButton.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.DecreaseQuantityButton.ForeColor = System.Drawing.Color.White;
+            this.DecreaseQuantityButton.Image = global::IndyPOS.Properties.Resources.Minus_35;
+            this.DecreaseQuantityButton.Location = new System.Drawing.Point(731, 156);
+            this.DecreaseQuantityButton.Name = "DecreaseQuantityButton";
+            this.DecreaseQuantityButton.Size = new System.Drawing.Size(39, 39);
+            this.DecreaseQuantityButton.TabIndex = 61;
+            this.DecreaseQuantityButton.TextColor = System.Drawing.Color.White;
+            this.DecreaseQuantityButton.UseVisualStyleBackColor = false;
+            this.DecreaseQuantityButton.Click += new System.EventHandler(this.DecreaseQuantityButton_Click);
+            // 
+            // IncreaseQuantityButton
+            // 
+            this.IncreaseQuantityButton.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
+            this.IncreaseQuantityButton.BackgroundColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
+            this.IncreaseQuantityButton.BorderColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
+            this.IncreaseQuantityButton.BorderRadius = 19;
+            this.IncreaseQuantityButton.BorderSize = 1;
+            this.IncreaseQuantityButton.FlatAppearance.BorderSize = 0;
+            this.IncreaseQuantityButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.IncreaseQuantityButton.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.IncreaseQuantityButton.ForeColor = System.Drawing.Color.White;
+            this.IncreaseQuantityButton.Image = global::IndyPOS.Properties.Resources.Plus_35;
+            this.IncreaseQuantityButton.Location = new System.Drawing.Point(555, 156);
+            this.IncreaseQuantityButton.Name = "IncreaseQuantityButton";
+            this.IncreaseQuantityButton.Size = new System.Drawing.Size(39, 39);
+            this.IncreaseQuantityButton.TabIndex = 60;
+            this.IncreaseQuantityButton.TextColor = System.Drawing.Color.White;
+            this.IncreaseQuantityButton.UseVisualStyleBackColor = false;
+            this.IncreaseQuantityButton.Click += new System.EventHandler(this.IncreaseQuantityButton_Click);
+            // 
+            // QuantityLabel
+            // 
+            this.QuantityLabel.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
+            this.QuantityLabel.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.QuantityLabel.ForeColor = System.Drawing.Color.Gainsboro;
+            this.QuantityLabel.Location = new System.Drawing.Point(235, 156);
+            this.QuantityLabel.Name = "QuantityLabel";
+            this.QuantityLabel.Size = new System.Drawing.Size(314, 39);
+            this.QuantityLabel.TabIndex = 59;
+            this.QuantityLabel.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             // 
             // CategoryComboBox
             // 
@@ -459,57 +511,6 @@
             this.label1.Text = "อัพเดทสินค้า";
             this.label1.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             // 
-            // QuantityLabel
-            // 
-            this.QuantityLabel.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
-            this.QuantityLabel.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.QuantityLabel.ForeColor = System.Drawing.Color.Gainsboro;
-            this.QuantityLabel.Location = new System.Drawing.Point(235, 156);
-            this.QuantityLabel.Name = "QuantityLabel";
-            this.QuantityLabel.Size = new System.Drawing.Size(314, 39);
-            this.QuantityLabel.TabIndex = 59;
-            this.QuantityLabel.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
-            // 
-            // IncreaseQuantityButton
-            // 
-            this.IncreaseQuantityButton.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
-            this.IncreaseQuantityButton.BackgroundColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
-            this.IncreaseQuantityButton.BorderColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
-            this.IncreaseQuantityButton.BorderRadius = 19;
-            this.IncreaseQuantityButton.BorderSize = 1;
-            this.IncreaseQuantityButton.FlatAppearance.BorderSize = 0;
-            this.IncreaseQuantityButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.IncreaseQuantityButton.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.IncreaseQuantityButton.ForeColor = System.Drawing.Color.White;
-            this.IncreaseQuantityButton.Image = global::IndyPOS.Properties.Resources.Plus_35;
-            this.IncreaseQuantityButton.Location = new System.Drawing.Point(555, 156);
-            this.IncreaseQuantityButton.Name = "IncreaseQuantityButton";
-            this.IncreaseQuantityButton.Size = new System.Drawing.Size(39, 39);
-            this.IncreaseQuantityButton.TabIndex = 60;
-            this.IncreaseQuantityButton.TextColor = System.Drawing.Color.White;
-            this.IncreaseQuantityButton.UseVisualStyleBackColor = false;
-            this.IncreaseQuantityButton.Click += new System.EventHandler(this.IncreaseQuantityButton_Click);
-            // 
-            // DecreaseQuantityButton
-            // 
-            this.DecreaseQuantityButton.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
-            this.DecreaseQuantityButton.BackgroundColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
-            this.DecreaseQuantityButton.BorderColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
-            this.DecreaseQuantityButton.BorderRadius = 19;
-            this.DecreaseQuantityButton.BorderSize = 1;
-            this.DecreaseQuantityButton.FlatAppearance.BorderSize = 0;
-            this.DecreaseQuantityButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.DecreaseQuantityButton.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.DecreaseQuantityButton.ForeColor = System.Drawing.Color.White;
-            this.DecreaseQuantityButton.Image = global::IndyPOS.Properties.Resources.Minus_35;
-            this.DecreaseQuantityButton.Location = new System.Drawing.Point(731, 156);
-            this.DecreaseQuantityButton.Name = "DecreaseQuantityButton";
-            this.DecreaseQuantityButton.Size = new System.Drawing.Size(39, 39);
-            this.DecreaseQuantityButton.TabIndex = 61;
-            this.DecreaseQuantityButton.TextColor = System.Drawing.Color.White;
-            this.DecreaseQuantityButton.UseVisualStyleBackColor = false;
-            this.DecreaseQuantityButton.Click += new System.EventHandler(this.DecreaseQuantityButton_Click);
-            // 
             // UpdateInventoryProductForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -518,6 +519,7 @@
             this.ClientSize = new System.Drawing.Size(936, 650);
             this.Controls.Add(this.panel1);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.None;
+            this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.Name = "UpdateInventoryProductForm";
             this.Padding = new System.Windows.Forms.Padding(1);
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;

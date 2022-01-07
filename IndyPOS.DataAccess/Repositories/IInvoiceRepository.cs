@@ -27,5 +27,7 @@ namespace IndyPOS.DataAccess.Repositories
         IList<Payment> GetPaymentsByInvoiceId(int id);
 
 		IList<Payment> GetPaymentsByDateRange(DateTime start, DateTime end);
+
+		IList<Payment> GetPaymentsByDate(DateTime date);
 	}
 }

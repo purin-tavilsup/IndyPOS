@@ -28,9 +28,12 @@
         /// </summary>
         private void InitializeComponent()
         {
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(UpdateInvoiceProductForm));
             this.ProductCodeLabel = new System.Windows.Forms.Label();
             this.DescriptionLabel = new System.Windows.Forms.Label();
             this.panel2 = new System.Windows.Forms.Panel();
+            this.NoteTextBox = new ModernUI.ModernTextBox();
+            this.NoteLabel = new System.Windows.Forms.Label();
             this.UnitPriceTextBox = new ModernUI.ModernTextBox();
             this.UnitPriceLabel = new System.Windows.Forms.Label();
             this.DecreaseQuantityButton = new ModernUI.ModernButton();
@@ -44,8 +47,6 @@
             this.label4 = new System.Windows.Forms.Label();
             this.label3 = new System.Windows.Forms.Label();
             this.label2 = new System.Windows.Forms.Label();
-            this.NoteTextBox = new ModernUI.ModernTextBox();
-            this.NoteLabel = new System.Windows.Forms.Label();
             this.panel2.SuspendLayout();
             this.panel1.SuspendLayout();
             this.SuspendLayout();
@@ -94,6 +95,37 @@
             this.panel2.Name = "panel2";
             this.panel2.Size = new System.Drawing.Size(658, 426);
             this.panel2.TabIndex = 30;
+            // 
+            // NoteTextBox
+            // 
+            this.NoteTextBox.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
+            this.NoteTextBox.BorderColor = System.Drawing.Color.DimGray;
+            this.NoteTextBox.BorderSize = 1;
+            this.NoteTextBox.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.NoteTextBox.ForeColor = System.Drawing.Color.Gainsboro;
+            this.NoteTextBox.Location = new System.Drawing.Point(229, 246);
+            this.NoteTextBox.Multiline = false;
+            this.NoteTextBox.Name = "NoteTextBox";
+            this.NoteTextBox.Padding = new System.Windows.Forms.Padding(7);
+            this.NoteTextBox.PasswordChar = false;
+            this.NoteTextBox.ReadOnly = false;
+            this.NoteTextBox.Size = new System.Drawing.Size(310, 39);
+            this.NoteTextBox.TabIndex = 55;
+            this.NoteTextBox.TextAlign = System.Windows.Forms.HorizontalAlignment.Left;
+            this.NoteTextBox.Texts = "";
+            this.NoteTextBox.UnderlinedStyle = true;
+            // 
+            // NoteLabel
+            // 
+            this.NoteLabel.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
+            this.NoteLabel.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.NoteLabel.ForeColor = System.Drawing.Color.Gainsboro;
+            this.NoteLabel.Location = new System.Drawing.Point(106, 246);
+            this.NoteLabel.Name = "NoteLabel";
+            this.NoteLabel.Size = new System.Drawing.Size(117, 39);
+            this.NoteLabel.TabIndex = 54;
+            this.NoteLabel.Text = "Note";
+            this.NoteLabel.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
             // 
             // UnitPriceTextBox
             // 
@@ -310,37 +342,6 @@
             this.label2.Text = "รหัสสินค้า";
             this.label2.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
             // 
-            // NoteTextBox
-            // 
-            this.NoteTextBox.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
-            this.NoteTextBox.BorderColor = System.Drawing.Color.DimGray;
-            this.NoteTextBox.BorderSize = 1;
-            this.NoteTextBox.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.NoteTextBox.ForeColor = System.Drawing.Color.Gainsboro;
-            this.NoteTextBox.Location = new System.Drawing.Point(229, 246);
-            this.NoteTextBox.Multiline = false;
-            this.NoteTextBox.Name = "NoteTextBox";
-            this.NoteTextBox.Padding = new System.Windows.Forms.Padding(7);
-            this.NoteTextBox.PasswordChar = false;
-            this.NoteTextBox.ReadOnly = false;
-            this.NoteTextBox.Size = new System.Drawing.Size(310, 39);
-            this.NoteTextBox.TabIndex = 55;
-            this.NoteTextBox.TextAlign = System.Windows.Forms.HorizontalAlignment.Left;
-            this.NoteTextBox.Texts = "";
-            this.NoteTextBox.UnderlinedStyle = true;
-            // 
-            // NoteLabel
-            // 
-            this.NoteLabel.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
-            this.NoteLabel.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.NoteLabel.ForeColor = System.Drawing.Color.Gainsboro;
-            this.NoteLabel.Location = new System.Drawing.Point(106, 246);
-            this.NoteLabel.Name = "NoteLabel";
-            this.NoteLabel.Size = new System.Drawing.Size(117, 39);
-            this.NoteLabel.TabIndex = 54;
-            this.NoteLabel.Text = "Note";
-            this.NoteLabel.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
-            // 
             // UpdateInvoiceProductForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -349,6 +350,7 @@
             this.ClientSize = new System.Drawing.Size(660, 428);
             this.Controls.Add(this.panel2);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.None;
+            this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.Name = "UpdateInvoiceProductForm";
             this.Padding = new System.Windows.Forms.Padding(1);
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;

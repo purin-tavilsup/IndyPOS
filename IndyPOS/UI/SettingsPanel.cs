@@ -18,6 +18,7 @@ namespace IndyPOS.UI
 
         private void LoadSettings()
 		{
+			StoreFullNameTextBox.Texts = _config.StoreFullName;
 			StoreNameTextBox.Texts = _config.StoreName;
 			StoreAddressLine1TextBox.Texts = _config.StoreAddressLine1;
 			StoreAddressLine2TextBox.Texts = _config.StoreAddressLine2;
@@ -28,6 +29,7 @@ namespace IndyPOS.UI
 
 		private void SaveSettings()
 		{
+			_config.StoreFullName = StoreFullNameTextBox.Text.Trim();
 			_config.StoreName = StoreNameTextBox.Texts.Trim();
 			_config.StoreAddressLine1 = StoreAddressLine1TextBox.Texts.Trim();
 			_config.StoreAddressLine2 = StoreAddressLine2TextBox.Texts.Trim();

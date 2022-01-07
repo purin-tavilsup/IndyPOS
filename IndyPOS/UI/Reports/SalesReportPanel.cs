@@ -48,6 +48,14 @@ namespace IndyPOS.UI.Reports
 			PaymentByWelfareCardLabel.Text = $"{_reportController.GetPaymentsTotalByType(PaymentType.WelfareCard):N}";
 
 			PaymentByArLabel.Text = $"{_reportController.GetPaymentsTotalByType(PaymentType.AccountReceivable):N}";
+
+
+
+
+
+
+
+
 		}
 
         private void ShowReportByTodayButton_Click(object sender, EventArgs e)
