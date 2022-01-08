@@ -10,13 +10,15 @@ namespace IndyPOS.UI.Reports
     public partial class SalesReportPanel : UserControl
     {
 		private readonly IReportController _reportController;
+		private readonly MessageForm _messageForm;
 		private readonly FontFamily _fontFamily;
 		private const string FontFamilyName = "FC Subject [Non-commercial] Reg";
 
 		[ExcludeFromCodeCoverage]
-        public SalesReportPanel(IReportController reportController)
+        public SalesReportPanel(IReportController reportController, MessageForm messageForm)
         {
 			_reportController = reportController;
+			_messageForm = messageForm;
 
 			InitializeComponent();
 
@@ -48,14 +50,6 @@ namespace IndyPOS.UI.Reports
 			PaymentByWelfareCardLabel.Text = $"{_reportController.GetPaymentsTotalByType(PaymentType.WelfareCard):N}";
 
 			PaymentByArLabel.Text = $"{_reportController.GetPaymentsTotalByType(PaymentType.AccountReceivable):N}";
-
-
-
-
-
-
-
-
 		}
 
         private void ShowReportByTodayButton_Click(object sender, EventArgs e)
@@ -95,5 +89,14 @@ namespace IndyPOS.UI.Reports
 
 			ShowReport();
 		}
+
+        private void WriteSaleRecordsToFileButton_Click(object sender, EventArgs e)
+		{
+			var date = SaveSaleRecordsDateTimePicker.Value;
+
+			_reportController.WriteSaleRecordsToCsvFileByDate(date);
+
+			_messageForm.Show($"รายการขายในวันที่ {date:yyyy-MM-dd} ถูกบันทึกลงไฟล์เรียบร้อยแล้ว", " บันทึกรายการขายลงไฟล์");
+        }
     }
 }

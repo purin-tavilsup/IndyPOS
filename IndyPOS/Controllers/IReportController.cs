@@ -29,5 +29,7 @@ namespace IndyPOS.Controllers
 		IEnumerable<IFinalInvoiceProduct> GetInvoiceProductsByDate(DateTime date);
 
 		decimal GetPaymentsTotalByType(PaymentType type);
+
+		void WriteSaleRecordsToCsvFileByDate(DateTime date);
 	}
 }

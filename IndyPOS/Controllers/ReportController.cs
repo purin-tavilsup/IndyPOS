@@ -1,4 +1,5 @@
-﻿using IndyPOS.Adapters;
+﻿using CsvHelper;
+using IndyPOS.Adapters;
 using IndyPOS.DataAccess.Repositories;
 using IndyPOS.Enums;
 using IndyPOS.Extensions;
@@ -9,8 +10,6 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
-using CsvHelper;
-using CsvHelper.Configuration;
 
 namespace IndyPOS.Controllers
 {
@@ -19,6 +18,7 @@ namespace IndyPOS.Controllers
 		private readonly IUserAccountHelper _accountHelper;
 		private readonly IInvoiceRepository _invoicesRepository;
 		private readonly IInventoryProductRepository _inventoryProductsRepository;
+		private readonly IConfig _config;
 
 		private IEnumerable<IFinalInvoice> _invoices;
 		private IEnumerable<IFinalInvoiceProduct> _invoiceProducts;
@@ -42,12 +42,14 @@ namespace IndyPOS.Controllers
 
         public ReportController(IUserAccountHelper accountHelper,
 								IInvoiceRepository invoicesRepository,
-								IInventoryProductRepository inventoryProductsRepository)
+								IInventoryProductRepository inventoryProductsRepository,
+								IConfig config)
 		{
 			_accountHelper = accountHelper;
 			_invoicesRepository = invoicesRepository;
 			_inventoryProductsRepository = inventoryProductsRepository;
-        }
+			_config = config;
+		}
 
 		public void LoadInvoicesByPeriod(ReportPeriod period)
 		{
@@ -149,18 +151,50 @@ namespace IndyPOS.Controllers
 			return paymentsByType.Sum(x => x.Amount);
 		}
 
-		public void WriteReportToCsvFileByDate(DateTime date)
+		public void WriteSaleRecordsToCsvFileByDate(DateTime date)
 		{
+			var directoryPath = $"{_config.ReportDirectory}\\{date:yyyy-MM-dd}";
+			
+			Directory.CreateDirectory(directoryPath);
 
+			WriteInvoiceRecordsToCsvFileByDate(directoryPath, date);
+			WriteInvoiceProductRecordsToCsvFileByDate(directoryPath, date);
+			WritePaymentRecordsToCsvFileByDate(directoryPath, date);
+		}
+
+		private void WriteInvoiceRecordsToCsvFileByDate(string directoryPath, DateTime date)
+		{
+			var filePath = $"{directoryPath}\\Invoices.csv";
 			var invoices = _invoicesRepository.GetInvoicesByDate(date);
-			var products = _invoicesRepository.GetInvoiceProductsByDate(date);
-			var payments = _invoicesRepository.GetPaymentsByDate(date);
 
-
-			using (var writer = new StreamWriter("path\\to\\file.csv"))
+			using (var writer = new StreamWriter(filePath))
 			using (var csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
 			{
 				csv.WriteRecords(invoices);
+			}
+        }
+
+		private void WriteInvoiceProductRecordsToCsvFileByDate(string directoryPath, DateTime date)
+        {
+			var filePath = $"{directoryPath}\\InvoiceProducts.csv";
+			var products = _invoicesRepository.GetInvoiceProductsByDate(date);
+
+			using (var writer = new StreamWriter(filePath))
+			using (var csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
+			{
+				csv.WriteRecords(products);
+			}
+        }
+
+		private void WritePaymentRecordsToCsvFileByDate(string directoryPath, DateTime date)
+        {
+			var filePath = $"{directoryPath}\\Payments.csv";
+			var payments = _invoicesRepository.GetPaymentsByDate(date);
+
+			using (var writer = new StreamWriter(filePath))
+			using (var csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
+			{
+				csv.WriteRecords(payments);
 			}
         }
     }

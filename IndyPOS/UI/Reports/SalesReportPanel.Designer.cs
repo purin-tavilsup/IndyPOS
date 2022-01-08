@@ -75,6 +75,10 @@
             this.label5 = new System.Windows.Forms.Label();
             this.panel14 = new System.Windows.Forms.Panel();
             this.label4 = new System.Windows.Forms.Label();
+            this.panel15 = new System.Windows.Forms.Panel();
+            this.SaveSaleRecordsDateTimePicker = new System.Windows.Forms.DateTimePicker();
+            this.WriteSaleRecordsToFileButton = new ModernUI.ModernButton();
+            this.label12 = new System.Windows.Forms.Label();
             this.panel9.SuspendLayout();
             this.panel13.SuspendLayout();
             this.panel12.SuspendLayout();
@@ -89,6 +93,7 @@
             this.panel4.SuspendLayout();
             this.panel1.SuspendLayout();
             this.panel14.SuspendLayout();
+            this.panel15.SuspendLayout();
             this.SuspendLayout();
             // 
             // panel9
@@ -692,11 +697,67 @@
             this.label4.Text = " ยอดขาย : Graph";
             this.label4.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
             // 
+            // panel15
+            // 
+            this.panel15.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
+            this.panel15.Controls.Add(this.SaveSaleRecordsDateTimePicker);
+            this.panel15.Controls.Add(this.WriteSaleRecordsToFileButton);
+            this.panel15.Controls.Add(this.label12);
+            this.panel15.Location = new System.Drawing.Point(1274, 693);
+            this.panel15.Name = "panel15";
+            this.panel15.Size = new System.Drawing.Size(333, 213);
+            this.panel15.TabIndex = 111;
+            // 
+            // SaveSaleRecordsDateTimePicker
+            // 
+            this.SaveSaleRecordsDateTimePicker.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.SaveSaleRecordsDateTimePicker.Location = new System.Drawing.Point(19, 51);
+            this.SaveSaleRecordsDateTimePicker.Name = "SaveSaleRecordsDateTimePicker";
+            this.SaveSaleRecordsDateTimePicker.Size = new System.Drawing.Size(293, 25);
+            this.SaveSaleRecordsDateTimePicker.TabIndex = 101;
+            // 
+            // WriteSaleRecordsToFileButton
+            // 
+            this.WriteSaleRecordsToFileButton.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
+            this.WriteSaleRecordsToFileButton.BackgroundColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
+            this.WriteSaleRecordsToFileButton.BorderColor = System.Drawing.Color.Turquoise;
+            this.WriteSaleRecordsToFileButton.BorderRadius = 19;
+            this.WriteSaleRecordsToFileButton.BorderSize = 1;
+            this.WriteSaleRecordsToFileButton.FlatAppearance.BorderSize = 0;
+            this.WriteSaleRecordsToFileButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.WriteSaleRecordsToFileButton.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.WriteSaleRecordsToFileButton.ForeColor = System.Drawing.Color.White;
+            this.WriteSaleRecordsToFileButton.Image = global::IndyPOS.Properties.Resources.Save_50;
+            this.WriteSaleRecordsToFileButton.Location = new System.Drawing.Point(19, 102);
+            this.WriteSaleRecordsToFileButton.Name = "WriteSaleRecordsToFileButton";
+            this.WriteSaleRecordsToFileButton.Size = new System.Drawing.Size(293, 96);
+            this.WriteSaleRecordsToFileButton.TabIndex = 84;
+            this.WriteSaleRecordsToFileButton.Text = " บันทึก";
+            this.WriteSaleRecordsToFileButton.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
+            this.WriteSaleRecordsToFileButton.TextColor = System.Drawing.Color.White;
+            this.WriteSaleRecordsToFileButton.TextImageRelation = System.Windows.Forms.TextImageRelation.ImageBeforeText;
+            this.WriteSaleRecordsToFileButton.UseVisualStyleBackColor = false;
+            this.WriteSaleRecordsToFileButton.Click += new System.EventHandler(this.WriteSaleRecordsToFileButton_Click);
+            // 
+            // label12
+            // 
+            this.label12.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
+            this.label12.Dock = System.Windows.Forms.DockStyle.Top;
+            this.label12.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 14.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label12.ForeColor = System.Drawing.Color.Gainsboro;
+            this.label12.Location = new System.Drawing.Point(0, 0);
+            this.label12.Name = "label12";
+            this.label12.Size = new System.Drawing.Size(333, 39);
+            this.label12.TabIndex = 83;
+            this.label12.Text = " บันทึกรายการขายลงไฟล์";
+            this.label12.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            // 
             // SalesReportPanel
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(30)))), ((int)(((byte)(30)))), ((int)(((byte)(30)))));
+            this.Controls.Add(this.panel15);
             this.Controls.Add(this.panel14);
             this.Controls.Add(this.panel9);
             this.Controls.Add(this.panel7);
@@ -720,6 +781,7 @@
             this.panel4.ResumeLayout(false);
             this.panel1.ResumeLayout(false);
             this.panel14.ResumeLayout(false);
+            this.panel15.ResumeLayout(false);
             this.ResumeLayout(false);
 
         }
@@ -773,5 +835,9 @@
         private System.Windows.Forms.Label label6;
         private System.Windows.Forms.Panel panel14;
         private System.Windows.Forms.Label label4;
+        private System.Windows.Forms.Panel panel15;
+        private System.Windows.Forms.Label label12;
+        private System.Windows.Forms.DateTimePicker SaveSaleRecordsDateTimePicker;
+        private ModernUI.ModernButton WriteSaleRecordsToFileButton;
     }
 }
