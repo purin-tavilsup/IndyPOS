@@ -154,7 +154,7 @@ namespace IndyPOS.UI
         private void AddProductToProductDataView(IInventoryProduct product)
         {
             var columnCount = ProductDataView.ColumnCount;
-            var productRow = new string[columnCount];
+            var productRow = new object[columnCount];
 
             var category = _productCategoryDictionary.ContainsKey(product.Category) ?
                 _productCategoryDictionary[product.Category] :

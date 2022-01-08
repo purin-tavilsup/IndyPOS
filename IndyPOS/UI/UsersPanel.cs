@@ -109,7 +109,7 @@ namespace IndyPOS.UI
 		private void AddUserToUserDataView(IUserAccount user)
         {
 			var columnCount = UserDataView.ColumnCount;
-			var userRow = new string[columnCount];
+			var userRow = new object[columnCount];
 
 			var userRole = _userRoleDictionary.ContainsKey(user.RoleId) ?
 				_userRoleDictionary[user.RoleId] :

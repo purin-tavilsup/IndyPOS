@@ -14,7 +14,6 @@ namespace IndyPOS.UI
 	public partial class AddNewInventoryProductForm : Form
     {
         private readonly IEventAggregator _eventAggregator;
-        private readonly IStoreConstants _storeConstants;
         private readonly IInventoryController _inventoryController;
         private readonly IReadOnlyDictionary<int, string> _productCategoryDictionary;
 		private readonly MessageForm _messageForm;
@@ -25,9 +24,8 @@ namespace IndyPOS.UI
 										  MessageForm messageForm)
         {
             _eventAggregator = eventAggregator;
-            _storeConstants = storeConstants;
             _inventoryController = inventoryController;
-            _productCategoryDictionary = _storeConstants.ProductCategories;
+            _productCategoryDictionary = storeConstants.ProductCategories;
 			_messageForm = messageForm;
 
             InitializeComponent();

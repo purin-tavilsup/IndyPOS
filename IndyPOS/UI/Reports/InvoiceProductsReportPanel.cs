@@ -2,7 +2,6 @@
 using IndyPOS.Sales;
 using System;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using System.Windows.Forms;
 
 namespace IndyPOS.UI.Reports
@@ -83,7 +82,7 @@ namespace IndyPOS.UI.Reports
 		private void AddProductToInvoiceDataView(IFinalInvoiceProduct product)
 		{
 			var columnCount = InvoiceProductsDataView.ColumnCount;
-			var productRow = new string[columnCount];
+			var productRow = new object[columnCount];
 			var total = product.UnitPrice * product.Quantity;
 
 			_accumulatedSaleAmount += total;
@@ -98,9 +97,7 @@ namespace IndyPOS.UI.Reports
 			productRow[(int) ProductColumn.DateCreated] = product.DateCreated;
 			productRow[(int) ProductColumn.Note] = product.Note;
 
-			var objects = productRow.Select(x => (object) x).ToArray();
-
-			InvoiceProductsDataView.Rows.Add(objects);
+			InvoiceProductsDataView.Rows.Add(productRow);
 		}
 
         private void InvoiceProductsReportPanel_VisibleChanged(object sender, EventArgs e)
