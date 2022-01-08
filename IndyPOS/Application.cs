@@ -1,31 +1,36 @@
 ﻿using Autofac;
 using IndyPOS.IoC;
 using System;
+using System.Diagnostics;
 using System.Linq;
 
 namespace IndyPOS
 {
-    static class Application
+    internal static class Application
     {
         [STAThread]
-        static void Main()
+		private static void Main()
         {
-            var currentProcessId = System.Diagnostics.Process.GetCurrentProcess().Id;
-            var processes = System.Diagnostics.Process.GetProcessesByName("IndyPOS.exe");
-            var debugProcesses = System.Diagnostics.Process.GetProcessesByName("IndyPOS.vshost");
+            var currentProcessId = Process.GetCurrentProcess().Id;
+            var processes = Process.GetProcessesByName("IndyPOS")
+								   .Where(p =>p.Id != currentProcessId)
+								   .ToList();
 
             // Verify if either Process or DebugProcess has more than one instance
-            if (processes.Any() || debugProcesses.Any())
+            if (processes.Any())
             {
                 // Kill all previous processes
                 foreach (var process in processes)
-                {
-                    if (process.Id == currentProcessId)
-                        continue;
+				{
+					process.CloseMainWindow();
+                    process.WaitForExit(4000);
 
-                    process.Kill();
-                    process.WaitForExit(2000);
-                }
+					if (process.HasExited) 
+						continue;
+					
+					process.Kill();
+					process.WaitForExit(4000);
+				}
                 
                 System.Threading.Thread.Sleep(1000);
             }
