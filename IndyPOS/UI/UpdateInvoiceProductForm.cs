@@ -44,10 +44,9 @@ namespace IndyPOS.UI
         {
             ProductCodeLabel.Text = product.Barcode;
             DescriptionLabel.Text = product.Description;
-            QuantityTextBox.Texts = product.Quantity.ToString();
+            QuantityTextBox.Texts = $"{product.Quantity}";
 
-			
-			UnitPriceTextBox.Texts = product.UnitPrice.ToString("0.00");
+			UnitPriceTextBox.Texts = $"{product.UnitPrice:N}";
 			UnitPriceLabel.Visible = !product.IsTrackable;
             UnitPriceTextBox.Visible = !product.IsTrackable;
 			NoteTextBox.Texts = string.Empty;
@@ -69,11 +68,11 @@ namespace IndyPOS.UI
 				return false;
             }
 
-			if (NoteTextBox.Visible && !NoteTextBox.Texts.HasValue())
-			{
-				_messageForm.Show("กรุณาใส่ Note สำหรับสินค้าให้ถูกต้อง", "Note สำหรับสินค้าไม่ถูกต้อง");
-				return false;
-			}
+			//if (NoteTextBox.Visible && !NoteTextBox.Texts.HasValue())
+			//{
+			//	_messageForm.Show("กรุณาใส่ Note สำหรับสินค้าให้ถูกต้อง", "Note สำหรับสินค้าไม่ถูกต้อง");
+			//	return false;
+			//}
 
             return true;
         }
@@ -119,18 +118,16 @@ namespace IndyPOS.UI
 
         private void IncreaseQuantityButton_Click(object sender, EventArgs e)
         {
-			if (!int.TryParse(QuantityTextBox.Texts.Trim(), out var quantity)) return;
+			if (!int.TryParse(QuantityTextBox.Texts.Trim(), out var quantity)) 
+				return;
 
 			QuantityTextBox.Texts = $"{quantity + 1}";
         }
 
         private void DecreaseQuantityButton_Click(object sender, EventArgs e)
         {
-			if (!int.TryParse(QuantityTextBox.Texts.Trim(), out var quantity)) return;
-
-            // Support Refund
-			//if (quantity == 0)
-			//	return;
+			if (!int.TryParse(QuantityTextBox.Texts.Trim(), out var quantity)) 
+				return;
 
 			QuantityTextBox.Texts = $"{quantity - 1}";
         }

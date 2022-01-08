@@ -5,7 +5,8 @@ using System.IO;
 namespace IndyPOS
 {
     public class Machine : IMachine
-    {
+	{
+		private const string Version = "1.0.5";
         private readonly MainForm _mainForm;
 		private readonly IConfig _config;
         private readonly IBarcodeScanner _barcodeScanner;
@@ -82,6 +83,7 @@ namespace IndyPOS
 
         private void StartUserInterface()
         {
+			_mainForm.SetVersion(Version);
 			_mainForm.SetStoreName(_config.StoreFullName);
 
             System.Windows.Forms.Application.Run(_mainForm);

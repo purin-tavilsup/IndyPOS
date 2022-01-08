@@ -143,7 +143,7 @@
             this.UnitPriceTextBox.Size = new System.Drawing.Size(310, 39);
             this.UnitPriceTextBox.TabIndex = 53;
             this.UnitPriceTextBox.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
-            this.UnitPriceTextBox.Texts = "0.00";
+            this.UnitPriceTextBox.Texts = "";
             this.UnitPriceTextBox.UnderlinedStyle = true;
             // 
             // UnitPriceLabel

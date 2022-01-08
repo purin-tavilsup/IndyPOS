@@ -63,6 +63,11 @@ namespace IndyPOS.UI
 			StoreNameLabel.Text = storeName;
 		}
 
+        public void SetVersion(string version)
+		{
+			VersionLabel.Text = $"Version: {version}";
+		}
+
         private void CreateDateTimeUpdateTimer()
         {
 			_dateTimeUpdateTimer = new Timer();
