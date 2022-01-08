@@ -24,8 +24,6 @@ namespace IndyPOS.UI
         private SubPanel _activeSubPanel;
 		private readonly MessageForm _messageForm;
 		private readonly PrintReceiptForm _printReceiptForm;
-		private readonly AddGeneralGoodsProductForm _addGeneralGoodsProductForm;
-		private readonly AddHardwareProductForm _addHardwareProductForm;
 
         private enum SaleInvoiceColumn
         {
@@ -52,9 +50,7 @@ namespace IndyPOS.UI
 						 AcceptPaymentForm acceptPaymentForm, 
 						 UpdateInvoiceProductForm updateProductForm,
 						 MessageForm messageForm,
-						 PrintReceiptForm printReceiptForm,
-						 AddGeneralGoodsProductForm addGeneralGoodsProductForm,
-						 AddHardwareProductForm addHardwareProductForm)
+						 PrintReceiptForm printReceiptForm)
         {
             InitializeComponent();
             InitializeInvoiceDataView();
@@ -67,8 +63,6 @@ namespace IndyPOS.UI
             _updateProductForm = updateProductForm;
 			_messageForm = messageForm;
 			_printReceiptForm = printReceiptForm;
-			_addGeneralGoodsProductForm = addGeneralGoodsProductForm;
-			_addHardwareProductForm = addHardwareProductForm;
 
             SubscribeEvents();
 
@@ -179,7 +173,7 @@ namespace IndyPOS.UI
         private void AddProductToInvoiceDataView(ISaleInvoiceProduct product)
         {
             var columnCount = InvoiceDataView.ColumnCount;
-            var productRow = new string[columnCount];
+            var productRow = new object[columnCount];
             var total = product.UnitPrice * product.Quantity;
 
             productRow[(int)SaleInvoiceColumn.Priority] = $"{product.Priority}";
@@ -196,7 +190,7 @@ namespace IndyPOS.UI
         private void AddPaymentToPaymentDataView(IPayment payment)
         {
             var columnCount = PaymentDataView.ColumnCount;
-            var paymentRow = new string[columnCount];
+            var paymentRow = new object[columnCount];
 
             paymentRow[(int)PaymentColumn.PaymentPriority] = $"{payment.Priority}";
             paymentRow[(int)PaymentColumn.PaymentType] = _paymentTypeDictionary[payment.PaymentTypeId];
@@ -208,6 +202,9 @@ namespace IndyPOS.UI
 
         private void GetPaymentButton_Click(object sender, EventArgs e)
         {
+            if (_acceptPaymentForm.Visible)
+                _acceptPaymentForm.Hide();
+
             _acceptPaymentForm.Show();
         }
 
@@ -320,13 +317,26 @@ namespace IndyPOS.UI
 		}
 
         private void AddGeneralGoodsProductButton_Click(object sender, EventArgs e)
-        {
-			_addGeneralGoodsProductForm.Show();
-        }
+		{
+			const string generalGoodsCode = "NONTRACTABLE1";
+
+			_eventAggregator.GetEvent<BarcodeReceivedEvent>().Publish(generalGoodsCode);
+		}
 
         private void AddHardwareProductButton_Click(object sender, EventArgs e)
-        {
-            _addHardwareProductForm.Show();
+		{
+			const string hardwareCode = "NONTRACTABLE2";
+
+			_eventAggregator.GetEvent<BarcodeReceivedEvent>().Publish(hardwareCode);
         }
+
+        private void LookUpProductButton_Click(object sender, EventArgs e)
+		{
+			var lookUpQuery = ProductLookUpTextBox.Texts.Trim();
+
+			_eventAggregator.GetEvent<BarcodeReceivedEvent>().Publish(lookUpQuery);
+
+			ProductLookUpTextBox.Texts = string.Empty;
+		}
     }
 }

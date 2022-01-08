@@ -28,10 +28,10 @@
         /// </summary>
         private void InitializeComponent()
         {
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle1 = new System.Windows.Forms.DataGridViewCellStyle();
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle2 = new System.Windows.Forms.DataGridViewCellStyle();
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle3 = new System.Windows.Forms.DataGridViewCellStyle();
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle4 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle13 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle14 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle15 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle16 = new System.Windows.Forms.DataGridViewCellStyle();
             this.label1 = new System.Windows.Forms.Label();
             this.TotalLabel = new System.Windows.Forms.Label();
             this.TotalPaymentsLabel = new System.Windows.Forms.Label();
@@ -64,6 +64,8 @@
             this.GetPaymentButton = new System.Windows.Forms.Button();
             this.SaveSaleInvoiceButton = new System.Windows.Forms.Button();
             this.CancelSaleInvoiceButton = new System.Windows.Forms.Button();
+            this.ProductLookUpTextBox = new ModernUI.ModernTextBox();
+            this.LookUpProductButton = new ModernUI.ModernButton();
             ((System.ComponentModel.ISupportInitialize)(this.InvoiceDataView)).BeginInit();
             this.panel2.SuspendLayout();
             this.panel8.SuspendLayout();
@@ -143,13 +145,13 @@
             this.InvoiceDataView.BorderStyle = System.Windows.Forms.BorderStyle.None;
             this.InvoiceDataView.CellBorderStyle = System.Windows.Forms.DataGridViewCellBorderStyle.SingleHorizontal;
             this.InvoiceDataView.ColumnHeadersBorderStyle = System.Windows.Forms.DataGridViewHeaderBorderStyle.None;
-            dataGridViewCellStyle1.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleCenter;
-            dataGridViewCellStyle1.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(48)))), ((int)(((byte)(48)))), ((int)(((byte)(48)))));
-            dataGridViewCellStyle1.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 15.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            dataGridViewCellStyle1.ForeColor = System.Drawing.Color.Gainsboro;
-            dataGridViewCellStyle1.Padding = new System.Windows.Forms.Padding(10, 0, 0, 0);
-            dataGridViewCellStyle1.SelectionBackColor = System.Drawing.Color.Gray;
-            this.InvoiceDataView.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle1;
+            dataGridViewCellStyle13.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleCenter;
+            dataGridViewCellStyle13.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(48)))), ((int)(((byte)(48)))), ((int)(((byte)(48)))));
+            dataGridViewCellStyle13.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 15.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            dataGridViewCellStyle13.ForeColor = System.Drawing.Color.Gainsboro;
+            dataGridViewCellStyle13.Padding = new System.Windows.Forms.Padding(10, 0, 0, 0);
+            dataGridViewCellStyle13.SelectionBackColor = System.Drawing.Color.Gray;
+            this.InvoiceDataView.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle13;
             this.InvoiceDataView.ColumnHeadersHeight = 50;
             this.InvoiceDataView.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.DisableResizing;
             this.InvoiceDataView.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
@@ -160,14 +162,14 @@
             this.UnitPrice,
             this.Total,
             this.dataGridViewTextBoxColumn1});
-            dataGridViewCellStyle2.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
-            dataGridViewCellStyle2.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
-            dataGridViewCellStyle2.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            dataGridViewCellStyle2.ForeColor = System.Drawing.Color.Gainsboro;
-            dataGridViewCellStyle2.SelectionBackColor = System.Drawing.SystemColors.Highlight;
-            dataGridViewCellStyle2.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
-            dataGridViewCellStyle2.WrapMode = System.Windows.Forms.DataGridViewTriState.False;
-            this.InvoiceDataView.DefaultCellStyle = dataGridViewCellStyle2;
+            dataGridViewCellStyle14.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle14.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
+            dataGridViewCellStyle14.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            dataGridViewCellStyle14.ForeColor = System.Drawing.Color.Gainsboro;
+            dataGridViewCellStyle14.SelectionBackColor = System.Drawing.SystemColors.Highlight;
+            dataGridViewCellStyle14.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
+            dataGridViewCellStyle14.WrapMode = System.Windows.Forms.DataGridViewTriState.False;
+            this.InvoiceDataView.DefaultCellStyle = dataGridViewCellStyle14;
             this.InvoiceDataView.Dock = System.Windows.Forms.DockStyle.Fill;
             this.InvoiceDataView.EnableHeadersVisualStyles = false;
             this.InvoiceDataView.GridColor = System.Drawing.Color.DimGray;
@@ -316,6 +318,8 @@
             // panel3
             // 
             this.panel3.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
+            this.panel3.Controls.Add(this.LookUpProductButton);
+            this.panel3.Controls.Add(this.ProductLookUpTextBox);
             this.panel3.Controls.Add(this.AddHardwareProductButton);
             this.panel3.Controls.Add(this.AddGeneralGoodsProductButton);
             this.panel3.Dock = System.Windows.Forms.DockStyle.Right;
@@ -336,9 +340,9 @@
             this.AddHardwareProductButton.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 15.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.AddHardwareProductButton.ForeColor = System.Drawing.Color.White;
             this.AddHardwareProductButton.Image = global::IndyPOS.Properties.Resources.Plus_50;
-            this.AddHardwareProductButton.Location = new System.Drawing.Point(9, 130);
+            this.AddHardwareProductButton.Location = new System.Drawing.Point(9, 164);
             this.AddHardwareProductButton.Name = "AddHardwareProductButton";
-            this.AddHardwareProductButton.Size = new System.Drawing.Size(375, 113);
+            this.AddHardwareProductButton.Size = new System.Drawing.Size(375, 80);
             this.AddHardwareProductButton.TabIndex = 10;
             this.AddHardwareProductButton.Text = " เพิ่มสินค้า ฮาร์ดแวร์";
             this.AddHardwareProductButton.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
@@ -359,9 +363,9 @@
             this.AddGeneralGoodsProductButton.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 15.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.AddGeneralGoodsProductButton.ForeColor = System.Drawing.Color.White;
             this.AddGeneralGoodsProductButton.Image = global::IndyPOS.Properties.Resources.Plus_50;
-            this.AddGeneralGoodsProductButton.Location = new System.Drawing.Point(9, 8);
+            this.AddGeneralGoodsProductButton.Location = new System.Drawing.Point(9, 78);
             this.AddGeneralGoodsProductButton.Name = "AddGeneralGoodsProductButton";
-            this.AddGeneralGoodsProductButton.Size = new System.Drawing.Size(375, 113);
+            this.AddGeneralGoodsProductButton.Size = new System.Drawing.Size(375, 80);
             this.AddGeneralGoodsProductButton.TabIndex = 9;
             this.AddGeneralGoodsProductButton.Text = " เพิ่มสินค้า เบ็ดเตล็ด";
             this.AddGeneralGoodsProductButton.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
@@ -380,13 +384,13 @@
             this.PaymentDataView.BorderStyle = System.Windows.Forms.BorderStyle.None;
             this.PaymentDataView.CellBorderStyle = System.Windows.Forms.DataGridViewCellBorderStyle.SingleHorizontal;
             this.PaymentDataView.ColumnHeadersBorderStyle = System.Windows.Forms.DataGridViewHeaderBorderStyle.None;
-            dataGridViewCellStyle3.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleCenter;
-            dataGridViewCellStyle3.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(48)))), ((int)(((byte)(48)))), ((int)(((byte)(48)))));
-            dataGridViewCellStyle3.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 15.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            dataGridViewCellStyle3.ForeColor = System.Drawing.Color.Gainsboro;
-            dataGridViewCellStyle3.Padding = new System.Windows.Forms.Padding(10, 0, 0, 0);
-            dataGridViewCellStyle3.SelectionBackColor = System.Drawing.Color.Gray;
-            this.PaymentDataView.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle3;
+            dataGridViewCellStyle15.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleCenter;
+            dataGridViewCellStyle15.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(48)))), ((int)(((byte)(48)))), ((int)(((byte)(48)))));
+            dataGridViewCellStyle15.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 15.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            dataGridViewCellStyle15.ForeColor = System.Drawing.Color.Gainsboro;
+            dataGridViewCellStyle15.Padding = new System.Windows.Forms.Padding(10, 0, 0, 0);
+            dataGridViewCellStyle15.SelectionBackColor = System.Drawing.Color.Gray;
+            this.PaymentDataView.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle15;
             this.PaymentDataView.ColumnHeadersHeight = 50;
             this.PaymentDataView.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.DisableResizing;
             this.PaymentDataView.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
@@ -394,14 +398,14 @@
             this.PaymentType,
             this.PaymentAmount,
             this.Note});
-            dataGridViewCellStyle4.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
-            dataGridViewCellStyle4.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
-            dataGridViewCellStyle4.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            dataGridViewCellStyle4.ForeColor = System.Drawing.Color.Gainsboro;
-            dataGridViewCellStyle4.SelectionBackColor = System.Drawing.SystemColors.Highlight;
-            dataGridViewCellStyle4.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
-            dataGridViewCellStyle4.WrapMode = System.Windows.Forms.DataGridViewTriState.False;
-            this.PaymentDataView.DefaultCellStyle = dataGridViewCellStyle4;
+            dataGridViewCellStyle16.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle16.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
+            dataGridViewCellStyle16.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            dataGridViewCellStyle16.ForeColor = System.Drawing.Color.Gainsboro;
+            dataGridViewCellStyle16.SelectionBackColor = System.Drawing.SystemColors.Highlight;
+            dataGridViewCellStyle16.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
+            dataGridViewCellStyle16.WrapMode = System.Windows.Forms.DataGridViewTriState.False;
+            this.PaymentDataView.DefaultCellStyle = dataGridViewCellStyle16;
             this.PaymentDataView.Dock = System.Windows.Forms.DockStyle.Left;
             this.PaymentDataView.EnableHeadersVisualStyles = false;
             this.PaymentDataView.GridColor = System.Drawing.Color.DimGray;
@@ -548,6 +552,47 @@
             this.CancelSaleInvoiceButton.UseVisualStyleBackColor = false;
             this.CancelSaleInvoiceButton.Click += new System.EventHandler(this.CancelSaleInvoiceButton_Click);
             // 
+            // ProductLookUpTextBox
+            // 
+            this.ProductLookUpTextBox.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
+            this.ProductLookUpTextBox.BorderColor = System.Drawing.Color.DimGray;
+            this.ProductLookUpTextBox.BorderSize = 1;
+            this.ProductLookUpTextBox.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 20.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.ProductLookUpTextBox.ForeColor = System.Drawing.Color.Gainsboro;
+            this.ProductLookUpTextBox.Location = new System.Drawing.Point(9, 16);
+            this.ProductLookUpTextBox.Multiline = false;
+            this.ProductLookUpTextBox.Name = "ProductLookUpTextBox";
+            this.ProductLookUpTextBox.Padding = new System.Windows.Forms.Padding(7);
+            this.ProductLookUpTextBox.PasswordChar = false;
+            this.ProductLookUpTextBox.ReadOnly = false;
+            this.ProductLookUpTextBox.Size = new System.Drawing.Size(224, 56);
+            this.ProductLookUpTextBox.TabIndex = 49;
+            this.ProductLookUpTextBox.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
+            this.ProductLookUpTextBox.Texts = "";
+            this.ProductLookUpTextBox.UnderlinedStyle = true;
+            // 
+            // LookUpProductButton
+            // 
+            this.LookUpProductButton.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
+            this.LookUpProductButton.BackgroundColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
+            this.LookUpProductButton.BorderColor = System.Drawing.Color.Turquoise;
+            this.LookUpProductButton.BorderRadius = 5;
+            this.LookUpProductButton.BorderSize = 1;
+            this.LookUpProductButton.FlatAppearance.BorderSize = 0;
+            this.LookUpProductButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.LookUpProductButton.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 15.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.LookUpProductButton.ForeColor = System.Drawing.Color.White;
+            this.LookUpProductButton.Image = global::IndyPOS.Properties.Resources.Search_50;
+            this.LookUpProductButton.Location = new System.Drawing.Point(239, 10);
+            this.LookUpProductButton.Name = "LookUpProductButton";
+            this.LookUpProductButton.Size = new System.Drawing.Size(145, 62);
+            this.LookUpProductButton.TabIndex = 51;
+            this.LookUpProductButton.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
+            this.LookUpProductButton.TextColor = System.Drawing.Color.White;
+            this.LookUpProductButton.TextImageRelation = System.Windows.Forms.TextImageRelation.ImageBeforeText;
+            this.LookUpProductButton.UseVisualStyleBackColor = false;
+            this.LookUpProductButton.Click += new System.EventHandler(this.LookUpProductButton_Click);
+            // 
             // SalePanel
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -601,5 +646,7 @@
         private System.Windows.Forms.DataGridViewTextBoxColumn UnitPrice;
         private System.Windows.Forms.DataGridViewTextBoxColumn Total;
         private System.Windows.Forms.DataGridViewTextBoxColumn dataGridViewTextBoxColumn1;
+        private ModernUI.ModernButton LookUpProductButton;
+        private ModernUI.ModernTextBox ProductLookUpTextBox;
     }
 }
