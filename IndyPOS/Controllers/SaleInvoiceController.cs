@@ -1,5 +1,6 @@
 ﻿using IndyPOS.Adapters;
 using IndyPOS.DataAccess.Repositories;
+using IndyPOS.Devices;
 using IndyPOS.Enums;
 using IndyPOS.Events;
 using IndyPOS.Extensions;
@@ -9,7 +10,6 @@ using IndyPOS.Users;
 using Prism.Events;
 using System.Collections.Generic;
 using System.Linq;
-using IndyPOS.Devices;
 
 namespace IndyPOS.Controllers
 {
@@ -20,7 +20,7 @@ namespace IndyPOS.Controllers
         private readonly IInventoryProductRepository _inventoryProductsRepository;
 		private readonly IReceiptPrinter _receiptPrinter;
         private ISaleInvoice _saleInvoice;
-		private IUser _loggedInUser;
+		private IUserAccount _loggedInUser;
 
         public IReadOnlyCollection<ISaleInvoiceProduct> Products => (IReadOnlyCollection<ISaleInvoiceProduct>)_saleInvoice.Products;
 
@@ -65,12 +65,12 @@ namespace IndyPOS.Controllers
             _eventAggregator.GetEvent<AllPaymentsRemovedEvent>().Publish();
 		}
 
-        public void AddProduct(string barcode)
+        public bool AddProduct(string barcode)
         { 
             var product = GetInventoryProductByBarcode(barcode);
 
             if (product == null)
-                return;
+                return false;
 
             var invoiceProduct = product.ToSaleInvoiceProduct();
 
@@ -80,7 +80,9 @@ namespace IndyPOS.Controllers
             _saleInvoice.Products.Add(invoiceProduct);
 
             _eventAggregator.GetEvent<SaleInvoiceProductAddedEvent>().Publish();
-        }
+
+			return true;
+		}
 
         private int GetNextProductPriority(ICollection<ISaleInvoiceProduct> products)
 		{
@@ -113,13 +115,14 @@ namespace IndyPOS.Controllers
 			return result != null ? new InventoryProductAdapter(result) : null;
 		}
 
-        public void AddPayment(PaymentType paymentType, decimal paymentAmount)
+        public void AddPayment(PaymentType paymentType, decimal paymentAmount, string note)
 		{
             var payment = new Payment
 			{
 				PaymentTypeId = (int)paymentType,
                 Priority = GetNextPaymentPriority(_saleInvoice.Payments),
-                Amount = paymentAmount
+                Amount = paymentAmount,
+				Note = note
 			};
 
             _saleInvoice.Payments.Add(payment);
@@ -147,6 +150,23 @@ namespace IndyPOS.Controllers
 				DecreaseProductQuantity(productToUpdate, quantity);
 			}
         }
+
+		public void UpdateProductUnitPrice(int inventoryProductId, int priority, decimal unitPrice, string note)
+        {
+			var productToUpdate = _saleInvoice.Products.FirstOrDefault(p => p.InventoryProductId == inventoryProductId &&
+																			p.Priority == priority);
+
+			if (productToUpdate == null)
+				return;
+
+			if (productToUpdate.UnitPrice == unitPrice)
+				return;
+
+			productToUpdate.UnitPrice = unitPrice;
+			productToUpdate.Note = note;
+
+			_eventAggregator.GetEvent<SaleInvoiceProductUpdatedEvent>().Publish();
+		}
 
 		private void IncreaseProductQuantity(ISaleInvoiceProduct product, int quantity)
 		{
@@ -179,13 +199,13 @@ namespace IndyPOS.Controllers
 										? groupPriceQuantity 
 										: remainingQuantity;
 
-				AddProduct(productId, quantityToAdd);
+				AddProductInternal(productId, quantityToAdd);
 
 				remainingQuantity -= groupPriceQuantity;
 			}
 		}
 
-		private void AddProduct(int inventoryProductId, int quantity)
+		private void AddProductInternal(int inventoryProductId, int quantity)
 		{ 
 			var product = GetInventoryProductById(inventoryProductId);
 
@@ -260,7 +280,9 @@ namespace IndyPOS.Controllers
 
         private void UpdateInventoryProductsSoldOnInvoice(ISaleInvoice saleInvoice)
 		{
-			var productGroups = saleInvoice.Products.GroupBy(p => p.InventoryProductId);
+			var productGroups = saleInvoice.Products
+										   .Where(p => p.IsTrackable)
+										   .GroupBy(p => p.InventoryProductId);
 
 			foreach (var group in productGroups)
 			{
@@ -299,14 +321,15 @@ namespace IndyPOS.Controllers
             {
                 InvoiceId = invoiceId,
                 InventoryProductId = product.InventoryProductId,
+				Priority = product.Priority,
                 Barcode = product.Barcode,
                 Description = product.Description,
                 Manufacturer = product.Manufacturer,
                 Brand = product.Brand,
                 Category = product.Category,
-                UnitCost = product.UnitCost,
                 UnitPrice = product.UnitPrice,
-                Quantity = product.Quantity
+                Quantity = product.Quantity,
+				Note = product.Note
             });
         }
 
@@ -324,11 +347,12 @@ namespace IndyPOS.Controllers
             {
                 InvoiceId = invoiceId,
                 PaymentTypeId = payment.PaymentTypeId,
-                Amount = payment.Amount
+                Amount = payment.Amount,
+				Note = payment.Note
             });
         }
 
-		private void OnUserLoggedIn(IUser loggedInUser)
+		private void OnUserLoggedIn(IUserAccount loggedInUser)
 		{
 			_loggedInUser = loggedInUser;
 		}

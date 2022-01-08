@@ -29,13 +29,14 @@ namespace IndyPOS.UI
 		/// </summary>
 		private void InitializeComponent()
 		{
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MessageForm));
             this.panel1 = new System.Windows.Forms.Panel();
+            this.CancelButton = new ModernUI.ModernButton();
+            this.AcceptButton = new ModernUI.ModernButton();
             this.panel2 = new System.Windows.Forms.Panel();
             this.pictureBox1 = new System.Windows.Forms.PictureBox();
             this.CaptionLabel = new System.Windows.Forms.Label();
             this.MessageTextBox = new ModernUI.ModernTextBox();
-            this.AcceptButton = new ModernUI.ModernButton();
-            this.CancelButton = new ModernUI.ModernButton();
             this.panel1.SuspendLayout();
             this.panel2.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
@@ -55,6 +56,47 @@ namespace IndyPOS.UI
             this.panel1.Name = "panel1";
             this.panel1.Size = new System.Drawing.Size(580, 223);
             this.panel1.TabIndex = 0;
+            // 
+            // CancelButton
+            // 
+            this.CancelButton.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
+            this.CancelButton.BackgroundColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
+            this.CancelButton.BorderColor = System.Drawing.Color.FromArgb(((int)(((byte)(224)))), ((int)(((byte)(79)))), ((int)(((byte)(95)))));
+            this.CancelButton.BorderRadius = 18;
+            this.CancelButton.BorderSize = 1;
+            this.CancelButton.DialogResult = System.Windows.Forms.DialogResult.Cancel;
+            this.CancelButton.FlatAppearance.BorderSize = 0;
+            this.CancelButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.CancelButton.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.CancelButton.ForeColor = System.Drawing.Color.White;
+            this.CancelButton.Location = new System.Drawing.Point(405, 157);
+            this.CancelButton.Name = "CancelButton";
+            this.CancelButton.Size = new System.Drawing.Size(158, 53);
+            this.CancelButton.TabIndex = 52;
+            this.CancelButton.Text = "ยกเลิก";
+            this.CancelButton.TextColor = System.Drawing.Color.White;
+            this.CancelButton.UseVisualStyleBackColor = false;
+            this.CancelButton.Click += new System.EventHandler(this.CancelButton_Click);
+            // 
+            // AcceptButton
+            // 
+            this.AcceptButton.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
+            this.AcceptButton.BackgroundColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
+            this.AcceptButton.BorderColor = System.Drawing.Color.FromArgb(((int)(((byte)(50)))), ((int)(((byte)(190)))), ((int)(((byte)(166)))));
+            this.AcceptButton.BorderRadius = 19;
+            this.AcceptButton.BorderSize = 1;
+            this.AcceptButton.FlatAppearance.BorderSize = 0;
+            this.AcceptButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.AcceptButton.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.AcceptButton.ForeColor = System.Drawing.Color.White;
+            this.AcceptButton.Location = new System.Drawing.Point(405, 14);
+            this.AcceptButton.Name = "AcceptButton";
+            this.AcceptButton.Size = new System.Drawing.Size(158, 53);
+            this.AcceptButton.TabIndex = 51;
+            this.AcceptButton.Text = "ตกลง";
+            this.AcceptButton.TextColor = System.Drawing.Color.White;
+            this.AcceptButton.UseVisualStyleBackColor = false;
+            this.AcceptButton.Click += new System.EventHandler(this.AcceptButton_Click);
             // 
             // panel2
             // 
@@ -106,46 +148,6 @@ namespace IndyPOS.UI
             this.MessageTextBox.Texts = "";
             this.MessageTextBox.UnderlinedStyle = false;
             // 
-            // AcceptButton
-            // 
-            this.AcceptButton.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
-            this.AcceptButton.BackgroundColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
-            this.AcceptButton.BorderColor = System.Drawing.Color.FromArgb(((int)(((byte)(50)))), ((int)(((byte)(190)))), ((int)(((byte)(166)))));
-            this.AcceptButton.BorderRadius = 19;
-            this.AcceptButton.BorderSize = 1;
-            this.AcceptButton.FlatAppearance.BorderSize = 0;
-            this.AcceptButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.AcceptButton.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.AcceptButton.ForeColor = System.Drawing.Color.White;
-            this.AcceptButton.Location = new System.Drawing.Point(405, 14);
-            this.AcceptButton.Name = "AcceptButton";
-            this.AcceptButton.Size = new System.Drawing.Size(158, 53);
-            this.AcceptButton.TabIndex = 51;
-            this.AcceptButton.Text = "ตกลง";
-            this.AcceptButton.TextColor = System.Drawing.Color.White;
-            this.AcceptButton.UseVisualStyleBackColor = false;
-            this.AcceptButton.Click += new System.EventHandler(this.AcceptButton_Click);
-            // 
-            // CancelButton
-            // 
-            this.CancelButton.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
-            this.CancelButton.BackgroundColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
-            this.CancelButton.BorderColor = System.Drawing.Color.FromArgb(((int)(((byte)(224)))), ((int)(((byte)(79)))), ((int)(((byte)(95)))));
-            this.CancelButton.BorderRadius = 18;
-            this.CancelButton.BorderSize = 1;
-            this.CancelButton.FlatAppearance.BorderSize = 0;
-            this.CancelButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.CancelButton.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.CancelButton.ForeColor = System.Drawing.Color.White;
-            this.CancelButton.Location = new System.Drawing.Point(405, 157);
-            this.CancelButton.Name = "CancelButton";
-            this.CancelButton.Size = new System.Drawing.Size(158, 53);
-            this.CancelButton.TabIndex = 52;
-            this.CancelButton.Text = "ยกเลิก";
-            this.CancelButton.TextColor = System.Drawing.Color.White;
-            this.CancelButton.UseVisualStyleBackColor = false;
-            this.CancelButton.Click += new System.EventHandler(this.CancelButton_Click);
-            // 
             // MessageForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -154,11 +156,13 @@ namespace IndyPOS.UI
             this.ClientSize = new System.Drawing.Size(580, 223);
             this.Controls.Add(this.panel1);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.None;
+            this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.MaximizeBox = false;
             this.MinimizeBox = false;
             this.Name = "MessageForm";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "MessageForm";
+            this.TopMost = true;
             this.panel1.ResumeLayout(false);
             this.panel2.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).EndInit();

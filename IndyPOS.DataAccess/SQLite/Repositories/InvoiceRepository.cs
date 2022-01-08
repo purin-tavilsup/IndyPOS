@@ -1,5 +1,4 @@
 ﻿using Dapper;
-using IndyPOS.DataAccess.Extensions;
 using IndyPOS.DataAccess.Models;
 using IndyPOS.DataAccess.Repositories;
 using System;
@@ -8,7 +7,7 @@ using System.Linq;
 
 namespace IndyPOS.DataAccess.SQLite.Repositories
 {
-	public class InvoiceRepository : IInvoiceRepository
+    public class InvoiceRepository : IInvoiceRepository
     {
         private readonly IDbConnectionProvider _dbConnectionProvider;
 
@@ -70,10 +69,10 @@ namespace IndyPOS.DataAccess.SQLite.Repositories
                     Manufacturer,
                     Brand,
                     Category,
-                    UnitCost,
                     UnitPrice,
                     Quantity,
-                    DateCreated
+                    DateCreated,
+					Note
                 )
                 VALUES
                 (
@@ -85,10 +84,10 @@ namespace IndyPOS.DataAccess.SQLite.Repositories
                     @Manufacturer,
                     @Brand,
                     @Category,
-                    @UnitCost,
                     @UnitPrice,
                     @Quantity,
-                    datetime('now','localtime')
+                    datetime('now','localtime'),
+					@Note
                 );
                 SELECT last_insert_rowid()";
 
@@ -102,10 +101,10 @@ namespace IndyPOS.DataAccess.SQLite.Repositories
                     product.Manufacturer,
                     product.Brand,
                     product.Category,
-                    product.UnitCost,
-                    product.UnitPrice,
-                    product.Quantity
-                };
+					UnitPrice = MapMoneyToString(product.UnitPrice),
+                    product.Quantity,
+                    product.Note
+				};
 
 				var invoiceProductId = connection.Query<int>(sqlCommand, sqlParameters).FirstOrDefault();
 
@@ -126,14 +125,16 @@ namespace IndyPOS.DataAccess.SQLite.Repositories
                     InvoiceId,
                     PaymentTypeId,
                     Amount,
-                    DateCreated
+                    DateCreated,
+					Note
                 )
                 VALUES
                 (
                     @InvoiceId,
                     @PaymentTypeId,
                     @Amount,
-                    datetime('now','localtime')
+                    datetime('now','localtime'),
+					@Note
                 );
                 SELECT last_insert_rowid()";
 
@@ -141,8 +142,9 @@ namespace IndyPOS.DataAccess.SQLite.Repositories
                 {
                     payment.InvoiceId,
                     payment.PaymentTypeId,
-                    Amount = MapMoneyToString(payment.Amount)
-                };
+                    Amount = MapMoneyToString(payment.Amount),
+                    payment.Note
+				};
 
                 var paymentId = connection.Query<int>(sqlCommand, sqlParameters).FirstOrDefault();
 
@@ -226,10 +228,10 @@ namespace IndyPOS.DataAccess.SQLite.Repositories
                 Manufacturer,
                 Brand,
                 Category,
-                UnitCost,
                 UnitPrice,
                 Quantity,
-                DateCreated
+                DateCreated,
+				Note
                 FROM InvoiceProducts 
                 WHERE InvoiceId = @invoiceId";
 
@@ -260,10 +262,10 @@ namespace IndyPOS.DataAccess.SQLite.Repositories
                 Manufacturer,
                 Brand,
                 Category,
-                UnitCost,
                 UnitPrice,
                 Quantity,
-                DateCreated
+                DateCreated,
+				Note
                 FROM InvoiceProducts 
                 WHERE DateCreated BETWEEN @startDate AND @endDate";
 
@@ -295,7 +297,8 @@ namespace IndyPOS.DataAccess.SQLite.Repositories
                 InvoiceId,
                 PaymentTypeId,
                 Amount,
-                DateCreated
+                DateCreated,
+				Note
                 FROM Payments 
                 WHERE InvoiceId = @invoiceId";
 
@@ -309,6 +312,39 @@ namespace IndyPOS.DataAccess.SQLite.Repositories
                 return MapPayments(results);
             }
         }
+
+		public IList<Payment> GetPaymentsByDate(DateTime date)
+		{
+			return GetPaymentsByDateRange(date, date);
+		}
+
+		public IList<Payment> GetPaymentsByDateRange(DateTime start, DateTime end)
+		{
+			using (var connection = _dbConnectionProvider.GetDbConnection())
+			{
+				connection.Open();
+
+				const string sqlCommand = @"SELECT
+                PaymentId,
+                InvoiceId,
+                PaymentTypeId,
+                Amount,
+                DateCreated,
+				Note
+                FROM Payments 
+                WHERE DateCreated BETWEEN @startDate AND @endDate";
+
+				var sqlParameters = new
+									{
+										startDate = MapStartDateToString(start),
+										endDate = MapEndDateToString(end)
+									};
+
+				var results = connection.Query(sqlCommand, sqlParameters);
+
+				return MapPayments(results);
+			}
+		}
 
         private string MapStartDateToString(DateTime date)
 		{
@@ -364,13 +400,13 @@ namespace IndyPOS.DataAccess.SQLite.Repositories
 
                 Category = (int)x.Category,
 
-                UnitCost = MapMoneyToDecimal(x.UnitCost),
-
                 UnitPrice = MapMoneyToDecimal(x.UnitPrice),
 
                 Quantity = (int)x.Quantity,
 
                 DateCreated = x.DateCreated,
+
+                Note = x.Note
             }) ?? Enumerable.Empty<InvoiceProduct>();
 
             return products.ToList();
@@ -388,21 +424,12 @@ namespace IndyPOS.DataAccess.SQLite.Repositories
 
                 Amount = MapMoneyToDecimal(x.Amount),
 
-                DateCreated = x.DateCreated
+                DateCreated = x.DateCreated,
+
+                Note = x.Note
             }) ?? Enumerable.Empty<Payment>();
 
             return payments.ToList();
-        }
-
-        private decimal? MapMoneyToNullableDecimal(string value)
-        {
-            if (!value.HasValue())
-                return null;
-
-            if (decimal.TryParse(value.Trim(), out var result))
-                return result / 100m;
-
-            return null;
         }
 
         private decimal MapMoneyToDecimal(string value)
@@ -420,7 +447,7 @@ namespace IndyPOS.DataAccess.SQLite.Repositories
 
             var result = Math.Round(value.GetValueOrDefault(), 2, MidpointRounding.AwayFromZero) * 100m;
 
-            return result.ToString();
+            return $"{result}";
         }
     }
 }

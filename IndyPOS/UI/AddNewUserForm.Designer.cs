@@ -28,10 +28,12 @@
         /// </summary>
         private void InitializeComponent()
         {
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(AddNewUserForm));
             this.panel2 = new System.Windows.Forms.Panel();
             this.CancelUserEntryButton = new ModernUI.ModernButton();
             this.SaveUserEntryButton = new ModernUI.ModernButton();
             this.panel1 = new System.Windows.Forms.Panel();
+            this.PasswordVisibilityButton = new ModernUI.ModernButton();
             this.UsernameLabel = new System.Windows.Forms.Label();
             this.label4 = new System.Windows.Forms.Label();
             this.LastNameTextBox = new ModernUI.ModernTextBox();
@@ -43,7 +45,6 @@
             this.UserRoleComboBox = new ModernUI.ModernComboBox();
             this.label7 = new System.Windows.Forms.Label();
             this.label1 = new System.Windows.Forms.Label();
-            this.PasswordVisibilityButton = new ModernUI.ModernButton();
             this.panel2.SuspendLayout();
             this.panel1.SuspendLayout();
             this.SuspendLayout();
@@ -120,6 +121,26 @@
             this.panel1.Name = "panel1";
             this.panel1.Size = new System.Drawing.Size(679, 401);
             this.panel1.TabIndex = 1;
+            // 
+            // PasswordVisibilityButton
+            // 
+            this.PasswordVisibilityButton.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
+            this.PasswordVisibilityButton.BackgroundColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
+            this.PasswordVisibilityButton.BorderColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
+            this.PasswordVisibilityButton.BorderRadius = 19;
+            this.PasswordVisibilityButton.BorderSize = 1;
+            this.PasswordVisibilityButton.FlatAppearance.BorderSize = 0;
+            this.PasswordVisibilityButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.PasswordVisibilityButton.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.PasswordVisibilityButton.ForeColor = System.Drawing.Color.White;
+            this.PasswordVisibilityButton.Image = global::IndyPOS.Properties.Resources.Visible_25;
+            this.PasswordVisibilityButton.Location = new System.Drawing.Point(549, 237);
+            this.PasswordVisibilityButton.Name = "PasswordVisibilityButton";
+            this.PasswordVisibilityButton.Size = new System.Drawing.Size(39, 39);
+            this.PasswordVisibilityButton.TabIndex = 77;
+            this.PasswordVisibilityButton.TextColor = System.Drawing.Color.White;
+            this.PasswordVisibilityButton.UseVisualStyleBackColor = false;
+            this.PasswordVisibilityButton.Click += new System.EventHandler(this.PasswordVisibilityButton_Click);
             // 
             // UsernameLabel
             // 
@@ -205,7 +226,7 @@
             this.label10.Name = "label10";
             this.label10.Size = new System.Drawing.Size(110, 39);
             this.label10.TabIndex = 69;
-            this.label10.Text = "First Nmae";
+            this.label10.Text = "First Name";
             this.label10.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
             // 
             // UserSecretTextBox
@@ -273,7 +294,7 @@
             // 
             // label1
             // 
-            this.label1.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(25)))), ((int)(((byte)(25)))), ((int)(((byte)(25)))));
+            this.label1.BackColor = System.Drawing.Color.DarkSlateGray;
             this.label1.Dock = System.Windows.Forms.DockStyle.Top;
             this.label1.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 14.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.label1.ForeColor = System.Drawing.Color.WhiteSmoke;
@@ -284,26 +305,6 @@
             this.label1.Text = "Add New User";
             this.label1.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             // 
-            // PasswordVisibilityButton
-            // 
-            this.PasswordVisibilityButton.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
-            this.PasswordVisibilityButton.BackgroundColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
-            this.PasswordVisibilityButton.BorderColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
-            this.PasswordVisibilityButton.BorderRadius = 19;
-            this.PasswordVisibilityButton.BorderSize = 1;
-            this.PasswordVisibilityButton.FlatAppearance.BorderSize = 0;
-            this.PasswordVisibilityButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.PasswordVisibilityButton.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.PasswordVisibilityButton.ForeColor = System.Drawing.Color.White;
-            this.PasswordVisibilityButton.Image = global::IndyPOS.Properties.Resources.Visible_25;
-            this.PasswordVisibilityButton.Location = new System.Drawing.Point(549, 237);
-            this.PasswordVisibilityButton.Name = "PasswordVisibilityButton";
-            this.PasswordVisibilityButton.Size = new System.Drawing.Size(39, 39);
-            this.PasswordVisibilityButton.TabIndex = 77;
-            this.PasswordVisibilityButton.TextColor = System.Drawing.Color.White;
-            this.PasswordVisibilityButton.UseVisualStyleBackColor = false;
-            this.PasswordVisibilityButton.Click += new System.EventHandler(this.PasswordVisibilityButton_Click);
-            // 
             // AddNewUserForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -312,6 +313,7 @@
             this.ClientSize = new System.Drawing.Size(681, 403);
             this.Controls.Add(this.panel1);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.None;
+            this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.Name = "AddNewUserForm";
             this.Padding = new System.Windows.Forms.Padding(1);
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;

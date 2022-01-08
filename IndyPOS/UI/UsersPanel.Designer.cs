@@ -50,8 +50,8 @@
             this.label2 = new System.Windows.Forms.Label();
             this.label11 = new System.Windows.Forms.Label();
             this.label10 = new System.Windows.Forms.Label();
-            this.UserSecretTextBox = new ModernUI.ModernTextBox();
-            this.label8 = new System.Windows.Forms.Label();
+            this.UserPasswordTextBox = new ModernUI.ModernTextBox();
+            this.PasswordLabel = new System.Windows.Forms.Label();
             this.label7 = new System.Windows.Forms.Label();
             this.panel4 = new System.Windows.Forms.Panel();
             this.panel2 = new System.Windows.Forms.Panel();
@@ -192,8 +192,8 @@
             this.panel3.Controls.Add(this.label2);
             this.panel3.Controls.Add(this.label11);
             this.panel3.Controls.Add(this.label10);
-            this.panel3.Controls.Add(this.UserSecretTextBox);
-            this.panel3.Controls.Add(this.label8);
+            this.panel3.Controls.Add(this.UserPasswordTextBox);
+            this.panel3.Controls.Add(this.PasswordLabel);
             this.panel3.Controls.Add(this.label7);
             this.panel3.Dock = System.Windows.Forms.DockStyle.Right;
             this.panel3.Location = new System.Drawing.Point(929, 63);
@@ -219,6 +219,7 @@
             this.DeleteUserButton.Text = "Delete";
             this.DeleteUserButton.TextColor = System.Drawing.Color.White;
             this.DeleteUserButton.UseVisualStyleBackColor = false;
+            this.DeleteUserButton.Visible = false;
             this.DeleteUserButton.Click += new System.EventHandler(this.DeleteUserButton_Click);
             // 
             // PasswordVisibilityButton
@@ -239,6 +240,7 @@
             this.PasswordVisibilityButton.TabIndex = 76;
             this.PasswordVisibilityButton.TextColor = System.Drawing.Color.White;
             this.PasswordVisibilityButton.UseVisualStyleBackColor = false;
+            this.PasswordVisibilityButton.Visible = false;
             this.PasswordVisibilityButton.Click += new System.EventHandler(this.PasswordVisibilityButton_Click);
             // 
             // LastNameLabel
@@ -304,6 +306,7 @@
             this.UpdateUserButton.Text = "Update";
             this.UpdateUserButton.TextColor = System.Drawing.Color.White;
             this.UpdateUserButton.UseVisualStyleBackColor = false;
+            this.UpdateUserButton.Visible = false;
             this.UpdateUserButton.Click += new System.EventHandler(this.UpdateUserButton_Click);
             // 
             // UserRoleLabel
@@ -354,36 +357,36 @@
             this.label10.Text = "First Name";
             this.label10.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
             // 
-            // UserSecretTextBox
+            // UserPasswordTextBox
             // 
-            this.UserSecretTextBox.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
-            this.UserSecretTextBox.BorderColor = System.Drawing.Color.DimGray;
-            this.UserSecretTextBox.BorderSize = 1;
-            this.UserSecretTextBox.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.UserSecretTextBox.ForeColor = System.Drawing.Color.Gainsboro;
-            this.UserSecretTextBox.Location = new System.Drawing.Point(148, 181);
-            this.UserSecretTextBox.Multiline = false;
-            this.UserSecretTextBox.Name = "UserSecretTextBox";
-            this.UserSecretTextBox.Padding = new System.Windows.Forms.Padding(7);
-            this.UserSecretTextBox.PasswordChar = true;
-            this.UserSecretTextBox.ReadOnly = false;
-            this.UserSecretTextBox.Size = new System.Drawing.Size(272, 39);
-            this.UserSecretTextBox.TabIndex = 62;
-            this.UserSecretTextBox.TextAlign = System.Windows.Forms.HorizontalAlignment.Left;
-            this.UserSecretTextBox.Texts = "";
-            this.UserSecretTextBox.UnderlinedStyle = true;
+            this.UserPasswordTextBox.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
+            this.UserPasswordTextBox.BorderColor = System.Drawing.Color.DimGray;
+            this.UserPasswordTextBox.BorderSize = 1;
+            this.UserPasswordTextBox.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.UserPasswordTextBox.ForeColor = System.Drawing.Color.Gainsboro;
+            this.UserPasswordTextBox.Location = new System.Drawing.Point(148, 181);
+            this.UserPasswordTextBox.Multiline = false;
+            this.UserPasswordTextBox.Name = "UserPasswordTextBox";
+            this.UserPasswordTextBox.Padding = new System.Windows.Forms.Padding(7);
+            this.UserPasswordTextBox.PasswordChar = true;
+            this.UserPasswordTextBox.ReadOnly = false;
+            this.UserPasswordTextBox.Size = new System.Drawing.Size(272, 39);
+            this.UserPasswordTextBox.TabIndex = 62;
+            this.UserPasswordTextBox.TextAlign = System.Windows.Forms.HorizontalAlignment.Left;
+            this.UserPasswordTextBox.Texts = "";
+            this.UserPasswordTextBox.UnderlinedStyle = true;
             // 
-            // label8
+            // PasswordLabel
             // 
-            this.label8.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
-            this.label8.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label8.ForeColor = System.Drawing.Color.Gainsboro;
-            this.label8.Location = new System.Drawing.Point(32, 181);
-            this.label8.Name = "label8";
-            this.label8.Size = new System.Drawing.Size(110, 39);
-            this.label8.TabIndex = 61;
-            this.label8.Text = "Password";
-            this.label8.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            this.PasswordLabel.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
+            this.PasswordLabel.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.PasswordLabel.ForeColor = System.Drawing.Color.Gainsboro;
+            this.PasswordLabel.Location = new System.Drawing.Point(32, 181);
+            this.PasswordLabel.Name = "PasswordLabel";
+            this.PasswordLabel.Size = new System.Drawing.Size(110, 39);
+            this.PasswordLabel.TabIndex = 61;
+            this.PasswordLabel.Text = "Password";
+            this.PasswordLabel.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
             // 
             // label7
             // 
@@ -501,8 +504,8 @@
 		private System.Windows.Forms.Panel panel3;
 		private System.Windows.Forms.Label label11;
 		private System.Windows.Forms.Label label10;
-		private ModernUI.ModernTextBox UserSecretTextBox;
-		private System.Windows.Forms.Label label8;
+		private ModernUI.ModernTextBox UserPasswordTextBox;
+		private System.Windows.Forms.Label PasswordLabel;
 		private System.Windows.Forms.Label label7;
 		private System.Windows.Forms.Label label2;
 		private System.Windows.Forms.Label UserRoleLabel;

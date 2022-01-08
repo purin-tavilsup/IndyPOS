@@ -28,8 +28,10 @@
         /// </summary>
         private void InitializeComponent()
         {
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MainForm));
             this.NavigationPanel = new System.Windows.Forms.Panel();
             this.TitlePanel = new System.Windows.Forms.Panel();
+            this.pictureBox2 = new System.Windows.Forms.PictureBox();
             this.panel1 = new System.Windows.Forms.Panel();
             this.LoggedInUserLabel = new System.Windows.Forms.Label();
             this.DateTimeLabel = new System.Windows.Forms.Label();
@@ -37,7 +39,7 @@
             this.ResizeWindowsButton = new ModernUI.ModernButton();
             this.CloseWindowsButton = new ModernUI.ModernButton();
             this.MinimizeWindowsButton = new ModernUI.ModernButton();
-            this.label1 = new System.Windows.Forms.Label();
+            this.StoreNameLabel = new System.Windows.Forms.Label();
             this.ActivePanel = new System.Windows.Forms.Panel();
             this.ControlPanel = new System.Windows.Forms.Panel();
             this.CloseButton = new System.Windows.Forms.Button();
@@ -48,7 +50,10 @@
             this.UsersButton = new System.Windows.Forms.Button();
             this.InventoryButton = new System.Windows.Forms.Button();
             this.SaleButton = new System.Windows.Forms.Button();
+            this.VersionLabel = new System.Windows.Forms.Label();
+            this.NavigationPanel.SuspendLayout();
             this.TitlePanel.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.pictureBox2)).BeginInit();
             this.panel1.SuspendLayout();
             this.panel9.SuspendLayout();
             this.ControlPanel.SuspendLayout();
@@ -57,43 +62,55 @@
             // NavigationPanel
             // 
             this.NavigationPanel.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(25)))), ((int)(((byte)(25)))), ((int)(((byte)(25)))));
+            this.NavigationPanel.Controls.Add(this.panel1);
             this.NavigationPanel.Dock = System.Windows.Forms.DockStyle.Bottom;
             this.NavigationPanel.Location = new System.Drawing.Point(0, 1024);
             this.NavigationPanel.Name = "NavigationPanel";
-            this.NavigationPanel.Size = new System.Drawing.Size(1412, 41);
+            this.NavigationPanel.Size = new System.Drawing.Size(1800, 41);
             this.NavigationPanel.TabIndex = 0;
             // 
             // TitlePanel
             // 
             this.TitlePanel.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(25)))), ((int)(((byte)(25)))), ((int)(((byte)(25)))));
-            this.TitlePanel.Controls.Add(this.panel1);
+            this.TitlePanel.Controls.Add(this.pictureBox2);
             this.TitlePanel.Controls.Add(this.panel9);
-            this.TitlePanel.Controls.Add(this.label1);
+            this.TitlePanel.Controls.Add(this.StoreNameLabel);
             this.TitlePanel.Dock = System.Windows.Forms.DockStyle.Top;
             this.TitlePanel.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.TitlePanel.ForeColor = System.Drawing.Color.LightGreen;
             this.TitlePanel.Location = new System.Drawing.Point(0, 0);
             this.TitlePanel.Name = "TitlePanel";
-            this.TitlePanel.Size = new System.Drawing.Size(1412, 52);
+            this.TitlePanel.Size = new System.Drawing.Size(1800, 52);
             this.TitlePanel.TabIndex = 1;
+            // 
+            // pictureBox2
+            // 
+            this.pictureBox2.Image = global::IndyPOS.Properties.Resources.Rungrat_Store_Logo;
+            this.pictureBox2.Location = new System.Drawing.Point(12, 2);
+            this.pictureBox2.Name = "pictureBox2";
+            this.pictureBox2.Size = new System.Drawing.Size(50, 50);
+            this.pictureBox2.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
+            this.pictureBox2.TabIndex = 88;
+            this.pictureBox2.TabStop = false;
             // 
             // panel1
             // 
+            this.panel1.Controls.Add(this.VersionLabel);
             this.panel1.Controls.Add(this.LoggedInUserLabel);
             this.panel1.Controls.Add(this.DateTimeLabel);
             this.panel1.Dock = System.Windows.Forms.DockStyle.Right;
-            this.panel1.Location = new System.Drawing.Point(588, 0);
+            this.panel1.Location = new System.Drawing.Point(972, 0);
             this.panel1.Name = "panel1";
-            this.panel1.Size = new System.Drawing.Size(645, 52);
+            this.panel1.Size = new System.Drawing.Size(828, 41);
             this.panel1.TabIndex = 7;
             // 
             // LoggedInUserLabel
             // 
             this.LoggedInUserLabel.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.LoggedInUserLabel.ForeColor = System.Drawing.Color.WhiteSmoke;
-            this.LoggedInUserLabel.Location = new System.Drawing.Point(3, 7);
+            this.LoggedInUserLabel.Location = new System.Drawing.Point(3, 0);
             this.LoggedInUserLabel.Name = "LoggedInUserLabel";
-            this.LoggedInUserLabel.Size = new System.Drawing.Size(257, 39);
+            this.LoggedInUserLabel.Size = new System.Drawing.Size(265, 35);
             this.LoggedInUserLabel.TabIndex = 5;
             this.LoggedInUserLabel.Text = "User:";
             this.LoggedInUserLabel.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
@@ -102,9 +119,9 @@
             // 
             this.DateTimeLabel.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.DateTimeLabel.ForeColor = System.Drawing.Color.WhiteSmoke;
-            this.DateTimeLabel.Location = new System.Drawing.Point(266, 7);
+            this.DateTimeLabel.Location = new System.Drawing.Point(285, 0);
             this.DateTimeLabel.Name = "DateTimeLabel";
-            this.DateTimeLabel.Size = new System.Drawing.Size(373, 39);
+            this.DateTimeLabel.Size = new System.Drawing.Size(298, 35);
             this.DateTimeLabel.TabIndex = 6;
             this.DateTimeLabel.Text = "Date:";
             this.DateTimeLabel.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
@@ -115,7 +132,7 @@
             this.panel9.Controls.Add(this.CloseWindowsButton);
             this.panel9.Controls.Add(this.MinimizeWindowsButton);
             this.panel9.Dock = System.Windows.Forms.DockStyle.Right;
-            this.panel9.Location = new System.Drawing.Point(1233, 0);
+            this.panel9.Location = new System.Drawing.Point(1621, 0);
             this.panel9.Name = "panel9";
             this.panel9.Size = new System.Drawing.Size(179, 52);
             this.panel9.TabIndex = 4;
@@ -180,16 +197,16 @@
             this.MinimizeWindowsButton.UseVisualStyleBackColor = false;
             this.MinimizeWindowsButton.Click += new System.EventHandler(this.MinimizeWindows_Click);
             // 
-            // label1
+            // StoreNameLabel
             // 
-            this.label1.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 18F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label1.ForeColor = System.Drawing.Color.WhiteSmoke;
-            this.label1.Location = new System.Drawing.Point(3, 9);
-            this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(100, 39);
-            this.label1.TabIndex = 0;
-            this.label1.Text = "รุ่งรัศมิ์";
-            this.label1.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            this.StoreNameLabel.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 18F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.StoreNameLabel.ForeColor = System.Drawing.Color.WhiteSmoke;
+            this.StoreNameLabel.Location = new System.Drawing.Point(80, 9);
+            this.StoreNameLabel.Name = "StoreNameLabel";
+            this.StoreNameLabel.Size = new System.Drawing.Size(890, 39);
+            this.StoreNameLabel.TabIndex = 0;
+            this.StoreNameLabel.Text = "Store Name";
+            this.StoreNameLabel.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
             // 
             // ActivePanel
             // 
@@ -197,7 +214,7 @@
             this.ActivePanel.Dock = System.Windows.Forms.DockStyle.Fill;
             this.ActivePanel.Location = new System.Drawing.Point(298, 52);
             this.ActivePanel.Name = "ActivePanel";
-            this.ActivePanel.Size = new System.Drawing.Size(1114, 972);
+            this.ActivePanel.Size = new System.Drawing.Size(1502, 972);
             this.ActivePanel.TabIndex = 3;
             // 
             // ControlPanel
@@ -360,23 +377,37 @@
             this.SaleButton.UseVisualStyleBackColor = false;
             this.SaleButton.Click += new System.EventHandler(this.SaleButton_Click);
             // 
+            // VersionLabel
+            // 
+            this.VersionLabel.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.VersionLabel.ForeColor = System.Drawing.Color.WhiteSmoke;
+            this.VersionLabel.Location = new System.Drawing.Point(589, 0);
+            this.VersionLabel.Name = "VersionLabel";
+            this.VersionLabel.Size = new System.Drawing.Size(236, 35);
+            this.VersionLabel.TabIndex = 7;
+            this.VersionLabel.Text = "Version:";
+            this.VersionLabel.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(30)))), ((int)(((byte)(30)))), ((int)(((byte)(30)))));
-            this.ClientSize = new System.Drawing.Size(1412, 1065);
+            this.ClientSize = new System.Drawing.Size(1800, 1065);
             this.Controls.Add(this.ActivePanel);
             this.Controls.Add(this.ControlPanel);
             this.Controls.Add(this.TitlePanel);
             this.Controls.Add(this.NavigationPanel);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.None;
+            this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.Name = "MainForm";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "Indy POS";
             this.Load += new System.EventHandler(this.MainForm_Load);
             this.Shown += new System.EventHandler(this.MainForm_Shown);
+            this.NavigationPanel.ResumeLayout(false);
             this.TitlePanel.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)(this.pictureBox2)).EndInit();
             this.panel1.ResumeLayout(false);
             this.panel9.ResumeLayout(false);
             this.ControlPanel.ResumeLayout(false);
@@ -396,7 +427,7 @@
         private System.Windows.Forms.Button ReportsButton;
         private System.Windows.Forms.Button CustomerAccountsButton;
         private System.Windows.Forms.Button LogInButton;
-        private System.Windows.Forms.Label label1;
+        private System.Windows.Forms.Label StoreNameLabel;
 		private System.Windows.Forms.Button CloseButton;
 		private System.Windows.Forms.Panel panel9;
 		private System.Windows.Forms.Panel ControlPanel;
@@ -406,6 +437,8 @@
         private System.Windows.Forms.Label LoggedInUserLabel;
         private System.Windows.Forms.Label DateTimeLabel;
         private System.Windows.Forms.Panel panel1;
+        private System.Windows.Forms.PictureBox pictureBox2;
+        private System.Windows.Forms.Label VersionLabel;
     }
 }
 

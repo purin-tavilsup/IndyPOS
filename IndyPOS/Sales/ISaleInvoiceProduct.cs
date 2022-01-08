@@ -20,8 +20,6 @@
 
         int Category { get; set; }
 
-        decimal? UnitCost { get; set; }
-
         decimal UnitPrice { get; set; }
 
         int Quantity { get; set; }
@@ -29,5 +27,9 @@
         decimal? GroupPrice { get; set; }
 
         int? GroupPriceQuantity { get; set; }
+
+        bool IsTrackable { get; }
+
+        string Note { get; set; }
     }
 }

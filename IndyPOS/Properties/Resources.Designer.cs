@@ -511,6 +511,26 @@ namespace IndyPOS.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Icon similar to (Icon).
+        /// </summary>
+        internal static System.Drawing.Icon Rungrat_Store {
+            get {
+                object obj = ResourceManager.GetObject("Rungrat_Store", resourceCulture);
+                return ((System.Drawing.Icon)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap Rungrat_Store_Logo {
+            get {
+                object obj = ResourceManager.GetObject("Rungrat_Store_Logo", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
         internal static System.Drawing.Bitmap Save_50 {
@@ -537,6 +557,26 @@ namespace IndyPOS.Properties {
             get {
                 object obj = ResourceManager.GetObject("SettingsPanel_50", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap Shop {
+            get {
+                object obj = ResourceManager.GetObject("Shop", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Icon similar to (Icon).
+        /// </summary>
+        internal static System.Drawing.Icon Store {
+            get {
+                object obj = ResourceManager.GetObject("Store", resourceCulture);
+                return ((System.Drawing.Icon)(obj));
             }
         }
         

@@ -16,7 +16,7 @@ namespace IndyPOS.DataAccess.SQLite.Repositories
             _dbConnectionProvider = dbConnectionProvider;
         }
 
-		public IEnumerable<User> GetUsers()
+		public IEnumerable<UserAccount> GetUsers()
 		{
 			using (var connection = _dbConnectionProvider.GetDbConnection())
 			{
@@ -37,7 +37,7 @@ namespace IndyPOS.DataAccess.SQLite.Repositories
 			}
 		}
 
-		public User GetUserById(int id)
+		public UserAccount GetUserById(int id)
 		{
 			using (var connection = _dbConnectionProvider.GetDbConnection())
 			{
@@ -64,7 +64,7 @@ namespace IndyPOS.DataAccess.SQLite.Repositories
 			}
 		}
 
-		public int CreateUser(User user)
+		public int CreateUser(UserAccount user)
         {
 			using (var connection = _dbConnectionProvider.GetDbConnection())
 			{
@@ -101,7 +101,7 @@ namespace IndyPOS.DataAccess.SQLite.Repositories
 			}
 		}
 
-		public void UpdateUser(User user)
+		public void UpdateUser(UserAccount user)
         {
 			using (var connection = _dbConnectionProvider.GetDbConnection())
 			{
@@ -296,9 +296,9 @@ namespace IndyPOS.DataAccess.SQLite.Repositories
 			return credential;
 		}
 
-		private IEnumerable<User> MapUsers(IEnumerable<dynamic> results)
+		private IEnumerable<UserAccount> MapUsers(IEnumerable<dynamic> results)
 		{
-			var users = results?.Select(x => new User
+			var users = results?.Select(x => new UserAccount
 												{
 													UserId = (int)x.UserId,
 													FirstName = x.FirstName,
@@ -306,7 +306,7 @@ namespace IndyPOS.DataAccess.SQLite.Repositories
 													RoleId = (int)x.RoleId,
 													DateCreated = x.DateCreated,
 													DateUpdated = x.DateUpdated
-												}) ?? Enumerable.Empty<User>();
+												}) ?? Enumerable.Empty<UserAccount>();
 			
 			return users.ToList();
 		}

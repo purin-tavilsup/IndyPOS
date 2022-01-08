@@ -1,6 +1,6 @@
 ﻿namespace IndyPOS.Users
 {
-	public class User : IUser
+	public class UserAccount : IUserAccount
 	{
 		public int UserId { get; }
         

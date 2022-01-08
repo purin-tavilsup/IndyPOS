@@ -14,5 +14,7 @@ namespace IndyPOS.DataAccess.Models
 		public decimal Amount { get; set; }
 
 		public string DateCreated { get; set; }
+
+		public string Note { get; set; }
 	}
 }

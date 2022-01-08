@@ -21,7 +21,7 @@ namespace IndyPOS.UI
         private readonly IEventAggregator _eventAggregator;
         private UserControl _activePanel;
 		private bool _isUserLoggedIn;
-		private IUser _loggedInUser;
+		private IUserAccount _loggedInUser;
 		private Timer _dateTimeUpdateTimer;
 
         public MainForm(SalePanel salesPanel, 
@@ -35,27 +35,37 @@ namespace IndyPOS.UI
 		{
             InitializeComponent();
 
-            _salesPanel = salesPanel;
-            _salesPanel.Visible = false;
-            _inventoryPanel = inventoryPanel;
-            _inventoryPanel.Visible = false;
-            _usersPanel = usersPanel;
-            _usersPanel.Visible = false;
-            _reportsPanel = reportsPanel;
-            _reportsPanel.Visible = false;
-            _customerAccountsPanel = customerAccountsPanel;
-            _customerAccountsPanel.Visible = false;
-            _settingsPanel = settingsPanel;
-            _settingsPanel.Visible = false;
+			_salesPanel = salesPanel;
+			_salesPanel.Visible = false;
+			_inventoryPanel = inventoryPanel;
+			_inventoryPanel.Visible = false;
+			_usersPanel = usersPanel;
+			_usersPanel.Visible = false;
+			_reportsPanel = reportsPanel;
+			_reportsPanel.Visible = false;
+			_customerAccountsPanel = customerAccountsPanel;
+			_customerAccountsPanel.Visible = false;
+			_settingsPanel = settingsPanel;
+			_settingsPanel.Visible = false;
 			_userLogInPanel = userLogInPanel;
 			_userLogInPanel.Visible = false;
-            _eventAggregator = eventAggregator;
+			_eventAggregator = eventAggregator;
 			_isUserLoggedIn = false;
 
 			SubscribeEvents();
 			CreateDateTimeUpdateTimer();
 
             LogInButton.Select();
+		}
+
+        public void SetStoreName(string storeName)
+		{
+			StoreNameLabel.Text = storeName;
+		}
+
+        public void SetVersion(string version)
+		{
+			VersionLabel.Text = $"Version: {version}";
 		}
 
         private void CreateDateTimeUpdateTimer()
@@ -137,7 +147,7 @@ namespace IndyPOS.UI
 
                 _activePanel.Visible = false;
 
-                ActivePanel.Controls.Remove(_activePanel);
+                ActivePanel.Controls.Clear();
             }
 
             panelToShow.Dock = DockStyle.Fill;
@@ -248,7 +258,7 @@ namespace IndyPOS.UI
 			ResizeWindowsButton.Image = Properties.Resources.restore_window_24px;
         }
 
-        private void OnUserLoggedIn(IUser loggedInUser)
+        private void OnUserLoggedIn(IUserAccount loggedInUser)
 		{
 			_loggedInUser = loggedInUser;
 

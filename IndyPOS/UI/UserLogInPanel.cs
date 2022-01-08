@@ -22,6 +22,21 @@ namespace IndyPOS.UI
 			_messageForm = messageForm;
 
 			InitializeComponent();
+			InitializeProductCategories();
+		}
+
+		private void InitializeProductCategories()
+		{
+			UsersComboBox.Items.Clear();
+
+			var users = _userController.GetUsers();
+
+			foreach (var user in users)
+			{
+				var username = $"{user.FirstName.ToLower()}.{user.LastName.ToLower()}";
+
+				UsersComboBox.Items.Add(username);
+			}
 		}
 
 		private void LogInButton_Click(object sender, EventArgs e)
@@ -35,7 +50,7 @@ namespace IndyPOS.UI
 				return;
 			}
 			
-			var username = UserNameTextBox.Texts.Trim();
+			var username = UsersComboBox.SelectedItem.ToString();
 			var password = _cryptographyHelper.Encrypt(UserSecretTextBox.Texts.Trim());
 
 			if (_userController.LogIn(username, password))
@@ -76,26 +91,25 @@ namespace IndyPOS.UI
         {
 			ClearUserInput();
 
+			UsersComboBox.Visible = true;
 			UserInputPanel.Visible = true;
 			LogInButton.Text = "Log In";
-
-			// Dev Mode
-			UserNameTextBox.Texts = "purin.tavilsup";
-			UserSecretTextBox.Texts = "abc123";
 		}
 
 		private void HideUserInput()
         {
 			ClearUserInput();
 
+			UsersComboBox.Visible = false;
 			UserInputPanel.Visible = false;
 			LogInButton.Text = "Log Out";
         }
 
 		private void ClearUserInput()
         {
-			UserNameTextBox.Texts = string.Empty;
 			UserSecretTextBox.Texts = string.Empty;
-        }
-    }
+			UsersComboBox.SelectedItem = null;
+			UsersComboBox.Texts = "ผู้ใช้งาน";
+		}
+	}
 }

@@ -14,8 +14,6 @@
 
         public int Category { get; set; }
 
-        public decimal? UnitCost { get; set; }
-
         public decimal UnitPrice { get; set; }
 
         public int QuantityInStock { get; set; }
@@ -23,6 +21,8 @@
         public decimal? GroupPrice { get; set; }
 
         public int? GroupPriceQuantity { get; set; }
+
+        public bool IsTrackable { get; }
 
         public string DateCreated { get; }
 

@@ -5,17 +5,17 @@ namespace IndyPOS.Controllers
 {
 	public interface IUserController
 	{
-		IUser LoggedInUser { get; }
+		IUserAccount LoggedInUser { get; }
 
 		bool IsLoggedIn { get; }
 
-		void AddNewUser(IUser user, string username, string password);
+		void AddNewUser(IUserAccount user, string username, string password);
 
-		IEnumerable<IUser> GetUsers();
+		IEnumerable<IUserAccount> GetUsers();
 
-		IUser GetUserById(int id);
+		IUserAccount GetUserById(int id);
 
-		void UpdateUser(IUser user);
+		void UpdateUser(IUserAccount user);
 
 		void RemoveUserById(int id);
 

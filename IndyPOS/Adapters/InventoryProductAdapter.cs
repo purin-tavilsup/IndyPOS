@@ -44,12 +44,6 @@ namespace IndyPOS.Adapters
             set => _adaptee.Category = value;
         }
 
-        public decimal? UnitCost
-        {
-            get => _adaptee.UnitCost;
-            set => _adaptee.UnitCost = value;
-        }
-
         public decimal UnitPrice
         {
             get => _adaptee.UnitPrice;
@@ -73,6 +67,8 @@ namespace IndyPOS.Adapters
             get => _adaptee.GroupPriceQuantity;
             set => _adaptee.GroupPriceQuantity = value;
         }
+
+		public bool IsTrackable => _adaptee.IsTrackable;
 
         public string DateCreated => _adaptee.DateCreated;
 

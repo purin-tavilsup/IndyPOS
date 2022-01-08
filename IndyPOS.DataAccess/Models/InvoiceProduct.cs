@@ -23,12 +23,14 @@ namespace IndyPOS.DataAccess.Models
 
         public int Category { get; set; }
 
-        public decimal? UnitCost { get; set; }
-
         public decimal UnitPrice { get; set; }
 
         public int Quantity { get; set; }
 
+		public bool IsTrackable { get; set; }
+
         public string DateCreated { get; set; }
+
+        public string Note { get; set; }
     }
 }

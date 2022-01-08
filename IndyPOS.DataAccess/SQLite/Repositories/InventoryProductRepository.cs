@@ -90,11 +90,11 @@ namespace IndyPOS.DataAccess.SQLite.Repositories
                     Manufacturer,
                     Brand,
                     Category,
-                    UnitCost,
                     UnitPrice,
                     QuantityInStock,
                     GroupPrice,
                     GroupPriceQuantity,
+					IsTrackable,
                     DateCreated
                 )
                 VALUES
@@ -104,11 +104,11 @@ namespace IndyPOS.DataAccess.SQLite.Repositories
                     @Manufacturer,
                     @Brand,
                     @Category,
-                    @UnitCost,
                     @UnitPrice,
                     @QuantityInStock,
                     @GroupPrice,
                     @GroupPriceQuantity,
+					@IsTrackable,
                     datetime('now','localtime')
                 );
                 SELECT last_insert_rowid()";
@@ -120,11 +120,11 @@ namespace IndyPOS.DataAccess.SQLite.Repositories
 					product.Manufacturer,
 					product.Brand,
 					product.Category,
-                    UnitCost = MapMoneyToString(product.UnitCost),
                     UnitPrice = MapMoneyToString(product.UnitPrice),
 					product.QuantityInStock,
                     GroupPrice = MapMoneyToString(product.GroupPrice),
-                    product.GroupPriceQuantity
+                    product.GroupPriceQuantity,
+					IsTrackable = product.IsTrackable ? 1 : 0
                 };
 
                 var inventoryProductId = connection.Query<int>(sqlCommand, sqlParameters).FirstOrDefault();
@@ -147,7 +147,6 @@ namespace IndyPOS.DataAccess.SQLite.Repositories
                     Manufacturer = @Manufacturer,
                     Brand = @Brand,
                     Category = @Category,
-                    UnitCost = @UnitCost,
                     UnitPrice = @UnitPrice,
                     QuantityInStock = @QuantityInStock,
                     GroupPrice = @GroupPrice,
@@ -162,7 +161,6 @@ namespace IndyPOS.DataAccess.SQLite.Repositories
                     product.Manufacturer,
                     product.Brand,
                     product.Category,
-                    UnitCost = MapMoneyToString(product.UnitCost),
                     UnitPrice = MapMoneyToString(product.UnitPrice),
                     product.QuantityInStock,
                     GroupPrice = MapMoneyToString(product.GroupPrice),
@@ -242,8 +240,6 @@ namespace IndyPOS.DataAccess.SQLite.Repositories
 
                 Category = (int)x.Category,
 
-                UnitCost = MapMoneyToNullableDecimal(x.UnitCost),
-
                 UnitPrice = MapMoneyToDecimal(x.UnitPrice),
 
                 QuantityInStock = (int)x.QuantityInStock,
@@ -251,6 +247,8 @@ namespace IndyPOS.DataAccess.SQLite.Repositories
                 GroupPrice = MapMoneyToNullableDecimal(x.GroupPrice),
 
                 GroupPriceQuantity = (int?)x.GroupPriceQuantity,
+
+				IsTrackable = x.IsTrackable == 1,
 
                 DateCreated = x.DateCreated,
 

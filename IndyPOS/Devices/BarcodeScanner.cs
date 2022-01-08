@@ -7,12 +7,14 @@ namespace IndyPOS.Devices
 	public class BarcodeScanner : IBarcodeScanner
     {
         private readonly IEventAggregator _eventAggregator;
+		private readonly IConfig _config;
 
         private SerialPort _serialPort;
 
-        public BarcodeScanner(IEventAggregator eventAggregator)
+        public BarcodeScanner(IEventAggregator eventAggregator, IConfig config)
 		{
             _eventAggregator = eventAggregator;
+			_config = config;
 		}
 
         public void Connect()
@@ -21,7 +23,7 @@ namespace IndyPOS.Devices
 			{
 				_serialPort = new SerialPort
 				{
-					PortName = "COM3",
+					PortName = _config.BarcodeScannerPortName,
 					BaudRate = 115200,
 					DataBits = 8,
 					StopBits = StopBits.One,

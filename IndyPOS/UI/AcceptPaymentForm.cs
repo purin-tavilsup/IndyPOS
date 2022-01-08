@@ -48,47 +48,75 @@ namespace IndyPOS.UI
             _isPaymentTypeSelected = true;
 
             PaymentTypeLabel.Text = _paymentTypeDictionary[(int)_selectedPaymentType];
-
-            PayByCashButton.Image = Properties.Resources.Money_80;
-            PayByMoneyTransferButton.Image = Properties.Resources.Payment_MoneyTransfer_Gray_100;
-            PayBy5050Button.Image = Properties.Resources.Payment_KLK_Gray_100;
-            PayByWeWinButton.Image = Properties.Resources.Payment_WeWin_Gray_100;
-            PayByWelfareCardButton.Image = Properties.Resources.Payment_PracharatCard_Gray_100;
-            PayByWeLoveButton.Image = Properties.Resources.Payment_WeLove_Gray_100;
         }
 
-        public new void ShowDialog()
+        public new void Show()
         {
             _amount = 0m;
             _pendingStringValue = string.Empty;
             _values.Clear();
+			NoteTextBox.Texts = string.Empty;
 
             DisplayValue(_amount);
             ResetPaymentTypeSelection();
             CancelAcceptPaymentButton.Select();
 
-            base.ShowDialog();
+            base.Show();
         }
+
+        private bool ValidatePaymentType()
+		{
+			if (!_isPaymentTypeSelected)
+            {
+				_messageForm.BringToFront();
+				_messageForm.Show("กรุณาเลือกวิธีการชำระเงิน", "วิธีการชำระเงินยังไม่ถูกเลือก");
+
+				return false;
+			}
+
+			if (_selectedPaymentType == PaymentType.AccountReceivable && !NoteTextBox.Texts.HasValue())
+			{
+				_messageForm.BringToFront();
+				_messageForm.Show("กรุณาใส่ Note สำหรับการลงบัญชี", "Note ไม่ถูกต้อง");
+
+				return false;
+			}
+
+			return true;
+		}
 
         private void AcceptPaymentButton_Click(object sender, EventArgs e)
         {
-            if (!_isPaymentTypeSelected)
-			{
-				_messageForm.Show("กรุณาเลือกวิธีการชำระเงิน", "วิธีการชำระเงินยังไม่ถูกเลือก");
-
-                return;
-			}
+            if (!ValidatePaymentType())
+				return;
 
 			CalculateLatestAmount();
 
-            _saleInvoiceController.AddPayment(_selectedPaymentType, _amount);
+			var note = NoteTextBox.Texts.Trim();
 
-            Close();
+            _saleInvoiceController.AddPayment(_selectedPaymentType, _amount, note);
+
+            Hide();
         }
+
+		private void RefundButton_Click(object sender, EventArgs e)
+		{
+			if (!ValidatePaymentType())
+				return;
+
+			CalculateLatestAmount();
+
+			var note = NoteTextBox.Texts.Trim();
+			var refundAmount = _amount * -1;
+
+			_saleInvoiceController.AddPayment(_selectedPaymentType, refundAmount, note);
+
+			Hide();
+		}
 
         private void CancelAcceptPaymentButton_Click(object sender, EventArgs e)
         {
-            Close();
+			Hide();
         }
 
 		private void PayByCashButton_Click(object sender, EventArgs e)
@@ -97,13 +125,6 @@ namespace IndyPOS.UI
             _isPaymentTypeSelected = true;
 
             PaymentTypeLabel.Text = _paymentTypeDictionary[(int)_selectedPaymentType];
-
-            PayByCashButton.Image = Properties.Resources.Money_80;
-            PayByMoneyTransferButton.Image = Properties.Resources.Payment_MoneyTransfer_Gray_100;
-            PayBy5050Button.Image = Properties.Resources.Payment_KLK_Gray_100;
-            PayByWeWinButton.Image = Properties.Resources.Payment_WeWin_Gray_100;
-            PayByWelfareCardButton.Image = Properties.Resources.Payment_PracharatCard_Gray_100;
-            PayByWeLoveButton.Image = Properties.Resources.Payment_WeLove_Gray_100;
         }
 
 		private void PayByMoneyTransferButton_Click(object sender, EventArgs e)
@@ -112,13 +133,6 @@ namespace IndyPOS.UI
             _isPaymentTypeSelected = true;
 
             PaymentTypeLabel.Text = _paymentTypeDictionary[(int)_selectedPaymentType];
-
-            PayByCashButton.Image = Properties.Resources.Money_Gray_80;
-            PayByMoneyTransferButton.Image = Properties.Resources.Payment_MoneyTransfer_100;
-            PayBy5050Button.Image = Properties.Resources.Payment_KLK_Gray_100;
-            PayByWeWinButton.Image = Properties.Resources.Payment_WeWin_Gray_100;
-            PayByWelfareCardButton.Image = Properties.Resources.Payment_PracharatCard_Gray_100;
-            PayByWeLoveButton.Image = Properties.Resources.Payment_WeLove_Gray_100;
         }
 
 		private void PayBy5050Button_Click(object sender, EventArgs e)
@@ -127,13 +141,6 @@ namespace IndyPOS.UI
             _isPaymentTypeSelected = true;
 
             PaymentTypeLabel.Text = _paymentTypeDictionary[(int)_selectedPaymentType];
-
-            PayByCashButton.Image = Properties.Resources.Money_Gray_80;
-            PayByMoneyTransferButton.Image = Properties.Resources.Payment_MoneyTransfer_Gray_100;
-            PayBy5050Button.Image = Properties.Resources.Payment_KLK_100;
-            PayByWeWinButton.Image = Properties.Resources.Payment_WeWin_Gray_100;
-            PayByWelfareCardButton.Image = Properties.Resources.Payment_PracharatCard_Gray_100;
-            PayByWeLoveButton.Image = Properties.Resources.Payment_WeLove_Gray_100;
         }
 
 		private void PayByWeWinButton_Click(object sender, EventArgs e)
@@ -142,13 +149,6 @@ namespace IndyPOS.UI
             _isPaymentTypeSelected = true;
 
             PaymentTypeLabel.Text = _paymentTypeDictionary[(int)_selectedPaymentType];
-
-            PayByCashButton.Image = Properties.Resources.Money_Gray_80;
-            PayByMoneyTransferButton.Image = Properties.Resources.Payment_MoneyTransfer_Gray_100;
-            PayBy5050Button.Image = Properties.Resources.Payment_KLK_Gray_100;
-            PayByWeWinButton.Image = Properties.Resources.Payment_WeWin_100;
-            PayByWelfareCardButton.Image = Properties.Resources.Payment_PracharatCard_Gray_100;
-            PayByWeLoveButton.Image = Properties.Resources.Payment_WeLove_Gray_100;
         }
 
 		private void PayByWelfareCardButton_Click(object sender, EventArgs e)
@@ -157,13 +157,6 @@ namespace IndyPOS.UI
             _isPaymentTypeSelected = true;
 
             PaymentTypeLabel.Text = _paymentTypeDictionary[(int)_selectedPaymentType];
-
-            PayByCashButton.Image = Properties.Resources.Money_Gray_80;
-            PayByMoneyTransferButton.Image = Properties.Resources.Payment_MoneyTransfer_Gray_100;
-            PayBy5050Button.Image = Properties.Resources.Payment_KLK_Gray_100;
-            PayByWeWinButton.Image = Properties.Resources.Payment_WeWin_Gray_100;
-            PayByWelfareCardButton.Image = Properties.Resources.Payment_PracharatCard_100;
-            PayByWeLoveButton.Image = Properties.Resources.Payment_WeLove_Gray_100;
         }
 
 		private void PayByWeLoveButton_Click(object sender, EventArgs e)
@@ -172,14 +165,15 @@ namespace IndyPOS.UI
             _isPaymentTypeSelected = true;
 
             PaymentTypeLabel.Text = _paymentTypeDictionary[(int)_selectedPaymentType];
-
-            PayByCashButton.Image = Properties.Resources.Money_Gray_80;
-            PayByMoneyTransferButton.Image = Properties.Resources.Payment_MoneyTransfer_Gray_100;
-            PayBy5050Button.Image = Properties.Resources.Payment_KLK_Gray_100;
-            PayByWeWinButton.Image = Properties.Resources.Payment_WeWin_Gray_100;
-            PayByWelfareCardButton.Image = Properties.Resources.Payment_PracharatCard_Gray_100;
-            PayByWeLoveButton.Image = Properties.Resources.Payment_WeLove_100;
         }
+
+		private void PayByArButton_Click(object sender, EventArgs e)
+		{
+			_selectedPaymentType = PaymentType.AccountReceivable;
+			_isPaymentTypeSelected = true;
+
+			PaymentTypeLabel.Text = _paymentTypeDictionary[(int)_selectedPaymentType];
+		}
 
 		private void Add20Button_Click(object sender, EventArgs e)
 		{
@@ -359,12 +353,12 @@ namespace IndyPOS.UI
 
         private void DisplayValue(decimal value)
 		{
-            DisplayValue(value.ToString("0.00"));
+            DisplayValue($"{value:N}");
         }
 
         private void DisplayValue(string value)
         {
             PaymentAmountLabel.Text = value;
         }
-    }
+	}
 }

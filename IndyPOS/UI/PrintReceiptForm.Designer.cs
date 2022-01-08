@@ -29,6 +29,7 @@ namespace IndyPOS.UI
 		/// </summary>
 		private void InitializeComponent()
 		{
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(PrintReceiptForm));
             this.panel1 = new System.Windows.Forms.Panel();
             this.CloseFormButton = new ModernUI.ModernButton();
             this.PrintReceiptButton = new ModernUI.ModernButton();
@@ -111,6 +112,7 @@ namespace IndyPOS.UI
             this.ClientSize = new System.Drawing.Size(640, 223);
             this.Controls.Add(this.panel1);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.None;
+            this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.MaximizeBox = false;
             this.MinimizeBox = false;
             this.Name = "PrintReceiptForm";

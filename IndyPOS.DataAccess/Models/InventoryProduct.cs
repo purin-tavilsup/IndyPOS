@@ -17,8 +17,6 @@ namespace IndyPOS.DataAccess.Models
 
         public int Category { get; set; }
 
-        public decimal? UnitCost { get; set; }
-
         public decimal UnitPrice { get; set; }
 
         public int QuantityInStock { get; set; }
@@ -26,6 +24,8 @@ namespace IndyPOS.DataAccess.Models
         public decimal? GroupPrice { get; set; }
 
         public int? GroupPriceQuantity { get; set; }
+
+        public bool IsTrackable { get; set; }
 
         public string DateCreated { get; set; }
 

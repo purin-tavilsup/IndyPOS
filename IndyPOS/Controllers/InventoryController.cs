@@ -50,9 +50,9 @@ namespace IndyPOS.Controllers
                 Manufacturer = product.Manufacturer,
                 Brand = product.Brand,
                 Category = product.Category,
-                UnitCost = product.UnitCost,
                 UnitPrice = product.UnitPrice,
-                QuantityInStock = product.QuantityInStock
+                QuantityInStock = product.QuantityInStock,
+                IsTrackable = true
             };
 
             try
@@ -77,7 +77,6 @@ namespace IndyPOS.Controllers
                 Manufacturer = product.Manufacturer,
                 Brand = product.Brand,
                 Category = product.Category,
-                UnitCost = product.UnitCost,
                 UnitPrice = product.UnitPrice,
                 QuantityInStock = product.QuantityInStock,
                 GroupPrice = product.GroupPrice,

@@ -1,9 +1,9 @@
-﻿using System;
-using IndyPOS.Adapters;
+﻿using IndyPOS.Adapters;
 using IndyPOS.DataAccess.Repositories;
 using IndyPOS.Events;
 using IndyPOS.Users;
 using Prism.Events;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -13,7 +13,6 @@ namespace IndyPOS.Controllers
 	{
 		private readonly IUserRepository _userRepository;
 		private readonly IEventAggregator _eventAggregator;
-		private IUser _loggedInUser;
 
 		public UserController(IEventAggregator eventAggregator, IUserRepository userRepository)
 		{
@@ -21,9 +20,9 @@ namespace IndyPOS.Controllers
 			_userRepository = userRepository;
 		}
 
-		public IUser LoggedInUser => _loggedInUser;
+		public IUserAccount LoggedInUser { get; private set; }
 
-		public bool IsLoggedIn => _loggedInUser != null;
+		public bool IsLoggedIn => LoggedInUser != null;
 
 		public bool LogIn(string username, string password)
 		{
@@ -39,9 +38,9 @@ namespace IndyPOS.Controllers
 				if (user == null)
 					return false;
 
-				_loggedInUser = user;
+				LoggedInUser = user;
 
-				_eventAggregator.GetEvent<UserLoggedInEvent>().Publish(_loggedInUser);
+				_eventAggregator.GetEvent<UserLoggedInEvent>().Publish(LoggedInUser);
 
 				return true;
 			}
@@ -53,12 +52,12 @@ namespace IndyPOS.Controllers
 
 		public void LogOut()
 		{
-			_loggedInUser = null;
+			LoggedInUser = null;
 
 			_eventAggregator.GetEvent<UserLoggedOutEvent>().Publish();
 		}
 
-		public void AddNewUser(IUser user, string username, string password)
+		public void AddNewUser(IUserAccount user, string username, string password)
         {
 			var userId = AddNewUserInternal(user);
 
@@ -67,9 +66,9 @@ namespace IndyPOS.Controllers
 			_eventAggregator.GetEvent<UserAddedEvent>().Publish();
 		}
 
-		private int AddNewUserInternal(IUser user)
+		private int AddNewUserInternal(IUserAccount user)
         {
-			var userModel = new DataAccess.Models.User
+			var userModel = new DataAccess.Models.UserAccount
 			{
 				FirstName = user.FirstName,
 				LastName = user.LastName,
@@ -84,23 +83,23 @@ namespace IndyPOS.Controllers
 			_userRepository.CreateUserCredential(id, username, password);
 		}
 
-		public IEnumerable<IUser> GetUsers()
+		public IEnumerable<IUserAccount> GetUsers()
 		{
 			var results = _userRepository.GetUsers();
 
-			return results.Select(p => new UserAdapter(p) as IUser).ToList();
+			return results.Select(p => new UserAccountAdapter(p) as IUserAccount).ToList();
 		}
 
-		public IUser GetUserById(int id)
+		public IUserAccount GetUserById(int id)
         {
 			var result = _userRepository.GetUserById(id);
 
-			return new UserAdapter(result);
+			return new UserAccountAdapter(result);
         }
 
-		public void UpdateUser(IUser user)
+		public void UpdateUser(IUserAccount user)
         {
-			var userModel = new DataAccess.Models.User
+			var userModel = new DataAccess.Models.UserAccount
             {
 				UserId = user.UserId,
 				FirstName = user.FirstName,

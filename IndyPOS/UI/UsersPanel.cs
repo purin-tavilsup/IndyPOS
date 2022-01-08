@@ -1,21 +1,20 @@
 ﻿using IndyPOS.Constants;
 using IndyPOS.Controllers;
 using IndyPOS.Cryptography;
+using IndyPOS.Events;
 using IndyPOS.Extensions;
 using IndyPOS.Users;
+using Prism.Events;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Windows.Forms;
-using IndyPOS.Events;
-using Prism.Events;
-using IndyPOS.Enums;
 using UserRoleEnum = IndyPOS.Enums.UserRole;
 
 namespace IndyPOS.UI
 {
-	[ExcludeFromCodeCoverage]
+    [ExcludeFromCodeCoverage]
     public partial class UsersPanel : UserControl
     {
         private readonly IUserController _userController;
@@ -23,7 +22,7 @@ namespace IndyPOS.UI
 		private readonly IReadOnlyDictionary<int, string> _userRoleDictionary;
 		private readonly ICryptographyHelper _cryptographyHelper;
 		private readonly AddNewUserForm _addNewUserForm;
-		private IUser _selectedUser;
+		private IUserAccount _selectedUser;
 
 		private int? _lastQueryRoleId;
 
@@ -107,10 +106,10 @@ namespace IndyPOS.UI
             #endregion
         }
 
-		private void AddUserToUserDataView(IUser user)
+		private void AddUserToUserDataView(IUserAccount user)
         {
 			var columnCount = UserDataView.ColumnCount;
-			var userRow = new string[columnCount];
+			var userRow = new object[columnCount];
 
 			var userRole = _userRoleDictionary.ContainsKey(user.RoleId) ?
 				_userRoleDictionary[user.RoleId] :
@@ -141,12 +140,12 @@ namespace IndyPOS.UI
             }
         }
 
-		private IList<IUser> GetUsersByRoleId(int roleId)
+		private IList<IUserAccount> GetUsersByRoleId(int roleId)
         {
 			var loggedInUser = _userController.LoggedInUser;
 
 			if (loggedInUser.RoleId == (int) UserRoleEnum.Cashier)
-				return new List<IUser> { loggedInUser };
+				return new List<IUserAccount> { loggedInUser };
 
 			return _userController.GetUsers()
 								  .Where(x => x.RoleId == roleId)
@@ -209,11 +208,23 @@ namespace IndyPOS.UI
 							   ? _userRoleDictionary[_selectedUser.RoleId] 
 							   : "Unknown";
 
+			var loggedInUser = _userController.LoggedInUser;
+			var isVisibleToLoggedInUser = userId == loggedInUser.UserId;
+			var isVisibleToLoggedInUserRole = loggedInUser.RoleId != (int) UserRoleEnum.Cashier;
+
+			PasswordLabel.Visible = isVisibleToLoggedInUser;
+			UserPasswordTextBox.Visible = isVisibleToLoggedInUser;
+			PasswordVisibilityButton.Visible = isVisibleToLoggedInUser;
+			UpdateUserButton.Visible = isVisibleToLoggedInUser;
+			DeleteUserButton.Visible = isVisibleToLoggedInUserRole;
+
 			FirstNameLabel.Text = _selectedUser.FirstName;
 			LastNameLabel.Text = _selectedUser.LastName;
 			UserRoleLabel.Text = userRole;
 			UsernameLabel.Text = userCredential.Username;
-			UserSecretTextBox.Texts = _cryptographyHelper.Decrypt(userCredential.Password);
+
+			if (isVisibleToLoggedInUser) 
+				UserPasswordTextBox.Texts = _cryptographyHelper.Decrypt(userCredential.Password);
 		}
 
 		private void ResetUserDetails()
@@ -222,15 +233,21 @@ namespace IndyPOS.UI
 			LastNameLabel.Text = string.Empty;
 			UserRoleLabel.Text = string.Empty;
 			UsernameLabel.Text = string.Empty;
-			UserSecretTextBox.Texts = string.Empty;
+			UserPasswordTextBox.Texts = string.Empty;
+
+			PasswordLabel.Visible = false;
+			UserPasswordTextBox.Visible = false;
+			PasswordVisibilityButton.Visible = false;
+			UpdateUserButton.Visible = false;
+			DeleteUserButton.Visible = false;
         }
 
         private void UpdateUserButton_Click(object sender, EventArgs e)
         {
-			if (!UserSecretTextBox.Texts.HasValue())
+			if (!UserPasswordTextBox.Texts.HasValue())
 				return;
 
-			var encryptedPassword = _cryptographyHelper.Encrypt(UserSecretTextBox.Texts.Trim());
+			var encryptedPassword = _cryptographyHelper.Encrypt(UserPasswordTextBox.Texts.Trim());
 
 			_userController.UpdateUserCredentialById(_selectedUser.UserId, encryptedPassword);
 		}
@@ -242,9 +259,9 @@ namespace IndyPOS.UI
 
         private void PasswordVisibilityButton_Click(object sender, EventArgs e)
 		{
-			UserSecretTextBox.PasswordChar = !UserSecretTextBox.PasswordChar;
+			UserPasswordTextBox.PasswordChar = !UserPasswordTextBox.PasswordChar;
 
-			PasswordVisibilityButton.Image = UserSecretTextBox.PasswordChar 
+			PasswordVisibilityButton.Image = UserPasswordTextBox.PasswordChar 
 												 ? Properties.Resources.Visible_25 
 												 : Properties.Resources.Hidden_25;
 		}
@@ -264,14 +281,12 @@ namespace IndyPOS.UI
 			if (loggedInUser.RoleId == (int) UserRoleEnum.Cashier)
 			{
 				AddUserButton.Visible = false;
-				DeleteUserButton.Visible = false;
 				UserRoleComboBox.SelectedIndex = loggedInUser.RoleId - 1;
 				UserRoleComboBox.Enabled = false;
 			}
 			else
 			{
 				AddUserButton.Visible = true;
-				DeleteUserButton.Visible = true;
 				UserRoleComboBox.Enabled = true;
 				UserRoleComboBox.SelectedIndex = loggedInUser.RoleId - 1;
 			}

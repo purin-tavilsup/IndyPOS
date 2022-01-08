@@ -14,7 +14,6 @@ namespace IndyPOS.UI
 	public partial class UpdateInventoryProductForm : Form
     {
         private readonly IEventAggregator _eventAggregator;
-        private readonly IStoreConstants _storeConstants;
         private readonly IInventoryController _inventoryController;
 		private readonly MessageForm _messageForm;
         private IReadOnlyDictionary<int, string> _productCategoryDictionary;
@@ -26,9 +25,8 @@ namespace IndyPOS.UI
 										  MessageForm messageForm)
         {
             _eventAggregator = eventAggregator;
-            _storeConstants = storeConstants;
             _inventoryController = inventoryController;
-            _productCategoryDictionary = _storeConstants.ProductCategories;
+            _productCategoryDictionary = storeConstants.ProductCategories;
 			_messageForm = messageForm;
 
             InitializeComponent();
@@ -51,12 +49,11 @@ namespace IndyPOS.UI
         private void PopulateProductProperties()
         {
             DescriptionTextBox.Texts = _product.Description;
-            QuantityTextBox.Texts = _product.QuantityInStock.ToString();
-            UnitPriceTextBox.Texts = _product.UnitPrice.ToString("0.00");
-            UnitCostTextBox.Texts = _product.UnitCost.HasValue ? _product.UnitCost.Value.ToString("0.00") : string.Empty;
+            QuantityLabel.Text = $"{_product.QuantityInStock}";
+            UnitPriceTextBox.Texts = $"{_product.UnitPrice:N}";
             CategoryComboBox.Texts = _productCategoryDictionary[_product.Category];
-            GroupPriceTextBox.Texts = _product.GroupPrice.HasValue ? _product.GroupPrice.Value.ToString("0.00") : string.Empty;
-            GroupPriceQuantityTextBox.Texts = _product.GroupPriceQuantity.HasValue ? _product.GroupPriceQuantity.Value.ToString("0.00") : string.Empty;
+            GroupPriceTextBox.Texts = _product.GroupPrice.HasValue ? $"{_product.GroupPrice.Value:N}" : string.Empty;
+            GroupPriceQuantityTextBox.Texts = _product.GroupPriceQuantity.HasValue ? $"{_product.GroupPriceQuantity.Value}" : string.Empty;
             ManufacturerTextBox.Texts = _product.Manufacturer;
             BrandTextBox.Texts = _product.Brand;
         }
@@ -72,20 +69,6 @@ namespace IndyPOS.UI
             if (string.IsNullOrWhiteSpace(DescriptionTextBox.Texts))
             {
                 _messageForm.Show("กรุณาใส่คำอธิบายสินค้าให้ถูกต้อง", "คำอธิบายสินค้าไม่ถูกต้อง");
-                return false;
-            }
-
-            if(int.TryParse(QuantityTextBox.Texts.Trim(), out var quantity))
-            {
-                if (quantity < 1)
-                {
-                    _messageForm.Show("กรุณาใส่จำนวนสินค้าให้ถูกต้อง", "จำนวนสินค้าไม่ถูกต้อง");
-                    return false;
-                }
-            }
-            else
-            {
-                _messageForm.Show("กรุณาใส่จำนวนสินค้าให้ถูกต้อง", "จำนวนสินค้าไม่ถูกต้อง");
                 return false;
             }
 
@@ -141,15 +124,12 @@ namespace IndyPOS.UI
 
             // Required Attributes
             product.Description = DescriptionTextBox.Texts.Trim();
-            product.QuantityInStock = int.Parse(QuantityTextBox.Texts.Trim());
+            product.QuantityInStock = int.Parse(QuantityLabel.Text.Trim());
             product.UnitPrice = decimal.Parse(UnitPriceTextBox.Texts.Trim());
             product.Category = categoryId;
 
             // Optional Attributes
-            if (decimal.TryParse(UnitCostTextBox.Texts.Trim(), out var unitCost))
-                product.UnitCost = unitCost;
-
-            if (!string.IsNullOrWhiteSpace(ManufacturerTextBox.Texts))
+			if (!string.IsNullOrWhiteSpace(ManufacturerTextBox.Texts))
                 product.Manufacturer = ManufacturerTextBox.Texts;
 
             if (!string.IsNullOrWhiteSpace(BrandTextBox.Texts))
@@ -187,5 +167,50 @@ namespace IndyPOS.UI
 
             Close();
         }
-	}
+
+        private void IncreaseQuantityButton_Click(object sender, EventArgs e)
+        {
+			if (!ValidateQuantity())
+                return;
+
+			var amount = int.Parse(QuantityTextBox.Texts.Trim());
+            var quantity = int.Parse(QuantityLabel.Text.Trim());
+
+			QuantityLabel.Text = $"{quantity + amount}";
+
+			QuantityTextBox.Texts = string.Empty;
+		}
+
+        private void DecreaseQuantityButton_Click(object sender, EventArgs e)
+        {
+			if (!ValidateQuantity())
+				return;
+
+			var amount = int.Parse(QuantityTextBox.Texts.Trim());
+			var quantity = int.Parse(QuantityLabel.Text.Trim());
+
+			QuantityLabel.Text = $"{quantity - amount}";
+
+			QuantityTextBox.Texts = string.Empty;
+        }
+
+        private bool ValidateQuantity()
+        {
+			if(int.TryParse(QuantityTextBox.Texts.Trim(), out var quantity))
+			{
+				if (quantity < 1)
+				{
+					_messageForm.Show("กรุณาใส่จำนวนสินค้าให้ถูกต้อง", "จำนวนสินค้าไม่ถูกต้อง");
+					return false;
+				}
+			}
+			else
+			{
+				_messageForm.Show("กรุณาใส่จำนวนสินค้าให้ถูกต้อง", "จำนวนสินค้าไม่ถูกต้อง");
+				return false;
+			}
+
+			return true;
+		}
+    }
 }

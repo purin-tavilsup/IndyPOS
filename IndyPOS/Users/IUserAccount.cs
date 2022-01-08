@@ -1,6 +1,6 @@
 ﻿namespace IndyPOS.Users
 {
-	public interface IUser
+	public interface IUserAccount
 	{
 		int UserId { get; }
 		string FirstName { get; }

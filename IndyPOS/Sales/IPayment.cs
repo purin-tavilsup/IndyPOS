@@ -2,10 +2,12 @@
 {
 	public interface IPayment
 	{
-		int PaymentTypeId { get; set; }
+		int PaymentTypeId { get; }
 
-		int Priority { get; set; }
+		int Priority { get; }
 
-		decimal Amount { get; set; }
+		decimal Amount { get; }
+
+		string Note { get; }
 	}
 }
