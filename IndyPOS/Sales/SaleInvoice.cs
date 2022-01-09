@@ -15,6 +15,10 @@ namespace IndyPOS.Sales
 
         public decimal PaymentTotal => Payments.Sum(p => p.Amount);
 
+        public decimal BalanceRemaining => InvoiceTotal - PaymentTotal;
+
+        public bool IsRefundInvoice => InvoiceTotal < 0;
+
         public decimal Changes => CalculateChanges();
 
         public SaleInvoice()

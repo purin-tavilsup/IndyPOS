@@ -34,7 +34,9 @@ namespace IndyPOS.Controllers
 
 		public IEnumerable<IFinalInvoiceProduct> HardwareProducts => GetHardwareProducts();
 
-		public decimal InvoicesTotal => GetInvoicesTotal();
+		public decimal InvoicesTotal => CalculateInvoicesTotal();
+
+		public decimal InvoicesTotalWithoutAr => CalculateInvoicesTotalWithoutAr();
 
 		public decimal GeneralGoodsProductsTotal => GetGeneralGoodsProductsTotal();
 
@@ -91,9 +93,16 @@ namespace IndyPOS.Controllers
 			_payments = GetPaymentsByDateRange(startDate, endDate);
 		}
 
-		private decimal GetInvoicesTotal()
+		private decimal CalculateInvoicesTotal()
 		{
 			return Invoices.Sum(x => x.Total);
+		}
+
+		private decimal CalculateInvoicesTotalWithoutAr()
+		{
+			var arTotal = GetPaymentsTotalByType(PaymentType.AccountReceivable);
+
+			return InvoicesTotal - arTotal;
 		}
 
 		private decimal GetGeneralGoodsProductsTotal()

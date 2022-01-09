@@ -183,6 +183,16 @@ namespace IndyPOS.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
+        internal static System.Drawing.Bitmap DollarSymbol_35 {
+            get {
+                object obj = ResourceManager.GetObject("DollarSymbol_35", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
         internal static System.Drawing.Bitmap Hidden_25 {
             get {
                 object obj = ResourceManager.GetObject("Hidden_25", resourceCulture);

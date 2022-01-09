@@ -33,8 +33,14 @@ namespace IndyPOS.UI.Reports
 
 			var hardwareProductsTotal = _reportController.HardwareProductsTotal;
 
+			var invoicesTotalWithoutAr = _reportController.InvoicesTotalWithoutAr;
+
 			OverallSaleLabel.Text = $"{invoicesTotal:N}";
+
+			OverallSaleExcluedArLabel.Text = $"{invoicesTotalWithoutAr:N}";
+			
 			GeneralGoodsSaleLabel.Text = $"{generalGoodsProductsTotal:N}";
+			
 			HardwareSaleLabel.Text = $"{hardwareProductsTotal:N}";
 
 			PaymentByCashLabel.Text = $"{_reportController.GetPaymentsTotalByType(PaymentType.Cash):N}";

@@ -30,6 +30,10 @@ namespace IndyPOS.Controllers
 
         public decimal PaymentTotal => _saleInvoice.PaymentTotal;
 
+		public decimal BalanceRemaining => _saleInvoice.BalanceRemaining;
+
+		public bool IsRefundInvoice => _saleInvoice.IsRefundInvoice;
+
         public decimal Changes => _saleInvoice.Changes;
 
         public SaleInvoiceController(IEventAggregator eventAggregator, 
@@ -344,13 +348,13 @@ namespace IndyPOS.Controllers
         private void AddPaymentToDatabase(IPayment payment, int invoiceId)
         {
 			_invoicesRepository.AddPayment(new DataAccess.Models.Payment
-            {
-                InvoiceId = invoiceId,
-                PaymentTypeId = payment.PaymentTypeId,
-                Amount = payment.Amount,
-				Note = payment.Note
-            });
-        }
+										   {
+											   InvoiceId = invoiceId,
+											   PaymentTypeId = payment.PaymentTypeId,
+											   Amount = payment.Amount,
+											   Note = payment.Note
+										   });
+		}
 
 		private void OnUserLoggedIn(IUserAccount loggedInUser)
 		{
