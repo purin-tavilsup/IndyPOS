@@ -169,8 +169,11 @@ namespace IndyPOS.Devices
 
 		private string GetProductDescription(ISaleInvoice saleInvoice, ISaleInvoiceProduct product)
 		{
+			if (saleInvoice.IsRefundInvoice && product.Note.HasValue())
+				return $"{product.Description} : {product.Note} (คืนสินค้า)"; 
+
 			if (saleInvoice.IsRefundInvoice)
-				return $"{product.Description} : คืนสินค้า";
+				return $"{product.Description} : (คืนสินค้า)";
 
 			if (product.Note.HasValue())
 				return $"{product.Description} : {product.Note}";

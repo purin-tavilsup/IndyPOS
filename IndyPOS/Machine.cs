@@ -6,7 +6,7 @@ namespace IndyPOS
 {
     public class Machine : IMachine
 	{
-		private const string Version = "1.0.6";
+		private const string Version = "1.0.7";
         private readonly MainForm _mainForm;
 		private readonly IConfig _config;
         private readonly IBarcodeScanner _barcodeScanner;
