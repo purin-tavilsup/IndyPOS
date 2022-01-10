@@ -19,8 +19,8 @@ namespace IndyPOS.Controllers
         private readonly IInvoiceRepository _invoicesRepository;
         private readonly IInventoryProductRepository _inventoryProductsRepository;
 		private readonly IReceiptPrinter _receiptPrinter;
+		private readonly IUserAccountHelper _userAccountHelper;
         private ISaleInvoice _saleInvoice;
-		private IUserAccount _loggedInUser;
 
         public IReadOnlyCollection<ISaleInvoiceProduct> Products => (IReadOnlyCollection<ISaleInvoiceProduct>)_saleInvoice.Products;
 
@@ -30,27 +30,29 @@ namespace IndyPOS.Controllers
 
         public decimal PaymentTotal => _saleInvoice.PaymentTotal;
 
+		public decimal BalanceRemaining => _saleInvoice.BalanceRemaining;
+
+		public bool IsRefundInvoice => _saleInvoice.IsRefundInvoice;
+
+		public bool IsPendingPayment => IsRefundInvoice
+											? _saleInvoice.InvoiceTotal != _saleInvoice.PaymentTotal
+											: _saleInvoice.InvoiceTotal > _saleInvoice.PaymentTotal;
+
         public decimal Changes => _saleInvoice.Changes;
 
         public SaleInvoiceController(IEventAggregator eventAggregator, 
 									 IInvoiceRepository invoicesRepository, 
 									 IInventoryProductRepository inventoryProductsRepository,
-									 IReceiptPrinter receiptPrinter)
+									 IReceiptPrinter receiptPrinter,
+									 IUserAccountHelper userAccountHelper)
         {
             _eventAggregator = eventAggregator;
             _invoicesRepository = invoicesRepository;
             _inventoryProductsRepository = inventoryProductsRepository;
 			_receiptPrinter = receiptPrinter;
-
-			SubscribeEvents();
+			_userAccountHelper = userAccountHelper;
 		}
-
-		private void SubscribeEvents()
-		{
-			_eventAggregator.GetEvent<UserLoggedInEvent>().Subscribe(OnUserLoggedIn);
-			_eventAggregator.GetEvent<UserLoggedOutEvent>().Subscribe(OnUserLoggedOut);
-		}
-
+		
         public void StartNewSale()
         {
             _saleInvoice = new SaleInvoice();
@@ -65,7 +67,7 @@ namespace IndyPOS.Controllers
             _eventAggregator.GetEvent<AllPaymentsRemovedEvent>().Publish();
 		}
 
-        public bool AddProduct(string barcode)
+		public bool AddProduct(string barcode)
         { 
             var product = GetInventoryProductByBarcode(barcode);
 
@@ -253,21 +255,26 @@ namespace IndyPOS.Controllers
 		{
 			var message = new List<string>();
 
-			if (_loggedInUser == null)
+			if (_userAccountHelper.LoggedInUser == null)
 				message.Add("ไม่พบผู้ใช้งานในระบบ");
 
             if (!_saleInvoice.Products.Any()) 
-				message.Add("ไม่มีสินค้าในรายการ");
+				message.Add("ไม่มีรายการสินค้า");
 
-            if (InvoiceTotal > PaymentTotal)
-                message.Add("ค้างค่าชำระสินค้า");
+			if (!_saleInvoice.Payments.Any()) 
+				message.Add("ไม่มีรายการเงิน");
+
+            if (IsPendingPayment)
+                message.Add("รายการเงินยังไม่สมบูรณ์");
 
 			return message;
 		}
 
 		public void CompleteSale()
 		{
-            AddInvoiceToDatabase(_saleInvoice, _loggedInUser.UserId);
+			var loggedInUserId = _userAccountHelper.LoggedInUser.UserId;
+
+            AddInvoiceToDatabase(_saleInvoice, loggedInUserId);
 			AddInvoiceProductsToDatabase(_saleInvoice);
             AddPaymentsToDatabase(_saleInvoice);
 			UpdateInventoryProductsSoldOnInvoice(_saleInvoice);
@@ -275,7 +282,9 @@ namespace IndyPOS.Controllers
 
 		public void PrintReceipt()
 		{
-			_receiptPrinter.PrintReceipt(_saleInvoice, _loggedInUser);
+			var loggedInUser = _userAccountHelper.LoggedInUser;
+
+			_receiptPrinter.PrintReceipt(_saleInvoice, loggedInUser);
 		}
 
         private void UpdateInventoryProductsSoldOnInvoice(ISaleInvoice saleInvoice)
@@ -344,22 +353,12 @@ namespace IndyPOS.Controllers
         private void AddPaymentToDatabase(IPayment payment, int invoiceId)
         {
 			_invoicesRepository.AddPayment(new DataAccess.Models.Payment
-            {
-                InvoiceId = invoiceId,
-                PaymentTypeId = payment.PaymentTypeId,
-                Amount = payment.Amount,
-				Note = payment.Note
-            });
-        }
-
-		private void OnUserLoggedIn(IUserAccount loggedInUser)
-		{
-			_loggedInUser = loggedInUser;
-		}
-
-		private void OnUserLoggedOut()
-		{
-			_loggedInUser = null;
+										   {
+											   InvoiceId = invoiceId,
+											   PaymentTypeId = payment.PaymentTypeId,
+											   Amount = payment.Amount,
+											   Note = payment.Note
+										   });
 		}
     }
 }

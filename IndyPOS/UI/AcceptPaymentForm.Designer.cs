@@ -78,6 +78,10 @@
             this.RefundButton = new ModernUI.ModernButton();
             this.CancelAcceptPaymentButton = new ModernUI.ModernButton();
             this.AcceptPaymentButton = new ModernUI.ModernButton();
+            this.panel2 = new System.Windows.Forms.Panel();
+            this.BalanceRemainingLabel = new System.Windows.Forms.Label();
+            this.label6 = new System.Windows.Forms.Label();
+            this.AcceptArPaymentButton = new ModernUI.ModernButton();
             this.panel20.SuspendLayout();
             this.panel21.SuspendLayout();
             this.panel22.SuspendLayout();
@@ -90,6 +94,7 @@
             this.panel30.SuspendLayout();
             this.panel1.SuspendLayout();
             this.NotePanel.SuspendLayout();
+            this.panel2.SuspendLayout();
             this.SuspendLayout();
             // 
             // label1
@@ -348,9 +353,9 @@
             this.PaymentTypeLabel.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(30)))), ((int)(((byte)(30)))), ((int)(((byte)(30)))));
             this.PaymentTypeLabel.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 15.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.PaymentTypeLabel.ForeColor = System.Drawing.Color.PaleGreen;
-            this.PaymentTypeLabel.Location = new System.Drawing.Point(205, 3);
+            this.PaymentTypeLabel.Location = new System.Drawing.Point(255, 3);
             this.PaymentTypeLabel.Name = "PaymentTypeLabel";
-            this.PaymentTypeLabel.Size = new System.Drawing.Size(209, 50);
+            this.PaymentTypeLabel.Size = new System.Drawing.Size(159, 50);
             this.PaymentTypeLabel.TabIndex = 48;
             this.PaymentTypeLabel.Text = "เงินสด";
             this.PaymentTypeLabel.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
@@ -362,7 +367,7 @@
             this.label4.ForeColor = System.Drawing.Color.Gainsboro;
             this.label4.Location = new System.Drawing.Point(4, 2);
             this.label4.Name = "label4";
-            this.label4.Size = new System.Drawing.Size(195, 51);
+            this.label4.Size = new System.Drawing.Size(239, 51);
             this.label4.TabIndex = 47;
             this.label4.Text = "วิธีการชำระเงิน:";
             this.label4.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
@@ -695,6 +700,8 @@
             // 
             this.panel1.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(30)))), ((int)(((byte)(30)))), ((int)(((byte)(30)))));
             this.panel1.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.panel1.Controls.Add(this.AcceptArPaymentButton);
+            this.panel1.Controls.Add(this.panel2);
             this.panel1.Controls.Add(this.NotePanel);
             this.panel1.Controls.Add(this.RefundButton);
             this.panel1.Controls.Add(this.CancelAcceptPaymentButton);
@@ -762,7 +769,7 @@
             this.RefundButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.RefundButton.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 14.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.RefundButton.ForeColor = System.Drawing.Color.White;
-            this.RefundButton.Location = new System.Drawing.Point(1110, 317);
+            this.RefundButton.Location = new System.Drawing.Point(1110, 266);
             this.RefundButton.Name = "RefundButton";
             this.RefundButton.Size = new System.Drawing.Size(220, 70);
             this.RefundButton.TabIndex = 53;
@@ -811,6 +818,61 @@
             this.AcceptPaymentButton.UseVisualStyleBackColor = false;
             this.AcceptPaymentButton.Click += new System.EventHandler(this.AcceptPaymentButton_Click);
             // 
+            // panel2
+            // 
+            this.panel2.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(30)))), ((int)(((byte)(30)))), ((int)(((byte)(30)))));
+            this.panel2.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.panel2.Controls.Add(this.BalanceRemainingLabel);
+            this.panel2.Controls.Add(this.label6);
+            this.panel2.Location = new System.Drawing.Point(116, 50);
+            this.panel2.Name = "panel2";
+            this.panel2.Size = new System.Drawing.Size(419, 58);
+            this.panel2.TabIndex = 55;
+            // 
+            // BalanceRemainingLabel
+            // 
+            this.BalanceRemainingLabel.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(30)))), ((int)(((byte)(30)))), ((int)(((byte)(30)))));
+            this.BalanceRemainingLabel.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 15.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.BalanceRemainingLabel.ForeColor = System.Drawing.Color.PaleGreen;
+            this.BalanceRemainingLabel.Location = new System.Drawing.Point(249, 3);
+            this.BalanceRemainingLabel.Name = "BalanceRemainingLabel";
+            this.BalanceRemainingLabel.Size = new System.Drawing.Size(165, 50);
+            this.BalanceRemainingLabel.TabIndex = 48;
+            this.BalanceRemainingLabel.Text = "0.00";
+            this.BalanceRemainingLabel.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            // 
+            // label6
+            // 
+            this.label6.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(30)))), ((int)(((byte)(30)))), ((int)(((byte)(30)))));
+            this.label6.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 15.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label6.ForeColor = System.Drawing.Color.Gainsboro;
+            this.label6.Location = new System.Drawing.Point(4, 2);
+            this.label6.Name = "label6";
+            this.label6.Size = new System.Drawing.Size(239, 51);
+            this.label6.TabIndex = 47;
+            this.label6.Text = "ยอดคงเหลือที่ต้องชำระ:";
+            this.label6.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
+            // 
+            // AcceptArPaymentButton
+            // 
+            this.AcceptArPaymentButton.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
+            this.AcceptArPaymentButton.BackgroundColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
+            this.AcceptArPaymentButton.BorderColor = System.Drawing.Color.CornflowerBlue;
+            this.AcceptArPaymentButton.BorderRadius = 19;
+            this.AcceptArPaymentButton.BorderSize = 1;
+            this.AcceptArPaymentButton.FlatAppearance.BorderSize = 0;
+            this.AcceptArPaymentButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.AcceptArPaymentButton.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 14.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.AcceptArPaymentButton.ForeColor = System.Drawing.Color.White;
+            this.AcceptArPaymentButton.Location = new System.Drawing.Point(1110, 190);
+            this.AcceptArPaymentButton.Name = "AcceptArPaymentButton";
+            this.AcceptArPaymentButton.Size = new System.Drawing.Size(220, 70);
+            this.AcceptArPaymentButton.TabIndex = 56;
+            this.AcceptArPaymentButton.Text = "ลงบัญชี";
+            this.AcceptArPaymentButton.TextColor = System.Drawing.Color.White;
+            this.AcceptArPaymentButton.UseVisualStyleBackColor = false;
+            this.AcceptArPaymentButton.Click += new System.EventHandler(this.AcceptArPaymentButton_Click);
+            // 
             // AcceptPaymentForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -836,6 +898,7 @@
             this.panel30.ResumeLayout(false);
             this.panel1.ResumeLayout(false);
             this.NotePanel.ResumeLayout(false);
+            this.panel2.ResumeLayout(false);
             this.ResumeLayout(false);
 
         }
@@ -891,5 +954,9 @@
         private System.Windows.Forms.Panel NotePanel;
         private ModernUI.ModernTextBox NoteTextBox;
         private System.Windows.Forms.Label label10;
+        private System.Windows.Forms.Panel panel2;
+        private System.Windows.Forms.Label BalanceRemainingLabel;
+        private System.Windows.Forms.Label label6;
+        private ModernUI.ModernButton AcceptArPaymentButton;
     }
 }

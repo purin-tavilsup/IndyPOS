@@ -1,4 +1,5 @@
 ﻿using IndyPOS.Constants;
+using IndyPOS.Extensions;
 using IndyPOS.Sales;
 using IndyPOS.Users;
 using System;
@@ -139,7 +140,9 @@ namespace IndyPOS.Devices
 			{
 				position.Y += SpaceOffset;
 
-				PrintText(graphics, product.Description, position.X, position.Y);
+				var description = GetProductDescription(saleInvoice, product);
+
+				PrintText(graphics, description, position.X, position.Y);
 
 				position.Y += SpaceOffset;
 
@@ -163,12 +166,26 @@ namespace IndyPOS.Devices
 
 			PrintLine(graphics, position.X, position.Y);
         }
+
+		private string GetProductDescription(ISaleInvoice saleInvoice, ISaleInvoiceProduct product)
+		{
+			if (saleInvoice.IsRefundInvoice && product.Note.HasValue())
+				return $"{product.Description} : {product.Note} (คืนสินค้า)"; 
+
+			if (saleInvoice.IsRefundInvoice)
+				return $"{product.Description} : (คืนสินค้า)";
+
+			if (product.Note.HasValue())
+				return $"{product.Description} : {product.Note}";
+
+			return product.Description;
+		}
 		
 		private void PrintPayments(Graphics graphics, ref Point position, ISaleInvoice saleInvoice)
         {
 			position.Y += SpaceOffset;
 
-			PrintText(graphics, "เงินที่ได้รับ", position.X, position.Y);
+			PrintText(graphics, "รายการเงิน", position.X, position.Y);
 			
 			position.Y += SpaceOffset / 2;
 
@@ -176,7 +193,9 @@ namespace IndyPOS.Devices
 			{
 				position.Y += SpaceOffset;
 				
-				PrintText(graphics, _paymentTypeDictionary[payment.PaymentTypeId], position.X, position.Y);
+				var description = GetPaymentDescription(saleInvoice, payment);
+
+				PrintText(graphics, description, position.X, position.Y);
 				PrintText(graphics, $"{payment.Amount:N}", position.X + PriceColumn, position.Y);
 			}
 
@@ -198,5 +217,18 @@ namespace IndyPOS.Devices
 
 			PrintLine(graphics, position.X, position.Y);
         }
+
+		private string GetPaymentDescription(ISaleInvoice saleInvoice, IPayment payment)
+		{
+			var paymentType = _paymentTypeDictionary[payment.PaymentTypeId];
+
+			if (saleInvoice.IsRefundInvoice)
+				return $"{paymentType} : คืนเงิน";
+
+			if (payment.Note.HasValue())
+				return $"{paymentType} : {payment.Note}";
+
+			return paymentType;
+		}
 	}
 }

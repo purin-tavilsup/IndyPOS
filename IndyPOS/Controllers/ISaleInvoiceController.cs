@@ -15,7 +15,13 @@ namespace IndyPOS.Controllers
 
         decimal PaymentTotal { get; }
 
-        decimal Changes { get; }
+		decimal BalanceRemaining { get; }
+
+		bool IsRefundInvoice { get; }
+
+        bool IsPendingPayment { get; }
+
+		decimal Changes { get; }
 
         void StartNewSale();
 

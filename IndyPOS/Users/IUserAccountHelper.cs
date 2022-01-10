@@ -1,6 +1,6 @@
 ﻿namespace IndyPOS.Users
 {
-    internal interface IUserAccountHelper
+    public interface IUserAccountHelper
     {
 		IUserAccount LoggedInUser { get; }
 

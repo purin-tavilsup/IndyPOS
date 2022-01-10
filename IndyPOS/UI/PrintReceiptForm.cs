@@ -20,8 +20,6 @@ namespace IndyPOS.UI
 		private void PrintReceiptButton_Click(object sender, EventArgs e)
 		{
 			_saleInvoiceController.PrintReceipt();
-
-			Close();
 		}
 
 		private void CloseFormButton_Click(object sender, EventArgs e)

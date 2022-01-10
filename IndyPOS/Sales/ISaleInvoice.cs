@@ -14,6 +14,10 @@ namespace IndyPOS.Sales
 
         decimal PaymentTotal { get; }
 
+		decimal BalanceRemaining { get; }
+
+		bool IsRefundInvoice { get; }
+
         decimal Changes { get; }
 
         void SetSaleInvoiceId(int id);

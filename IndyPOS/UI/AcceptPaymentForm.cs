@@ -52,17 +52,40 @@ namespace IndyPOS.UI
 
         public new void Show()
         {
-            _amount = 0m;
             _pendingStringValue = string.Empty;
             _values.Clear();
 			NoteTextBox.Texts = string.Empty;
 
-            DisplayValue(_amount);
-            ResetPaymentTypeSelection();
-            CancelAcceptPaymentButton.Select();
+			ResetPaymentTypeSelection();
+
+			BalanceRemainingLabel.Text = $"{_saleInvoiceController.BalanceRemaining:N}";
+
+			var isRefundInvoice = _saleInvoiceController.IsRefundInvoice;
+
+			_amount = isRefundInvoice ? _saleInvoiceController.BalanceRemaining : 0m;
+			
+			DisplayValue(_amount);
+
+			AcceptArPaymentButton.Visible = false;
+			RefundButton.Visible = isRefundInvoice;
+			AcceptPaymentButton.Visible = !isRefundInvoice;
+
+			SetAvailablePaymentTypes(isRefundInvoice);
+			
+			CancelAcceptPaymentButton.Select();
 
             base.Show();
         }
+
+		private void SetAvailablePaymentTypes(bool isCashOnly)
+		{
+			PayByMoneyTransferButton.Enabled = !isCashOnly;
+			PayBy5050Button.Enabled = !isCashOnly;
+			PayByArButton.Enabled = !isCashOnly;
+			PayByWeLoveButton.Enabled = !isCashOnly;
+			PayByWelfareCardButton.Enabled = !isCashOnly;
+			PayByWeWinButton.Enabled = !isCashOnly;
+		}
 
         private bool ValidatePaymentType()
 		{
@@ -104,12 +127,9 @@ namespace IndyPOS.UI
 			if (!ValidatePaymentType())
 				return;
 
-			CalculateLatestAmount();
-
 			var note = NoteTextBox.Texts.Trim();
-			var refundAmount = _amount * -1;
 
-			_saleInvoiceController.AddPayment(_selectedPaymentType, refundAmount, note);
+			_saleInvoiceController.AddPayment(_selectedPaymentType, _amount, note);
 
 			Hide();
 		}
@@ -121,118 +141,85 @@ namespace IndyPOS.UI
 
 		private void PayByCashButton_Click(object sender, EventArgs e)
 		{
-            _selectedPaymentType = PaymentType.Cash;
-            _isPaymentTypeSelected = true;
-
-            PaymentTypeLabel.Text = _paymentTypeDictionary[(int)_selectedPaymentType];
+			ChangePaymentType(PaymentType.Cash);
         }
 
 		private void PayByMoneyTransferButton_Click(object sender, EventArgs e)
 		{
-            _selectedPaymentType = PaymentType.MoneyTransfer;
-            _isPaymentTypeSelected = true;
-
-            PaymentTypeLabel.Text = _paymentTypeDictionary[(int)_selectedPaymentType];
+			ChangePaymentType(PaymentType.MoneyTransfer);
         }
 
 		private void PayBy5050Button_Click(object sender, EventArgs e)
 		{
-            _selectedPaymentType = PaymentType.FiftyFifty;
-            _isPaymentTypeSelected = true;
-
-            PaymentTypeLabel.Text = _paymentTypeDictionary[(int)_selectedPaymentType];
+			ChangePaymentType(PaymentType.FiftyFifty);
         }
 
 		private void PayByWeWinButton_Click(object sender, EventArgs e)
 		{
-            _selectedPaymentType = PaymentType.WeWin;
-            _isPaymentTypeSelected = true;
-
-            PaymentTypeLabel.Text = _paymentTypeDictionary[(int)_selectedPaymentType];
+			ChangePaymentType(PaymentType.WeWin);
         }
 
 		private void PayByWelfareCardButton_Click(object sender, EventArgs e)
 		{
-            _selectedPaymentType = PaymentType.WelfareCard;
-            _isPaymentTypeSelected = true;
-
-            PaymentTypeLabel.Text = _paymentTypeDictionary[(int)_selectedPaymentType];
+			ChangePaymentType(PaymentType.WelfareCard);
         }
 
 		private void PayByWeLoveButton_Click(object sender, EventArgs e)
 		{
-            _selectedPaymentType = PaymentType.M33WeLove;
-            _isPaymentTypeSelected = true;
-
-            PaymentTypeLabel.Text = _paymentTypeDictionary[(int)_selectedPaymentType];
+			ChangePaymentType(PaymentType.M33WeLove);
         }
-
+        
 		private void PayByArButton_Click(object sender, EventArgs e)
 		{
-			_selectedPaymentType = PaymentType.AccountReceivable;
+			ChangePaymentType(PaymentType.AccountReceivable);
+
+			DisplayValue(_saleInvoiceController.BalanceRemaining);
+		}
+
+		private void ChangePaymentType(PaymentType type)
+		{
+			_selectedPaymentType = type;
 			_isPaymentTypeSelected = true;
 
-			PaymentTypeLabel.Text = _paymentTypeDictionary[(int)_selectedPaymentType];
+			PaymentTypeLabel.Text = _paymentTypeDictionary[(int) type];
+
+			AcceptPaymentButton.Visible = type != PaymentType.AccountReceivable && !_saleInvoiceController.IsRefundInvoice;
+			AcceptArPaymentButton.Visible = type == PaymentType.AccountReceivable && !_saleInvoiceController.IsRefundInvoice;
 		}
+
+        private void AddByBankNoteValue(decimal value)
+        {
+			_pendingStringValue = string.Empty;
+
+			_values.Add(value);
+			_amount = _values.Sum();
+
+			DisplayValue(_amount);
+        }
 
 		private void Add20Button_Click(object sender, EventArgs e)
 		{
-            _pendingStringValue = string.Empty;
-
-            var value = 20m;
-
-            _values.Add(value);
-            _amount = _values.Sum();
-
-            DisplayValue(_amount);
-        }
+			AddByBankNoteValue(20m);
+		}
 
 		private void Add50Button_Click(object sender, EventArgs e)
 		{
-            _pendingStringValue = string.Empty;
-
-            var value = 50m;
-
-            _values.Add(value);
-            _amount = _values.Sum();
-
-            DisplayValue(_amount);
+			AddByBankNoteValue(50m);
         }
 
 		private void Add100Button_Click(object sender, EventArgs e)
 		{
-            _pendingStringValue = string.Empty;
-
-            var value = 100m;
-
-            _values.Add(value);
-            _amount = _values.Sum();
-
-            DisplayValue(_amount);
+			AddByBankNoteValue(100m);
         }
 
 		private void Add500Button_Click(object sender, EventArgs e)
 		{
-            _pendingStringValue = string.Empty;
-
-            var value = 500m;
-
-            _values.Add(value);
-            _amount = _values.Sum();
-
-            DisplayValue(_amount);
+			AddByBankNoteValue(500m);
         }
 
 		private void Add1000Button_Click(object sender, EventArgs e)
 		{
-            _pendingStringValue = string.Empty;
-
-            var value = 1000m;
-
-            _values.Add(value);
-            _amount = _values.Sum();
-
-            DisplayValue(_amount);
+			AddByBankNoteValue(1000m);
         }
 
 		private void Digit1Button_Click(object sender, EventArgs e)
@@ -360,5 +347,19 @@ namespace IndyPOS.UI
         {
             PaymentAmountLabel.Text = value;
         }
-	}
+
+        private void AcceptArPaymentButton_Click(object sender, EventArgs e)
+        {
+			if (!ValidatePaymentType())
+				return;
+
+			var note = NoteTextBox.Texts.Trim();
+
+			_amount = _saleInvoiceController.BalanceRemaining;
+
+			_saleInvoiceController.AddPayment(_selectedPaymentType, _amount, note);
+
+			Hide();
+        }
+    }
 }

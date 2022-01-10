@@ -650,6 +650,7 @@
     <None Include="Resources\Rungrat-Store-Logo.png" />
     <None Include="Resources\icons\Store.ico" />
     <None Include="Resources\icons\Rungrat-Store.ico" />
+    <None Include="Resources\DollarSymbol_35.png" />
     <Content Include="Rungrat-Store.ico" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

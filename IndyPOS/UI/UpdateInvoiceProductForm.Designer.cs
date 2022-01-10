@@ -56,7 +56,7 @@
             this.ProductCodeLabel.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
             this.ProductCodeLabel.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.ProductCodeLabel.ForeColor = System.Drawing.Color.Gainsboro;
-            this.ProductCodeLabel.Location = new System.Drawing.Point(229, 63);
+            this.ProductCodeLabel.Location = new System.Drawing.Point(253, 63);
             this.ProductCodeLabel.Name = "ProductCodeLabel";
             this.ProductCodeLabel.Size = new System.Drawing.Size(310, 39);
             this.ProductCodeLabel.TabIndex = 24;
@@ -67,7 +67,7 @@
             this.DescriptionLabel.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
             this.DescriptionLabel.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.DescriptionLabel.ForeColor = System.Drawing.Color.Gainsboro;
-            this.DescriptionLabel.Location = new System.Drawing.Point(229, 105);
+            this.DescriptionLabel.Location = new System.Drawing.Point(253, 105);
             this.DescriptionLabel.Name = "DescriptionLabel";
             this.DescriptionLabel.Size = new System.Drawing.Size(310, 39);
             this.DescriptionLabel.TabIndex = 25;
@@ -103,7 +103,7 @@
             this.NoteTextBox.BorderSize = 1;
             this.NoteTextBox.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.NoteTextBox.ForeColor = System.Drawing.Color.Gainsboro;
-            this.NoteTextBox.Location = new System.Drawing.Point(229, 246);
+            this.NoteTextBox.Location = new System.Drawing.Point(253, 246);
             this.NoteTextBox.Multiline = false;
             this.NoteTextBox.Name = "NoteTextBox";
             this.NoteTextBox.Padding = new System.Windows.Forms.Padding(7);
@@ -120,9 +120,9 @@
             this.NoteLabel.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
             this.NoteLabel.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.NoteLabel.ForeColor = System.Drawing.Color.Gainsboro;
-            this.NoteLabel.Location = new System.Drawing.Point(106, 246);
+            this.NoteLabel.Location = new System.Drawing.Point(107, 246);
             this.NoteLabel.Name = "NoteLabel";
-            this.NoteLabel.Size = new System.Drawing.Size(117, 39);
+            this.NoteLabel.Size = new System.Drawing.Size(140, 39);
             this.NoteLabel.TabIndex = 54;
             this.NoteLabel.Text = "Note";
             this.NoteLabel.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
@@ -134,7 +134,7 @@
             this.UnitPriceTextBox.BorderSize = 1;
             this.UnitPriceTextBox.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.UnitPriceTextBox.ForeColor = System.Drawing.Color.Gainsboro;
-            this.UnitPriceTextBox.Location = new System.Drawing.Point(229, 201);
+            this.UnitPriceTextBox.Location = new System.Drawing.Point(253, 201);
             this.UnitPriceTextBox.Multiline = false;
             this.UnitPriceTextBox.Name = "UnitPriceTextBox";
             this.UnitPriceTextBox.Padding = new System.Windows.Forms.Padding(7);
@@ -151,11 +151,11 @@
             this.UnitPriceLabel.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
             this.UnitPriceLabel.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.UnitPriceLabel.ForeColor = System.Drawing.Color.Gainsboro;
-            this.UnitPriceLabel.Location = new System.Drawing.Point(106, 201);
+            this.UnitPriceLabel.Location = new System.Drawing.Point(107, 201);
             this.UnitPriceLabel.Name = "UnitPriceLabel";
-            this.UnitPriceLabel.Size = new System.Drawing.Size(117, 39);
+            this.UnitPriceLabel.Size = new System.Drawing.Size(140, 39);
             this.UnitPriceLabel.TabIndex = 52;
-            this.UnitPriceLabel.Text = "ราคาขาย";
+            this.UnitPriceLabel.Text = "ราคาขาย ต่อหน่วย";
             this.UnitPriceLabel.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
             // 
             // DecreaseQuantityButton
@@ -170,7 +170,7 @@
             this.DecreaseQuantityButton.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.DecreaseQuantityButton.ForeColor = System.Drawing.Color.White;
             this.DecreaseQuantityButton.Image = global::IndyPOS.Properties.Resources.Minus_35;
-            this.DecreaseQuantityButton.Location = new System.Drawing.Point(500, 148);
+            this.DecreaseQuantityButton.Location = new System.Drawing.Point(524, 148);
             this.DecreaseQuantityButton.Name = "DecreaseQuantityButton";
             this.DecreaseQuantityButton.Size = new System.Drawing.Size(39, 39);
             this.DecreaseQuantityButton.TabIndex = 39;
@@ -190,7 +190,7 @@
             this.IncreaseQuantityButton.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.IncreaseQuantityButton.ForeColor = System.Drawing.Color.White;
             this.IncreaseQuantityButton.Image = global::IndyPOS.Properties.Resources.Plus_35;
-            this.IncreaseQuantityButton.Location = new System.Drawing.Point(229, 148);
+            this.IncreaseQuantityButton.Location = new System.Drawing.Point(253, 148);
             this.IncreaseQuantityButton.Name = "IncreaseQuantityButton";
             this.IncreaseQuantityButton.Size = new System.Drawing.Size(39, 39);
             this.IncreaseQuantityButton.TabIndex = 38;
@@ -294,7 +294,7 @@
             this.QuantityTextBox.BorderSize = 1;
             this.QuantityTextBox.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.QuantityTextBox.ForeColor = System.Drawing.Color.Gainsboro;
-            this.QuantityTextBox.Location = new System.Drawing.Point(274, 148);
+            this.QuantityTextBox.Location = new System.Drawing.Point(298, 148);
             this.QuantityTextBox.Multiline = false;
             this.QuantityTextBox.Name = "QuantityTextBox";
             this.QuantityTextBox.Padding = new System.Windows.Forms.Padding(7);
@@ -311,9 +311,9 @@
             this.label4.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
             this.label4.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.label4.ForeColor = System.Drawing.Color.Gainsboro;
-            this.label4.Location = new System.Drawing.Point(106, 148);
+            this.label4.Location = new System.Drawing.Point(107, 148);
             this.label4.Name = "label4";
-            this.label4.Size = new System.Drawing.Size(117, 39);
+            this.label4.Size = new System.Drawing.Size(140, 39);
             this.label4.TabIndex = 33;
             this.label4.Text = "จำนวน";
             this.label4.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
@@ -323,9 +323,9 @@
             this.label3.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
             this.label3.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.label3.ForeColor = System.Drawing.Color.Gainsboro;
-            this.label3.Location = new System.Drawing.Point(106, 105);
+            this.label3.Location = new System.Drawing.Point(107, 105);
             this.label3.Name = "label3";
-            this.label3.Size = new System.Drawing.Size(117, 39);
+            this.label3.Size = new System.Drawing.Size(140, 39);
             this.label3.TabIndex = 32;
             this.label3.Text = "คำอธิบาย";
             this.label3.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
@@ -335,9 +335,9 @@
             this.label2.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
             this.label2.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.label2.ForeColor = System.Drawing.Color.Gainsboro;
-            this.label2.Location = new System.Drawing.Point(106, 63);
+            this.label2.Location = new System.Drawing.Point(107, 63);
             this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(117, 39);
+            this.label2.Size = new System.Drawing.Size(140, 39);
             this.label2.TabIndex = 31;
             this.label2.Text = "รหัสสินค้า";
             this.label2.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
