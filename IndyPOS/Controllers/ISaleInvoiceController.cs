@@ -19,6 +19,8 @@ namespace IndyPOS.Controllers
 
 		bool IsRefundInvoice { get; }
 
+        bool IsPendingPayment { get; }
+
 		decimal Changes { get; }
 
         void StartNewSale();

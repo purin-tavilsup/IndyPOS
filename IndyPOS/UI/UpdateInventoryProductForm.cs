@@ -43,6 +43,8 @@ namespace IndyPOS.UI
 
             CancelUpdateProductButton.Select();
 
+			RemoveProductButton.Enabled = product.IsTrackable;
+
             ShowDialog();
         }
 
@@ -58,7 +60,7 @@ namespace IndyPOS.UI
             BrandTextBox.Texts = _product.Brand;
         }
 
-        private bool ValidateProductEntry()
+		private bool ValidateProductEntry()
         {
             if (string.IsNullOrWhiteSpace(ProductCodeTextBox.Texts))
             {

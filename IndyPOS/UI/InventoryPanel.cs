@@ -138,7 +138,7 @@ namespace IndyPOS.UI
 
 		private void ShowProductsByCategoryId(int id)
 		{
-            var products = _inventoryController.GetInventoryProductsByCategoryId(id);
+			var products = _inventoryController.GetInventoryProductsByCategoryId(id);
 
             ProductDataView.Rows.Clear();
 
@@ -163,7 +163,7 @@ namespace IndyPOS.UI
             productRow[(int)ProductColumn.ProductCode] = product.Barcode;
             productRow[(int)ProductColumn.Description] = product.Description;
             productRow[(int)ProductColumn.QuantityInStock] = product.QuantityInStock.ToString();
-            productRow[(int)ProductColumn.UnitPrice] = product.UnitPrice.ToString("0.00");
+			productRow[(int) ProductColumn.UnitPrice] = $"{product.UnitPrice:N}";
             productRow[(int)ProductColumn.GroupPrice] = product.GroupPrice?.ToString("0.00") ?? string.Empty;
 			productRow[(int)ProductColumn.GroupPriceQuantity] = product.GroupPriceQuantity?.ToString() ?? string.Empty;
 			productRow[(int)ProductColumn.Category] = category;

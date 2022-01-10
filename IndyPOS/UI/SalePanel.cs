@@ -152,23 +152,21 @@ namespace IndyPOS.UI
 
 		private void SaleInvoiceProductChanged()
         {
-            InvoiceDataView.UIThread(delegate
-            {
-                InvoiceDataView.Rows.Clear();
+            this.UIThread(delegate
+						  {
+							  InvoiceDataView.Rows.Clear();
 
-                var products = _saleInvoiceController.Products;
+							  var products = _saleInvoiceController.Products;
 
-                foreach (var product in products)
-                {
-                    AddProductToInvoiceDataView(product);
-                }
-            });
+							  foreach (var product in products)
+							  {
+								  AddProductToInvoiceDataView(product);
+							  }
 
-            TotalLabel.UIThread(delegate
-            {
-                TotalLabel.Text = $"{_saleInvoiceController.InvoiceTotal:N}";
-            });
-        }
+							  InvoiceTotalLabel.Text = $"{_saleInvoiceController.InvoiceTotal:N}";
+							  ChangesLabel.Text = $"{_saleInvoiceController.Changes:N}";
+						  });
+		}
 
         private void AddProductToInvoiceDataView(ISaleInvoiceProduct product)
         {
@@ -202,7 +200,14 @@ namespace IndyPOS.UI
 
         private void GetPaymentButton_Click(object sender, EventArgs e)
         {
-            if (_acceptPaymentForm.Visible)
+			if (!_saleInvoiceController.IsPendingPayment)
+			{
+				_messageForm.Show("รายการเงินที่รับมาสมบูรณ์แล้ว", "ไม่สามารถรับรายการเงินเพิ่มได้อีก");
+
+                return;
+			}
+
+			if (_acceptPaymentForm.Visible)
                 _acceptPaymentForm.Hide();
 
             _acceptPaymentForm.Show();
@@ -259,41 +264,35 @@ namespace IndyPOS.UI
 
         private void PaymentChanged()
 		{
-            PaymentDataView.UIThread(delegate
-            {
-                PaymentDataView.Rows.Clear();
+            this.UIThread(delegate
+						  {
+							  PaymentDataView.Rows.Clear();
 
-                var payments = _saleInvoiceController.Payments;
+							  var payments = _saleInvoiceController.Payments;
 
-                foreach (var payment in payments)
-                {
-                    AddPaymentToPaymentDataView(payment);
-                }
-            });
+							  foreach (var payment in payments)
+							  {
+								  AddPaymentToPaymentDataView(payment);
+							  }
 
-            TotalLabel.UIThread(delegate
-            {
-                TotalPaymentsLabel.Text = $"{_saleInvoiceController.PaymentTotal:N}";
-                ChangesLabel.Text = $"{_saleInvoiceController.Changes:N}";
-            });
-        }
+							  PaymentsTotalLabel.Text = $"{_saleInvoiceController.PaymentTotal:N}";
+							  ChangesLabel.Text = $"{_saleInvoiceController.Changes:N}";
+						  });
+		}
 
         private void ResetSaleInvoiceScreen()
 		{
-            InvoiceDataView.UIThread(delegate
-            {
-                InvoiceDataView.Rows.Clear();
+            this.UIThread(delegate
+						  {
+							  InvoiceDataView.Rows.Clear();
 
-				TotalLabel.Text = $"{_saleInvoiceController.InvoiceTotal:N}";
-                TotalPaymentsLabel.Text = $"{_saleInvoiceController.PaymentTotal:N}";
-                ChangesLabel.Text = $"{_saleInvoiceController.Changes:N}";
-            });
+							  InvoiceTotalLabel.Text = $"{_saleInvoiceController.InvoiceTotal:N}";
+							  PaymentsTotalLabel.Text = $"{_saleInvoiceController.PaymentTotal:N}";
+							  ChangesLabel.Text = $"{_saleInvoiceController.Changes:N}";
 
-            PaymentDataView.UIThread(delegate
-            {
-                PaymentDataView.Rows.Clear();
-            });
-        }
+							  PaymentDataView.Rows.Clear();
+						  });
+		}
 
         private void BarcodeReceived(string barcode)
 		{
@@ -318,14 +317,14 @@ namespace IndyPOS.UI
 
         private void AddGeneralGoodsProductButton_Click(object sender, EventArgs e)
 		{
-			const string generalGoodsCode = "NONTRACTABLE1";
+			const string generalGoodsCode = "GP00000000001";
 
 			_eventAggregator.GetEvent<BarcodeReceivedEvent>().Publish(generalGoodsCode);
 		}
 
         private void AddHardwareProductButton_Click(object sender, EventArgs e)
 		{
-			const string hardwareCode = "NONTRACTABLE2";
+			const string hardwareCode = "HW00000000001";
 
 			_eventAggregator.GetEvent<BarcodeReceivedEvent>().Publish(hardwareCode);
         }

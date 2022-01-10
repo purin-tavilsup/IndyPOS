@@ -75,11 +75,11 @@
             this.label5 = new System.Windows.Forms.Label();
             this.panel15 = new System.Windows.Forms.Panel();
             this.SaveSaleRecordsDateTimePicker = new System.Windows.Forms.DateTimePicker();
+            this.WriteSaleRecordsToFileButton = new ModernUI.ModernButton();
             this.label12 = new System.Windows.Forms.Label();
             this.panel16 = new System.Windows.Forms.Panel();
             this.OverallSaleExcluedArLabel = new System.Windows.Forms.Label();
             this.label15 = new System.Windows.Forms.Label();
-            this.WriteSaleRecordsToFileButton = new ModernUI.ModernButton();
             this.panel9.SuspendLayout();
             this.panel13.SuspendLayout();
             this.panel12.SuspendLayout();
@@ -128,7 +128,7 @@
             this.PaymentByArLabel.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(35)))), ((int)(((byte)(35)))), ((int)(((byte)(35)))));
             this.PaymentByArLabel.Dock = System.Windows.Forms.DockStyle.Fill;
             this.PaymentByArLabel.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 15.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.PaymentByArLabel.ForeColor = System.Drawing.Color.PaleGreen;
+            this.PaymentByArLabel.ForeColor = System.Drawing.Color.OrangeRed;
             this.PaymentByArLabel.Location = new System.Drawing.Point(196, 0);
             this.PaymentByArLabel.Name = "PaymentByArLabel";
             this.PaymentByArLabel.Size = new System.Drawing.Size(210, 45);
@@ -695,6 +695,29 @@
             this.SaveSaleRecordsDateTimePicker.Size = new System.Drawing.Size(293, 25);
             this.SaveSaleRecordsDateTimePicker.TabIndex = 101;
             // 
+            // WriteSaleRecordsToFileButton
+            // 
+            this.WriteSaleRecordsToFileButton.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
+            this.WriteSaleRecordsToFileButton.BackgroundColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
+            this.WriteSaleRecordsToFileButton.BorderColor = System.Drawing.Color.Turquoise;
+            this.WriteSaleRecordsToFileButton.BorderRadius = 19;
+            this.WriteSaleRecordsToFileButton.BorderSize = 1;
+            this.WriteSaleRecordsToFileButton.FlatAppearance.BorderSize = 0;
+            this.WriteSaleRecordsToFileButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.WriteSaleRecordsToFileButton.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.WriteSaleRecordsToFileButton.ForeColor = System.Drawing.Color.White;
+            this.WriteSaleRecordsToFileButton.Image = global::IndyPOS.Properties.Resources.Save_50;
+            this.WriteSaleRecordsToFileButton.Location = new System.Drawing.Point(19, 102);
+            this.WriteSaleRecordsToFileButton.Name = "WriteSaleRecordsToFileButton";
+            this.WriteSaleRecordsToFileButton.Size = new System.Drawing.Size(293, 96);
+            this.WriteSaleRecordsToFileButton.TabIndex = 84;
+            this.WriteSaleRecordsToFileButton.Text = " บันทึก";
+            this.WriteSaleRecordsToFileButton.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
+            this.WriteSaleRecordsToFileButton.TextColor = System.Drawing.Color.White;
+            this.WriteSaleRecordsToFileButton.TextImageRelation = System.Windows.Forms.TextImageRelation.ImageBeforeText;
+            this.WriteSaleRecordsToFileButton.UseVisualStyleBackColor = false;
+            this.WriteSaleRecordsToFileButton.Click += new System.EventHandler(this.WriteSaleRecordsToFileButton_Click);
+            // 
             // label12
             // 
             this.label12.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
@@ -742,29 +765,6 @@
             this.label15.TabIndex = 83;
             this.label15.Text = " ยอดขาย : ทั้งหมด ( หักส่วนที่ลงบัญชี )";
             this.label15.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
-            // 
-            // WriteSaleRecordsToFileButton
-            // 
-            this.WriteSaleRecordsToFileButton.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
-            this.WriteSaleRecordsToFileButton.BackgroundColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
-            this.WriteSaleRecordsToFileButton.BorderColor = System.Drawing.Color.Turquoise;
-            this.WriteSaleRecordsToFileButton.BorderRadius = 19;
-            this.WriteSaleRecordsToFileButton.BorderSize = 1;
-            this.WriteSaleRecordsToFileButton.FlatAppearance.BorderSize = 0;
-            this.WriteSaleRecordsToFileButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.WriteSaleRecordsToFileButton.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.WriteSaleRecordsToFileButton.ForeColor = System.Drawing.Color.White;
-            this.WriteSaleRecordsToFileButton.Image = global::IndyPOS.Properties.Resources.Save_50;
-            this.WriteSaleRecordsToFileButton.Location = new System.Drawing.Point(19, 102);
-            this.WriteSaleRecordsToFileButton.Name = "WriteSaleRecordsToFileButton";
-            this.WriteSaleRecordsToFileButton.Size = new System.Drawing.Size(293, 96);
-            this.WriteSaleRecordsToFileButton.TabIndex = 84;
-            this.WriteSaleRecordsToFileButton.Text = " บันทึก";
-            this.WriteSaleRecordsToFileButton.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
-            this.WriteSaleRecordsToFileButton.TextColor = System.Drawing.Color.White;
-            this.WriteSaleRecordsToFileButton.TextImageRelation = System.Windows.Forms.TextImageRelation.ImageBeforeText;
-            this.WriteSaleRecordsToFileButton.UseVisualStyleBackColor = false;
-            this.WriteSaleRecordsToFileButton.Click += new System.EventHandler(this.WriteSaleRecordsToFileButton_Click);
             // 
             // SalesReportPanel
             // 

@@ -28,13 +28,13 @@
         /// </summary>
         private void InitializeComponent()
         {
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle13 = new System.Windows.Forms.DataGridViewCellStyle();
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle14 = new System.Windows.Forms.DataGridViewCellStyle();
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle15 = new System.Windows.Forms.DataGridViewCellStyle();
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle16 = new System.Windows.Forms.DataGridViewCellStyle();
-            this.label1 = new System.Windows.Forms.Label();
-            this.TotalLabel = new System.Windows.Forms.Label();
-            this.TotalPaymentsLabel = new System.Windows.Forms.Label();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle1 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle2 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle3 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle4 = new System.Windows.Forms.DataGridViewCellStyle();
+            this.InvoiceTotalCaptionLabel = new System.Windows.Forms.Label();
+            this.InvoiceTotalLabel = new System.Windows.Forms.Label();
+            this.PaymentsTotalLabel = new System.Windows.Forms.Label();
             this.label4 = new System.Windows.Forms.Label();
             this.ChangesLabel = new System.Windows.Forms.Label();
             this.InvoiceDataView = new System.Windows.Forms.DataGridView();
@@ -47,10 +47,13 @@
             this.dataGridViewTextBoxColumn1 = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.panel2 = new System.Windows.Forms.Panel();
             this.panel8 = new System.Windows.Forms.Panel();
+            this.CancelSaleInvoiceButton = new ModernUI.ModernButton();
             this.label3 = new System.Windows.Forms.Label();
             this.panel9 = new System.Windows.Forms.Panel();
             this.ClearAllPaymentsButton = new ModernUI.ModernButton();
             this.panel3 = new System.Windows.Forms.Panel();
+            this.LookUpProductButton = new ModernUI.ModernButton();
+            this.ProductLookUpTextBox = new ModernUI.ModernTextBox();
             this.AddHardwareProductButton = new ModernUI.ModernButton();
             this.AddGeneralGoodsProductButton = new ModernUI.ModernButton();
             this.PaymentDataView = new System.Windows.Forms.DataGridView();
@@ -60,12 +63,9 @@
             this.Note = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.label5 = new System.Windows.Forms.Label();
             this.panel1 = new System.Windows.Forms.Panel();
-            this.label2 = new System.Windows.Forms.Label();
+            this.PaymentsTotalCaptionLabel = new System.Windows.Forms.Label();
             this.GetPaymentButton = new System.Windows.Forms.Button();
             this.SaveSaleInvoiceButton = new System.Windows.Forms.Button();
-            this.CancelSaleInvoiceButton = new System.Windows.Forms.Button();
-            this.ProductLookUpTextBox = new ModernUI.ModernTextBox();
-            this.LookUpProductButton = new ModernUI.ModernButton();
             ((System.ComponentModel.ISupportInitialize)(this.InvoiceDataView)).BeginInit();
             this.panel2.SuspendLayout();
             this.panel8.SuspendLayout();
@@ -75,50 +75,50 @@
             this.panel1.SuspendLayout();
             this.SuspendLayout();
             // 
-            // label1
+            // InvoiceTotalCaptionLabel
             // 
-            this.label1.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(40)))), ((int)(((byte)(40)))), ((int)(((byte)(40)))));
-            this.label1.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 26.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label1.ForeColor = System.Drawing.Color.Gainsboro;
-            this.label1.Location = new System.Drawing.Point(3, 3);
-            this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(360, 100);
-            this.label1.TabIndex = 1;
-            this.label1.Text = "ยอดที่ต้องชำระ";
-            this.label1.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            this.InvoiceTotalCaptionLabel.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(40)))), ((int)(((byte)(40)))), ((int)(((byte)(40)))));
+            this.InvoiceTotalCaptionLabel.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 26.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.InvoiceTotalCaptionLabel.ForeColor = System.Drawing.Color.Gainsboro;
+            this.InvoiceTotalCaptionLabel.Location = new System.Drawing.Point(3, 3);
+            this.InvoiceTotalCaptionLabel.Name = "InvoiceTotalCaptionLabel";
+            this.InvoiceTotalCaptionLabel.Size = new System.Drawing.Size(360, 112);
+            this.InvoiceTotalCaptionLabel.TabIndex = 1;
+            this.InvoiceTotalCaptionLabel.Text = "ยอดที่ต้องชำระ";
+            this.InvoiceTotalCaptionLabel.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             // 
-            // TotalLabel
+            // InvoiceTotalLabel
             // 
-            this.TotalLabel.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(40)))), ((int)(((byte)(40)))), ((int)(((byte)(40)))));
-            this.TotalLabel.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 27.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.TotalLabel.ForeColor = System.Drawing.Color.PaleGreen;
-            this.TotalLabel.Location = new System.Drawing.Point(3, 107);
-            this.TotalLabel.Name = "TotalLabel";
-            this.TotalLabel.Size = new System.Drawing.Size(360, 82);
-            this.TotalLabel.TabIndex = 0;
-            this.TotalLabel.Text = "0.00";
-            this.TotalLabel.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            this.InvoiceTotalLabel.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(40)))), ((int)(((byte)(40)))), ((int)(((byte)(40)))));
+            this.InvoiceTotalLabel.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 36F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.InvoiceTotalLabel.ForeColor = System.Drawing.Color.OrangeRed;
+            this.InvoiceTotalLabel.Location = new System.Drawing.Point(3, 117);
+            this.InvoiceTotalLabel.Name = "InvoiceTotalLabel";
+            this.InvoiceTotalLabel.Size = new System.Drawing.Size(360, 112);
+            this.InvoiceTotalLabel.TabIndex = 0;
+            this.InvoiceTotalLabel.Text = "0.00";
+            this.InvoiceTotalLabel.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             // 
-            // TotalPaymentsLabel
+            // PaymentsTotalLabel
             // 
-            this.TotalPaymentsLabel.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(40)))), ((int)(((byte)(40)))), ((int)(((byte)(40)))));
-            this.TotalPaymentsLabel.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 27.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.TotalPaymentsLabel.ForeColor = System.Drawing.Color.PaleGreen;
-            this.TotalPaymentsLabel.Location = new System.Drawing.Point(3, 297);
-            this.TotalPaymentsLabel.Name = "TotalPaymentsLabel";
-            this.TotalPaymentsLabel.Size = new System.Drawing.Size(360, 82);
-            this.TotalPaymentsLabel.TabIndex = 2;
-            this.TotalPaymentsLabel.Text = "0.00";
-            this.TotalPaymentsLabel.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            this.PaymentsTotalLabel.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(40)))), ((int)(((byte)(40)))), ((int)(((byte)(40)))));
+            this.PaymentsTotalLabel.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 36F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.PaymentsTotalLabel.ForeColor = System.Drawing.Color.PaleGreen;
+            this.PaymentsTotalLabel.Location = new System.Drawing.Point(3, 345);
+            this.PaymentsTotalLabel.Name = "PaymentsTotalLabel";
+            this.PaymentsTotalLabel.Size = new System.Drawing.Size(360, 112);
+            this.PaymentsTotalLabel.TabIndex = 2;
+            this.PaymentsTotalLabel.Text = "0.00";
+            this.PaymentsTotalLabel.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             // 
             // label4
             // 
             this.label4.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(40)))), ((int)(((byte)(40)))), ((int)(((byte)(40)))));
             this.label4.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 26.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.label4.ForeColor = System.Drawing.Color.Gainsboro;
-            this.label4.Location = new System.Drawing.Point(3, 383);
+            this.label4.Location = new System.Drawing.Point(3, 459);
             this.label4.Name = "label4";
-            this.label4.Size = new System.Drawing.Size(360, 100);
+            this.label4.Size = new System.Drawing.Size(360, 112);
             this.label4.TabIndex = 5;
             this.label4.Text = "เงินทอน";
             this.label4.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
@@ -126,11 +126,11 @@
             // ChangesLabel
             // 
             this.ChangesLabel.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(40)))), ((int)(((byte)(40)))), ((int)(((byte)(40)))));
-            this.ChangesLabel.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 27.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.ChangesLabel.ForeColor = System.Drawing.Color.PaleGreen;
-            this.ChangesLabel.Location = new System.Drawing.Point(3, 487);
+            this.ChangesLabel.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 36F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.ChangesLabel.ForeColor = System.Drawing.Color.CornflowerBlue;
+            this.ChangesLabel.Location = new System.Drawing.Point(2, 573);
             this.ChangesLabel.Name = "ChangesLabel";
-            this.ChangesLabel.Size = new System.Drawing.Size(360, 82);
+            this.ChangesLabel.Size = new System.Drawing.Size(360, 112);
             this.ChangesLabel.TabIndex = 4;
             this.ChangesLabel.Text = "0.00";
             this.ChangesLabel.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
@@ -145,13 +145,13 @@
             this.InvoiceDataView.BorderStyle = System.Windows.Forms.BorderStyle.None;
             this.InvoiceDataView.CellBorderStyle = System.Windows.Forms.DataGridViewCellBorderStyle.SingleHorizontal;
             this.InvoiceDataView.ColumnHeadersBorderStyle = System.Windows.Forms.DataGridViewHeaderBorderStyle.None;
-            dataGridViewCellStyle13.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleCenter;
-            dataGridViewCellStyle13.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(48)))), ((int)(((byte)(48)))), ((int)(((byte)(48)))));
-            dataGridViewCellStyle13.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 15.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            dataGridViewCellStyle13.ForeColor = System.Drawing.Color.Gainsboro;
-            dataGridViewCellStyle13.Padding = new System.Windows.Forms.Padding(10, 0, 0, 0);
-            dataGridViewCellStyle13.SelectionBackColor = System.Drawing.Color.Gray;
-            this.InvoiceDataView.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle13;
+            dataGridViewCellStyle1.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleCenter;
+            dataGridViewCellStyle1.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(48)))), ((int)(((byte)(48)))), ((int)(((byte)(48)))));
+            dataGridViewCellStyle1.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 15.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            dataGridViewCellStyle1.ForeColor = System.Drawing.Color.Gainsboro;
+            dataGridViewCellStyle1.Padding = new System.Windows.Forms.Padding(10, 0, 0, 0);
+            dataGridViewCellStyle1.SelectionBackColor = System.Drawing.Color.Gray;
+            this.InvoiceDataView.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle1;
             this.InvoiceDataView.ColumnHeadersHeight = 50;
             this.InvoiceDataView.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.DisableResizing;
             this.InvoiceDataView.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
@@ -162,14 +162,14 @@
             this.UnitPrice,
             this.Total,
             this.dataGridViewTextBoxColumn1});
-            dataGridViewCellStyle14.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
-            dataGridViewCellStyle14.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
-            dataGridViewCellStyle14.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            dataGridViewCellStyle14.ForeColor = System.Drawing.Color.Gainsboro;
-            dataGridViewCellStyle14.SelectionBackColor = System.Drawing.SystemColors.Highlight;
-            dataGridViewCellStyle14.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
-            dataGridViewCellStyle14.WrapMode = System.Windows.Forms.DataGridViewTriState.False;
-            this.InvoiceDataView.DefaultCellStyle = dataGridViewCellStyle14;
+            dataGridViewCellStyle2.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle2.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
+            dataGridViewCellStyle2.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            dataGridViewCellStyle2.ForeColor = System.Drawing.Color.Gainsboro;
+            dataGridViewCellStyle2.SelectionBackColor = System.Drawing.SystemColors.Highlight;
+            dataGridViewCellStyle2.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
+            dataGridViewCellStyle2.WrapMode = System.Windows.Forms.DataGridViewTriState.False;
+            this.InvoiceDataView.DefaultCellStyle = dataGridViewCellStyle2;
             this.InvoiceDataView.Dock = System.Windows.Forms.DockStyle.Fill;
             this.InvoiceDataView.EnableHeadersVisualStyles = false;
             this.InvoiceDataView.GridColor = System.Drawing.Color.DimGray;
@@ -258,6 +258,7 @@
             // panel8
             // 
             this.panel8.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(30)))), ((int)(((byte)(30)))), ((int)(((byte)(30)))));
+            this.panel8.Controls.Add(this.CancelSaleInvoiceButton);
             this.panel8.Controls.Add(this.InvoiceDataView);
             this.panel8.Controls.Add(this.label3);
             this.panel8.Dock = System.Windows.Forms.DockStyle.Fill;
@@ -266,6 +267,26 @@
             this.panel8.Padding = new System.Windows.Forms.Padding(3);
             this.panel8.Size = new System.Drawing.Size(1434, 672);
             this.panel8.TabIndex = 3;
+            // 
+            // CancelSaleInvoiceButton
+            // 
+            this.CancelSaleInvoiceButton.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
+            this.CancelSaleInvoiceButton.BackgroundColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
+            this.CancelSaleInvoiceButton.BorderColor = System.Drawing.Color.FromArgb(((int)(((byte)(224)))), ((int)(((byte)(79)))), ((int)(((byte)(95)))));
+            this.CancelSaleInvoiceButton.BorderRadius = 18;
+            this.CancelSaleInvoiceButton.BorderSize = 1;
+            this.CancelSaleInvoiceButton.FlatAppearance.BorderSize = 0;
+            this.CancelSaleInvoiceButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.CancelSaleInvoiceButton.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.CancelSaleInvoiceButton.ForeColor = System.Drawing.Color.White;
+            this.CancelSaleInvoiceButton.Location = new System.Drawing.Point(1056, 3);
+            this.CancelSaleInvoiceButton.Name = "CancelSaleInvoiceButton";
+            this.CancelSaleInvoiceButton.Size = new System.Drawing.Size(199, 37);
+            this.CancelSaleInvoiceButton.TabIndex = 49;
+            this.CancelSaleInvoiceButton.Text = "ยกเลิกการขาย";
+            this.CancelSaleInvoiceButton.TextColor = System.Drawing.Color.White;
+            this.CancelSaleInvoiceButton.UseVisualStyleBackColor = false;
+            this.CancelSaleInvoiceButton.Click += new System.EventHandler(this.CancelSaleInvoiceButton_Click);
             // 
             // label3
             // 
@@ -328,6 +349,47 @@
             this.panel3.Size = new System.Drawing.Size(394, 252);
             this.panel3.TabIndex = 50;
             // 
+            // LookUpProductButton
+            // 
+            this.LookUpProductButton.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
+            this.LookUpProductButton.BackgroundColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
+            this.LookUpProductButton.BorderColor = System.Drawing.Color.Turquoise;
+            this.LookUpProductButton.BorderRadius = 5;
+            this.LookUpProductButton.BorderSize = 1;
+            this.LookUpProductButton.FlatAppearance.BorderSize = 0;
+            this.LookUpProductButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.LookUpProductButton.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 15.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.LookUpProductButton.ForeColor = System.Drawing.Color.White;
+            this.LookUpProductButton.Image = global::IndyPOS.Properties.Resources.Search_50;
+            this.LookUpProductButton.Location = new System.Drawing.Point(239, 10);
+            this.LookUpProductButton.Name = "LookUpProductButton";
+            this.LookUpProductButton.Size = new System.Drawing.Size(145, 62);
+            this.LookUpProductButton.TabIndex = 51;
+            this.LookUpProductButton.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
+            this.LookUpProductButton.TextColor = System.Drawing.Color.White;
+            this.LookUpProductButton.TextImageRelation = System.Windows.Forms.TextImageRelation.ImageBeforeText;
+            this.LookUpProductButton.UseVisualStyleBackColor = false;
+            this.LookUpProductButton.Click += new System.EventHandler(this.LookUpProductButton_Click);
+            // 
+            // ProductLookUpTextBox
+            // 
+            this.ProductLookUpTextBox.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
+            this.ProductLookUpTextBox.BorderColor = System.Drawing.Color.DimGray;
+            this.ProductLookUpTextBox.BorderSize = 1;
+            this.ProductLookUpTextBox.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 20.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.ProductLookUpTextBox.ForeColor = System.Drawing.Color.Gainsboro;
+            this.ProductLookUpTextBox.Location = new System.Drawing.Point(9, 16);
+            this.ProductLookUpTextBox.Multiline = false;
+            this.ProductLookUpTextBox.Name = "ProductLookUpTextBox";
+            this.ProductLookUpTextBox.Padding = new System.Windows.Forms.Padding(7);
+            this.ProductLookUpTextBox.PasswordChar = false;
+            this.ProductLookUpTextBox.ReadOnly = false;
+            this.ProductLookUpTextBox.Size = new System.Drawing.Size(224, 56);
+            this.ProductLookUpTextBox.TabIndex = 49;
+            this.ProductLookUpTextBox.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
+            this.ProductLookUpTextBox.Texts = "";
+            this.ProductLookUpTextBox.UnderlinedStyle = true;
+            // 
             // AddHardwareProductButton
             // 
             this.AddHardwareProductButton.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
@@ -384,13 +446,13 @@
             this.PaymentDataView.BorderStyle = System.Windows.Forms.BorderStyle.None;
             this.PaymentDataView.CellBorderStyle = System.Windows.Forms.DataGridViewCellBorderStyle.SingleHorizontal;
             this.PaymentDataView.ColumnHeadersBorderStyle = System.Windows.Forms.DataGridViewHeaderBorderStyle.None;
-            dataGridViewCellStyle15.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleCenter;
-            dataGridViewCellStyle15.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(48)))), ((int)(((byte)(48)))), ((int)(((byte)(48)))));
-            dataGridViewCellStyle15.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 15.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            dataGridViewCellStyle15.ForeColor = System.Drawing.Color.Gainsboro;
-            dataGridViewCellStyle15.Padding = new System.Windows.Forms.Padding(10, 0, 0, 0);
-            dataGridViewCellStyle15.SelectionBackColor = System.Drawing.Color.Gray;
-            this.PaymentDataView.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle15;
+            dataGridViewCellStyle3.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleCenter;
+            dataGridViewCellStyle3.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(48)))), ((int)(((byte)(48)))), ((int)(((byte)(48)))));
+            dataGridViewCellStyle3.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 15.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            dataGridViewCellStyle3.ForeColor = System.Drawing.Color.Gainsboro;
+            dataGridViewCellStyle3.Padding = new System.Windows.Forms.Padding(10, 0, 0, 0);
+            dataGridViewCellStyle3.SelectionBackColor = System.Drawing.Color.Gray;
+            this.PaymentDataView.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle3;
             this.PaymentDataView.ColumnHeadersHeight = 50;
             this.PaymentDataView.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.DisableResizing;
             this.PaymentDataView.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
@@ -398,14 +460,14 @@
             this.PaymentType,
             this.PaymentAmount,
             this.Note});
-            dataGridViewCellStyle16.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
-            dataGridViewCellStyle16.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
-            dataGridViewCellStyle16.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            dataGridViewCellStyle16.ForeColor = System.Drawing.Color.Gainsboro;
-            dataGridViewCellStyle16.SelectionBackColor = System.Drawing.SystemColors.Highlight;
-            dataGridViewCellStyle16.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
-            dataGridViewCellStyle16.WrapMode = System.Windows.Forms.DataGridViewTriState.False;
-            this.PaymentDataView.DefaultCellStyle = dataGridViewCellStyle16;
+            dataGridViewCellStyle4.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle4.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
+            dataGridViewCellStyle4.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            dataGridViewCellStyle4.ForeColor = System.Drawing.Color.Gainsboro;
+            dataGridViewCellStyle4.SelectionBackColor = System.Drawing.SystemColors.Highlight;
+            dataGridViewCellStyle4.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
+            dataGridViewCellStyle4.WrapMode = System.Windows.Forms.DataGridViewTriState.False;
+            this.PaymentDataView.DefaultCellStyle = dataGridViewCellStyle4;
             this.PaymentDataView.Dock = System.Windows.Forms.DockStyle.Left;
             this.PaymentDataView.EnableHeadersVisualStyles = false;
             this.PaymentDataView.GridColor = System.Drawing.Color.DimGray;
@@ -468,38 +530,37 @@
             this.label5.Name = "label5";
             this.label5.Size = new System.Drawing.Size(1428, 40);
             this.label5.TabIndex = 49;
-            this.label5.Text = "รายการเงินที่รับมา";
+            this.label5.Text = "รายการเงิน";
             this.label5.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
             // 
             // panel1
             // 
             this.panel1.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(30)))), ((int)(((byte)(30)))), ((int)(((byte)(30)))));
-            this.panel1.Controls.Add(this.label2);
+            this.panel1.Controls.Add(this.PaymentsTotalCaptionLabel);
             this.panel1.Controls.Add(this.GetPaymentButton);
             this.panel1.Controls.Add(this.label4);
             this.panel1.Controls.Add(this.ChangesLabel);
-            this.panel1.Controls.Add(this.TotalPaymentsLabel);
-            this.panel1.Controls.Add(this.label1);
-            this.panel1.Controls.Add(this.TotalLabel);
+            this.panel1.Controls.Add(this.PaymentsTotalLabel);
+            this.panel1.Controls.Add(this.InvoiceTotalCaptionLabel);
+            this.panel1.Controls.Add(this.InvoiceTotalLabel);
             this.panel1.Controls.Add(this.SaveSaleInvoiceButton);
-            this.panel1.Controls.Add(this.CancelSaleInvoiceButton);
             this.panel1.Dock = System.Windows.Forms.DockStyle.Right;
             this.panel1.Location = new System.Drawing.Point(1434, 0);
             this.panel1.Name = "panel1";
             this.panel1.Size = new System.Drawing.Size(366, 970);
             this.panel1.TabIndex = 3;
             // 
-            // label2
+            // PaymentsTotalCaptionLabel
             // 
-            this.label2.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(40)))), ((int)(((byte)(40)))), ((int)(((byte)(40)))));
-            this.label2.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 26.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label2.ForeColor = System.Drawing.Color.Gainsboro;
-            this.label2.Location = new System.Drawing.Point(3, 193);
-            this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(360, 100);
-            this.label2.TabIndex = 8;
-            this.label2.Text = "ยอดที่รับมา";
-            this.label2.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            this.PaymentsTotalCaptionLabel.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(40)))), ((int)(((byte)(40)))), ((int)(((byte)(40)))));
+            this.PaymentsTotalCaptionLabel.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 26.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.PaymentsTotalCaptionLabel.ForeColor = System.Drawing.Color.Gainsboro;
+            this.PaymentsTotalCaptionLabel.Location = new System.Drawing.Point(3, 231);
+            this.PaymentsTotalCaptionLabel.Name = "PaymentsTotalCaptionLabel";
+            this.PaymentsTotalCaptionLabel.Size = new System.Drawing.Size(360, 112);
+            this.PaymentsTotalCaptionLabel.TabIndex = 8;
+            this.PaymentsTotalCaptionLabel.Text = "ยอดที่รับมา";
+            this.PaymentsTotalCaptionLabel.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             // 
             // GetPaymentButton
             // 
@@ -508,9 +569,9 @@
             this.GetPaymentButton.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.GetPaymentButton.ForeColor = System.Drawing.Color.DarkGray;
             this.GetPaymentButton.Image = global::IndyPOS.Properties.Resources.Money_50;
-            this.GetPaymentButton.Location = new System.Drawing.Point(3, 572);
+            this.GetPaymentButton.Location = new System.Drawing.Point(3, 688);
             this.GetPaymentButton.Name = "GetPaymentButton";
-            this.GetPaymentButton.Size = new System.Drawing.Size(360, 133);
+            this.GetPaymentButton.Size = new System.Drawing.Size(360, 137);
             this.GetPaymentButton.TabIndex = 6;
             this.GetPaymentButton.Text = "รับเงิน";
             this.GetPaymentButton.TextAlign = System.Drawing.ContentAlignment.BottomCenter;
@@ -525,73 +586,15 @@
             this.SaveSaleInvoiceButton.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.SaveSaleInvoiceButton.ForeColor = System.Drawing.Color.DarkGray;
             this.SaveSaleInvoiceButton.Image = global::IndyPOS.Properties.Resources.Check_50;
-            this.SaveSaleInvoiceButton.Location = new System.Drawing.Point(3, 711);
+            this.SaveSaleInvoiceButton.Location = new System.Drawing.Point(3, 828);
             this.SaveSaleInvoiceButton.Name = "SaveSaleInvoiceButton";
-            this.SaveSaleInvoiceButton.Size = new System.Drawing.Size(360, 125);
+            this.SaveSaleInvoiceButton.Size = new System.Drawing.Size(360, 137);
             this.SaveSaleInvoiceButton.TabIndex = 7;
             this.SaveSaleInvoiceButton.Text = "บันทึกการขาย";
             this.SaveSaleInvoiceButton.TextAlign = System.Drawing.ContentAlignment.BottomCenter;
             this.SaveSaleInvoiceButton.TextImageRelation = System.Windows.Forms.TextImageRelation.ImageAboveText;
             this.SaveSaleInvoiceButton.UseVisualStyleBackColor = false;
             this.SaveSaleInvoiceButton.Click += new System.EventHandler(this.SaveSaleInvoiceButton_Click);
-            // 
-            // CancelSaleInvoiceButton
-            // 
-            this.CancelSaleInvoiceButton.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
-            this.CancelSaleInvoiceButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.CancelSaleInvoiceButton.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.CancelSaleInvoiceButton.ForeColor = System.Drawing.Color.DarkGray;
-            this.CancelSaleInvoiceButton.Image = global::IndyPOS.Properties.Resources.Cross_50;
-            this.CancelSaleInvoiceButton.Location = new System.Drawing.Point(3, 842);
-            this.CancelSaleInvoiceButton.Name = "CancelSaleInvoiceButton";
-            this.CancelSaleInvoiceButton.Size = new System.Drawing.Size(360, 125);
-            this.CancelSaleInvoiceButton.TabIndex = 7;
-            this.CancelSaleInvoiceButton.Text = "ยกเลิกการขาย";
-            this.CancelSaleInvoiceButton.TextAlign = System.Drawing.ContentAlignment.BottomCenter;
-            this.CancelSaleInvoiceButton.TextImageRelation = System.Windows.Forms.TextImageRelation.ImageAboveText;
-            this.CancelSaleInvoiceButton.UseVisualStyleBackColor = false;
-            this.CancelSaleInvoiceButton.Click += new System.EventHandler(this.CancelSaleInvoiceButton_Click);
-            // 
-            // ProductLookUpTextBox
-            // 
-            this.ProductLookUpTextBox.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
-            this.ProductLookUpTextBox.BorderColor = System.Drawing.Color.DimGray;
-            this.ProductLookUpTextBox.BorderSize = 1;
-            this.ProductLookUpTextBox.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 20.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.ProductLookUpTextBox.ForeColor = System.Drawing.Color.Gainsboro;
-            this.ProductLookUpTextBox.Location = new System.Drawing.Point(9, 16);
-            this.ProductLookUpTextBox.Multiline = false;
-            this.ProductLookUpTextBox.Name = "ProductLookUpTextBox";
-            this.ProductLookUpTextBox.Padding = new System.Windows.Forms.Padding(7);
-            this.ProductLookUpTextBox.PasswordChar = false;
-            this.ProductLookUpTextBox.ReadOnly = false;
-            this.ProductLookUpTextBox.Size = new System.Drawing.Size(224, 56);
-            this.ProductLookUpTextBox.TabIndex = 49;
-            this.ProductLookUpTextBox.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
-            this.ProductLookUpTextBox.Texts = "";
-            this.ProductLookUpTextBox.UnderlinedStyle = true;
-            // 
-            // LookUpProductButton
-            // 
-            this.LookUpProductButton.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
-            this.LookUpProductButton.BackgroundColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
-            this.LookUpProductButton.BorderColor = System.Drawing.Color.Turquoise;
-            this.LookUpProductButton.BorderRadius = 5;
-            this.LookUpProductButton.BorderSize = 1;
-            this.LookUpProductButton.FlatAppearance.BorderSize = 0;
-            this.LookUpProductButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.LookUpProductButton.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 15.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.LookUpProductButton.ForeColor = System.Drawing.Color.White;
-            this.LookUpProductButton.Image = global::IndyPOS.Properties.Resources.Search_50;
-            this.LookUpProductButton.Location = new System.Drawing.Point(239, 10);
-            this.LookUpProductButton.Name = "LookUpProductButton";
-            this.LookUpProductButton.Size = new System.Drawing.Size(145, 62);
-            this.LookUpProductButton.TabIndex = 51;
-            this.LookUpProductButton.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
-            this.LookUpProductButton.TextColor = System.Drawing.Color.White;
-            this.LookUpProductButton.TextImageRelation = System.Windows.Forms.TextImageRelation.ImageBeforeText;
-            this.LookUpProductButton.UseVisualStyleBackColor = false;
-            this.LookUpProductButton.Click += new System.EventHandler(this.LookUpProductButton_Click);
             // 
             // SalePanel
             // 
@@ -614,14 +617,13 @@
         }
 
         #endregion
-        private System.Windows.Forms.Label label1;
-        private System.Windows.Forms.Label TotalLabel;
+        private System.Windows.Forms.Label InvoiceTotalCaptionLabel;
+        private System.Windows.Forms.Label InvoiceTotalLabel;
         private System.Windows.Forms.Button GetPaymentButton;
-        private System.Windows.Forms.Label TotalPaymentsLabel;
+        private System.Windows.Forms.Label PaymentsTotalLabel;
         private System.Windows.Forms.Label label4;
         private System.Windows.Forms.Label ChangesLabel;
         private System.Windows.Forms.Button SaveSaleInvoiceButton;
-        private System.Windows.Forms.Button CancelSaleInvoiceButton;
         private System.Windows.Forms.DataGridView InvoiceDataView;
         private System.Windows.Forms.Panel panel2;
 		private System.Windows.Forms.Panel panel1;
@@ -631,7 +633,7 @@
 		private System.Windows.Forms.Label label3;
 		private System.Windows.Forms.Label label5;
 		private System.Windows.Forms.Panel panel3;
-		private System.Windows.Forms.Label label2;
+		private System.Windows.Forms.Label PaymentsTotalCaptionLabel;
         private ModernUI.ModernButton ClearAllPaymentsButton;
         private ModernUI.ModernButton AddGeneralGoodsProductButton;
         private ModernUI.ModernButton AddHardwareProductButton;
@@ -648,5 +650,6 @@
         private System.Windows.Forms.DataGridViewTextBoxColumn dataGridViewTextBoxColumn1;
         private ModernUI.ModernButton LookUpProductButton;
         private ModernUI.ModernTextBox ProductLookUpTextBox;
+        private ModernUI.ModernButton CancelSaleInvoiceButton;
     }
 }
