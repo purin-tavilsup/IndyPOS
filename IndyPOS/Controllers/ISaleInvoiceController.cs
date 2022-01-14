@@ -39,8 +39,6 @@ namespace IndyPOS.Controllers
 
         void AddPayment(PaymentType paymentType, decimal paymentAmount, string note);
 
-        IInventoryProduct GetInventoryProductByBarcode(string barcode);
-
         void UpdateProductQuantity(int inventoryProductId, int priority, int quantity);
 
 		void UpdateProductUnitPrice(int inventoryProductId, int priority, decimal unitPrice, string note);

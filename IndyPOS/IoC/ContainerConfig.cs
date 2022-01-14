@@ -8,6 +8,7 @@ using IndyPOS.Devices;
 using IndyPOS.Users;
 using Prism.Events;
 using System.Reflection;
+using IndyPOS.Sales;
 
 namespace IndyPOS.IoC
 {
@@ -31,6 +32,10 @@ namespace IndyPOS.IoC
 
             builder.RegisterType<StoreConstants>()
 				   .As<IStoreConstants>()
+				   .SingleInstance();
+
+			builder.RegisterType<SaleInvoice>()
+				   .As<ISaleInvoice>()
 				   .SingleInstance();
 
             builder.RegisterAssemblyTypes(Assembly.Load("IndyPOS"))

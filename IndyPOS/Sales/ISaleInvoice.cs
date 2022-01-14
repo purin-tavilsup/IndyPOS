@@ -1,4 +1,6 @@
 ﻿using System.Collections.Generic;
+using IndyPOS.Enums;
+using InventoryProductModel = IndyPOS.DataAccess.Models.InventoryProduct;
 
 namespace IndyPOS.Sales
 {
@@ -20,6 +22,24 @@ namespace IndyPOS.Sales
 
         decimal Changes { get; }
 
+		void StartNewSale();
+
+		int GetNextProductPriority();
+
+		int GetNextPaymentPriority();
+
+		void AddProduct(InventoryProductModel product);
+
+		void AddProduct(InventoryProductModel product, decimal unitPrice, int quantity);
+
+		void RemoveProduct(ISaleInvoiceProduct product);
+
+		void AddPayment(PaymentType paymentType, decimal paymentAmount, string note);
+
+		void RemoveAllPayments();
+
         void SetSaleInvoiceId(int id);
-    }
+
+		ISaleInvoiceProduct GetProductByInventoryProductIdAndPriority(int inventoryProductId, int priority);
+	}
 }

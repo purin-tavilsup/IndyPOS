@@ -1,13 +1,15 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.31410.357
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.32014.148
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IndyPOS", "IndyPOS\IndyPOS.csproj", "{2ED6DFC3-BF73-41B7-816C-D53312DA9C52}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IndyPOS.DataAccess", "IndyPOS.DataAccess\IndyPOS.DataAccess.csproj", "{6032F51E-E3DF-47D5-9E74-A360BDBFB180}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ModernUI", "ModernUI\ModernUI.csproj", "{FBD12602-AE7F-4629-8A8F-05A22569AAC9}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IndyPOS.Tests", "IndyPOS.Tests\IndyPOS.Tests.csproj", "{D60984B3-CE19-4B7E-BD76-834A11EE2DDA}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -41,6 +43,14 @@ Global
 		{FBD12602-AE7F-4629-8A8F-05A22569AAC9}.Release|Any CPU.Build.0 = Release|Any CPU
 		{FBD12602-AE7F-4629-8A8F-05A22569AAC9}.Release|x64.ActiveCfg = Release|Any CPU
 		{FBD12602-AE7F-4629-8A8F-05A22569AAC9}.Release|x64.Build.0 = Release|Any CPU
+		{D60984B3-CE19-4B7E-BD76-834A11EE2DDA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D60984B3-CE19-4B7E-BD76-834A11EE2DDA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D60984B3-CE19-4B7E-BD76-834A11EE2DDA}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{D60984B3-CE19-4B7E-BD76-834A11EE2DDA}.Debug|x64.Build.0 = Debug|Any CPU
+		{D60984B3-CE19-4B7E-BD76-834A11EE2DDA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D60984B3-CE19-4B7E-BD76-834A11EE2DDA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D60984B3-CE19-4B7E-BD76-834A11EE2DDA}.Release|x64.ActiveCfg = Release|Any CPU
+		{D60984B3-CE19-4B7E-BD76-834A11EE2DDA}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

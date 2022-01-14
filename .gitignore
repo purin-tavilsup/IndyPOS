@@ -18,3 +18,9 @@ _NCrunch_IndyPOS/
 *.ncrunchsolution
 
 IndyPOS.v3.ncrunchsolution.user
+
+IndyPOS.Tests/bin/
+
+IndyPOS.Tests/obj/
+
+IndyPOS.sln.DotSettings.user
