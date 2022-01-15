@@ -1,21 +1,18 @@
-﻿using System;
-using IndyPOS.Adapters;
+﻿using AutoFixture;
+using FakeItEasy;
+using FluentAssertions;
+using IndyPOS.Controllers;
 using IndyPOS.DataAccess.Repositories;
 using IndyPOS.Devices;
 using IndyPOS.Enums;
 using IndyPOS.Events;
-using IndyPOS.Extensions;
-using IndyPOS.Inventory;
+using IndyPOS.Exceptions;
 using IndyPOS.Sales;
 using IndyPOS.Users;
-using System.Collections.Generic;
-using IndyPOS.Controllers;
 using NUnit.Framework;
-using AutoFixture;
-using FakeItEasy;
-using FluentAssertions;
-using IndyPOS.Exceptions;
 using Prism.Events;
+using System;
+using System.Collections.Generic;
 using InventoryProductModel = IndyPOS.DataAccess.Models.InventoryProduct;
 
 namespace IndyPOS.Tests.Controllers
@@ -39,12 +36,10 @@ namespace IndyPOS.Tests.Controllers
         [SetUp]
         public void Setup()
 		{
+			SetupFixture();
 			InstantiateFakeObjects();
-			ArrangeFakeEventObjects();
-
-			_fixture = new Fixture();
-			_fixture.Register<ISaleInvoiceProduct>(() => _fixture.Create<SaleInvoiceProduct>());
-
+			SetupFakeEventObjects();
+			
 			_inventoryProductId = _fixture.Create<int>();
 			_productPriority = _fixture.Create<int>();
 
@@ -56,7 +51,7 @@ namespace IndyPOS.Tests.Controllers
                                                                _userAccountHelper);
         }
 
-		private void ArrangeFakeEventObjects()
+		private void SetupFakeEventObjects()
 		{
 			A.CallTo(() => _eventAggregator.GetEvent<AllPaymentsRemovedEvent>()).Returns(A.Fake<AllPaymentsRemovedEvent>());
 			A.CallTo(() => _eventAggregator.GetEvent<NewSaleStartedEvent>()).Returns(A.Fake<NewSaleStartedEvent>());
@@ -73,6 +68,14 @@ namespace IndyPOS.Tests.Controllers
 			_receiptPrinter = A.Fake<IReceiptPrinter>();
 			_userAccountHelper = A.Fake<IUserAccountHelper>();
 		}
+
+		private void SetupFixture()
+        {
+			_fixture = new Fixture();
+			_fixture.Register<ISaleInvoiceProduct>(() => _fixture.Create<SaleInvoiceProduct>());
+			_fixture.Register<IPayment>(() => _fixture.Create<Payment>());
+			_fixture.Register<IUserAccount>(() => _fixture.Create<UserAccount>());
+        }
 
         [Test]
         public void StartNewSale_NewInvoiceShouldBeCreated()
@@ -360,7 +363,6 @@ namespace IndyPOS.Tests.Controllers
 		[Test]
 		public void UpdateProductQuantity_IncreaseToAboveGroupPriceSettings_ProductNotFound_ShouldThrowException()
 		{
-			var groupPrice = _fixture.Create<decimal>();
 			var originalQuantity = _fixture.Create<int>();
 			var groupPriceQuantity = originalQuantity + 3;
 			var newQuantity = groupPriceQuantity * 3;
@@ -455,6 +457,214 @@ namespace IndyPOS.Tests.Controllers
 			Action act = () => _saleInvoiceController.UpdateProductQuantity(_inventoryProductId, _productPriority, newQuantity);
 
 			act.Should().ThrowExactly<ProductNotFoundException>();
+		}
+
+		[Test]
+		public void ValidateSaleInvoice_UserHasNotLoggedIn_ShouldReturnErrorMessage()
+		{
+			var payment = _fixture.Create<IPayment>();
+			var product = _fixture.Create<ISaleInvoiceProduct>();
+			var productList = new List<ISaleInvoiceProduct> { product };
+			var paymentList = new List<IPayment> { payment };
+
+			A.CallTo(() => _saleInvoice.Products).Returns(productList);
+			A.CallTo(() => _saleInvoice.Payments).Returns(paymentList);
+			A.CallTo(() => _userAccountHelper.LoggedInUser).Returns(null);
+
+			var errorMessages = _saleInvoiceController.ValidateSaleInvoice();
+
+			errorMessages.Should().NotBeEmpty();
+		}
+
+		[Test]
+		public void ValidateSaleInvoice_SaleInvoiceHasNoProduct_ShouldReturnErrorMessage()
+		{
+			var payment = _fixture.Create<IPayment>();
+			var paymentList = new List<IPayment> { payment };
+
+			A.CallTo(() => _saleInvoice.Products).Returns(new List<ISaleInvoiceProduct>());
+			A.CallTo(() => _saleInvoice.Payments).Returns(paymentList);
+			A.CallTo(() => _userAccountHelper.LoggedInUser).Returns(_fixture.Create<IUserAccount>());
+
+			var errorMessages = _saleInvoiceController.ValidateSaleInvoice();
+
+			errorMessages.Should().NotBeEmpty();
+		}
+
+		[Test]
+		public void ValidateSaleInvoice_SaleInvoiceHasNoPayment_ShouldReturnErrorMessage()
+		{
+			var product = _fixture.Create<ISaleInvoiceProduct>();
+			var productList = new List<ISaleInvoiceProduct> { product };
+
+			A.CallTo(() => _saleInvoice.Products).Returns(productList);
+			A.CallTo(() => _saleInvoice.Payments).Returns(new List<IPayment>());
+			A.CallTo(() => _userAccountHelper.LoggedInUser).Returns(_fixture.Create<IUserAccount>());
+
+			var errorMessages = _saleInvoiceController.ValidateSaleInvoice();
+
+			errorMessages.Should().NotBeEmpty();
+		}
+
+		[Test]
+		public void ValidateSaleInvoice_SaleInvoiceIsPendingPayment_ShouldReturnErrorMessage()
+		{
+			var payment = _fixture.Create<IPayment>();
+			var product = _fixture.Create<ISaleInvoiceProduct>();
+			var productList = new List<ISaleInvoiceProduct> { product };
+			var paymentList = new List<IPayment> { payment };
+			var paymentTotal = _fixture.Create<decimal>();
+			var invoiceTotal = paymentTotal + _fixture.Create<decimal>();
+
+			A.CallTo(() => _saleInvoice.Products).Returns(productList);
+			A.CallTo(() => _saleInvoice.Payments).Returns(paymentList);
+			A.CallTo(() => _saleInvoice.IsRefundInvoice).Returns(false);
+			A.CallTo(() => _saleInvoice.InvoiceTotal).Returns(invoiceTotal);
+			A.CallTo(() => _saleInvoice.PaymentTotal).Returns(paymentTotal);
+			A.CallTo(() => _userAccountHelper.LoggedInUser).Returns(_fixture.Create<IUserAccount>());
+
+			var errorMessages = _saleInvoiceController.ValidateSaleInvoice();
+
+			errorMessages.Should().NotBeEmpty();
+		}
+
+		[Test]
+		public void ValidateSaleInvoice_RefundInvoiceIsPendingPayment_ShouldReturnErrorMessage()
+		{
+			var payment = _fixture.Create<IPayment>();
+			var product = _fixture.Create<ISaleInvoiceProduct>();
+			var productList = new List<ISaleInvoiceProduct> { product };
+			var paymentList = new List<IPayment> { payment };
+			var invoiceTotal = _fixture.Create<decimal>() * -1;
+
+			A.CallTo(() => _saleInvoice.Products).Returns(productList);
+			A.CallTo(() => _saleInvoice.Payments).Returns(paymentList);
+			A.CallTo(() => _saleInvoice.IsRefundInvoice).Returns(true);
+			A.CallTo(() => _saleInvoice.InvoiceTotal).Returns(invoiceTotal);
+			A.CallTo(() => _saleInvoice.PaymentTotal).Returns(0m);
+			A.CallTo(() => _userAccountHelper.LoggedInUser).Returns(_fixture.Create<IUserAccount>());
+
+			var errorMessages = _saleInvoiceController.ValidateSaleInvoice();
+
+			errorMessages.Should().NotBeEmpty();
+		}
+
+		[Test]
+		public void ValidateSaleInvoice_SaleInvoiceIsValid_ShouldNotReturnErrorMessage()
+		{
+			var payment = _fixture.Create<IPayment>();
+			var product = _fixture.Create<ISaleInvoiceProduct>();
+			var productList = new List<ISaleInvoiceProduct> { product };
+			var paymentList = new List<IPayment> { payment };
+			var invoiceTotal = _fixture.Create<decimal>();
+
+			A.CallTo(() => _saleInvoice.Products).Returns(productList);
+			A.CallTo(() => _saleInvoice.Payments).Returns(paymentList);
+			A.CallTo(() => _saleInvoice.IsRefundInvoice).Returns(false);
+			A.CallTo(() => _saleInvoice.InvoiceTotal).Returns(invoiceTotal);
+			A.CallTo(() => _saleInvoice.PaymentTotal).Returns(invoiceTotal);
+			A.CallTo(() => _userAccountHelper.LoggedInUser).Returns(_fixture.Create<IUserAccount>());
+
+			var errorMessages = _saleInvoiceController.ValidateSaleInvoice();
+
+			errorMessages.Should().BeEmpty();
+		}
+
+		[Test]
+		public void CompleteSale_SaleInvoiceShouldBeSavedToDatabase()
+        {
+			_saleInvoiceController.CompleteSale();
+
+			A.CallTo(() => _invoicesRepository.AddInvoice(A<DataAccess.Models.Invoice>.Ignored))
+			 .MustHaveHappenedOnceExactly();
+		}
+
+		[Test]
+		[TestCase(1)]
+		[TestCase(2)]
+		[TestCase(3)]
+		public void CompleteSale_AllPaymentsShouldBeSavedToDatabase(int numberOfPayments)
+		{
+			var paymentList = new List<IPayment>();
+
+			for (var i = 0; i < numberOfPayments; i++)
+			{
+				paymentList.Add(_fixture.Create<IPayment>());
+			}
+
+			A.CallTo(() => _saleInvoice.Payments).Returns(paymentList);
+
+			_saleInvoiceController.CompleteSale();
+
+			A.CallTo(() => _invoicesRepository.AddPayment(A<DataAccess.Models.Payment>.Ignored))
+			 .MustHaveHappened(paymentList.Count, Times.Exactly);
+		}
+
+		[Test]
+		[TestCase(1)]
+		[TestCase(2)]
+		[TestCase(3)]
+		public void CompleteSale_AllProductsShouldBeSavedToDatabase(int numberOfProducts)
+		{
+			var productList = new List<ISaleInvoiceProduct>();
+
+			for (var i = 0; i < numberOfProducts; i++)
+            {
+				productList.Add(_fixture.Create<ISaleInvoiceProduct>());
+            }
+
+			A.CallTo(() => _saleInvoice.Products).Returns(productList);
+
+			_saleInvoiceController.CompleteSale();
+
+			A.CallTo(() => _invoicesRepository.AddInvoiceProduct(A<DataAccess.Models.InvoiceProduct>.Ignored))
+			 .MustHaveHappened(productList.Count, Times.Exactly);
+		}
+
+		[Test]
+		public void CompleteSale_ProductQuantityInStockShouldBeUpdated()
+		{
+			const int quantityInStock = 100;
+			const int quantity = 5;
+			const int numberOfProducts = 3;
+			const int expectedNewQuantityInStock = quantityInStock - quantity * numberOfProducts;
+
+			var productList = new List<ISaleInvoiceProduct>();
+			var product = A.Fake<ISaleInvoiceProduct>();
+
+			A.CallTo(() => product.IsTrackable).Returns(true);
+			A.CallTo(() => product.InventoryProductId).Returns(_inventoryProductId);
+			A.CallTo(() => product.Quantity).Returns(quantity);
+
+			for (var i = 0; i < numberOfProducts; i++)
+            {
+				productList.Add(product);
+            }
+
+			var inventoryProduct = _fixture.Create<InventoryProductModel>();
+			inventoryProduct.InventoryProductId = _inventoryProductId;
+			inventoryProduct.QuantityInStock = quantityInStock;
+
+            A.CallTo(() => _inventoryProductsRepository.GetProductById(_inventoryProductId)).Returns(inventoryProduct);
+			A.CallTo(() => _saleInvoice.Products).Returns(productList);
+
+            _saleInvoiceController.CompleteSale();
+
+            A.CallTo(() => _inventoryProductsRepository.UpdateProductQuantityById(_inventoryProductId, expectedNewQuantityInStock))
+			 .MustHaveHappenedOnceExactly();
+        }
+
+		[Test]
+		public void PrintReceipt()
+		{
+			var loggedUser = _fixture.Create<IUserAccount>();
+
+			A.CallTo(() => _userAccountHelper.LoggedInUser).Returns(loggedUser);
+
+			_saleInvoiceController.PrintReceipt();
+
+			A.CallTo(() => _receiptPrinter.PrintReceipt(A<ISaleInvoice>.Ignored, loggedUser))
+			 .MustHaveHappenedOnceExactly();
 		}
 	}
 }

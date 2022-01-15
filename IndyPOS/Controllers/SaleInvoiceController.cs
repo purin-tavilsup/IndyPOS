@@ -274,7 +274,7 @@ namespace IndyPOS.Controllers
 			{
 				var id = group.Key;
 				var quantity = group.Sum(p => p.Quantity);
-				var product = _inventoryProductsRepository.GetProductById(id);
+				var product = GetInventoryProductById(id);
 				var newQuantity = product.QuantityInStock - quantity;
 
                 _inventoryProductsRepository.UpdateProductQuantityById(id, newQuantity);
