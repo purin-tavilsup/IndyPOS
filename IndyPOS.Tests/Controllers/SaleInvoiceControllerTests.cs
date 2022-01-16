@@ -190,7 +190,7 @@ namespace IndyPOS.Tests.Controllers
 		}
 
 		[Test]
-		public void UpdateProductUnitPrice_ProductNotFound_UnitPriceShouldNotBeUpdated()
+		public void UpdateProductUnitPrice_ProductNotFound_ShouldThrowProductNotFoundException()
 		{
 			var unitPrice = _fixture.Create<decimal>();
 			var note = _fixture.Create<string>();
@@ -199,12 +199,9 @@ namespace IndyPOS.Tests.Controllers
 			
 			A.CallTo(() => _saleInvoice.Products).Returns(productList);
 
-			_saleInvoiceController.UpdateProductUnitPrice(_inventoryProductId, _productPriority, unitPrice, note);
+			Action act = () => _saleInvoiceController.UpdateProductUnitPrice(_inventoryProductId, _productPriority, unitPrice, note);
 
-			product.UnitPrice.Should().NotBe(unitPrice);
-			product.Note.Should().NotBe(note);
-
-			A.CallTo(() => _eventAggregator.GetEvent<SaleInvoiceProductUpdatedEvent>().Publish()).MustNotHaveHappened();
+			act.Should().ThrowExactly<ProductNotFoundException>();
 		}
 
 		[Test]
@@ -242,7 +239,7 @@ namespace IndyPOS.Tests.Controllers
         }
 
 		[Test]
-		public void UpdateProductQuantity_ProductNotFound_QuantityShouldNotBeUpdated()
+		public void UpdateProductQuantity_ProductNotFound_ShouldThrowProductNotFoundException()
 		{
 			var quantity = _fixture.Create<int>();
 			var product = _fixture.Create<ISaleInvoiceProduct>();
@@ -250,9 +247,9 @@ namespace IndyPOS.Tests.Controllers
 			
 			A.CallTo(() => _saleInvoice.Products).Returns(productList);
 
-			_saleInvoiceController.UpdateProductQuantity(_inventoryProductId, _productPriority, quantity);
+			Action act = () => _saleInvoiceController.UpdateProductQuantity(_inventoryProductId, _productPriority, quantity);
 
-			A.CallTo(() => _eventAggregator.GetEvent<SaleInvoiceProductUpdatedEvent>().Publish()).MustNotHaveHappened();
+			act.Should().ThrowExactly<ProductNotFoundException>();
 		}
 
 		[Test]
@@ -655,7 +652,7 @@ namespace IndyPOS.Tests.Controllers
         }
 
 		[Test]
-		public void PrintReceipt()
+		public void PrintReceipt_ShouldPrintReceipt()
 		{
 			var loggedUser = _fixture.Create<IUserAccount>();
 

@@ -112,7 +112,7 @@ namespace IndyPOS.Controllers
 																			p.Priority == priority);
 
 			if (productToUpdate == null)
-				return;
+				throw new ProductNotFoundException($"Product with InventoryProductId {inventoryProductId} and Priority {priority} could not be found.");
 
 			if (productToUpdate.UnitPrice == unitPrice)
 				return;
@@ -129,7 +129,7 @@ namespace IndyPOS.Controllers
 																			p.Priority == priority);
 
             if (productToUpdate == null)
-                return;
+				throw new ProductNotFoundException($"Product with InventoryProductId {inventoryProductId} and Priority {priority} could not be found.");
 
 			if (productToUpdate.Quantity == newQuantity)
 				return;

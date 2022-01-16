@@ -79,12 +79,12 @@ namespace IndyPOS.Sales
             Payments.Clear();
         }
 
-		public int GetNextProductPriority()
+		private int GetNextProductPriority()
 		{
 			return Products.Count > 0 ? Products.Max(p => p.Priority) + 1 : 1;
 		}
 
-		public int GetNextPaymentPriority()
+		private int GetNextPaymentPriority()
 		{
 			return Payments.Count > 0 ? Payments.Max(p => p.Priority) + 1 : 1;
 		}
@@ -92,12 +92,6 @@ namespace IndyPOS.Sales
         public void SetSaleInvoiceId(int id)
         {
             Id = id;
-        }
-
-        public ISaleInvoiceProduct GetProductByInventoryProductIdAndPriority(int inventoryProductId, int priority)
-        {
-            return Products.FirstOrDefault(p => p.InventoryProductId == inventoryProductId &&
-												p.Priority           == priority);
         }
 
         public void StartNewSale()

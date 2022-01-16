@@ -24,10 +24,6 @@ namespace IndyPOS.Sales
 
 		void StartNewSale();
 
-		int GetNextProductPriority();
-
-		int GetNextPaymentPriority();
-
 		void AddProduct(InventoryProductModel product);
 
 		void AddProduct(InventoryProductModel product, decimal unitPrice, int quantity);
@@ -39,7 +35,5 @@ namespace IndyPOS.Sales
 		void RemoveAllPayments();
 
         void SetSaleInvoiceId(int id);
-
-		ISaleInvoiceProduct GetProductByInventoryProductIdAndPriority(int inventoryProductId, int priority);
 	}
 }
