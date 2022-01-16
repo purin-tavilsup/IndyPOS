@@ -65,8 +65,6 @@ namespace IndyPOS.UI
 			_printReceiptForm = printReceiptForm;
 
             SubscribeEvents();
-
-            _saleInvoiceController.StartNewSale();
         }
 
         private void SubscribeEvents()
