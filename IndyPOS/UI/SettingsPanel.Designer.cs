@@ -49,9 +49,16 @@
             this.label7 = new System.Windows.Forms.Label();
             this.label8 = new System.Windows.Forms.Label();
             this.BarcodeScannerPortNameTextBox = new ModernUI.ModernTextBox();
+            this.panel4 = new System.Windows.Forms.Panel();
+            this.label11 = new System.Windows.Forms.Label();
+            this.ReportDirectoryTextBox = new ModernUI.ModernTextBox();
+            this.label12 = new System.Windows.Forms.Label();
+            this.label13 = new System.Windows.Forms.Label();
+            this.TransactionDirectoryTextBox = new ModernUI.ModernTextBox();
             this.panel1.SuspendLayout();
             this.panel2.SuspendLayout();
             this.panel3.SuspendLayout();
+            this.panel4.SuspendLayout();
             this.SuspendLayout();
             // 
             // StoreNameTextBox
@@ -278,7 +285,7 @@
             this.panel2.Controls.Add(this.label6);
             this.panel2.Controls.Add(this.label4);
             this.panel2.Controls.Add(this.ReceiptPrinterNameTextBox);
-            this.panel2.Location = new System.Drawing.Point(12, 349);
+            this.panel2.Location = new System.Drawing.Point(12, 338);
             this.panel2.Name = "panel2";
             this.panel2.Size = new System.Drawing.Size(387, 121);
             this.panel2.TabIndex = 82;
@@ -307,7 +314,7 @@
             this.SaveSettingsButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.SaveSettingsButton.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.SaveSettingsButton.ForeColor = System.Drawing.Color.White;
-            this.SaveSettingsButton.Location = new System.Drawing.Point(12, 616);
+            this.SaveSettingsButton.Location = new System.Drawing.Point(12, 602);
             this.SaveSettingsButton.Name = "SaveSettingsButton";
             this.SaveSettingsButton.Size = new System.Drawing.Size(387, 53);
             this.SaveSettingsButton.TabIndex = 83;
@@ -322,7 +329,7 @@
             this.panel3.Controls.Add(this.label7);
             this.panel3.Controls.Add(this.label8);
             this.panel3.Controls.Add(this.BarcodeScannerPortNameTextBox);
-            this.panel3.Location = new System.Drawing.Point(12, 476);
+            this.panel3.Location = new System.Drawing.Point(12, 465);
             this.panel3.Name = "panel3";
             this.panel3.Size = new System.Drawing.Size(387, 121);
             this.panel3.TabIndex = 84;
@@ -371,11 +378,100 @@
             this.BarcodeScannerPortNameTextBox.Texts = "";
             this.BarcodeScannerPortNameTextBox.UnderlinedStyle = true;
             // 
+            // panel4
+            // 
+            this.panel4.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
+            this.panel4.Controls.Add(this.label11);
+            this.panel4.Controls.Add(this.ReportDirectoryTextBox);
+            this.panel4.Controls.Add(this.label12);
+            this.panel4.Controls.Add(this.label13);
+            this.panel4.Controls.Add(this.TransactionDirectoryTextBox);
+            this.panel4.Location = new System.Drawing.Point(618, 12);
+            this.panel4.Name = "panel4";
+            this.panel4.Size = new System.Drawing.Size(600, 190);
+            this.panel4.TabIndex = 85;
+            // 
+            // label11
+            // 
+            this.label11.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
+            this.label11.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label11.ForeColor = System.Drawing.Color.Gainsboro;
+            this.label11.Location = new System.Drawing.Point(17, 61);
+            this.label11.Name = "label11";
+            this.label11.Size = new System.Drawing.Size(172, 39);
+            this.label11.TabIndex = 84;
+            this.label11.Text = "Report Directory";
+            this.label11.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            // 
+            // ReportDirectoryTextBox
+            // 
+            this.ReportDirectoryTextBox.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
+            this.ReportDirectoryTextBox.BorderColor = System.Drawing.Color.DimGray;
+            this.ReportDirectoryTextBox.BorderSize = 1;
+            this.ReportDirectoryTextBox.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.ReportDirectoryTextBox.ForeColor = System.Drawing.Color.Gainsboro;
+            this.ReportDirectoryTextBox.Location = new System.Drawing.Point(195, 61);
+            this.ReportDirectoryTextBox.Multiline = false;
+            this.ReportDirectoryTextBox.Name = "ReportDirectoryTextBox";
+            this.ReportDirectoryTextBox.Padding = new System.Windows.Forms.Padding(7);
+            this.ReportDirectoryTextBox.PasswordChar = false;
+            this.ReportDirectoryTextBox.ReadOnly = false;
+            this.ReportDirectoryTextBox.Size = new System.Drawing.Size(372, 39);
+            this.ReportDirectoryTextBox.TabIndex = 85;
+            this.ReportDirectoryTextBox.TextAlign = System.Windows.Forms.HorizontalAlignment.Left;
+            this.ReportDirectoryTextBox.Texts = "";
+            this.ReportDirectoryTextBox.UnderlinedStyle = true;
+            // 
+            // label12
+            // 
+            this.label12.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
+            this.label12.Dock = System.Windows.Forms.DockStyle.Top;
+            this.label12.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label12.ForeColor = System.Drawing.Color.Gainsboro;
+            this.label12.Location = new System.Drawing.Point(0, 0);
+            this.label12.Name = "label12";
+            this.label12.Size = new System.Drawing.Size(600, 39);
+            this.label12.TabIndex = 83;
+            this.label12.Text = "Data";
+            this.label12.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            // 
+            // label13
+            // 
+            this.label13.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
+            this.label13.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label13.ForeColor = System.Drawing.Color.Gainsboro;
+            this.label13.Location = new System.Drawing.Point(17, 106);
+            this.label13.Name = "label13";
+            this.label13.Size = new System.Drawing.Size(172, 39);
+            this.label13.TabIndex = 71;
+            this.label13.Text = "Transaction Directory";
+            this.label13.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            // 
+            // TransactionDirectoryTextBox
+            // 
+            this.TransactionDirectoryTextBox.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
+            this.TransactionDirectoryTextBox.BorderColor = System.Drawing.Color.DimGray;
+            this.TransactionDirectoryTextBox.BorderSize = 1;
+            this.TransactionDirectoryTextBox.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.TransactionDirectoryTextBox.ForeColor = System.Drawing.Color.Gainsboro;
+            this.TransactionDirectoryTextBox.Location = new System.Drawing.Point(195, 106);
+            this.TransactionDirectoryTextBox.Multiline = false;
+            this.TransactionDirectoryTextBox.Name = "TransactionDirectoryTextBox";
+            this.TransactionDirectoryTextBox.Padding = new System.Windows.Forms.Padding(7);
+            this.TransactionDirectoryTextBox.PasswordChar = false;
+            this.TransactionDirectoryTextBox.ReadOnly = false;
+            this.TransactionDirectoryTextBox.Size = new System.Drawing.Size(372, 39);
+            this.TransactionDirectoryTextBox.TabIndex = 72;
+            this.TransactionDirectoryTextBox.TextAlign = System.Windows.Forms.HorizontalAlignment.Left;
+            this.TransactionDirectoryTextBox.Texts = "";
+            this.TransactionDirectoryTextBox.UnderlinedStyle = true;
+            // 
             // SettingsPanel
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(30)))), ((int)(((byte)(30)))), ((int)(((byte)(30)))));
+            this.Controls.Add(this.panel4);
             this.Controls.Add(this.panel3);
             this.Controls.Add(this.SaveSettingsButton);
             this.Controls.Add(this.panel2);
@@ -386,6 +482,7 @@
             this.panel1.ResumeLayout(false);
             this.panel2.ResumeLayout(false);
             this.panel3.ResumeLayout(false);
+            this.panel4.ResumeLayout(false);
             this.ResumeLayout(false);
 
         }
@@ -413,5 +510,11 @@
         private ModernUI.ModernTextBox BarcodeScannerPortNameTextBox;
         private System.Windows.Forms.Label label9;
         private ModernUI.ModernTextBox StoreFullNameTextBox;
+        private System.Windows.Forms.Panel panel4;
+        private System.Windows.Forms.Label label11;
+        private ModernUI.ModernTextBox ReportDirectoryTextBox;
+        private System.Windows.Forms.Label label12;
+        private System.Windows.Forms.Label label13;
+        private ModernUI.ModernTextBox TransactionDirectoryTextBox;
     }
 }

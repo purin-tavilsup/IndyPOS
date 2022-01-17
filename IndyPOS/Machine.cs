@@ -6,7 +6,7 @@ namespace IndyPOS
 {
     public class Machine : IMachine
 	{
-		private const string Version = "1.0.9";
+		private const string Version = "1.0.10";
         private readonly MainForm _mainForm;
 		private readonly IConfig _config;
         private readonly IBarcodeScanner _barcodeScanner;
@@ -34,6 +34,7 @@ namespace IndyPOS
 		{
 			const string directoryPath = @"C:\ProgramData\IndyPOS\Config";
 			const string defaultReportDirectory = @"C:\ProgramData\IndyPOS\Report";
+			const string defaultTransactionDirectory = @"G:\My Drive\Test";
 			
 			if (!Directory.Exists(directoryPath))
 			{
@@ -60,6 +61,7 @@ namespace IndyPOS
 				_config.PrinterName = "XP-58";
 				_config.BarcodeScannerPortName = "COM4";
 				_config.ReportDirectory = defaultReportDirectory;
+				_config.TransactionDirectory = defaultTransactionDirectory;
 
                 _config.Save();
 				_config.Load();

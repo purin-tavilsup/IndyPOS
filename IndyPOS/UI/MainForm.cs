@@ -5,6 +5,7 @@ using Prism.Events;
 using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Windows.Forms;
+using IndyPOS.Controllers;
 
 namespace IndyPOS.UI
 {
@@ -19,6 +20,7 @@ namespace IndyPOS.UI
         private readonly SettingsPanel _settingsPanel;
 		private readonly UserLogInPanel _userLogInPanel;
         private readonly IEventAggregator _eventAggregator;
+		private readonly IReportController _reportController;
         private UserControl _activePanel;
 		private bool _isUserLoggedIn;
 		private IUserAccount _loggedInUser;
@@ -31,7 +33,8 @@ namespace IndyPOS.UI
                         CustomerAccountsPanel customerAccountsPanel, 
                         SettingsPanel settingsPanel,
 						UserLogInPanel userLogInPanel,
-                        IEventAggregator eventAggregator)
+                        IEventAggregator eventAggregator,
+						IReportController reportController)
 		{
             InitializeComponent();
 
@@ -51,6 +54,7 @@ namespace IndyPOS.UI
 			_userLogInPanel.Visible = false;
 			_eventAggregator = eventAggregator;
 			_isUserLoggedIn = false;
+			_reportController = reportController;
 
 			SubscribeEvents();
 			CreateDateTimeUpdateTimer();
@@ -222,6 +226,8 @@ namespace IndyPOS.UI
 
 		private void CloseButton_Click(object sender, EventArgs e)
 		{
+			_reportController.WriteSaleRecordsToCsvFileByDate(DateTime.Today);
+
             Close();
 		}
 
@@ -249,6 +255,8 @@ namespace IndyPOS.UI
 
 		private void CloseWindows_Click(object sender, EventArgs e)
 		{
+			_reportController.WriteSaleRecordsToCsvFileByDate(DateTime.Today);
+
             Close();
         }
         

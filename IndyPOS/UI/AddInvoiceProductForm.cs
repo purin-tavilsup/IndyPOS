@@ -37,7 +37,7 @@ namespace IndyPOS.UI
         {
             ProductCodeLabel.Text = product.Barcode;
             DescriptionLabel.Text = product.Description;
-            QuantityTextBox.Texts = string.Empty;
+            QuantityTextBox.Texts = "1";
 			UnitPriceTextBox.Texts = string.Empty;
 			NoteTextBox.Texts = string.Empty;
 		}
