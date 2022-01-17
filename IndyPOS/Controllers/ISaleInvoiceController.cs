@@ -1,11 +1,11 @@
 ﻿using IndyPOS.Enums;
-using IndyPOS.Inventory;
 using IndyPOS.Sales;
 using System.Collections.Generic;
+using InventoryProductModel = IndyPOS.DataAccess.Models.InventoryProduct;
 
 namespace IndyPOS.Controllers
 {
-	public interface ISaleInvoiceController
+    public interface ISaleInvoiceController
     {
         IReadOnlyCollection<ISaleInvoiceProduct> Products { get; }
 
@@ -33,7 +33,9 @@ namespace IndyPOS.Controllers
 
         void RemoveAllPayments();
 
-        bool AddProduct(string barcode);
+        void AddProduct(InventoryProductModel product);
+
+		void AddProduct(InventoryProductModel product, decimal unitPrice, int quantity, string note);
 
         void RemoveProduct(ISaleInvoiceProduct product);
 
@@ -42,5 +44,7 @@ namespace IndyPOS.Controllers
         void UpdateProductQuantity(int inventoryProductId, int priority, int quantity);
 
 		void UpdateProductUnitPrice(int inventoryProductId, int priority, decimal unitPrice, string note);
+
+		InventoryProductModel GetInventoryProductByBarcode(string barcode);
 	}
 }

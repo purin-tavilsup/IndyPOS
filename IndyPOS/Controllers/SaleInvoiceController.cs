@@ -68,19 +68,19 @@ namespace IndyPOS.Controllers
             _eventAggregator.GetEvent<AllPaymentsRemovedEvent>().Publish();
 		}
 
-		public bool AddProduct(string barcode)
+		public void AddProduct(InventoryProductModel product)
 		{
-			var product = GetInventoryProductByBarcode(barcode);
+			_saleInvoice.AddProduct(product);
 
-            if (product == null)
-                return false;
-
-            _saleInvoice.AddProduct(product);
-
-            _eventAggregator.GetEvent<SaleInvoiceProductAddedEvent>().Publish();
-
-			return true;
+			_eventAggregator.GetEvent<SaleInvoiceProductAddedEvent>().Publish();
 		}
+
+		public void AddProduct(InventoryProductModel product, decimal unitPrice, int quantity, string note)
+        {
+			_saleInvoice.AddProduct(product, unitPrice, quantity, note);
+
+			_eventAggregator.GetEvent<SaleInvoiceProductAddedEvent>().Publish();
+        }
 
         public void RemoveProduct(ISaleInvoiceProduct product)
         {
@@ -89,7 +89,7 @@ namespace IndyPOS.Controllers
             _eventAggregator.GetEvent<SaleInvoiceProductRemovedEvent>().Publish();
         }
 
-        private InventoryProductModel GetInventoryProductByBarcode(string barcode)
+        public InventoryProductModel GetInventoryProductByBarcode(string barcode)
         {
             return _inventoryProductsRepository.GetProductByBarcode(barcode);
         }
@@ -337,5 +337,5 @@ namespace IndyPOS.Controllers
 											   Note = payment.Note
 										   });
 		}
-    }
+	}
 }

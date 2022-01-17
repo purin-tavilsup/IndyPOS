@@ -256,6 +256,12 @@
     <Compile Include="UI\Reports\SalesReportPanel.Designer.cs">
       <DependentUpon>SalesReportPanel.cs</DependentUpon>
     </Compile>
+    <Compile Include="UI\AddInvoiceProductForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\AddInvoiceProductForm.Designer.cs">
+      <DependentUpon>AddInvoiceProductForm.cs</DependentUpon>
+    </Compile>
     <Compile Include="UI\UpdateInvoiceProductForm.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -357,6 +363,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="UI\Reports\SalesReportPanel.resx">
       <DependentUpon>SalesReportPanel.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="UI\AddInvoiceProductForm.resx">
+      <DependentUpon>AddInvoiceProductForm.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="UI\UpdateInvoiceProductForm.resx">
       <DependentUpon>UpdateInvoiceProductForm.cs</DependentUpon>

@@ -36,6 +36,7 @@ namespace IndyPOS.UI
 			_config.StorePhoneNumber = StorePhoneTextBox.Texts.Trim();
 			_config.PrinterName = ReceiptPrinterNameTextBox.Texts.Trim();
 			_config.BarcodeScannerPortName = BarcodeScannerPortNameTextBox.Texts.Trim();
+			_config.Save();
 		}
 
         private void SaveSettingsButton_Click(object sender, EventArgs e)

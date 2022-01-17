@@ -17,7 +17,7 @@ using InventoryProductModel = IndyPOS.DataAccess.Models.InventoryProduct;
 
 namespace IndyPOS.Tests.Controllers
 {
-	[TestFixture]
+    [TestFixture]
     public class SaleInvoiceControllerTests
     {
         private SaleInvoiceController _saleInvoiceController;
@@ -117,31 +117,53 @@ namespace IndyPOS.Tests.Controllers
 		}
 
 		[Test]
-		public void AddProduct_ProductFound_ProductShouldBeAdded()
+		public void AddProduct_WithDefaultSettings_ProductShouldBeAdded()
 		{
 			var product = _fixture.Create<InventoryProductModel>();
 
-			A.CallTo(() => _inventoryProductsRepository.GetProductByBarcode(A<string>.Ignored)).Returns(product);
-
-			_saleInvoiceController.AddProduct(_fixture.Create<string>());
+			_saleInvoiceController.AddProduct(product);
 
 			A.CallTo(() => _saleInvoice.AddProduct(product)).MustHaveHappenedOnceExactly();
 			A.CallTo(() => _eventAggregator.GetEvent<SaleInvoiceProductAddedEvent>().Publish()).MustHaveHappenedOnceExactly();
 		}
 
 		[Test]
-		[TestCase(true, true)]
-		[TestCase(false, false)]
-		public void AddProduct_ShouldReturnExpectedResult(bool isProductFound, bool expectedResult)
+		public void AddProduct_WithSpecification_ProductShouldBeAddedWithSpecifiedValues()
 		{
-			var product = isProductFound ? _fixture.Create<InventoryProductModel>() : null;
+			var product = _fixture.Create<InventoryProductModel>();
+			var unitPrice = _fixture.Create<decimal>();
+			var quantity = _fixture.Create<int>();
+			var note = _fixture.Create<string>();
 
-			A.CallTo(() => _inventoryProductsRepository.GetProductByBarcode(A<string>.Ignored)).Returns(product);
+			_saleInvoiceController.AddProduct(product, unitPrice, quantity, note);
 
-            var result = _saleInvoiceController.AddProduct(_fixture.Create<string>());
+			A.CallTo(() => _saleInvoice.AddProduct(product, unitPrice, quantity, note)).MustHaveHappenedOnceExactly();
+			A.CallTo(() => _eventAggregator.GetEvent<SaleInvoiceProductAddedEvent>().Publish()).MustHaveHappenedOnceExactly();
+		}
 
-            result.Should().Be(expectedResult);
+		[Test]
+		public void GetInventoryProductByBarcode_ProductFound_ShouldReturnProduct()
+		{
+			var product = _fixture.Create<InventoryProductModel>();
+
+			A.CallTo(() => _inventoryProductsRepository.GetProductByBarcode(product.Barcode)).Returns(product);
+
+            var result = _saleInvoiceController.GetInventoryProductByBarcode(product.Barcode);
+
+            result.Should().Be(product);
         }
+
+		[Test]
+		public void GetInventoryProductByBarcode_ProductNotFound_ShouldNotReturnProduct()
+		{
+			var barcode = _fixture.Create<string>();
+
+			A.CallTo(() => _inventoryProductsRepository.GetProductByBarcode(barcode)).Returns(null);
+
+			var result = _saleInvoiceController.GetInventoryProductByBarcode(barcode);
+
+			result.Should().BeNull();
+		}
 
 		[Test]
 		public void RemoveProduct_ProductShouldBeRemoved()

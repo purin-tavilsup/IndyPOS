@@ -19,6 +19,7 @@ namespace IndyPOS.UI
         private readonly IEventAggregator _eventAggregator;
         private readonly AcceptPaymentForm _acceptPaymentForm;
         private readonly ISaleInvoiceController _saleInvoiceController;
+		private readonly AddInvoiceProductForm _addInvoiceProductForm;
         private readonly UpdateInvoiceProductForm _updateProductForm;
         private readonly IReadOnlyDictionary<int, string> _paymentTypeDictionary;
         private SubPanel _activeSubPanel;
@@ -48,6 +49,7 @@ namespace IndyPOS.UI
 						 ISaleInvoiceController saleInvoiceController, 
 						 IStoreConstants storeConstants,
 						 AcceptPaymentForm acceptPaymentForm, 
+						 AddInvoiceProductForm addInvoiceProductForm,
 						 UpdateInvoiceProductForm updateProductForm,
 						 MessageForm messageForm,
 						 PrintReceiptForm printReceiptForm)
@@ -60,6 +62,7 @@ namespace IndyPOS.UI
             _saleInvoiceController = saleInvoiceController;
             _paymentTypeDictionary = storeConstants.PaymentTypes;
             _acceptPaymentForm = acceptPaymentForm;
+            _addInvoiceProductForm = addInvoiceProductForm;
             _updateProductForm = updateProductForm;
 			_messageForm = messageForm;
 			_printReceiptForm = printReceiptForm;
@@ -302,11 +305,16 @@ namespace IndyPOS.UI
 
         private void AddProductToInvoice(string barcode)
 		{
-            var success = _saleInvoiceController.AddProduct(barcode);
+			var product = _saleInvoiceController.GetInventoryProductByBarcode(barcode);
 
-            if (!success)
+			if (product == null)
+			{
 				_messageForm.Show($"ไม่พบรหัสสินค้า {barcode} ในระบบ กรุณาเพิ่มสินค้านี้เข้าในระบบก่อนเริ่มการขาย", "ไม่สามารถเพิ่มสินค้าได้");
-        }
+                return;
+			}
+
+			_saleInvoiceController.AddProduct(product);
+		}
 
 		private void ClearAllPaymentsButton_Click(object sender, EventArgs e)
 		{
@@ -317,14 +325,14 @@ namespace IndyPOS.UI
 		{
 			const string generalGoodsCode = "GP00000000001";
 
-			_eventAggregator.GetEvent<BarcodeReceivedEvent>().Publish(generalGoodsCode);
+			_addInvoiceProductForm.ShowDialog(generalGoodsCode);
 		}
 
         private void AddHardwareProductButton_Click(object sender, EventArgs e)
 		{
 			const string hardwareCode = "HW00000000001";
 
-			_eventAggregator.GetEvent<BarcodeReceivedEvent>().Publish(hardwareCode);
+			_addInvoiceProductForm.ShowDialog(hardwareCode);
         }
 
         private void LookUpProductButton_Click(object sender, EventArgs e)

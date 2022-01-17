@@ -36,24 +36,28 @@ namespace IndyPOS.Sales
             return amount >= 0 ? amount : 0m;
         }
 
-		public void AddProduct(InventoryProductModel product)
+		public ISaleInvoiceProduct AddProduct(InventoryProductModel product)
 		{
-			var productToAdd = ConvertToSaleInvoiceProduct(product);
-
-			productToAdd.Priority = GetNextProductPriority();
-
-			Products.Add(productToAdd);
+			return AddProduct(product, product.UnitPrice, 1, string.Empty);
 		}
 
-		public void AddProduct(InventoryProductModel product, decimal unitPrice, int quantity)
+		public ISaleInvoiceProduct AddProduct(InventoryProductModel product, decimal unitPrice, int quantity)
+		{
+			return AddProduct(product, unitPrice, quantity, string.Empty);
+		}
+
+		public ISaleInvoiceProduct AddProduct(InventoryProductModel product, decimal unitPrice, int quantity, string note)
 		{
 			var productToAdd = ConvertToSaleInvoiceProduct(product);
 
 			productToAdd.Priority = GetNextProductPriority();
 			productToAdd.UnitPrice = unitPrice;
 			productToAdd.Quantity = quantity;
+			productToAdd.Note = note;
 
 			Products.Add(productToAdd);
+
+			return Products.Last();
 		}
 
         public void RemoveProduct(ISaleInvoiceProduct product)
@@ -61,7 +65,7 @@ namespace IndyPOS.Sales
 			Products.Remove(product);
 		}
 
-		public void AddPayment(PaymentType paymentType, decimal paymentAmount, string note)
+		public IPayment AddPayment(PaymentType paymentType, decimal paymentAmount, string note)
         {
 			var payment = new Payment
 						  {
@@ -72,7 +76,9 @@ namespace IndyPOS.Sales
 						  };
 
 			Payments.Add(payment);
-        }
+
+			return Payments.Last();
+		}
 
         public void RemoveAllPayments()
         {
@@ -89,17 +95,17 @@ namespace IndyPOS.Sales
 			return Payments.Count > 0 ? Payments.Max(p => p.Priority) + 1 : 1;
 		}
 
-        public void SetSaleInvoiceId(int id)
-        {
-            Id = id;
-        }
+		public void SetSaleInvoiceId(int id)
+		{
+			Id = id;
+		}
 
-        public void StartNewSale()
+		public void StartNewSale()
 		{
 			Id = null;
 			Products = new List<ISaleInvoiceProduct>();
 			Payments = new List<IPayment>();
-        }
+		}
 
 		private ISaleInvoiceProduct ConvertToSaleInvoiceProduct(InventoryProductModel product)
 		{
