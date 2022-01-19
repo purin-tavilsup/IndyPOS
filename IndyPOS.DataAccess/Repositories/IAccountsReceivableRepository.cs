@@ -1,4 +1,5 @@
 ﻿using IndyPOS.DataAccess.Models;
+using System;
 using System.Collections.Generic;
 
 namespace IndyPOS.DataAccess.Repositories
@@ -12,5 +13,7 @@ namespace IndyPOS.DataAccess.Repositories
 		IEnumerable<AccountsReceivable> GetAccountsReceivables();
 
 		AccountsReceivable GetAccountsReceivableByInvoiceId(int invoiceId);
+
+		IEnumerable<AccountsReceivable> GetAccountsReceivablesByDateRange(DateTime start, DateTime end);
 	}
 }

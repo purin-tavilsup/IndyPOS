@@ -274,7 +274,7 @@
             this.LogInButton.Name = "LogInButton";
             this.LogInButton.Size = new System.Drawing.Size(292, 115);
             this.LogInButton.TabIndex = 5;
-            this.LogInButton.Text = "เข้าสู่ระบบ";
+            this.LogInButton.Text = "Log In";
             this.LogInButton.TextAlign = System.Drawing.ContentAlignment.BottomCenter;
             this.LogInButton.TextImageRelation = System.Windows.Forms.TextImageRelation.ImageAboveText;
             this.LogInButton.UseVisualStyleBackColor = false;

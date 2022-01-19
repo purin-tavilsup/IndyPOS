@@ -135,6 +135,50 @@ namespace IndyPOS.DataAccess.SQLite.Repositories
 			}
 		}
 
+		public IEnumerable<AccountsReceivable> GetAccountsReceivablesByDateRange(DateTime start, DateTime end)
+		{
+			using (var connection = _dbConnectionProvider.GetDbConnection())
+			{
+				connection.Open();
+
+				const string sqlCommand = @"SELECT
+                PaymentId,
+				Description,
+				InvoiceId,
+				ReceivableAmount,
+				PaidAmount,
+				IsCompleted,
+				DateCreated,
+				DateUpdated
+                FROM AccountsReceivables
+                WHERE DateCreated BETWEEN @startDate AND @endDate";
+
+				var sqlParameters = new
+									{
+										startDate = MapStartDateToString(start),
+										endDate = MapEndDateToString(end)
+									};
+
+				var results = connection.Query(sqlCommand, sqlParameters);
+
+				return MapAccountsReceivables(results);
+			}
+		}
+
+		private string MapStartDateToString(DateTime date)
+		{
+			var dateString = date.ToString("yyyy-MM-dd");
+
+			return $"{dateString} 00:00";
+		}
+
+		private string MapEndDateToString(DateTime date)
+		{
+			var dateString = date.ToString("yyyy-MM-dd");
+
+			return $"{dateString} 24:00";
+		}
+
 		private static IList<AccountsReceivable> MapAccountsReceivables(IEnumerable<dynamic> results)
 		{
 			var accountsReceivables = results?.Select(x => new AccountsReceivable

@@ -277,6 +277,8 @@ namespace IndyPOS.UI
 
 			_isUserLoggedIn = true;
 
+			LogInButton.Text = "Log Out";
+
 			SwitchToPanel(SubPanel.Sales);
         }
 
@@ -287,6 +289,8 @@ namespace IndyPOS.UI
 			LoggedInUserLabel.Text = "User:";
 
 			_isUserLoggedIn = false;
+
+			LogInButton.Text = "Log In";
 		}
 	}
 }

@@ -30,7 +30,10 @@ namespace IndyPOS.Sales
 		}
 
         private decimal CalculateChanges()
-        {
+		{
+			if (IsRefundInvoice)
+				return 0m;
+
             var amount = PaymentTotal - InvoiceTotal;
 
             return amount >= 0 ? amount : 0m;
