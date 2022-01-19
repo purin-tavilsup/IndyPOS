@@ -137,6 +137,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Adapters\AccountsReceivableAdapter.cs" />
     <Compile Include="Adapters\FinalInvoiceAdapter.cs" />
     <Compile Include="Adapters\FinalInvoicePaymentAdapter.cs" />
     <Compile Include="Adapters\UserAccountAdapter.cs" />
@@ -144,6 +145,8 @@
     <Compile Include="Barcode\BarcodeHelper.cs" />
     <Compile Include="Barcode\IBarcodeHelper.cs" />
     <Compile Include="Config.cs" />
+    <Compile Include="Controllers\AccountsReceivableController.cs" />
+    <Compile Include="Controllers\IAccountsReceivableController.cs" />
     <Compile Include="Controllers\IReportController.cs" />
     <Compile Include="Controllers\IUserController.cs" />
     <Compile Include="Controllers\ReportController.cs" />
@@ -169,6 +172,7 @@
     <Compile Include="Extensions\DateTimeExtensions.cs" />
     <Compile Include="IConfig.cs" />
     <Compile Include="Inventory\IInventoryProduct.cs" />
+    <Compile Include="Sales\IAccountsReceivable.cs" />
     <Compile Include="Sales\IFinalInvoice.cs" />
     <Compile Include="Sales\IFinalInvoicePayment.cs" />
     <Compile Include="Sales\IFinalInvoiceProduct.cs" />
@@ -280,11 +284,11 @@
     <Compile Include="UI\AddNewInventoryProductForm.Designer.cs">
       <DependentUpon>AddNewInventoryProductForm.cs</DependentUpon>
     </Compile>
-    <Compile Include="UI\CustomerAccountsPanel.cs">
+    <Compile Include="UI\AccountsReceivablePanel.cs">
       <SubType>UserControl</SubType>
     </Compile>
-    <Compile Include="UI\CustomerAccountsPanel.Designer.cs">
-      <DependentUpon>CustomerAccountsPanel.cs</DependentUpon>
+    <Compile Include="UI\AccountsReceivablePanel.Designer.cs">
+      <DependentUpon>AccountsReceivablePanel.cs</DependentUpon>
     </Compile>
     <Compile Include="UI\InventoryPanel.cs">
       <SubType>UserControl</SubType>
@@ -376,8 +380,8 @@
     <EmbeddedResource Include="UI\AddNewInventoryProductForm.resx">
       <DependentUpon>AddNewInventoryProductForm.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="UI\CustomerAccountsPanel.resx">
-      <DependentUpon>CustomerAccountsPanel.cs</DependentUpon>
+    <EmbeddedResource Include="UI\AccountsReceivablePanel.resx">
+      <DependentUpon>AccountsReceivablePanel.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="UI\InventoryPanel.resx">
       <DependentUpon>InventoryPanel.cs</DependentUpon>

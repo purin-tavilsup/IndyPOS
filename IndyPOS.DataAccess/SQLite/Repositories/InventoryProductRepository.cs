@@ -284,7 +284,7 @@ namespace IndyPOS.DataAccess.SQLite.Repositories
 
             var result = Math.Round(value.GetValueOrDefault(), 2, MidpointRounding.AwayFromZero) * 100m;
 
-            return result.ToString();
+			return $"{result}";
         }
     }
 }

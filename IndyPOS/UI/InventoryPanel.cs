@@ -82,7 +82,7 @@ namespace IndyPOS.UI
             #region Initialize all columns
 
             ProductDataView.Columns.Clear();
-            ProductDataView.ColumnCount = 12;
+            ProductDataView.ColumnCount = 11;
 
             ProductDataView.Columns[(int)ProductColumn.ProductCode].Name = "รหัสสินค้า";
             ProductDataView.Columns[(int)ProductColumn.ProductCode].Width = 150;
@@ -162,15 +162,19 @@ namespace IndyPOS.UI
 
             productRow[(int)ProductColumn.ProductCode] = product.Barcode;
             productRow[(int)ProductColumn.Description] = product.Description;
-            productRow[(int)ProductColumn.QuantityInStock] = product.QuantityInStock.ToString();
-			productRow[(int) ProductColumn.UnitPrice] = $"{product.UnitPrice:N}";
-            productRow[(int)ProductColumn.GroupPrice] = product.GroupPrice?.ToString("0.00") ?? string.Empty;
-			productRow[(int)ProductColumn.GroupPriceQuantity] = product.GroupPriceQuantity?.ToString() ?? string.Empty;
+            productRow[(int)ProductColumn.QuantityInStock] = product.QuantityInStock;
+			productRow[(int) ProductColumn.UnitPrice] = product.UnitPrice;
 			productRow[(int)ProductColumn.Category] = category;
             productRow[(int)ProductColumn.Manufacturer] = product.Manufacturer;
             productRow[(int)ProductColumn.Brand] = product.Brand;
             productRow[(int)ProductColumn.DateCreated] = product.DateCreated;
             productRow[(int)ProductColumn.DateUpdated] = product.DateUpdated;
+
+            if (product.GroupPrice.HasValue) 
+				productRow[(int)ProductColumn.GroupPrice] = product.GroupPrice.Value;
+			
+			if (product.GroupPriceQuantity.HasValue) 
+				productRow[(int)ProductColumn.GroupPriceQuantity] = product.GroupPriceQuantity.Value;
 
             ProductDataView.Rows.Add(productRow);
         }
@@ -196,7 +200,7 @@ namespace IndyPOS.UI
             var selectedCell = ProductDataView.SelectedCells[0];
             var rowIndex = selectedCell.RowIndex;
             var selectedRow = ProductDataView.Rows[rowIndex];
-            var barcode = selectedRow.Cells[(int)ProductColumn.ProductCode].Value as string;
+            var barcode = (string) selectedRow.Cells[(int)ProductColumn.ProductCode].Value;
 
             return barcode;
         }

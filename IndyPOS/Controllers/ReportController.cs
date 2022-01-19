@@ -162,9 +162,10 @@ namespace IndyPOS.Controllers
 
 		public void WriteSaleRecordsToCsvFileByDate(DateTime date)
 		{
-			var directoryPath = $"{_config.ReportDirectory}\\{date:yyyy-MM-dd}";
+			var directoryPath = $"{_config.ReportDirectory}\\{date.Year}\\{date.Month:00}\\{date:yyyy-MMM-dd}";
 			
-			Directory.CreateDirectory(directoryPath);
+			if (!Directory.Exists(directoryPath)) 
+				Directory.CreateDirectory(directoryPath);
 
 			WriteInvoiceRecordsToCsvFileByDate(directoryPath, date);
 			WriteInvoiceProductRecordsToCsvFileByDate(directoryPath, date);

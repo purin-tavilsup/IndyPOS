@@ -87,13 +87,13 @@ namespace IndyPOS.UI.Reports
 
 			_accumulatedSaleAmount += total;
 
-			productRow[(int) ProductColumn.InvoiceId] = $"{product.InvoiceId: 0000000000}";
+			productRow[(int) ProductColumn.InvoiceId] = product.InvoiceId;
 			productRow[(int) ProductColumn.ProductCode] = product.Barcode;
 			productRow[(int) ProductColumn.Description] = product.Description;
-			productRow[(int) ProductColumn.Quantity] = product.Quantity.ToString();
-			productRow[(int) ProductColumn.UnitPrice] = $"{product.UnitPrice:N}";
-			productRow[(int) ProductColumn.Total] = $"{total:N}";
-			productRow[(int) ProductColumn.Accumulation] = $"{_accumulatedSaleAmount:N}";
+			productRow[(int) ProductColumn.Quantity] = product.Quantity;
+			productRow[(int) ProductColumn.UnitPrice] = product.UnitPrice;
+			productRow[(int) ProductColumn.Total] = total;
+			productRow[(int) ProductColumn.Accumulation] = _accumulatedSaleAmount;
 			productRow[(int) ProductColumn.DateCreated] = product.DateCreated;
 			productRow[(int) ProductColumn.Note] = product.Note;
 

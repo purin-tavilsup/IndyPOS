@@ -54,7 +54,7 @@ namespace IndyPOS.UI
 			NoteTextBox.Visible = !product.IsTrackable;
 		}
 
-        private bool ValidateQuantityEntry()
+        private bool ValidateUserInputs()
         {
             if (!int.TryParse(QuantityTextBox.Texts.Trim(), out _))
             {
@@ -79,7 +79,7 @@ namespace IndyPOS.UI
 
         private void UpdateProductButton_Click(object sender, EventArgs e)
         {
-            if (!ValidateQuantityEntry())
+            if (!ValidateUserInputs())
                 return;
 
             var quantity = int.Parse(QuantityTextBox.Texts.Trim());

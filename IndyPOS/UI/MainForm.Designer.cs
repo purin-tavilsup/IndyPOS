@@ -30,11 +30,12 @@
         {
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MainForm));
             this.NavigationPanel = new System.Windows.Forms.Panel();
-            this.TitlePanel = new System.Windows.Forms.Panel();
-            this.pictureBox2 = new System.Windows.Forms.PictureBox();
             this.panel1 = new System.Windows.Forms.Panel();
+            this.VersionLabel = new System.Windows.Forms.Label();
             this.LoggedInUserLabel = new System.Windows.Forms.Label();
             this.DateTimeLabel = new System.Windows.Forms.Label();
+            this.TitlePanel = new System.Windows.Forms.Panel();
+            this.pictureBox2 = new System.Windows.Forms.PictureBox();
             this.panel9 = new System.Windows.Forms.Panel();
             this.ResizeWindowsButton = new ModernUI.ModernButton();
             this.CloseWindowsButton = new ModernUI.ModernButton();
@@ -45,16 +46,15 @@
             this.CloseButton = new System.Windows.Forms.Button();
             this.LogInButton = new System.Windows.Forms.Button();
             this.SettingsButton = new System.Windows.Forms.Button();
-            this.CustomerAccountsButton = new System.Windows.Forms.Button();
+            this.AccountsReceivableButton = new System.Windows.Forms.Button();
             this.ReportsButton = new System.Windows.Forms.Button();
             this.UsersButton = new System.Windows.Forms.Button();
             this.InventoryButton = new System.Windows.Forms.Button();
             this.SaleButton = new System.Windows.Forms.Button();
-            this.VersionLabel = new System.Windows.Forms.Label();
             this.NavigationPanel.SuspendLayout();
+            this.panel1.SuspendLayout();
             this.TitlePanel.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox2)).BeginInit();
-            this.panel1.SuspendLayout();
             this.panel9.SuspendLayout();
             this.ControlPanel.SuspendLayout();
             this.SuspendLayout();
@@ -68,6 +68,50 @@
             this.NavigationPanel.Name = "NavigationPanel";
             this.NavigationPanel.Size = new System.Drawing.Size(1800, 41);
             this.NavigationPanel.TabIndex = 0;
+            // 
+            // panel1
+            // 
+            this.panel1.Controls.Add(this.VersionLabel);
+            this.panel1.Controls.Add(this.LoggedInUserLabel);
+            this.panel1.Controls.Add(this.DateTimeLabel);
+            this.panel1.Dock = System.Windows.Forms.DockStyle.Right;
+            this.panel1.Location = new System.Drawing.Point(972, 0);
+            this.panel1.Name = "panel1";
+            this.panel1.Size = new System.Drawing.Size(828, 41);
+            this.panel1.TabIndex = 7;
+            // 
+            // VersionLabel
+            // 
+            this.VersionLabel.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.VersionLabel.ForeColor = System.Drawing.Color.WhiteSmoke;
+            this.VersionLabel.Location = new System.Drawing.Point(589, 0);
+            this.VersionLabel.Name = "VersionLabel";
+            this.VersionLabel.Size = new System.Drawing.Size(236, 35);
+            this.VersionLabel.TabIndex = 7;
+            this.VersionLabel.Text = "Version:";
+            this.VersionLabel.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            // 
+            // LoggedInUserLabel
+            // 
+            this.LoggedInUserLabel.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.LoggedInUserLabel.ForeColor = System.Drawing.Color.WhiteSmoke;
+            this.LoggedInUserLabel.Location = new System.Drawing.Point(3, 0);
+            this.LoggedInUserLabel.Name = "LoggedInUserLabel";
+            this.LoggedInUserLabel.Size = new System.Drawing.Size(265, 35);
+            this.LoggedInUserLabel.TabIndex = 5;
+            this.LoggedInUserLabel.Text = "User:";
+            this.LoggedInUserLabel.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            // 
+            // DateTimeLabel
+            // 
+            this.DateTimeLabel.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.DateTimeLabel.ForeColor = System.Drawing.Color.WhiteSmoke;
+            this.DateTimeLabel.Location = new System.Drawing.Point(285, 0);
+            this.DateTimeLabel.Name = "DateTimeLabel";
+            this.DateTimeLabel.Size = new System.Drawing.Size(298, 35);
+            this.DateTimeLabel.TabIndex = 6;
+            this.DateTimeLabel.Text = "Date:";
+            this.DateTimeLabel.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
             // 
             // TitlePanel
             // 
@@ -92,39 +136,6 @@
             this.pictureBox2.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
             this.pictureBox2.TabIndex = 88;
             this.pictureBox2.TabStop = false;
-            // 
-            // panel1
-            // 
-            this.panel1.Controls.Add(this.VersionLabel);
-            this.panel1.Controls.Add(this.LoggedInUserLabel);
-            this.panel1.Controls.Add(this.DateTimeLabel);
-            this.panel1.Dock = System.Windows.Forms.DockStyle.Right;
-            this.panel1.Location = new System.Drawing.Point(972, 0);
-            this.panel1.Name = "panel1";
-            this.panel1.Size = new System.Drawing.Size(828, 41);
-            this.panel1.TabIndex = 7;
-            // 
-            // LoggedInUserLabel
-            // 
-            this.LoggedInUserLabel.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.LoggedInUserLabel.ForeColor = System.Drawing.Color.WhiteSmoke;
-            this.LoggedInUserLabel.Location = new System.Drawing.Point(3, 0);
-            this.LoggedInUserLabel.Name = "LoggedInUserLabel";
-            this.LoggedInUserLabel.Size = new System.Drawing.Size(265, 35);
-            this.LoggedInUserLabel.TabIndex = 5;
-            this.LoggedInUserLabel.Text = "User:";
-            this.LoggedInUserLabel.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
-            // 
-            // DateTimeLabel
-            // 
-            this.DateTimeLabel.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.DateTimeLabel.ForeColor = System.Drawing.Color.WhiteSmoke;
-            this.DateTimeLabel.Location = new System.Drawing.Point(285, 0);
-            this.DateTimeLabel.Name = "DateTimeLabel";
-            this.DateTimeLabel.Size = new System.Drawing.Size(298, 35);
-            this.DateTimeLabel.TabIndex = 6;
-            this.DateTimeLabel.Text = "Date:";
-            this.DateTimeLabel.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
             // 
             // panel9
             // 
@@ -222,7 +233,7 @@
             this.ControlPanel.Controls.Add(this.CloseButton);
             this.ControlPanel.Controls.Add(this.LogInButton);
             this.ControlPanel.Controls.Add(this.SettingsButton);
-            this.ControlPanel.Controls.Add(this.CustomerAccountsButton);
+            this.ControlPanel.Controls.Add(this.AccountsReceivableButton);
             this.ControlPanel.Controls.Add(this.ReportsButton);
             this.ControlPanel.Controls.Add(this.UsersButton);
             this.ControlPanel.Controls.Add(this.InventoryButton);
@@ -287,23 +298,23 @@
             this.SettingsButton.UseVisualStyleBackColor = false;
             this.SettingsButton.Click += new System.EventHandler(this.SettingsButton_Click);
             // 
-            // CustomerAccountsButton
+            // AccountsReceivableButton
             // 
-            this.CustomerAccountsButton.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
-            this.CustomerAccountsButton.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
-            this.CustomerAccountsButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.CustomerAccountsButton.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.CustomerAccountsButton.ForeColor = System.Drawing.Color.DarkGray;
-            this.CustomerAccountsButton.Image = global::IndyPOS.Properties.Resources.Customer_Acounts_50;
-            this.CustomerAccountsButton.Location = new System.Drawing.Point(3, 487);
-            this.CustomerAccountsButton.Name = "CustomerAccountsButton";
-            this.CustomerAccountsButton.Size = new System.Drawing.Size(292, 115);
-            this.CustomerAccountsButton.TabIndex = 3;
-            this.CustomerAccountsButton.Text = "บัญชีลูกค้า";
-            this.CustomerAccountsButton.TextAlign = System.Drawing.ContentAlignment.BottomCenter;
-            this.CustomerAccountsButton.TextImageRelation = System.Windows.Forms.TextImageRelation.ImageAboveText;
-            this.CustomerAccountsButton.UseVisualStyleBackColor = false;
-            this.CustomerAccountsButton.Click += new System.EventHandler(this.CustomerAccountsButton_Click);
+            this.AccountsReceivableButton.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
+            this.AccountsReceivableButton.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
+            this.AccountsReceivableButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.AccountsReceivableButton.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.AccountsReceivableButton.ForeColor = System.Drawing.Color.DarkGray;
+            this.AccountsReceivableButton.Image = global::IndyPOS.Properties.Resources.Customer_Acounts_50;
+            this.AccountsReceivableButton.Location = new System.Drawing.Point(3, 487);
+            this.AccountsReceivableButton.Name = "AccountsReceivableButton";
+            this.AccountsReceivableButton.Size = new System.Drawing.Size(292, 115);
+            this.AccountsReceivableButton.TabIndex = 3;
+            this.AccountsReceivableButton.Text = "รายการลงบัญชี";
+            this.AccountsReceivableButton.TextAlign = System.Drawing.ContentAlignment.BottomCenter;
+            this.AccountsReceivableButton.TextImageRelation = System.Windows.Forms.TextImageRelation.ImageAboveText;
+            this.AccountsReceivableButton.UseVisualStyleBackColor = false;
+            this.AccountsReceivableButton.Click += new System.EventHandler(this.AccountsReceivableButton_Click);
             // 
             // ReportsButton
             // 
@@ -377,17 +388,6 @@
             this.SaleButton.UseVisualStyleBackColor = false;
             this.SaleButton.Click += new System.EventHandler(this.SaleButton_Click);
             // 
-            // VersionLabel
-            // 
-            this.VersionLabel.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.VersionLabel.ForeColor = System.Drawing.Color.WhiteSmoke;
-            this.VersionLabel.Location = new System.Drawing.Point(589, 0);
-            this.VersionLabel.Name = "VersionLabel";
-            this.VersionLabel.Size = new System.Drawing.Size(236, 35);
-            this.VersionLabel.TabIndex = 7;
-            this.VersionLabel.Text = "Version:";
-            this.VersionLabel.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
-            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -406,9 +406,9 @@
             this.Load += new System.EventHandler(this.MainForm_Load);
             this.Shown += new System.EventHandler(this.MainForm_Shown);
             this.NavigationPanel.ResumeLayout(false);
+            this.panel1.ResumeLayout(false);
             this.TitlePanel.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox2)).EndInit();
-            this.panel1.ResumeLayout(false);
             this.panel9.ResumeLayout(false);
             this.ControlPanel.ResumeLayout(false);
             this.ResumeLayout(false);
@@ -425,7 +425,7 @@
         private System.Windows.Forms.Button UsersButton;
         private System.Windows.Forms.Button SettingsButton;
         private System.Windows.Forms.Button ReportsButton;
-        private System.Windows.Forms.Button CustomerAccountsButton;
+        private System.Windows.Forms.Button AccountsReceivableButton;
         private System.Windows.Forms.Button LogInButton;
         private System.Windows.Forms.Label StoreNameLabel;
 		private System.Windows.Forms.Button CloseButton;

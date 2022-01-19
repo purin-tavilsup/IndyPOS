@@ -175,12 +175,12 @@ namespace IndyPOS.UI
             var productRow = new object[columnCount];
             var total = product.UnitPrice * product.Quantity;
 
-            productRow[(int)SaleInvoiceColumn.Priority] = $"{product.Priority}";
+            productRow[(int)SaleInvoiceColumn.Priority] = product.Priority;
             productRow[(int)SaleInvoiceColumn.ProductCode] = product.Barcode;
             productRow[(int)SaleInvoiceColumn.Description] = product.Description;
-            productRow[(int)SaleInvoiceColumn.Quantity] = $"{product.Quantity}";
-            productRow[(int)SaleInvoiceColumn.UnitPrice] = $"{product.UnitPrice:N}";
-            productRow[(int)SaleInvoiceColumn.Total] = $"{total:N}";
+            productRow[(int)SaleInvoiceColumn.Quantity] = product.Quantity;
+            productRow[(int)SaleInvoiceColumn.UnitPrice] = product.UnitPrice;
+            productRow[(int)SaleInvoiceColumn.Total] = total;
 			productRow[(int)SaleInvoiceColumn.Note] = product.Note;
 
             InvoiceDataView.Rows.Add(productRow);
@@ -191,9 +191,9 @@ namespace IndyPOS.UI
             var columnCount = PaymentDataView.ColumnCount;
             var paymentRow = new object[columnCount];
 
-            paymentRow[(int)PaymentColumn.PaymentPriority] = $"{payment.Priority}";
+            paymentRow[(int)PaymentColumn.PaymentPriority] = payment.Priority;
             paymentRow[(int)PaymentColumn.PaymentType] = _paymentTypeDictionary[payment.PaymentTypeId];
-            paymentRow[(int)PaymentColumn.PaymentAmount] = $"{payment.Amount:N}";
+            paymentRow[(int)PaymentColumn.PaymentAmount] = payment.Amount;
 			paymentRow[(int) PaymentColumn.Note] = payment.Note;
 
             PaymentDataView.Rows.Add(paymentRow);
@@ -252,13 +252,12 @@ namespace IndyPOS.UI
 			var selectedCell = InvoiceDataView.SelectedCells[0];
 			var rowIndex = selectedCell.RowIndex;
 			var selectedRow = InvoiceDataView.Rows[rowIndex];
-			var barcode = selectedRow.Cells[(int)SaleInvoiceColumn.ProductCode].Value as string;
+			var barcode = (string) selectedRow.Cells[(int)SaleInvoiceColumn.ProductCode].Value;
 
 			if (!barcode.HasValue()) 
 				return;
 
-			if (!int.TryParse(selectedRow.Cells[(int) SaleInvoiceColumn.Priority].Value as string, out var priority))
-				return;
+			var priority = (int) selectedRow.Cells[(int) SaleInvoiceColumn.Priority].Value;
 
             _updateProductForm.ShowDialog(barcode, priority);
         }
@@ -323,14 +322,16 @@ namespace IndyPOS.UI
 
         private void AddGeneralGoodsProductButton_Click(object sender, EventArgs e)
 		{
-			const string generalGoodsCode = "GP00000000001";
+			const int categoryNumber = (int) ProductCategory.GeneralGoods;
+			var generalGoodsCode = $"{categoryNumber:00}00000000001";
 
 			_addInvoiceProductForm.ShowDialog(generalGoodsCode);
 		}
 
         private void AddHardwareProductButton_Click(object sender, EventArgs e)
 		{
-			const string hardwareCode = "HW00000000001";
+			const int categoryNumber = (int) ProductCategory.Hardware;
+			var hardwareCode = $"{categoryNumber:00}00000000001";
 
 			_addInvoiceProductForm.ShowDialog(hardwareCode);
         }

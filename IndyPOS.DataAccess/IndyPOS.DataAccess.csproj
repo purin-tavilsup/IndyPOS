@@ -76,9 +76,10 @@
     <Compile Include="DbConnectionProvider.cs" />
     <Compile Include="Extensions\StringExtensions.cs" />
     <Compile Include="IDbConnectionProvider.cs" />
+    <Compile Include="Models\AccountsReceivable.cs" />
     <Compile Include="Models\UserCredential.cs" />
-    <Compile Include="SQLite\Repositories\CustomerRepository.cs" />
-    <Compile Include="Repositories\ICustomerRepository.cs" />
+    <Compile Include="Repositories\IAccountsReceivableRepository.cs" />
+    <Compile Include="SQLite\Repositories\AccountsReceivableRepository.cs" />
     <Compile Include="Repositories\IInventoryProductRepository.cs" />
     <Compile Include="Repositories\IInvoiceRepository.cs" />
     <Compile Include="SQLite\Repositories\InventoryProductRepository.cs" />

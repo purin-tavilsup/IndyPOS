@@ -61,11 +61,11 @@ namespace IndyPOS.IoC
             builder.RegisterType<StoreConstantRepository>()
 				   .As<IStoreConstantRepository>();
 
-            builder.RegisterType<CustomerRepository>()
-				   .As<ICustomerRepository>();
-
             builder.RegisterType<UserRepository>()
 				   .As<IUserRepository>();
+
+			builder.RegisterType<AccountsReceivableRepository>()
+				   .As<IAccountsReceivableRepository>();
 
             builder.RegisterType<BarcodeScanner>()
 				   .As<IBarcodeScanner>()

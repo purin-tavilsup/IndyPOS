@@ -6,7 +6,7 @@
         Inventory,
         Users,
         Reports,
-        CustomerAccounts,
+		AccountsReceivable,
         Settings,
         UserLogIn
     }

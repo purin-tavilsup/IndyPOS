@@ -8,7 +8,11 @@ using IndyPOS.Users;
 using Prism.Events;
 using System.Collections.Generic;
 using System.Linq;
+using AccountsReceivableModel = IndyPOS.DataAccess.Models.AccountsReceivable;
 using InventoryProductModel = IndyPOS.DataAccess.Models.InventoryProduct;
+using InvoiceModel = IndyPOS.DataAccess.Models.Invoice;
+using InvoiceProductModel = IndyPOS.DataAccess.Models.InvoiceProduct;
+using PaymentModel = IndyPOS.DataAccess.Models.Payment;
 
 namespace IndyPOS.Controllers
 {
@@ -19,6 +23,7 @@ namespace IndyPOS.Controllers
         private readonly IInventoryProductRepository _inventoryProductsRepository;
 		private readonly IReceiptPrinter _receiptPrinter;
 		private readonly IUserAccountHelper _userAccountHelper;
+		private readonly IAccountsReceivableRepository _accountsReceivableRepository;
         private readonly ISaleInvoice _saleInvoice;
 
         public IReadOnlyCollection<ISaleInvoiceProduct> Products => (IReadOnlyCollection<ISaleInvoiceProduct>)_saleInvoice.Products;
@@ -44,7 +49,8 @@ namespace IndyPOS.Controllers
 									 IInvoiceRepository invoicesRepository, 
 									 IInventoryProductRepository inventoryProductsRepository,
 									 IReceiptPrinter receiptPrinter,
-									 IUserAccountHelper userAccountHelper)
+									 IUserAccountHelper userAccountHelper,
+									 IAccountsReceivableRepository accountsReceivableRepository)
         {
 			_saleInvoice = saleInvoice;
             _eventAggregator = eventAggregator;
@@ -52,6 +58,7 @@ namespace IndyPOS.Controllers
             _inventoryProductsRepository = inventoryProductsRepository;
 			_receiptPrinter = receiptPrinter;
 			_userAccountHelper = userAccountHelper;
+			_accountsReceivableRepository = accountsReceivableRepository;
 		}
 		
         public void StartNewSale()
@@ -283,8 +290,8 @@ namespace IndyPOS.Controllers
 
 		private void AddInvoiceToDatabase(ISaleInvoice saleInvoice, int userId)
 		{
-            var  invoiceId = _invoicesRepository.AddInvoice(new DataAccess.Models.Invoice 
-															{ 
+            var  invoiceId = _invoicesRepository.AddInvoice(new InvoiceModel
+            { 
 																Total = saleInvoice.InvoiceTotal,
 																UserId = userId,
 																CustomerId = null
@@ -303,7 +310,7 @@ namespace IndyPOS.Controllers
 
         private void AddProductToDatabase(ISaleInvoiceProduct product, int invoiceId)
         {
-            _invoicesRepository.AddInvoiceProduct(new DataAccess.Models.InvoiceProduct
+            _invoicesRepository.AddInvoiceProduct(new InvoiceProductModel
             {
                 InvoiceId = invoiceId,
                 InventoryProductId = product.InventoryProductId,
@@ -323,19 +330,36 @@ namespace IndyPOS.Controllers
         {
             foreach(var payment in saleInvoice.Payments)
 			{
-                AddPaymentToDatabase(payment, saleInvoice.Id.GetValueOrDefault());
-            }
+				var invoiceId = saleInvoice.Id.GetValueOrDefault();
+                var paymentId = AddPaymentToDatabase(payment, invoiceId);
+
+				if (payment.PaymentTypeId == (int) PaymentType.AccountReceivable)
+				{
+					AddAccountsReceivableToDatabase(payment, paymentId, invoiceId);
+				}
+			}
         }
 
-        private void AddPaymentToDatabase(IPayment payment, int invoiceId)
+        private int AddPaymentToDatabase(IPayment payment, int invoiceId)
         {
-			_invoicesRepository.AddPayment(new DataAccess.Models.Payment
-										   {
-											   InvoiceId = invoiceId,
-											   PaymentTypeId = payment.PaymentTypeId,
-											   Amount = payment.Amount,
-											   Note = payment.Note
-										   });
+			return _invoicesRepository.AddPayment(new PaymentModel
+												  {
+													  InvoiceId = invoiceId,
+													  PaymentTypeId = payment.PaymentTypeId,
+													  Amount = payment.Amount,
+													  Note = payment.Note
+												  });
+		}
+
+		private void AddAccountsReceivableToDatabase(IPayment payment, int paymentId, int invoiceId)
+		{
+			_accountsReceivableRepository.AddAccountsReceivable(new AccountsReceivableModel
+																{
+																	PaymentId = paymentId,
+																	Description = payment.Note,
+																	InvoiceId = invoiceId,
+																	ReceivableAmount = payment.Amount
+																});
 		}
 	}
 }

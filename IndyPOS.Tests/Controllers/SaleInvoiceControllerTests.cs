@@ -13,11 +13,14 @@ using NUnit.Framework;
 using Prism.Events;
 using System;
 using System.Collections.Generic;
+using AccountsReceivableModel = IndyPOS.DataAccess.Models.AccountsReceivable;
 using InventoryProductModel = IndyPOS.DataAccess.Models.InventoryProduct;
+using InvoiceProductModel = IndyPOS.DataAccess.Models.InvoiceProduct;
+using PaymentModel = IndyPOS.DataAccess.Models.Payment;
 
 namespace IndyPOS.Tests.Controllers
 {
-    [TestFixture]
+	[TestFixture]
     public class SaleInvoiceControllerTests
     {
         private SaleInvoiceController _saleInvoiceController;
@@ -27,6 +30,7 @@ namespace IndyPOS.Tests.Controllers
         private IInventoryProductRepository _inventoryProductsRepository;
         private IReceiptPrinter _receiptPrinter;
         private IUserAccountHelper _userAccountHelper;
+		private IAccountsReceivableRepository _accountsReceivableRepository;
         private IFixture _fixture;
 		private int _inventoryProductId;
 		private int _productPriority;
@@ -48,7 +52,8 @@ namespace IndyPOS.Tests.Controllers
                                                                _invoicesRepository,
                                                                _inventoryProductsRepository,
                                                                _receiptPrinter,
-                                                               _userAccountHelper);
+                                                               _userAccountHelper,
+															   _accountsReceivableRepository);
         }
 
 		private void SetupFakeEventObjects()
@@ -67,6 +72,7 @@ namespace IndyPOS.Tests.Controllers
 			_inventoryProductsRepository = A.Fake<IInventoryProductRepository>();
 			_receiptPrinter = A.Fake<IReceiptPrinter>();
 			_userAccountHelper = A.Fake<IUserAccountHelper>();
+			_accountsReceivableRepository = A.Fake<IAccountsReceivableRepository>();
 		}
 
 		private void SetupFixture()
@@ -615,8 +621,22 @@ namespace IndyPOS.Tests.Controllers
 
 			_saleInvoiceController.CompleteSale();
 
-			A.CallTo(() => _invoicesRepository.AddPayment(A<DataAccess.Models.Payment>.Ignored))
+			A.CallTo(() => _invoicesRepository.AddPayment(A<PaymentModel>.Ignored))
 			 .MustHaveHappened(paymentList.Count, Times.Exactly);
+		}
+
+		[Test]
+		public void CompleteSale_PaymentTypeIsAccountsReceivable_AccountsReceivableShouldBeSavedToDatabase()
+		{
+			var payment = A.Fake<IPayment>();
+
+			A.CallTo(() => payment.PaymentTypeId).Returns((int) PaymentType.AccountReceivable);
+			A.CallTo(() => _saleInvoice.Payments).Returns(new List<IPayment> { payment });
+
+			_saleInvoiceController.CompleteSale();
+
+			A.CallTo(() => _accountsReceivableRepository.AddAccountsReceivable(A<AccountsReceivableModel>.Ignored))
+			 .MustHaveHappenedOnceExactly();
 		}
 
 		[Test]
@@ -636,7 +656,7 @@ namespace IndyPOS.Tests.Controllers
 
 			_saleInvoiceController.CompleteSale();
 
-			A.CallTo(() => _invoicesRepository.AddInvoiceProduct(A<DataAccess.Models.InvoiceProduct>.Ignored))
+			A.CallTo(() => _invoicesRepository.AddInvoiceProduct(A<InvoiceProductModel>.Ignored))
 			 .MustHaveHappened(productList.Count, Times.Exactly);
 		}
 

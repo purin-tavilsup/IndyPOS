@@ -16,7 +16,7 @@ namespace IndyPOS.UI
         private readonly InventoryPanel _inventoryPanel;
         private readonly UsersPanel _usersPanel;
         private readonly ReportsPanel _reportsPanel;
-        private readonly CustomerAccountsPanel _customerAccountsPanel;
+        private readonly AccountsReceivablePanel _accountsReceivablePanel;
         private readonly SettingsPanel _settingsPanel;
 		private readonly UserLogInPanel _userLogInPanel;
         private readonly IEventAggregator _eventAggregator;
@@ -30,7 +30,7 @@ namespace IndyPOS.UI
                         InventoryPanel inventoryPanel, 
                         UsersPanel usersPanel, 
                         ReportsPanel reportsPanel, 
-                        CustomerAccountsPanel customerAccountsPanel, 
+                        AccountsReceivablePanel accountsReceivablePanel, 
                         SettingsPanel settingsPanel,
 						UserLogInPanel userLogInPanel,
                         IEventAggregator eventAggregator,
@@ -46,8 +46,8 @@ namespace IndyPOS.UI
 			_usersPanel.Visible = false;
 			_reportsPanel = reportsPanel;
 			_reportsPanel.Visible = false;
-			_customerAccountsPanel = customerAccountsPanel;
-			_customerAccountsPanel.Visible = false;
+			_accountsReceivablePanel = accountsReceivablePanel;
+			_accountsReceivablePanel.Visible = false;
 			_settingsPanel = settingsPanel;
 			_settingsPanel.Visible = false;
 			_userLogInPanel = userLogInPanel;
@@ -123,9 +123,9 @@ namespace IndyPOS.UI
 
                     break;
 
-                case SubPanel.CustomerAccounts:
+                case SubPanel.AccountsReceivable:
 
-                    panelToShow = _customerAccountsPanel;
+                    panelToShow = _accountsReceivablePanel;
 
                     break;
 
@@ -211,12 +211,12 @@ namespace IndyPOS.UI
 			SwitchToPanel(SubPanel.Settings);
         }
 
-		private void CustomerAccountsButton_Click(object sender, EventArgs e)
+		private void AccountsReceivableButton_Click(object sender, EventArgs e)
 		{
 			if (!_isUserLoggedIn)
 				return;
 
-			SwitchToPanel(SubPanel.CustomerAccounts);
+			SwitchToPanel(SubPanel.AccountsReceivable);
 		}
 
 		private void LogInButton_Click(object sender, EventArgs e)
@@ -226,10 +226,14 @@ namespace IndyPOS.UI
 
 		private void CloseButton_Click(object sender, EventArgs e)
 		{
-			_reportController.WriteSaleRecordsToCsvFileByDate(DateTime.Today);
-
-            Close();
+			WriteSaleRecordsToCsvFile();
+			Close();
 		}
+
+        private void WriteSaleRecordsToCsvFile()
+        {
+			_reportController.WriteSaleRecordsToCsvFileByDate(DateTime.Today);
+        }
 
 		private void MinimizeWindows_Click(object sender, EventArgs e)
 		{
@@ -255,9 +259,8 @@ namespace IndyPOS.UI
 
 		private void CloseWindows_Click(object sender, EventArgs e)
 		{
-			_reportController.WriteSaleRecordsToCsvFileByDate(DateTime.Today);
-
-            Close();
+			WriteSaleRecordsToCsvFile();
+			Close();
         }
         
 		private void MainForm_Load(object sender, EventArgs e)
