@@ -34,6 +34,8 @@ namespace IndyPOS.Controllers
 
 		decimal InvoicesTotalWithoutAr { get; }
 
+		decimal InvoicesTotalWithoutIncompleteAr { get; }
+
 		decimal GeneralGoodsProductsTotal { get; }
 
 		decimal HardwareProductsTotal { get; }

@@ -10,5 +10,7 @@ namespace IndyPOS.Controllers
 		IAccountsReceivable GetAccountsReceivableByInvoiceId(int invoiceId);
 
 		void UpdateAccountsReceivable(IAccountsReceivable accountsReceivable);
+
+		void ConvertPaymentsToAccountsReceivables();
 	}
 }

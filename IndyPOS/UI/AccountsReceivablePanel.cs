@@ -5,6 +5,8 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Windows.Forms;
+using IndyPOS.Enums;
+using IndyPOS.Users;
 
 namespace IndyPOS.UI
 {
@@ -12,6 +14,7 @@ namespace IndyPOS.UI
     public partial class AccountsReceivablePanel : UserControl
     {
 		private readonly IAccountsReceivableController _arController;
+		private readonly IUserAccountHelper _accountHelper;
 		private readonly MessageForm _messageForm;
 		private IList<IAccountsReceivable> _accountsReceivables;
 		private IAccountsReceivable _selectedAccountsReceivable;
@@ -29,9 +32,11 @@ namespace IndyPOS.UI
 		}
 
         public AccountsReceivablePanel(IAccountsReceivableController arController,
-									 MessageForm messageForm)
+									   IUserAccountHelper accountHelper, 
+									   MessageForm messageForm)
 		{
 			_arController = arController;
+			_accountHelper = accountHelper;
 			_messageForm = messageForm;
 
             InitializeComponent();
@@ -89,7 +94,7 @@ namespace IndyPOS.UI
 			row[(int)AccountColumn.Description] = accountsReceivable.Description;
 			row[(int)AccountColumn.ReceivableAmount] = accountsReceivable.ReceivableAmount;
 			row[(int)AccountColumn.PaidAmount] = accountsReceivable.PaidAmount;
-			row[(int)AccountColumn.IsCompleted] = accountsReceivable.IsCompleted ? "ชำระแล้ว" : string.Empty;
+			row[(int)AccountColumn.IsCompleted] = accountsReceivable.IsCompleted ? "ชำระแล้ว" : "ยังไม่ชำระ";
 			row[(int)AccountColumn.PaymentId] = accountsReceivable.PaymentId;
 			row[(int)AccountColumn.DateCreated] = accountsReceivable.DateCreated;
 			row[(int)AccountColumn.DateUpdated] = accountsReceivable.DateUpdated;
@@ -220,5 +225,18 @@ namespace IndyPOS.UI
 			
 			ShowAccountReceivables(showIncompleteOnly);
         }
+
+        private void CreateARForUnlinkedPaymentsButton_Click(object sender, EventArgs e)
+        {
+			_arController.ConvertPaymentsToAccountsReceivables();
+        }
+
+        private void AccountsReceivablePanel_VisibleChanged(object sender, EventArgs e)
+		{
+			if (_accountHelper.IsLoggedIn)
+            {
+				CreateARForUnlinkedPaymentsButton.Visible = _accountHelper.LoggedInUser.RoleId == (int) UserRole.SystemAdmin;
+            }
+		}
     }
 }

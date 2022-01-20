@@ -1,10 +1,12 @@
 ﻿using IndyPOS.Adapters;
 using IndyPOS.DataAccess.Repositories;
+using IndyPOS.Enums;
 using IndyPOS.Sales;
 using Prism.Events;
 using System.Collections.Generic;
 using System.Linq;
 using AccountsReceivableModel = IndyPOS.DataAccess.Models.AccountsReceivable;
+using PaymentModel = IndyPOS.DataAccess.Models.Payment;
 
 namespace IndyPOS.Controllers
 {
@@ -12,11 +14,14 @@ namespace IndyPOS.Controllers
     {
 		private readonly IEventAggregator _eventAggregator;
         private readonly IAccountsReceivableRepository _accountsReceivableRepository;
+		private readonly IInvoiceRepository _invoicesRepository;
 
         public AccountsReceivableController(IAccountsReceivableRepository accountsReceivableRepository,
+											IInvoiceRepository invoicesRepository,
 											IEventAggregator eventAggregator)
 		{
 			_accountsReceivableRepository = accountsReceivableRepository;
+			_invoicesRepository = invoicesRepository;
 			_eventAggregator = eventAggregator;
 		}
 
@@ -45,5 +50,26 @@ namespace IndyPOS.Controllers
 																	   IsCompleted = isCompleted
 																   });
         }
+
+		public void ConvertPaymentsToAccountsReceivables()
+		{
+			var accountsReceivablePayments = _invoicesRepository.GetPaymentsByPaymentTypeId((int) PaymentType.AccountReceivable);
+			var accountsReceivables = _accountsReceivableRepository.GetAccountsReceivables();
+
+			var arPaymentIds = accountsReceivables.Select(ar => ar.PaymentId).ToHashSet();
+
+			foreach (var arPayment in accountsReceivablePayments)
+            {
+				if (arPaymentIds.Contains(arPayment.PaymentId))
+					continue;
+
+				ConvertPaymentToAccountsReceivable(arPayment);
+			}
+		}
+
+		private void ConvertPaymentToAccountsReceivable(PaymentModel payment)
+		{
+			_accountsReceivableRepository.ConvertPaymentToAccountsReceivable(payment);
+		}
 	}
 }

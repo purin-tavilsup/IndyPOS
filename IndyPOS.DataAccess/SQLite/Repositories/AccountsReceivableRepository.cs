@@ -56,6 +56,46 @@ namespace IndyPOS.DataAccess.SQLite.Repositories
 			}
 		}
 
+		public void ConvertPaymentToAccountsReceivable(Payment payment)
+        {
+			using (var connection = _dbConnectionProvider.GetDbConnection())
+			{
+				connection.Open();
+
+				const string sqlCommand = @"INSERT INTO AccountsReceivables
+                (
+                    PaymentId,
+                    Description,
+                    InvoiceId,
+                    ReceivableAmount,
+					DateCreated
+                )
+                VALUES
+                (
+                    @PaymentId,
+                    @Description,
+                    @InvoiceId,
+					@ReceivableAmount,
+                    @DateCreated
+                );
+                SELECT last_insert_rowid()";
+
+				var sqlParameters = new
+									{
+										payment.PaymentId,
+										Description = payment.Note,
+										payment.InvoiceId,
+										ReceivableAmount = MapMoneyToString(payment.Amount),
+										payment.DateCreated
+									};
+
+				var rowId = connection.Query<int>(sqlCommand, sqlParameters).FirstOrDefault();
+
+				if (rowId < 1) 
+					throw new Exception("Failed to get the last insert Row ID after adding a new account receivable.");
+			}
+        }
+
 		public void UpdateAccountsReceivable(AccountsReceivable accountsReceivable)
 		{
 			using (var connection = _dbConnectionProvider.GetDbConnection())
@@ -101,6 +141,35 @@ namespace IndyPOS.DataAccess.SQLite.Repositories
                 FROM AccountsReceivables";
 
 				var results = connection.Query(sqlCommand);
+
+				return MapAccountsReceivables(results);
+			}
+		}
+
+		public IEnumerable<AccountsReceivable> GetIncompleteAccountsReceivables()
+		{
+			using (var connection = _dbConnectionProvider.GetDbConnection())
+			{
+				connection.Open();
+
+				const string sqlCommand = @"SELECT
+				PaymentId,
+				Description,
+				InvoiceId,
+				ReceivableAmount,
+				PaidAmount,
+				IsCompleted,
+				DateCreated,
+				DateUpdated
+                FROM AccountsReceivables
+				WHERE IsCompleted = @IsCompleted";
+
+				var sqlParameters = new
+									{
+										IsCompleted = 0
+									};
+
+				var results = connection.Query(sqlCommand, sqlParameters);
 
 				return MapAccountsReceivables(results);
 			}

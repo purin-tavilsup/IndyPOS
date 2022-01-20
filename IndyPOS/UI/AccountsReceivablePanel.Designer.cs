@@ -28,9 +28,10 @@
         /// </summary>
         private void InitializeComponent()
         {
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle1 = new System.Windows.Forms.DataGridViewCellStyle();
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle2 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle5 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle6 = new System.Windows.Forms.DataGridViewCellStyle();
             this.panel1 = new System.Windows.Forms.Panel();
+            this.ShowIncompleteOnlyCheckBox = new System.Windows.Forms.CheckBox();
             this.LookUpArByInvoiceIdButton = new ModernUI.ModernButton();
             this.ArLookUpKeywordTextBox = new ModernUI.ModernTextBox();
             this.ShowArButton = new ModernUI.ModernButton();
@@ -54,24 +55,39 @@
             this.IsCompleted = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.DateCreated = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.DateUpdated = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.ShowIncompleteOnlyCheckBox = new System.Windows.Forms.CheckBox();
+            this.CreateARForUnlinkedPaymentsButton = new ModernUI.ModernButton();
+            this.panel4 = new System.Windows.Forms.Panel();
             this.panel1.SuspendLayout();
             this.panel2.SuspendLayout();
             this.panel3.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.ArDataView)).BeginInit();
+            this.panel4.SuspendLayout();
             this.SuspendLayout();
             // 
             // panel1
             // 
+            this.panel1.Controls.Add(this.CreateARForUnlinkedPaymentsButton);
+            this.panel1.Controls.Add(this.panel4);
             this.panel1.Controls.Add(this.ShowIncompleteOnlyCheckBox);
-            this.panel1.Controls.Add(this.LookUpArByInvoiceIdButton);
-            this.panel1.Controls.Add(this.ArLookUpKeywordTextBox);
             this.panel1.Controls.Add(this.ShowArButton);
             this.panel1.Dock = System.Windows.Forms.DockStyle.Top;
             this.panel1.Location = new System.Drawing.Point(0, 0);
             this.panel1.Name = "panel1";
             this.panel1.Size = new System.Drawing.Size(1421, 60);
             this.panel1.TabIndex = 0;
+            // 
+            // ShowIncompleteOnlyCheckBox
+            // 
+            this.ShowIncompleteOnlyCheckBox.AutoSize = true;
+            this.ShowIncompleteOnlyCheckBox.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.ShowIncompleteOnlyCheckBox.ForeColor = System.Drawing.Color.White;
+            this.ShowIncompleteOnlyCheckBox.Location = new System.Drawing.Point(291, 16);
+            this.ShowIncompleteOnlyCheckBox.Name = "ShowIncompleteOnlyCheckBox";
+            this.ShowIncompleteOnlyCheckBox.Size = new System.Drawing.Size(247, 28);
+            this.ShowIncompleteOnlyCheckBox.TabIndex = 54;
+            this.ShowIncompleteOnlyCheckBox.Text = "แสดงเฉพาะรายการที่ยังค้างชำระ";
+            this.ShowIncompleteOnlyCheckBox.UseVisualStyleBackColor = true;
+            this.ShowIncompleteOnlyCheckBox.Click += new System.EventHandler(this.ShowIncompleteOnlyCheckBox_Click);
             // 
             // LookUpArByInvoiceIdButton
             // 
@@ -84,7 +100,7 @@
             this.LookUpArByInvoiceIdButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.LookUpArByInvoiceIdButton.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.LookUpArByInvoiceIdButton.ForeColor = System.Drawing.Color.White;
-            this.LookUpArByInvoiceIdButton.Location = new System.Drawing.Point(830, 0);
+            this.LookUpArByInvoiceIdButton.Location = new System.Drawing.Point(176, 4);
             this.LookUpArByInvoiceIdButton.Name = "LookUpArByInvoiceIdButton";
             this.LookUpArByInvoiceIdButton.Size = new System.Drawing.Size(241, 50);
             this.LookUpArByInvoiceIdButton.TabIndex = 53;
@@ -100,13 +116,13 @@
             this.ArLookUpKeywordTextBox.BorderSize = 1;
             this.ArLookUpKeywordTextBox.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.ArLookUpKeywordTextBox.ForeColor = System.Drawing.Color.Gainsboro;
-            this.ArLookUpKeywordTextBox.Location = new System.Drawing.Point(600, 11);
+            this.ArLookUpKeywordTextBox.Location = new System.Drawing.Point(3, 13);
             this.ArLookUpKeywordTextBox.Multiline = false;
             this.ArLookUpKeywordTextBox.Name = "ArLookUpKeywordTextBox";
             this.ArLookUpKeywordTextBox.Padding = new System.Windows.Forms.Padding(7);
             this.ArLookUpKeywordTextBox.PasswordChar = false;
             this.ArLookUpKeywordTextBox.ReadOnly = false;
-            this.ArLookUpKeywordTextBox.Size = new System.Drawing.Size(224, 39);
+            this.ArLookUpKeywordTextBox.Size = new System.Drawing.Size(160, 39);
             this.ArLookUpKeywordTextBox.TabIndex = 52;
             this.ArLookUpKeywordTextBox.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
             this.ArLookUpKeywordTextBox.Texts = "";
@@ -162,7 +178,7 @@
             this.UpdateArButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.UpdateArButton.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.UpdateArButton.ForeColor = System.Drawing.Color.White;
-            this.UpdateArButton.Location = new System.Drawing.Point(39, 251);
+            this.UpdateArButton.Location = new System.Drawing.Point(72, 251);
             this.UpdateArButton.Name = "UpdateArButton";
             this.UpdateArButton.Size = new System.Drawing.Size(272, 53);
             this.UpdateArButton.TabIndex = 84;
@@ -180,7 +196,7 @@
             this.ReceivableAmountLabel.Name = "ReceivableAmountLabel";
             this.ReceivableAmountLabel.Size = new System.Drawing.Size(168, 28);
             this.ReceivableAmountLabel.TabIndex = 83;
-            this.ReceivableAmountLabel.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            this.ReceivableAmountLabel.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             // 
             // label3
             // 
@@ -203,7 +219,7 @@
             this.DescriptionLabel.Name = "DescriptionLabel";
             this.DescriptionLabel.Size = new System.Drawing.Size(168, 28);
             this.DescriptionLabel.TabIndex = 81;
-            this.DescriptionLabel.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            this.DescriptionLabel.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             // 
             // InvoiceIdLabel
             // 
@@ -214,7 +230,7 @@
             this.InvoiceIdLabel.Name = "InvoiceIdLabel";
             this.InvoiceIdLabel.Size = new System.Drawing.Size(168, 28);
             this.InvoiceIdLabel.TabIndex = 80;
-            this.InvoiceIdLabel.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            this.InvoiceIdLabel.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             // 
             // label11
             // 
@@ -255,7 +271,7 @@
             this.PaidAmountTextBox.ReadOnly = false;
             this.PaidAmountTextBox.Size = new System.Drawing.Size(168, 39);
             this.PaidAmountTextBox.TabIndex = 77;
-            this.PaidAmountTextBox.TextAlign = System.Windows.Forms.HorizontalAlignment.Left;
+            this.PaidAmountTextBox.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
             this.PaidAmountTextBox.Texts = "";
             this.PaidAmountTextBox.UnderlinedStyle = true;
             // 
@@ -303,14 +319,14 @@
             this.ArDataView.BorderStyle = System.Windows.Forms.BorderStyle.None;
             this.ArDataView.CellBorderStyle = System.Windows.Forms.DataGridViewCellBorderStyle.SingleHorizontal;
             this.ArDataView.ColumnHeadersBorderStyle = System.Windows.Forms.DataGridViewHeaderBorderStyle.None;
-            dataGridViewCellStyle1.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleCenter;
-            dataGridViewCellStyle1.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(48)))), ((int)(((byte)(48)))), ((int)(((byte)(48)))));
-            dataGridViewCellStyle1.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 14.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            dataGridViewCellStyle1.ForeColor = System.Drawing.Color.Gainsboro;
-            dataGridViewCellStyle1.Padding = new System.Windows.Forms.Padding(10, 0, 0, 0);
-            dataGridViewCellStyle1.SelectionBackColor = System.Drawing.Color.Gray;
-            dataGridViewCellStyle1.WrapMode = System.Windows.Forms.DataGridViewTriState.False;
-            this.ArDataView.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle1;
+            dataGridViewCellStyle5.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleCenter;
+            dataGridViewCellStyle5.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(48)))), ((int)(((byte)(48)))), ((int)(((byte)(48)))));
+            dataGridViewCellStyle5.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 14.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            dataGridViewCellStyle5.ForeColor = System.Drawing.Color.Gainsboro;
+            dataGridViewCellStyle5.Padding = new System.Windows.Forms.Padding(10, 0, 0, 0);
+            dataGridViewCellStyle5.SelectionBackColor = System.Drawing.Color.Gray;
+            dataGridViewCellStyle5.WrapMode = System.Windows.Forms.DataGridViewTriState.False;
+            this.ArDataView.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle5;
             this.ArDataView.ColumnHeadersHeight = 50;
             this.ArDataView.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.DisableResizing;
             this.ArDataView.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
@@ -321,14 +337,14 @@
             this.IsCompleted,
             this.DateCreated,
             this.DateUpdated});
-            dataGridViewCellStyle2.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
-            dataGridViewCellStyle2.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
-            dataGridViewCellStyle2.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            dataGridViewCellStyle2.ForeColor = System.Drawing.Color.Gainsboro;
-            dataGridViewCellStyle2.SelectionBackColor = System.Drawing.Color.FromArgb(((int)(((byte)(48)))), ((int)(((byte)(48)))), ((int)(((byte)(48)))));
-            dataGridViewCellStyle2.SelectionForeColor = System.Drawing.Color.Gainsboro;
-            dataGridViewCellStyle2.WrapMode = System.Windows.Forms.DataGridViewTriState.False;
-            this.ArDataView.DefaultCellStyle = dataGridViewCellStyle2;
+            dataGridViewCellStyle6.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle6.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
+            dataGridViewCellStyle6.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            dataGridViewCellStyle6.ForeColor = System.Drawing.Color.Gainsboro;
+            dataGridViewCellStyle6.SelectionBackColor = System.Drawing.Color.FromArgb(((int)(((byte)(48)))), ((int)(((byte)(48)))), ((int)(((byte)(48)))));
+            dataGridViewCellStyle6.SelectionForeColor = System.Drawing.Color.Gainsboro;
+            dataGridViewCellStyle6.WrapMode = System.Windows.Forms.DataGridViewTriState.False;
+            this.ArDataView.DefaultCellStyle = dataGridViewCellStyle6;
             this.ArDataView.Dock = System.Windows.Forms.DockStyle.Fill;
             this.ArDataView.EnableHeadersVisualStyles = false;
             this.ArDataView.GridColor = System.Drawing.Color.DimGray;
@@ -398,18 +414,35 @@
             this.DateUpdated.ReadOnly = true;
             this.DateUpdated.Width = 200;
             // 
-            // ShowIncompleteOnlyCheckBox
+            // CreateARForUnlinkedPaymentsButton
             // 
-            this.ShowIncompleteOnlyCheckBox.AutoSize = true;
-            this.ShowIncompleteOnlyCheckBox.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.ShowIncompleteOnlyCheckBox.ForeColor = System.Drawing.Color.White;
-            this.ShowIncompleteOnlyCheckBox.Location = new System.Drawing.Point(291, 16);
-            this.ShowIncompleteOnlyCheckBox.Name = "ShowIncompleteOnlyCheckBox";
-            this.ShowIncompleteOnlyCheckBox.Size = new System.Drawing.Size(247, 28);
-            this.ShowIncompleteOnlyCheckBox.TabIndex = 54;
-            this.ShowIncompleteOnlyCheckBox.Text = "แสดงเฉพาะรายการที่ยังค้างชำระ";
-            this.ShowIncompleteOnlyCheckBox.UseVisualStyleBackColor = true;
-            this.ShowIncompleteOnlyCheckBox.Click += new System.EventHandler(this.ShowIncompleteOnlyCheckBox_Click);
+            this.CreateARForUnlinkedPaymentsButton.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
+            this.CreateARForUnlinkedPaymentsButton.BackgroundColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
+            this.CreateARForUnlinkedPaymentsButton.BorderColor = System.Drawing.Color.FromArgb(((int)(((byte)(50)))), ((int)(((byte)(190)))), ((int)(((byte)(166)))));
+            this.CreateARForUnlinkedPaymentsButton.BorderRadius = 19;
+            this.CreateARForUnlinkedPaymentsButton.BorderSize = 1;
+            this.CreateARForUnlinkedPaymentsButton.FlatAppearance.BorderSize = 0;
+            this.CreateARForUnlinkedPaymentsButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.CreateARForUnlinkedPaymentsButton.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.CreateARForUnlinkedPaymentsButton.ForeColor = System.Drawing.Color.White;
+            this.CreateARForUnlinkedPaymentsButton.Location = new System.Drawing.Point(684, 3);
+            this.CreateARForUnlinkedPaymentsButton.Name = "CreateARForUnlinkedPaymentsButton";
+            this.CreateARForUnlinkedPaymentsButton.Size = new System.Drawing.Size(311, 53);
+            this.CreateARForUnlinkedPaymentsButton.TabIndex = 85;
+            this.CreateARForUnlinkedPaymentsButton.Text = "Create AR For Unlinked Payments";
+            this.CreateARForUnlinkedPaymentsButton.TextColor = System.Drawing.Color.White;
+            this.CreateARForUnlinkedPaymentsButton.UseVisualStyleBackColor = false;
+            this.CreateARForUnlinkedPaymentsButton.Click += new System.EventHandler(this.CreateARForUnlinkedPaymentsButton_Click);
+            // 
+            // panel4
+            // 
+            this.panel4.Controls.Add(this.ArLookUpKeywordTextBox);
+            this.panel4.Controls.Add(this.LookUpArByInvoiceIdButton);
+            this.panel4.Dock = System.Windows.Forms.DockStyle.Right;
+            this.panel4.Location = new System.Drawing.Point(1001, 0);
+            this.panel4.Name = "panel4";
+            this.panel4.Size = new System.Drawing.Size(420, 60);
+            this.panel4.TabIndex = 55;
             // 
             // AccountsReceivablePanel
             // 
@@ -421,11 +454,13 @@
             this.Controls.Add(this.panel1);
             this.Name = "AccountsReceivablePanel";
             this.Size = new System.Drawing.Size(1421, 697);
+            this.VisibleChanged += new System.EventHandler(this.AccountsReceivablePanel_VisibleChanged);
             this.panel1.ResumeLayout(false);
             this.panel1.PerformLayout();
             this.panel2.ResumeLayout(false);
             this.panel3.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.ArDataView)).EndInit();
+            this.panel4.ResumeLayout(false);
             this.ResumeLayout(false);
 
         }
@@ -457,5 +492,7 @@
         private ModernUI.ModernButton LookUpArByInvoiceIdButton;
         private ModernUI.ModernTextBox ArLookUpKeywordTextBox;
         private System.Windows.Forms.CheckBox ShowIncompleteOnlyCheckBox;
+        private System.Windows.Forms.Panel panel4;
+        private ModernUI.ModernButton CreateARForUnlinkedPaymentsButton;
     }
 }

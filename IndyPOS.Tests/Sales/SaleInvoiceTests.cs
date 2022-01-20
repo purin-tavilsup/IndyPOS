@@ -39,6 +39,24 @@ namespace IndyPOS.Tests.Sales
 		}
 
 		[Test]
+		public void AddProduct_IsRefundProduct_ShouldBeRefundInvoice()
+		{
+			var product = _fixture.Create<InventoryProductModel>();
+			const int refundQuantity = -1;
+			var refundAmount = product.UnitPrice * refundQuantity;
+
+			var addedProduct = _saleInvoice.AddProduct(product);
+
+			addedProduct.Quantity = refundQuantity;
+
+			addedProduct.InventoryProductId.Should().Be(product.InventoryProductId);
+			addedProduct.UnitPrice.Should().Be(product.UnitPrice);
+			_saleInvoice.InvoiceTotal.Should().Be(refundAmount);
+			_saleInvoice.IsRefundInvoice.Should().BeTrue();
+			_saleInvoice.Changes.Should().Be(ZeroMoneyValue);
+		}
+
+		[Test]
 		public void AddProduct_ProductShouldBeAdded()
 		{
 			var product = _fixture.Create<InventoryProductModel>();

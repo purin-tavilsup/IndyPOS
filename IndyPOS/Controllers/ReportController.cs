@@ -54,6 +54,8 @@ namespace IndyPOS.Controllers
 
 		public decimal InvoicesTotalWithoutAr => GetInvoicesTotalWithoutAr();
 
+		public decimal InvoicesTotalWithoutIncompleteAr => GetInvoicesTotalWithoutIncompleteAr();
+
 		public decimal GeneralGoodsProductsTotal => GetGeneralGoodsProductsTotal();
 
 		public decimal HardwareProductsTotal => GetHardwareProductsTotal();
@@ -156,6 +158,11 @@ namespace IndyPOS.Controllers
 		{
 			return InvoicesTotal - ArTotal;
 		}
+
+		private decimal GetInvoicesTotalWithoutIncompleteAr()
+        {
+			return InvoicesTotal - IncompleteArTotal;
+        }
 
 		private decimal GetArTotal()
 		{

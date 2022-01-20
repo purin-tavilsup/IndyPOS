@@ -12,8 +12,12 @@ namespace IndyPOS.DataAccess.Repositories
 
 		IEnumerable<AccountsReceivable> GetAccountsReceivables();
 
+		IEnumerable<AccountsReceivable> GetIncompleteAccountsReceivables();
+
 		AccountsReceivable GetAccountsReceivableByInvoiceId(int invoiceId);
 
 		IEnumerable<AccountsReceivable> GetAccountsReceivablesByDateRange(DateTime start, DateTime end);
+
+		void ConvertPaymentToAccountsReceivable(Payment payment);
 	}
 }

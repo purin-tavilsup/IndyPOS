@@ -29,7 +29,7 @@ namespace IndyPOS.UI.Reports
 		{
 			OverallSaleLabel.Text = $"{_reportController.InvoicesTotal:N}";
 
-			OverallSaleExcluedArLabel.Text = $"{_reportController.InvoicesTotalWithoutAr:N}";
+			OverallSaleExcluedIncompleteArLabel.Text = $"{_reportController.InvoicesTotalWithoutIncompleteAr:N}";
 			
 			GeneralGoodsSaleLabel.Text = $"{_reportController.GeneralGoodsProductsTotal:N}";
 			

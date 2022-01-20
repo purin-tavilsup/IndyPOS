@@ -29,6 +29,9 @@
         private void InitializeComponent()
         {
             this.panel9 = new System.Windows.Forms.Panel();
+            this.panel19 = new System.Windows.Forms.Panel();
+            this.ChangesLabel = new System.Windows.Forms.Label();
+            this.label17 = new System.Windows.Forms.Label();
             this.panel13 = new System.Windows.Forms.Panel();
             this.PaymentByArLabel = new System.Windows.Forms.Label();
             this.label6 = new System.Windows.Forms.Label();
@@ -77,9 +80,6 @@
             this.SaveSaleRecordsDateTimePicker = new System.Windows.Forms.DateTimePicker();
             this.WriteSaleRecordsToFileButton = new ModernUI.ModernButton();
             this.label12 = new System.Windows.Forms.Label();
-            this.panel16 = new System.Windows.Forms.Panel();
-            this.OverallSaleExcluedArLabel = new System.Windows.Forms.Label();
-            this.label15 = new System.Windows.Forms.Label();
             this.panel14 = new System.Windows.Forms.Panel();
             this.ArTotalLabel = new System.Windows.Forms.Label();
             this.label4 = new System.Windows.Forms.Label();
@@ -89,13 +89,14 @@
             this.panel18 = new System.Windows.Forms.Panel();
             this.IncompleteArLabel = new System.Windows.Forms.Label();
             this.label23 = new System.Windows.Forms.Label();
-            this.panel19 = new System.Windows.Forms.Panel();
-            this.ChangesLabel = new System.Windows.Forms.Label();
-            this.label17 = new System.Windows.Forms.Label();
             this.panel20 = new System.Windows.Forms.Panel();
             this.RefundTotalLabel = new System.Windows.Forms.Label();
             this.label21 = new System.Windows.Forms.Label();
+            this.panel21 = new System.Windows.Forms.Panel();
+            this.OverallSaleExcluedIncompleteArLabel = new System.Windows.Forms.Label();
+            this.label8 = new System.Windows.Forms.Label();
             this.panel9.SuspendLayout();
+            this.panel19.SuspendLayout();
             this.panel13.SuspendLayout();
             this.panel12.SuspendLayout();
             this.panel11.SuspendLayout();
@@ -109,12 +110,11 @@
             this.panel4.SuspendLayout();
             this.panel1.SuspendLayout();
             this.panel15.SuspendLayout();
-            this.panel16.SuspendLayout();
             this.panel14.SuspendLayout();
             this.panel17.SuspendLayout();
             this.panel18.SuspendLayout();
-            this.panel19.SuspendLayout();
             this.panel20.SuspendLayout();
+            this.panel21.SuspendLayout();
             this.SuspendLayout();
             // 
             // panel9
@@ -133,6 +133,42 @@
             this.panel9.Name = "panel9";
             this.panel9.Size = new System.Drawing.Size(1266, 213);
             this.panel9.TabIndex = 109;
+            // 
+            // panel19
+            // 
+            this.panel19.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(34)))), ((int)(((byte)(34)))), ((int)(((byte)(34)))));
+            this.panel19.Controls.Add(this.ChangesLabel);
+            this.panel19.Controls.Add(this.label17);
+            this.panel19.Location = new System.Drawing.Point(428, 51);
+            this.panel19.Name = "panel19";
+            this.panel19.Size = new System.Drawing.Size(406, 45);
+            this.panel19.TabIndex = 99;
+            // 
+            // ChangesLabel
+            // 
+            this.ChangesLabel.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(35)))), ((int)(((byte)(35)))), ((int)(((byte)(35)))));
+            this.ChangesLabel.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.ChangesLabel.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 15.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.ChangesLabel.ForeColor = System.Drawing.Color.Gainsboro;
+            this.ChangesLabel.Location = new System.Drawing.Point(196, 0);
+            this.ChangesLabel.Name = "ChangesLabel";
+            this.ChangesLabel.Size = new System.Drawing.Size(210, 45);
+            this.ChangesLabel.TabIndex = 88;
+            this.ChangesLabel.Text = "0.00";
+            this.ChangesLabel.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
+            // 
+            // label17
+            // 
+            this.label17.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(35)))), ((int)(((byte)(35)))), ((int)(((byte)(35)))));
+            this.label17.Dock = System.Windows.Forms.DockStyle.Left;
+            this.label17.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label17.ForeColor = System.Drawing.Color.Gainsboro;
+            this.label17.Location = new System.Drawing.Point(0, 0);
+            this.label17.Name = "label17";
+            this.label17.Size = new System.Drawing.Size(196, 45);
+            this.label17.TabIndex = 89;
+            this.label17.Text = "เงินทอน";
+            this.label17.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             // 
             // panel13
             // 
@@ -752,41 +788,6 @@
             this.label12.Text = " บันทึกรายการขายลงไฟล์";
             this.label12.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
             // 
-            // panel16
-            // 
-            this.panel16.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
-            this.panel16.Controls.Add(this.OverallSaleExcluedArLabel);
-            this.panel16.Controls.Add(this.label15);
-            this.panel16.Location = new System.Drawing.Point(615, 105);
-            this.panel16.Name = "panel16";
-            this.panel16.Size = new System.Drawing.Size(300, 190);
-            this.panel16.TabIndex = 112;
-            // 
-            // OverallSaleExcluedArLabel
-            // 
-            this.OverallSaleExcluedArLabel.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
-            this.OverallSaleExcluedArLabel.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 24F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.OverallSaleExcluedArLabel.ForeColor = System.Drawing.Color.MediumAquamarine;
-            this.OverallSaleExcluedArLabel.Location = new System.Drawing.Point(5, 58);
-            this.OverallSaleExcluedArLabel.Name = "OverallSaleExcluedArLabel";
-            this.OverallSaleExcluedArLabel.Size = new System.Drawing.Size(290, 108);
-            this.OverallSaleExcluedArLabel.TabIndex = 87;
-            this.OverallSaleExcluedArLabel.Text = "0.00";
-            this.OverallSaleExcluedArLabel.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
-            // 
-            // label15
-            // 
-            this.label15.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
-            this.label15.Dock = System.Windows.Forms.DockStyle.Top;
-            this.label15.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label15.ForeColor = System.Drawing.Color.Gainsboro;
-            this.label15.Location = new System.Drawing.Point(0, 0);
-            this.label15.Name = "label15";
-            this.label15.Size = new System.Drawing.Size(300, 39);
-            this.label15.TabIndex = 83;
-            this.label15.Text = " ยอดขาย - ยอดลงบัญชี";
-            this.label15.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
-            // 
             // panel14
             // 
             this.panel14.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
@@ -889,44 +890,8 @@
             this.label23.Name = "label23";
             this.label23.Size = new System.Drawing.Size(300, 39);
             this.label23.TabIndex = 83;
-            this.label23.Text = " ยอดลงบัญชี : ค้างชำระ";
+            this.label23.Text = " ยอดลงบัญชี : ยังไม่ชำระ";
             this.label23.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
-            // 
-            // panel19
-            // 
-            this.panel19.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(34)))), ((int)(((byte)(34)))), ((int)(((byte)(34)))));
-            this.panel19.Controls.Add(this.ChangesLabel);
-            this.panel19.Controls.Add(this.label17);
-            this.panel19.Location = new System.Drawing.Point(428, 51);
-            this.panel19.Name = "panel19";
-            this.panel19.Size = new System.Drawing.Size(406, 45);
-            this.panel19.TabIndex = 99;
-            // 
-            // ChangesLabel
-            // 
-            this.ChangesLabel.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(35)))), ((int)(((byte)(35)))), ((int)(((byte)(35)))));
-            this.ChangesLabel.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.ChangesLabel.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 15.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.ChangesLabel.ForeColor = System.Drawing.Color.Gainsboro;
-            this.ChangesLabel.Location = new System.Drawing.Point(196, 0);
-            this.ChangesLabel.Name = "ChangesLabel";
-            this.ChangesLabel.Size = new System.Drawing.Size(210, 45);
-            this.ChangesLabel.TabIndex = 88;
-            this.ChangesLabel.Text = "0.00";
-            this.ChangesLabel.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
-            // 
-            // label17
-            // 
-            this.label17.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(35)))), ((int)(((byte)(35)))), ((int)(((byte)(35)))));
-            this.label17.Dock = System.Windows.Forms.DockStyle.Left;
-            this.label17.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label17.ForeColor = System.Drawing.Color.Gainsboro;
-            this.label17.Location = new System.Drawing.Point(0, 0);
-            this.label17.Name = "label17";
-            this.label17.Size = new System.Drawing.Size(196, 45);
-            this.label17.TabIndex = 89;
-            this.label17.Text = "เงินทอน";
-            this.label17.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             // 
             // panel20
             // 
@@ -963,16 +928,51 @@
             this.label21.Text = " คืนเงิน ( Refund )";
             this.label21.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
             // 
+            // panel21
+            // 
+            this.panel21.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
+            this.panel21.Controls.Add(this.OverallSaleExcluedIncompleteArLabel);
+            this.panel21.Controls.Add(this.label8);
+            this.panel21.Location = new System.Drawing.Point(615, 105);
+            this.panel21.Name = "panel21";
+            this.panel21.Size = new System.Drawing.Size(300, 190);
+            this.panel21.TabIndex = 117;
+            // 
+            // OverallSaleExcluedIncompleteArLabel
+            // 
+            this.OverallSaleExcluedIncompleteArLabel.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
+            this.OverallSaleExcluedIncompleteArLabel.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 24F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.OverallSaleExcluedIncompleteArLabel.ForeColor = System.Drawing.Color.MediumAquamarine;
+            this.OverallSaleExcluedIncompleteArLabel.Location = new System.Drawing.Point(5, 58);
+            this.OverallSaleExcluedIncompleteArLabel.Name = "OverallSaleExcluedIncompleteArLabel";
+            this.OverallSaleExcluedIncompleteArLabel.Size = new System.Drawing.Size(290, 108);
+            this.OverallSaleExcluedIncompleteArLabel.TabIndex = 87;
+            this.OverallSaleExcluedIncompleteArLabel.Text = "0.00";
+            this.OverallSaleExcluedIncompleteArLabel.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            // 
+            // label8
+            // 
+            this.label8.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
+            this.label8.Dock = System.Windows.Forms.DockStyle.Top;
+            this.label8.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label8.ForeColor = System.Drawing.Color.Gainsboro;
+            this.label8.Location = new System.Drawing.Point(0, 0);
+            this.label8.Name = "label8";
+            this.label8.Size = new System.Drawing.Size(300, 39);
+            this.label8.TabIndex = 83;
+            this.label8.Text = " ยอดขาย - ยอดลงบัญชี (ที่ยังไม่ชำระ)";
+            this.label8.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            // 
             // SalesReportPanel
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(30)))), ((int)(((byte)(30)))), ((int)(((byte)(30)))));
+            this.Controls.Add(this.panel21);
             this.Controls.Add(this.panel20);
             this.Controls.Add(this.panel18);
             this.Controls.Add(this.panel17);
             this.Controls.Add(this.panel14);
-            this.Controls.Add(this.panel16);
             this.Controls.Add(this.panel15);
             this.Controls.Add(this.panel9);
             this.Controls.Add(this.panel7);
@@ -983,6 +983,7 @@
             this.Name = "SalesReportPanel";
             this.Size = new System.Drawing.Size(1610, 925);
             this.panel9.ResumeLayout(false);
+            this.panel19.ResumeLayout(false);
             this.panel13.ResumeLayout(false);
             this.panel12.ResumeLayout(false);
             this.panel11.ResumeLayout(false);
@@ -996,12 +997,11 @@
             this.panel4.ResumeLayout(false);
             this.panel1.ResumeLayout(false);
             this.panel15.ResumeLayout(false);
-            this.panel16.ResumeLayout(false);
             this.panel14.ResumeLayout(false);
             this.panel17.ResumeLayout(false);
             this.panel18.ResumeLayout(false);
-            this.panel19.ResumeLayout(false);
             this.panel20.ResumeLayout(false);
+            this.panel21.ResumeLayout(false);
             this.ResumeLayout(false);
 
         }
@@ -1057,9 +1057,6 @@
         private System.Windows.Forms.Label label12;
         private System.Windows.Forms.DateTimePicker SaveSaleRecordsDateTimePicker;
         private ModernUI.ModernButton WriteSaleRecordsToFileButton;
-        private System.Windows.Forms.Panel panel16;
-        private System.Windows.Forms.Label OverallSaleExcluedArLabel;
-        private System.Windows.Forms.Label label15;
         private System.Windows.Forms.Panel panel14;
         private System.Windows.Forms.Label ArTotalLabel;
         private System.Windows.Forms.Label label4;
@@ -1075,5 +1072,8 @@
         private System.Windows.Forms.Panel panel20;
         private System.Windows.Forms.Label RefundTotalLabel;
         private System.Windows.Forms.Label label21;
+        private System.Windows.Forms.Panel panel21;
+        private System.Windows.Forms.Label OverallSaleExcluedIncompleteArLabel;
+        private System.Windows.Forms.Label label8;
     }
 }

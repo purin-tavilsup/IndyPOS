@@ -346,6 +346,33 @@ namespace IndyPOS.DataAccess.SQLite.Repositories
 			}
 		}
 
+		public IList<Payment> GetPaymentsByPaymentTypeId(int id)
+		{
+			using (var connection = _dbConnectionProvider.GetDbConnection())
+			{
+				connection.Open();
+
+				const string sqlCommand = @"SELECT
+                PaymentId,
+                InvoiceId,
+                PaymentTypeId,
+                Amount,
+                DateCreated,
+				Note
+                FROM Payments 
+                WHERE PaymentTypeId = @PaymentTypeId";
+
+				var sqlParameters = new
+									{
+										PaymentTypeId = id
+									};
+
+				var results = connection.Query(sqlCommand, sqlParameters);
+
+				return MapPayments(results);
+			}
+		}
+
         private string MapStartDateToString(DateTime date)
 		{
             var dateString = date.ToString("yyyy-MM-dd");
