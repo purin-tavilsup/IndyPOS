@@ -34,7 +34,7 @@ namespace IndyPOS
 		{
 			const string directoryPath = @"C:\ProgramData\IndyPOS\Config";
 			const string defaultReportDirectory = @"C:\ProgramData\IndyPOS\Report";
-			const string defaultTransactionDirectory = @"G:\My Drive\Test";
+			const string defaultBackupDbDirectory = @"C:\ProgramData\IndyPOS\BackupDB";
 			
 			if (!Directory.Exists(directoryPath))
 			{
@@ -61,7 +61,7 @@ namespace IndyPOS
 				_config.PrinterName = "XP-58";
 				_config.BarcodeScannerPortName = "COM4";
 				_config.ReportDirectory = defaultReportDirectory;
-				_config.TransactionDirectory = defaultTransactionDirectory;
+				_config.BackupDbDirectory = defaultBackupDbDirectory;
 
                 _config.Save();
 				_config.Load();

@@ -12,7 +12,7 @@ namespace IndyPOS
 		public string PrinterName { get; set; }
 		public string BarcodeScannerPortName { get; set; }
 		public string ReportDirectory { get; set; }
-		public string TransactionDirectory { get; set; }
+		public string BackupDbDirectory { get; set; }
 
 		protected override void UpdateMemberVariables(PersistentXml persistentXml)
         {
@@ -24,7 +24,7 @@ namespace IndyPOS
 			PrinterName = ((Config) persistentXml).PrinterName;
 			BarcodeScannerPortName = ((Config) persistentXml).BarcodeScannerPortName;
 			ReportDirectory = ((Config) persistentXml).ReportDirectory;
-			TransactionDirectory = ((Config) persistentXml).TransactionDirectory;
+			BackupDbDirectory = ((Config) persistentXml).BackupDbDirectory;
         }
     }
 }

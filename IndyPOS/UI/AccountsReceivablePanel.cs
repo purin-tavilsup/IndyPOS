@@ -1,16 +1,16 @@
 ﻿using IndyPOS.Controllers;
+using IndyPOS.Enums;
 using IndyPOS.Sales;
+using IndyPOS.Users;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Windows.Forms;
-using IndyPOS.Enums;
-using IndyPOS.Users;
 
 namespace IndyPOS.UI
 {
-    [ExcludeFromCodeCoverage]
+	[ExcludeFromCodeCoverage]
     public partial class AccountsReceivablePanel : UserControl
     {
 		private readonly IAccountsReceivableController _arController;

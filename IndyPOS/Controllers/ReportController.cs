@@ -30,7 +30,7 @@ namespace IndyPOS.Controllers
 
 		public IEnumerable<IFinalInvoiceProduct> InvoiceProducts => _invoiceProducts ?? new List<IFinalInvoiceProduct>();
 
-		public IEnumerable<IFinalInvoicePayment> Payments => _payments ?? new List<IFinalInvoicePayment>();
+		public IEnumerable<IFinalInvoicePayment> InvoicePayments => _payments ?? new List<IFinalInvoicePayment>();
 
 		public IEnumerable<IAccountsReceivable> AccountsReceivables => _accountsReceivables ?? new List<IAccountsReceivable>();
 
@@ -127,7 +127,7 @@ namespace IndyPOS.Controllers
 
 		private decimal GetPaymentsTotal()
 		{
-			return Payments.Sum(x => x.Amount);
+			return InvoicePayments.Sum(x => x.Amount);
 		}
 
 		private decimal GetChangesTotal()

@@ -11,6 +11,8 @@ namespace IndyPOS.Controllers
 
 		IEnumerable<IFinalInvoiceProduct> InvoiceProducts { get; }
 
+		IEnumerable<IFinalInvoicePayment> InvoicePayments { get; }
+
 		IEnumerable<IFinalInvoiceProduct> GeneralGoodsProducts { get; }
 
 		IEnumerable<IFinalInvoiceProduct> HardwareProducts { get; }

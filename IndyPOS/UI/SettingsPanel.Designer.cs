@@ -54,7 +54,7 @@
             this.ReportDirectoryTextBox = new ModernUI.ModernTextBox();
             this.label12 = new System.Windows.Forms.Label();
             this.label13 = new System.Windows.Forms.Label();
-            this.TransactionDirectoryTextBox = new ModernUI.ModernTextBox();
+            this.BackupDBDirectoryTextBox = new ModernUI.ModernTextBox();
             this.panel1.SuspendLayout();
             this.panel2.SuspendLayout();
             this.panel3.SuspendLayout();
@@ -385,7 +385,7 @@
             this.panel4.Controls.Add(this.ReportDirectoryTextBox);
             this.panel4.Controls.Add(this.label12);
             this.panel4.Controls.Add(this.label13);
-            this.panel4.Controls.Add(this.TransactionDirectoryTextBox);
+            this.panel4.Controls.Add(this.BackupDBDirectoryTextBox);
             this.panel4.Location = new System.Drawing.Point(618, 12);
             this.panel4.Name = "panel4";
             this.panel4.Size = new System.Drawing.Size(600, 190);
@@ -444,27 +444,27 @@
             this.label13.Name = "label13";
             this.label13.Size = new System.Drawing.Size(172, 39);
             this.label13.TabIndex = 71;
-            this.label13.Text = "Transaction Directory";
+            this.label13.Text = "Backup DB Directory";
             this.label13.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
             // 
-            // TransactionDirectoryTextBox
+            // BackupDBDirectoryTextBox
             // 
-            this.TransactionDirectoryTextBox.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
-            this.TransactionDirectoryTextBox.BorderColor = System.Drawing.Color.DimGray;
-            this.TransactionDirectoryTextBox.BorderSize = 1;
-            this.TransactionDirectoryTextBox.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.TransactionDirectoryTextBox.ForeColor = System.Drawing.Color.Gainsboro;
-            this.TransactionDirectoryTextBox.Location = new System.Drawing.Point(195, 106);
-            this.TransactionDirectoryTextBox.Multiline = false;
-            this.TransactionDirectoryTextBox.Name = "TransactionDirectoryTextBox";
-            this.TransactionDirectoryTextBox.Padding = new System.Windows.Forms.Padding(7);
-            this.TransactionDirectoryTextBox.PasswordChar = false;
-            this.TransactionDirectoryTextBox.ReadOnly = false;
-            this.TransactionDirectoryTextBox.Size = new System.Drawing.Size(372, 39);
-            this.TransactionDirectoryTextBox.TabIndex = 72;
-            this.TransactionDirectoryTextBox.TextAlign = System.Windows.Forms.HorizontalAlignment.Left;
-            this.TransactionDirectoryTextBox.Texts = "";
-            this.TransactionDirectoryTextBox.UnderlinedStyle = true;
+            this.BackupDBDirectoryTextBox.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
+            this.BackupDBDirectoryTextBox.BorderColor = System.Drawing.Color.DimGray;
+            this.BackupDBDirectoryTextBox.BorderSize = 1;
+            this.BackupDBDirectoryTextBox.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.BackupDBDirectoryTextBox.ForeColor = System.Drawing.Color.Gainsboro;
+            this.BackupDBDirectoryTextBox.Location = new System.Drawing.Point(195, 106);
+            this.BackupDBDirectoryTextBox.Multiline = false;
+            this.BackupDBDirectoryTextBox.Name = "BackupDBDirectoryTextBox";
+            this.BackupDBDirectoryTextBox.Padding = new System.Windows.Forms.Padding(7);
+            this.BackupDBDirectoryTextBox.PasswordChar = false;
+            this.BackupDBDirectoryTextBox.ReadOnly = false;
+            this.BackupDBDirectoryTextBox.Size = new System.Drawing.Size(372, 39);
+            this.BackupDBDirectoryTextBox.TabIndex = 72;
+            this.BackupDBDirectoryTextBox.TextAlign = System.Windows.Forms.HorizontalAlignment.Left;
+            this.BackupDBDirectoryTextBox.Texts = "";
+            this.BackupDBDirectoryTextBox.UnderlinedStyle = true;
             // 
             // SettingsPanel
             // 
@@ -515,6 +515,6 @@
         private ModernUI.ModernTextBox ReportDirectoryTextBox;
         private System.Windows.Forms.Label label12;
         private System.Windows.Forms.Label label13;
-        private ModernUI.ModernTextBox TransactionDirectoryTextBox;
+        private ModernUI.ModernTextBox BackupDBDirectoryTextBox;
     }
 }

@@ -26,7 +26,7 @@ namespace IndyPOS.UI
 			ReceiptPrinterNameTextBox.Texts = _config.PrinterName;
 			BarcodeScannerPortNameTextBox.Texts = _config.BarcodeScannerPortName;
 			ReportDirectoryTextBox.Texts = _config.ReportDirectory;
-			TransactionDirectoryTextBox.Texts = _config.TransactionDirectory;
+			BackupDBDirectoryTextBox.Texts = _config.BackupDbDirectory;
 		}
 
 		private void SaveSettings()
@@ -39,7 +39,7 @@ namespace IndyPOS.UI
 			_config.PrinterName = ReceiptPrinterNameTextBox.Texts.Trim();
 			_config.BarcodeScannerPortName = BarcodeScannerPortNameTextBox.Texts.Trim();
 			_config.ReportDirectory = ReportDirectoryTextBox.Texts.Trim();
-			_config.TransactionDirectory = TransactionDirectoryTextBox.Texts.Trim();
+			_config.BackupDbDirectory = BackupDBDirectoryTextBox.Texts.Trim();
 			_config.Save();
 			_config.Load();
 		}
