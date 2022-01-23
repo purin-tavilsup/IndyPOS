@@ -70,22 +70,13 @@ namespace IndyPOS.UI
 			RefundButton.Visible = isRefundInvoice;
 			AcceptPaymentButton.Visible = !isRefundInvoice;
 
-			SetAvailablePaymentTypes(isRefundInvoice);
+			PaymentTypePanel.Enabled = !isRefundInvoice;
+			KeypadPanel.Enabled = !isRefundInvoice;
 			
 			CancelAcceptPaymentButton.Select();
 
             base.Show();
         }
-
-		private void SetAvailablePaymentTypes(bool isCashOnly)
-		{
-			PayByMoneyTransferButton.Enabled = !isCashOnly;
-			PayBy5050Button.Enabled = !isCashOnly;
-			PayByArButton.Enabled = !isCashOnly;
-			PayByWeLoveButton.Enabled = !isCashOnly;
-			PayByWelfareCardButton.Enabled = !isCashOnly;
-			PayByWeWinButton.Enabled = !isCashOnly;
-		}
 
         private bool ValidatePaymentType()
 		{

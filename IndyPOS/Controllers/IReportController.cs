@@ -11,13 +11,32 @@ namespace IndyPOS.Controllers
 
 		IEnumerable<IFinalInvoiceProduct> InvoiceProducts { get; }
 
+		IEnumerable<IFinalInvoicePayment> InvoicePayments { get; }
+
 		IEnumerable<IFinalInvoiceProduct> GeneralGoodsProducts { get; }
 
 		IEnumerable<IFinalInvoiceProduct> HardwareProducts { get; }
 
+		IEnumerable<IAccountsReceivable> AccountsReceivables { get; }
+
 		decimal InvoicesTotal { get; }
 
+		decimal PaymentsTotal { get; }
+
+		decimal ChangesTotal { get; }
+
+		decimal RefundTotal { get; }
+
+		decimal ArTotal { get; }
+
+		decimal CompletedArTotal { get; }
+
+		decimal IncompleteArTotal { get; }
+
+
 		decimal InvoicesTotalWithoutAr { get; }
+
+		decimal InvoicesTotalWithoutIncompleteAr { get; }
 
 		decimal GeneralGoodsProductsTotal { get; }
 

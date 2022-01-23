@@ -115,7 +115,7 @@ namespace IndyPOS.UI
 				_userRoleDictionary[user.RoleId] :
 				"Unknown";
 
-			userRow[(int)UserColumn.UserId] = user.UserId.ToString();
+			userRow[(int)UserColumn.UserId] = user.UserId;
 			userRow[(int)UserColumn.FirstName] = user.FirstName;
 			userRow[(int)UserColumn.LastName] = user.LastName;
 			userRow[(int)UserColumn.UserRole] = userRole;
@@ -175,9 +175,9 @@ namespace IndyPOS.UI
 			var selectedCell = UserDataView.SelectedCells[0];
 			var rowIndex  = selectedCell.RowIndex;
 			var selectedRow = UserDataView.Rows[rowIndex];
-			var userId = selectedRow.Cells[(int)UserColumn.UserId].Value as string;
+			var userId = (int) selectedRow.Cells[(int)UserColumn.UserId].Value;
 
-			return int.TryParse(userId, out var id) ? id : -1;
+			return userId;
         }
 
         private void UserDataView_CellClick(object sender, DataGridViewCellEventArgs e)

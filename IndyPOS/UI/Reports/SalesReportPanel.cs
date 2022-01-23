@@ -27,21 +27,21 @@ namespace IndyPOS.UI.Reports
 		
 		private void ShowReport()
 		{
-			var invoicesTotal = _reportController.InvoicesTotal;
+			OverallSaleLabel.Text = $"{_reportController.InvoicesTotal:N}";
 
-			var generalGoodsProductsTotal = _reportController.GeneralGoodsProductsTotal;
-
-			var hardwareProductsTotal = _reportController.HardwareProductsTotal;
-
-			var invoicesTotalWithoutAr = _reportController.InvoicesTotalWithoutAr;
-
-			OverallSaleLabel.Text = $"{invoicesTotal:N}";
-
-			OverallSaleExcluedArLabel.Text = $"{invoicesTotalWithoutAr:N}";
+			OverallSaleExcluedIncompleteArLabel.Text = $"{_reportController.InvoicesTotalWithoutIncompleteAr:N}";
 			
-			GeneralGoodsSaleLabel.Text = $"{generalGoodsProductsTotal:N}";
+			GeneralGoodsSaleLabel.Text = $"{_reportController.GeneralGoodsProductsTotal:N}";
 			
-			HardwareSaleLabel.Text = $"{hardwareProductsTotal:N}";
+			HardwareSaleLabel.Text = $"{_reportController.HardwareProductsTotal:N}";
+
+			ArTotalLabel.Text = $"{_reportController.ArTotal:N}";
+
+            CompletedArLabel.Text = $"{_reportController.CompletedArTotal:N}";
+
+			IncompleteArLabel.Text = $"{_reportController.IncompleteArTotal:N}";
+
+			RefundTotalLabel.Text = $"{_reportController.RefundTotal:N}";
 
 			PaymentByCashLabel.Text = $"{_reportController.GetPaymentsTotalByType(PaymentType.Cash):N}";
 
@@ -56,10 +56,14 @@ namespace IndyPOS.UI.Reports
 			PaymentByWelfareCardLabel.Text = $"{_reportController.GetPaymentsTotalByType(PaymentType.WelfareCard):N}";
 
 			PaymentByArLabel.Text = $"{_reportController.GetPaymentsTotalByType(PaymentType.AccountReceivable):N}";
+
+			ChangesLabel.Text = $"{_reportController.ChangesTotal:N}";
 		}
 
         private void ShowReportByTodayButton_Click(object sender, EventArgs e)
 		{
+			PeriodLabel.Text = ShowReportByTodayButton.Text;
+
 			_reportController.LoadInvoicesByPeriod(ReportPeriod.Today);
 
 			ShowReport();
@@ -67,6 +71,8 @@ namespace IndyPOS.UI.Reports
 
         private void ShowReportByThisWeekButton_Click(object sender, EventArgs e)
         {
+			PeriodLabel.Text = ShowReportByThisWeekButton.Text;
+
 			_reportController.LoadInvoicesByPeriod(ReportPeriod.ThisWeek);
 
 			ShowReport();
@@ -74,6 +80,8 @@ namespace IndyPOS.UI.Reports
 
         private void ShowReportByThisMonthButton_Click(object sender, EventArgs e)
         {
+			PeriodLabel.Text = ShowReportByThisMonthButton.Text;
+
 			_reportController.LoadInvoicesByPeriod(ReportPeriod.ThisMonth);
 
 			ShowReport();
@@ -81,15 +89,19 @@ namespace IndyPOS.UI.Reports
 
         private void ShowReportByThisYearButton_Click(object sender, EventArgs e)
         {
-			//_reportController.LoadInvoicesByPeriod(ReportPeriod.ThisYear);
+			PeriodLabel.Text = ShowReportByThisYearButton.Text;
 
-			//ShowReport();
+            _reportController.LoadInvoicesByPeriod(ReportPeriod.ThisYear);
+
+            ShowReport();
         }
 
         private void ShowReportByDateRangeButton_Click(object sender, EventArgs e)
 		{
 			var startDate = StartDatePicker.Value;
 			var endDate = EndDatePicker.Value;
+
+			PeriodLabel.Text = $"{startDate:yyyy MMMM dd} - {endDate:yyyy MMMM dd}";
 
 			_reportController.LoadInvoicesByDateRange(startDate, endDate);
 

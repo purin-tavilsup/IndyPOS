@@ -91,7 +91,7 @@
             // 
             this.InvoiceTotalLabel.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(40)))), ((int)(((byte)(40)))), ((int)(((byte)(40)))));
             this.InvoiceTotalLabel.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 36F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.InvoiceTotalLabel.ForeColor = System.Drawing.Color.OrangeRed;
+            this.InvoiceTotalLabel.ForeColor = System.Drawing.Color.Salmon;
             this.InvoiceTotalLabel.Location = new System.Drawing.Point(3, 117);
             this.InvoiceTotalLabel.Name = "InvoiceTotalLabel";
             this.InvoiceTotalLabel.Size = new System.Drawing.Size(360, 112);

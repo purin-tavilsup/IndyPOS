@@ -49,6 +49,13 @@ namespace IndyPOS.UI
 
 				return;
 			}
+
+			if (UsersComboBox.SelectedItem == null)
+			{
+				_messageForm.Show("กรุณาใส่ Username ที่ถูกต้อง", "LogIn เข้าระบบไม่สำเร็จ");
+
+				return;
+			}
 			
 			var username = UsersComboBox.SelectedItem.ToString();
 			var password = _cryptographyHelper.Encrypt(UserSecretTextBox.Texts.Trim());

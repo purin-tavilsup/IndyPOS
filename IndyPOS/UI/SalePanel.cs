@@ -19,6 +19,7 @@ namespace IndyPOS.UI
         private readonly IEventAggregator _eventAggregator;
         private readonly AcceptPaymentForm _acceptPaymentForm;
         private readonly ISaleInvoiceController _saleInvoiceController;
+		private readonly AddInvoiceProductForm _addInvoiceProductForm;
         private readonly UpdateInvoiceProductForm _updateProductForm;
         private readonly IReadOnlyDictionary<int, string> _paymentTypeDictionary;
         private SubPanel _activeSubPanel;
@@ -48,6 +49,7 @@ namespace IndyPOS.UI
 						 ISaleInvoiceController saleInvoiceController, 
 						 IStoreConstants storeConstants,
 						 AcceptPaymentForm acceptPaymentForm, 
+						 AddInvoiceProductForm addInvoiceProductForm,
 						 UpdateInvoiceProductForm updateProductForm,
 						 MessageForm messageForm,
 						 PrintReceiptForm printReceiptForm)
@@ -60,6 +62,7 @@ namespace IndyPOS.UI
             _saleInvoiceController = saleInvoiceController;
             _paymentTypeDictionary = storeConstants.PaymentTypes;
             _acceptPaymentForm = acceptPaymentForm;
+            _addInvoiceProductForm = addInvoiceProductForm;
             _updateProductForm = updateProductForm;
 			_messageForm = messageForm;
 			_printReceiptForm = printReceiptForm;
@@ -172,12 +175,12 @@ namespace IndyPOS.UI
             var productRow = new object[columnCount];
             var total = product.UnitPrice * product.Quantity;
 
-            productRow[(int)SaleInvoiceColumn.Priority] = $"{product.Priority}";
+            productRow[(int)SaleInvoiceColumn.Priority] = product.Priority;
             productRow[(int)SaleInvoiceColumn.ProductCode] = product.Barcode;
             productRow[(int)SaleInvoiceColumn.Description] = product.Description;
-            productRow[(int)SaleInvoiceColumn.Quantity] = $"{product.Quantity}";
-            productRow[(int)SaleInvoiceColumn.UnitPrice] = $"{product.UnitPrice:N}";
-            productRow[(int)SaleInvoiceColumn.Total] = $"{total:N}";
+            productRow[(int)SaleInvoiceColumn.Quantity] = product.Quantity;
+            productRow[(int)SaleInvoiceColumn.UnitPrice] = product.UnitPrice;
+            productRow[(int)SaleInvoiceColumn.Total] = total;
 			productRow[(int)SaleInvoiceColumn.Note] = product.Note;
 
             InvoiceDataView.Rows.Add(productRow);
@@ -188,9 +191,9 @@ namespace IndyPOS.UI
             var columnCount = PaymentDataView.ColumnCount;
             var paymentRow = new object[columnCount];
 
-            paymentRow[(int)PaymentColumn.PaymentPriority] = $"{payment.Priority}";
+            paymentRow[(int)PaymentColumn.PaymentPriority] = payment.Priority;
             paymentRow[(int)PaymentColumn.PaymentType] = _paymentTypeDictionary[payment.PaymentTypeId];
-            paymentRow[(int)PaymentColumn.PaymentAmount] = $"{payment.Amount:N}";
+            paymentRow[(int)PaymentColumn.PaymentAmount] = payment.Amount;
 			paymentRow[(int) PaymentColumn.Note] = payment.Note;
 
             PaymentDataView.Rows.Add(paymentRow);
@@ -249,13 +252,12 @@ namespace IndyPOS.UI
 			var selectedCell = InvoiceDataView.SelectedCells[0];
 			var rowIndex = selectedCell.RowIndex;
 			var selectedRow = InvoiceDataView.Rows[rowIndex];
-			var barcode = selectedRow.Cells[(int)SaleInvoiceColumn.ProductCode].Value as string;
+			var barcode = (string) selectedRow.Cells[(int)SaleInvoiceColumn.ProductCode].Value;
 
 			if (!barcode.HasValue()) 
 				return;
 
-			if (!int.TryParse(selectedRow.Cells[(int) SaleInvoiceColumn.Priority].Value as string, out var priority))
-				return;
+			var priority = (int) selectedRow.Cells[(int) SaleInvoiceColumn.Priority].Value;
 
             _updateProductForm.ShowDialog(barcode, priority);
         }
@@ -302,11 +304,16 @@ namespace IndyPOS.UI
 
         private void AddProductToInvoice(string barcode)
 		{
-            var success = _saleInvoiceController.AddProduct(barcode);
+			var product = _saleInvoiceController.GetInventoryProductByBarcode(barcode);
 
-            if (!success)
+			if (product == null)
+			{
 				_messageForm.Show($"ไม่พบรหัสสินค้า {barcode} ในระบบ กรุณาเพิ่มสินค้านี้เข้าในระบบก่อนเริ่มการขาย", "ไม่สามารถเพิ่มสินค้าได้");
-        }
+                return;
+			}
+
+			_saleInvoiceController.AddProduct(product);
+		}
 
 		private void ClearAllPaymentsButton_Click(object sender, EventArgs e)
 		{
@@ -315,17 +322,17 @@ namespace IndyPOS.UI
 
         private void AddGeneralGoodsProductButton_Click(object sender, EventArgs e)
 		{
-			const string generalGoodsCode = "GP00000000001";
+			const string generalGoodsCode = "2001000000012";
 
-			_eventAggregator.GetEvent<BarcodeReceivedEvent>().Publish(generalGoodsCode);
+			_addInvoiceProductForm.ShowDialog(generalGoodsCode);
 		}
 
         private void AddHardwareProductButton_Click(object sender, EventArgs e)
 		{
-			const string hardwareCode = "HW00000000001";
+			const string hardwareCode = "2005000000027";
 
-			_eventAggregator.GetEvent<BarcodeReceivedEvent>().Publish(hardwareCode);
-        }
+			_addInvoiceProductForm.ShowDialog(hardwareCode);
+		}
 
         private void LookUpProductButton_Click(object sender, EventArgs e)
 		{

@@ -22,7 +22,7 @@
 
         int? GroupPriceQuantity { get; set; }
 
-        bool IsTrackable { get; }
+        bool IsTrackable { get; set; }
 
         string DateCreated { get; }
 

@@ -4,7 +4,10 @@ using IndyPOS.Users;
 using Prism.Events;
 using System;
 using System.Diagnostics.CodeAnalysis;
+using System.IO;
 using System.Windows.Forms;
+using IndyPOS.Controllers;
+using IndyPOS.DataAccess;
 
 namespace IndyPOS.UI
 {
@@ -15,10 +18,13 @@ namespace IndyPOS.UI
         private readonly InventoryPanel _inventoryPanel;
         private readonly UsersPanel _usersPanel;
         private readonly ReportsPanel _reportsPanel;
-        private readonly CustomerAccountsPanel _customerAccountsPanel;
+        private readonly AccountsReceivablePanel _accountsReceivablePanel;
         private readonly SettingsPanel _settingsPanel;
 		private readonly UserLogInPanel _userLogInPanel;
         private readonly IEventAggregator _eventAggregator;
+		private readonly IReportController _reportController;
+		private readonly IConfig _config;
+		private readonly IDbConnectionProvider _dbConnectionProvider;
         private UserControl _activePanel;
 		private bool _isUserLoggedIn;
 		private IUserAccount _loggedInUser;
@@ -28,10 +34,13 @@ namespace IndyPOS.UI
                         InventoryPanel inventoryPanel, 
                         UsersPanel usersPanel, 
                         ReportsPanel reportsPanel, 
-                        CustomerAccountsPanel customerAccountsPanel, 
+                        AccountsReceivablePanel accountsReceivablePanel, 
                         SettingsPanel settingsPanel,
 						UserLogInPanel userLogInPanel,
-                        IEventAggregator eventAggregator)
+                        IEventAggregator eventAggregator,
+						IReportController reportController,
+						IDbConnectionProvider dbConnectionProvider,
+						IConfig config)
 		{
             InitializeComponent();
 
@@ -43,14 +52,17 @@ namespace IndyPOS.UI
 			_usersPanel.Visible = false;
 			_reportsPanel = reportsPanel;
 			_reportsPanel.Visible = false;
-			_customerAccountsPanel = customerAccountsPanel;
-			_customerAccountsPanel.Visible = false;
+			_accountsReceivablePanel = accountsReceivablePanel;
+			_accountsReceivablePanel.Visible = false;
 			_settingsPanel = settingsPanel;
 			_settingsPanel.Visible = false;
 			_userLogInPanel = userLogInPanel;
 			_userLogInPanel.Visible = false;
 			_eventAggregator = eventAggregator;
 			_isUserLoggedIn = false;
+			_reportController = reportController;
+			_dbConnectionProvider = dbConnectionProvider;
+			_config = config;
 
 			SubscribeEvents();
 			CreateDateTimeUpdateTimer();
@@ -119,9 +131,9 @@ namespace IndyPOS.UI
 
                     break;
 
-                case SubPanel.CustomerAccounts:
+                case SubPanel.AccountsReceivable:
 
-                    panelToShow = _customerAccountsPanel;
+                    panelToShow = _accountsReceivablePanel;
 
                     break;
 
@@ -201,18 +213,18 @@ namespace IndyPOS.UI
 
         private void SettingsButton_Click(object sender, EventArgs e)
         { 
-			if (!_isUserLoggedIn)
+			if (!_isUserLoggedIn || _loggedInUser.RoleId == (int) UserRole.Cashier)
 				return;
 			
 			SwitchToPanel(SubPanel.Settings);
         }
 
-		private void CustomerAccountsButton_Click(object sender, EventArgs e)
+		private void AccountsReceivableButton_Click(object sender, EventArgs e)
 		{
 			if (!_isUserLoggedIn)
 				return;
 
-			SwitchToPanel(SubPanel.CustomerAccounts);
+			SwitchToPanel(SubPanel.AccountsReceivable);
 		}
 
 		private void LogInButton_Click(object sender, EventArgs e)
@@ -222,8 +234,15 @@ namespace IndyPOS.UI
 
 		private void CloseButton_Click(object sender, EventArgs e)
 		{
-            Close();
+			WriteSaleRecordsToCsvFile();
+			BackupDatabase();
+			Close();
 		}
+
+        private void WriteSaleRecordsToCsvFile()
+        {
+			_reportController.WriteSaleRecordsToCsvFileByDate(DateTime.Today);
+        }
 
 		private void MinimizeWindows_Click(object sender, EventArgs e)
 		{
@@ -249,7 +268,20 @@ namespace IndyPOS.UI
 
 		private void CloseWindows_Click(object sender, EventArgs e)
 		{
-            Close();
+			WriteSaleRecordsToCsvFile();
+			BackupDatabase();
+			Close();
+        }
+
+		private void BackupDatabase()
+        {
+			var today = DateTime.Today;
+			var directoryPath = $"{_config.BackupDbDirectory}\\{today.Year}\\{today.Month:00}";
+			
+			if (!Directory.Exists(directoryPath)) 
+				Directory.CreateDirectory(directoryPath);
+
+			_dbConnectionProvider.BackupDatabase(directoryPath);
         }
         
 		private void MainForm_Load(object sender, EventArgs e)
@@ -266,6 +298,8 @@ namespace IndyPOS.UI
 
 			_isUserLoggedIn = true;
 
+			LogInButton.Text = "Log Out";
+
 			SwitchToPanel(SubPanel.Sales);
         }
 
@@ -276,6 +310,8 @@ namespace IndyPOS.UI
 			LoggedInUserLabel.Text = "User:";
 
 			_isUserLoggedIn = false;
+
+			LogInButton.Text = "Log In";
 		}
 	}
 }

@@ -1,4 +1,5 @@
-﻿using System.Data;
+﻿using System;
+using System.Data;
 using System.Data.SQLite;
 using System.IO;
 
@@ -16,6 +17,17 @@ namespace IndyPOS.DataAccess
 				throw new FileNotFoundException("Database file could not be found.");
 
 			return new SQLiteConnection($"Data Source={Database}{Version}");
+		}
+
+		public void BackupDatabase(string backupDatabaseDirectory)
+		{
+			var backupDbPath = $"{backupDatabaseDirectory}\\Store.db";
+			var dbConnection = GetDbConnection();
+
+			if (dbConnection.State != ConnectionState.Closed)
+				dbConnection.Close();
+
+			File.Copy(DatabaseFilePath, backupDbPath, true);
 		}
 	}
 }

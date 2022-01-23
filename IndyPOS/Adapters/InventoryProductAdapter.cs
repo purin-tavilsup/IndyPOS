@@ -68,8 +68,11 @@ namespace IndyPOS.Adapters
             set => _adaptee.GroupPriceQuantity = value;
         }
 
-		public bool IsTrackable => _adaptee.IsTrackable;
-
+		public bool IsTrackable
+        {
+            get => _adaptee.IsTrackable;
+			set => _adaptee.IsTrackable = value;
+		}
         public string DateCreated => _adaptee.DateCreated;
 
 		public string DateUpdated => _adaptee.DateUpdated;

@@ -24,16 +24,18 @@ namespace IndyPOS.Sales
 
 		void StartNewSale();
 
-		void AddProduct(InventoryProductModel product);
+		ISaleInvoiceProduct AddProduct(InventoryProductModel product);
 
-		void AddProduct(InventoryProductModel product, decimal unitPrice, int quantity);
+		ISaleInvoiceProduct AddProduct(InventoryProductModel product, decimal unitPrice, int quantity);
+
+		ISaleInvoiceProduct AddProduct(InventoryProductModel product, decimal unitPrice, int quantity, string note);
 
 		void RemoveProduct(ISaleInvoiceProduct product);
 
-		void AddPayment(PaymentType paymentType, decimal paymentAmount, string note);
+		IPayment AddPayment(PaymentType paymentType, decimal paymentAmount, string note);
 
 		void RemoveAllPayments();
 
-        void SetSaleInvoiceId(int id);
+		void SetSaleInvoiceId(int id);
 	}
 }

@@ -5,8 +5,10 @@ using Prism.Events;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Drawing.Imaging;
 using System.Linq;
 using System.Windows.Forms;
+using IndyPOS.Barcode;
 
 namespace IndyPOS.UI
 {
@@ -15,18 +17,24 @@ namespace IndyPOS.UI
     {
         private readonly IEventAggregator _eventAggregator;
         private readonly IInventoryController _inventoryController;
+		private readonly IBarcodeHelper _barcodeHelper;
+        private readonly IConfig _config;
 		private readonly MessageForm _messageForm;
-        private IReadOnlyDictionary<int, string> _productCategoryDictionary;
+        private readonly IReadOnlyDictionary<int, string> _productCategoryDictionary;
         private IInventoryProduct _product;
 
         public UpdateInventoryProductForm(IEventAggregator eventAggregator, 
 										  IStoreConstants storeConstants, 
 										  IInventoryController inventoryController,
+										  IBarcodeHelper barcodeHelper,
+                                          IConfig config,
 										  MessageForm messageForm)
         {
             _eventAggregator = eventAggregator;
             _inventoryController = inventoryController;
             _productCategoryDictionary = storeConstants.ProductCategories;
+			_barcodeHelper = barcodeHelper;
+            _config = config;
 			_messageForm = messageForm;
 
             InitializeComponent();
@@ -36,8 +44,8 @@ namespace IndyPOS.UI
         public void ShowDialog(IInventoryProduct product)
         {
             _product = product;
-            ProductCodeTextBox.Texts = _product.Barcode;
-            ProductCodeTextBox.ReadOnly = true;
+
+            BarcodeLabel.Text = _product.Barcode;
 
             PopulateProductProperties();
 
@@ -58,17 +66,13 @@ namespace IndyPOS.UI
             GroupPriceQuantityTextBox.Texts = _product.GroupPriceQuantity.HasValue ? $"{_product.GroupPriceQuantity.Value}" : string.Empty;
             ManufacturerTextBox.Texts = _product.Manufacturer;
             BrandTextBox.Texts = _product.Brand;
-        }
+
+			ShowBarcode();
+		}
 
 		private bool ValidateProductEntry()
         {
-            if (string.IsNullOrWhiteSpace(ProductCodeTextBox.Texts))
-            {
-				_messageForm.Show("กรุณาใส่รหัสสินค้าหรือบาร์โค้ดให้ถูกต้อง", "รหัสสินค้าไม่ถูกต้อง");
-                return false;
-            }
-                
-            if (string.IsNullOrWhiteSpace(DescriptionTextBox.Texts))
+			if (string.IsNullOrWhiteSpace(DescriptionTextBox.Texts))
             {
                 _messageForm.Show("กรุณาใส่คำอธิบายสินค้าให้ถูกต้อง", "คำอธิบายสินค้าไม่ถูกต้อง");
                 return false;
@@ -116,6 +120,8 @@ namespace IndyPOS.UI
 
             _inventoryController.UpdateProduct(updatedProduct);
 
+			BarcodePictureBox.Image = null;
+
             Close();
         }
 
@@ -160,12 +166,16 @@ namespace IndyPOS.UI
 
         private void CancelUpdateProductButton_Click(object sender, EventArgs e)
         {
+			BarcodePictureBox.Image = null;
+
             Close();
         }
 
 		private void RemoveProductButton_Click(object sender, EventArgs e)
 		{
             _inventoryController.RemoveProductById(_product.InventoryProductId);
+
+			BarcodePictureBox.Image = null;
 
             Close();
         }
@@ -213,6 +223,32 @@ namespace IndyPOS.UI
 			}
 
 			return true;
+		}
+
+        private void ShowBarcode()
+		{
+			if (_product.Barcode.Length != 13)
+				return;
+
+			var barcodeImage = _barcodeHelper.CreateEan13BarcodeImage(_product.Barcode, 200, 400, 10);
+
+			BarcodePictureBox.Image = barcodeImage;
+        }
+
+		private void SaveBarcodeImage()
+		{
+			if (_product.Barcode.Length != 13)
+				return;
+
+			var barcodeImage = _barcodeHelper.CreateEan13BarcodeImage(_product.Barcode, 100, 200, 10);
+			var filePath = $"{_config.BarcodeDirectory}\\{_product.Barcode}-{_product.Description}.jpg";
+
+			barcodeImage.Save(filePath, ImageFormat.Jpeg);
+		}
+
+        private void SaveBarcodeToFileButton_Click(object sender, EventArgs e)
+		{
+			SaveBarcodeImage();
 		}
     }
 }

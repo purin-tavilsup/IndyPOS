@@ -137,6 +137,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Adapters\AccountsReceivableAdapter.cs" />
     <Compile Include="Adapters\FinalInvoiceAdapter.cs" />
     <Compile Include="Adapters\FinalInvoicePaymentAdapter.cs" />
     <Compile Include="Adapters\UserAccountAdapter.cs" />
@@ -144,6 +145,8 @@
     <Compile Include="Barcode\BarcodeHelper.cs" />
     <Compile Include="Barcode\IBarcodeHelper.cs" />
     <Compile Include="Config.cs" />
+    <Compile Include="Controllers\AccountsReceivableController.cs" />
+    <Compile Include="Controllers\IAccountsReceivableController.cs" />
     <Compile Include="Controllers\IReportController.cs" />
     <Compile Include="Controllers\IUserController.cs" />
     <Compile Include="Controllers\ReportController.cs" />
@@ -169,6 +172,7 @@
     <Compile Include="Extensions\DateTimeExtensions.cs" />
     <Compile Include="IConfig.cs" />
     <Compile Include="Inventory\IInventoryProduct.cs" />
+    <Compile Include="Sales\IAccountsReceivable.cs" />
     <Compile Include="Sales\IFinalInvoice.cs" />
     <Compile Include="Sales\IFinalInvoicePayment.cs" />
     <Compile Include="Sales\IFinalInvoiceProduct.cs" />
@@ -191,7 +195,6 @@
     <Compile Include="Events\SaleInvoiceProductAddedEvent.cs" />
     <Compile Include="Events\SaleInvoiceProductRemovedEvent.cs" />
     <Compile Include="Events\SaleInvoiceProductUpdatedEvent.cs" />
-    <Compile Include="Extensions\InventoryProductExtensions.cs" />
     <Compile Include="Extensions\StringExtensions.cs" />
     <Compile Include="IMachine.cs" />
     <Compile Include="Inventory\InventoryProduct.cs" />
@@ -219,6 +222,12 @@
     </Compile>
     <Compile Include="UI\AddGeneralGoodsProductForm.Designer.cs">
       <DependentUpon>AddGeneralGoodsProductForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="UI\AddNewInventoryProductWithCustomBarcodeForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\AddNewInventoryProductWithCustomBarcodeForm.Designer.cs">
+      <DependentUpon>AddNewInventoryProductWithCustomBarcodeForm.cs</DependentUpon>
     </Compile>
     <Compile Include="UI\AddNewUserForm.cs">
       <SubType>Form</SubType>
@@ -256,6 +265,12 @@
     <Compile Include="UI\Reports\SalesReportPanel.Designer.cs">
       <DependentUpon>SalesReportPanel.cs</DependentUpon>
     </Compile>
+    <Compile Include="UI\AddInvoiceProductForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\AddInvoiceProductForm.Designer.cs">
+      <DependentUpon>AddInvoiceProductForm.cs</DependentUpon>
+    </Compile>
     <Compile Include="UI\UpdateInvoiceProductForm.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -274,11 +289,11 @@
     <Compile Include="UI\AddNewInventoryProductForm.Designer.cs">
       <DependentUpon>AddNewInventoryProductForm.cs</DependentUpon>
     </Compile>
-    <Compile Include="UI\CustomerAccountsPanel.cs">
+    <Compile Include="UI\AccountsReceivablePanel.cs">
       <SubType>UserControl</SubType>
     </Compile>
-    <Compile Include="UI\CustomerAccountsPanel.Designer.cs">
-      <DependentUpon>CustomerAccountsPanel.cs</DependentUpon>
+    <Compile Include="UI\AccountsReceivablePanel.Designer.cs">
+      <DependentUpon>AccountsReceivablePanel.cs</DependentUpon>
     </Compile>
     <Compile Include="UI\InventoryPanel.cs">
       <SubType>UserControl</SubType>
@@ -340,6 +355,9 @@
     <EmbeddedResource Include="UI\AddGeneralGoodsProductForm.resx">
       <DependentUpon>AddGeneralGoodsProductForm.cs</DependentUpon>
     </EmbeddedResource>
+    <EmbeddedResource Include="UI\AddNewInventoryProductWithCustomBarcodeForm.resx">
+      <DependentUpon>AddNewInventoryProductWithCustomBarcodeForm.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="UI\AddNewUserForm.resx">
       <DependentUpon>AddNewUserForm.cs</DependentUpon>
     </EmbeddedResource>
@@ -358,6 +376,9 @@
     <EmbeddedResource Include="UI\Reports\SalesReportPanel.resx">
       <DependentUpon>SalesReportPanel.cs</DependentUpon>
     </EmbeddedResource>
+    <EmbeddedResource Include="UI\AddInvoiceProductForm.resx">
+      <DependentUpon>AddInvoiceProductForm.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="UI\UpdateInvoiceProductForm.resx">
       <DependentUpon>UpdateInvoiceProductForm.cs</DependentUpon>
     </EmbeddedResource>
@@ -367,8 +388,8 @@
     <EmbeddedResource Include="UI\AddNewInventoryProductForm.resx">
       <DependentUpon>AddNewInventoryProductForm.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="UI\CustomerAccountsPanel.resx">
-      <DependentUpon>CustomerAccountsPanel.cs</DependentUpon>
+    <EmbeddedResource Include="UI\AccountsReceivablePanel.resx">
+      <DependentUpon>AccountsReceivablePanel.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="UI\InventoryPanel.resx">
       <DependentUpon>InventoryPanel.cs</DependentUpon>

@@ -10,6 +10,8 @@
 		string PrinterName { get; set; }
 		string BarcodeScannerPortName { get; set; }
 		string ReportDirectory { get; set; }
+		string BackupDbDirectory { get; set; }
+		string BarcodeDirectory { get; set; }
 
 		string FileName { get; set; }
 		void Save();

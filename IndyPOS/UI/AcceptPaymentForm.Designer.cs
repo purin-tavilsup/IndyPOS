@@ -46,11 +46,11 @@
             this.label2 = new System.Windows.Forms.Label();
             this.PaymentAmountLabel = new System.Windows.Forms.Label();
             this.label3 = new System.Windows.Forms.Label();
-            this.panel28 = new System.Windows.Forms.Panel();
+            this.PaymentTypePanel = new System.Windows.Forms.Panel();
             this.PayByArButton = new ModernUI.ModernButton();
             this.PaymentTypeLabel = new System.Windows.Forms.Label();
             this.label4 = new System.Windows.Forms.Label();
-            this.panel29 = new System.Windows.Forms.Panel();
+            this.KeypadPanel = new System.Windows.Forms.Panel();
             this.Add500Button = new System.Windows.Forms.Button();
             this.Digit9Button = new System.Windows.Forms.Button();
             this.Add100Button = new System.Windows.Forms.Button();
@@ -72,16 +72,16 @@
             this.ClearButton = new System.Windows.Forms.Button();
             this.panel30 = new System.Windows.Forms.Panel();
             this.panel1 = new System.Windows.Forms.Panel();
+            this.AcceptArPaymentButton = new ModernUI.ModernButton();
+            this.panel2 = new System.Windows.Forms.Panel();
+            this.BalanceRemainingLabel = new System.Windows.Forms.Label();
+            this.label6 = new System.Windows.Forms.Label();
             this.NotePanel = new System.Windows.Forms.Panel();
             this.NoteTextBox = new ModernUI.ModernTextBox();
             this.label10 = new System.Windows.Forms.Label();
             this.RefundButton = new ModernUI.ModernButton();
             this.CancelAcceptPaymentButton = new ModernUI.ModernButton();
             this.AcceptPaymentButton = new ModernUI.ModernButton();
-            this.panel2 = new System.Windows.Forms.Panel();
-            this.BalanceRemainingLabel = new System.Windows.Forms.Label();
-            this.label6 = new System.Windows.Forms.Label();
-            this.AcceptArPaymentButton = new ModernUI.ModernButton();
             this.panel20.SuspendLayout();
             this.panel21.SuspendLayout();
             this.panel22.SuspendLayout();
@@ -89,12 +89,12 @@
             this.panel25.SuspendLayout();
             this.panel26.SuspendLayout();
             this.panel27.SuspendLayout();
-            this.panel28.SuspendLayout();
-            this.panel29.SuspendLayout();
+            this.PaymentTypePanel.SuspendLayout();
+            this.KeypadPanel.SuspendLayout();
             this.panel30.SuspendLayout();
             this.panel1.SuspendLayout();
-            this.NotePanel.SuspendLayout();
             this.panel2.SuspendLayout();
+            this.NotePanel.SuspendLayout();
             this.SuspendLayout();
             // 
             // label1
@@ -308,22 +308,22 @@
             this.label3.Text = "บาท";
             this.label3.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
             // 
-            // panel28
+            // PaymentTypePanel
             // 
-            this.panel28.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(30)))), ((int)(((byte)(30)))), ((int)(((byte)(30)))));
-            this.panel28.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.panel28.Controls.Add(this.PayByArButton);
-            this.panel28.Controls.Add(this.panel20);
-            this.panel28.Controls.Add(this.panel21);
-            this.panel28.Controls.Add(this.panel26);
-            this.panel28.Controls.Add(this.panel24);
-            this.panel28.Controls.Add(this.panel22);
-            this.panel28.Controls.Add(this.panel25);
-            this.panel28.ForeColor = System.Drawing.Color.Black;
-            this.panel28.Location = new System.Drawing.Point(116, 178);
-            this.panel28.Name = "panel28";
-            this.panel28.Size = new System.Drawing.Size(419, 556);
-            this.panel28.TabIndex = 48;
+            this.PaymentTypePanel.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(30)))), ((int)(((byte)(30)))), ((int)(((byte)(30)))));
+            this.PaymentTypePanel.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.PaymentTypePanel.Controls.Add(this.PayByArButton);
+            this.PaymentTypePanel.Controls.Add(this.panel20);
+            this.PaymentTypePanel.Controls.Add(this.panel21);
+            this.PaymentTypePanel.Controls.Add(this.panel26);
+            this.PaymentTypePanel.Controls.Add(this.panel24);
+            this.PaymentTypePanel.Controls.Add(this.panel22);
+            this.PaymentTypePanel.Controls.Add(this.panel25);
+            this.PaymentTypePanel.ForeColor = System.Drawing.Color.Black;
+            this.PaymentTypePanel.Location = new System.Drawing.Point(116, 178);
+            this.PaymentTypePanel.Name = "PaymentTypePanel";
+            this.PaymentTypePanel.Size = new System.Drawing.Size(419, 556);
+            this.PaymentTypePanel.TabIndex = 48;
             // 
             // PayByArButton
             // 
@@ -372,33 +372,33 @@
             this.label4.Text = "วิธีการชำระเงิน:";
             this.label4.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
             // 
-            // panel29
+            // KeypadPanel
             // 
-            this.panel29.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(30)))), ((int)(((byte)(30)))), ((int)(((byte)(30)))));
-            this.panel29.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.panel29.Controls.Add(this.Add500Button);
-            this.panel29.Controls.Add(this.Digit9Button);
-            this.panel29.Controls.Add(this.Add100Button);
-            this.panel29.Controls.Add(this.Digit6Button);
-            this.panel29.Controls.Add(this.Add50Button);
-            this.panel29.Controls.Add(this.Digit8Button);
-            this.panel29.Controls.Add(this.Add20Button);
-            this.panel29.Controls.Add(this.Digit3Button);
-            this.panel29.Controls.Add(this.Digit7Button);
-            this.panel29.Controls.Add(this.Digit5Button);
-            this.panel29.Controls.Add(this.PlusButton);
-            this.panel29.Controls.Add(this.Digit4Button);
-            this.panel29.Controls.Add(this.Digit2Button);
-            this.panel29.Controls.Add(this.Add1000Button);
-            this.panel29.Controls.Add(this.Digit1Button);
-            this.panel29.Controls.Add(this.Digit0Button);
-            this.panel29.Controls.Add(this.EqualButton);
-            this.panel29.Controls.Add(this.DecimalPointButton);
-            this.panel29.Controls.Add(this.ClearButton);
-            this.panel29.Location = new System.Drawing.Point(558, 178);
-            this.panel29.Name = "panel29";
-            this.panel29.Size = new System.Drawing.Size(530, 433);
-            this.panel29.TabIndex = 49;
+            this.KeypadPanel.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(30)))), ((int)(((byte)(30)))), ((int)(((byte)(30)))));
+            this.KeypadPanel.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.KeypadPanel.Controls.Add(this.Add500Button);
+            this.KeypadPanel.Controls.Add(this.Digit9Button);
+            this.KeypadPanel.Controls.Add(this.Add100Button);
+            this.KeypadPanel.Controls.Add(this.Digit6Button);
+            this.KeypadPanel.Controls.Add(this.Add50Button);
+            this.KeypadPanel.Controls.Add(this.Digit8Button);
+            this.KeypadPanel.Controls.Add(this.Add20Button);
+            this.KeypadPanel.Controls.Add(this.Digit3Button);
+            this.KeypadPanel.Controls.Add(this.Digit7Button);
+            this.KeypadPanel.Controls.Add(this.Digit5Button);
+            this.KeypadPanel.Controls.Add(this.PlusButton);
+            this.KeypadPanel.Controls.Add(this.Digit4Button);
+            this.KeypadPanel.Controls.Add(this.Digit2Button);
+            this.KeypadPanel.Controls.Add(this.Add1000Button);
+            this.KeypadPanel.Controls.Add(this.Digit1Button);
+            this.KeypadPanel.Controls.Add(this.Digit0Button);
+            this.KeypadPanel.Controls.Add(this.EqualButton);
+            this.KeypadPanel.Controls.Add(this.DecimalPointButton);
+            this.KeypadPanel.Controls.Add(this.ClearButton);
+            this.KeypadPanel.Location = new System.Drawing.Point(558, 178);
+            this.KeypadPanel.Name = "KeypadPanel";
+            this.KeypadPanel.Size = new System.Drawing.Size(530, 433);
+            this.KeypadPanel.TabIndex = 49;
             // 
             // Add500Button
             // 
@@ -709,13 +709,68 @@
             this.panel1.Controls.Add(this.label1);
             this.panel1.Controls.Add(this.panel30);
             this.panel1.Controls.Add(this.panel27);
-            this.panel1.Controls.Add(this.panel28);
-            this.panel1.Controls.Add(this.panel29);
+            this.panel1.Controls.Add(this.PaymentTypePanel);
+            this.panel1.Controls.Add(this.KeypadPanel);
             this.panel1.Dock = System.Windows.Forms.DockStyle.Fill;
             this.panel1.Location = new System.Drawing.Point(1, 1);
             this.panel1.Name = "panel1";
             this.panel1.Size = new System.Drawing.Size(1427, 812);
             this.panel1.TabIndex = 51;
+            // 
+            // AcceptArPaymentButton
+            // 
+            this.AcceptArPaymentButton.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
+            this.AcceptArPaymentButton.BackgroundColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
+            this.AcceptArPaymentButton.BorderColor = System.Drawing.Color.CornflowerBlue;
+            this.AcceptArPaymentButton.BorderRadius = 19;
+            this.AcceptArPaymentButton.BorderSize = 1;
+            this.AcceptArPaymentButton.FlatAppearance.BorderSize = 0;
+            this.AcceptArPaymentButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.AcceptArPaymentButton.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 14.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.AcceptArPaymentButton.ForeColor = System.Drawing.Color.White;
+            this.AcceptArPaymentButton.Location = new System.Drawing.Point(1110, 190);
+            this.AcceptArPaymentButton.Name = "AcceptArPaymentButton";
+            this.AcceptArPaymentButton.Size = new System.Drawing.Size(220, 70);
+            this.AcceptArPaymentButton.TabIndex = 56;
+            this.AcceptArPaymentButton.Text = "ลงบัญชี";
+            this.AcceptArPaymentButton.TextColor = System.Drawing.Color.White;
+            this.AcceptArPaymentButton.UseVisualStyleBackColor = false;
+            this.AcceptArPaymentButton.Click += new System.EventHandler(this.AcceptArPaymentButton_Click);
+            // 
+            // panel2
+            // 
+            this.panel2.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(30)))), ((int)(((byte)(30)))), ((int)(((byte)(30)))));
+            this.panel2.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.panel2.Controls.Add(this.BalanceRemainingLabel);
+            this.panel2.Controls.Add(this.label6);
+            this.panel2.Location = new System.Drawing.Point(116, 50);
+            this.panel2.Name = "panel2";
+            this.panel2.Size = new System.Drawing.Size(419, 58);
+            this.panel2.TabIndex = 55;
+            // 
+            // BalanceRemainingLabel
+            // 
+            this.BalanceRemainingLabel.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(30)))), ((int)(((byte)(30)))), ((int)(((byte)(30)))));
+            this.BalanceRemainingLabel.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 15.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.BalanceRemainingLabel.ForeColor = System.Drawing.Color.PaleGreen;
+            this.BalanceRemainingLabel.Location = new System.Drawing.Point(249, 3);
+            this.BalanceRemainingLabel.Name = "BalanceRemainingLabel";
+            this.BalanceRemainingLabel.Size = new System.Drawing.Size(165, 50);
+            this.BalanceRemainingLabel.TabIndex = 48;
+            this.BalanceRemainingLabel.Text = "0.00";
+            this.BalanceRemainingLabel.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            // 
+            // label6
+            // 
+            this.label6.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(30)))), ((int)(((byte)(30)))), ((int)(((byte)(30)))));
+            this.label6.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 15.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label6.ForeColor = System.Drawing.Color.Gainsboro;
+            this.label6.Location = new System.Drawing.Point(4, 2);
+            this.label6.Name = "label6";
+            this.label6.Size = new System.Drawing.Size(239, 51);
+            this.label6.TabIndex = 47;
+            this.label6.Text = "ยอดคงเหลือที่ต้องชำระ:";
+            this.label6.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
             // 
             // NotePanel
             // 
@@ -818,61 +873,6 @@
             this.AcceptPaymentButton.UseVisualStyleBackColor = false;
             this.AcceptPaymentButton.Click += new System.EventHandler(this.AcceptPaymentButton_Click);
             // 
-            // panel2
-            // 
-            this.panel2.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(30)))), ((int)(((byte)(30)))), ((int)(((byte)(30)))));
-            this.panel2.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.panel2.Controls.Add(this.BalanceRemainingLabel);
-            this.panel2.Controls.Add(this.label6);
-            this.panel2.Location = new System.Drawing.Point(116, 50);
-            this.panel2.Name = "panel2";
-            this.panel2.Size = new System.Drawing.Size(419, 58);
-            this.panel2.TabIndex = 55;
-            // 
-            // BalanceRemainingLabel
-            // 
-            this.BalanceRemainingLabel.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(30)))), ((int)(((byte)(30)))), ((int)(((byte)(30)))));
-            this.BalanceRemainingLabel.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 15.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.BalanceRemainingLabel.ForeColor = System.Drawing.Color.PaleGreen;
-            this.BalanceRemainingLabel.Location = new System.Drawing.Point(249, 3);
-            this.BalanceRemainingLabel.Name = "BalanceRemainingLabel";
-            this.BalanceRemainingLabel.Size = new System.Drawing.Size(165, 50);
-            this.BalanceRemainingLabel.TabIndex = 48;
-            this.BalanceRemainingLabel.Text = "0.00";
-            this.BalanceRemainingLabel.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
-            // 
-            // label6
-            // 
-            this.label6.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(30)))), ((int)(((byte)(30)))), ((int)(((byte)(30)))));
-            this.label6.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 15.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label6.ForeColor = System.Drawing.Color.Gainsboro;
-            this.label6.Location = new System.Drawing.Point(4, 2);
-            this.label6.Name = "label6";
-            this.label6.Size = new System.Drawing.Size(239, 51);
-            this.label6.TabIndex = 47;
-            this.label6.Text = "ยอดคงเหลือที่ต้องชำระ:";
-            this.label6.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
-            // 
-            // AcceptArPaymentButton
-            // 
-            this.AcceptArPaymentButton.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
-            this.AcceptArPaymentButton.BackgroundColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
-            this.AcceptArPaymentButton.BorderColor = System.Drawing.Color.CornflowerBlue;
-            this.AcceptArPaymentButton.BorderRadius = 19;
-            this.AcceptArPaymentButton.BorderSize = 1;
-            this.AcceptArPaymentButton.FlatAppearance.BorderSize = 0;
-            this.AcceptArPaymentButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.AcceptArPaymentButton.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 14.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.AcceptArPaymentButton.ForeColor = System.Drawing.Color.White;
-            this.AcceptArPaymentButton.Location = new System.Drawing.Point(1110, 190);
-            this.AcceptArPaymentButton.Name = "AcceptArPaymentButton";
-            this.AcceptArPaymentButton.Size = new System.Drawing.Size(220, 70);
-            this.AcceptArPaymentButton.TabIndex = 56;
-            this.AcceptArPaymentButton.Text = "ลงบัญชี";
-            this.AcceptArPaymentButton.TextColor = System.Drawing.Color.White;
-            this.AcceptArPaymentButton.UseVisualStyleBackColor = false;
-            this.AcceptArPaymentButton.Click += new System.EventHandler(this.AcceptArPaymentButton_Click);
-            // 
             // AcceptPaymentForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -893,12 +893,12 @@
             this.panel25.ResumeLayout(false);
             this.panel26.ResumeLayout(false);
             this.panel27.ResumeLayout(false);
-            this.panel28.ResumeLayout(false);
-            this.panel29.ResumeLayout(false);
+            this.PaymentTypePanel.ResumeLayout(false);
+            this.KeypadPanel.ResumeLayout(false);
             this.panel30.ResumeLayout(false);
             this.panel1.ResumeLayout(false);
-            this.NotePanel.ResumeLayout(false);
             this.panel2.ResumeLayout(false);
+            this.NotePanel.ResumeLayout(false);
             this.ResumeLayout(false);
 
         }
@@ -922,9 +922,9 @@
 		private System.Windows.Forms.Label label2;
 		private System.Windows.Forms.Label PaymentAmountLabel;
 		private System.Windows.Forms.Label label3;
-		private System.Windows.Forms.Panel panel28;
+		private System.Windows.Forms.Panel PaymentTypePanel;
 		private System.Windows.Forms.Label label4;
-		private System.Windows.Forms.Panel panel29;
+		private System.Windows.Forms.Panel KeypadPanel;
 		private System.Windows.Forms.Button PlusButton;
 		private System.Windows.Forms.Button DecimalPointButton;
 		private System.Windows.Forms.Button Add500Button;

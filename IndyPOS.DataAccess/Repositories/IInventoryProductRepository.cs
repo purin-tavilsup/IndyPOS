@@ -20,5 +20,9 @@ namespace IndyPOS.DataAccess.Repositories
         void RemoveProduct(InventoryProduct product);
 
         void RemoveProductById(int id);
-    }
+
+		int GetProductBarcodeCounter();
+
+		void UpdateProductBarcodeCounter(int counter);
+	}
 }

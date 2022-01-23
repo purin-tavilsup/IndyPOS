@@ -7,7 +7,9 @@ using IndyPOS.Inventory;
 using Prism.Events;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.IO;
 using System.Linq;
 using System.Windows.Forms;
 
@@ -18,9 +20,11 @@ namespace IndyPOS.UI
     {
         private readonly IEventAggregator _eventAggregator;
         private readonly IInventoryController _inventoryController;
+        private readonly IConfig _config;
         private readonly IReadOnlyDictionary<int, string> _productCategoryDictionary;
         private readonly AddNewInventoryProductForm _addNewProductForm;
         private readonly UpdateInventoryProductForm _updateProductForm;
+		private readonly AddNewInventoryProductWithCustomBarcodeForm _addNewProductWithCustomBarcodeForm;
         private int? _lastQueryCategoryId;
         private SubPanel _activeSubPanel;
 
@@ -42,14 +46,18 @@ namespace IndyPOS.UI
         public InventoryPanel(IEventAggregator eventAggregator, 
 							  IInventoryController inventoryController, 
 							  IStoreConstants storeConstants, 
+                              IConfig config,
 							  AddNewInventoryProductForm addNewProductForm, 
-							  UpdateInventoryProductForm updateProductForm)
+							  UpdateInventoryProductForm updateProductForm,
+							  AddNewInventoryProductWithCustomBarcodeForm addNewProductWithCustomBarcodeForm)
         {
             _eventAggregator = eventAggregator;
             _inventoryController = inventoryController;
+            _config = config;
             _productCategoryDictionary = storeConstants.ProductCategories;
             _addNewProductForm = addNewProductForm;
             _updateProductForm = updateProductForm;
+			_addNewProductWithCustomBarcodeForm = addNewProductWithCustomBarcodeForm;
 
             InitializeComponent();
             InitializeProductCategories();
@@ -82,7 +90,7 @@ namespace IndyPOS.UI
             #region Initialize all columns
 
             ProductDataView.Columns.Clear();
-            ProductDataView.ColumnCount = 12;
+            ProductDataView.ColumnCount = 11;
 
             ProductDataView.Columns[(int)ProductColumn.ProductCode].Name = "รหัสสินค้า";
             ProductDataView.Columns[(int)ProductColumn.ProductCode].Width = 150;
@@ -162,23 +170,27 @@ namespace IndyPOS.UI
 
             productRow[(int)ProductColumn.ProductCode] = product.Barcode;
             productRow[(int)ProductColumn.Description] = product.Description;
-            productRow[(int)ProductColumn.QuantityInStock] = product.QuantityInStock.ToString();
-			productRow[(int) ProductColumn.UnitPrice] = $"{product.UnitPrice:N}";
-            productRow[(int)ProductColumn.GroupPrice] = product.GroupPrice?.ToString("0.00") ?? string.Empty;
-			productRow[(int)ProductColumn.GroupPriceQuantity] = product.GroupPriceQuantity?.ToString() ?? string.Empty;
+            productRow[(int)ProductColumn.QuantityInStock] = product.QuantityInStock;
+			productRow[(int) ProductColumn.UnitPrice] = product.UnitPrice;
 			productRow[(int)ProductColumn.Category] = category;
             productRow[(int)ProductColumn.Manufacturer] = product.Manufacturer;
             productRow[(int)ProductColumn.Brand] = product.Brand;
             productRow[(int)ProductColumn.DateCreated] = product.DateCreated;
             productRow[(int)ProductColumn.DateUpdated] = product.DateUpdated;
 
+            if (product.GroupPrice.HasValue) 
+				productRow[(int)ProductColumn.GroupPrice] = product.GroupPrice.Value;
+			
+			if (product.GroupPriceQuantity.HasValue) 
+				productRow[(int)ProductColumn.GroupPriceQuantity] = product.GroupPriceQuantity.Value;
+
             ProductDataView.Rows.Add(productRow);
         }
 
         private void AddProductButton_Click(object sender, EventArgs e)
-        {
-            _addNewProductForm.ShowDialog();
-        }
+		{
+			_addNewProductWithCustomBarcodeForm.ShowDialog();
+		}
 
         private void ProductDataView_DoubleClick(object sender, EventArgs e)
         {
@@ -196,7 +208,7 @@ namespace IndyPOS.UI
             var selectedCell = ProductDataView.SelectedCells[0];
             var rowIndex = selectedCell.RowIndex;
             var selectedRow = ProductDataView.Rows[rowIndex];
-            var barcode = selectedRow.Cells[(int)ProductColumn.ProductCode].Value as string;
+            var barcode = (string) selectedRow.Cells[(int)ProductColumn.ProductCode].Value;
 
             return barcode;
         }
@@ -293,5 +305,24 @@ namespace IndyPOS.UI
 			
 			ShowProductsByCategoryId(categoryId);
         }
+
+        private void AddProductWithBarcodeButton_Click(object sender, EventArgs e)
+        {
+			_addNewProductForm.ShowDialog();
+        }
+
+        private void ModernButton1_Click(object sender, EventArgs e)
+		{
+			if (!Directory.Exists(_config.BarcodeDirectory)) 
+				return;
+			
+			var startInfo = new ProcessStartInfo
+							{
+								Arguments = _config.BarcodeDirectory,
+								FileName = "explorer.exe"
+							};
+
+			Process.Start(startInfo);
+		}
     }
 }

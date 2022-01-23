@@ -127,7 +127,7 @@ namespace IndyPOS.UI
 
 		private System.Windows.Forms.Panel panel1;
 		private System.Windows.Forms.Label CaptionLabel;
-        private new ModernUI.ModernButton PrintReceiptButton;
-        private new ModernUI.ModernButton CloseFormButton;
+        private ModernUI.ModernButton PrintReceiptButton;
+        private ModernUI.ModernButton CloseFormButton;
     }
 }

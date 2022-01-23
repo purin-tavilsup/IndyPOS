@@ -17,26 +17,44 @@ namespace IndyPOS.Controllers
 	{
 		private readonly IUserAccountHelper _accountHelper;
 		private readonly IInvoiceRepository _invoicesRepository;
+		private readonly IAccountsReceivableRepository _accountsReceivableRepository;
 		private readonly IInventoryProductRepository _inventoryProductsRepository;
 		private readonly IConfig _config;
 
 		private IEnumerable<IFinalInvoice> _invoices;
 		private IEnumerable<IFinalInvoiceProduct> _invoiceProducts;
 		private IEnumerable<IFinalInvoicePayment> _payments;
+		private IEnumerable<IAccountsReceivable> _accountsReceivables;
 
 		public IEnumerable<IFinalInvoice> Invoices => _invoices ?? new List<IFinalInvoice>();
 
 		public IEnumerable<IFinalInvoiceProduct> InvoiceProducts => _invoiceProducts ?? new List<IFinalInvoiceProduct>();
 
-		public IEnumerable<IFinalInvoicePayment> Payments => _payments ?? new List<IFinalInvoicePayment>();
+		public IEnumerable<IFinalInvoicePayment> InvoicePayments => _payments ?? new List<IFinalInvoicePayment>();
+
+		public IEnumerable<IAccountsReceivable> AccountsReceivables => _accountsReceivables ?? new List<IAccountsReceivable>();
 
 		public IEnumerable<IFinalInvoiceProduct> GeneralGoodsProducts => GetGeneralGoodsProducts();
 
 		public IEnumerable<IFinalInvoiceProduct> HardwareProducts => GetHardwareProducts();
 
-		public decimal InvoicesTotal => CalculateInvoicesTotal();
+		public decimal InvoicesTotal => GetInvoicesTotal();
 
-		public decimal InvoicesTotalWithoutAr => CalculateInvoicesTotalWithoutAr();
+		public decimal PaymentsTotal => GetPaymentsTotal();
+
+		public decimal ChangesTotal => GetChangesTotal();
+
+		public decimal RefundTotal => GetRefundTotal();
+
+		public decimal ArTotal => GetArTotal();
+
+		public decimal CompletedArTotal => GetCompletedArTotal();
+
+		public decimal IncompleteArTotal => GetIncompleteArTotal();
+
+		public decimal InvoicesTotalWithoutAr => GetInvoicesTotalWithoutAr();
+
+		public decimal InvoicesTotalWithoutIncompleteAr => GetInvoicesTotalWithoutIncompleteAr();
 
 		public decimal GeneralGoodsProductsTotal => GetGeneralGoodsProductsTotal();
 
@@ -44,11 +62,13 @@ namespace IndyPOS.Controllers
 
         public ReportController(IUserAccountHelper accountHelper,
 								IInvoiceRepository invoicesRepository,
+								IAccountsReceivableRepository accountsReceivableRepository,
 								IInventoryProductRepository inventoryProductsRepository,
 								IConfig config)
 		{
 			_accountHelper = accountHelper;
 			_invoicesRepository = invoicesRepository;
+			_accountsReceivableRepository = accountsReceivableRepository;
 			_inventoryProductsRepository = inventoryProductsRepository;
 			_config = config;
 		}
@@ -75,6 +95,11 @@ namespace IndyPOS.Controllers
 					endDate = DateTime.Today.LastDayOfMonth();
 					break;
 
+				case ReportPeriod.ThisYear:
+					startDate = DateTime.Today.FirstDayOfYear();
+					endDate = DateTime.Today.LastDayOfYear();
+					break;
+
 				default:
 					startDate = DateTime.Today;
 					endDate = DateTime.Today;
@@ -84,6 +109,7 @@ namespace IndyPOS.Controllers
 			_invoices = GetInvoicesByDateRange(startDate, endDate);
 			_invoiceProducts = GetInvoiceProductsByDateRange(startDate, endDate);
 			_payments = GetPaymentsByDateRange(startDate, endDate);
+			_accountsReceivables = GetAccountsReceivablesByDateRange(startDate, endDate);
 		}
 
 		public void LoadInvoicesByDateRange(DateTime startDate, DateTime endDate)
@@ -91,18 +117,68 @@ namespace IndyPOS.Controllers
 			_invoices = GetInvoicesByDateRange(startDate, endDate);
 			_invoiceProducts = GetInvoiceProductsByDateRange(startDate, endDate);
 			_payments = GetPaymentsByDateRange(startDate, endDate);
+			_accountsReceivables = GetAccountsReceivablesByDateRange(startDate, endDate);
 		}
 
-		private decimal CalculateInvoicesTotal()
+		private decimal GetInvoicesTotal()
 		{
 			return Invoices.Sum(x => x.Total);
 		}
 
-		private decimal CalculateInvoicesTotalWithoutAr()
+		private decimal GetPaymentsTotal()
 		{
-			var arTotal = GetPaymentsTotalByType(PaymentType.AccountReceivable);
+			return InvoicePayments.Sum(x => x.Amount);
+		}
 
-			return InvoicesTotal - arTotal;
+		private decimal GetChangesTotal()
+		{
+			var changes = 0m;
+
+			foreach (var invoice in _invoices)
+			{
+				if (invoice.Total <= 0m)
+					continue;
+
+				var payment = _payments.Where(x => x.InvoiceId == invoice.InvoiceId)
+									   .Sum(x => x.Amount);
+
+				changes += payment - invoice.Total;
+			}
+
+			return changes;
+		}
+
+		private decimal GetRefundTotal()
+		{
+			return _invoices.Where(x => x.Total < 0)
+							.Sum(x => x.Total);
+		}
+
+		private decimal GetInvoicesTotalWithoutAr()
+		{
+			return InvoicesTotal - ArTotal;
+		}
+
+		private decimal GetInvoicesTotalWithoutIncompleteAr()
+        {
+			return InvoicesTotal - IncompleteArTotal;
+        }
+
+		private decimal GetArTotal()
+		{
+			return _accountsReceivables.Sum(x => x.ReceivableAmount);
+		}
+
+		private decimal GetCompletedArTotal()
+        {
+			return _accountsReceivables.Where(x => x.IsCompleted)
+									   .Sum(x => x.ReceivableAmount);
+        }
+
+		private decimal GetIncompleteArTotal()
+		{
+			return _accountsReceivables.Where(x => !x.IsCompleted)
+									   .Sum(x => x.ReceivableAmount);
 		}
 
 		private decimal GetGeneralGoodsProductsTotal()
@@ -130,6 +206,13 @@ namespace IndyPOS.Controllers
 			var results = _invoicesRepository.GetInvoicesByDateRange(startDate, endDate);
 
 			return results.Select(x => new FinalInvoiceAdapter(x) as IFinalInvoice);
+		}
+
+		private IEnumerable<IAccountsReceivable> GetAccountsReceivablesByDateRange(DateTime startDate, DateTime endDate)
+		{
+			var results = _accountsReceivableRepository.GetAccountsReceivablesByDateRange(startDate, endDate);
+
+			return results.Select(x => new AccountsReceivableAdapter(x) as IAccountsReceivable);
 		}
 
 		private IEnumerable<IFinalInvoiceProduct> GetInvoiceProductsByDateRange(DateTime startDate, DateTime endDate)
@@ -162,9 +245,10 @@ namespace IndyPOS.Controllers
 
 		public void WriteSaleRecordsToCsvFileByDate(DateTime date)
 		{
-			var directoryPath = $"{_config.ReportDirectory}\\{date:yyyy-MM-dd}";
+			var directoryPath = $"{_config.ReportDirectory}\\{date.Year}\\{date.Month:00}\\{date:yyyy-MMM-dd}";
 			
-			Directory.CreateDirectory(directoryPath);
+			if (!Directory.Exists(directoryPath)) 
+				Directory.CreateDirectory(directoryPath);
 
 			WriteInvoiceRecordsToCsvFileByDate(directoryPath, date);
 			WriteInvoiceProductRecordsToCsvFileByDate(directoryPath, date);

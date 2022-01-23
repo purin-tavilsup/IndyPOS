@@ -23,5 +23,11 @@ namespace IndyPOS.Extensions
 
 		public static DateTime LastDayOfMonth(this DateTime dateTime) =>
 			dateTime.FirstDayOfMonth().AddMonths(1).AddDays(-1);
+
+		public static DateTime FirstDayOfYear(this DateTime dateTime) =>
+			new DateTime(dateTime.Year, 1, 1);
+
+		public static DateTime LastDayOfYear(this DateTime dateTime) =>
+			new DateTime(dateTime.Year, 12, 31);
 	}
 }
