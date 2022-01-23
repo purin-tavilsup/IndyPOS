@@ -8,6 +8,7 @@ using IndyPOS.Devices;
 using IndyPOS.Users;
 using Prism.Events;
 using System.Reflection;
+using IndyPOS.Barcode;
 using IndyPOS.Sales;
 
 namespace IndyPOS.IoC
@@ -82,6 +83,10 @@ namespace IndyPOS.IoC
             builder.RegisterType<UserAccountHelper>()
                    .As<IUserAccountHelper>()
                    .SingleInstance();
+
+			builder.RegisterType<BarcodeHelper>()
+				   .As<IBarcodeHelper>()
+				   .SingleInstance();
 
             return builder.Build();
         }

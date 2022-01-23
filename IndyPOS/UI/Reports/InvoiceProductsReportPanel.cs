@@ -1,6 +1,7 @@
 ﻿using IndyPOS.Controllers;
 using IndyPOS.Sales;
 using System;
+using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
 using System.Windows.Forms;
 
@@ -119,6 +120,10 @@ namespace IndyPOS.UI.Reports
 			{
 				AddProductToInvoiceDataView(product);
 			}
+
+			var invoiceColumn = InvoiceProductsDataView.Columns[(int) ProductColumn.InvoiceId];
+
+			InvoiceProductsDataView.Sort(invoiceColumn, ListSortDirection.Descending);
 		}
     }
 }

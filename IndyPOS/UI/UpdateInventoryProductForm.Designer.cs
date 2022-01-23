@@ -30,6 +30,10 @@
         {
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(UpdateInventoryProductForm));
             this.panel1 = new System.Windows.Forms.Panel();
+            this.BarcodeLabel = new System.Windows.Forms.Label();
+            this.SaveBarcodeToFileButton = new ModernUI.ModernButton();
+            this.label6 = new System.Windows.Forms.Label();
+            this.BarcodePictureBox = new System.Windows.Forms.PictureBox();
             this.DecreaseQuantityButton = new ModernUI.ModernButton();
             this.IncreaseQuantityButton = new ModernUI.ModernButton();
             this.QuantityLabel = new System.Windows.Forms.Label();
@@ -43,7 +47,6 @@
             this.UnitPriceTextBox = new ModernUI.ModernTextBox();
             this.QuantityTextBox = new ModernUI.ModernTextBox();
             this.DescriptionTextBox = new ModernUI.ModernTextBox();
-            this.ProductCodeTextBox = new ModernUI.ModernTextBox();
             this.panel2 = new System.Windows.Forms.Panel();
             this.RemoveProductButton = new ModernUI.ModernButton();
             this.CancelUpdateProductButton = new ModernUI.ModernButton();
@@ -57,12 +60,17 @@
             this.label2 = new System.Windows.Forms.Label();
             this.label1 = new System.Windows.Forms.Label();
             this.panel1.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.BarcodePictureBox)).BeginInit();
             this.panel2.SuspendLayout();
             this.SuspendLayout();
             // 
             // panel1
             // 
             this.panel1.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
+            this.panel1.Controls.Add(this.BarcodeLabel);
+            this.panel1.Controls.Add(this.SaveBarcodeToFileButton);
+            this.panel1.Controls.Add(this.label6);
+            this.panel1.Controls.Add(this.BarcodePictureBox);
             this.panel1.Controls.Add(this.DecreaseQuantityButton);
             this.panel1.Controls.Add(this.IncreaseQuantityButton);
             this.panel1.Controls.Add(this.QuantityLabel);
@@ -76,7 +84,6 @@
             this.panel1.Controls.Add(this.UnitPriceTextBox);
             this.panel1.Controls.Add(this.QuantityTextBox);
             this.panel1.Controls.Add(this.DescriptionTextBox);
-            this.panel1.Controls.Add(this.ProductCodeTextBox);
             this.panel1.Controls.Add(this.panel2);
             this.panel1.Controls.Add(this.label9);
             this.panel1.Controls.Add(this.label8);
@@ -89,8 +96,61 @@
             this.panel1.Dock = System.Windows.Forms.DockStyle.Fill;
             this.panel1.Location = new System.Drawing.Point(1, 1);
             this.panel1.Name = "panel1";
-            this.panel1.Size = new System.Drawing.Size(934, 648);
+            this.panel1.Size = new System.Drawing.Size(1249, 648);
             this.panel1.TabIndex = 0;
+            // 
+            // BarcodeLabel
+            // 
+            this.BarcodeLabel.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
+            this.BarcodeLabel.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.BarcodeLabel.ForeColor = System.Drawing.Color.Gainsboro;
+            this.BarcodeLabel.Location = new System.Drawing.Point(239, 66);
+            this.BarcodeLabel.Name = "BarcodeLabel";
+            this.BarcodeLabel.Size = new System.Drawing.Size(310, 39);
+            this.BarcodeLabel.TabIndex = 77;
+            this.BarcodeLabel.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            // 
+            // SaveBarcodeToFileButton
+            // 
+            this.SaveBarcodeToFileButton.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
+            this.SaveBarcodeToFileButton.BackgroundColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
+            this.SaveBarcodeToFileButton.BorderColor = System.Drawing.Color.DeepSkyBlue;
+            this.SaveBarcodeToFileButton.BorderRadius = 19;
+            this.SaveBarcodeToFileButton.BorderSize = 1;
+            this.SaveBarcodeToFileButton.FlatAppearance.BorderSize = 0;
+            this.SaveBarcodeToFileButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.SaveBarcodeToFileButton.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.SaveBarcodeToFileButton.ForeColor = System.Drawing.Color.White;
+            this.SaveBarcodeToFileButton.Location = new System.Drawing.Point(812, 354);
+            this.SaveBarcodeToFileButton.Name = "SaveBarcodeToFileButton";
+            this.SaveBarcodeToFileButton.Size = new System.Drawing.Size(400, 53);
+            this.SaveBarcodeToFileButton.TabIndex = 76;
+            this.SaveBarcodeToFileButton.Text = "บันทึก Barcode ลงไฟล์รูปภาพ";
+            this.SaveBarcodeToFileButton.TextColor = System.Drawing.Color.White;
+            this.SaveBarcodeToFileButton.UseVisualStyleBackColor = false;
+            this.SaveBarcodeToFileButton.Click += new System.EventHandler(this.SaveBarcodeToFileButton_Click);
+            // 
+            // label6
+            // 
+            this.label6.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(30)))), ((int)(((byte)(30)))), ((int)(((byte)(30)))));
+            this.label6.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 15.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label6.ForeColor = System.Drawing.Color.Gainsboro;
+            this.label6.Location = new System.Drawing.Point(812, 66);
+            this.label6.Name = "label6";
+            this.label6.Size = new System.Drawing.Size(400, 70);
+            this.label6.TabIndex = 73;
+            this.label6.Text = "Barcode";
+            this.label6.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            // 
+            // BarcodePictureBox
+            // 
+            this.BarcodePictureBox.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(35)))), ((int)(((byte)(35)))), ((int)(((byte)(35)))));
+            this.BarcodePictureBox.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.BarcodePictureBox.Location = new System.Drawing.Point(812, 139);
+            this.BarcodePictureBox.Name = "BarcodePictureBox";
+            this.BarcodePictureBox.Size = new System.Drawing.Size(400, 200);
+            this.BarcodePictureBox.TabIndex = 72;
+            this.BarcodePictureBox.TabStop = false;
             // 
             // DecreaseQuantityButton
             // 
@@ -320,25 +380,6 @@
             this.DescriptionTextBox.Texts = "";
             this.DescriptionTextBox.UnderlinedStyle = true;
             // 
-            // ProductCodeTextBox
-            // 
-            this.ProductCodeTextBox.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
-            this.ProductCodeTextBox.BorderColor = System.Drawing.Color.DimGray;
-            this.ProductCodeTextBox.BorderSize = 1;
-            this.ProductCodeTextBox.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.ProductCodeTextBox.ForeColor = System.Drawing.Color.Gainsboro;
-            this.ProductCodeTextBox.Location = new System.Drawing.Point(239, 66);
-            this.ProductCodeTextBox.Multiline = false;
-            this.ProductCodeTextBox.Name = "ProductCodeTextBox";
-            this.ProductCodeTextBox.Padding = new System.Windows.Forms.Padding(7);
-            this.ProductCodeTextBox.PasswordChar = false;
-            this.ProductCodeTextBox.ReadOnly = false;
-            this.ProductCodeTextBox.Size = new System.Drawing.Size(310, 39);
-            this.ProductCodeTextBox.TabIndex = 47;
-            this.ProductCodeTextBox.TextAlign = System.Windows.Forms.HorizontalAlignment.Left;
-            this.ProductCodeTextBox.Texts = "";
-            this.ProductCodeTextBox.UnderlinedStyle = true;
-            // 
             // panel2
             // 
             this.panel2.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(25)))), ((int)(((byte)(25)))), ((int)(((byte)(25)))));
@@ -348,7 +389,7 @@
             this.panel2.Dock = System.Windows.Forms.DockStyle.Bottom;
             this.panel2.Location = new System.Drawing.Point(0, 555);
             this.panel2.Name = "panel2";
-            this.panel2.Size = new System.Drawing.Size(934, 93);
+            this.panel2.Size = new System.Drawing.Size(1249, 93);
             this.panel2.TabIndex = 46;
             // 
             // RemoveProductButton
@@ -363,7 +404,7 @@
             this.RemoveProductButton.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.RemoveProductButton.ForeColor = System.Drawing.Color.White;
             this.RemoveProductButton.Image = global::IndyPOS.Properties.Resources.Trash_35;
-            this.RemoveProductButton.Location = new System.Drawing.Point(487, 21);
+            this.RemoveProductButton.Location = new System.Drawing.Point(1054, 21);
             this.RemoveProductButton.Name = "RemoveProductButton";
             this.RemoveProductButton.Size = new System.Drawing.Size(158, 53);
             this.RemoveProductButton.TabIndex = 14;
@@ -385,7 +426,7 @@
             this.CancelUpdateProductButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.CancelUpdateProductButton.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.CancelUpdateProductButton.ForeColor = System.Drawing.Color.White;
-            this.CancelUpdateProductButton.Location = new System.Drawing.Point(259, 21);
+            this.CancelUpdateProductButton.Location = new System.Drawing.Point(555, 21);
             this.CancelUpdateProductButton.Name = "CancelUpdateProductButton";
             this.CancelUpdateProductButton.Size = new System.Drawing.Size(158, 53);
             this.CancelUpdateProductButton.TabIndex = 13;
@@ -506,7 +547,7 @@
             this.label1.ForeColor = System.Drawing.Color.WhiteSmoke;
             this.label1.Location = new System.Drawing.Point(0, 0);
             this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(934, 39);
+            this.label1.Size = new System.Drawing.Size(1249, 39);
             this.label1.TabIndex = 37;
             this.label1.Text = "อัพเดทสินค้า";
             this.label1.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
@@ -516,7 +557,7 @@
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.Color.SlateGray;
-            this.ClientSize = new System.Drawing.Size(936, 650);
+            this.ClientSize = new System.Drawing.Size(1251, 650);
             this.Controls.Add(this.panel1);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.None;
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
@@ -524,6 +565,7 @@
             this.Padding = new System.Windows.Forms.Padding(1);
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.panel1.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)(this.BarcodePictureBox)).EndInit();
             this.panel2.ResumeLayout(false);
             this.ResumeLayout(false);
 
@@ -542,7 +584,6 @@
 		private ModernUI.ModernTextBox UnitPriceTextBox;
 		private ModernUI.ModernTextBox QuantityTextBox;
 		private ModernUI.ModernTextBox DescriptionTextBox;
-		private ModernUI.ModernTextBox ProductCodeTextBox;
 		private System.Windows.Forms.Panel panel2;
 		private System.Windows.Forms.Label label9;
 		private System.Windows.Forms.Label label8;
@@ -558,5 +599,9 @@
         private System.Windows.Forms.Label QuantityLabel;
         private ModernUI.ModernButton IncreaseQuantityButton;
         private ModernUI.ModernButton DecreaseQuantityButton;
+        private System.Windows.Forms.Label label6;
+        private System.Windows.Forms.PictureBox BarcodePictureBox;
+        private ModernUI.ModernButton SaveBarcodeToFileButton;
+        private System.Windows.Forms.Label BarcodeLabel;
     }
 }

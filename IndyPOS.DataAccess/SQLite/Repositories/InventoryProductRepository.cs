@@ -224,6 +224,52 @@ namespace IndyPOS.DataAccess.SQLite.Repositories
             }
         }
 
+		public int GetProductBarcodeCounter()
+		{
+			using (var connection = _dbConnectionProvider.GetDbConnection())
+			{
+				connection.Open();
+
+				const string sqlCommand = @"SELECT * FROM ProductBarcodeCounter 
+                WHERE Id = @Id";
+
+				var sqlParameters = new
+									{
+										Id = 1
+									};
+
+				var results = connection.Query(sqlCommand, sqlParameters);
+
+				var result = results.FirstOrDefault();
+
+				return result != null ?  (int) result.Counter : 1;
+			}
+		}
+
+        public void UpdateProductBarcodeCounter(int counter)
+        {
+			using (var connection = _dbConnectionProvider.GetDbConnection())
+			{
+				connection.Open();
+
+				const string sqlCommand = @"UPDATE ProductBarcodeCounter
+                SET
+                    Counter = @Counter
+                WHERE Id = @Id";
+
+				var sqlParameters = new
+									{
+										Id = 1,
+										Counter = counter
+									};
+
+				var affectedRowsCount = connection.Execute(sqlCommand, sqlParameters);
+
+				if (affectedRowsCount != 1)
+					throw new Exception("Failed to update product barcode counter.");
+			}
+        }
+
         private IList<InventoryProduct> MapInventoryProducts(IEnumerable<dynamic> results)
 		{
             var products = results?.Select(x => new InventoryProduct

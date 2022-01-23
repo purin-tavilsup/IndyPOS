@@ -322,19 +322,17 @@ namespace IndyPOS.UI
 
         private void AddGeneralGoodsProductButton_Click(object sender, EventArgs e)
 		{
-			const int categoryNumber = (int) ProductCategory.GeneralGoods;
-			var generalGoodsCode = $"{categoryNumber:00}00000000001";
+			const string generalGoodsCode = "2001000000012";
 
 			_addInvoiceProductForm.ShowDialog(generalGoodsCode);
 		}
 
         private void AddHardwareProductButton_Click(object sender, EventArgs e)
 		{
-			const int categoryNumber = (int) ProductCategory.Hardware;
-			var hardwareCode = $"{categoryNumber:00}00000000001";
+			const string hardwareCode = "2005000000027";
 
 			_addInvoiceProductForm.ShowDialog(hardwareCode);
-        }
+		}
 
         private void LookUpProductButton_Click(object sender, EventArgs e)
 		{

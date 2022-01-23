@@ -5,26 +5,35 @@ using Prism.Events;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Drawing;
+using System.Drawing.Imaging;
 using System.Linq;
 using System.Windows.Forms;
+using IndyPOS.Barcode;
 
 namespace IndyPOS.UI
 {
 	[ExcludeFromCodeCoverage]
-	public partial class AddNewInventoryProductForm : Form
+	public partial class AddNewInventoryProductWithCustomBarcodeForm : Form
     {
+        private readonly IBarcodeHelper _barcodeHelper;
         private readonly IEventAggregator _eventAggregator;
         private readonly IInventoryController _inventoryController;
+		private readonly IConfig _config;
         private readonly IReadOnlyDictionary<int, string> _productCategoryDictionary;
 		private readonly MessageForm _messageForm;
 
-        public AddNewInventoryProductForm(IEventAggregator eventAggregator, 
-										  IStoreConstants storeConstants, 
-										  IInventoryController inventoryController,
-										  MessageForm messageForm)
-        {
+        public AddNewInventoryProductWithCustomBarcodeForm(IBarcodeHelper barcodeHelper,
+														   IEventAggregator eventAggregator, 
+														   IStoreConstants storeConstants, 
+														   IInventoryController inventoryController,
+														   IConfig config,
+														   MessageForm messageForm)
+		{
+			_barcodeHelper = barcodeHelper;
             _eventAggregator = eventAggregator;
             _inventoryController = inventoryController;
+            _config = config;
             _productCategoryDictionary = storeConstants.ProductCategories;
 			_messageForm = messageForm;
 
@@ -32,28 +41,20 @@ namespace IndyPOS.UI
             InitializeProductCategories();
         }
 
-        public void ShowDialog(string productBarcode = null)
+        public new void ShowDialog()
         {
             ResetProductEntry();
 
-            if (string.IsNullOrWhiteSpace(productBarcode))
-            {
-                ProductCodeTextBox.ReadOnly = false;
-            }
-            else
-            {
-                ProductCodeTextBox.Texts = productBarcode;
-                ProductCodeTextBox.ReadOnly = true;
-            }
-
             CancelProductEntryButton.Select();
+
+			
 
             base.ShowDialog();
         }
 
         private void ResetProductEntry()
         {
-            ProductCodeTextBox.Texts = string.Empty;
+            BarcodeLabel.Text = string.Empty;
             DescriptionTextBox.Texts = string.Empty;
             QuantityTextBox.Texts = string.Empty;
             UnitPriceTextBox.Texts = string.Empty;
@@ -62,18 +63,13 @@ namespace IndyPOS.UI
             GroupPriceQuantityTextBox.Texts = string.Empty;
             ManufacturerTextBox.Texts = string.Empty;
             BrandTextBox.Texts = string.Empty;
-        }
+			IsTrackableCheckBox.Checked = true;
+			BarcodePictureBox.Image = null;
+		}
 
         private bool ValidateProductEntry()
         {
-            if (string.IsNullOrWhiteSpace(ProductCodeTextBox.Texts))
-			{
-				_messageForm.Show("กรุณาใส่รหัสสินค้าหรือบาร์โค้ดให้ถูกต้อง", "รหัสสินค้าไม่ถูกต้อง");
-                
-                return false;
-            }
-                
-            if (string.IsNullOrWhiteSpace(DescriptionTextBox.Texts))
+			if (string.IsNullOrWhiteSpace(DescriptionTextBox.Texts))
             {
 				_messageForm.Show("กรุณาใส่คำอธิบายสินค้าให้ถูกต้อง", "คำอธิบายสินค้าไม่ถูกต้อง");
                 
@@ -141,7 +137,9 @@ namespace IndyPOS.UI
 
             _inventoryController.AddNewProduct(product);
 
-            Close();
+			SaveBarcodeImage(product);
+
+			Close();
         }
 
         private IInventoryProduct CreateNewProduct()
@@ -154,12 +152,12 @@ namespace IndyPOS.UI
 
             var product = new InventoryProduct
             {
-                Barcode = ProductCodeTextBox.Texts.Trim(),
+                Barcode = BarcodeLabel.Text,
                 Description = DescriptionTextBox.Texts.Trim(),
                 QuantityInStock = quantity,
                 UnitPrice = unitPrice,
                 Category = categoryId,
-                IsTrackable = true
+				IsTrackable = IsTrackableCheckBox.Checked
             };
 
             // Optional Attributes
@@ -179,8 +177,52 @@ namespace IndyPOS.UI
         }
 
         private void CancelProductEntryButton_Click(object sender, EventArgs e)
-        {
-            Close();
+		{
+			Close();
         }
+
+        private void CategoryComboBox_SelectedIndexChanged(object sender, EventArgs e)
+        {
+			if (CategoryComboBox.SelectedItem == null)
+				return;
+
+			var selectedCategoryValue = CategoryComboBox.SelectedItem.ToString(); 
+			var category = _productCategoryDictionary.FirstOrDefault(x => x.Value == selectedCategoryValue); 
+			var categoryId = category.Key;
+
+			GenerateProductBarcode(categoryId);
+		}
+
+        private void GenerateProductBarcode(int categoryId)
+		{
+			var counter = _inventoryController.GetProductBarcodeCounter();
+			var barcode = _barcodeHelper.GenerateEan13Barcode(categoryId, counter + 1);
+
+			BarcodeLabel.Text = barcode;
+
+			var barcodeImage = _barcodeHelper.CreateEan13BarcodeImage(barcode, 200, 400, 10);
+
+            BarcodePictureBox.Image = barcodeImage;
+		}
+
+        private void SaveBarcodeImage(IInventoryProduct product)
+		{
+			var barcodeImage = _barcodeHelper.CreateEan13BarcodeImage(product.Barcode, 400, 800, 10);
+			var filePath = $"{_config.BarcodeDirectory}\\{product.Barcode}-{product.Description}.jpg";
+
+            barcodeImage.Save(filePath, ImageFormat.Jpeg);
+
+            _inventoryController.IncrementProductBarcodeCounter();
+		}
+
+        private void IsTrackableCheckBox_CheckedChanged(object sender, EventArgs e)
+		{
+			if (!IsTrackableCheckBox.Checked)
+            {
+				QuantityTextBox.Texts = "1";
+            }
+
+			QuantityTextBox.Enabled = IsTrackableCheckBox.Checked;
+		}
     }
 }

@@ -55,6 +55,8 @@
             this.label12 = new System.Windows.Forms.Label();
             this.label13 = new System.Windows.Forms.Label();
             this.BackupDBDirectoryTextBox = new ModernUI.ModernTextBox();
+            this.label14 = new System.Windows.Forms.Label();
+            this.BarcodeDirectoryTextBox = new ModernUI.ModernTextBox();
             this.panel1.SuspendLayout();
             this.panel2.SuspendLayout();
             this.panel3.SuspendLayout();
@@ -381,6 +383,8 @@
             // panel4
             // 
             this.panel4.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
+            this.panel4.Controls.Add(this.label14);
+            this.panel4.Controls.Add(this.BarcodeDirectoryTextBox);
             this.panel4.Controls.Add(this.label11);
             this.panel4.Controls.Add(this.ReportDirectoryTextBox);
             this.panel4.Controls.Add(this.label12);
@@ -388,7 +392,7 @@
             this.panel4.Controls.Add(this.BackupDBDirectoryTextBox);
             this.panel4.Location = new System.Drawing.Point(618, 12);
             this.panel4.Name = "panel4";
-            this.panel4.Size = new System.Drawing.Size(600, 190);
+            this.panel4.Size = new System.Drawing.Size(600, 235);
             this.panel4.TabIndex = 85;
             // 
             // label11
@@ -466,6 +470,37 @@
             this.BackupDBDirectoryTextBox.Texts = "";
             this.BackupDBDirectoryTextBox.UnderlinedStyle = true;
             // 
+            // label14
+            // 
+            this.label14.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
+            this.label14.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label14.ForeColor = System.Drawing.Color.Gainsboro;
+            this.label14.Location = new System.Drawing.Point(17, 151);
+            this.label14.Name = "label14";
+            this.label14.Size = new System.Drawing.Size(172, 39);
+            this.label14.TabIndex = 86;
+            this.label14.Text = "Barcode Directory";
+            this.label14.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            // 
+            // BarcodeDirectoryTextBox
+            // 
+            this.BarcodeDirectoryTextBox.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
+            this.BarcodeDirectoryTextBox.BorderColor = System.Drawing.Color.DimGray;
+            this.BarcodeDirectoryTextBox.BorderSize = 1;
+            this.BarcodeDirectoryTextBox.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.BarcodeDirectoryTextBox.ForeColor = System.Drawing.Color.Gainsboro;
+            this.BarcodeDirectoryTextBox.Location = new System.Drawing.Point(195, 151);
+            this.BarcodeDirectoryTextBox.Multiline = false;
+            this.BarcodeDirectoryTextBox.Name = "BarcodeDirectoryTextBox";
+            this.BarcodeDirectoryTextBox.Padding = new System.Windows.Forms.Padding(7);
+            this.BarcodeDirectoryTextBox.PasswordChar = false;
+            this.BarcodeDirectoryTextBox.ReadOnly = false;
+            this.BarcodeDirectoryTextBox.Size = new System.Drawing.Size(372, 39);
+            this.BarcodeDirectoryTextBox.TabIndex = 87;
+            this.BarcodeDirectoryTextBox.TextAlign = System.Windows.Forms.HorizontalAlignment.Left;
+            this.BarcodeDirectoryTextBox.Texts = "";
+            this.BarcodeDirectoryTextBox.UnderlinedStyle = true;
+            // 
             // SettingsPanel
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -516,5 +551,7 @@
         private System.Windows.Forms.Label label12;
         private System.Windows.Forms.Label label13;
         private ModernUI.ModernTextBox BackupDBDirectoryTextBox;
+        private System.Windows.Forms.Label label14;
+        private ModernUI.ModernTextBox BarcodeDirectoryTextBox;
     }
 }

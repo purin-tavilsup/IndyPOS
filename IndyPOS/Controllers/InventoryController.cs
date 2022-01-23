@@ -52,7 +52,7 @@ namespace IndyPOS.Controllers
                 Category = product.Category,
                 UnitPrice = product.UnitPrice,
                 QuantityInStock = product.QuantityInStock,
-                IsTrackable = true
+                IsTrackable = product.IsTrackable
             };
 
             try
@@ -107,6 +107,18 @@ namespace IndyPOS.Controllers
             {
                 throw new Exception($"Error occurred while trying to delete the inventory product. {ex.Message}", ex);
             }
+        }
+
+        public int GetProductBarcodeCounter()
+		{
+			return _inventoryProductsRepository.GetProductBarcodeCounter();
+		}
+
+        public void IncrementProductBarcodeCounter()
+		{
+			var counter = _inventoryProductsRepository.GetProductBarcodeCounter();
+
+            _inventoryProductsRepository.UpdateProductBarcodeCounter(counter + 1);
         }
     }
 }

@@ -16,5 +16,9 @@ namespace IndyPOS.Controllers
         void UpdateProduct(IInventoryProduct product);
 
         void RemoveProductById(int id);
-    }
+
+		int GetProductBarcodeCounter();
+
+		void IncrementProductBarcodeCounter();
+	}
 }

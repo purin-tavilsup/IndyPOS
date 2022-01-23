@@ -195,7 +195,7 @@ namespace IndyPOS.UI
 
 			_arController.UpdateAccountsReceivable(_selectedAccountsReceivable);
 
-			ShowAccountReceivables(false);
+			ShowAccountReceivables(ShowIncompleteOnlyCheckBox.Checked);
         }
 
         private void LookUpArByInvoiceIdButton_Click(object sender, EventArgs e)

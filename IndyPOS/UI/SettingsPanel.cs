@@ -27,11 +27,12 @@ namespace IndyPOS.UI
 			BarcodeScannerPortNameTextBox.Texts = _config.BarcodeScannerPortName;
 			ReportDirectoryTextBox.Texts = _config.ReportDirectory;
 			BackupDBDirectoryTextBox.Texts = _config.BackupDbDirectory;
+			BarcodeDirectoryTextBox.Texts = _config.BarcodeDirectory;
 		}
 
 		private void SaveSettings()
 		{
-			_config.StoreFullName = StoreFullNameTextBox.Text.Trim();
+			_config.StoreFullName = StoreFullNameTextBox.Texts.Trim();
 			_config.StoreName = StoreNameTextBox.Texts.Trim();
 			_config.StoreAddressLine1 = StoreAddressLine1TextBox.Texts.Trim();
 			_config.StoreAddressLine2 = StoreAddressLine2TextBox.Texts.Trim();
@@ -40,6 +41,7 @@ namespace IndyPOS.UI
 			_config.BarcodeScannerPortName = BarcodeScannerPortNameTextBox.Texts.Trim();
 			_config.ReportDirectory = ReportDirectoryTextBox.Texts.Trim();
 			_config.BackupDbDirectory = BackupDBDirectoryTextBox.Texts.Trim();
+			_config.BarcodeDirectory = BarcodeDirectoryTextBox.Texts.Trim();
 			_config.Save();
 			_config.Load();
 		}

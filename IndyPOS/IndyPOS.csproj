@@ -223,6 +223,12 @@
     <Compile Include="UI\AddGeneralGoodsProductForm.Designer.cs">
       <DependentUpon>AddGeneralGoodsProductForm.cs</DependentUpon>
     </Compile>
+    <Compile Include="UI\AddNewInventoryProductWithCustomBarcodeForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\AddNewInventoryProductWithCustomBarcodeForm.Designer.cs">
+      <DependentUpon>AddNewInventoryProductWithCustomBarcodeForm.cs</DependentUpon>
+    </Compile>
     <Compile Include="UI\AddNewUserForm.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -348,6 +354,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="UI\AddGeneralGoodsProductForm.resx">
       <DependentUpon>AddGeneralGoodsProductForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="UI\AddNewInventoryProductWithCustomBarcodeForm.resx">
+      <DependentUpon>AddNewInventoryProductWithCustomBarcodeForm.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="UI\AddNewUserForm.resx">
       <DependentUpon>AddNewUserForm.cs</DependentUpon>

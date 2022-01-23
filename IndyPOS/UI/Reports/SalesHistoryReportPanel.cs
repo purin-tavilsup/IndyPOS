@@ -4,6 +4,7 @@ using IndyPOS.Enums;
 using IndyPOS.Sales;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Windows.Forms;
@@ -188,6 +189,10 @@ namespace IndyPOS.UI.Reports
 			{
 				AddProductToInvoiceDataView(invoice);
 			}
+
+			var invoiceColumn = SaleInvoiceDataView.Columns[(int)SaleInvoiceColumn.InvoiceId];
+
+			SaleInvoiceDataView.Sort(invoiceColumn, ListSortDirection.Descending);
         }
 
         private int GetInvoiceIdFromSelectedInvoice()
