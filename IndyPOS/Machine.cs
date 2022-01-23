@@ -6,7 +6,7 @@ namespace IndyPOS
 {
     public class Machine : IMachine
 	{
-		private const string Version = "1.0.11";
+		private const string Version = "1.0.12";
         private readonly MainForm _mainForm;
 		private readonly IConfig _config;
         private readonly IBarcodeScanner _barcodeScanner;
@@ -70,7 +70,7 @@ namespace IndyPOS
 			}
 		}
 
-        public void Shutdown()
+		private void Shutdown()
 		{
             DisconnectDevices();
         }
