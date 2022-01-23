@@ -190,8 +190,8 @@ namespace IndyPOS.UI
 			var category = _productCategoryDictionary.FirstOrDefault(x => x.Value == selectedCategoryValue); 
 			var categoryId = category.Key;
 
-			GenerateProductBarcode(categoryId);
-		}
+            GenerateProductBarcode(categoryId);
+        }
 
         private void GenerateProductBarcode(int categoryId)
 		{
@@ -207,7 +207,7 @@ namespace IndyPOS.UI
 
         private void SaveBarcodeImage(IInventoryProduct product)
 		{
-			var barcodeImage = _barcodeHelper.CreateEan13BarcodeImage(product.Barcode, 400, 800, 10);
+			var barcodeImage = _barcodeHelper.CreateEan13BarcodeImage(product.Barcode, 100, 200, 10);
 			var filePath = $"{_config.BarcodeDirectory}\\{product.Barcode}-{product.Description}.jpg";
 
             barcodeImage.Save(filePath, ImageFormat.Jpeg);

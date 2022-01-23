@@ -240,7 +240,7 @@ namespace IndyPOS.UI
 			if (_product.Barcode.Length != 13)
 				return;
 
-			var barcodeImage = _barcodeHelper.CreateEan13BarcodeImage(_product.Barcode, 400, 800, 10);
+			var barcodeImage = _barcodeHelper.CreateEan13BarcodeImage(_product.Barcode, 100, 200, 10);
 			var filePath = $"{_config.BarcodeDirectory}\\{_product.Barcode}-{_product.Description}.jpg";
 
 			barcodeImage.Save(filePath, ImageFormat.Jpeg);

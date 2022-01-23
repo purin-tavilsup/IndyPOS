@@ -62,6 +62,7 @@ namespace IndyPOS.UI
             GroupPriceQuantityTextBox.Texts = string.Empty;
             ManufacturerTextBox.Texts = string.Empty;
             BrandTextBox.Texts = string.Empty;
+			IsTrackableCheckBox.Checked = true;
         }
 
         private bool ValidateProductEntry()
@@ -159,7 +160,7 @@ namespace IndyPOS.UI
                 QuantityInStock = quantity,
                 UnitPrice = unitPrice,
                 Category = categoryId,
-                IsTrackable = true
+				IsTrackable = IsTrackableCheckBox.Checked
             };
 
             // Optional Attributes
@@ -181,6 +182,16 @@ namespace IndyPOS.UI
         private void CancelProductEntryButton_Click(object sender, EventArgs e)
         {
             Close();
+        }
+
+        private void IsTrackableCheckBox_CheckedChanged(object sender, EventArgs e)
+        {
+			if (!IsTrackableCheckBox.Checked)
+			{
+				QuantityTextBox.Texts = "1";
+			}
+
+			QuantityTextBox.Enabled = IsTrackableCheckBox.Checked;
         }
     }
 }
