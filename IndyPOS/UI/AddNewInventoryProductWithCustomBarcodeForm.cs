@@ -191,7 +191,7 @@ namespace IndyPOS.UI
 			var categoryId = category.Key;
 
             GenerateProductBarcode(categoryId);
-        }
+		}
 
         private void GenerateProductBarcode(int categoryId)
 		{
