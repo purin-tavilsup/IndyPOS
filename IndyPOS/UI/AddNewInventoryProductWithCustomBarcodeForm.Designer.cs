@@ -353,7 +353,7 @@
             this.CancelProductEntryButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.CancelProductEntryButton.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.CancelProductEntryButton.ForeColor = System.Drawing.Color.White;
-            this.CancelProductEntryButton.Location = new System.Drawing.Point(520, 18);
+            this.CancelProductEntryButton.Location = new System.Drawing.Point(905, 18);
             this.CancelProductEntryButton.Name = "CancelProductEntryButton";
             this.CancelProductEntryButton.Size = new System.Drawing.Size(158, 53);
             this.CancelProductEntryButton.TabIndex = 11;

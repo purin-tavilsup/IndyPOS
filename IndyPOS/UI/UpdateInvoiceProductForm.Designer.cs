@@ -76,6 +76,7 @@
             // panel2
             // 
             this.panel2.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
+            this.panel2.Controls.Add(this.RemoveProductButton);
             this.panel2.Controls.Add(this.NoteTextBox);
             this.panel2.Controls.Add(this.NoteLabel);
             this.panel2.Controls.Add(this.UnitPriceTextBox);
@@ -93,7 +94,7 @@
             this.panel2.Dock = System.Windows.Forms.DockStyle.Fill;
             this.panel2.Location = new System.Drawing.Point(1, 1);
             this.panel2.Name = "panel2";
-            this.panel2.Size = new System.Drawing.Size(658, 426);
+            this.panel2.Size = new System.Drawing.Size(723, 426);
             this.panel2.TabIndex = 30;
             // 
             // NoteTextBox
@@ -201,14 +202,13 @@
             // panel1
             // 
             this.panel1.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(25)))), ((int)(((byte)(25)))), ((int)(((byte)(25)))));
-            this.panel1.Controls.Add(this.RemoveProductButton);
             this.panel1.Controls.Add(this.CancelUpdateProductButton);
             this.panel1.Controls.Add(this.UpdateProductButton);
             this.panel1.Dock = System.Windows.Forms.DockStyle.Bottom;
             this.panel1.Location = new System.Drawing.Point(0, 330);
             this.panel1.MinimumSize = new System.Drawing.Size(39, 39);
             this.panel1.Name = "panel1";
-            this.panel1.Size = new System.Drawing.Size(658, 96);
+            this.panel1.Size = new System.Drawing.Size(723, 96);
             this.panel1.TabIndex = 34;
             // 
             // RemoveProductButton
@@ -223,14 +223,12 @@
             this.RemoveProductButton.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.RemoveProductButton.ForeColor = System.Drawing.Color.White;
             this.RemoveProductButton.Image = global::IndyPOS.Properties.Resources.Trash_35;
-            this.RemoveProductButton.Location = new System.Drawing.Point(481, 20);
+            this.RemoveProductButton.Location = new System.Drawing.Point(649, 232);
             this.RemoveProductButton.Name = "RemoveProductButton";
-            this.RemoveProductButton.Size = new System.Drawing.Size(158, 53);
+            this.RemoveProductButton.Size = new System.Drawing.Size(50, 53);
             this.RemoveProductButton.TabIndex = 11;
-            this.RemoveProductButton.Text = "ลบสินค้า";
             this.RemoveProductButton.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
             this.RemoveProductButton.TextColor = System.Drawing.Color.White;
-            this.RemoveProductButton.TextImageRelation = System.Windows.Forms.TextImageRelation.ImageBeforeText;
             this.RemoveProductButton.UseVisualStyleBackColor = false;
             this.RemoveProductButton.Click += new System.EventHandler(this.RemoveProductButton_Click);
             // 
@@ -245,7 +243,7 @@
             this.CancelUpdateProductButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.CancelUpdateProductButton.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.CancelUpdateProductButton.ForeColor = System.Drawing.Color.White;
-            this.CancelUpdateProductButton.Location = new System.Drawing.Point(253, 20);
+            this.CancelUpdateProductButton.Location = new System.Drawing.Point(541, 20);
             this.CancelUpdateProductButton.Name = "CancelUpdateProductButton";
             this.CancelUpdateProductButton.Size = new System.Drawing.Size(158, 53);
             this.CancelUpdateProductButton.TabIndex = 10;
@@ -282,7 +280,7 @@
             this.label1.ForeColor = System.Drawing.Color.WhiteSmoke;
             this.label1.Location = new System.Drawing.Point(0, 0);
             this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(658, 39);
+            this.label1.Size = new System.Drawing.Size(723, 39);
             this.label1.TabIndex = 30;
             this.label1.Text = "อัพเดทสินค้า";
             this.label1.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
@@ -347,7 +345,7 @@
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.Color.SlateGray;
-            this.ClientSize = new System.Drawing.Size(660, 428);
+            this.ClientSize = new System.Drawing.Size(725, 428);
             this.Controls.Add(this.panel2);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.None;
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
