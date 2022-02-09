@@ -1,4 +1,4 @@
-﻿using System;
+﻿using System.Configuration;
 using System.Data;
 using System.Data.SQLite;
 using System.IO;
@@ -7,16 +7,16 @@ namespace IndyPOS.DataAccess
 {
     public class DbConnectionProvider : IDbConnectionProvider
 	{
-		private static string DatabaseFilePath => @"C:\ProgramData\IndyPOS\db\Store.db";
-		private static readonly string Database = $"{DatabaseFilePath};";
-		private static readonly string Version = "Version=3;";
+		private string _databasePath;
 
 		public IDbConnection GetDbConnection()
 		{
-			if (!File.Exists(DatabaseFilePath))
+			_databasePath = ConfigurationManager.AppSettings.Get("DatabasePath");
+
+			if (!File.Exists(_databasePath))
 				throw new FileNotFoundException("Database file could not be found.");
 
-			return new SQLiteConnection($"Data Source={Database}{Version}");
+			return new SQLiteConnection($"Data Source={_databasePath};Version=3;");
 		}
 
 		public void BackupDatabase(string backupDatabaseDirectory)
@@ -27,7 +27,7 @@ namespace IndyPOS.DataAccess
 			if (dbConnection.State != ConnectionState.Closed)
 				dbConnection.Close();
 
-			File.Copy(DatabaseFilePath, backupDbPath, true);
+			File.Copy(_databasePath, backupDbPath, true);
 		}
 	}
 }

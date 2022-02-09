@@ -1,13 +1,14 @@
-﻿using IndyPOS.Enums;
+﻿using IndyPOS.Controllers;
+using IndyPOS.DataAccess;
+using IndyPOS.Enums;
 using IndyPOS.Events;
 using IndyPOS.Users;
 using Prism.Events;
 using System;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Windows.Forms;
-using IndyPOS.Controllers;
-using IndyPOS.DataAccess;
 
 namespace IndyPOS.UI
 {
@@ -232,13 +233,12 @@ namespace IndyPOS.UI
 			SwitchToPanel(SubPanel.UserLogIn);
 		}
 
-		private void CloseButton_Click(object sender, EventArgs e)
+		private void CloseApplicationButton_Click(object sender, EventArgs e)
 		{
-			WriteSaleRecordsToCsvFile();
-			BackupDatabase();
-			Close();
+			CloseApplication();
 		}
 
+		[Conditional("RELEASE")]
         private void WriteSaleRecordsToCsvFile()
         {
 			_reportController.WriteSaleRecordsToCsvFileByDate(DateTime.Today);
@@ -268,20 +268,29 @@ namespace IndyPOS.UI
 
 		private void CloseWindows_Click(object sender, EventArgs e)
 		{
+			CloseApplication();
+		}
+
+		private void CloseApplication()
+        {
 			WriteSaleRecordsToCsvFile();
 			BackupDatabase();
+
 			Close();
         }
 
+		[Conditional("RELEASE")]
 		private void BackupDatabase()
         {
 			var today = DateTime.Today;
-			var directoryPath = $"{_config.BackupDbDirectory}\\{today.Year}\\{today.Month:00}";
+			var rootBackupDirectory = _config.BackupDbDirectory;
+			var byDateBackupDirectory = $"{rootBackupDirectory}\\{today.Year}\\{today.Month:00}\\{today.Day:00}";
 			
-			if (!Directory.Exists(directoryPath)) 
-				Directory.CreateDirectory(directoryPath);
+			if (!Directory.Exists(byDateBackupDirectory)) 
+				Directory.CreateDirectory(byDateBackupDirectory);
 
-			_dbConnectionProvider.BackupDatabase(directoryPath);
+			_dbConnectionProvider.BackupDatabase(byDateBackupDirectory);
+			_dbConnectionProvider.BackupDatabase(rootBackupDirectory);
         }
         
 		private void MainForm_Load(object sender, EventArgs e)

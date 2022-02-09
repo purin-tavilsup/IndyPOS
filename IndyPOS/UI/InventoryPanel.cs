@@ -238,7 +238,7 @@ namespace IndyPOS.UI
 		{
             ClearLastQueryHistory();
 
-            ProductDataView.UIThread(delegate
+            ProductDataView.UiThread(delegate
             {
                 ProductDataView.Rows.Clear();
 
@@ -250,7 +250,7 @@ namespace IndyPOS.UI
 		{
             ClearLastQueryHistory();
 
-            ProductDataView.UIThread(delegate
+            ProductDataView.UiThread(delegate
             {
                 ProductDataView.Rows.Clear();
 
@@ -264,7 +264,7 @@ namespace IndyPOS.UI
 
             if (product == null) return;
 
-            ProductDataView.UIThread(delegate
+            ProductDataView.UiThread(delegate
             {
                 ProductDataView.Rows.Clear();
 

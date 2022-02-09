@@ -153,7 +153,7 @@ namespace IndyPOS.UI
 
 		private void SaleInvoiceProductChanged()
         {
-            this.UIThread(delegate
+            this.UiThread(delegate
 						  {
 							  InvoiceDataView.Rows.Clear();
 
@@ -264,7 +264,7 @@ namespace IndyPOS.UI
 
         private void PaymentChanged()
 		{
-            this.UIThread(delegate
+            this.UiThread(delegate
 						  {
 							  PaymentDataView.Rows.Clear();
 
@@ -282,7 +282,7 @@ namespace IndyPOS.UI
 
         private void ResetSaleInvoiceScreen()
 		{
-            this.UIThread(delegate
+            this.UiThread(delegate
 						  {
 							  InvoiceDataView.Rows.Clear();
 

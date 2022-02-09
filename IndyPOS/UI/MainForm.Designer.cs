@@ -43,7 +43,7 @@
             this.StoreNameLabel = new System.Windows.Forms.Label();
             this.ActivePanel = new System.Windows.Forms.Panel();
             this.ControlPanel = new System.Windows.Forms.Panel();
-            this.CloseButton = new System.Windows.Forms.Button();
+            this.CloseApplicationButton = new System.Windows.Forms.Button();
             this.LogInButton = new System.Windows.Forms.Button();
             this.SettingsButton = new System.Windows.Forms.Button();
             this.AccountsReceivableButton = new System.Windows.Forms.Button();
@@ -230,7 +230,7 @@
             // 
             // ControlPanel
             // 
-            this.ControlPanel.Controls.Add(this.CloseButton);
+            this.ControlPanel.Controls.Add(this.CloseApplicationButton);
             this.ControlPanel.Controls.Add(this.LogInButton);
             this.ControlPanel.Controls.Add(this.SettingsButton);
             this.ControlPanel.Controls.Add(this.AccountsReceivableButton);
@@ -244,23 +244,23 @@
             this.ControlPanel.Size = new System.Drawing.Size(298, 972);
             this.ControlPanel.TabIndex = 4;
             // 
-            // CloseButton
+            // CloseApplicationButton
             // 
-            this.CloseButton.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
-            this.CloseButton.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
-            this.CloseButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.CloseButton.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.CloseButton.ForeColor = System.Drawing.Color.DarkGray;
-            this.CloseButton.Image = global::IndyPOS.Properties.Resources.CloseWindows_50;
-            this.CloseButton.Location = new System.Drawing.Point(3, 850);
-            this.CloseButton.Name = "CloseButton";
-            this.CloseButton.Size = new System.Drawing.Size(292, 115);
-            this.CloseButton.TabIndex = 5;
-            this.CloseButton.Text = "ออกจากโปรแกรม";
-            this.CloseButton.TextAlign = System.Drawing.ContentAlignment.BottomCenter;
-            this.CloseButton.TextImageRelation = System.Windows.Forms.TextImageRelation.ImageAboveText;
-            this.CloseButton.UseVisualStyleBackColor = false;
-            this.CloseButton.Click += new System.EventHandler(this.CloseButton_Click);
+            this.CloseApplicationButton.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
+            this.CloseApplicationButton.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
+            this.CloseApplicationButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.CloseApplicationButton.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.CloseApplicationButton.ForeColor = System.Drawing.Color.DarkGray;
+            this.CloseApplicationButton.Image = global::IndyPOS.Properties.Resources.CloseWindows_50;
+            this.CloseApplicationButton.Location = new System.Drawing.Point(3, 850);
+            this.CloseApplicationButton.Name = "CloseApplicationButton";
+            this.CloseApplicationButton.Size = new System.Drawing.Size(292, 115);
+            this.CloseApplicationButton.TabIndex = 5;
+            this.CloseApplicationButton.Text = "ออกจากโปรแกรม";
+            this.CloseApplicationButton.TextAlign = System.Drawing.ContentAlignment.BottomCenter;
+            this.CloseApplicationButton.TextImageRelation = System.Windows.Forms.TextImageRelation.ImageAboveText;
+            this.CloseApplicationButton.UseVisualStyleBackColor = false;
+            this.CloseApplicationButton.Click += new System.EventHandler(this.CloseApplicationButton_Click);
             // 
             // LogInButton
             // 
@@ -428,7 +428,7 @@
         private System.Windows.Forms.Button AccountsReceivableButton;
         private System.Windows.Forms.Button LogInButton;
         private System.Windows.Forms.Label StoreNameLabel;
-		private System.Windows.Forms.Button CloseButton;
+		private System.Windows.Forms.Button CloseApplicationButton;
 		private System.Windows.Forms.Panel panel9;
 		private System.Windows.Forms.Panel ControlPanel;
         private ModernUI.ModernButton CloseWindowsButton;
