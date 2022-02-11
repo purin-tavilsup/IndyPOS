@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
+using System.Drawing;
 using System.Linq;
 using System.Windows.Forms;
 
@@ -187,12 +188,8 @@ namespace IndyPOS.UI.Reports
 
 			foreach (var invoice in invoices)
 			{
-				AddProductToInvoiceDataView(invoice);
+				AddInvoiceToInvoiceDataView(invoice);
 			}
-
-			var invoiceColumn = SaleInvoiceDataView.Columns[(int)SaleInvoiceColumn.InvoiceId];
-
-			SaleInvoiceDataView.Sort(invoiceColumn, ListSortDirection.Descending);
         }
 
         private int GetInvoiceIdFromSelectedInvoice()
@@ -229,7 +226,7 @@ namespace IndyPOS.UI.Reports
 			}
         }
 
-		private void AddProductToInvoiceDataView(IFinalInvoice invoice)
+		private void AddInvoiceToInvoiceDataView(IFinalInvoice invoice)
 		{
 			var columnCount = SaleInvoiceDataView.ColumnCount;
 			var row = new object[columnCount];
@@ -237,7 +234,10 @@ namespace IndyPOS.UI.Reports
 			row[(int)SaleInvoiceColumn.InvoiceId] = invoice.InvoiceId;
 			row[(int)SaleInvoiceColumn.InvoiceTotal] = invoice.Total;
 
-			SaleInvoiceDataView.Rows.Add(row);
+			var rowIndex = SaleInvoiceDataView.Rows.Add(row);
+			var rowBackColor = rowIndex % 2 == 0 ? Color.FromArgb(38,38,38) : Color.FromArgb(48, 48, 48);
+
+			SaleInvoiceDataView.Rows[rowIndex].DefaultCellStyle.BackColor = rowBackColor;
 		}
 
 		private void AddProductToInvoiceDataView(IFinalInvoiceProduct product)
@@ -253,7 +253,10 @@ namespace IndyPOS.UI.Reports
 			row[(int) ProductColumn.Total] = total;
 			row[(int) ProductColumn.Note] = product.Note;
 
-			InvoiceProductsDataView.Rows.Add(row);
+			var rowIndex = InvoiceProductsDataView.Rows.Add(row);
+			var rowBackColor = rowIndex % 2 == 0 ? Color.FromArgb(38,38,38) : Color.FromArgb(48, 48, 48);
+
+			InvoiceProductsDataView.Rows[rowIndex].DefaultCellStyle.BackColor = rowBackColor;
 		}
 
 		private void AddPaymentToPaymentDataView(IFinalInvoicePayment payment)
@@ -265,7 +268,10 @@ namespace IndyPOS.UI.Reports
 			row[(int)PaymentColumn.PaymentAmount] = payment.Amount;
 			row[(int) PaymentColumn.Note] = payment.Note;
 
-			PaymentDataView.Rows.Add(row);
+			var rowIndex = PaymentDataView.Rows.Add(row);
+			var rowBackColor = rowIndex % 2 == 0 ? Color.FromArgb(38,38,38) : Color.FromArgb(48, 48, 48);
+
+			PaymentDataView.Rows[rowIndex].DefaultCellStyle.BackColor = rowBackColor;
 		}
 
         private void SaleInvoiceDataView_CellClick(object sender, DataGridViewCellEventArgs e)

@@ -9,6 +9,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Windows.Forms;
@@ -184,7 +185,10 @@ namespace IndyPOS.UI
 			if (product.GroupPriceQuantity.HasValue) 
 				productRow[(int)ProductColumn.GroupPriceQuantity] = product.GroupPriceQuantity.Value;
 
-            ProductDataView.Rows.Add(productRow);
+			var rowIndex = ProductDataView.Rows.Add(productRow);
+			var rowBackColor = rowIndex % 2 == 0 ? Color.FromArgb(38,38,38) : Color.FromArgb(48, 48, 48);
+
+			ProductDataView.Rows[rowIndex].DefaultCellStyle.BackColor = rowBackColor;
         }
 
         private void AddProductButton_Click(object sender, EventArgs e)

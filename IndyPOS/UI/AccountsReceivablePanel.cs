@@ -5,6 +5,7 @@ using IndyPOS.Users;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Drawing;
 using System.Linq;
 using System.Windows.Forms;
 
@@ -99,7 +100,13 @@ namespace IndyPOS.UI
 			row[(int)AccountColumn.DateCreated] = accountsReceivable.DateCreated;
 			row[(int)AccountColumn.DateUpdated] = accountsReceivable.DateUpdated;
 
-			ArDataView.Rows.Add(row);
+			var rowIndex = ArDataView.Rows.Add(row);
+			var rowBackColor = rowIndex % 2 == 0 ? Color.FromArgb(38,38,38) : Color.FromArgb(48, 48, 48);
+
+			ArDataView.Rows[rowIndex].DefaultCellStyle.BackColor = rowBackColor;
+			
+			if (accountsReceivable.IsCompleted)
+				ArDataView.Rows[rowIndex].Cells[(int)AccountColumn.IsCompleted].Style.BackColor = Color.FromArgb(30, 65, 30);
 		}
 
 		private void ShowAccountReceivables(bool showIncompleteOnly)
@@ -225,18 +232,5 @@ namespace IndyPOS.UI
 			
 			ShowAccountReceivables(showIncompleteOnly);
         }
-
-        private void CreateARForUnlinkedPaymentsButton_Click(object sender, EventArgs e)
-        {
-			_arController.ConvertPaymentsToAccountsReceivables();
-        }
-
-        private void AccountsReceivablePanel_VisibleChanged(object sender, EventArgs e)
-		{
-			if (_accountHelper.IsLoggedIn)
-            {
-				CreateARForUnlinkedPaymentsButton.Visible = _accountHelper.LoggedInUser.RoleId == (int) UserRole.SystemAdmin;
-            }
-		}
     }
 }
