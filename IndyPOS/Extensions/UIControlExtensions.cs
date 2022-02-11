@@ -6,14 +6,14 @@ namespace IndyPOS.Extensions
     /// <summary>
 	/// Extension for updating Control's properties
 	/// </summary>
-	public static class UIControlExtensions
+	public static class UiControlExtensions
     {
         /// <summary>
         /// Update Control's properties
         /// </summary>
         /// <param name="control"></param>
         /// <param name="code"></param>
-        static public void UIThread(this Control control, Action code)
+        public static void UiThread(this Control control, Action code)
         {
             if (control.InvokeRequired)
             {

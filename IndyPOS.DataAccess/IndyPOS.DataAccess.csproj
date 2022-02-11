@@ -99,11 +99,6 @@
     <Compile Include="Models\UserRole.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="SQLite\Store.db">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-  </ItemGroup>
-  <ItemGroup>
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup />

@@ -24,3 +24,9 @@ IndyPOS.Tests/bin/
 IndyPOS.Tests/obj/
 
 IndyPOS.sln.DotSettings.user
+
+Releases/
+
+IndyPOS/IndyPOS.csproj.user
+
+*.nupkg

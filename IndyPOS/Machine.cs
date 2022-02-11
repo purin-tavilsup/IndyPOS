@@ -1,12 +1,13 @@
 ﻿using IndyPOS.Devices;
 using IndyPOS.UI;
+using System.Configuration;
+using System.Diagnostics;
 using System.IO;
 
 namespace IndyPOS
 {
     public class Machine : IMachine
 	{
-		private const string Version = "1.0.12";
         private readonly MainForm _mainForm;
 		private readonly IConfig _config;
         private readonly IBarcodeScanner _barcodeScanner;
@@ -16,7 +17,7 @@ namespace IndyPOS
             _mainForm = mainForm;
 			_config = config;
             _barcodeScanner = barcodeScanner;
-        }
+		}
 
 		public void Dispose()
 		{
@@ -30,9 +31,18 @@ namespace IndyPOS
             StartUserInterface();
         }
 
+		private static string GetVersion()
+		{
+			var assembly = System.Reflection.Assembly.GetExecutingAssembly();
+			var versionInfo = FileVersionInfo.GetVersionInfo(assembly.Location);
+
+			return versionInfo.FileVersion;
+		}
+
 		private void LoadConfig()
 		{
-			const string directoryPath = @"C:\ProgramData\IndyPOS\Config";
+			var directoryPath = ConfigurationManager.AppSettings.Get("ConfigDirectory");
+
 			const string defaultReportDirectory = @"C:\ProgramData\IndyPOS\Report";
 			const string defaultBackupDbDirectory = @"C:\ProgramData\IndyPOS\BackupDB";
 			const string defaultBarcodeDirectory = @"C:\ProgramData\IndyPOS\Barcodes";
@@ -42,7 +52,7 @@ namespace IndyPOS
 				Directory.CreateDirectory(directoryPath);
 			}
 
-			const string filePath = directoryPath + @"\application.config";
+			var filePath = $"{directoryPath}\\application.config";
 
 			_config.FileName = filePath;
 			
@@ -86,8 +96,10 @@ namespace IndyPOS
 		}
 
         private void StartUserInterface()
-        {
-			_mainForm.SetVersion(Version);
+		{
+			var version = GetVersion();
+
+			_mainForm.SetVersion(version);
 			_mainForm.SetStoreName(_config.StoreFullName);
 
             System.Windows.Forms.Application.Run(_mainForm);
