@@ -8,6 +8,7 @@ using Prism.Events;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Drawing;
 using System.Linq;
 using System.Windows.Forms;
 
@@ -183,7 +184,10 @@ namespace IndyPOS.UI
             productRow[(int)SaleInvoiceColumn.Total] = total;
 			productRow[(int)SaleInvoiceColumn.Note] = product.Note;
 
-            InvoiceDataView.Rows.Add(productRow);
+			var rowIndex = InvoiceDataView.Rows.Add(productRow);
+			var rowBackColor = rowIndex % 2 == 0 ? Color.FromArgb(38,38,38) : Color.FromArgb(48, 48, 48);
+
+			InvoiceDataView.Rows[rowIndex].DefaultCellStyle.BackColor = rowBackColor;
         }
 
         private void AddPaymentToPaymentDataView(IPayment payment)
@@ -196,7 +200,10 @@ namespace IndyPOS.UI
             paymentRow[(int)PaymentColumn.PaymentAmount] = payment.Amount;
 			paymentRow[(int) PaymentColumn.Note] = payment.Note;
 
-            PaymentDataView.Rows.Add(paymentRow);
+			var rowIndex = PaymentDataView.Rows.Add(paymentRow);
+			var rowBackColor = rowIndex % 2 == 0 ? Color.FromArgb(38,38,38) : Color.FromArgb(48, 48, 48);
+
+			PaymentDataView.Rows[rowIndex].DefaultCellStyle.BackColor = rowBackColor;
         }
 
         private void GetPaymentButton_Click(object sender, EventArgs e)

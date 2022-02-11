@@ -3,6 +3,7 @@ using IndyPOS.Sales;
 using System;
 using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
+using System.Drawing;
 using System.Windows.Forms;
 
 namespace IndyPOS.UI.Reports
@@ -98,7 +99,10 @@ namespace IndyPOS.UI.Reports
 			productRow[(int) ProductColumn.DateCreated] = product.DateCreated;
 			productRow[(int) ProductColumn.Note] = product.Note;
 
-			InvoiceProductsDataView.Rows.Add(productRow);
+			var rowIndex = InvoiceProductsDataView.Rows.Add(productRow);
+			var rowBackColor = rowIndex % 2 == 0 ? Color.FromArgb(38,38,38) : Color.FromArgb(48, 48, 48);
+
+			InvoiceProductsDataView.Rows[rowIndex].DefaultCellStyle.BackColor = rowBackColor;
 		}
 
         private void InvoiceProductsReportPanel_VisibleChanged(object sender, EventArgs e)
@@ -120,10 +124,6 @@ namespace IndyPOS.UI.Reports
 			{
 				AddProductToInvoiceDataView(product);
 			}
-
-			var invoiceColumn = InvoiceProductsDataView.Columns[(int) ProductColumn.InvoiceId];
-
-			InvoiceProductsDataView.Sort(invoiceColumn, ListSortDirection.Descending);
 		}
     }
 }
