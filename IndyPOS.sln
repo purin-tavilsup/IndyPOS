@@ -9,7 +9,9 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IndyPOS.DataAccess", "IndyP
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ModernUI", "ModernUI\ModernUI.csproj", "{FBD12602-AE7F-4629-8A8F-05A22569AAC9}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IndyPOS.Tests", "IndyPOS.Tests\IndyPOS.Tests.csproj", "{D60984B3-CE19-4B7E-BD76-834A11EE2DDA}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IndyPOS.Tests", "IndyPOS.Tests\IndyPOS.Tests.csproj", "{D60984B3-CE19-4B7E-BD76-834A11EE2DDA}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IndyPOS.Mqtt", "IndyPOS.Mqtt\IndyPOS.Mqtt.csproj", "{FF5FCAE9-9FFE-4D46-A5F8-FBD635E993D2}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -51,6 +53,14 @@ Global
 		{D60984B3-CE19-4B7E-BD76-834A11EE2DDA}.Release|Any CPU.Build.0 = Release|Any CPU
 		{D60984B3-CE19-4B7E-BD76-834A11EE2DDA}.Release|x64.ActiveCfg = Release|Any CPU
 		{D60984B3-CE19-4B7E-BD76-834A11EE2DDA}.Release|x64.Build.0 = Release|Any CPU
+		{FF5FCAE9-9FFE-4D46-A5F8-FBD635E993D2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FF5FCAE9-9FFE-4D46-A5F8-FBD635E993D2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FF5FCAE9-9FFE-4D46-A5F8-FBD635E993D2}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{FF5FCAE9-9FFE-4D46-A5F8-FBD635E993D2}.Debug|x64.Build.0 = Debug|Any CPU
+		{FF5FCAE9-9FFE-4D46-A5F8-FBD635E993D2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FF5FCAE9-9FFE-4D46-A5F8-FBD635E993D2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FF5FCAE9-9FFE-4D46-A5F8-FBD635E993D2}.Release|x64.ActiveCfg = Release|Any CPU
+		{FF5FCAE9-9FFE-4D46-A5F8-FBD635E993D2}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

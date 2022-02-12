@@ -30,3 +30,7 @@ Releases/
 IndyPOS/IndyPOS.csproj.user
 
 *.nupkg
+
+IndyPOS.Mqtt/bin/
+
+IndyPOS.Mqtt/obj/
