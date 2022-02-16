@@ -1,4 +1,5 @@
-﻿using IndyPOS.DataAccess.Repositories;
+﻿using IndyPOS.CloudReport;
+using IndyPOS.DataAccess.Repositories;
 using IndyPOS.Devices;
 using IndyPOS.Enums;
 using IndyPOS.Events;
@@ -25,6 +26,7 @@ namespace IndyPOS.Controllers
 		private readonly IUserAccountHelper _userAccountHelper;
 		private readonly IAccountsReceivableRepository _accountsReceivableRepository;
         private readonly ISaleInvoice _saleInvoice;
+		private readonly ICloudReportHelper _cloudReportHelper;
 
         public IReadOnlyCollection<ISaleInvoiceProduct> Products => (IReadOnlyCollection<ISaleInvoiceProduct>)_saleInvoice.Products;
 
@@ -50,7 +52,8 @@ namespace IndyPOS.Controllers
 									 IInventoryProductRepository inventoryProductsRepository,
 									 IReceiptPrinter receiptPrinter,
 									 IUserAccountHelper userAccountHelper,
-									 IAccountsReceivableRepository accountsReceivableRepository)
+									 IAccountsReceivableRepository accountsReceivableRepository,
+									 ICloudReportHelper cloudReportHelper)
         {
 			_saleInvoice = saleInvoice;
             _eventAggregator = eventAggregator;
@@ -59,6 +62,7 @@ namespace IndyPOS.Controllers
 			_receiptPrinter = receiptPrinter;
 			_userAccountHelper = userAccountHelper;
 			_accountsReceivableRepository = accountsReceivableRepository;
+			_cloudReportHelper = cloudReportHelper;
 		}
 		
         public void StartNewSale()

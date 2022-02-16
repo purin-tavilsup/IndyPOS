@@ -1,39 +1,30 @@
-﻿using IndyPOS.Constants;
+﻿using IndyPOS.Barcode;
+using IndyPOS.Constants;
 using IndyPOS.Controllers;
 using IndyPOS.Inventory;
-using Prism.Events;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.Drawing;
-using System.Drawing.Imaging;
 using System.Linq;
 using System.Windows.Forms;
-using IndyPOS.Barcode;
 
 namespace IndyPOS.UI
 {
-	[ExcludeFromCodeCoverage]
+    [ExcludeFromCodeCoverage]
 	public partial class AddNewInventoryProductWithCustomBarcodeForm : Form
     {
         private readonly IBarcodeHelper _barcodeHelper;
-        private readonly IEventAggregator _eventAggregator;
         private readonly IInventoryController _inventoryController;
-		private readonly IConfig _config;
         private readonly IReadOnlyDictionary<int, string> _productCategoryDictionary;
 		private readonly MessageForm _messageForm;
 
-        public AddNewInventoryProductWithCustomBarcodeForm(IBarcodeHelper barcodeHelper,
-														   IEventAggregator eventAggregator, 
+        public AddNewInventoryProductWithCustomBarcodeForm(IBarcodeHelper barcodeHelper, 
 														   IStoreConstants storeConstants, 
 														   IInventoryController inventoryController,
-														   IConfig config,
 														   MessageForm messageForm)
 		{
 			_barcodeHelper = barcodeHelper;
-            _eventAggregator = eventAggregator;
             _inventoryController = inventoryController;
-            _config = config;
             _productCategoryDictionary = storeConstants.ProductCategories;
 			_messageForm = messageForm;
 
@@ -137,8 +128,6 @@ namespace IndyPOS.UI
 
             _inventoryController.AddNewProduct(product);
 
-			SaveBarcodeImage(product);
-
 			Close();
         }
 
@@ -205,17 +194,7 @@ namespace IndyPOS.UI
             BarcodePictureBox.Image = barcodeImage;
 		}
 
-        private void SaveBarcodeImage(IInventoryProduct product)
-		{
-			var barcodeImage = _barcodeHelper.CreateEan13BarcodeImage(product.Barcode, 100, 200, 10);
-			var filePath = $"{_config.BarcodeDirectory}\\{product.Barcode}-{product.Description}.jpg";
-
-            barcodeImage.Save(filePath, ImageFormat.Jpeg);
-
-            _inventoryController.IncrementProductBarcodeCounter();
-		}
-
-        private void IsTrackableCheckBox_CheckedChanged(object sender, EventArgs e)
+		private void IsTrackableCheckBox_CheckedChanged(object sender, EventArgs e)
 		{
 			if (!IsTrackableCheckBox.Checked)
             {

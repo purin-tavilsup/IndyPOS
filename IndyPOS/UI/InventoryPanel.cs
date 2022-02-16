@@ -7,10 +7,8 @@ using IndyPOS.Inventory;
 using Prism.Events;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Drawing;
-using System.IO;
 using System.Linq;
 using System.Windows.Forms;
 
@@ -21,7 +19,6 @@ namespace IndyPOS.UI
     {
         private readonly IEventAggregator _eventAggregator;
         private readonly IInventoryController _inventoryController;
-        private readonly IConfig _config;
         private readonly IReadOnlyDictionary<int, string> _productCategoryDictionary;
         private readonly AddNewInventoryProductForm _addNewProductForm;
         private readonly UpdateInventoryProductForm _updateProductForm;
@@ -44,17 +41,15 @@ namespace IndyPOS.UI
             DateUpdated
         }
 
-        public InventoryPanel(IEventAggregator eventAggregator, 
-							  IInventoryController inventoryController, 
-							  IStoreConstants storeConstants, 
-                              IConfig config,
-							  AddNewInventoryProductForm addNewProductForm, 
+        public InventoryPanel(IEventAggregator eventAggregator,
+							  IInventoryController inventoryController,
+							  IStoreConstants storeConstants,
+							  AddNewInventoryProductForm addNewProductForm,
 							  UpdateInventoryProductForm updateProductForm,
 							  AddNewInventoryProductWithCustomBarcodeForm addNewProductWithCustomBarcodeForm)
         {
             _eventAggregator = eventAggregator;
             _inventoryController = inventoryController;
-            _config = config;
             _productCategoryDictionary = storeConstants.ProductCategories;
             _addNewProductForm = addNewProductForm;
             _updateProductForm = updateProductForm;
@@ -314,19 +309,5 @@ namespace IndyPOS.UI
         {
 			_addNewProductForm.ShowDialog();
         }
-
-        private void ModernButton1_Click(object sender, EventArgs e)
-		{
-			if (!Directory.Exists(_config.BarcodeDirectory)) 
-				return;
-			
-			var startInfo = new ProcessStartInfo
-							{
-								Arguments = _config.BarcodeDirectory,
-								FileName = "explorer.exe"
-							};
-
-			Process.Start(startInfo);
-		}
     }
 }

@@ -7,7 +7,6 @@
 		WelfareCard = 3,
 		M33WeLove = 4,
 		MoneyTransfer = 5,
-		Installment = 6,
 		FiftyFifty = 7,
 		WeWin = 8
 	}

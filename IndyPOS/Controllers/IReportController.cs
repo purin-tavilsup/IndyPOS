@@ -13,35 +13,23 @@ namespace IndyPOS.Controllers
 
 		IEnumerable<IFinalInvoicePayment> InvoicePayments { get; }
 
-		IEnumerable<IFinalInvoiceProduct> GeneralGoodsProducts { get; }
-
-		IEnumerable<IFinalInvoiceProduct> HardwareProducts { get; }
-
 		IEnumerable<IAccountsReceivable> AccountsReceivables { get; }
 
-		decimal InvoicesTotal { get; }
+		decimal GetInvoicesTotal();
 
-		decimal PaymentsTotal { get; }
+		decimal GetRefundTotal();
 
-		decimal ChangesTotal { get; }
+		decimal GetArTotal();
 
-		decimal RefundTotal { get; }
+		decimal GetCompletedArTotal();
 
-		decimal ArTotal { get; }
+		decimal GetIncompleteArTotal();
 
-		decimal CompletedArTotal { get; }
+		decimal GetInvoicesTotalWithoutAr();
 
-		decimal IncompleteArTotal { get; }
+		decimal GetGeneralProductsTotal();
 
-
-		decimal InvoicesTotalWithoutAr { get; }
-
-		decimal InvoicesTotalWithoutIncompleteAr { get; }
-
-		decimal GeneralGoodsProductsTotal { get; }
-
-		decimal HardwareProductsTotal { get; }
-
+		decimal GetHardwareProductsTotal();
 
 		void LoadInvoicesByPeriod(ReportPeriod period);
 
@@ -52,5 +40,21 @@ namespace IndyPOS.Controllers
 		decimal GetPaymentsTotalByType(PaymentType type);
 
 		void WriteSaleRecordsToCsvFileByDate(DateTime date);
+
+		IEnumerable<IFinalInvoiceProduct> GetInvoiceProductsByInvoiceId(int invoiceId);
+
+		IEnumerable<IFinalInvoicePayment> GetPaymentsByInvoiceId(int invoiceId);
+
+		decimal GetChangesTotal();
+
+		decimal GetGeneralProductsTotalWithoutAr();
+
+		decimal GetHardwareProductsTotalWithoutAr();
+
+		SaleReport CreateSaleReport();
+
+		PaymentReport CreatePaymentReport();
+
+		ArReport CreateArReport();
 	}
 }

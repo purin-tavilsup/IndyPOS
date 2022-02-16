@@ -97,19 +97,19 @@
       <HintPath>..\packages\Microsoft.Bcl.AsyncInterfaces.6.0.0\lib\net461\Microsoft.Bcl.AsyncInterfaces.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.Bcl.HashCode, Version=1.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
-      <HintPath>..\packages\Microsoft.Bcl.HashCode.1.0.0\lib\net461\Microsoft.Bcl.HashCode.dll</HintPath>
+      <HintPath>..\packages\Microsoft.Bcl.HashCode.1.1.1\lib\net461\Microsoft.Bcl.HashCode.dll</HintPath>
     </Reference>
-    <Reference Include="Mono.Cecil, Version=0.11.2.0, Culture=neutral, PublicKeyToken=50cebf1cceb9d05e, processorArchitecture=MSIL">
-      <HintPath>..\packages\Mono.Cecil.0.11.2\lib\net40\Mono.Cecil.dll</HintPath>
+    <Reference Include="Mono.Cecil, Version=0.11.4.0, Culture=neutral, PublicKeyToken=50cebf1cceb9d05e, processorArchitecture=MSIL">
+      <HintPath>..\packages\Mono.Cecil.0.11.4\lib\net40\Mono.Cecil.dll</HintPath>
     </Reference>
-    <Reference Include="Mono.Cecil.Mdb, Version=0.11.2.0, Culture=neutral, PublicKeyToken=50cebf1cceb9d05e, processorArchitecture=MSIL">
-      <HintPath>..\packages\Mono.Cecil.0.11.2\lib\net40\Mono.Cecil.Mdb.dll</HintPath>
+    <Reference Include="Mono.Cecil.Mdb, Version=0.11.4.0, Culture=neutral, PublicKeyToken=50cebf1cceb9d05e, processorArchitecture=MSIL">
+      <HintPath>..\packages\Mono.Cecil.0.11.4\lib\net40\Mono.Cecil.Mdb.dll</HintPath>
     </Reference>
-    <Reference Include="Mono.Cecil.Pdb, Version=0.11.2.0, Culture=neutral, PublicKeyToken=50cebf1cceb9d05e, processorArchitecture=MSIL">
-      <HintPath>..\packages\Mono.Cecil.0.11.2\lib\net40\Mono.Cecil.Pdb.dll</HintPath>
+    <Reference Include="Mono.Cecil.Pdb, Version=0.11.4.0, Culture=neutral, PublicKeyToken=50cebf1cceb9d05e, processorArchitecture=MSIL">
+      <HintPath>..\packages\Mono.Cecil.0.11.4\lib\net40\Mono.Cecil.Pdb.dll</HintPath>
     </Reference>
-    <Reference Include="Mono.Cecil.Rocks, Version=0.11.2.0, Culture=neutral, PublicKeyToken=50cebf1cceb9d05e, processorArchitecture=MSIL">
-      <HintPath>..\packages\Mono.Cecil.0.11.2\lib\net40\Mono.Cecil.Rocks.dll</HintPath>
+    <Reference Include="Mono.Cecil.Rocks, Version=0.11.4.0, Culture=neutral, PublicKeyToken=50cebf1cceb9d05e, processorArchitecture=MSIL">
+      <HintPath>..\packages\Mono.Cecil.0.11.4\lib\net40\Mono.Cecil.Rocks.dll</HintPath>
     </Reference>
     <Reference Include="NuGet.Squirrel, Version=3.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\squirrel.windows.2.0.1\lib\Net45\NuGet.Squirrel.dll</HintPath>
@@ -156,10 +156,19 @@
     </Reference>
     <Reference Include="System.Runtime.Serialization" />
     <Reference Include="System.ServiceModel" />
+    <Reference Include="System.Text.Encodings.Web, Version=6.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Text.Encodings.Web.6.0.0\lib\net461\System.Text.Encodings.Web.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Text.Json, Version=6.0.0.2, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Text.Json.6.0.2\lib\net461\System.Text.Json.dll</HintPath>
+    </Reference>
     <Reference Include="System.Threading.Tasks.Extensions, Version=4.2.0.1, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
       <HintPath>..\packages\System.Threading.Tasks.Extensions.4.5.4\lib\net461\System.Threading.Tasks.Extensions.dll</HintPath>
     </Reference>
     <Reference Include="System.Transactions" />
+    <Reference Include="System.ValueTuple, Version=4.0.3.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.ValueTuple.4.5.0\lib\net47\System.ValueTuple.dll</HintPath>
+    </Reference>
     <Reference Include="System.Xaml" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
@@ -172,11 +181,11 @@
     <Reference Include="System.Xml" />
     <Reference Include="WindowsBase" />
     <Reference Include="WindowsFormsIntegration" />
-    <Reference Include="zxing, Version=0.16.7.0, Culture=neutral, PublicKeyToken=4e88037ac681fe60, processorArchitecture=MSIL">
-      <HintPath>..\packages\ZXing.Net.0.16.7\lib\net48\zxing.dll</HintPath>
+    <Reference Include="zxing, Version=0.16.8.0, Culture=neutral, PublicKeyToken=4e88037ac681fe60, processorArchitecture=MSIL">
+      <HintPath>..\packages\ZXing.Net.0.16.8\lib\net48\zxing.dll</HintPath>
     </Reference>
-    <Reference Include="zxing.presentation, Version=0.16.7.0, Culture=neutral, PublicKeyToken=4e88037ac681fe60, processorArchitecture=MSIL">
-      <HintPath>..\packages\ZXing.Net.0.16.7\lib\net48\zxing.presentation.dll</HintPath>
+    <Reference Include="zxing.presentation, Version=0.16.8.0, Culture=neutral, PublicKeyToken=4e88037ac681fe60, processorArchitecture=MSIL">
+      <HintPath>..\packages\ZXing.Net.0.16.8\lib\net48\zxing.presentation.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
@@ -187,6 +196,8 @@
     <Compile Include="Adapters\UserCredentialAdapter.cs" />
     <Compile Include="Barcode\BarcodeHelper.cs" />
     <Compile Include="Barcode\IBarcodeHelper.cs" />
+    <Compile Include="CloudReport\CloudReportHelper.cs" />
+    <Compile Include="CloudReport\ICloudReportHelper.cs" />
     <Compile Include="Config.cs" />
     <Compile Include="Controllers\AccountsReceivableController.cs" />
     <Compile Include="Controllers\IAccountsReceivableController.cs" />
@@ -215,6 +226,7 @@
     <Compile Include="Extensions\DateTimeExtensions.cs" />
     <Compile Include="IConfig.cs" />
     <Compile Include="Inventory\IInventoryProduct.cs" />
+    <Compile Include="Sales\ArReport.cs" />
     <Compile Include="Sales\IAccountsReceivable.cs" />
     <Compile Include="Sales\IFinalInvoice.cs" />
     <Compile Include="Sales\IFinalInvoicePayment.cs" />
@@ -243,11 +255,13 @@
     <Compile Include="Inventory\InventoryProduct.cs" />
     <Compile Include="IoC\ContainerConfig.cs" />
     <Compile Include="Sales\Payment.cs" />
+    <Compile Include="Sales\PaymentReport.cs" />
     <Compile Include="Sales\SaleInvoice.cs" />
     <Compile Include="Sales\SaleInvoiceProduct.cs" />
     <Compile Include="Constants\StoreConstants.cs" />
     <Compile Include="Extensions\UiControlExtensions.cs" />
     <Compile Include="Machine.cs" />
+    <Compile Include="Sales\SaleReport.cs" />
     <Compile Include="UI\AcceptPaymentForm.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -313,6 +327,12 @@
     </Compile>
     <Compile Include="UI\AddInvoiceProductForm.Designer.cs">
       <DependentUpon>AddInvoiceProductForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="UI\SaleHistoryByInvoiceIdForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\SaleHistoryByInvoiceIdForm.Designer.cs">
+      <DependentUpon>SaleHistoryByInvoiceIdForm.cs</DependentUpon>
     </Compile>
     <Compile Include="UI\UpdateInvoiceProductForm.cs">
       <SubType>Form</SubType>
@@ -421,6 +441,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="UI\AddInvoiceProductForm.resx">
       <DependentUpon>AddInvoiceProductForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="UI\SaleHistoryByInvoiceIdForm.resx">
+      <DependentUpon>SaleHistoryByInvoiceIdForm.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="UI\UpdateInvoiceProductForm.resx">
       <DependentUpon>UpdateInvoiceProductForm.cs</DependentUpon>
@@ -621,6 +644,10 @@
       <Project>{6032f51e-e3df-47d5-9e74-a360bdbfb180}</Project>
       <Name>IndyPOS.DataAccess</Name>
     </ProjectReference>
+    <ProjectReference Include="..\IndyPOS.Mqtt\IndyPOS.Mqtt.csproj">
+      <Project>{ff5fcae9-9ffe-4d46-a5f8-fbd635e993d2}</Project>
+      <Name>IndyPOS.Mqtt</Name>
+    </ProjectReference>
     <ProjectReference Include="..\ModernUI\ModernUI.csproj">
       <Project>{fbd12602-ae7f-4629-8a8f-05a22569aac9}</Project>
       <Name>ModernUI</Name>
@@ -730,6 +757,7 @@
       <Install>false</Install>
     </BootstrapperPackage>
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="..\packages\Stub.System.Data.SQLite.Core.NetFramework.1.0.115.5\build\net46\Stub.System.Data.SQLite.Core.NetFramework.targets" Condition="Exists('..\packages\Stub.System.Data.SQLite.Core.NetFramework.1.0.115.5\build\net46\Stub.System.Data.SQLite.Core.NetFramework.targets')" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
@@ -738,5 +766,7 @@
     </PropertyGroup>
     <Error Condition="!Exists('..\packages\Stub.System.Data.SQLite.Core.NetFramework.1.0.115.5\build\net46\Stub.System.Data.SQLite.Core.NetFramework.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Stub.System.Data.SQLite.Core.NetFramework.1.0.115.5\build\net46\Stub.System.Data.SQLite.Core.NetFramework.targets'))" />
     <Error Condition="!Exists('..\packages\squirrel.windows.2.0.1\build\squirrel.windows.props')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\squirrel.windows.2.0.1\build\squirrel.windows.props'))" />
+    <Error Condition="!Exists('..\packages\System.Text.Json.6.0.2\build\System.Text.Json.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\System.Text.Json.6.0.2\build\System.Text.Json.targets'))" />
   </Target>
+  <Import Project="..\packages\System.Text.Json.6.0.2\build\System.Text.Json.targets" Condition="Exists('..\packages\System.Text.Json.6.0.2\build\System.Text.Json.targets')" />
 </Project>

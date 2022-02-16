@@ -28,8 +28,8 @@
         /// </summary>
         private void InitializeComponent()
         {
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle7 = new System.Windows.Forms.DataGridViewCellStyle();
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle8 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle1 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle2 = new System.Windows.Forms.DataGridViewCellStyle();
             this.panel1 = new System.Windows.Forms.Panel();
             this.ProductDataView = new System.Windows.Forms.DataGridView();
             this.ProductCode = new System.Windows.Forms.DataGridViewTextBoxColumn();
@@ -45,11 +45,10 @@
             this.DateUpdated = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.panel4 = new System.Windows.Forms.Panel();
             this.panel2 = new System.Windows.Forms.Panel();
+            this.AddProductWithBarcodeButton = new ModernUI.ModernButton();
             this.AddProductWithoutBarcodeButton = new ModernUI.ModernButton();
             this.CategoryComboBox = new ModernUI.ModernComboBox();
             this.label1 = new System.Windows.Forms.Label();
-            this.modernButton1 = new ModernUI.ModernButton();
-            this.AddProductWithBarcodeButton = new ModernUI.ModernButton();
             this.panel1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.ProductDataView)).BeginInit();
             this.panel4.SuspendLayout();
@@ -78,14 +77,14 @@
             this.ProductDataView.BorderStyle = System.Windows.Forms.BorderStyle.None;
             this.ProductDataView.CellBorderStyle = System.Windows.Forms.DataGridViewCellBorderStyle.SingleHorizontal;
             this.ProductDataView.ColumnHeadersBorderStyle = System.Windows.Forms.DataGridViewHeaderBorderStyle.None;
-            dataGridViewCellStyle7.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleCenter;
-            dataGridViewCellStyle7.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(48)))), ((int)(((byte)(48)))), ((int)(((byte)(48)))));
-            dataGridViewCellStyle7.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 14.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            dataGridViewCellStyle7.ForeColor = System.Drawing.Color.Gainsboro;
-            dataGridViewCellStyle7.Padding = new System.Windows.Forms.Padding(10, 0, 0, 0);
-            dataGridViewCellStyle7.SelectionBackColor = System.Drawing.Color.Gray;
-            dataGridViewCellStyle7.WrapMode = System.Windows.Forms.DataGridViewTriState.False;
-            this.ProductDataView.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle7;
+            dataGridViewCellStyle1.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleCenter;
+            dataGridViewCellStyle1.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(48)))), ((int)(((byte)(48)))), ((int)(((byte)(48)))));
+            dataGridViewCellStyle1.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 14.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            dataGridViewCellStyle1.ForeColor = System.Drawing.Color.Gainsboro;
+            dataGridViewCellStyle1.Padding = new System.Windows.Forms.Padding(10, 0, 0, 0);
+            dataGridViewCellStyle1.SelectionBackColor = System.Drawing.Color.Gray;
+            dataGridViewCellStyle1.WrapMode = System.Windows.Forms.DataGridViewTriState.False;
+            this.ProductDataView.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle1;
             this.ProductDataView.ColumnHeadersHeight = 50;
             this.ProductDataView.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.DisableResizing;
             this.ProductDataView.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
@@ -100,14 +99,14 @@
             this.Brand,
             this.DateCreated,
             this.DateUpdated});
-            dataGridViewCellStyle8.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
-            dataGridViewCellStyle8.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
-            dataGridViewCellStyle8.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            dataGridViewCellStyle8.ForeColor = System.Drawing.Color.Gainsboro;
-            dataGridViewCellStyle8.SelectionBackColor = System.Drawing.Color.FromArgb(((int)(((byte)(48)))), ((int)(((byte)(48)))), ((int)(((byte)(48)))));
-            dataGridViewCellStyle8.SelectionForeColor = System.Drawing.Color.Gainsboro;
-            dataGridViewCellStyle8.WrapMode = System.Windows.Forms.DataGridViewTriState.False;
-            this.ProductDataView.DefaultCellStyle = dataGridViewCellStyle8;
+            dataGridViewCellStyle2.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle2.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
+            dataGridViewCellStyle2.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            dataGridViewCellStyle2.ForeColor = System.Drawing.Color.Gainsboro;
+            dataGridViewCellStyle2.SelectionBackColor = System.Drawing.Color.FromArgb(((int)(((byte)(48)))), ((int)(((byte)(48)))), ((int)(((byte)(48)))));
+            dataGridViewCellStyle2.SelectionForeColor = System.Drawing.Color.Gainsboro;
+            dataGridViewCellStyle2.WrapMode = System.Windows.Forms.DataGridViewTriState.False;
+            this.ProductDataView.DefaultCellStyle = dataGridViewCellStyle2;
             this.ProductDataView.Dock = System.Windows.Forms.DockStyle.Fill;
             this.ProductDataView.EnableHeadersVisualStyles = false;
             this.ProductDataView.GridColor = System.Drawing.Color.DimGray;
@@ -222,13 +221,32 @@
             // panel2
             // 
             this.panel2.Controls.Add(this.AddProductWithBarcodeButton);
-            this.panel2.Controls.Add(this.modernButton1);
             this.panel2.Controls.Add(this.AddProductWithoutBarcodeButton);
             this.panel2.Dock = System.Windows.Forms.DockStyle.Right;
             this.panel2.Location = new System.Drawing.Point(571, 0);
             this.panel2.Name = "panel2";
             this.panel2.Size = new System.Drawing.Size(844, 60);
             this.panel2.TabIndex = 8;
+            // 
+            // AddProductWithBarcodeButton
+            // 
+            this.AddProductWithBarcodeButton.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
+            this.AddProductWithBarcodeButton.BackgroundColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
+            this.AddProductWithBarcodeButton.BorderColor = System.Drawing.Color.FromArgb(((int)(((byte)(37)))), ((int)(((byte)(182)))), ((int)(((byte)(210)))));
+            this.AddProductWithBarcodeButton.BorderRadius = 19;
+            this.AddProductWithBarcodeButton.BorderSize = 1;
+            this.AddProductWithBarcodeButton.FlatAppearance.BorderSize = 0;
+            this.AddProductWithBarcodeButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.AddProductWithBarcodeButton.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.AddProductWithBarcodeButton.ForeColor = System.Drawing.Color.White;
+            this.AddProductWithBarcodeButton.Location = new System.Drawing.Point(3, 4);
+            this.AddProductWithBarcodeButton.Name = "AddProductWithBarcodeButton";
+            this.AddProductWithBarcodeButton.Size = new System.Drawing.Size(264, 50);
+            this.AddProductWithBarcodeButton.TabIndex = 11;
+            this.AddProductWithBarcodeButton.Text = "เพิ่มรายการสินค้ามี Barcode";
+            this.AddProductWithBarcodeButton.TextColor = System.Drawing.Color.White;
+            this.AddProductWithBarcodeButton.UseVisualStyleBackColor = false;
+            this.AddProductWithBarcodeButton.Click += new System.EventHandler(this.AddProductWithBarcodeButton_Click);
             // 
             // AddProductWithoutBarcodeButton
             // 
@@ -284,46 +302,6 @@
             this.label1.Text = "ประเภทสินค้า";
             this.label1.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             // 
-            // modernButton1
-            // 
-            this.modernButton1.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
-            this.modernButton1.BackgroundColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
-            this.modernButton1.BorderColor = System.Drawing.Color.Violet;
-            this.modernButton1.BorderRadius = 19;
-            this.modernButton1.BorderSize = 1;
-            this.modernButton1.FlatAppearance.BorderSize = 0;
-            this.modernButton1.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.modernButton1.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.modernButton1.ForeColor = System.Drawing.Color.White;
-            this.modernButton1.Location = new System.Drawing.Point(572, 4);
-            this.modernButton1.Name = "modernButton1";
-            this.modernButton1.Size = new System.Drawing.Size(264, 50);
-            this.modernButton1.TabIndex = 10;
-            this.modernButton1.Text = "เปิด Barcodes Folder";
-            this.modernButton1.TextColor = System.Drawing.Color.White;
-            this.modernButton1.UseVisualStyleBackColor = false;
-            this.modernButton1.Click += new System.EventHandler(this.ModernButton1_Click);
-            // 
-            // AddProductWithBarcodeButton
-            // 
-            this.AddProductWithBarcodeButton.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
-            this.AddProductWithBarcodeButton.BackgroundColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
-            this.AddProductWithBarcodeButton.BorderColor = System.Drawing.Color.FromArgb(((int)(((byte)(37)))), ((int)(((byte)(182)))), ((int)(((byte)(210)))));
-            this.AddProductWithBarcodeButton.BorderRadius = 19;
-            this.AddProductWithBarcodeButton.BorderSize = 1;
-            this.AddProductWithBarcodeButton.FlatAppearance.BorderSize = 0;
-            this.AddProductWithBarcodeButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.AddProductWithBarcodeButton.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.AddProductWithBarcodeButton.ForeColor = System.Drawing.Color.White;
-            this.AddProductWithBarcodeButton.Location = new System.Drawing.Point(3, 4);
-            this.AddProductWithBarcodeButton.Name = "AddProductWithBarcodeButton";
-            this.AddProductWithBarcodeButton.Size = new System.Drawing.Size(264, 50);
-            this.AddProductWithBarcodeButton.TabIndex = 11;
-            this.AddProductWithBarcodeButton.Text = "เพิ่มรายการสินค้ามี Barcode";
-            this.AddProductWithBarcodeButton.TextColor = System.Drawing.Color.White;
-            this.AddProductWithBarcodeButton.UseVisualStyleBackColor = false;
-            this.AddProductWithBarcodeButton.Click += new System.EventHandler(this.AddProductWithBarcodeButton_Click);
-            // 
             // InventoryPanel
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -360,7 +338,6 @@
         private System.Windows.Forms.DataGridViewTextBoxColumn Brand;
         private System.Windows.Forms.DataGridViewTextBoxColumn DateCreated;
         private System.Windows.Forms.DataGridViewTextBoxColumn DateUpdated;
-        private ModernUI.ModernButton modernButton1;
         private ModernUI.ModernButton AddProductWithBarcodeButton;
     }
 }

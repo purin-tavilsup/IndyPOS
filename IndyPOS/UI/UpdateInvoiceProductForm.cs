@@ -87,11 +87,11 @@ namespace IndyPOS.UI
 			if (quantity == 0)
 			{
 				_saleInvoiceController.RemoveProduct(_product);
+
+				Close();
 			}
-			else
-			{
-				_saleInvoiceController.UpdateProductQuantity(_product.InventoryProductId, _product.Priority, quantity);
-			}
+			
+			_saleInvoiceController.UpdateProductQuantity(_product.InventoryProductId, _product.Priority, quantity);
 
 			if (!_product.IsTrackable)
 			{

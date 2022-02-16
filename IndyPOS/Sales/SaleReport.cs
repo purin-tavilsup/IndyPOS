@@ -1,0 +1,17 @@
+﻿namespace IndyPOS.Sales
+{
+	public class SaleReport
+    {
+		public decimal InvoicesTotal { get; set; }
+
+		public decimal InvoicesTotalWithoutAr { get; set; }
+			
+		public decimal GeneralProductsTotal { get; set; }
+			
+		public decimal HardwareProductsTotal { get; set; }
+
+		public decimal GeneralProductsTotalWithoutAr { get; set; }
+
+		public decimal HardwareProductsTotalWithoutAr { get; set; }
+    }
+}

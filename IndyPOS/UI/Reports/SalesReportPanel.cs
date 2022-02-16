@@ -2,8 +2,10 @@
 using IndyPOS.Enums;
 using System;
 using System.Diagnostics.CodeAnalysis;
+using System.Threading.Tasks;
 using System.Windows.Forms;
-using System.Windows.Media;
+using IndyPOS.CloudReport;
+using IndyPOS.Sales;
 
 namespace IndyPOS.UI.Reports
 {
@@ -11,53 +13,66 @@ namespace IndyPOS.UI.Reports
     {
 		private readonly IReportController _reportController;
 		private readonly MessageForm _messageForm;
-		private readonly FontFamily _fontFamily;
-		private const string FontFamilyName = "FC Subject [Non-commercial] Reg";
+		private readonly ICloudReportHelper _cloudReportHelper;
 
 		[ExcludeFromCodeCoverage]
-        public SalesReportPanel(IReportController reportController, MessageForm messageForm)
+        public SalesReportPanel(IReportController reportController, MessageForm messageForm, ICloudReportHelper cloudReportHelper)
         {
 			_reportController = reportController;
 			_messageForm = messageForm;
+			_cloudReportHelper = cloudReportHelper;
 
 			InitializeComponent();
-
-			_fontFamily = new FontFamily(FontFamilyName);
         }
 		
-		private void ShowReport()
+		private void ShowReport(SaleReport saleReport, PaymentReport paymentReport, ArReport arReport)
 		{
-			OverallSaleLabel.Text = $"{_reportController.InvoicesTotal:N}";
+			OverallSaleLabel.Text = $"{saleReport.InvoicesTotal:N}";
 
-			OverallSaleExcluedIncompleteArLabel.Text = $"{_reportController.InvoicesTotalWithoutIncompleteAr:N}";
+			OverallSaleExcluedIncompleteArLabel.Text = $"{saleReport.InvoicesTotalWithoutAr:N}";
 			
-			GeneralGoodsSaleLabel.Text = $"{_reportController.GeneralGoodsProductsTotal:N}";
+			GeneralGoodsSaleLabel.Text = $"{saleReport.GeneralProductsTotal:N}";
 			
-			HardwareSaleLabel.Text = $"{_reportController.HardwareProductsTotal:N}";
+			HardwareSaleLabel.Text = $"{saleReport.HardwareProductsTotal:N}";
 
-			ArTotalLabel.Text = $"{_reportController.ArTotal:N}";
+			GeneralProductsTotalWithoutArLabel.Text = $"{saleReport.GeneralProductsTotalWithoutAr:N}";
 
-            CompletedArLabel.Text = $"{_reportController.CompletedArTotal:N}";
+			HardwareProductsTotalWithoutArLabel.Text = $"{saleReport.HardwareProductsTotalWithoutAr:N}";
 
-			IncompleteArLabel.Text = $"{_reportController.IncompleteArTotal:N}";
+			ArTotalLabel.Text = $"{arReport.ArTotal:N}";
 
-			RefundTotalLabel.Text = $"{_reportController.RefundTotal:N}";
+            CompletedArLabel.Text = $"{arReport.CompletedArTotal:N}";
 
-			PaymentByCashLabel.Text = $"{_reportController.GetPaymentsTotalByType(PaymentType.Cash):N}";
+			IncompleteArLabel.Text = $"{arReport.IncompleteArTotal:N}";
 
-			PaymentByTransferLabel.Text = $"{_reportController.GetPaymentsTotalByType(PaymentType.MoneyTransfer):N}";
+			PaymentByCashLabel.Text = $"{paymentReport.CashTotal:N}";
 
-			PaymentByKlkLabel.Text = $"{_reportController.GetPaymentsTotalByType(PaymentType.FiftyFifty):N}";
+			PaymentByTransferLabel.Text = $"{paymentReport.MoneyTransferTotal:N}";
 
-			PaymentByM33Label.Text = $"{_reportController.GetPaymentsTotalByType(PaymentType.M33WeLove):N}";
+			PaymentByKlkLabel.Text = $"{paymentReport.FiftyFiftyTotal:N}";
 
-			PaymentByWeWinLabel.Text = $"{_reportController.GetPaymentsTotalByType(PaymentType.WeWin):N}";
+			PaymentByM33Label.Text = $"{paymentReport.M33WeLoveTotal:N}";
 
-			PaymentByWelfareCardLabel.Text = $"{_reportController.GetPaymentsTotalByType(PaymentType.WelfareCard):N}";
+			PaymentByWeWinLabel.Text = $"{paymentReport.WeWinTotal:N}";
 
-			PaymentByArLabel.Text = $"{_reportController.GetPaymentsTotalByType(PaymentType.AccountReceivable):N}";
+			PaymentByWelfareCardLabel.Text = $"{paymentReport.WelfareCardTotal:N}";
 
-			ChangesLabel.Text = $"{_reportController.ChangesTotal:N}";
+			PaymentByArLabel.Text = $"{paymentReport.ArTotal:N}";
+		}
+
+		private async Task<SaleReport> GetSaleReportAsync()
+		{
+			return await Task.Run(_reportController.CreateSaleReport);
+		}
+
+		private async Task<PaymentReport> GetPaymentReportAsync()
+		{
+			return await Task.Run(_reportController.CreatePaymentReport);
+		}
+
+		private async Task<ArReport> GetArReportAsync()
+		{
+			return await Task.Run(_reportController.CreateArReport);
 		}
 
         private void ShowReportByTodayButton_Click(object sender, EventArgs e)
@@ -66,7 +81,11 @@ namespace IndyPOS.UI.Reports
 
 			_reportController.LoadInvoicesByPeriod(ReportPeriod.Today);
 
-			ShowReport();
+			var saleReport = Task.Run(GetSaleReportAsync).GetAwaiter().GetResult();
+			var paymentReport = Task.Run(GetPaymentReportAsync).GetAwaiter().GetResult();
+			var arReport = Task.Run(GetArReportAsync).GetAwaiter().GetResult();
+
+			ShowReport(saleReport, paymentReport, arReport);
 		}
 
         private void ShowReportByThisWeekButton_Click(object sender, EventArgs e)
@@ -75,7 +94,11 @@ namespace IndyPOS.UI.Reports
 
 			_reportController.LoadInvoicesByPeriod(ReportPeriod.ThisWeek);
 
-			ShowReport();
+			var saleReport = Task.Run(GetSaleReportAsync).GetAwaiter().GetResult();
+			var paymentReport = Task.Run(GetPaymentReportAsync).GetAwaiter().GetResult();
+			var arReport = Task.Run(GetArReportAsync).GetAwaiter().GetResult();
+
+			ShowReport(saleReport, paymentReport, arReport);
         }
 
         private void ShowReportByThisMonthButton_Click(object sender, EventArgs e)
@@ -84,7 +107,11 @@ namespace IndyPOS.UI.Reports
 
 			_reportController.LoadInvoicesByPeriod(ReportPeriod.ThisMonth);
 
-			ShowReport();
+			var saleReport = Task.Run(GetSaleReportAsync).GetAwaiter().GetResult();
+			var paymentReport = Task.Run(GetPaymentReportAsync).GetAwaiter().GetResult();
+			var arReport = Task.Run(GetArReportAsync).GetAwaiter().GetResult();
+
+			ShowReport(saleReport, paymentReport, arReport);
         }
 
         private void ShowReportByThisYearButton_Click(object sender, EventArgs e)
@@ -93,7 +120,11 @@ namespace IndyPOS.UI.Reports
 
             _reportController.LoadInvoicesByPeriod(ReportPeriod.ThisYear);
 
-            ShowReport();
+			var saleReport = Task.Run(GetSaleReportAsync).GetAwaiter().GetResult();
+			var paymentReport = Task.Run(GetPaymentReportAsync).GetAwaiter().GetResult();
+			var arReport = Task.Run(GetArReportAsync).GetAwaiter().GetResult();
+
+			ShowReport(saleReport, paymentReport, arReport);
         }
 
         private void ShowReportByDateRangeButton_Click(object sender, EventArgs e)
@@ -105,16 +136,16 @@ namespace IndyPOS.UI.Reports
 
 			_reportController.LoadInvoicesByDateRange(startDate, endDate);
 
-			ShowReport();
+			var saleReport = Task.Run(GetSaleReportAsync).GetAwaiter().GetResult();
+			var paymentReport = Task.Run(GetPaymentReportAsync).GetAwaiter().GetResult();
+			var arReport = Task.Run(GetArReportAsync).GetAwaiter().GetResult();
+
+			ShowReport(saleReport, paymentReport, arReport);
 		}
 
         private void WriteSaleRecordsToFileButton_Click(object sender, EventArgs e)
 		{
-			var date = SaveSaleRecordsDateTimePicker.Value;
-
-			_reportController.WriteSaleRecordsToCsvFileByDate(date);
-
-			_messageForm.Show($"รายการขายในวันที่ {date:yyyy-MM-dd} ถูกบันทึกลงไฟล์เรียบร้อยแล้ว", " บันทึกรายการขายลงไฟล์");
-        }
+			Task.Run(_cloudReportHelper.PublishToCloud).GetAwaiter();
+		}
     }
 }

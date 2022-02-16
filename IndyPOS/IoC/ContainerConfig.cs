@@ -9,6 +9,8 @@ using IndyPOS.Users;
 using Prism.Events;
 using System.Reflection;
 using IndyPOS.Barcode;
+using IndyPOS.CloudReport;
+using IndyPOS.Mqtt;
 using IndyPOS.Sales;
 
 namespace IndyPOS.IoC
@@ -86,6 +88,14 @@ namespace IndyPOS.IoC
 
 			builder.RegisterType<BarcodeHelper>()
 				   .As<IBarcodeHelper>()
+				   .SingleInstance();
+
+			builder.RegisterType<MqttClient>()
+				   .As<IMqttClient>()
+				   .SingleInstance();
+
+			builder.RegisterType<CloudReportHelper>()
+				   .As<ICloudReportHelper>()
 				   .SingleInstance();
 
             return builder.Build();
