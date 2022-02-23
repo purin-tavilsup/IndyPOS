@@ -4,6 +4,6 @@ namespace IndyPOS.CloudReport
 {
     public interface ICloudReportHelper
 	{
-		Task PublishToCloud();
+		Task PublishSaleReport(int invoiceId);
 	}
 }

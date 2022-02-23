@@ -145,7 +145,7 @@ namespace IndyPOS.UI.Reports
 
         private void WriteSaleRecordsToFileButton_Click(object sender, EventArgs e)
 		{
-			Task.Run(_cloudReportHelper.PublishToCloud).GetAwaiter();
+			Task.Run(() => _cloudReportHelper.PublishSaleReport(2878)).GetAwaiter();
 		}
     }
 }

@@ -38,14 +38,12 @@ namespace IndyPOS.UI
 
             CancelProductEntryButton.Select();
 
-			
-
             base.ShowDialog();
         }
 
         private void ResetProductEntry()
         {
-            BarcodeLabel.Text = string.Empty;
+			BarcodeTextBox.Texts = string.Empty;
             DescriptionTextBox.Texts = string.Empty;
             QuantityTextBox.Texts = string.Empty;
             UnitPriceTextBox.Texts = string.Empty;
@@ -124,10 +122,18 @@ namespace IndyPOS.UI
             if (!ValidateProductEntry())
                 return;
 
-            var product = CreateNewProduct();
+			try
+			{
+				var product = CreateNewProduct();
 
-            _inventoryController.AddNewProduct(product);
-
+				_inventoryController.AddNewProduct(product);
+				_inventoryController.IncrementProductBarcodeCounter();
+			}
+			catch (Exception exception)
+			{
+				_messageForm.Show(exception.Message, "Something went wrong");
+			}
+			
 			Close();
         }
 
@@ -141,7 +147,7 @@ namespace IndyPOS.UI
 
             var product = new InventoryProduct
             {
-                Barcode = BarcodeLabel.Text,
+                Barcode = BarcodeTextBox.Texts,
                 Description = DescriptionTextBox.Texts.Trim(),
                 QuantityInStock = quantity,
                 UnitPrice = unitPrice,
@@ -187,7 +193,7 @@ namespace IndyPOS.UI
 			var counter = _inventoryController.GetProductBarcodeCounter();
 			var barcode = _barcodeHelper.GenerateEan13Barcode(categoryId, counter + 1);
 
-			BarcodeLabel.Text = barcode;
+			BarcodeTextBox.Texts = barcode;
 
 			var barcodeImage = _barcodeHelper.CreateEan13BarcodeImage(barcode, 200, 400, 10);
 

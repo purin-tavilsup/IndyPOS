@@ -1,11 +1,14 @@
-﻿using MQTTnet;
+﻿using IndyPOS.Mqtt.Events;
+using MQTTnet;
 using MQTTnet.Client.Connecting;
 using MQTTnet.Client.Disconnecting;
 using MQTTnet.Client.Options;
 using MQTTnet.Extensions.ManagedClient;
 using MQTTnet.Formatter;
 using MQTTnet.Protocol;
+using Prism.Events;
 using System;
+using System.Configuration;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -14,39 +17,35 @@ namespace IndyPOS.Mqtt
     public class MqttClient : IMqttClient
 	{
 		private readonly IMqttFactory _mqttFactory;
+		private readonly IEventAggregator _eventAggregator;
 		private IManagedMqttClient _managedMqttClient;
-		private const string ClientId = "rungratpos1";
 
-        public MqttClient()
-        {
+        public MqttClient(IEventAggregator eventAggregator)
+		{
+			_eventAggregator = eventAggregator;
 			_mqttFactory = new MqttFactory();
 		}
 
 		public async Task Start()
 		{
-			const string hostname = "3fef886d89044ebdb2add9ec32c937a9.s1.eu.hivemq.cloud";
-			const int port = 8883;
-			const string username = "rungratpos";
-			const string secret = "myHiveMQ101";
+			var options = CreateMqttClientOptions();
 
-			var credentials = new MqttClientCredentials
-							  {
-								  Username = username,
-								  Password = Encoding.UTF8.GetBytes(secret)
-							  };
+			_managedMqttClient = _mqttFactory.CreateManagedMqttClient();
+			_managedMqttClient.ConnectedHandler = new MqttClientConnectedHandlerDelegate(OnPublisherConnected);
+			_managedMqttClient.DisconnectedHandler = new MqttClientDisconnectedHandlerDelegate(OnPublisherDisconnected);
 
-			var tlsOptions = new MqttClientTlsOptions { UseTls = true };
+			await _managedMqttClient.StartAsync(new ManagedMqttClientOptions { ClientOptions = options });
+		}
 
-			var tcpOptions = new MqttClientTcpOptions
-							 {
-								 Server = hostname,
-								 Port = port,
-								 TlsOptions = tlsOptions
-							 };
+		private MqttClientOptions CreateMqttClientOptions()
+        {
+			var clientId = ConfigurationManager.AppSettings.Get("MqttCloudClientId");
+			var credentials = CreateMqttClientCredentials();
+			var tcpOptions = CreateMqttClientTcpOptions();
 			
 			var options = new MqttClientOptions
 						  {
-							  ClientId = ClientId,
+							  ClientId = clientId,
 							  ProtocolVersion = MqttProtocolVersion.V500,
 							  ChannelOptions = tcpOptions
 						  };
@@ -60,12 +59,39 @@ namespace IndyPOS.Mqtt
 			options.CleanSession = true;
 			options.KeepAlivePeriod = TimeSpan.FromSeconds(60);
 
-			_managedMqttClient = _mqttFactory.CreateManagedMqttClient();
-			_managedMqttClient.UseApplicationMessageReceivedHandler(HandleReceivedApplicationMessage);
-			_managedMqttClient.ConnectedHandler = new MqttClientConnectedHandlerDelegate(OnPublisherConnected);
-			_managedMqttClient.DisconnectedHandler = new MqttClientDisconnectedHandlerDelegate(OnPublisherDisconnected);
+			return options;
+		}
 
-			await _managedMqttClient.StartAsync(new ManagedMqttClientOptions { ClientOptions = options });
+		private MqttClientCredentials CreateMqttClientCredentials()
+        {
+			var username = ConfigurationManager.AppSettings.Get("MqttCloudUsername");
+			var secret = ConfigurationManager.AppSettings.Get("MqttCloudSecret");
+
+			return new MqttClientCredentials
+				   {
+					   Username = username,
+					   Password = Encoding.UTF8.GetBytes(secret)
+				   };
+        }
+
+		private MqttClientTcpOptions CreateMqttClientTcpOptions()
+        {
+			var port = 8883;
+			var hostname = ConfigurationManager.AppSettings.Get("MqttCloudHostname");
+
+			var tlsOptions = new MqttClientTlsOptions { UseTls = true };
+
+			if (int.TryParse(ConfigurationManager.AppSettings.Get("MqttCloudPort"), out var portNumber))
+			{
+				port = portNumber;
+			}
+
+			return new MqttClientTcpOptions
+				   {
+					   Server = hostname,
+					   Port = port,
+					   TlsOptions = tlsOptions
+				   };
 		}
 
 		public async Task Stop()
@@ -91,39 +117,28 @@ namespace IndyPOS.Mqtt
 																	 .Build();
 
 				await _managedMqttClient.PublishAsync(mqttMessage);
+
+				_eventAggregator.GetEvent<MqttMessagePublishedEvent>().Publish();
 			}
 			catch (Exception ex)
 			{
 				Console.WriteLine("Publisher connected! " + ex.Message);
+				throw;
 			}
         }
-
-		/// <summary>
-		/// Handles the publisher connected event.
-		/// </summary>
-		/// <param name="x">The MQTT client connected event args.</param>
-		private static void OnPublisherConnected(MqttClientConnectedEventArgs x)
+		
+		private void OnPublisherConnected(MqttClientConnectedEventArgs x)
 		{
+			_eventAggregator.GetEvent<MqttClientConnectedEvent>().Publish();
+
 			Console.WriteLine("Publisher connected!");
 		}
-
-		/// <summary>
-		/// Handles the publisher disconnected event.
-		/// </summary>
-		/// <param name="x">The MQTT client disconnected event args.</param>
-		private static void OnPublisherDisconnected(MqttClientDisconnectedEventArgs x)
+		
+		private void OnPublisherDisconnected(MqttClientDisconnectedEventArgs x)
 		{
+			_eventAggregator.GetEvent<MqttClientDisconnectedEvent>().Publish();
+
 			Console.WriteLine("Publisher disconnected!");
-		}
-
-		/// <summary>
-		/// Handles the received application message event.
-		/// </summary>
-		/// <param name="x">The MQTT application message received event args.</param>
-		private void HandleReceivedApplicationMessage(MqttApplicationMessageReceivedEventArgs x)
-		{
-			//var item = $"Timestamp: {DateTime.Now:O} | Topic: {x.ApplicationMessage.Topic} | Payload: {x.ApplicationMessage.ConvertPayloadToString()} | QoS: {x.ApplicationMessage.QualityOfServiceLevel}";
-			//this.BeginInvoke((MethodInvoker)delegate { this.TextBoxSubscriber.Text = item + Environment.NewLine + this.TextBoxSubscriber.Text; });
 		}
     }
 }

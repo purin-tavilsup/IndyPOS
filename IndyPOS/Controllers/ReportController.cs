@@ -327,6 +327,13 @@ namespace IndyPOS.Controllers
 			return paymentsByType.Sum(x => x.Amount);
 		}
 
+		public IFinalInvoice GetInvoiceByInvoiceId(int invoiceId)
+		{
+			var result = _invoicesRepository.GetInvoiceByInvoiceId(invoiceId);
+
+			return result != null ? new FinalInvoiceAdapter(result) : null;
+		}
+
 		public IEnumerable<IFinalInvoiceProduct> GetInvoiceProductsByInvoiceId(int invoiceId)
 		{
 			var results = _invoicesRepository.GetInvoiceProductsByInvoiceId(invoiceId);

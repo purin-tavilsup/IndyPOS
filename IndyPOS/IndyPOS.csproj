@@ -196,8 +196,12 @@
     <Compile Include="Adapters\UserCredentialAdapter.cs" />
     <Compile Include="Barcode\BarcodeHelper.cs" />
     <Compile Include="Barcode\IBarcodeHelper.cs" />
+    <Compile Include="CloudReport\AccountsReceivableSummary.cs" />
     <Compile Include="CloudReport\CloudReportHelper.cs" />
     <Compile Include="CloudReport\ICloudReportHelper.cs" />
+    <Compile Include="CloudReport\Invoice.cs" />
+    <Compile Include="CloudReport\Payment.cs" />
+    <Compile Include="CloudReport\Product.cs" />
     <Compile Include="Config.cs" />
     <Compile Include="Controllers\AccountsReceivableController.cs" />
     <Compile Include="Controllers\IAccountsReceivableController.cs" />

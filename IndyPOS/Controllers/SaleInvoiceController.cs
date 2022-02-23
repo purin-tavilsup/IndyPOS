@@ -9,6 +9,7 @@ using IndyPOS.Users;
 using Prism.Events;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using AccountsReceivableModel = IndyPOS.DataAccess.Models.AccountsReceivable;
 using InventoryProductModel = IndyPOS.DataAccess.Models.InventoryProduct;
 using InvoiceModel = IndyPOS.DataAccess.Models.Invoice;
@@ -266,7 +267,13 @@ namespace IndyPOS.Controllers
 			AddInvoiceProductsToDatabase(_saleInvoice);
             AddPaymentsToDatabase(_saleInvoice);
 			UpdateInventoryProductsSoldOnInvoice(_saleInvoice);
+			PublishSaleReportToCloud(_saleInvoice.Id.GetValueOrDefault());
 		}
+
+		private void PublishSaleReportToCloud(int invoiceId)
+        {
+			Task.Run(() => _cloudReportHelper.PublishSaleReport(invoiceId)).GetAwaiter();
+        }
 
 		public void PrintReceipt()
 		{

@@ -31,7 +31,6 @@
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(AddNewInventoryProductWithCustomBarcodeForm));
             this.panel1 = new System.Windows.Forms.Panel();
             this.IsTrackableCheckBox = new System.Windows.Forms.CheckBox();
-            this.BarcodeLabel = new System.Windows.Forms.Label();
             this.label12 = new System.Windows.Forms.Label();
             this.label6 = new System.Windows.Forms.Label();
             this.BarcodePictureBox = new System.Windows.Forms.PictureBox();
@@ -55,6 +54,7 @@
             this.label4 = new System.Windows.Forms.Label();
             this.label3 = new System.Windows.Forms.Label();
             this.label1 = new System.Windows.Forms.Label();
+            this.BarcodeTextBox = new ModernUI.ModernTextBox();
             this.panel1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.BarcodePictureBox)).BeginInit();
             this.panel2.SuspendLayout();
@@ -63,8 +63,8 @@
             // panel1
             // 
             this.panel1.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
+            this.panel1.Controls.Add(this.BarcodeTextBox);
             this.panel1.Controls.Add(this.IsTrackableCheckBox);
-            this.panel1.Controls.Add(this.BarcodeLabel);
             this.panel1.Controls.Add(this.label12);
             this.panel1.Controls.Add(this.label6);
             this.panel1.Controls.Add(this.BarcodePictureBox);
@@ -106,18 +106,6 @@
             this.IsTrackableCheckBox.Text = "สินค้านับจำนวนในคลังสินค้าได้";
             this.IsTrackableCheckBox.UseVisualStyleBackColor = true;
             this.IsTrackableCheckBox.CheckedChanged += new System.EventHandler(this.IsTrackableCheckBox_CheckedChanged);
-            // 
-            // BarcodeLabel
-            // 
-            this.BarcodeLabel.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
-            this.BarcodeLabel.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.BarcodeLabel.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 15.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.BarcodeLabel.ForeColor = System.Drawing.Color.Gainsboro;
-            this.BarcodeLabel.Location = new System.Drawing.Point(836, 362);
-            this.BarcodeLabel.Name = "BarcodeLabel";
-            this.BarcodeLabel.Size = new System.Drawing.Size(227, 58);
-            this.BarcodeLabel.TabIndex = 71;
-            this.BarcodeLabel.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             // 
             // label12
             // 
@@ -467,6 +455,25 @@
             this.label1.Text = "เพิ่มสินค้าใหม่";
             this.label1.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             // 
+            // BarcodeTextBox
+            // 
+            this.BarcodeTextBox.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
+            this.BarcodeTextBox.BorderColor = System.Drawing.Color.DimGray;
+            this.BarcodeTextBox.BorderSize = 1;
+            this.BarcodeTextBox.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.BarcodeTextBox.ForeColor = System.Drawing.Color.Gainsboro;
+            this.BarcodeTextBox.Location = new System.Drawing.Point(836, 381);
+            this.BarcodeTextBox.Multiline = false;
+            this.BarcodeTextBox.Name = "BarcodeTextBox";
+            this.BarcodeTextBox.Padding = new System.Windows.Forms.Padding(7);
+            this.BarcodeTextBox.PasswordChar = false;
+            this.BarcodeTextBox.ReadOnly = true;
+            this.BarcodeTextBox.Size = new System.Drawing.Size(227, 39);
+            this.BarcodeTextBox.TabIndex = 73;
+            this.BarcodeTextBox.TextAlign = System.Windows.Forms.HorizontalAlignment.Left;
+            this.BarcodeTextBox.Texts = "";
+            this.BarcodeTextBox.UnderlinedStyle = true;
+            // 
             // AddNewInventoryProductWithCustomBarcodeForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -510,10 +517,10 @@
 		private System.Windows.Forms.Label label1;
         private ModernUI.ModernButton CancelProductEntryButton;
         private ModernUI.ModernButton SaveProductEntryButton;
-        private System.Windows.Forms.Label BarcodeLabel;
         private System.Windows.Forms.Label label12;
         private System.Windows.Forms.Label label6;
         private System.Windows.Forms.PictureBox BarcodePictureBox;
         private System.Windows.Forms.CheckBox IsTrackableCheckBox;
+        private ModernUI.ModernTextBox BarcodeTextBox;
     }
 }

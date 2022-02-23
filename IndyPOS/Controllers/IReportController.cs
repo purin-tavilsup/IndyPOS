@@ -41,15 +41,11 @@ namespace IndyPOS.Controllers
 
 		void WriteSaleRecordsToCsvFileByDate(DateTime date);
 
+		IFinalInvoice GetInvoiceByInvoiceId(int invoiceId);
+
 		IEnumerable<IFinalInvoiceProduct> GetInvoiceProductsByInvoiceId(int invoiceId);
 
 		IEnumerable<IFinalInvoicePayment> GetPaymentsByInvoiceId(int invoiceId);
-
-		decimal GetChangesTotal();
-
-		decimal GetGeneralProductsTotalWithoutAr();
-
-		decimal GetHardwareProductsTotalWithoutAr();
 
 		SaleReport CreateSaleReport();
 

@@ -29,9 +29,6 @@
         private void InitializeComponent()
         {
             this.panel9 = new System.Windows.Forms.Panel();
-            this.panel19 = new System.Windows.Forms.Panel();
-            this.ChangesLabel = new System.Windows.Forms.Label();
-            this.label17 = new System.Windows.Forms.Label();
             this.panel13 = new System.Windows.Forms.Panel();
             this.PaymentByArLabel = new System.Windows.Forms.Label();
             this.label6 = new System.Windows.Forms.Label();
@@ -107,7 +104,6 @@
             this.label33 = new System.Windows.Forms.Label();
             this.label24 = new System.Windows.Forms.Label();
             this.panel9.SuspendLayout();
-            this.panel19.SuspendLayout();
             this.panel13.SuspendLayout();
             this.panel12.SuspendLayout();
             this.panel11.SuspendLayout();
@@ -132,7 +128,6 @@
             // panel9
             // 
             this.panel9.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
-            this.panel9.Controls.Add(this.panel19);
             this.panel9.Controls.Add(this.panel13);
             this.panel9.Controls.Add(this.panel12);
             this.panel9.Controls.Add(this.panel11);
@@ -145,42 +140,6 @@
             this.panel9.Name = "panel9";
             this.panel9.Size = new System.Drawing.Size(1266, 213);
             this.panel9.TabIndex = 109;
-            // 
-            // panel19
-            // 
-            this.panel19.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(34)))), ((int)(((byte)(34)))), ((int)(((byte)(34)))));
-            this.panel19.Controls.Add(this.ChangesLabel);
-            this.panel19.Controls.Add(this.label17);
-            this.panel19.Location = new System.Drawing.Point(428, 51);
-            this.panel19.Name = "panel19";
-            this.panel19.Size = new System.Drawing.Size(406, 45);
-            this.panel19.TabIndex = 99;
-            // 
-            // ChangesLabel
-            // 
-            this.ChangesLabel.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(35)))), ((int)(((byte)(35)))), ((int)(((byte)(35)))));
-            this.ChangesLabel.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.ChangesLabel.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 15.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.ChangesLabel.ForeColor = System.Drawing.Color.Gainsboro;
-            this.ChangesLabel.Location = new System.Drawing.Point(196, 0);
-            this.ChangesLabel.Name = "ChangesLabel";
-            this.ChangesLabel.Size = new System.Drawing.Size(210, 45);
-            this.ChangesLabel.TabIndex = 88;
-            this.ChangesLabel.Text = "0.00";
-            this.ChangesLabel.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
-            // 
-            // label17
-            // 
-            this.label17.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(35)))), ((int)(((byte)(35)))), ((int)(((byte)(35)))));
-            this.label17.Dock = System.Windows.Forms.DockStyle.Left;
-            this.label17.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label17.ForeColor = System.Drawing.Color.Gainsboro;
-            this.label17.Location = new System.Drawing.Point(0, 0);
-            this.label17.Name = "label17";
-            this.label17.Size = new System.Drawing.Size(196, 45);
-            this.label17.TabIndex = 89;
-            this.label17.Text = "เงินทอน";
-            this.label17.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             // 
             // panel13
             // 
@@ -968,7 +927,7 @@
             this.label31.Name = "label31";
             this.label31.Size = new System.Drawing.Size(300, 36);
             this.label31.TabIndex = 89;
-            this.label31.Text = " 6";
+            this.label31.Text = " 4 - 5";
             this.label31.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
             // 
             // label23
@@ -1155,7 +1114,6 @@
             this.Name = "SalesReportPanel";
             this.Size = new System.Drawing.Size(1610, 925);
             this.panel9.ResumeLayout(false);
-            this.panel19.ResumeLayout(false);
             this.panel13.ResumeLayout(false);
             this.panel12.ResumeLayout(false);
             this.panel11.ResumeLayout(false);
@@ -1238,9 +1196,6 @@
         private System.Windows.Forms.Panel panel18;
         private System.Windows.Forms.Label IncompleteArLabel;
         private System.Windows.Forms.Label label23;
-        private System.Windows.Forms.Panel panel19;
-        private System.Windows.Forms.Label ChangesLabel;
-        private System.Windows.Forms.Label label17;
         private System.Windows.Forms.Panel panel21;
         private System.Windows.Forms.Label OverallSaleExcluedIncompleteArLabel;
         private System.Windows.Forms.Label label8;
