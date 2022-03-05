@@ -35,6 +35,10 @@ namespace IndyPOS.UI.Reports
 			
 			HardwareSaleLabel.Text = $"{saleReport.HardwareProductsTotal:N}";
 
+			ArTotalForGeneralProductsLabel.Text  = $"{saleReport.ArTotalForGeneralProducts:N}";
+
+			ArTotalForHardwareProductsLabel.Text = $"{saleReport.ArTotalForHardwareProducts:N}";
+
 			GeneralProductsTotalWithoutArLabel.Text = $"{saleReport.GeneralProductsTotalWithoutAr:N}";
 
 			HardwareProductsTotalWithoutArLabel.Text = $"{saleReport.HardwareProductsTotalWithoutAr:N}";
@@ -62,17 +66,17 @@ namespace IndyPOS.UI.Reports
 
 		private async Task<SaleReport> GetSaleReportAsync()
 		{
-			return await Task.Run(_reportController.CreateSaleReport);
+			return await Task.Run(_reportController.GetSaleReport);
 		}
 
 		private async Task<PaymentReport> GetPaymentReportAsync()
 		{
-			return await Task.Run(_reportController.CreatePaymentReport);
+			return await Task.Run(_reportController.GetPaymentReport);
 		}
 
 		private async Task<ArReport> GetArReportAsync()
 		{
-			return await Task.Run(_reportController.CreateArReport);
+			return await Task.Run(_reportController.GetArReport);
 		}
 
         private void ShowReportByTodayButton_Click(object sender, EventArgs e)

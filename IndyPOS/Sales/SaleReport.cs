@@ -10,6 +10,10 @@
 			
 		public decimal HardwareProductsTotal { get; set; }
 
+		public decimal ArTotalForGeneralProducts { get; set; }
+
+		public decimal ArTotalForHardwareProducts { get; set; }
+
 		public decimal GeneralProductsTotalWithoutAr { get; set; }
 
 		public decimal HardwareProductsTotalWithoutAr { get; set; }

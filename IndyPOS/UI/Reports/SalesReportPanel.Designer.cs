@@ -103,6 +103,14 @@
             this.GeneralProductsTotalWithoutArLabel = new System.Windows.Forms.Label();
             this.label33 = new System.Windows.Forms.Label();
             this.label24 = new System.Windows.Forms.Label();
+            this.panel19 = new System.Windows.Forms.Panel();
+            this.ArTotalForHardwareProductsLabel = new System.Windows.Forms.Label();
+            this.label17 = new System.Windows.Forms.Label();
+            this.label21 = new System.Windows.Forms.Label();
+            this.panel20 = new System.Windows.Forms.Panel();
+            this.ArTotalForGeneralProductsLabel = new System.Windows.Forms.Label();
+            this.label35 = new System.Windows.Forms.Label();
+            this.label36 = new System.Windows.Forms.Label();
             this.panel9.SuspendLayout();
             this.panel13.SuspendLayout();
             this.panel12.SuspendLayout();
@@ -123,6 +131,8 @@
             this.panel21.SuspendLayout();
             this.panel16.SuspendLayout();
             this.panel22.SuspendLayout();
+            this.panel19.SuspendLayout();
+            this.panel20.SuspendLayout();
             this.SuspendLayout();
             // 
             // panel9
@@ -849,7 +859,7 @@
             this.panel17.Controls.Add(this.CompletedArLabel);
             this.panel17.Controls.Add(this.label30);
             this.panel17.Controls.Add(this.label19);
-            this.panel17.Location = new System.Drawing.Point(309, 301);
+            this.panel17.Location = new System.Drawing.Point(921, 105);
             this.panel17.Name = "panel17";
             this.panel17.Size = new System.Drawing.Size(300, 190);
             this.panel17.TabIndex = 114;
@@ -877,7 +887,7 @@
             this.label30.Name = "label30";
             this.label30.Size = new System.Drawing.Size(300, 36);
             this.label30.TabIndex = 89;
-            this.label30.Text = " 5";
+            this.label30.Text = " 7";
             this.label30.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
             // 
             // label19
@@ -899,7 +909,7 @@
             this.panel18.Controls.Add(this.IncompleteArLabel);
             this.panel18.Controls.Add(this.label31);
             this.panel18.Controls.Add(this.label23);
-            this.panel18.Location = new System.Drawing.Point(309, 497);
+            this.panel18.Location = new System.Drawing.Point(1227, 105);
             this.panel18.Name = "panel18";
             this.panel18.Size = new System.Drawing.Size(300, 190);
             this.panel18.TabIndex = 115;
@@ -927,7 +937,7 @@
             this.label31.Name = "label31";
             this.label31.Size = new System.Drawing.Size(300, 36);
             this.label31.TabIndex = 89;
-            this.label31.Text = " 4 - 5";
+            this.label31.Text = " 8";
             this.label31.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
             // 
             // label23
@@ -1027,7 +1037,7 @@
             this.label34.Name = "label34";
             this.label34.Size = new System.Drawing.Size(300, 36);
             this.label34.TabIndex = 89;
-            this.label34.Text = "3 - 4";
+            this.label34.Text = "3 - 6";
             this.label34.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
             // 
             // label15
@@ -1077,7 +1087,7 @@
             this.label33.Name = "label33";
             this.label33.Size = new System.Drawing.Size(300, 36);
             this.label33.TabIndex = 89;
-            this.label33.Text = " 2 - 4";
+            this.label33.Text = " 2 - 5";
             this.label33.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
             // 
             // label24
@@ -1093,11 +1103,113 @@
             this.label24.Text = " ยอดขาย (สินค้าเบ็ดเตล็ด) - ยอดลงบัญชี";
             this.label24.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
             // 
+            // panel19
+            // 
+            this.panel19.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
+            this.panel19.Controls.Add(this.ArTotalForHardwareProductsLabel);
+            this.panel19.Controls.Add(this.label17);
+            this.panel19.Controls.Add(this.label21);
+            this.panel19.Location = new System.Drawing.Point(309, 497);
+            this.panel19.Name = "panel19";
+            this.panel19.Size = new System.Drawing.Size(300, 190);
+            this.panel19.TabIndex = 121;
+            // 
+            // ArTotalForHardwareProductsLabel
+            // 
+            this.ArTotalForHardwareProductsLabel.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
+            this.ArTotalForHardwareProductsLabel.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.ArTotalForHardwareProductsLabel.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 24F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.ArTotalForHardwareProductsLabel.ForeColor = System.Drawing.Color.RoyalBlue;
+            this.ArTotalForHardwareProductsLabel.Location = new System.Drawing.Point(0, 39);
+            this.ArTotalForHardwareProductsLabel.Name = "ArTotalForHardwareProductsLabel";
+            this.ArTotalForHardwareProductsLabel.Size = new System.Drawing.Size(300, 115);
+            this.ArTotalForHardwareProductsLabel.TabIndex = 87;
+            this.ArTotalForHardwareProductsLabel.Text = "0.00";
+            this.ArTotalForHardwareProductsLabel.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            // 
+            // label17
+            // 
+            this.label17.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
+            this.label17.Dock = System.Windows.Forms.DockStyle.Bottom;
+            this.label17.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label17.ForeColor = System.Drawing.Color.Gainsboro;
+            this.label17.Location = new System.Drawing.Point(0, 154);
+            this.label17.Name = "label17";
+            this.label17.Size = new System.Drawing.Size(300, 36);
+            this.label17.TabIndex = 89;
+            this.label17.Text = "6";
+            this.label17.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
+            // 
+            // label21
+            // 
+            this.label21.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
+            this.label21.Dock = System.Windows.Forms.DockStyle.Top;
+            this.label21.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label21.ForeColor = System.Drawing.Color.Gainsboro;
+            this.label21.Location = new System.Drawing.Point(0, 0);
+            this.label21.Name = "label21";
+            this.label21.Size = new System.Drawing.Size(300, 39);
+            this.label21.TabIndex = 83;
+            this.label21.Text = "ยอดลงบัญชี (สินค้าฮาร์ดแวร์)";
+            this.label21.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            // 
+            // panel20
+            // 
+            this.panel20.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
+            this.panel20.Controls.Add(this.ArTotalForGeneralProductsLabel);
+            this.panel20.Controls.Add(this.label35);
+            this.panel20.Controls.Add(this.label36);
+            this.panel20.Location = new System.Drawing.Point(309, 301);
+            this.panel20.Name = "panel20";
+            this.panel20.Size = new System.Drawing.Size(300, 190);
+            this.panel20.TabIndex = 120;
+            // 
+            // ArTotalForGeneralProductsLabel
+            // 
+            this.ArTotalForGeneralProductsLabel.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
+            this.ArTotalForGeneralProductsLabel.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.ArTotalForGeneralProductsLabel.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 24F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.ArTotalForGeneralProductsLabel.ForeColor = System.Drawing.Color.MediumOrchid;
+            this.ArTotalForGeneralProductsLabel.Location = new System.Drawing.Point(0, 39);
+            this.ArTotalForGeneralProductsLabel.Name = "ArTotalForGeneralProductsLabel";
+            this.ArTotalForGeneralProductsLabel.Size = new System.Drawing.Size(300, 115);
+            this.ArTotalForGeneralProductsLabel.TabIndex = 87;
+            this.ArTotalForGeneralProductsLabel.Text = "0.00";
+            this.ArTotalForGeneralProductsLabel.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            // 
+            // label35
+            // 
+            this.label35.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
+            this.label35.Dock = System.Windows.Forms.DockStyle.Bottom;
+            this.label35.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label35.ForeColor = System.Drawing.Color.Gainsboro;
+            this.label35.Location = new System.Drawing.Point(0, 154);
+            this.label35.Name = "label35";
+            this.label35.Size = new System.Drawing.Size(300, 36);
+            this.label35.TabIndex = 89;
+            this.label35.Text = " 5";
+            this.label35.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
+            // 
+            // label36
+            // 
+            this.label36.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
+            this.label36.Dock = System.Windows.Forms.DockStyle.Top;
+            this.label36.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label36.ForeColor = System.Drawing.Color.Gainsboro;
+            this.label36.Location = new System.Drawing.Point(0, 0);
+            this.label36.Name = "label36";
+            this.label36.Size = new System.Drawing.Size(300, 39);
+            this.label36.TabIndex = 88;
+            this.label36.Text = "ยอดลงบัญชี (สินค้าเบ็ดเตล็ด)";
+            this.label36.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            // 
             // SalesReportPanel
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(30)))), ((int)(((byte)(30)))), ((int)(((byte)(30)))));
+            this.Controls.Add(this.panel19);
+            this.Controls.Add(this.panel20);
             this.Controls.Add(this.panel16);
             this.Controls.Add(this.panel22);
             this.Controls.Add(this.panel21);
@@ -1133,6 +1245,8 @@
             this.panel21.ResumeLayout(false);
             this.panel16.ResumeLayout(false);
             this.panel22.ResumeLayout(false);
+            this.panel19.ResumeLayout(false);
+            this.panel20.ResumeLayout(false);
             this.ResumeLayout(false);
 
         }
@@ -1214,5 +1328,13 @@
         private System.Windows.Forms.Label label32;
         private System.Windows.Forms.Label label34;
         private System.Windows.Forms.Label label33;
+        private System.Windows.Forms.Panel panel19;
+        private System.Windows.Forms.Label ArTotalForHardwareProductsLabel;
+        private System.Windows.Forms.Label label17;
+        private System.Windows.Forms.Label label21;
+        private System.Windows.Forms.Panel panel20;
+        private System.Windows.Forms.Label ArTotalForGeneralProductsLabel;
+        private System.Windows.Forms.Label label35;
+        private System.Windows.Forms.Label label36;
     }
 }

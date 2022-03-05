@@ -13,23 +13,23 @@ namespace IndyPOS.Controllers
 
 		IEnumerable<IFinalInvoicePayment> InvoicePayments { get; }
 
-		IEnumerable<IAccountsReceivable> AccountsReceivables { get; }
+		//IEnumerable<IAccountsReceivable> AccountsReceivables { get; }
 
-		decimal GetInvoicesTotal();
+		//decimal GetInvoicesTotal();
 
-		decimal GetRefundTotal();
+		//decimal GetRefundTotal();
 
-		decimal GetArTotal();
+		//decimal GetArTotal();
 
-		decimal GetCompletedArTotal();
+		//decimal GetCompletedArTotal();
 
-		decimal GetIncompleteArTotal();
+		//decimal GetIncompleteArTotal();
 
-		decimal GetInvoicesTotalWithoutAr();
+		//decimal GetInvoicesTotalWithoutAr();
 
-		decimal GetGeneralProductsTotal();
+		//decimal GetGeneralProductsTotal();
 
-		decimal GetHardwareProductsTotal();
+		//decimal GetHardwareProductsTotal();
 
 		void LoadInvoicesByPeriod(ReportPeriod period);
 
@@ -37,7 +37,7 @@ namespace IndyPOS.Controllers
 
 		IEnumerable<IFinalInvoiceProduct> GetInvoiceProductsByDate(DateTime date);
 
-		decimal GetPaymentsTotalByType(PaymentType type);
+		//decimal GetPaymentsTotalByType(PaymentType type);
 
 		void WriteSaleRecordsToCsvFileByDate(DateTime date);
 
@@ -47,10 +47,10 @@ namespace IndyPOS.Controllers
 
 		IEnumerable<IFinalInvoicePayment> GetPaymentsByInvoiceId(int invoiceId);
 
-		SaleReport CreateSaleReport();
+		SaleReport GetSaleReport();
 
-		PaymentReport CreatePaymentReport();
+		PaymentReport GetPaymentReport();
 
-		ArReport CreateArReport();
+		ArReport GetArReport();
 	}
 }
