@@ -49,8 +49,6 @@ namespace IndyPOS.UI.Reports
 
 			IncompleteArLabel.Text = $"{arReport.IncompleteArTotal:N}";
 
-			PaymentByCashLabel.Text = $"{paymentReport.CashTotal:N}";
-
 			PaymentByTransferLabel.Text = $"{paymentReport.MoneyTransferTotal:N}";
 
 			PaymentByKlkLabel.Text = $"{paymentReport.FiftyFiftyTotal:N}";

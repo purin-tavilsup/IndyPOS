@@ -47,9 +47,6 @@
             this.panel3 = new System.Windows.Forms.Panel();
             this.PaymentByTransferLabel = new System.Windows.Forms.Label();
             this.label14 = new System.Windows.Forms.Label();
-            this.panel2 = new System.Windows.Forms.Panel();
-            this.PaymentByCashLabel = new System.Windows.Forms.Label();
-            this.label3 = new System.Windows.Forms.Label();
             this.label13 = new System.Windows.Forms.Label();
             this.panel7 = new System.Windows.Forms.Panel();
             this.ShowReportByDateRangeButton = new ModernUI.ModernButton();
@@ -118,7 +115,6 @@
             this.panel10.SuspendLayout();
             this.panel8.SuspendLayout();
             this.panel3.SuspendLayout();
-            this.panel2.SuspendLayout();
             this.panel7.SuspendLayout();
             this.panel6.SuspendLayout();
             this.panel5.SuspendLayout();
@@ -144,7 +140,6 @@
             this.panel9.Controls.Add(this.panel10);
             this.panel9.Controls.Add(this.panel8);
             this.panel9.Controls.Add(this.panel3);
-            this.panel9.Controls.Add(this.panel2);
             this.panel9.Controls.Add(this.label13);
             this.panel9.Location = new System.Drawing.Point(2, 693);
             this.panel9.Name = "panel9";
@@ -156,7 +151,7 @@
             this.panel13.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(34)))), ((int)(((byte)(34)))), ((int)(((byte)(34)))));
             this.panel13.Controls.Add(this.PaymentByArLabel);
             this.panel13.Controls.Add(this.label6);
-            this.panel13.Location = new System.Drawing.Point(844, 153);
+            this.panel13.Location = new System.Drawing.Point(844, 90);
             this.panel13.Name = "panel13";
             this.panel13.Size = new System.Drawing.Size(406, 45);
             this.panel13.TabIndex = 98;
@@ -192,7 +187,7 @@
             this.panel12.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(34)))), ((int)(((byte)(34)))), ((int)(((byte)(34)))));
             this.panel12.Controls.Add(this.PaymentByWeWinLabel);
             this.panel12.Controls.Add(this.label22);
-            this.panel12.Location = new System.Drawing.Point(428, 153);
+            this.panel12.Location = new System.Drawing.Point(428, 90);
             this.panel12.Name = "panel12";
             this.panel12.Size = new System.Drawing.Size(406, 45);
             this.panel12.TabIndex = 97;
@@ -228,7 +223,7 @@
             this.panel11.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(34)))), ((int)(((byte)(34)))), ((int)(((byte)(34)))));
             this.panel11.Controls.Add(this.PaymentByM33Label);
             this.panel11.Controls.Add(this.label20);
-            this.panel11.Location = new System.Drawing.Point(428, 102);
+            this.panel11.Location = new System.Drawing.Point(428, 39);
             this.panel11.Name = "panel11";
             this.panel11.Size = new System.Drawing.Size(406, 45);
             this.panel11.TabIndex = 96;
@@ -264,7 +259,7 @@
             this.panel10.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(34)))), ((int)(((byte)(34)))), ((int)(((byte)(34)))));
             this.panel10.Controls.Add(this.PaymentByWelfareCardLabel);
             this.panel10.Controls.Add(this.label18);
-            this.panel10.Location = new System.Drawing.Point(844, 102);
+            this.panel10.Location = new System.Drawing.Point(844, 39);
             this.panel10.Name = "panel10";
             this.panel10.Size = new System.Drawing.Size(406, 45);
             this.panel10.TabIndex = 95;
@@ -300,7 +295,7 @@
             this.panel8.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(34)))), ((int)(((byte)(34)))), ((int)(((byte)(34)))));
             this.panel8.Controls.Add(this.PaymentByKlkLabel);
             this.panel8.Controls.Add(this.label16);
-            this.panel8.Location = new System.Drawing.Point(16, 153);
+            this.panel8.Location = new System.Drawing.Point(16, 90);
             this.panel8.Name = "panel8";
             this.panel8.Size = new System.Drawing.Size(406, 45);
             this.panel8.TabIndex = 94;
@@ -336,7 +331,7 @@
             this.panel3.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(34)))), ((int)(((byte)(34)))), ((int)(((byte)(34)))));
             this.panel3.Controls.Add(this.PaymentByTransferLabel);
             this.panel3.Controls.Add(this.label14);
-            this.panel3.Location = new System.Drawing.Point(16, 102);
+            this.panel3.Location = new System.Drawing.Point(16, 39);
             this.panel3.Name = "panel3";
             this.panel3.Size = new System.Drawing.Size(406, 45);
             this.panel3.TabIndex = 93;
@@ -366,42 +361,6 @@
             this.label14.TabIndex = 89;
             this.label14.Text = "โอนเงิน";
             this.label14.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
-            // 
-            // panel2
-            // 
-            this.panel2.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(34)))), ((int)(((byte)(34)))), ((int)(((byte)(34)))));
-            this.panel2.Controls.Add(this.PaymentByCashLabel);
-            this.panel2.Controls.Add(this.label3);
-            this.panel2.Location = new System.Drawing.Point(16, 51);
-            this.panel2.Name = "panel2";
-            this.panel2.Size = new System.Drawing.Size(406, 45);
-            this.panel2.TabIndex = 92;
-            // 
-            // PaymentByCashLabel
-            // 
-            this.PaymentByCashLabel.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(35)))), ((int)(((byte)(35)))), ((int)(((byte)(35)))));
-            this.PaymentByCashLabel.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.PaymentByCashLabel.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 15.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.PaymentByCashLabel.ForeColor = System.Drawing.Color.Gainsboro;
-            this.PaymentByCashLabel.Location = new System.Drawing.Point(196, 0);
-            this.PaymentByCashLabel.Name = "PaymentByCashLabel";
-            this.PaymentByCashLabel.Size = new System.Drawing.Size(210, 45);
-            this.PaymentByCashLabel.TabIndex = 88;
-            this.PaymentByCashLabel.Text = "0.00";
-            this.PaymentByCashLabel.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
-            // 
-            // label3
-            // 
-            this.label3.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(35)))), ((int)(((byte)(35)))), ((int)(((byte)(35)))));
-            this.label3.Dock = System.Windows.Forms.DockStyle.Left;
-            this.label3.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label3.ForeColor = System.Drawing.Color.Gainsboro;
-            this.label3.Location = new System.Drawing.Point(0, 0);
-            this.label3.Name = "label3";
-            this.label3.Size = new System.Drawing.Size(196, 45);
-            this.label3.TabIndex = 89;
-            this.label3.Text = "เงินสด";
-            this.label3.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             // 
             // label13
             // 
@@ -1232,7 +1191,6 @@
             this.panel10.ResumeLayout(false);
             this.panel8.ResumeLayout(false);
             this.panel3.ResumeLayout(false);
-            this.panel2.ResumeLayout(false);
             this.panel7.ResumeLayout(false);
             this.panel6.ResumeLayout(false);
             this.panel5.ResumeLayout(false);
@@ -1277,9 +1235,6 @@
         private System.Windows.Forms.Panel panel1;
         private System.Windows.Forms.Label OverallSaleLabel;
         private System.Windows.Forms.Label label5;
-        private System.Windows.Forms.Label label3;
-        private System.Windows.Forms.Label PaymentByCashLabel;
-        private System.Windows.Forms.Panel panel2;
         private System.Windows.Forms.Panel panel12;
         private System.Windows.Forms.Label PaymentByWeWinLabel;
         private System.Windows.Forms.Label label22;

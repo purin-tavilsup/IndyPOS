@@ -2,8 +2,6 @@
 {
 	public class PaymentReport
     {
-		public decimal CashTotal { get; set; }
-
 		public decimal MoneyTransferTotal { get; set; }
 
 		public decimal FiftyFiftyTotal { get; set; }

@@ -156,7 +156,6 @@ namespace IndyPOS.Controllers
 
 		public PaymentReport GetPaymentReport()
 		{
-			var cashTotal = 0m;
 			var arTotal = 0m;
 			var fiftyFiftyTotal = 0m;
 			var m33WeLoveTotal = 0m;
@@ -170,10 +169,6 @@ namespace IndyPOS.Controllers
 
 				switch (payment.PaymentTypeId)
 				{
-					case (int) PaymentType.Cash:
-						cashTotal += amount;
-						break;
-
 					case (int) PaymentType.AccountReceivable:
 						arTotal += amount;
 						break;
@@ -202,7 +197,6 @@ namespace IndyPOS.Controllers
 
 			var report = new PaymentReport
 						 {
-							 CashTotal = cashTotal,
 							 ArTotal = arTotal,
 							 FiftyFiftyTotal = fiftyFiftyTotal,
 							 M33WeLoveTotal = m33WeLoveTotal,
