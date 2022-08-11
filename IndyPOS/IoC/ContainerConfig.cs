@@ -7,7 +7,6 @@ using IndyPOS.DataAccess;
 using IndyPOS.DataAccess.Repositories;
 using IndyPOS.DataAccess.SQLite.Repositories;
 using IndyPOS.Devices;
-using IndyPOS.Mqtt;
 using IndyPOS.Sales;
 using IndyPOS.Users;
 using LazyCache;
@@ -89,10 +88,6 @@ namespace IndyPOS.IoC
 
 			builder.RegisterType<BarcodeHelper>()
 				   .As<IBarcodeHelper>()
-				   .SingleInstance();
-
-			builder.RegisterType<MqttClient>()
-				   .As<IMqttClient>()
 				   .SingleInstance();
 
 			builder.RegisterType<CloudReportHelper>()

@@ -267,13 +267,7 @@ namespace IndyPOS.Controllers
 			AddInvoiceProductsToDatabase(_saleInvoice);
             AddPaymentsToDatabase(_saleInvoice);
 			UpdateInventoryProductsSoldOnInvoice(_saleInvoice);
-			PublishSaleReportToCloud(_saleInvoice.Id.GetValueOrDefault());
 		}
-
-		private void PublishSaleReportToCloud(int invoiceId)
-        {
-			Task.Run(() => _cloudReportHelper.PublishSaleReport(invoiceId)).GetAwaiter();
-        }
 
 		public void PrintReceipt()
 		{

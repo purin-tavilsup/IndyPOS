@@ -667,10 +667,6 @@
       <Project>{6032f51e-e3df-47d5-9e74-a360bdbfb180}</Project>
       <Name>IndyPOS.DataAccess</Name>
     </ProjectReference>
-    <ProjectReference Include="..\IndyPOS.Mqtt\IndyPOS.Mqtt.csproj">
-      <Project>{ff5fcae9-9ffe-4d46-a5f8-fbd635e993d2}</Project>
-      <Name>IndyPOS.Mqtt</Name>
-    </ProjectReference>
     <ProjectReference Include="..\ModernUI\ModernUI.csproj">
       <Project>{fbd12602-ae7f-4629-8a8f-05a22569aac9}</Project>
       <Name>ModernUI</Name>

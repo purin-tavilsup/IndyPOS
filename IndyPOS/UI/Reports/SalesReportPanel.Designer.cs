@@ -74,7 +74,6 @@
             this.label26 = new System.Windows.Forms.Label();
             this.label5 = new System.Windows.Forms.Label();
             this.panel15 = new System.Windows.Forms.Panel();
-            this.WriteSaleRecordsToFileButton = new ModernUI.ModernButton();
             this.label12 = new System.Windows.Forms.Label();
             this.panel14 = new System.Windows.Forms.Panel();
             this.ArTotalLabel = new System.Windows.Forms.Label();
@@ -721,33 +720,11 @@
             // panel15
             // 
             this.panel15.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
-            this.panel15.Controls.Add(this.WriteSaleRecordsToFileButton);
             this.panel15.Controls.Add(this.label12);
             this.panel15.Location = new System.Drawing.Point(1274, 693);
             this.panel15.Name = "panel15";
             this.panel15.Size = new System.Drawing.Size(333, 213);
             this.panel15.TabIndex = 111;
-            // 
-            // WriteSaleRecordsToFileButton
-            // 
-            this.WriteSaleRecordsToFileButton.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
-            this.WriteSaleRecordsToFileButton.BackgroundColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
-            this.WriteSaleRecordsToFileButton.BorderColor = System.Drawing.Color.Turquoise;
-            this.WriteSaleRecordsToFileButton.BorderRadius = 19;
-            this.WriteSaleRecordsToFileButton.BorderSize = 1;
-            this.WriteSaleRecordsToFileButton.FlatAppearance.BorderSize = 0;
-            this.WriteSaleRecordsToFileButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.WriteSaleRecordsToFileButton.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.WriteSaleRecordsToFileButton.ForeColor = System.Drawing.Color.White;
-            this.WriteSaleRecordsToFileButton.Location = new System.Drawing.Point(19, 153);
-            this.WriteSaleRecordsToFileButton.Name = "WriteSaleRecordsToFileButton";
-            this.WriteSaleRecordsToFileButton.Size = new System.Drawing.Size(293, 45);
-            this.WriteSaleRecordsToFileButton.TabIndex = 84;
-            this.WriteSaleRecordsToFileButton.Text = "Send Report To Cloud";
-            this.WriteSaleRecordsToFileButton.TextColor = System.Drawing.Color.White;
-            this.WriteSaleRecordsToFileButton.TextImageRelation = System.Windows.Forms.TextImageRelation.ImageBeforeText;
-            this.WriteSaleRecordsToFileButton.UseVisualStyleBackColor = false;
-            this.WriteSaleRecordsToFileButton.Click += new System.EventHandler(this.WriteSaleRecordsToFileButton_Click);
             // 
             // label12
             // 
@@ -1255,7 +1232,6 @@
         private System.Windows.Forms.Label label6;
         private System.Windows.Forms.Panel panel15;
         private System.Windows.Forms.Label label12;
-        private ModernUI.ModernButton WriteSaleRecordsToFileButton;
         private System.Windows.Forms.Panel panel14;
         private System.Windows.Forms.Label ArTotalLabel;
         private System.Windows.Forms.Label label4;
