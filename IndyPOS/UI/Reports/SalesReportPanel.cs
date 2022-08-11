@@ -1,6 +1,7 @@
 ﻿using IndyPOS.Controllers;
 using IndyPOS.Enums;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 using System.Windows.Forms;
@@ -25,7 +26,7 @@ namespace IndyPOS.UI.Reports
 			InitializeComponent();
         }
 		
-		private void ShowReport(SaleReport saleReport, PaymentReport paymentReport, ArReport arReport)
+		private void ShowReport(SalesReport saleReport, PaymentReport paymentReport, ArReport arReport)
 		{
 			OverallSaleLabel.Text = $"{saleReport.InvoicesTotal:N}";
 
@@ -62,74 +63,126 @@ namespace IndyPOS.UI.Reports
 			PaymentByArLabel.Text = $"{paymentReport.ArTotal:N}";
 		}
 
-		private async Task<SaleReport> GetSaleReportAsync()
+		private async Task<SalesReport> GetSaleReportAsync()
 		{
-			return await Task.Run(_reportController.GetSaleReport);
+			return await Task.Run(() => _reportController.GetSaleReport());
 		}
 
 		private async Task<PaymentReport> GetPaymentReportAsync()
 		{
-			return await Task.Run(_reportController.GetPaymentReport);
+			return await Task.Run(() => _reportController.GetPaymentReport());
 		}
 
 		private async Task<ArReport> GetArReportAsync()
 		{
-			return await Task.Run(_reportController.GetArReport);
+			return await Task.Run(() => _reportController.GetArReport());
 		}
 
-        private void ShowReportByTodayButton_Click(object sender, EventArgs e)
+        private async void ShowReportByTodayButton_Click(object sender, EventArgs e)
 		{
 			PeriodLabel.Text = ShowReportByTodayButton.Text;
 
 			_reportController.LoadInvoicesByPeriod(ReportPeriod.Today);
 
-			var saleReport = Task.Run(GetSaleReportAsync).GetAwaiter().GetResult();
-			var paymentReport = Task.Run(GetPaymentReportAsync).GetAwaiter().GetResult();
-			var arReport = Task.Run(GetArReportAsync).GetAwaiter().GetResult();
+			var getSaleReportTask = Task.Run(GetSaleReportAsync);
+			var getPaymentReportTask = Task.Run(GetPaymentReportAsync);
+			var getArReportTask = Task.Run(GetArReportAsync);
+
+			var tasks = new List<Task>
+			{
+				getSaleReportTask,
+				getPaymentReportTask,
+				getArReportTask
+			};
+
+			await Task.WhenAll(tasks.ToArray());
+
+			var saleReport = await getSaleReportTask;
+			var paymentReport = await getPaymentReportTask;
+			var arReport = await getArReportTask;
 
 			ShowReport(saleReport, paymentReport, arReport);
 		}
 
-        private void ShowReportByThisWeekButton_Click(object sender, EventArgs e)
+        private async void ShowReportByThisWeekButton_Click(object sender, EventArgs e)
         {
 			PeriodLabel.Text = ShowReportByThisWeekButton.Text;
 
 			_reportController.LoadInvoicesByPeriod(ReportPeriod.ThisWeek);
 
-			var saleReport = Task.Run(GetSaleReportAsync).GetAwaiter().GetResult();
-			var paymentReport = Task.Run(GetPaymentReportAsync).GetAwaiter().GetResult();
-			var arReport = Task.Run(GetArReportAsync).GetAwaiter().GetResult();
+			var getSaleReportTask = Task.Run(GetSaleReportAsync);
+			var getPaymentReportTask = Task.Run(GetPaymentReportAsync);
+			var getArReportTask = Task.Run(GetArReportAsync);
+
+			var tasks = new List<Task>
+			{
+				getSaleReportTask,
+				getPaymentReportTask,
+				getArReportTask
+			};
+
+			await Task.WhenAll(tasks.ToArray());
+
+			var saleReport = await getSaleReportTask;
+			var paymentReport = await getPaymentReportTask;
+			var arReport = await getArReportTask;
 
 			ShowReport(saleReport, paymentReport, arReport);
         }
 
-        private void ShowReportByThisMonthButton_Click(object sender, EventArgs e)
+        private async void ShowReportByThisMonthButton_Click(object sender, EventArgs e)
         {
 			PeriodLabel.Text = ShowReportByThisMonthButton.Text;
 
 			_reportController.LoadInvoicesByPeriod(ReportPeriod.ThisMonth);
 
-			var saleReport = Task.Run(GetSaleReportAsync).GetAwaiter().GetResult();
-			var paymentReport = Task.Run(GetPaymentReportAsync).GetAwaiter().GetResult();
-			var arReport = Task.Run(GetArReportAsync).GetAwaiter().GetResult();
+			var getSaleReportTask = Task.Run(GetSaleReportAsync);
+			var getPaymentReportTask = Task.Run(GetPaymentReportAsync);
+			var getArReportTask = Task.Run(GetArReportAsync);
+
+			var tasks = new List<Task>
+			{
+				getSaleReportTask,
+				getPaymentReportTask,
+				getArReportTask
+			};
+
+			await Task.WhenAll(tasks.ToArray());
+
+			var saleReport = await getSaleReportTask;
+			var paymentReport = await getPaymentReportTask;
+			var arReport = await getArReportTask;
 
 			ShowReport(saleReport, paymentReport, arReport);
         }
 
-        private void ShowReportByThisYearButton_Click(object sender, EventArgs e)
+        private async void ShowReportByThisYearButton_Click(object sender, EventArgs e)
         {
 			PeriodLabel.Text = ShowReportByThisYearButton.Text;
 
             _reportController.LoadInvoicesByPeriod(ReportPeriod.ThisYear);
 
-			var saleReport = Task.Run(GetSaleReportAsync).GetAwaiter().GetResult();
-			var paymentReport = Task.Run(GetPaymentReportAsync).GetAwaiter().GetResult();
-			var arReport = Task.Run(GetArReportAsync).GetAwaiter().GetResult();
+			var getSaleReportTask = Task.Run(GetSaleReportAsync);
+			var getPaymentReportTask = Task.Run(GetPaymentReportAsync);
+			var getArReportTask = Task.Run(GetArReportAsync);
+
+			var tasks = new List<Task>
+			{
+				getSaleReportTask,
+				getPaymentReportTask,
+				getArReportTask
+			};
+
+			await Task.WhenAll(tasks.ToArray());
+
+			var saleReport = await getSaleReportTask;
+			var paymentReport = await getPaymentReportTask;
+			var arReport = await getArReportTask;
 
 			ShowReport(saleReport, paymentReport, arReport);
         }
 
-        private void ShowReportByDateRangeButton_Click(object sender, EventArgs e)
+        private async void ShowReportByDateRangeButton_Click(object sender, EventArgs e)
 		{
 			var startDate = StartDatePicker.Value;
 			var endDate = EndDatePicker.Value;
@@ -138,16 +191,29 @@ namespace IndyPOS.UI.Reports
 
 			_reportController.LoadInvoicesByDateRange(startDate, endDate);
 
-			var saleReport = Task.Run(GetSaleReportAsync).GetAwaiter().GetResult();
-			var paymentReport = Task.Run(GetPaymentReportAsync).GetAwaiter().GetResult();
-			var arReport = Task.Run(GetArReportAsync).GetAwaiter().GetResult();
+			var getSaleReportTask = Task.Run(GetSaleReportAsync);
+			var getPaymentReportTask = Task.Run(GetPaymentReportAsync);
+			var getArReportTask = Task.Run(GetArReportAsync);
+
+			var tasks = new List<Task>
+			{
+				getSaleReportTask,
+				getPaymentReportTask,
+				getArReportTask
+			};
+
+			await Task.WhenAll(tasks.ToArray());
+
+			var saleReport = await getSaleReportTask;
+			var paymentReport = await getPaymentReportTask;
+			var arReport = await getArReportTask;
 
 			ShowReport(saleReport, paymentReport, arReport);
 		}
 
-        private void WriteSaleRecordsToFileButton_Click(object sender, EventArgs e)
+        private async void WriteSaleRecordsToFileButton_Click(object sender, EventArgs e)
 		{
-			Task.Run(() => _cloudReportHelper.PublishSaleReport(2878)).GetAwaiter();
+			await Task.Run(() => _cloudReportHelper.PublishSaleReport(2878));
 		}
     }
 }

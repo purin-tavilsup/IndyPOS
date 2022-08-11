@@ -88,7 +88,7 @@ namespace IndyPOS.Controllers
 			_accountsReceivables = GetAccountsReceivablesByDateRange(startDate, endDate);
 		}
 
-		public SaleReport GetSaleReport()
+		public SalesReport GetSaleReport()
 		{
 			var generalProductsTotal = 0m;
 			var hardwareProductsTotal = 0m;
@@ -128,7 +128,7 @@ namespace IndyPOS.Controllers
 			return report;
 		}
 
-		private static SaleReport CreateSaleReport(decimal generalProductsTotal,
+		private static SalesReport CreateSaleReport(decimal generalProductsTotal,
 												   decimal hardwareProductsTotal,
 												   decimal arTotalForGeneralProducts,
 												   decimal arTotalForHardwareProducts)
@@ -139,7 +139,7 @@ namespace IndyPOS.Controllers
 			var generalProductsTotalWithoutAr = generalProductsTotal - arTotalForGeneralProducts;
 			var hardwareProductsTotalWithoutAr = hardwareProductsTotal - arTotalForHardwareProducts;
 
-			var report = new SaleReport
+			var report = new SalesReport
 						 {
 							 InvoicesTotal = invoicesTotal,
 							 GeneralProductsTotal = generalProductsTotal,

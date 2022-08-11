@@ -1,17 +1,18 @@
 ﻿using Autofac;
+using IndyPOS.Barcode;
+using IndyPOS.CloudReport;
 using IndyPOS.Constants;
 using IndyPOS.Cryptography;
 using IndyPOS.DataAccess;
 using IndyPOS.DataAccess.Repositories;
 using IndyPOS.DataAccess.SQLite.Repositories;
 using IndyPOS.Devices;
-using IndyPOS.Users;
-using Prism.Events;
-using System.Reflection;
-using IndyPOS.Barcode;
-using IndyPOS.CloudReport;
 using IndyPOS.Mqtt;
 using IndyPOS.Sales;
+using IndyPOS.Users;
+using LazyCache;
+using Prism.Events;
+using System.Reflection;
 
 namespace IndyPOS.IoC
 {
@@ -96,6 +97,10 @@ namespace IndyPOS.IoC
 
 			builder.RegisterType<CloudReportHelper>()
 				   .As<ICloudReportHelper>()
+				   .SingleInstance();
+
+			builder.RegisterType<CachingService>()
+				   .As<IAppCache>()
 				   .SingleInstance();
 
             return builder.Build();

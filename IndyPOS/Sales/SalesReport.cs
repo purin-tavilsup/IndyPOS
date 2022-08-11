@@ -1,6 +1,6 @@
 ﻿namespace IndyPOS.Sales
 {
-	public class SaleReport
+	public class SalesReport
     {
 		public decimal InvoicesTotal { get; set; }
 

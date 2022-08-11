@@ -47,7 +47,7 @@ namespace IndyPOS.Controllers
 
 		IEnumerable<IFinalInvoicePayment> GetPaymentsByInvoiceId(int invoiceId);
 
-		SaleReport GetSaleReport();
+		SalesReport GetSaleReport();
 
 		PaymentReport GetPaymentReport();
 

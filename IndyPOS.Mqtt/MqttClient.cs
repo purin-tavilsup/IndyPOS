@@ -39,7 +39,7 @@ namespace IndyPOS.Mqtt
 
 		private MqttClientOptions CreateMqttClientOptions()
         {
-			var clientId = ConfigurationManager.AppSettings.Get("MqttCloudClientId");
+			var clientId = Guid.NewGuid().ToString("N");
 			var credentials = CreateMqttClientCredentials();
 			var tcpOptions = CreateMqttClientTcpOptions();
 			
@@ -62,7 +62,7 @@ namespace IndyPOS.Mqtt
 			return options;
 		}
 
-		private MqttClientCredentials CreateMqttClientCredentials()
+		private static MqttClientCredentials CreateMqttClientCredentials()
         {
 			var username = ConfigurationManager.AppSettings.Get("MqttCloudUsername");
 			var secret = ConfigurationManager.AppSettings.Get("MqttCloudSecret");
