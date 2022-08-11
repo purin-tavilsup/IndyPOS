@@ -2,7 +2,6 @@
 using IndyPOS.Controllers;
 using IndyPOS.Enums;
 using IndyPOS.Extensions;
-using Prism.Events;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
@@ -11,11 +10,9 @@ using System.Windows.Forms;
 
 namespace IndyPOS.UI
 {
-    [ExcludeFromCodeCoverage]
+	[ExcludeFromCodeCoverage]
 	public partial class AcceptPaymentForm : Form
     {
-        private readonly IEventAggregator _eventAggregator;
-        private readonly IStoreConstants _storeConstants;
         private readonly ISaleInvoiceController _saleInvoiceController;
         private readonly IList<decimal> _values;
 		private readonly MessageForm _messageForm;
@@ -25,15 +22,12 @@ namespace IndyPOS.UI
         private decimal _amount;
         private string _pendingStringValue;
 		
-        public AcceptPaymentForm(IEventAggregator eventAggregator,
-								 IStoreConstants storeConstants,
+        public AcceptPaymentForm(IStoreConstants storeConstants,
 								 ISaleInvoiceController saleInvoiceController,
 								 MessageForm messageForm)
         {
-            _eventAggregator = eventAggregator;
-            _storeConstants = storeConstants;
             _saleInvoiceController = saleInvoiceController;
-            _paymentTypeDictionary = _storeConstants.PaymentTypes;
+            _paymentTypeDictionary = storeConstants.PaymentTypes;
 			_messageForm = messageForm;
 
             InitializeComponent();

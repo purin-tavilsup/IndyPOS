@@ -18,7 +18,6 @@ namespace IndyPOS.Controllers
 		private readonly IUserAccountHelper _accountHelper;
 		private readonly IInvoiceRepository _invoicesRepository;
 		private readonly IAccountsReceivableRepository _accountsReceivableRepository;
-		private readonly IInventoryProductRepository _inventoryProductsRepository;
 		private readonly IConfig _config;
 
 		private IEnumerable<IFinalInvoice> _invoices;
@@ -34,42 +33,14 @@ namespace IndyPOS.Controllers
 
 		public IEnumerable<IAccountsReceivable> AccountsReceivables => _accountsReceivables ?? new List<IAccountsReceivable>();
 
-		public IEnumerable<IFinalInvoiceProduct> GeneralGoodsProducts => GetGeneralGoodsProducts();
-
-		public IEnumerable<IFinalInvoiceProduct> HardwareProducts => GetHardwareProducts();
-
-		public decimal InvoicesTotal => GetInvoicesTotal();
-
-		public decimal PaymentsTotal => GetPaymentsTotal();
-
-		public decimal ChangesTotal => GetChangesTotal();
-
-		public decimal RefundTotal => GetRefundTotal();
-
-		public decimal ArTotal => GetArTotal();
-
-		public decimal CompletedArTotal => GetCompletedArTotal();
-
-		public decimal IncompleteArTotal => GetIncompleteArTotal();
-
-		public decimal InvoicesTotalWithoutAr => GetInvoicesTotalWithoutAr();
-
-		public decimal InvoicesTotalWithoutIncompleteAr => GetInvoicesTotalWithoutIncompleteAr();
-
-		public decimal GeneralGoodsProductsTotal => GetGeneralGoodsProductsTotal();
-
-		public decimal HardwareProductsTotal => GetHardwareProductsTotal();
-
-        public ReportController(IUserAccountHelper accountHelper,
+		public ReportController(IUserAccountHelper accountHelper,
 								IInvoiceRepository invoicesRepository,
 								IAccountsReceivableRepository accountsReceivableRepository,
-								IInventoryProductRepository inventoryProductsRepository,
 								IConfig config)
 		{
 			_accountHelper = accountHelper;
 			_invoicesRepository = invoicesRepository;
 			_accountsReceivableRepository = accountsReceivableRepository;
-			_inventoryProductsRepository = inventoryProductsRepository;
 			_config = config;
 		}
 
@@ -106,10 +77,7 @@ namespace IndyPOS.Controllers
 					break;
 			}
 
-			_invoices = GetInvoicesByDateRange(startDate, endDate);
-			_invoiceProducts = GetInvoiceProductsByDateRange(startDate, endDate);
-			_payments = GetPaymentsByDateRange(startDate, endDate);
-			_accountsReceivables = GetAccountsReceivablesByDateRange(startDate, endDate);
+			LoadInvoicesByDateRange(startDate, endDate);
 		}
 
 		public void LoadInvoicesByDateRange(DateTime startDate, DateTime endDate)
@@ -120,87 +88,162 @@ namespace IndyPOS.Controllers
 			_accountsReceivables = GetAccountsReceivablesByDateRange(startDate, endDate);
 		}
 
-		private decimal GetInvoicesTotal()
+		public SalesReport GetSaleReport()
 		{
-			return Invoices.Sum(x => x.Total);
-		}
+			var generalProductsTotal = 0m;
+			var hardwareProductsTotal = 0m;
+			var arTotalForGeneralProducts = 0m;
+			var arTotalForHardwareProducts = 0m;
 
-		private decimal GetPaymentsTotal()
-		{
-			return InvoicePayments.Sum(x => x.Amount);
-		}
+			var arInvoiceIds = _payments.Where(IsArPayment)
+										.Select(x => x.InvoiceId)
+										.ToHashSet();
 
-		private decimal GetChangesTotal()
-		{
-			var changes = 0m;
-
-			foreach (var invoice in _invoices)
+			foreach (var product in _invoiceProducts)
 			{
-				if (invoice.Total <= 0m)
-					continue;
+				var invoiceId = product.InvoiceId;
+				var productTotal = product.UnitPrice * product.Quantity;
 
-				var payment = _payments.Where(x => x.InvoiceId == invoice.InvoiceId)
-									   .Sum(x => x.Amount);
+				if (IsGeneralProduct(product))
+				{
+					generalProductsTotal += productTotal;
 
-				changes += payment - invoice.Total;
+					if (arInvoiceIds.Contains(invoiceId))
+						arTotalForGeneralProducts += productTotal;
+                }
+				else
+				{
+					hardwareProductsTotal += productTotal;
+
+					if (arInvoiceIds.Contains(invoiceId))
+						arTotalForHardwareProducts += productTotal;
+				}
 			}
 
-			return changes;
+			var report = CreateSaleReport(generalProductsTotal,
+										  hardwareProductsTotal,
+										  arTotalForGeneralProducts,
+										  arTotalForHardwareProducts);
+
+			return report;
 		}
 
-		private decimal GetRefundTotal()
-		{
-			return _invoices.Where(x => x.Total < 0)
-							.Sum(x => x.Total);
-		}
-
-		private decimal GetInvoicesTotalWithoutAr()
-		{
-			return InvoicesTotal - ArTotal;
-		}
-
-		private decimal GetInvoicesTotalWithoutIncompleteAr()
+		private static SalesReport CreateSaleReport(decimal generalProductsTotal,
+												   decimal hardwareProductsTotal,
+												   decimal arTotalForGeneralProducts,
+												   decimal arTotalForHardwareProducts)
         {
-			return InvoicesTotal - IncompleteArTotal;
+			var invoicesTotal = generalProductsTotal + hardwareProductsTotal;
+			var arTotal = arTotalForGeneralProducts + arTotalForHardwareProducts;
+			var invoicesTotalWithoutAr = invoicesTotal - arTotal;
+			var generalProductsTotalWithoutAr = generalProductsTotal - arTotalForGeneralProducts;
+			var hardwareProductsTotalWithoutAr = hardwareProductsTotal - arTotalForHardwareProducts;
+
+			var report = new SalesReport
+						 {
+							 InvoicesTotal = invoicesTotal,
+							 GeneralProductsTotal = generalProductsTotal,
+							 HardwareProductsTotal = hardwareProductsTotal,
+							 InvoicesTotalWithoutAr = invoicesTotalWithoutAr,
+							 ArTotalForGeneralProducts = arTotalForGeneralProducts,
+							 ArTotalForHardwareProducts = arTotalForHardwareProducts,
+							 GeneralProductsTotalWithoutAr = generalProductsTotalWithoutAr,
+							 HardwareProductsTotalWithoutAr = hardwareProductsTotalWithoutAr
+						 };
+
+			return report;
         }
 
-		private decimal GetArTotal()
+		public PaymentReport GetPaymentReport()
 		{
-			return _accountsReceivables.Sum(x => x.ReceivableAmount);
+			var arTotal = 0m;
+			var fiftyFiftyTotal = 0m;
+			var m33WeLoveTotal = 0m;
+			var moneyTransferTotal = 0m;
+			var welfareCardTotal = 0m;
+			var weWinTotal = 0m;
+
+			foreach (var payment in _payments)
+			{
+				var amount = payment.Amount;
+
+				switch (payment.PaymentTypeId)
+				{
+					case (int) PaymentType.AccountReceivable:
+						arTotal += amount;
+						break;
+
+					case (int) PaymentType.WelfareCard:
+						welfareCardTotal += amount;
+						break;
+
+					case (int) PaymentType.M33WeLove:
+						m33WeLoveTotal += amount;
+						break;
+
+					case (int) PaymentType.MoneyTransfer:
+						moneyTransferTotal += amount;
+						break;
+
+					case (int) PaymentType.FiftyFifty:
+						fiftyFiftyTotal += amount;
+						break;
+
+					case (int) PaymentType.WeWin:
+						weWinTotal += amount;
+						break;
+				}
+			}
+
+			var report = new PaymentReport
+						 {
+							 ArTotal = arTotal,
+							 FiftyFiftyTotal = fiftyFiftyTotal,
+							 M33WeLoveTotal = m33WeLoveTotal,
+							 MoneyTransferTotal = moneyTransferTotal,
+							 WelfareCardTotal = welfareCardTotal,
+							 WeWinTotal = weWinTotal
+						 };
+
+			return report;
 		}
 
-		private decimal GetCompletedArTotal()
+		public ArReport GetArReport()
+		{
+			var arTotal = 0m;
+			var completedArTotal = 0m;
+
+			foreach (var ar in _accountsReceivables)
+			{
+				var amount = ar.ReceivableAmount;
+
+				arTotal += amount;
+
+				if (ar.IsCompleted)
+					completedArTotal += amount;
+			}
+
+			var incompleteArTotal = arTotal - completedArTotal;
+			var report = new ArReport
+						 {
+							 ArTotal = arTotal,
+							 CompletedArTotal = completedArTotal,
+							 IncompleteArTotal = incompleteArTotal
+						 };
+
+			return report;
+		}
+
+		private static bool IsArPayment(IFinalInvoicePayment payment)
         {
-			return _accountsReceivables.Where(x => x.IsCompleted)
-									   .Sum(x => x.ReceivableAmount);
+			return payment.PaymentTypeId == (int) PaymentType.AccountReceivable;
         }
 
-		private decimal GetIncompleteArTotal()
+		private static bool IsGeneralProduct(IFinalInvoiceProduct product)
 		{
-			return _accountsReceivables.Where(x => !x.IsCompleted)
-									   .Sum(x => x.ReceivableAmount);
+			return product.Category < (int) ProductCategory.Hardware;
 		}
-
-		private decimal GetGeneralGoodsProductsTotal()
-        {
-			return GeneralGoodsProducts.Sum(x => (x.UnitPrice * x.Quantity));
-        }
-
-		private decimal GetHardwareProductsTotal()
-		{
-			return HardwareProducts.Sum(x => (x.UnitPrice * x.Quantity));
-		}
-
-		private IEnumerable<IFinalInvoiceProduct> GetGeneralGoodsProducts()
-		{
-			return InvoiceProducts.Where(p => p.Category < (int) ProductCategory.Hardware);
-		}
-
-		private IEnumerable<IFinalInvoiceProduct> GetHardwareProducts()
-		{
-			return InvoiceProducts.Where(p => p.Category >= (int) ProductCategory.Hardware);
-		}
-
+		
 		private IEnumerable<IFinalInvoice> GetInvoicesByDateRange(DateTime startDate, DateTime endDate)
 		{
 			var results = _invoicesRepository.GetInvoicesByDateRange(startDate, endDate);
@@ -236,11 +279,25 @@ namespace IndyPOS.Controllers
 			return results.Select(x => new FinalInvoicePaymentAdapter(x) as IFinalInvoicePayment);
 		}
 
-		public decimal GetPaymentsTotalByType(PaymentType type)
+		public IFinalInvoice GetInvoiceByInvoiceId(int invoiceId)
 		{
-			var paymentsByType = _payments.Where(x => x.PaymentTypeId == (int) type);
+			var result = _invoicesRepository.GetInvoiceByInvoiceId(invoiceId);
 
-			return paymentsByType.Sum(x => x.Amount);
+			return result != null ? new FinalInvoiceAdapter(result) : null;
+		}
+
+		public IEnumerable<IFinalInvoiceProduct> GetInvoiceProductsByInvoiceId(int invoiceId)
+		{
+			var results = _invoicesRepository.GetInvoiceProductsByInvoiceId(invoiceId);
+
+			return results.Select(x => new FinalInvoiceProductAdapter(x) as IFinalInvoiceProduct);
+		}
+
+		public IEnumerable<IFinalInvoicePayment> GetPaymentsByInvoiceId(int invoiceId)
+		{
+			var results = _invoicesRepository.GetPaymentsByInvoiceId(invoiceId);
+
+			return results.Select(x => new FinalInvoicePaymentAdapter(x) as IFinalInvoicePayment);
 		}
 
 		public void WriteSaleRecordsToCsvFileByDate(DateTime date)

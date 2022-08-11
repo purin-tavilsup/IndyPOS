@@ -1,8 +1,11 @@
 ﻿using IndyPOS.Devices;
+using IndyPOS.Mqtt;
 using IndyPOS.UI;
+using System;
 using System.Configuration;
 using System.Diagnostics;
 using System.IO;
+using System.Threading.Tasks;
 
 namespace IndyPOS
 {
@@ -11,12 +14,17 @@ namespace IndyPOS
         private readonly MainForm _mainForm;
 		private readonly IConfig _config;
         private readonly IBarcodeScanner _barcodeScanner;
+		private readonly IMqttClient _mqttClient;
 
-        public Machine(MainForm mainForm, IConfig config, IBarcodeScanner barcodeScanner)
+        public Machine(MainForm mainForm,
+					   IConfig config,
+					   IBarcodeScanner barcodeScanner,
+					   IMqttClient mqttClient)
         {
             _mainForm = mainForm;
 			_config = config;
             _barcodeScanner = barcodeScanner;
+			_mqttClient = mqttClient;
 		}
 
 		public void Dispose()
@@ -28,8 +36,10 @@ namespace IndyPOS
 		{
 			LoadConfig();
             ConnectDevices();
-            StartUserInterface();
-        }
+			StartMqttClient();
+			StartUserInterface();
+			StopMqttClient();
+		}
 
 		private static string GetVersion()
 		{
@@ -82,6 +92,8 @@ namespace IndyPOS
 
 		private void Shutdown()
 		{
+			Console.WriteLine("IndyPOS is shutting down...");
+
             DisconnectDevices();
         }
 
@@ -103,6 +115,16 @@ namespace IndyPOS
 			_mainForm.SetStoreName(_config.StoreFullName);
 
             System.Windows.Forms.Application.Run(_mainForm);
+        }
+
+		private void StartMqttClient()
+        {
+			Task.Run(_mqttClient.Start);
+        }
+
+		private void StopMqttClient()
+        {
+			Task.Run(_mqttClient.Stop).GetAwaiter().GetResult();
         }
     }
 }

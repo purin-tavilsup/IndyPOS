@@ -9,6 +9,8 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Windows.Forms;
+using IndyPOS.Extensions;
+using IndyPOS.Mqtt.Events;
 
 namespace IndyPOS.UI
 {
@@ -100,6 +102,24 @@ namespace IndyPOS.UI
 		{
 			_eventAggregator.GetEvent<UserLoggedInEvent>().Subscribe(OnUserLoggedIn);
 			_eventAggregator.GetEvent<UserLoggedOutEvent>().Subscribe(OnUserLoggedOut);
+			_eventAggregator.GetEvent<MqttClientConnectedEvent>().Subscribe(MqttCloudConnected);
+			_eventAggregator.GetEvent<MqttClientDisconnectedEvent>().Subscribe(MqttCloudDisconnected);
+		}
+
+		private void MqttCloudConnected()
+		{
+			this.UiThread(delegate
+						  {
+							  MqttCloudStatusLabel.Text = "Mqtt Cloud Status: Connected";
+						  });
+		}
+
+		private void MqttCloudDisconnected()
+		{
+			this.UiThread(delegate
+						  {
+							  MqttCloudStatusLabel.Text = "Mqtt Cloud Status: Disconnected";
+						  });
 		}
 
         private void SwitchToPanel(SubPanel subPanelToShow)

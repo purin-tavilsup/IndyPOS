@@ -13,9 +13,11 @@ using NUnit.Framework;
 using Prism.Events;
 using System;
 using System.Collections.Generic;
+using IndyPOS.CloudReport;
 using AccountsReceivableModel = IndyPOS.DataAccess.Models.AccountsReceivable;
 using InventoryProductModel = IndyPOS.DataAccess.Models.InventoryProduct;
 using InvoiceProductModel = IndyPOS.DataAccess.Models.InvoiceProduct;
+using Payment = IndyPOS.Sales.Payment;
 using PaymentModel = IndyPOS.DataAccess.Models.Payment;
 
 namespace IndyPOS.Tests.Controllers
@@ -31,6 +33,7 @@ namespace IndyPOS.Tests.Controllers
         private IReceiptPrinter _receiptPrinter;
         private IUserAccountHelper _userAccountHelper;
 		private IAccountsReceivableRepository _accountsReceivableRepository;
+		private ICloudReportHelper _cloudReportHelper;
         private IFixture _fixture;
 		private int _inventoryProductId;
 		private int _productPriority;
@@ -53,7 +56,8 @@ namespace IndyPOS.Tests.Controllers
                                                                _inventoryProductsRepository,
                                                                _receiptPrinter,
                                                                _userAccountHelper,
-															   _accountsReceivableRepository);
+															   _accountsReceivableRepository,
+															   _cloudReportHelper);
         }
 
 		private void SetupFakeEventObjects()
@@ -73,6 +77,7 @@ namespace IndyPOS.Tests.Controllers
 			_receiptPrinter = A.Fake<IReceiptPrinter>();
 			_userAccountHelper = A.Fake<IUserAccountHelper>();
 			_accountsReceivableRepository = A.Fake<IAccountsReceivableRepository>();
+			_cloudReportHelper = A.Fake<ICloudReportHelper>();
 		}
 
 		private void SetupFixture()

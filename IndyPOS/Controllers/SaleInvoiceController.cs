@@ -1,4 +1,5 @@
-﻿using IndyPOS.DataAccess.Repositories;
+﻿using IndyPOS.CloudReport;
+using IndyPOS.DataAccess.Repositories;
 using IndyPOS.Devices;
 using IndyPOS.Enums;
 using IndyPOS.Events;
@@ -8,6 +9,7 @@ using IndyPOS.Users;
 using Prism.Events;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using AccountsReceivableModel = IndyPOS.DataAccess.Models.AccountsReceivable;
 using InventoryProductModel = IndyPOS.DataAccess.Models.InventoryProduct;
 using InvoiceModel = IndyPOS.DataAccess.Models.Invoice;
@@ -25,6 +27,7 @@ namespace IndyPOS.Controllers
 		private readonly IUserAccountHelper _userAccountHelper;
 		private readonly IAccountsReceivableRepository _accountsReceivableRepository;
         private readonly ISaleInvoice _saleInvoice;
+		private readonly ICloudReportHelper _cloudReportHelper;
 
         public IReadOnlyCollection<ISaleInvoiceProduct> Products => (IReadOnlyCollection<ISaleInvoiceProduct>)_saleInvoice.Products;
 
@@ -50,7 +53,8 @@ namespace IndyPOS.Controllers
 									 IInventoryProductRepository inventoryProductsRepository,
 									 IReceiptPrinter receiptPrinter,
 									 IUserAccountHelper userAccountHelper,
-									 IAccountsReceivableRepository accountsReceivableRepository)
+									 IAccountsReceivableRepository accountsReceivableRepository,
+									 ICloudReportHelper cloudReportHelper)
         {
 			_saleInvoice = saleInvoice;
             _eventAggregator = eventAggregator;
@@ -59,6 +63,7 @@ namespace IndyPOS.Controllers
 			_receiptPrinter = receiptPrinter;
 			_userAccountHelper = userAccountHelper;
 			_accountsReceivableRepository = accountsReceivableRepository;
+			_cloudReportHelper = cloudReportHelper;
 		}
 		
         public void StartNewSale()
@@ -262,7 +267,13 @@ namespace IndyPOS.Controllers
 			AddInvoiceProductsToDatabase(_saleInvoice);
             AddPaymentsToDatabase(_saleInvoice);
 			UpdateInventoryProductsSoldOnInvoice(_saleInvoice);
+			PublishSaleReportToCloud(_saleInvoice.Id.GetValueOrDefault());
 		}
+
+		private void PublishSaleReportToCloud(int invoiceId)
+        {
+			Task.Run(() => _cloudReportHelper.PublishSaleReport(invoiceId)).GetAwaiter();
+        }
 
 		public void PrintReceipt()
 		{

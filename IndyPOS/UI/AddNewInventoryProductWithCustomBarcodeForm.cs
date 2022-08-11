@@ -1,39 +1,30 @@
-﻿using IndyPOS.Constants;
+﻿using IndyPOS.Barcode;
+using IndyPOS.Constants;
 using IndyPOS.Controllers;
 using IndyPOS.Inventory;
-using Prism.Events;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.Drawing;
-using System.Drawing.Imaging;
 using System.Linq;
 using System.Windows.Forms;
-using IndyPOS.Barcode;
 
 namespace IndyPOS.UI
 {
-	[ExcludeFromCodeCoverage]
+    [ExcludeFromCodeCoverage]
 	public partial class AddNewInventoryProductWithCustomBarcodeForm : Form
     {
         private readonly IBarcodeHelper _barcodeHelper;
-        private readonly IEventAggregator _eventAggregator;
         private readonly IInventoryController _inventoryController;
-		private readonly IConfig _config;
         private readonly IReadOnlyDictionary<int, string> _productCategoryDictionary;
 		private readonly MessageForm _messageForm;
 
-        public AddNewInventoryProductWithCustomBarcodeForm(IBarcodeHelper barcodeHelper,
-														   IEventAggregator eventAggregator, 
+        public AddNewInventoryProductWithCustomBarcodeForm(IBarcodeHelper barcodeHelper, 
 														   IStoreConstants storeConstants, 
 														   IInventoryController inventoryController,
-														   IConfig config,
 														   MessageForm messageForm)
 		{
 			_barcodeHelper = barcodeHelper;
-            _eventAggregator = eventAggregator;
             _inventoryController = inventoryController;
-            _config = config;
             _productCategoryDictionary = storeConstants.ProductCategories;
 			_messageForm = messageForm;
 
@@ -47,14 +38,12 @@ namespace IndyPOS.UI
 
             CancelProductEntryButton.Select();
 
-			
-
             base.ShowDialog();
         }
 
         private void ResetProductEntry()
         {
-            BarcodeLabel.Text = string.Empty;
+			BarcodeTextBox.Texts = string.Empty;
             DescriptionTextBox.Texts = string.Empty;
             QuantityTextBox.Texts = string.Empty;
             UnitPriceTextBox.Texts = string.Empty;
@@ -133,12 +122,18 @@ namespace IndyPOS.UI
             if (!ValidateProductEntry())
                 return;
 
-            var product = CreateNewProduct();
+			try
+			{
+				var product = CreateNewProduct();
 
-            _inventoryController.AddNewProduct(product);
-
-			SaveBarcodeImage(product);
-
+				_inventoryController.AddNewProduct(product);
+				_inventoryController.IncrementProductBarcodeCounter();
+			}
+			catch (Exception exception)
+			{
+				_messageForm.Show(exception.Message, "Something went wrong");
+			}
+			
 			Close();
         }
 
@@ -152,7 +147,7 @@ namespace IndyPOS.UI
 
             var product = new InventoryProduct
             {
-                Barcode = BarcodeLabel.Text,
+                Barcode = BarcodeTextBox.Texts,
                 Description = DescriptionTextBox.Texts.Trim(),
                 QuantityInStock = quantity,
                 UnitPrice = unitPrice,
@@ -198,24 +193,14 @@ namespace IndyPOS.UI
 			var counter = _inventoryController.GetProductBarcodeCounter();
 			var barcode = _barcodeHelper.GenerateEan13Barcode(categoryId, counter + 1);
 
-			BarcodeLabel.Text = barcode;
+			BarcodeTextBox.Texts = barcode;
 
 			var barcodeImage = _barcodeHelper.CreateEan13BarcodeImage(barcode, 200, 400, 10);
 
             BarcodePictureBox.Image = barcodeImage;
 		}
 
-        private void SaveBarcodeImage(IInventoryProduct product)
-		{
-			var barcodeImage = _barcodeHelper.CreateEan13BarcodeImage(product.Barcode, 100, 200, 10);
-			var filePath = $"{_config.BarcodeDirectory}\\{product.Barcode}-{product.Description}.jpg";
-
-            barcodeImage.Save(filePath, ImageFormat.Jpeg);
-
-            _inventoryController.IncrementProductBarcodeCounter();
-		}
-
-        private void IsTrackableCheckBox_CheckedChanged(object sender, EventArgs e)
+		private void IsTrackableCheckBox_CheckedChanged(object sender, EventArgs e)
 		{
 			if (!IsTrackableCheckBox.Checked)
             {

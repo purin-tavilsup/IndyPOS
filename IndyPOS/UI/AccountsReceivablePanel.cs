@@ -16,6 +16,7 @@ namespace IndyPOS.UI
     {
 		private readonly IAccountsReceivableController _arController;
 		private readonly IUserAccountHelper _accountHelper;
+		private readonly SaleHistoryByInvoiceIdForm _saleHistoryByInvoiceIdForm;
 		private readonly MessageForm _messageForm;
 		private IList<IAccountsReceivable> _accountsReceivables;
 		private IAccountsReceivable _selectedAccountsReceivable;
@@ -33,11 +34,13 @@ namespace IndyPOS.UI
 		}
 
         public AccountsReceivablePanel(IAccountsReceivableController arController,
-									   IUserAccountHelper accountHelper, 
+									   IUserAccountHelper accountHelper,
+									   SaleHistoryByInvoiceIdForm saleHistoryByInvoiceIdForm,
 									   MessageForm messageForm)
 		{
 			_arController = arController;
 			_accountHelper = accountHelper;
+			_saleHistoryByInvoiceIdForm = saleHistoryByInvoiceIdForm;
 			_messageForm = messageForm;
 
             InitializeComponent();
@@ -231,6 +234,19 @@ namespace IndyPOS.UI
 			var showIncompleteOnly = ShowIncompleteOnlyCheckBox.Checked;
 			
 			ShowAccountReceivables(showIncompleteOnly);
+        }
+
+        private void ArDataView_DoubleClick(object sender, EventArgs e)
+        {
+			if (ArDataView.SelectedCells.Count == 0)
+				return;
+
+			var selectedCell = ArDataView.SelectedCells[0];
+			var rowIndex = selectedCell.RowIndex;
+			var selectedRow = ArDataView.Rows[rowIndex];
+			var invoiceId = (int) selectedRow.Cells[(int) AccountColumn.InvoiceId].Value;
+			
+			_saleHistoryByInvoiceIdForm.ShowDialog(invoiceId);
         }
     }
 }

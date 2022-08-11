@@ -1,9 +1,12 @@
 ﻿using IndyPOS.Controllers;
 using IndyPOS.Enums;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Threading.Tasks;
 using System.Windows.Forms;
-using System.Windows.Media;
+using IndyPOS.CloudReport;
+using IndyPOS.Sales;
 
 namespace IndyPOS.UI.Reports
 {
@@ -11,92 +14,175 @@ namespace IndyPOS.UI.Reports
     {
 		private readonly IReportController _reportController;
 		private readonly MessageForm _messageForm;
-		private readonly FontFamily _fontFamily;
-		private const string FontFamilyName = "FC Subject [Non-commercial] Reg";
+		private readonly ICloudReportHelper _cloudReportHelper;
 
 		[ExcludeFromCodeCoverage]
-        public SalesReportPanel(IReportController reportController, MessageForm messageForm)
+        public SalesReportPanel(IReportController reportController, MessageForm messageForm, ICloudReportHelper cloudReportHelper)
         {
 			_reportController = reportController;
 			_messageForm = messageForm;
+			_cloudReportHelper = cloudReportHelper;
 
 			InitializeComponent();
-
-			_fontFamily = new FontFamily(FontFamilyName);
         }
 		
-		private void ShowReport()
+		private void ShowReport(SalesReport saleReport, PaymentReport paymentReport, ArReport arReport)
 		{
-			OverallSaleLabel.Text = $"{_reportController.InvoicesTotal:N}";
+			OverallSaleLabel.Text = $"{saleReport.InvoicesTotal:N}";
 
-			OverallSaleExcluedIncompleteArLabel.Text = $"{_reportController.InvoicesTotalWithoutIncompleteAr:N}";
+			OverallSaleExcluedIncompleteArLabel.Text = $"{saleReport.InvoicesTotalWithoutAr:N}";
 			
-			GeneralGoodsSaleLabel.Text = $"{_reportController.GeneralGoodsProductsTotal:N}";
+			GeneralGoodsSaleLabel.Text = $"{saleReport.GeneralProductsTotal:N}";
 			
-			HardwareSaleLabel.Text = $"{_reportController.HardwareProductsTotal:N}";
+			HardwareSaleLabel.Text = $"{saleReport.HardwareProductsTotal:N}";
 
-			ArTotalLabel.Text = $"{_reportController.ArTotal:N}";
+			ArTotalForGeneralProductsLabel.Text  = $"{saleReport.ArTotalForGeneralProducts:N}";
 
-            CompletedArLabel.Text = $"{_reportController.CompletedArTotal:N}";
+			ArTotalForHardwareProductsLabel.Text = $"{saleReport.ArTotalForHardwareProducts:N}";
 
-			IncompleteArLabel.Text = $"{_reportController.IncompleteArTotal:N}";
+			GeneralProductsTotalWithoutArLabel.Text = $"{saleReport.GeneralProductsTotalWithoutAr:N}";
 
-			RefundTotalLabel.Text = $"{_reportController.RefundTotal:N}";
+			HardwareProductsTotalWithoutArLabel.Text = $"{saleReport.HardwareProductsTotalWithoutAr:N}";
 
-			PaymentByCashLabel.Text = $"{_reportController.GetPaymentsTotalByType(PaymentType.Cash):N}";
+			ArTotalLabel.Text = $"{arReport.ArTotal:N}";
 
-			PaymentByTransferLabel.Text = $"{_reportController.GetPaymentsTotalByType(PaymentType.MoneyTransfer):N}";
+            CompletedArLabel.Text = $"{arReport.CompletedArTotal:N}";
 
-			PaymentByKlkLabel.Text = $"{_reportController.GetPaymentsTotalByType(PaymentType.FiftyFifty):N}";
+			IncompleteArLabel.Text = $"{arReport.IncompleteArTotal:N}";
 
-			PaymentByM33Label.Text = $"{_reportController.GetPaymentsTotalByType(PaymentType.M33WeLove):N}";
+			PaymentByTransferLabel.Text = $"{paymentReport.MoneyTransferTotal:N}";
 
-			PaymentByWeWinLabel.Text = $"{_reportController.GetPaymentsTotalByType(PaymentType.WeWin):N}";
+			PaymentByKlkLabel.Text = $"{paymentReport.FiftyFiftyTotal:N}";
 
-			PaymentByWelfareCardLabel.Text = $"{_reportController.GetPaymentsTotalByType(PaymentType.WelfareCard):N}";
+			PaymentByM33Label.Text = $"{paymentReport.M33WeLoveTotal:N}";
 
-			PaymentByArLabel.Text = $"{_reportController.GetPaymentsTotalByType(PaymentType.AccountReceivable):N}";
+			PaymentByWeWinLabel.Text = $"{paymentReport.WeWinTotal:N}";
 
-			ChangesLabel.Text = $"{_reportController.ChangesTotal:N}";
+			PaymentByWelfareCardLabel.Text = $"{paymentReport.WelfareCardTotal:N}";
+
+			PaymentByArLabel.Text = $"{paymentReport.ArTotal:N}";
 		}
 
-        private void ShowReportByTodayButton_Click(object sender, EventArgs e)
+		private async Task<SalesReport> GetSaleReportAsync()
+		{
+			return await Task.Run(() => _reportController.GetSaleReport());
+		}
+
+		private async Task<PaymentReport> GetPaymentReportAsync()
+		{
+			return await Task.Run(() => _reportController.GetPaymentReport());
+		}
+
+		private async Task<ArReport> GetArReportAsync()
+		{
+			return await Task.Run(() => _reportController.GetArReport());
+		}
+
+        private async void ShowReportByTodayButton_Click(object sender, EventArgs e)
 		{
 			PeriodLabel.Text = ShowReportByTodayButton.Text;
 
 			_reportController.LoadInvoicesByPeriod(ReportPeriod.Today);
 
-			ShowReport();
+			var getSaleReportTask = Task.Run(GetSaleReportAsync);
+			var getPaymentReportTask = Task.Run(GetPaymentReportAsync);
+			var getArReportTask = Task.Run(GetArReportAsync);
+
+			var tasks = new List<Task>
+			{
+				getSaleReportTask,
+				getPaymentReportTask,
+				getArReportTask
+			};
+
+			await Task.WhenAll(tasks.ToArray());
+
+			var saleReport = await getSaleReportTask;
+			var paymentReport = await getPaymentReportTask;
+			var arReport = await getArReportTask;
+
+			ShowReport(saleReport, paymentReport, arReport);
 		}
 
-        private void ShowReportByThisWeekButton_Click(object sender, EventArgs e)
+        private async void ShowReportByThisWeekButton_Click(object sender, EventArgs e)
         {
 			PeriodLabel.Text = ShowReportByThisWeekButton.Text;
 
 			_reportController.LoadInvoicesByPeriod(ReportPeriod.ThisWeek);
 
-			ShowReport();
+			var getSaleReportTask = Task.Run(GetSaleReportAsync);
+			var getPaymentReportTask = Task.Run(GetPaymentReportAsync);
+			var getArReportTask = Task.Run(GetArReportAsync);
+
+			var tasks = new List<Task>
+			{
+				getSaleReportTask,
+				getPaymentReportTask,
+				getArReportTask
+			};
+
+			await Task.WhenAll(tasks.ToArray());
+
+			var saleReport = await getSaleReportTask;
+			var paymentReport = await getPaymentReportTask;
+			var arReport = await getArReportTask;
+
+			ShowReport(saleReport, paymentReport, arReport);
         }
 
-        private void ShowReportByThisMonthButton_Click(object sender, EventArgs e)
+        private async void ShowReportByThisMonthButton_Click(object sender, EventArgs e)
         {
 			PeriodLabel.Text = ShowReportByThisMonthButton.Text;
 
 			_reportController.LoadInvoicesByPeriod(ReportPeriod.ThisMonth);
 
-			ShowReport();
+			var getSaleReportTask = Task.Run(GetSaleReportAsync);
+			var getPaymentReportTask = Task.Run(GetPaymentReportAsync);
+			var getArReportTask = Task.Run(GetArReportAsync);
+
+			var tasks = new List<Task>
+			{
+				getSaleReportTask,
+				getPaymentReportTask,
+				getArReportTask
+			};
+
+			await Task.WhenAll(tasks.ToArray());
+
+			var saleReport = await getSaleReportTask;
+			var paymentReport = await getPaymentReportTask;
+			var arReport = await getArReportTask;
+
+			ShowReport(saleReport, paymentReport, arReport);
         }
 
-        private void ShowReportByThisYearButton_Click(object sender, EventArgs e)
+        private async void ShowReportByThisYearButton_Click(object sender, EventArgs e)
         {
 			PeriodLabel.Text = ShowReportByThisYearButton.Text;
 
             _reportController.LoadInvoicesByPeriod(ReportPeriod.ThisYear);
 
-            ShowReport();
+			var getSaleReportTask = Task.Run(GetSaleReportAsync);
+			var getPaymentReportTask = Task.Run(GetPaymentReportAsync);
+			var getArReportTask = Task.Run(GetArReportAsync);
+
+			var tasks = new List<Task>
+			{
+				getSaleReportTask,
+				getPaymentReportTask,
+				getArReportTask
+			};
+
+			await Task.WhenAll(tasks.ToArray());
+
+			var saleReport = await getSaleReportTask;
+			var paymentReport = await getPaymentReportTask;
+			var arReport = await getArReportTask;
+
+			ShowReport(saleReport, paymentReport, arReport);
         }
 
-        private void ShowReportByDateRangeButton_Click(object sender, EventArgs e)
+        private async void ShowReportByDateRangeButton_Click(object sender, EventArgs e)
 		{
 			var startDate = StartDatePicker.Value;
 			var endDate = EndDatePicker.Value;
@@ -105,16 +191,29 @@ namespace IndyPOS.UI.Reports
 
 			_reportController.LoadInvoicesByDateRange(startDate, endDate);
 
-			ShowReport();
+			var getSaleReportTask = Task.Run(GetSaleReportAsync);
+			var getPaymentReportTask = Task.Run(GetPaymentReportAsync);
+			var getArReportTask = Task.Run(GetArReportAsync);
+
+			var tasks = new List<Task>
+			{
+				getSaleReportTask,
+				getPaymentReportTask,
+				getArReportTask
+			};
+
+			await Task.WhenAll(tasks.ToArray());
+
+			var saleReport = await getSaleReportTask;
+			var paymentReport = await getPaymentReportTask;
+			var arReport = await getArReportTask;
+
+			ShowReport(saleReport, paymentReport, arReport);
 		}
 
-        private void WriteSaleRecordsToFileButton_Click(object sender, EventArgs e)
+        private async void WriteSaleRecordsToFileButton_Click(object sender, EventArgs e)
 		{
-			var date = SaveSaleRecordsDateTimePicker.Value;
-
-			_reportController.WriteSaleRecordsToCsvFileByDate(date);
-
-			_messageForm.Show($"รายการขายในวันที่ {date:yyyy-MM-dd} ถูกบันทึกลงไฟล์เรียบร้อยแล้ว", " บันทึกรายการขายลงไฟล์");
-        }
+			await Task.Run(() => _cloudReportHelper.PublishSaleReport(2878));
+		}
     }
 }
