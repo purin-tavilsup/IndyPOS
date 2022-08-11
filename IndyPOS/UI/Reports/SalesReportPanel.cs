@@ -210,10 +210,5 @@ namespace IndyPOS.UI.Reports
 
 			ShowReport(saleReport, paymentReport, arReport);
 		}
-
-        private async void WriteSaleRecordsToFileButton_Click(object sender, EventArgs e)
-		{
-			await Task.Run(() => _cloudReportHelper.PublishSaleReport(2878));
-		}
     }
 }
