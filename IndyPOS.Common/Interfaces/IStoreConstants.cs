@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace IndyPOS.Constants
+namespace IndyPOS.Common.Interfaces
 {
     public interface IStoreConstants
     {

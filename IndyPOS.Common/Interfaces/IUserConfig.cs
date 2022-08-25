@@ -1,6 +1,6 @@
-﻿namespace IndyPOS
+﻿namespace IndyPOS.Common.Interfaces
 {
-    public interface IConfig
+    public interface IUserConfig
     {
 		string StoreFullName { get; set; }
 		string StoreName { get; set; }
@@ -12,6 +12,8 @@
 		string ReportDirectory { get; set; }
 		string BackupDbDirectory { get; set; }
 		string BarcodeDirectory { get; set; }
+		string DataFeedKey { get; set; }
+		string DataFeedEnabled { get; set; }
 
 		string FileName { get; set; }
 		void Save();
