@@ -1,16 +1,16 @@
-﻿using IndyPOS.Constants;
+﻿using IndyPOS.Common.Interfaces;
 using IndyPOS.Controllers;
+using IndyPOS.Enums;
 using IndyPOS.Sales;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Drawing;
 using System.Windows.Forms;
-using IndyPOS.Enums;
 
 namespace IndyPOS.UI
 {
-    [ExcludeFromCodeCoverage]
+	[ExcludeFromCodeCoverage]
     public partial class SaleHistoryByInvoiceIdForm : Form
     {
 		private readonly IReportController _reportController;

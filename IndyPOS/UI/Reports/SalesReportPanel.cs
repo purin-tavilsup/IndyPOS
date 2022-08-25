@@ -5,8 +5,9 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using IndyPOS.CloudReport;
+using IndyPOS.DataAccess.Models;
 using IndyPOS.Sales;
+using PaymentType = IndyPOS.DataAccess.Models.PaymentType;
 
 namespace IndyPOS.UI.Reports
 {
@@ -14,14 +15,12 @@ namespace IndyPOS.UI.Reports
     {
 		private readonly IReportController _reportController;
 		private readonly MessageForm _messageForm;
-		private readonly ICloudReportHelper _cloudReportHelper;
 
 		[ExcludeFromCodeCoverage]
-        public SalesReportPanel(IReportController reportController, MessageForm messageForm, ICloudReportHelper cloudReportHelper)
+        public SalesReportPanel(IReportController reportController, MessageForm messageForm)
         {
 			_reportController = reportController;
 			_messageForm = messageForm;
-			_cloudReportHelper = cloudReportHelper;
 
 			InitializeComponent();
         }
@@ -209,6 +208,10 @@ namespace IndyPOS.UI.Reports
 			var arReport = await getArReportTask;
 
 			ShowReport(saleReport, paymentReport, arReport);
+		}
+
+        private void TestDataFeedButton_Click(object sender, EventArgs e)
+		{
 		}
     }
 }

@@ -1,4 +1,4 @@
-﻿using IndyPOS.Constants;
+﻿using IndyPOS.Common.Interfaces;
 using IndyPOS.Controllers;
 using IndyPOS.Cryptography;
 using IndyPOS.Extensions;
@@ -11,7 +11,7 @@ using System.Windows.Forms;
 
 namespace IndyPOS.UI
 {
-	[ExcludeFromCodeCoverage]
+    [ExcludeFromCodeCoverage]
     public partial class AddNewUserForm : Form
     {
         private readonly IUserController _userController;

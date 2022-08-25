@@ -1,4 +1,4 @@
-﻿using IndyPOS.Constants;
+﻿using IndyPOS.Common.Interfaces;
 using IndyPOS.Controllers;
 using IndyPOS.Inventory;
 using Prism.Events;
@@ -10,7 +10,7 @@ using System.Windows.Forms;
 
 namespace IndyPOS.UI
 {
-	[ExcludeFromCodeCoverage]
+    [ExcludeFromCodeCoverage]
 	public partial class AddNewInventoryProductForm : Form
     {
         private readonly IEventAggregator _eventAggregator;

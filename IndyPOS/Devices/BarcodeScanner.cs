@@ -1,5 +1,8 @@
-﻿using IndyPOS.Events;
+﻿using IndyPOS.Common.Interfaces;
+using IndyPOS.Events;
 using Prism.Events;
+using Serilog;
+using System;
 using System.IO.Ports;
 
 namespace IndyPOS.Devices
@@ -7,14 +10,18 @@ namespace IndyPOS.Devices
 	public class BarcodeScanner : IBarcodeScanner
     {
         private readonly IEventAggregator _eventAggregator;
-		private readonly IConfig _config;
+		private readonly IConfiguration _configuration;
+		private readonly ILogger _logger;
 
         private SerialPort _serialPort;
 
-        public BarcodeScanner(IEventAggregator eventAggregator, IConfig config)
+        public BarcodeScanner(IEventAggregator eventAggregator,
+							  IConfiguration configuration,
+							  ILogger logger)
 		{
             _eventAggregator = eventAggregator;
-			_config = config;
+			_configuration = configuration;
+			_logger = logger;
 		}
 
         public void Connect()
@@ -23,7 +30,7 @@ namespace IndyPOS.Devices
 			{
 				_serialPort = new SerialPort
 				{
-					PortName = _config.BarcodeScannerPortName,
+					PortName = _configuration.BarcodeScannerPortName,
 					BaudRate = 115200,
 					DataBits = 8,
 					StopBits = StopBits.One,
@@ -33,9 +40,9 @@ namespace IndyPOS.Devices
 				_serialPort.Open();
 				_serialPort.DataReceived += SerialPort_DataReceived;
 			}
-			catch
+			catch (Exception ex)
 			{
-				// Log error here
+				_logger.Error(ex, $"Failed to connect to Barcode Scanner on port {_serialPort.PortName}.");
 			}
 		}
 
@@ -58,9 +65,9 @@ namespace IndyPOS.Devices
 				if (_serialPort.IsOpen)
 					_serialPort.Close();
 			}
-			catch
+			catch (Exception ex)
 			{
-				// Log error here
+				_logger.Error(ex, $"Failed to disconnect Barcode Scanner on port {_serialPort.PortName}.");
 			}
 		}
 

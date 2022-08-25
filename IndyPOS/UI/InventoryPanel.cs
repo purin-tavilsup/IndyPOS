@@ -1,4 +1,4 @@
-﻿using IndyPOS.Constants;
+﻿using IndyPOS.Common.Interfaces;
 using IndyPOS.Controllers;
 using IndyPOS.Enums;
 using IndyPOS.Events;

@@ -1,5 +1,5 @@
 ﻿using IndyPOS.Barcode;
-using IndyPOS.Constants;
+using IndyPOS.Common.Interfaces;
 using IndyPOS.Controllers;
 using IndyPOS.Inventory;
 using System;

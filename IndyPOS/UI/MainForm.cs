@@ -1,4 +1,5 @@
-﻿using IndyPOS.Controllers;
+﻿using IndyPOS.Common.Interfaces;
+using IndyPOS.Controllers;
 using IndyPOS.DataAccess;
 using IndyPOS.Enums;
 using IndyPOS.Events;
@@ -12,7 +13,7 @@ using System.Windows.Forms;
 
 namespace IndyPOS.UI
 {
-    [ExcludeFromCodeCoverage]
+	[ExcludeFromCodeCoverage]
     public partial class MainForm : Form
     {
         private readonly SalePanel _salesPanel;
@@ -24,7 +25,7 @@ namespace IndyPOS.UI
 		private readonly UserLogInPanel _userLogInPanel;
         private readonly IEventAggregator _eventAggregator;
 		private readonly IReportController _reportController;
-		private readonly IConfig _config;
+		private readonly IConfiguration _configuration;
 		private readonly IDbConnectionProvider _dbConnectionProvider;
         private UserControl _activePanel;
 		private bool _isUserLoggedIn;
@@ -41,7 +42,7 @@ namespace IndyPOS.UI
                         IEventAggregator eventAggregator,
 						IReportController reportController,
 						IDbConnectionProvider dbConnectionProvider,
-						IConfig config)
+						IConfiguration configuration)
 		{
             InitializeComponent();
 
@@ -63,7 +64,7 @@ namespace IndyPOS.UI
 			_isUserLoggedIn = false;
 			_reportController = reportController;
 			_dbConnectionProvider = dbConnectionProvider;
-			_config = config;
+			_configuration = configuration;
 
 			SubscribeEvents();
 			CreateDateTimeUpdateTimer();
@@ -100,6 +101,7 @@ namespace IndyPOS.UI
 		{
 			_eventAggregator.GetEvent<UserLoggedInEvent>().Subscribe(OnUserLoggedIn);
 			_eventAggregator.GetEvent<UserLoggedOutEvent>().Subscribe(OnUserLoggedOut);
+			_eventAggregator.GetEvent<SalesReportPushedEvent>().Subscribe(OnDataFeedReportPushed);
 		}
 
         private void SwitchToPanel(SubPanel subPanelToShow)
@@ -283,7 +285,7 @@ namespace IndyPOS.UI
 		private void BackupDatabase()
         {
 			var today = DateTime.Today;
-			var rootBackupDirectory = _config.BackupDbDirectory;
+			var rootBackupDirectory = _configuration.BackupDbDirectory;
 			var byDateBackupDirectory = $"{rootBackupDirectory}\\{today.Year}\\{today.Month:00}\\{today.Day:00}";
 			
 			if (!Directory.Exists(byDateBackupDirectory)) 
@@ -321,6 +323,11 @@ namespace IndyPOS.UI
 			_isUserLoggedIn = false;
 
 			LogInButton.Text = "Log In";
+		}
+
+		private void OnDataFeedReportPushed(string status)
+		{
+			DataFeedStatusLabel.Text = status;
 		}
 	}
 }

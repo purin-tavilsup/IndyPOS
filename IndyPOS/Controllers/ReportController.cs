@@ -1,5 +1,6 @@
 ﻿using CsvHelper;
 using IndyPOS.Adapters;
+using IndyPOS.Common.Interfaces;
 using IndyPOS.DataAccess.Repositories;
 using IndyPOS.Enums;
 using IndyPOS.Extensions;
@@ -10,15 +11,16 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using SalesReport = IndyPOS.Sales.SalesReport;
 
 namespace IndyPOS.Controllers
 {
-    internal class ReportController : IReportController
+	public class ReportController : IReportController
 	{
 		private readonly IUserAccountHelper _accountHelper;
 		private readonly IInvoiceRepository _invoicesRepository;
 		private readonly IAccountsReceivableRepository _accountsReceivableRepository;
-		private readonly IConfig _config;
+		private readonly IConfiguration _configuration;
 
 		private IEnumerable<IFinalInvoice> _invoices;
 		private IEnumerable<IFinalInvoiceProduct> _invoiceProducts;
@@ -34,17 +36,17 @@ namespace IndyPOS.Controllers
 		public IEnumerable<IAccountsReceivable> AccountsReceivables => _accountsReceivables ?? new List<IAccountsReceivable>();
 
 		public ReportController(IUserAccountHelper accountHelper,
-								IInvoiceRepository invoicesRepository,
-								IAccountsReceivableRepository accountsReceivableRepository,
-								IConfig config)
-		{
-			_accountHelper = accountHelper;
-			_invoicesRepository = invoicesRepository;
-			_accountsReceivableRepository = accountsReceivableRepository;
-			_config = config;
-		}
+                                IInvoiceRepository invoicesRepository,
+                                IAccountsReceivableRepository accountsReceivableRepository,
+								IConfiguration configuration)
+        {
+            _accountHelper = accountHelper;
+            _invoicesRepository = invoicesRepository;
+            _accountsReceivableRepository = accountsReceivableRepository;
+			_configuration = configuration;
+        }
 
-		public void LoadInvoicesByPeriod(ReportPeriod period)
+        public void LoadInvoicesByPeriod(ReportPeriod period)
 		{
 			DateTime startDate;
 			DateTime endDate;
@@ -302,7 +304,7 @@ namespace IndyPOS.Controllers
 
 		public void WriteSaleRecordsToCsvFileByDate(DateTime date)
 		{
-			var directoryPath = $"{_config.ReportDirectory}\\{date.Year}\\{date.Month:00}\\{date:yyyy-MMM-dd}";
+			var directoryPath = $"{_configuration.ReportsDirectory}\\{date.Year}\\{date.Month:00}\\{date:yyyy-MMM-dd}";
 			
 			if (!Directory.Exists(directoryPath)) 
 				Directory.CreateDirectory(directoryPath);
@@ -347,5 +349,5 @@ namespace IndyPOS.Controllers
 				csv.WriteRecords(payments);
 			}
         }
-    }
+	}
 }

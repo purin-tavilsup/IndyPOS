@@ -1,10 +1,9 @@
-﻿using IndyPOS.Constants;
+﻿using IndyPOS.Common.Interfaces;
 using IndyPOS.Controllers;
 using IndyPOS.Enums;
 using IndyPOS.Sales;
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
 using System.Drawing;
 using System.Linq;
@@ -12,7 +11,7 @@ using System.Windows.Forms;
 
 namespace IndyPOS.UI.Reports
 {
-    [ExcludeFromCodeCoverage]
+	[ExcludeFromCodeCoverage]
     public partial class SalesHistoryReportPanel : UserControl
     {
 		private readonly IReportController _reportController;

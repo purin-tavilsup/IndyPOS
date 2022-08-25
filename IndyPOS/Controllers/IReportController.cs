@@ -2,6 +2,7 @@
 using IndyPOS.Sales;
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace IndyPOS.Controllers
 {
@@ -13,31 +14,11 @@ namespace IndyPOS.Controllers
 
 		IEnumerable<IFinalInvoicePayment> InvoicePayments { get; }
 
-		//IEnumerable<IAccountsReceivable> AccountsReceivables { get; }
-
-		//decimal GetInvoicesTotal();
-
-		//decimal GetRefundTotal();
-
-		//decimal GetArTotal();
-
-		//decimal GetCompletedArTotal();
-
-		//decimal GetIncompleteArTotal();
-
-		//decimal GetInvoicesTotalWithoutAr();
-
-		//decimal GetGeneralProductsTotal();
-
-		//decimal GetHardwareProductsTotal();
-
 		void LoadInvoicesByPeriod(ReportPeriod period);
 
 		void LoadInvoicesByDateRange(DateTime startDate, DateTime endDate);
 
 		IEnumerable<IFinalInvoiceProduct> GetInvoiceProductsByDate(DateTime date);
-
-		//decimal GetPaymentsTotalByType(PaymentType type);
 
 		void WriteSaleRecordsToCsvFileByDate(DateTime date);
 

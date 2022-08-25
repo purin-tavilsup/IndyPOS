@@ -16,6 +16,7 @@
     <NuGetPackageImportStamp>
     </NuGetPackageImportStamp>
     <TargetFrameworkProfile />
+    <IsWebBootstrapper>false</IsWebBootstrapper>
     <PublishUrl>publish\</PublishUrl>
     <Install>true</Install>
     <InstallFrom>Disk</InstallFrom>
@@ -28,7 +29,6 @@
     <MapFileExtensions>true</MapFileExtensions>
     <ApplicationRevision>0</ApplicationRevision>
     <ApplicationVersion>1.0.0.%2a</ApplicationVersion>
-    <IsWebBootstrapper>false</IsWebBootstrapper>
     <UseApplicationTrust>false</UseApplicationTrust>
     <BootstrapperEnabled>true</BootstrapperEnabled>
   </PropertyGroup>
@@ -108,11 +108,14 @@
     <Reference Include="Microsoft.Extensions.Caching.Memory, Version=2.1.0.0, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
       <HintPath>..\packages\Microsoft.Extensions.Caching.Memory.2.1.0\lib\netstandard2.0\Microsoft.Extensions.Caching.Memory.dll</HintPath>
     </Reference>
-    <Reference Include="Microsoft.Extensions.DependencyInjection.Abstractions, Version=2.1.0.0, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
-      <HintPath>..\packages\Microsoft.Extensions.DependencyInjection.Abstractions.2.1.0\lib\netstandard2.0\Microsoft.Extensions.DependencyInjection.Abstractions.dll</HintPath>
+    <Reference Include="Microsoft.Extensions.DependencyInjection, Version=6.0.0.0, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.Extensions.DependencyInjection.6.0.0\lib\net461\Microsoft.Extensions.DependencyInjection.dll</HintPath>
     </Reference>
-    <Reference Include="Microsoft.Extensions.Options, Version=2.1.0.0, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
-      <HintPath>..\packages\Microsoft.Extensions.Options.2.1.0\lib\netstandard2.0\Microsoft.Extensions.Options.dll</HintPath>
+    <Reference Include="Microsoft.Extensions.DependencyInjection.Abstractions, Version=6.0.0.0, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.Extensions.DependencyInjection.Abstractions.6.0.0\lib\net461\Microsoft.Extensions.DependencyInjection.Abstractions.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Extensions.Options, Version=6.0.0.0, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.Extensions.Options.6.0.0\lib\net461\Microsoft.Extensions.Options.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.Extensions.Primitives, Version=6.0.0.0, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
       <HintPath>..\packages\Microsoft.Extensions.Primitives.6.0.0\lib\net461\Microsoft.Extensions.Primitives.dll</HintPath>
@@ -153,6 +156,7 @@
     <Reference Include="System.Buffers, Version=4.0.3.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
       <HintPath>..\packages\System.Buffers.4.5.1\lib\net461\System.Buffers.dll</HintPath>
     </Reference>
+    <Reference Include="System.ComponentModel.DataAnnotations" />
     <Reference Include="System.Configuration" />
     <Reference Include="System.Core" />
     <Reference Include="System.Data.SQLite, Version=1.0.116.0, Culture=neutral, PublicKeyToken=db937bc2d44ff139, processorArchitecture=MSIL">
@@ -187,6 +191,7 @@
     <Reference Include="System.ValueTuple, Version=4.0.3.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
       <HintPath>..\packages\System.ValueTuple.4.5.0\lib\net47\System.ValueTuple.dll</HintPath>
     </Reference>
+    <Reference Include="System.Web.Extensions" />
     <Reference Include="System.Xaml" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
@@ -214,14 +219,9 @@
     <Compile Include="Adapters\UserCredentialAdapter.cs" />
     <Compile Include="Barcode\BarcodeHelper.cs" />
     <Compile Include="Barcode\IBarcodeHelper.cs" />
-    <Compile Include="CloudReport\AccountsReceivableSummary.cs" />
-    <Compile Include="CloudReport\CloudReportHelper.cs" />
-    <Compile Include="CloudReport\ICloudReportHelper.cs" />
-    <Compile Include="CloudReport\Invoice.cs" />
-    <Compile Include="CloudReport\Payment.cs" />
-    <Compile Include="CloudReport\Product.cs" />
-    <Compile Include="CloudReport\SalesSummary.cs" />
-    <Compile Include="Config.cs" />
+    <Compile Include="Configurations\Configuration.cs" />
+    <Compile Include="Configurations\Models\UserConfiguration.cs" />
+    <Compile Include="Events\SalesReportPushedEvent.cs" />
     <Compile Include="Controllers\AccountsReceivableController.cs" />
     <Compile Include="Controllers\IAccountsReceivableController.cs" />
     <Compile Include="Controllers\IReportController.cs" />
@@ -247,8 +247,10 @@
     <Compile Include="Events\UserRemovedEvent.cs" />
     <Compile Include="Exceptions\ProductNotFoundException.cs" />
     <Compile Include="Extensions\DateTimeExtensions.cs" />
-    <Compile Include="IConfig.cs" />
+    <Compile Include="Extensions\SaleInvoiceExtensions.cs" />
     <Compile Include="Inventory\IInventoryProduct.cs" />
+    <Compile Include="Mappers\ISaleInvoiceMapper.cs" />
+    <Compile Include="Mappers\SaleInvoiceMapper.cs" />
     <Compile Include="Sales\ArReport.cs" />
     <Compile Include="Sales\IAccountsReceivable.cs" />
     <Compile Include="Sales\IFinalInvoice.cs" />
@@ -260,7 +262,6 @@
     <Compile Include="Adapters\InventoryProductAdapter.cs" />
     <Compile Include="Adapters\FinalInvoiceProductAdapter.cs" />
     <Compile Include="Devices\BarcodeScanner.cs" />
-    <Compile Include="Constants\IStoreConstants.cs" />
     <Compile Include="Controllers\IInventoryController.cs" />
     <Compile Include="Controllers\InventoryController.cs" />
     <Compile Include="Controllers\ISaleInvoiceController.cs" />
@@ -431,7 +432,6 @@
     <Compile Include="Users\UserAccount.cs" />
     <Compile Include="Users\UserAccountHelper.cs" />
     <Compile Include="Users\UserCredential.cs" />
-    <Compile Include="Utilities\PersistentXml.cs" />
     <EmbeddedResource Include="UI\AcceptPaymentForm.resx">
       <DependentUpon>AcceptPaymentForm.cs</DependentUpon>
     </EmbeddedResource>
@@ -663,9 +663,17 @@
     <None Include="Resources\barcode_scanner_50.png" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\IndyPOS.Common\IndyPOS.Common.csproj">
+      <Project>{80698942-f266-4c35-bcdd-af2caeaa1feb}</Project>
+      <Name>IndyPOS.Common</Name>
+    </ProjectReference>
     <ProjectReference Include="..\IndyPOS.DataAccess\IndyPOS.DataAccess.csproj">
       <Project>{6032f51e-e3df-47d5-9e74-a360bdbfb180}</Project>
       <Name>IndyPOS.DataAccess</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\IndyPOS.Facade\IndyPOS.Facade.csproj">
+      <Project>{672b4bdc-93d2-4711-9cb2-1db66d57591d}</Project>
+      <Name>IndyPOS.Facade</Name>
     </ProjectReference>
     <ProjectReference Include="..\ModernUI\ModernUI.csproj">
       <Project>{fbd12602-ae7f-4629-8a8f-05a22569aac9}</Project>

@@ -1,4 +1,4 @@
-﻿using IndyPOS.Constants;
+﻿using IndyPOS.Common.Interfaces;
 using IndyPOS.Controllers;
 using IndyPOS.Cryptography;
 using IndyPOS.Events;
@@ -14,7 +14,7 @@ using UserRoleEnum = IndyPOS.Enums.UserRole;
 
 namespace IndyPOS.UI
 {
-    [ExcludeFromCodeCoverage]
+	[ExcludeFromCodeCoverage]
     public partial class UsersPanel : UserControl
     {
         private readonly IUserController _userController;
