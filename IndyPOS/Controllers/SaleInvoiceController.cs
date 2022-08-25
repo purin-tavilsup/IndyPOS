@@ -1,9 +1,11 @@
-﻿using IndyPOS.CloudReport;
-using IndyPOS.DataAccess.Repositories;
+﻿using IndyPOS.DataAccess.Repositories;
 using IndyPOS.Devices;
 using IndyPOS.Enums;
 using IndyPOS.Events;
 using IndyPOS.Exceptions;
+using IndyPOS.Extensions;
+using IndyPOS.Facade.Interfaces;
+using IndyPOS.Mappers;
 using IndyPOS.Sales;
 using IndyPOS.Users;
 using Prism.Events;
@@ -18,7 +20,7 @@ using PaymentModel = IndyPOS.DataAccess.Models.Payment;
 
 namespace IndyPOS.Controllers
 {
-    public class SaleInvoiceController : ISaleInvoiceController
+	public class SaleInvoiceController : ISaleInvoiceController
     {
         private readonly IEventAggregator _eventAggregator;
         private readonly IInvoiceRepository _invoicesRepository;
@@ -27,7 +29,9 @@ namespace IndyPOS.Controllers
 		private readonly IUserAccountHelper _userAccountHelper;
 		private readonly IAccountsReceivableRepository _accountsReceivableRepository;
         private readonly ISaleInvoice _saleInvoice;
-		private readonly ICloudReportHelper _cloudReportHelper;
+		private readonly IReportHelper _reportHelper;
+		private readonly IDataFeedApiHelper _dataFeedApiHelper;
+		private readonly ISaleInvoiceMapper _invoiceMapper;
 
         public IReadOnlyCollection<ISaleInvoiceProduct> Products => (IReadOnlyCollection<ISaleInvoiceProduct>)_saleInvoice.Products;
 
@@ -54,7 +58,9 @@ namespace IndyPOS.Controllers
 									 IReceiptPrinter receiptPrinter,
 									 IUserAccountHelper userAccountHelper,
 									 IAccountsReceivableRepository accountsReceivableRepository,
-									 ICloudReportHelper cloudReportHelper)
+									 IReportHelper reportHelper,
+									 IDataFeedApiHelper dataFeedApiHelper,
+									 ISaleInvoiceMapper invoiceMapper)
         {
 			_saleInvoice = saleInvoice;
             _eventAggregator = eventAggregator;
@@ -63,7 +69,9 @@ namespace IndyPOS.Controllers
 			_receiptPrinter = receiptPrinter;
 			_userAccountHelper = userAccountHelper;
 			_accountsReceivableRepository = accountsReceivableRepository;
-			_cloudReportHelper = cloudReportHelper;
+			_reportHelper = reportHelper;
+			_dataFeedApiHelper = dataFeedApiHelper;
+			_invoiceMapper = invoiceMapper;
 		}
 		
         public void StartNewSale()
@@ -259,14 +267,16 @@ namespace IndyPOS.Controllers
 			return message;
 		}
 
-		public void CompleteSale()
+		public async Task CompleteSale()
 		{
 			var loggedInUserId = _userAccountHelper.LoggedInUser.UserId;
 
-            AddInvoiceToDatabase(_saleInvoice, loggedInUserId);
+			AddInvoiceToDatabase(_saleInvoice, loggedInUserId);
 			AddInvoiceProductsToDatabase(_saleInvoice);
-            AddPaymentsToDatabase(_saleInvoice);
+			AddPaymentsToDatabase(_saleInvoice);
 			UpdateInventoryProductsSoldOnInvoice(_saleInvoice);
+
+			await UpdateReport(_saleInvoice);
 		}
 
 		public void PrintReceipt()
@@ -365,6 +375,20 @@ namespace IndyPOS.Controllers
 																	InvoiceId = invoiceId,
 																	ReceivableAmount = payment.Amount
 																});
+		}
+
+		private async Task UpdateReport(ISaleInvoice invoice)
+		{
+			var summary = invoice.CreateSalesSummary();
+			var invoiceToPush = _invoiceMapper.Map(invoice);
+			var reportToPush = await _reportHelper.UpdateReport(summary);
+
+			await _dataFeedApiHelper.PushInvoice(invoiceToPush);
+			await _dataFeedApiHelper.PushReport(reportToPush);
+
+			var dataFeedStatus = "DataFeed Push : " + reportToPush.LastUpdateDateTime.ToString("O");
+
+			_eventAggregator.GetEvent<SalesReportPushedEvent>().Publish(dataFeedStatus);
 		}
 	}
 }
