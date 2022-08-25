@@ -7,13 +7,15 @@ using IndyPOS.Devices;
 using IndyPOS.Enums;
 using IndyPOS.Events;
 using IndyPOS.Exceptions;
+using IndyPOS.Facade.Interfaces;
+using IndyPOS.Mappers;
 using IndyPOS.Sales;
 using IndyPOS.Users;
 using NUnit.Framework;
 using Prism.Events;
 using System;
 using System.Collections.Generic;
-using IndyPOS.CloudReport;
+using System.Threading.Tasks;
 using AccountsReceivableModel = IndyPOS.DataAccess.Models.AccountsReceivable;
 using InventoryProductModel = IndyPOS.DataAccess.Models.InventoryProduct;
 using InvoiceProductModel = IndyPOS.DataAccess.Models.InvoiceProduct;
@@ -33,7 +35,9 @@ namespace IndyPOS.Tests.Controllers
         private IReceiptPrinter _receiptPrinter;
         private IUserAccountHelper _userAccountHelper;
 		private IAccountsReceivableRepository _accountsReceivableRepository;
-		private ICloudReportHelper _cloudReportHelper;
+		private IReportHelper _reportHelper;
+		private IDataFeedApiHelper _dataFeedApiHelper;
+		private ISaleInvoiceMapper _invoiceMapper;
         private IFixture _fixture;
 		private int _inventoryProductId;
 		private int _productPriority;
@@ -57,7 +61,9 @@ namespace IndyPOS.Tests.Controllers
                                                                _receiptPrinter,
                                                                _userAccountHelper,
 															   _accountsReceivableRepository,
-															   _cloudReportHelper);
+															   _reportHelper,
+															   _dataFeedApiHelper,
+															   _invoiceMapper);
         }
 
 		private void SetupFakeEventObjects()
@@ -77,7 +83,9 @@ namespace IndyPOS.Tests.Controllers
 			_receiptPrinter = A.Fake<IReceiptPrinter>();
 			_userAccountHelper = A.Fake<IUserAccountHelper>();
 			_accountsReceivableRepository = A.Fake<IAccountsReceivableRepository>();
-			_cloudReportHelper = A.Fake<ICloudReportHelper>();
+			_reportHelper = A.Fake<IReportHelper>();
+			_dataFeedApiHelper = A.Fake<IDataFeedApiHelper>();
+			_invoiceMapper = A.Fake<ISaleInvoiceMapper>();
 		}
 
 		private void SetupFixture()
@@ -601,9 +609,9 @@ namespace IndyPOS.Tests.Controllers
 		}
 
 		[Test]
-		public void CompleteSale_SaleInvoiceShouldBeSavedToDatabase()
+		public async Task CompleteSale_SaleInvoiceShouldBeSavedToDatabase()
         {
-			_saleInvoiceController.CompleteSale();
+			await _saleInvoiceController.CompleteSale();
 
 			A.CallTo(() => _invoicesRepository.AddInvoice(A<DataAccess.Models.Invoice>.Ignored))
 			 .MustHaveHappenedOnceExactly();
@@ -613,8 +621,10 @@ namespace IndyPOS.Tests.Controllers
 		[TestCase(1)]
 		[TestCase(2)]
 		[TestCase(3)]
-		public void CompleteSale_AllPaymentsShouldBeSavedToDatabase(int numberOfPayments)
+		public async Task CompleteSale_AllPaymentsShouldBeSavedToDatabase(int numberOfPayments)
 		{
+			var product = _fixture.Create<ISaleInvoiceProduct>();
+			var productList = new List<ISaleInvoiceProduct> { product };
 			var paymentList = new List<IPayment>();
 
 			for (var i = 0; i < numberOfPayments; i++)
@@ -622,23 +632,28 @@ namespace IndyPOS.Tests.Controllers
 				paymentList.Add(_fixture.Create<IPayment>());
 			}
 
+			A.CallTo(() => _saleInvoice.Products).Returns(productList);
 			A.CallTo(() => _saleInvoice.Payments).Returns(paymentList);
+			A.CallTo(() => _saleInvoice.Id).Returns(_fixture.Create<int>());
 
-			_saleInvoiceController.CompleteSale();
+			await _saleInvoiceController.CompleteSale();
 
 			A.CallTo(() => _invoicesRepository.AddPayment(A<PaymentModel>.Ignored))
 			 .MustHaveHappened(paymentList.Count, Times.Exactly);
 		}
 
 		[Test]
-		public void CompleteSale_PaymentTypeIsAccountsReceivable_AccountsReceivableShouldBeSavedToDatabase()
+		public async Task CompleteSale_PaymentTypeIsAccountsReceivable_AccountsReceivableShouldBeSavedToDatabase()
 		{
+			var product = _fixture.Create<ISaleInvoiceProduct>();
+			var productList = new List<ISaleInvoiceProduct> { product };
 			var payment = A.Fake<IPayment>();
 
+			A.CallTo(() => _saleInvoice.Products).Returns(productList);
 			A.CallTo(() => payment.PaymentTypeId).Returns((int) PaymentType.AccountReceivable);
 			A.CallTo(() => _saleInvoice.Payments).Returns(new List<IPayment> { payment });
 
-			_saleInvoiceController.CompleteSale();
+			await _saleInvoiceController.CompleteSale();
 
 			A.CallTo(() => _accountsReceivableRepository.AddAccountsReceivable(A<AccountsReceivableModel>.Ignored))
 			 .MustHaveHappenedOnceExactly();
@@ -648,7 +663,7 @@ namespace IndyPOS.Tests.Controllers
 		[TestCase(1)]
 		[TestCase(2)]
 		[TestCase(3)]
-		public void CompleteSale_AllProductsShouldBeSavedToDatabase(int numberOfProducts)
+		public async Task CompleteSale_AllProductsShouldBeSavedToDatabase(int numberOfProducts)
 		{
 			var productList = new List<ISaleInvoiceProduct>();
 
@@ -659,14 +674,14 @@ namespace IndyPOS.Tests.Controllers
 
 			A.CallTo(() => _saleInvoice.Products).Returns(productList);
 
-			_saleInvoiceController.CompleteSale();
+			await _saleInvoiceController.CompleteSale();
 
 			A.CallTo(() => _invoicesRepository.AddInvoiceProduct(A<InvoiceProductModel>.Ignored))
 			 .MustHaveHappened(productList.Count, Times.Exactly);
 		}
 
 		[Test]
-		public void CompleteSale_ProductQuantityInStockShouldBeUpdated()
+		public async Task CompleteSale_ProductQuantityInStockShouldBeUpdated()
 		{
 			const int quantityInStock = 100;
 			const int quantity = 5;
@@ -692,7 +707,7 @@ namespace IndyPOS.Tests.Controllers
             A.CallTo(() => _inventoryProductsRepository.GetProductById(_inventoryProductId)).Returns(inventoryProduct);
 			A.CallTo(() => _saleInvoice.Products).Returns(productList);
 
-            _saleInvoiceController.CompleteSale();
+            await _saleInvoiceController.CompleteSale();
 
             A.CallTo(() => _inventoryProductsRepository.UpdateProductQuantityById(_inventoryProductId, expectedNewQuantityInStock))
 			 .MustHaveHappenedOnceExactly();
