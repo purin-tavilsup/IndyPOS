@@ -1,4 +1,4 @@
-﻿namespace IndyPOS.Cryptography
+﻿namespace IndyPOS.Interfaces
 {
 	public interface ICryptographyHelper
 	{

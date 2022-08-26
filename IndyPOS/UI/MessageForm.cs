@@ -1,11 +1,11 @@
-﻿using IndyPOS.Extensions;
+﻿using IndyPOS.Common.Extensions;
 using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Windows.Forms;
 
 namespace IndyPOS.UI
 {
-    [ExcludeFromCodeCoverage]
+	[ExcludeFromCodeCoverage]
 	public partial class MessageForm : Form
 	{
 		private DialogResult _response = DialogResult.None;

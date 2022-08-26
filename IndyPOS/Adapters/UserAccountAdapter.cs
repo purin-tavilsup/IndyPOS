@@ -1,4 +1,4 @@
-﻿using IndyPOS.Users;
+﻿using IndyPOS.Interfaces;
 using UserAccountModel = IndyPOS.DataAccess.Models.UserAccount;
 
 namespace IndyPOS.Adapters

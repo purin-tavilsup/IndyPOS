@@ -1,7 +1,6 @@
-﻿using IndyPOS.Common.Interfaces;
-using IndyPOS.Extensions;
-using IndyPOS.Sales;
-using IndyPOS.Users;
+﻿using IndyPOS.Common.Extensions;
+using IndyPOS.Common.Interfaces;
+using IndyPOS.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Drawing;

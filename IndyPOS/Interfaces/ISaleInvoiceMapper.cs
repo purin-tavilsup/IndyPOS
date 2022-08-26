@@ -1,7 +1,6 @@
 ﻿using IndyPOS.Facade.Models;
-using IndyPOS.Sales;
 
-namespace IndyPOS.Mappers
+namespace IndyPOS.Interfaces
 {
 	public interface ISaleInvoiceMapper
 	{

@@ -1,4 +1,4 @@
-﻿namespace IndyPOS.Sales
+﻿namespace IndyPOS.Interfaces
 {
     public interface IFinalInvoiceProduct
     {

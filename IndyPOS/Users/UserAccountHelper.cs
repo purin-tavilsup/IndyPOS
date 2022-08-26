@@ -1,4 +1,4 @@
-﻿using IndyPOS.Controllers;
+﻿using IndyPOS.Interfaces;
 
 namespace IndyPOS.Users
 {

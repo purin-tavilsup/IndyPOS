@@ -1,7 +1,6 @@
 ﻿using System.Collections.Generic;
-using IndyPOS.Users;
 
-namespace IndyPOS.Controllers
+namespace IndyPOS.Interfaces
 {
 	public interface IUserController
 	{

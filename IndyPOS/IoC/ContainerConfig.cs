@@ -10,6 +10,7 @@ using IndyPOS.DataAccess.SQLite.Repositories;
 using IndyPOS.Devices;
 using IndyPOS.Facade.Helpers;
 using IndyPOS.Facade.Interfaces;
+using IndyPOS.Interfaces;
 using IndyPOS.Mappers;
 using IndyPOS.Sales;
 using IndyPOS.Users;

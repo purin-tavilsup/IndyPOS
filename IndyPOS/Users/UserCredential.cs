@@ -1,4 +1,6 @@
-﻿namespace IndyPOS.Users
+﻿using IndyPOS.Interfaces;
+
+namespace IndyPOS.Users
 {
     public class UserCredential : IUserCredential
 	{

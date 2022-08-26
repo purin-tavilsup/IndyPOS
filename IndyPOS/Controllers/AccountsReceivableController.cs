@@ -1,7 +1,7 @@
 ﻿using IndyPOS.Adapters;
 using IndyPOS.DataAccess.Repositories;
 using IndyPOS.Enums;
-using IndyPOS.Sales;
+using IndyPOS.Interfaces;
 using Prism.Events;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,7 +10,7 @@ using PaymentModel = IndyPOS.DataAccess.Models.Payment;
 
 namespace IndyPOS.Controllers
 {
-    public class AccountsReceivableController : IAccountsReceivableController
+	public class AccountsReceivableController : IAccountsReceivableController
     {
 		private readonly IEventAggregator _eventAggregator;
         private readonly IAccountsReceivableRepository _accountsReceivableRepository;

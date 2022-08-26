@@ -1,7 +1,7 @@
 ﻿using IndyPOS.Adapters;
 using IndyPOS.DataAccess.Repositories;
 using IndyPOS.Events;
-using IndyPOS.Inventory;
+using IndyPOS.Interfaces;
 using Prism.Events;
 using System;
 using System.Collections.Generic;
@@ -9,7 +9,7 @@ using System.Linq;
 
 namespace IndyPOS.Controllers
 {
-	public class InventoryController : IInventoryController
+    public class InventoryController : IInventoryController
     {
         private readonly IEventAggregator _eventAggregator;
         private readonly IInventoryProductRepository _inventoryProductsRepository;

@@ -1,9 +1,7 @@
-﻿using IndyPOS.Common.Interfaces;
-using IndyPOS.Controllers;
-using IndyPOS.Cryptography;
+﻿using IndyPOS.Common.Extensions;
+using IndyPOS.Common.Interfaces;
 using IndyPOS.Events;
-using IndyPOS.Extensions;
-using IndyPOS.Users;
+using IndyPOS.Interfaces;
 using Prism.Events;
 using System;
 using System.Collections.Generic;

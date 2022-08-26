@@ -1,7 +1,7 @@
 ﻿using IndyPOS.Common.Interfaces;
 using IndyPOS.Enums;
 using IndyPOS.Facade.Models;
-using IndyPOS.Sales;
+using IndyPOS.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Linq;

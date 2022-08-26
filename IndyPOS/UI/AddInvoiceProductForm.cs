@@ -1,4 +1,4 @@
-﻿using IndyPOS.Controllers;
+﻿using IndyPOS.Interfaces;
 using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Windows.Forms;

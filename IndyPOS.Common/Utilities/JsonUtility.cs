@@ -1,8 +1,8 @@
-﻿using System.Diagnostics.CodeAnalysis;
+﻿using IndyPOS.Common.Interfaces;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Text.Json;
 using System.Threading.Tasks;
-using IndyPOS.Common.Interfaces;
 
 namespace IndyPOS.Common.Utilities
 {

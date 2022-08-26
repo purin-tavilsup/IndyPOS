@@ -1,4 +1,4 @@
-﻿namespace IndyPOS.Users
+﻿namespace IndyPOS.Interfaces
 {
     public interface IUserAccountHelper
     {

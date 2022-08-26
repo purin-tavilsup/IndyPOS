@@ -1,11 +1,12 @@
-﻿using System;
+﻿using IndyPOS.Interfaces;
+using System;
 using System.Drawing;
 using ZXing;
 using ZXing.Common;
 
 namespace IndyPOS.Barcode
 {
-    public class BarcodeHelper : IBarcodeHelper
+	public class BarcodeHelper : IBarcodeHelper
     {
 		public string GenerateEan13Barcode(int productCategoryId, int productNumber)
         {

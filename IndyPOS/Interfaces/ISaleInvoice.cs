@@ -1,8 +1,8 @@
-﻿using System.Collections.Generic;
-using IndyPOS.Enums;
+﻿using IndyPOS.Enums;
+using System.Collections.Generic;
 using InventoryProductModel = IndyPOS.DataAccess.Models.InventoryProduct;
 
-namespace IndyPOS.Sales
+namespace IndyPOS.Interfaces
 {
 	public interface ISaleInvoice
 	{

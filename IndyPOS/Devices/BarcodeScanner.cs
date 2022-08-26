@@ -1,5 +1,6 @@
 ﻿using IndyPOS.Common.Interfaces;
 using IndyPOS.Events;
+using IndyPOS.Interfaces;
 using Prism.Events;
 using Serilog;
 using System;

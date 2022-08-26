@@ -1,5 +1,5 @@
 ﻿using IndyPOS.Common.Interfaces;
-using IndyPOS.Devices;
+using IndyPOS.Interfaces;
 using IndyPOS.UI;
 using System;
 using System.Diagnostics;

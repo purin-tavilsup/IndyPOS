@@ -1,12 +1,11 @@
-﻿using IndyPOS.Controllers;
-using IndyPOS.Cryptography;
+﻿using IndyPOS.Interfaces;
 using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Windows.Forms;
 
 namespace IndyPOS.UI
 {
-    [ExcludeFromCodeCoverage]
+	[ExcludeFromCodeCoverage]
     public partial class UserLogInPanel : UserControl
     {
 		private readonly IUserController _userController;

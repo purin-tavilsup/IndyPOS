@@ -1,9 +1,8 @@
 ﻿using IndyPOS.Common.Interfaces;
-using IndyPOS.Controllers;
 using IndyPOS.Enums;
 using IndyPOS.Events;
 using IndyPOS.Extensions;
-using IndyPOS.Inventory;
+using IndyPOS.Interfaces;
 using Prism.Events;
 using System;
 using System.Collections.Generic;

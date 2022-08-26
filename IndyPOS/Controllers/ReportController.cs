@@ -1,11 +1,11 @@
 ﻿using CsvHelper;
 using IndyPOS.Adapters;
+using IndyPOS.Common.Extensions;
 using IndyPOS.Common.Interfaces;
 using IndyPOS.DataAccess.Repositories;
 using IndyPOS.Enums;
-using IndyPOS.Extensions;
+using IndyPOS.Interfaces;
 using IndyPOS.Sales;
-using IndyPOS.Users;
 using System;
 using System.Collections.Generic;
 using System.Globalization;

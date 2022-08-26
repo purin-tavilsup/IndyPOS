@@ -1,5 +1,5 @@
 ﻿using Dapper;
-using IndyPOS.DataAccess.Extensions;
+using IndyPOS.Common.Extensions;
 using IndyPOS.DataAccess.Models;
 using IndyPOS.DataAccess.Repositories;
 using System;
@@ -8,7 +8,7 @@ using System.Linq;
 
 namespace IndyPOS.DataAccess.SQLite.Repositories
 {
-	public class InventoryProductRepository : IInventoryProductRepository
+    public class InventoryProductRepository : IInventoryProductRepository
     {
         private readonly IDbConnectionProvider _dbConnectionProvider;
 

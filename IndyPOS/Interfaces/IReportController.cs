@@ -2,11 +2,10 @@
 using IndyPOS.Sales;
 using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
 
-namespace IndyPOS.Controllers
+namespace IndyPOS.Interfaces
 {
-    public interface IReportController
+	public interface IReportController
 	{
 		IEnumerable<IFinalInvoice> Invoices { get; }
 

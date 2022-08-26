@@ -1,7 +1,6 @@
-﻿using IndyPOS.Sales;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
-namespace IndyPOS.Controllers
+namespace IndyPOS.Interfaces
 {
     public interface IAccountsReceivableController
 	{

@@ -1,6 +1,6 @@
 ﻿using System.Drawing;
 
-namespace IndyPOS.Barcode
+namespace IndyPOS.Interfaces
 {
     public interface IBarcodeHelper
 	{

@@ -1,7 +1,4 @@
-﻿using IndyPOS.Controllers;
-using IndyPOS.Enums;
-using IndyPOS.Sales;
-using IndyPOS.Users;
+﻿using IndyPOS.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;

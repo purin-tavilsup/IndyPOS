@@ -1,4 +1,4 @@
-﻿using IndyPOS.Users;
+﻿using IndyPOS.Interfaces;
 using UserCredentialModel = IndyPOS.DataAccess.Models.UserCredential;
 
 namespace IndyPOS.Adapters

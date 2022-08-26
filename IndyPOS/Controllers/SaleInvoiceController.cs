@@ -1,13 +1,10 @@
 ﻿using IndyPOS.DataAccess.Repositories;
-using IndyPOS.Devices;
 using IndyPOS.Enums;
 using IndyPOS.Events;
 using IndyPOS.Exceptions;
 using IndyPOS.Extensions;
 using IndyPOS.Facade.Interfaces;
-using IndyPOS.Mappers;
-using IndyPOS.Sales;
-using IndyPOS.Users;
+using IndyPOS.Interfaces;
 using Prism.Events;
 using System.Collections.Generic;
 using System.Linq;

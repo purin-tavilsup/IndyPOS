@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace IndyPOS.Devices
+namespace IndyPOS.Interfaces
 {
 	public interface IBarcodeScanner : IDisposable
 	{

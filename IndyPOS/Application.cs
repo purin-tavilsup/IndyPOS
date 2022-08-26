@@ -1,4 +1,5 @@
 ﻿using Autofac;
+using IndyPOS.Interfaces;
 using IndyPOS.IoC;
 using Squirrel;
 using System;
@@ -11,7 +12,7 @@ using System.Threading.Tasks;
 
 namespace IndyPOS
 {
-    [ExcludeFromCodeCoverage]
+	[ExcludeFromCodeCoverage]
     internal static class Application
 	{
 		private const string ProcessName = "IndyPOS";

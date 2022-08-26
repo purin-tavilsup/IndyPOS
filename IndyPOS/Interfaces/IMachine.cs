@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace IndyPOS
+namespace IndyPOS.Interfaces
 {
     public interface IMachine : IDisposable
     {

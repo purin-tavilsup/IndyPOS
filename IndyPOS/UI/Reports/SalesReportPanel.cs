@@ -1,17 +1,15 @@
-﻿using IndyPOS.Controllers;
-using IndyPOS.Enums;
+﻿using IndyPOS.Enums;
+using IndyPOS.Interfaces;
+using IndyPOS.Sales;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using IndyPOS.DataAccess.Models;
-using IndyPOS.Sales;
-using PaymentType = IndyPOS.DataAccess.Models.PaymentType;
 
 namespace IndyPOS.UI.Reports
 {
-    public partial class SalesReportPanel : UserControl
+	public partial class SalesReportPanel : UserControl
     {
 		private readonly IReportController _reportController;
 		private readonly MessageForm _messageForm;

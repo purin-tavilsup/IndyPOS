@@ -1,7 +1,6 @@
-﻿using IndyPOS.Inventory;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
-namespace IndyPOS.Controllers
+namespace IndyPOS.Interfaces
 {
 	public interface IInventoryController
     {
