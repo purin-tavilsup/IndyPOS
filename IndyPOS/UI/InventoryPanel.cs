@@ -1,9 +1,6 @@
-﻿using IndyPOS.Constants;
-using IndyPOS.Controllers;
-using IndyPOS.Enums;
-using IndyPOS.Events;
+﻿using IndyPOS.Common.Interfaces;
 using IndyPOS.Extensions;
-using IndyPOS.Inventory;
+using IndyPOS.Interfaces;
 using Prism.Events;
 using System;
 using System.Collections.Generic;
@@ -11,6 +8,8 @@ using System.Diagnostics.CodeAnalysis;
 using System.Drawing;
 using System.Linq;
 using System.Windows.Forms;
+using IndyPOS.Common.Enums;
+using IndyPOS.Facade.Events;
 
 namespace IndyPOS.UI
 {

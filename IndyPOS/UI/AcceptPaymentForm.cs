@@ -1,12 +1,12 @@
-﻿using IndyPOS.Constants;
-using IndyPOS.Controllers;
-using IndyPOS.Enums;
-using IndyPOS.Extensions;
+﻿using IndyPOS.Common.Extensions;
+using IndyPOS.Common.Interfaces;
+using IndyPOS.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Windows.Forms;
+using IndyPOS.Common.Enums;
 
 namespace IndyPOS.UI
 {

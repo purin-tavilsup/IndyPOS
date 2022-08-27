@@ -11,6 +11,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ModernUI", "ModernUI\Modern
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IndyPOS.Tests", "IndyPOS.Tests\IndyPOS.Tests.csproj", "{D60984B3-CE19-4B7E-BD76-834A11EE2DDA}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IndyPOS.Facade", "IndyPOS.Facade\IndyPOS.Facade.csproj", "{672B4BDC-93D2-4711-9CB2-1DB66D57591D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IndyPOS.Common", "IndyPOS.Common\IndyPOS.Common.csproj", "{80698942-F266-4C35-BCDD-AF2CAEAA1FEB}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -51,6 +55,22 @@ Global
 		{D60984B3-CE19-4B7E-BD76-834A11EE2DDA}.Release|Any CPU.Build.0 = Release|Any CPU
 		{D60984B3-CE19-4B7E-BD76-834A11EE2DDA}.Release|x64.ActiveCfg = Release|Any CPU
 		{D60984B3-CE19-4B7E-BD76-834A11EE2DDA}.Release|x64.Build.0 = Release|Any CPU
+		{672B4BDC-93D2-4711-9CB2-1DB66D57591D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{672B4BDC-93D2-4711-9CB2-1DB66D57591D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{672B4BDC-93D2-4711-9CB2-1DB66D57591D}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{672B4BDC-93D2-4711-9CB2-1DB66D57591D}.Debug|x64.Build.0 = Debug|Any CPU
+		{672B4BDC-93D2-4711-9CB2-1DB66D57591D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{672B4BDC-93D2-4711-9CB2-1DB66D57591D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{672B4BDC-93D2-4711-9CB2-1DB66D57591D}.Release|x64.ActiveCfg = Release|Any CPU
+		{672B4BDC-93D2-4711-9CB2-1DB66D57591D}.Release|x64.Build.0 = Release|Any CPU
+		{80698942-F266-4C35-BCDD-AF2CAEAA1FEB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{80698942-F266-4C35-BCDD-AF2CAEAA1FEB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{80698942-F266-4C35-BCDD-AF2CAEAA1FEB}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{80698942-F266-4C35-BCDD-AF2CAEAA1FEB}.Debug|x64.Build.0 = Debug|Any CPU
+		{80698942-F266-4C35-BCDD-AF2CAEAA1FEB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{80698942-F266-4C35-BCDD-AF2CAEAA1FEB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{80698942-F266-4C35-BCDD-AF2CAEAA1FEB}.Release|x64.ActiveCfg = Release|Any CPU
+		{80698942-F266-4C35-BCDD-AF2CAEAA1FEB}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -1,11 +1,12 @@
-﻿using System.Collections.Generic;
+﻿using IndyPOS.Common.Enums;
+using IndyPOS.Facade.Interfaces;
+using System.Collections.Generic;
 using System.Linq;
-using IndyPOS.Enums;
 using InventoryProductModel = IndyPOS.DataAccess.Models.InventoryProduct;
 
 namespace IndyPOS.Sales
 {
-    public class SaleInvoice : ISaleInvoice
+	public class SaleInvoice : ISaleInvoice
 	{
         public int? Id { get; private set; }
 

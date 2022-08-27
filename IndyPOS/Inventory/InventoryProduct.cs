@@ -1,4 +1,6 @@
-﻿namespace IndyPOS.Inventory
+﻿using IndyPOS.Interfaces;
+
+namespace IndyPOS.Inventory
 {
 	public class InventoryProduct : IInventoryProduct
     {

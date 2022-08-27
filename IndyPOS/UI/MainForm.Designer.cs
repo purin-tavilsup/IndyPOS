@@ -30,6 +30,8 @@
         {
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MainForm));
             this.NavigationPanel = new System.Windows.Forms.Panel();
+            this.panel2 = new System.Windows.Forms.Panel();
+            this.DataFeedStatusLabel = new System.Windows.Forms.Label();
             this.panel1 = new System.Windows.Forms.Panel();
             this.VersionLabel = new System.Windows.Forms.Label();
             this.LoggedInUserLabel = new System.Windows.Forms.Label();
@@ -51,15 +53,13 @@
             this.UsersButton = new System.Windows.Forms.Button();
             this.InventoryButton = new System.Windows.Forms.Button();
             this.SaleButton = new System.Windows.Forms.Button();
-            this.panel2 = new System.Windows.Forms.Panel();
-            this.MqttCloudStatusLabel = new System.Windows.Forms.Label();
             this.NavigationPanel.SuspendLayout();
+            this.panel2.SuspendLayout();
             this.panel1.SuspendLayout();
             this.TitlePanel.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox2)).BeginInit();
             this.panel9.SuspendLayout();
             this.ControlPanel.SuspendLayout();
-            this.panel2.SuspendLayout();
             this.SuspendLayout();
             // 
             // NavigationPanel
@@ -72,6 +72,25 @@
             this.NavigationPanel.Name = "NavigationPanel";
             this.NavigationPanel.Size = new System.Drawing.Size(1800, 41);
             this.NavigationPanel.TabIndex = 0;
+            // 
+            // panel2
+            // 
+            this.panel2.Controls.Add(this.DataFeedStatusLabel);
+            this.panel2.Location = new System.Drawing.Point(549, 0);
+            this.panel2.Name = "panel2";
+            this.panel2.Size = new System.Drawing.Size(421, 41);
+            this.panel2.TabIndex = 8;
+            // 
+            // DataFeedStatusLabel
+            // 
+            this.DataFeedStatusLabel.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.DataFeedStatusLabel.ForeColor = System.Drawing.Color.WhiteSmoke;
+            this.DataFeedStatusLabel.Location = new System.Drawing.Point(3, 3);
+            this.DataFeedStatusLabel.Name = "DataFeedStatusLabel";
+            this.DataFeedStatusLabel.Size = new System.Drawing.Size(404, 35);
+            this.DataFeedStatusLabel.TabIndex = 6;
+            this.DataFeedStatusLabel.Text = "DataFeed Push :";
+            this.DataFeedStatusLabel.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
             // 
             // panel1
             // 
@@ -392,25 +411,6 @@
             this.SaleButton.UseVisualStyleBackColor = false;
             this.SaleButton.Click += new System.EventHandler(this.SaleButton_Click);
             // 
-            // panel2
-            // 
-            this.panel2.Controls.Add(this.MqttCloudStatusLabel);
-            this.panel2.Location = new System.Drawing.Point(549, 0);
-            this.panel2.Name = "panel2";
-            this.panel2.Size = new System.Drawing.Size(421, 41);
-            this.panel2.TabIndex = 8;
-            // 
-            // MqttCloudStatusLabel
-            // 
-            this.MqttCloudStatusLabel.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.MqttCloudStatusLabel.ForeColor = System.Drawing.Color.WhiteSmoke;
-            this.MqttCloudStatusLabel.Location = new System.Drawing.Point(3, 3);
-            this.MqttCloudStatusLabel.Name = "MqttCloudStatusLabel";
-            this.MqttCloudStatusLabel.Size = new System.Drawing.Size(404, 35);
-            this.MqttCloudStatusLabel.TabIndex = 6;
-            this.MqttCloudStatusLabel.Text = "Mqtt Cloud Status:";
-            this.MqttCloudStatusLabel.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
-            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -429,12 +429,12 @@
             this.Load += new System.EventHandler(this.MainForm_Load);
             this.Shown += new System.EventHandler(this.MainForm_Shown);
             this.NavigationPanel.ResumeLayout(false);
+            this.panel2.ResumeLayout(false);
             this.panel1.ResumeLayout(false);
             this.TitlePanel.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox2)).EndInit();
             this.panel9.ResumeLayout(false);
             this.ControlPanel.ResumeLayout(false);
-            this.panel2.ResumeLayout(false);
             this.ResumeLayout(false);
 
         }
@@ -464,7 +464,7 @@
         private System.Windows.Forms.PictureBox pictureBox2;
         private System.Windows.Forms.Label VersionLabel;
         private System.Windows.Forms.Panel panel2;
-        private System.Windows.Forms.Label MqttCloudStatusLabel;
+        private System.Windows.Forms.Label DataFeedStatusLabel;
     }
 }
 

@@ -107,6 +107,7 @@
             this.ArTotalForGeneralProductsLabel = new System.Windows.Forms.Label();
             this.label35 = new System.Windows.Forms.Label();
             this.label36 = new System.Windows.Forms.Label();
+            this.TestDataFeedButton = new ModernUI.ModernButton();
             this.panel9.SuspendLayout();
             this.panel13.SuspendLayout();
             this.panel12.SuspendLayout();
@@ -720,6 +721,7 @@
             // panel15
             // 
             this.panel15.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
+            this.panel15.Controls.Add(this.TestDataFeedButton);
             this.panel15.Controls.Add(this.label12);
             this.panel15.Location = new System.Drawing.Point(1274, 693);
             this.panel15.Name = "panel15";
@@ -736,7 +738,7 @@
             this.label12.Name = "label12";
             this.label12.Size = new System.Drawing.Size(333, 39);
             this.label12.TabIndex = 83;
-            this.label12.Text = "Test Cloud Report";
+            this.label12.Text = "Test Data Feed";
             this.label12.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             // 
             // panel14
@@ -1139,6 +1141,26 @@
             this.label36.Text = "ยอดลงบัญชี (สินค้าเบ็ดเตล็ด)";
             this.label36.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
             // 
+            // TestDataFeedButton
+            // 
+            this.TestDataFeedButton.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
+            this.TestDataFeedButton.BackgroundColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
+            this.TestDataFeedButton.BorderColor = System.Drawing.Color.DarkGray;
+            this.TestDataFeedButton.BorderRadius = 5;
+            this.TestDataFeedButton.BorderSize = 1;
+            this.TestDataFeedButton.FlatAppearance.BorderSize = 0;
+            this.TestDataFeedButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.TestDataFeedButton.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.TestDataFeedButton.ForeColor = System.Drawing.Color.White;
+            this.TestDataFeedButton.Location = new System.Drawing.Point(73, 65);
+            this.TestDataFeedButton.Name = "TestDataFeedButton";
+            this.TestDataFeedButton.Size = new System.Drawing.Size(180, 49);
+            this.TestDataFeedButton.TabIndex = 104;
+            this.TestDataFeedButton.Text = "ทดสอบ";
+            this.TestDataFeedButton.TextColor = System.Drawing.Color.White;
+            this.TestDataFeedButton.UseVisualStyleBackColor = false;
+            this.TestDataFeedButton.Click += new System.EventHandler(this.TestDataFeedButton_Click);
+            // 
             // SalesReportPanel
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -1267,5 +1289,6 @@
         private System.Windows.Forms.Label ArTotalForGeneralProductsLabel;
         private System.Windows.Forms.Label label35;
         private System.Windows.Forms.Label label36;
+        private ModernUI.ModernButton TestDataFeedButton;
     }
 }

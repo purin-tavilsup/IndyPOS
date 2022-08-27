@@ -1,17 +1,17 @@
-﻿using IndyPOS.Constants;
-using IndyPOS.Controllers;
-using IndyPOS.Cryptography;
-using IndyPOS.Extensions;
-using IndyPOS.Users;
+﻿using IndyPOS.Common.Extensions;
+using IndyPOS.Common.Interfaces;
+using IndyPOS.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Windows.Forms;
+using IndyPOS.Facade.Interfaces;
+using IndyPOS.Facade.Models;
 
 namespace IndyPOS.UI
 {
-	[ExcludeFromCodeCoverage]
+    [ExcludeFromCodeCoverage]
     public partial class AddNewUserForm : Form
     {
         private readonly IUserController _userController;

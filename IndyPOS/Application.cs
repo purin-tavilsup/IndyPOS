@@ -1,7 +1,6 @@
 ﻿using Autofac;
+using IndyPOS.Interfaces;
 using IndyPOS.IoC;
-using Serilog;
-using Serilog.Formatting.Json;
 using Squirrel;
 using System;
 using System.Configuration;
@@ -13,13 +12,12 @@ using System.Threading.Tasks;
 
 namespace IndyPOS
 {
-    [ExcludeFromCodeCoverage]
+	[ExcludeFromCodeCoverage]
     internal static class Application
 	{
 		private const string ProcessName = "IndyPOS";
 		private static string _localReleaseDirectoryPath;
 		private static string _remoteReleaseDirectoryPath;
-		private static string _logDirectory;
 
         [STAThread]
 		private static void Main()
@@ -28,7 +26,6 @@ namespace IndyPOS
 
 			_localReleaseDirectoryPath = appSettings.Get("LocalReleasesDirectory");
 			_remoteReleaseDirectoryPath = appSettings.Get("RemoteReleasesDirectory");
-			_logDirectory = appSettings.Get("LogDirectory");
 
 			UpdateApplication();
 
@@ -36,7 +33,6 @@ namespace IndyPOS
             System.Windows.Forms.Application.SetCompatibleTextRenderingDefault(false);
 
 			ClosePreviousProcesses();
-			ConfigureLogger();
 
 			var container = ContainerConfig.Configure();
 
@@ -67,20 +63,6 @@ namespace IndyPOS
 				process.WaitForExit(4000);
 			}
 		}
-
-        private static void ConfigureLogger()
-        {
-			if (!Directory.Exists(_logDirectory))
-			{
-				Directory.CreateDirectory(_logDirectory);
-			}
-
-			var logFilePath = $"{_logDirectory}\\log.json";
-
-			Log.Logger = new LoggerConfiguration().MinimumLevel.Debug()
-												  .WriteTo.File(new JsonFormatter(), logFilePath, rollingInterval: RollingInterval.Day)
-												  .CreateLogger();
-        }
 
         private static void LaunchApplication(IContainer container)
         {

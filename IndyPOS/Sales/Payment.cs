@@ -1,4 +1,7 @@
-﻿namespace IndyPOS.Sales
+﻿using IndyPOS.Facade.Interfaces;
+using IndyPOS.Interfaces;
+
+namespace IndyPOS.Sales
 {
 	public class Payment : IPayment
 	{

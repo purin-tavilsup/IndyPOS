@@ -1,11 +1,11 @@
-﻿using IndyPOS.Controllers;
+﻿using IndyPOS.Interfaces;
 using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Windows.Forms;
 
 namespace IndyPOS.UI
 {
-    [ExcludeFromCodeCoverage]
+	[ExcludeFromCodeCoverage]
 	public partial class PrintReceiptForm : Form
 	{
 		private readonly ISaleInvoiceController _saleInvoiceController;

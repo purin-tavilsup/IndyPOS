@@ -1,11 +1,10 @@
-﻿using IndyPOS.Controllers;
-using IndyPOS.Sales;
+﻿using IndyPOS.Interfaces;
 using Prism.Events;
 using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Windows.Forms;
-using IndyPOS.Extensions;
+using IndyPOS.Facade.Interfaces;
 
 namespace IndyPOS.UI
 {

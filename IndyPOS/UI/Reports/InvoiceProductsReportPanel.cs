@@ -1,14 +1,12 @@
-﻿using IndyPOS.Controllers;
-using IndyPOS.Sales;
+﻿using IndyPOS.Interfaces;
 using System;
-using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
 using System.Drawing;
 using System.Windows.Forms;
 
 namespace IndyPOS.UI.Reports
 {
-    [ExcludeFromCodeCoverage]
+	[ExcludeFromCodeCoverage]
     public partial class InvoiceProductsReportPanel : UserControl
     {
 		private readonly IReportController _reportController;

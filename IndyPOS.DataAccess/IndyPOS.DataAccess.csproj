@@ -74,19 +74,18 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="DbConnectionProvider.cs" />
-    <Compile Include="Extensions\StringExtensions.cs" />
-    <Compile Include="IDbConnectionProvider.cs" />
+    <Compile Include="Interfaces\IDbConnectionProvider.cs" />
     <Compile Include="Models\AccountsReceivable.cs" />
     <Compile Include="Models\UserCredential.cs" />
-    <Compile Include="Repositories\IAccountsReceivableRepository.cs" />
-    <Compile Include="SQLite\Repositories\AccountsReceivableRepository.cs" />
-    <Compile Include="Repositories\IInventoryProductRepository.cs" />
-    <Compile Include="Repositories\IInvoiceRepository.cs" />
-    <Compile Include="SQLite\Repositories\InventoryProductRepository.cs" />
-    <Compile Include="SQLite\Repositories\InvoiceRepository.cs" />
-    <Compile Include="Repositories\IStoreConstantRepository.cs" />
-    <Compile Include="Repositories\IUserRepository.cs" />
-    <Compile Include="SQLite\Repositories\StoreConstantsRepository.cs" />
+    <Compile Include="Interfaces\IAccountsReceivableRepository.cs" />
+    <Compile Include="Repositories\SQLite\AccountsReceivableRepository.cs" />
+    <Compile Include="Interfaces\IInventoryProductRepository.cs" />
+    <Compile Include="Interfaces\IInvoiceRepository.cs" />
+    <Compile Include="Repositories\SQLite\InventoryProductRepository.cs" />
+    <Compile Include="Repositories\SQLite\InvoiceRepository.cs" />
+    <Compile Include="Interfaces\IStoreConstantRepository.cs" />
+    <Compile Include="Interfaces\IUserRepository.cs" />
+    <Compile Include="Repositories\SQLite\StoreConstantsRepository.cs" />
     <Compile Include="Models\InventoryProduct.cs" />
     <Compile Include="Models\Invoice.cs" />
     <Compile Include="Models\InvoiceProduct.cs" />
@@ -94,12 +93,18 @@
     <Compile Include="Models\PaymentType.cs" />
     <Compile Include="Models\ProductCategory.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="SQLite\Repositories\UserRepository.cs" />
+    <Compile Include="Repositories\SQLite\UserRepository.cs" />
     <Compile Include="Models\UserAccount.cs" />
     <Compile Include="Models\UserRole.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\IndyPOS.Common\IndyPOS.Common.csproj">
+      <Project>{80698942-f266-4c35-bcdd-af2caeaa1feb}</Project>
+      <Name>IndyPOS.Common</Name>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

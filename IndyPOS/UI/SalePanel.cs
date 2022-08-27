@@ -1,9 +1,7 @@
-﻿using IndyPOS.Constants;
-using IndyPOS.Controllers;
-using IndyPOS.Enums;
-using IndyPOS.Events;
+﻿using IndyPOS.Common.Extensions;
+using IndyPOS.Common.Interfaces;
 using IndyPOS.Extensions;
-using IndyPOS.Sales;
+using IndyPOS.Interfaces;
 using Prism.Events;
 using System;
 using System.Collections.Generic;
@@ -11,6 +9,9 @@ using System.Diagnostics.CodeAnalysis;
 using System.Drawing;
 using System.Linq;
 using System.Windows.Forms;
+using IndyPOS.Common.Enums;
+using IndyPOS.Facade.Events;
+using IndyPOS.Facade.Interfaces;
 
 namespace IndyPOS.UI
 {
@@ -221,7 +222,7 @@ namespace IndyPOS.UI
             _acceptPaymentForm.Show();
         }
 
-        private void SaveSaleInvoiceButton_Click(object sender, EventArgs e)
+        private async void SaveSaleInvoiceButton_Click(object sender, EventArgs e)
 		{
 			var errorMessages = _saleInvoiceController.ValidateSaleInvoice();
 
@@ -239,8 +240,15 @@ namespace IndyPOS.UI
                 return;
 			}
 
-			_saleInvoiceController.CompleteSale();
-
+			try
+			{
+				await _saleInvoiceController.CompleteSale();
+			}
+			catch (Exception ex)
+			{
+				_messageForm.Show("เกิดความผิดพลาดในขณะที่กำลังบันทึกข้อมูล : " + ex.Message, "เกิดความผิดพลาดในขณะที่กำลังบันทึกข้อมูล");
+			}
+			
             _printReceiptForm.ShowDialog();
 			
 			_saleInvoiceController.StartNewSale();

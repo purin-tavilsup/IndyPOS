@@ -1,27 +1,24 @@
-﻿using IndyPOS.Controllers;
-using IndyPOS.Enums;
+﻿using IndyPOS.Interfaces;
+using IndyPOS.Sales;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using IndyPOS.CloudReport;
-using IndyPOS.Sales;
+using IndyPOS.Common.Enums;
 
 namespace IndyPOS.UI.Reports
 {
-    public partial class SalesReportPanel : UserControl
+	public partial class SalesReportPanel : UserControl
     {
 		private readonly IReportController _reportController;
 		private readonly MessageForm _messageForm;
-		private readonly ICloudReportHelper _cloudReportHelper;
 
 		[ExcludeFromCodeCoverage]
-        public SalesReportPanel(IReportController reportController, MessageForm messageForm, ICloudReportHelper cloudReportHelper)
+        public SalesReportPanel(IReportController reportController, MessageForm messageForm)
         {
 			_reportController = reportController;
 			_messageForm = messageForm;
-			_cloudReportHelper = cloudReportHelper;
 
 			InitializeComponent();
         }
@@ -209,6 +206,10 @@ namespace IndyPOS.UI.Reports
 			var arReport = await getArReportTask;
 
 			ShowReport(saleReport, paymentReport, arReport);
+		}
+
+        private void TestDataFeedButton_Click(object sender, EventArgs e)
+		{
 		}
     }
 }

@@ -1,15 +1,17 @@
 ﻿using IndyPOS.Adapters;
-using IndyPOS.DataAccess.Repositories;
-using IndyPOS.Events;
-using IndyPOS.Users;
+using IndyPOS.Facade.Interfaces;
+using IndyPOS.Interfaces;
 using Prism.Events;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using IndyPOS.DataAccess.Interfaces;
+using IndyPOS.Facade.Adapters;
+using IndyPOS.Facade.Events;
 
 namespace IndyPOS.Controllers
 {
-    public class UserController : IUserController
+	public class UserController : IUserController
 	{
 		private readonly IUserRepository _userRepository;
 		private readonly IEventAggregator _eventAggregator;

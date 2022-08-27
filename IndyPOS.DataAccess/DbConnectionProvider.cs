@@ -1,18 +1,22 @@
-﻿using System.Configuration;
+﻿using IndyPOS.Common.Interfaces;
+using IndyPOS.DataAccess.Interfaces;
 using System.Data;
 using System.Data.SQLite;
 using System.IO;
 
 namespace IndyPOS.DataAccess
 {
-    public class DbConnectionProvider : IDbConnectionProvider
+	public class DbConnectionProvider : IDbConnectionProvider
 	{
-		private string _databasePath;
+		private readonly string _databasePath;
+
+		public DbConnectionProvider(IConfiguration configuration)
+		{
+			_databasePath = configuration.DatabasePath;
+		}
 
 		public IDbConnection GetDbConnection()
 		{
-			_databasePath = ConfigurationManager.AppSettings.Get("DatabasePath");
-
 			if (!File.Exists(_databasePath))
 				throw new FileNotFoundException("Database file could not be found.");
 

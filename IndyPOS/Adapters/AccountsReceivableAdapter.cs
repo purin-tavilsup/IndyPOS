@@ -1,9 +1,9 @@
-﻿using IndyPOS.Sales;
+﻿using IndyPOS.Interfaces;
 using AccountsReceivableModel = IndyPOS.DataAccess.Models.AccountsReceivable;
 
 namespace IndyPOS.Adapters
 {
-    public class AccountsReceivableAdapter : IAccountsReceivable
+	public class AccountsReceivableAdapter : IAccountsReceivable
     {
 		private readonly AccountsReceivableModel _adaptee;
 

@@ -1,7 +1,7 @@
-﻿using IndyPOS.Events;
-using Prism.Events;
+﻿using Prism.Events;
 using System;
 using System.Windows.Forms;
+using IndyPOS.Facade.Events;
 
 namespace IndyPOS.UI
 {

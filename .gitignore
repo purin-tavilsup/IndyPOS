@@ -34,3 +34,11 @@ IndyPOS/IndyPOS.csproj.user
 IndyPOS.Mqtt/bin/
 
 IndyPOS.Mqtt/obj/
+
+IndyPOS.Facade/bin/
+
+IndyPOS.Facade/obj/
+
+IndyPOS.Common/bin/
+
+IndyPOS.Common/obj/

@@ -1,13 +1,11 @@
-﻿using IndyPOS.Controllers;
-using IndyPOS.Enums;
-using IndyPOS.Sales;
-using IndyPOS.Users;
+﻿using IndyPOS.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Drawing;
 using System.Linq;
 using System.Windows.Forms;
+using IndyPOS.Facade.Interfaces;
 
 namespace IndyPOS.UI
 {

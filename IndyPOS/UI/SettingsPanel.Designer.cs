@@ -50,17 +50,24 @@
             this.label8 = new System.Windows.Forms.Label();
             this.BarcodeScannerPortNameTextBox = new ModernUI.ModernTextBox();
             this.panel4 = new System.Windows.Forms.Panel();
+            this.label14 = new System.Windows.Forms.Label();
+            this.BarcodeDirectoryTextBox = new ModernUI.ModernTextBox();
             this.label11 = new System.Windows.Forms.Label();
             this.ReportDirectoryTextBox = new ModernUI.ModernTextBox();
             this.label12 = new System.Windows.Forms.Label();
             this.label13 = new System.Windows.Forms.Label();
             this.BackupDBDirectoryTextBox = new ModernUI.ModernTextBox();
-            this.label14 = new System.Windows.Forms.Label();
-            this.BarcodeDirectoryTextBox = new ModernUI.ModernTextBox();
+            this.panel5 = new System.Windows.Forms.Panel();
+            this.label16 = new System.Windows.Forms.Label();
+            this.DataFeedKeyTextBox = new ModernUI.ModernTextBox();
+            this.label17 = new System.Windows.Forms.Label();
+            this.label18 = new System.Windows.Forms.Label();
+            this.DataFeedEnabled = new System.Windows.Forms.CheckBox();
             this.panel1.SuspendLayout();
             this.panel2.SuspendLayout();
             this.panel3.SuspendLayout();
             this.panel4.SuspendLayout();
+            this.panel5.SuspendLayout();
             this.SuspendLayout();
             // 
             // StoreNameTextBox
@@ -395,6 +402,37 @@
             this.panel4.Size = new System.Drawing.Size(600, 235);
             this.panel4.TabIndex = 85;
             // 
+            // label14
+            // 
+            this.label14.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
+            this.label14.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label14.ForeColor = System.Drawing.Color.Gainsboro;
+            this.label14.Location = new System.Drawing.Point(17, 151);
+            this.label14.Name = "label14";
+            this.label14.Size = new System.Drawing.Size(172, 39);
+            this.label14.TabIndex = 86;
+            this.label14.Text = "Barcode Directory";
+            this.label14.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            // 
+            // BarcodeDirectoryTextBox
+            // 
+            this.BarcodeDirectoryTextBox.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
+            this.BarcodeDirectoryTextBox.BorderColor = System.Drawing.Color.DimGray;
+            this.BarcodeDirectoryTextBox.BorderSize = 1;
+            this.BarcodeDirectoryTextBox.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.BarcodeDirectoryTextBox.ForeColor = System.Drawing.Color.Gainsboro;
+            this.BarcodeDirectoryTextBox.Location = new System.Drawing.Point(195, 151);
+            this.BarcodeDirectoryTextBox.Multiline = false;
+            this.BarcodeDirectoryTextBox.Name = "BarcodeDirectoryTextBox";
+            this.BarcodeDirectoryTextBox.Padding = new System.Windows.Forms.Padding(7);
+            this.BarcodeDirectoryTextBox.PasswordChar = false;
+            this.BarcodeDirectoryTextBox.ReadOnly = false;
+            this.BarcodeDirectoryTextBox.Size = new System.Drawing.Size(372, 39);
+            this.BarcodeDirectoryTextBox.TabIndex = 87;
+            this.BarcodeDirectoryTextBox.TextAlign = System.Windows.Forms.HorizontalAlignment.Left;
+            this.BarcodeDirectoryTextBox.Texts = "";
+            this.BarcodeDirectoryTextBox.UnderlinedStyle = true;
+            // 
             // label11
             // 
             this.label11.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
@@ -470,42 +508,90 @@
             this.BackupDBDirectoryTextBox.Texts = "";
             this.BackupDBDirectoryTextBox.UnderlinedStyle = true;
             // 
-            // label14
+            // panel5
             // 
-            this.label14.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
-            this.label14.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label14.ForeColor = System.Drawing.Color.Gainsboro;
-            this.label14.Location = new System.Drawing.Point(17, 151);
-            this.label14.Name = "label14";
-            this.label14.Size = new System.Drawing.Size(172, 39);
-            this.label14.TabIndex = 86;
-            this.label14.Text = "Barcode Directory";
-            this.label14.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            this.panel5.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
+            this.panel5.Controls.Add(this.DataFeedEnabled);
+            this.panel5.Controls.Add(this.label16);
+            this.panel5.Controls.Add(this.DataFeedKeyTextBox);
+            this.panel5.Controls.Add(this.label17);
+            this.panel5.Controls.Add(this.label18);
+            this.panel5.Location = new System.Drawing.Point(618, 253);
+            this.panel5.Name = "panel5";
+            this.panel5.Size = new System.Drawing.Size(600, 175);
+            this.panel5.TabIndex = 86;
             // 
-            // BarcodeDirectoryTextBox
+            // label16
             // 
-            this.BarcodeDirectoryTextBox.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
-            this.BarcodeDirectoryTextBox.BorderColor = System.Drawing.Color.DimGray;
-            this.BarcodeDirectoryTextBox.BorderSize = 1;
-            this.BarcodeDirectoryTextBox.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.BarcodeDirectoryTextBox.ForeColor = System.Drawing.Color.Gainsboro;
-            this.BarcodeDirectoryTextBox.Location = new System.Drawing.Point(195, 151);
-            this.BarcodeDirectoryTextBox.Multiline = false;
-            this.BarcodeDirectoryTextBox.Name = "BarcodeDirectoryTextBox";
-            this.BarcodeDirectoryTextBox.Padding = new System.Windows.Forms.Padding(7);
-            this.BarcodeDirectoryTextBox.PasswordChar = false;
-            this.BarcodeDirectoryTextBox.ReadOnly = false;
-            this.BarcodeDirectoryTextBox.Size = new System.Drawing.Size(372, 39);
-            this.BarcodeDirectoryTextBox.TabIndex = 87;
-            this.BarcodeDirectoryTextBox.TextAlign = System.Windows.Forms.HorizontalAlignment.Left;
-            this.BarcodeDirectoryTextBox.Texts = "";
-            this.BarcodeDirectoryTextBox.UnderlinedStyle = true;
+            this.label16.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
+            this.label16.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label16.ForeColor = System.Drawing.Color.Gainsboro;
+            this.label16.Location = new System.Drawing.Point(17, 61);
+            this.label16.Name = "label16";
+            this.label16.Size = new System.Drawing.Size(172, 39);
+            this.label16.TabIndex = 84;
+            this.label16.Text = "Key";
+            this.label16.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            // 
+            // DataFeedKeyTextBox
+            // 
+            this.DataFeedKeyTextBox.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
+            this.DataFeedKeyTextBox.BorderColor = System.Drawing.Color.DimGray;
+            this.DataFeedKeyTextBox.BorderSize = 1;
+            this.DataFeedKeyTextBox.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.DataFeedKeyTextBox.ForeColor = System.Drawing.Color.Gainsboro;
+            this.DataFeedKeyTextBox.Location = new System.Drawing.Point(195, 61);
+            this.DataFeedKeyTextBox.Multiline = false;
+            this.DataFeedKeyTextBox.Name = "DataFeedKeyTextBox";
+            this.DataFeedKeyTextBox.Padding = new System.Windows.Forms.Padding(7);
+            this.DataFeedKeyTextBox.PasswordChar = true;
+            this.DataFeedKeyTextBox.ReadOnly = false;
+            this.DataFeedKeyTextBox.Size = new System.Drawing.Size(372, 39);
+            this.DataFeedKeyTextBox.TabIndex = 85;
+            this.DataFeedKeyTextBox.TextAlign = System.Windows.Forms.HorizontalAlignment.Left;
+            this.DataFeedKeyTextBox.Texts = "";
+            this.DataFeedKeyTextBox.UnderlinedStyle = true;
+            // 
+            // label17
+            // 
+            this.label17.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
+            this.label17.Dock = System.Windows.Forms.DockStyle.Top;
+            this.label17.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label17.ForeColor = System.Drawing.Color.Gainsboro;
+            this.label17.Location = new System.Drawing.Point(0, 0);
+            this.label17.Name = "label17";
+            this.label17.Size = new System.Drawing.Size(600, 39);
+            this.label17.TabIndex = 83;
+            this.label17.Text = "Rungrat DataFeed";
+            this.label17.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            // 
+            // label18
+            // 
+            this.label18.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
+            this.label18.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label18.ForeColor = System.Drawing.Color.Gainsboro;
+            this.label18.Location = new System.Drawing.Point(17, 106);
+            this.label18.Name = "label18";
+            this.label18.Size = new System.Drawing.Size(172, 39);
+            this.label18.TabIndex = 71;
+            this.label18.Text = "Enabled";
+            this.label18.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            // 
+            // DataFeedEnabled
+            // 
+            this.DataFeedEnabled.AutoSize = true;
+            this.DataFeedEnabled.Location = new System.Drawing.Point(195, 119);
+            this.DataFeedEnabled.Name = "DataFeedEnabled";
+            this.DataFeedEnabled.Size = new System.Drawing.Size(15, 14);
+            this.DataFeedEnabled.TabIndex = 86;
+            this.DataFeedEnabled.UseVisualStyleBackColor = true;
             // 
             // SettingsPanel
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(30)))), ((int)(((byte)(30)))), ((int)(((byte)(30)))));
+            this.Controls.Add(this.panel5);
             this.Controls.Add(this.panel4);
             this.Controls.Add(this.panel3);
             this.Controls.Add(this.SaveSettingsButton);
@@ -518,6 +604,8 @@
             this.panel2.ResumeLayout(false);
             this.panel3.ResumeLayout(false);
             this.panel4.ResumeLayout(false);
+            this.panel5.ResumeLayout(false);
+            this.panel5.PerformLayout();
             this.ResumeLayout(false);
 
         }
@@ -553,5 +641,11 @@
         private ModernUI.ModernTextBox BackupDBDirectoryTextBox;
         private System.Windows.Forms.Label label14;
         private ModernUI.ModernTextBox BarcodeDirectoryTextBox;
+        private System.Windows.Forms.Panel panel5;
+        private System.Windows.Forms.Label label16;
+        private ModernUI.ModernTextBox DataFeedKeyTextBox;
+        private System.Windows.Forms.Label label17;
+        private System.Windows.Forms.Label label18;
+        private System.Windows.Forms.CheckBox DataFeedEnabled;
     }
 }
