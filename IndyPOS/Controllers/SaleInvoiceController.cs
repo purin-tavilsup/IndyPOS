@@ -1,7 +1,4 @@
-﻿using IndyPOS.DataAccess.Repositories;
-using IndyPOS.Enums;
-using IndyPOS.Events;
-using IndyPOS.Exceptions;
+﻿using IndyPOS.Exceptions;
 using IndyPOS.Extensions;
 using IndyPOS.Facade.Interfaces;
 using IndyPOS.Interfaces;
@@ -9,6 +6,11 @@ using Prism.Events;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using IndyPOS.Common.Enums;
+using IndyPOS.Common.Interfaces;
+using IndyPOS.DataAccess.Interfaces;
+using IndyPOS.Facade.Events;
+using IndyPOS.Facade.Extensions;
 using AccountsReceivableModel = IndyPOS.DataAccess.Models.AccountsReceivable;
 using InventoryProductModel = IndyPOS.DataAccess.Models.InventoryProduct;
 using InvoiceModel = IndyPOS.DataAccess.Models.Invoice;
@@ -22,7 +24,7 @@ namespace IndyPOS.Controllers
         private readonly IEventAggregator _eventAggregator;
         private readonly IInvoiceRepository _invoicesRepository;
         private readonly IInventoryProductRepository _inventoryProductsRepository;
-		private readonly IReceiptPrinter _receiptPrinter;
+		private readonly IReceiptPrinterHelper _receiptPrinter;
 		private readonly IUserAccountHelper _userAccountHelper;
 		private readonly IAccountsReceivableRepository _accountsReceivableRepository;
         private readonly ISaleInvoice _saleInvoice;
@@ -52,7 +54,7 @@ namespace IndyPOS.Controllers
 									 IEventAggregator eventAggregator, 
 									 IInvoiceRepository invoicesRepository, 
 									 IInventoryProductRepository inventoryProductsRepository,
-									 IReceiptPrinter receiptPrinter,
+									 IReceiptPrinterHelper receiptPrinter,
 									 IUserAccountHelper userAccountHelper,
 									 IAccountsReceivableRepository accountsReceivableRepository,
 									 IReportHelper reportHelper,

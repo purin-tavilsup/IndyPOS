@@ -2,8 +2,6 @@
 using IndyPOS.Adapters;
 using IndyPOS.Common.Extensions;
 using IndyPOS.Common.Interfaces;
-using IndyPOS.DataAccess.Repositories;
-using IndyPOS.Enums;
 using IndyPOS.Interfaces;
 using IndyPOS.Sales;
 using System;
@@ -11,6 +9,9 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using IndyPOS.Common.Enums;
+using IndyPOS.DataAccess.Interfaces;
+using IndyPOS.Facade.Interfaces;
 using SalesReport = IndyPOS.Sales.SalesReport;
 
 namespace IndyPOS.Controllers

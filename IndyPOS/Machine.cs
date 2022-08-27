@@ -1,4 +1,5 @@
 ﻿using IndyPOS.Common.Interfaces;
+using IndyPOS.Facade.Interfaces;
 using IndyPOS.Interfaces;
 using IndyPOS.UI;
 using System;
@@ -12,11 +13,11 @@ namespace IndyPOS
 	{
         private readonly MainForm _mainForm;
 		private readonly IConfiguration _configuration;
-        private readonly IBarcodeScanner _barcodeScanner;
+        private readonly IBarcodeScannerHelper _barcodeScanner;
 
 		public Machine(MainForm mainForm,
 					   IConfiguration configuration,
-					   IBarcodeScanner barcodeScanner)
+					   IBarcodeScannerHelper barcodeScanner)
         {
             _mainForm = mainForm;
 			_configuration = configuration;

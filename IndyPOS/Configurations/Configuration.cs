@@ -6,6 +6,7 @@ using System.Collections.Specialized;
 using System.Configuration;
 using System.IO;
 using System.Threading.Tasks;
+using IndyPOS.Facade.Interfaces;
 
 namespace IndyPOS.Configurations
 {

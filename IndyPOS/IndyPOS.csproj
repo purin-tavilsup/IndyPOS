@@ -204,75 +204,32 @@
     <Reference Include="System.Xml" />
     <Reference Include="WindowsBase" />
     <Reference Include="WindowsFormsIntegration" />
-    <Reference Include="zxing, Version=0.16.8.0, Culture=neutral, PublicKeyToken=4e88037ac681fe60, processorArchitecture=MSIL">
-      <HintPath>..\packages\ZXing.Net.0.16.8\lib\net48\zxing.dll</HintPath>
-    </Reference>
-    <Reference Include="zxing.presentation, Version=0.16.8.0, Culture=neutral, PublicKeyToken=4e88037ac681fe60, processorArchitecture=MSIL">
-      <HintPath>..\packages\ZXing.Net.0.16.8\lib\net48\zxing.presentation.dll</HintPath>
-    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Adapters\AccountsReceivableAdapter.cs" />
     <Compile Include="Adapters\FinalInvoiceAdapter.cs" />
     <Compile Include="Adapters\FinalInvoicePaymentAdapter.cs" />
-    <Compile Include="Adapters\UserAccountAdapter.cs" />
-    <Compile Include="Adapters\UserCredentialAdapter.cs" />
-    <Compile Include="Barcode\BarcodeHelper.cs" />
-    <Compile Include="Interfaces\IBarcodeHelper.cs" />
     <Compile Include="Configurations\Configuration.cs" />
     <Compile Include="Configurations\Models\UserConfiguration.cs" />
-    <Compile Include="Events\SalesReportPushedEvent.cs" />
     <Compile Include="Controllers\AccountsReceivableController.cs" />
     <Compile Include="Interfaces\IAccountsReceivableController.cs" />
     <Compile Include="Interfaces\IReportController.cs" />
     <Compile Include="Interfaces\IUserController.cs" />
     <Compile Include="Controllers\ReportController.cs" />
     <Compile Include="Controllers\UserController.cs" />
-    <Compile Include="Cryptography\CryptographyHelper.cs" />
-    <Compile Include="Interfaces\ICryptographyHelper.cs" />
-    <Compile Include="Interfaces\IReceiptPrinter.cs" />
-    <Compile Include="Devices\ReceiptPrinter.cs" />
-    <Compile Include="Enums\Panels.cs" />
-    <Compile Include="Enums\ProductCategories.cs" />
-    <Compile Include="Enums\ReportPeriods.cs" />
-    <Compile Include="Enums\UserRoles.cs" />
-    <Compile Include="Events\ActiveSubPanelChangedEvent.cs" />
-    <Compile Include="Events\AllPaymentsRemovedEvent.cs" />
-    <Compile Include="Events\InventoryProductAddedEvent.cs" />
-    <Compile Include="Events\InventoryProductDeletedEvent.cs" />
-    <Compile Include="Events\InventoryProductUpdatedEvent.cs" />
-    <Compile Include="Events\UserAddedEvent.cs" />
-    <Compile Include="Events\UserLoggedInEvent.cs" />
-    <Compile Include="Events\UserLoggedOutEvent.cs" />
-    <Compile Include="Events\UserRemovedEvent.cs" />
     <Compile Include="Exceptions\ProductNotFoundException.cs" />
-    <Compile Include="Extensions\SaleInvoiceExtensions.cs" />
     <Compile Include="Interfaces\IInventoryProduct.cs" />
-    <Compile Include="Interfaces\ISaleInvoiceMapper.cs" />
-    <Compile Include="Mappers\SaleInvoiceMapper.cs" />
     <Compile Include="Sales\ArReport.cs" />
     <Compile Include="Interfaces\IAccountsReceivable.cs" />
     <Compile Include="Interfaces\IFinalInvoice.cs" />
     <Compile Include="Interfaces\IFinalInvoicePayment.cs" />
     <Compile Include="Interfaces\IFinalInvoiceProduct.cs" />
-    <Compile Include="Interfaces\IPayment.cs" />
-    <Compile Include="Interfaces\ISaleInvoice.cs" />
-    <Compile Include="Interfaces\ISaleInvoiceProduct.cs" />
     <Compile Include="Adapters\InventoryProductAdapter.cs" />
     <Compile Include="Adapters\FinalInvoiceProductAdapter.cs" />
-    <Compile Include="Devices\BarcodeScanner.cs" />
     <Compile Include="Interfaces\IInventoryController.cs" />
     <Compile Include="Controllers\InventoryController.cs" />
     <Compile Include="Interfaces\ISaleInvoiceController.cs" />
     <Compile Include="Controllers\SaleInvoiceController.cs" />
-    <Compile Include="Interfaces\IBarcodeScanner.cs" />
-    <Compile Include="Enums\PaymentTypes.cs" />
-    <Compile Include="Events\BarcodeReceivedEvent.cs" />
-    <Compile Include="Events\NewSaleStartedEvent.cs" />
-    <Compile Include="Events\PaymentAddedEvent.cs" />
-    <Compile Include="Events\SaleInvoiceProductAddedEvent.cs" />
-    <Compile Include="Events\SaleInvoiceProductRemovedEvent.cs" />
-    <Compile Include="Events\SaleInvoiceProductUpdatedEvent.cs" />
     <Compile Include="Interfaces\IMachine.cs" />
     <Compile Include="Inventory\InventoryProduct.cs" />
     <Compile Include="IoC\ContainerConfig.cs" />
@@ -424,12 +381,6 @@
     <Compile Include="UI\UsersPanel.Designer.cs">
       <DependentUpon>UsersPanel.cs</DependentUpon>
     </Compile>
-    <Compile Include="Interfaces\IUserAccount.cs" />
-    <Compile Include="Interfaces\IUserAccountHelper.cs" />
-    <Compile Include="Interfaces\IUserCredential.cs" />
-    <Compile Include="Users\UserAccount.cs" />
-    <Compile Include="Users\UserAccountHelper.cs" />
-    <Compile Include="Users\UserCredential.cs" />
     <EmbeddedResource Include="UI\AcceptPaymentForm.resx">
       <DependentUpon>AcceptPaymentForm.cs</DependentUpon>
     </EmbeddedResource>

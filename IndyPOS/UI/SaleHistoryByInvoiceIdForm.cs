@@ -1,11 +1,11 @@
 ﻿using IndyPOS.Common.Interfaces;
-using IndyPOS.Enums;
 using IndyPOS.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Drawing;
 using System.Windows.Forms;
+using IndyPOS.Common.Enums;
 
 namespace IndyPOS.UI
 {

@@ -1,6 +1,7 @@
-﻿using IndyPOS.Enums;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Threading.Tasks;
+using IndyPOS.Common.Enums;
+using IndyPOS.Facade.Interfaces;
 using InventoryProductModel = IndyPOS.DataAccess.Models.InventoryProduct;
 
 namespace IndyPOS.Interfaces

@@ -1,5 +1,5 @@
-﻿using IndyPOS.Enums;
-using IndyPOS.Interfaces;
+﻿using IndyPOS.Common.Enums;
+using IndyPOS.Facade.Interfaces;
 using System.Collections.Generic;
 using System.Linq;
 using InventoryProductModel = IndyPOS.DataAccess.Models.InventoryProduct;

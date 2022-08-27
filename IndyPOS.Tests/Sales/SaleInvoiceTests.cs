@@ -1,6 +1,6 @@
 ﻿using AutoFixture;
 using FluentAssertions;
-using IndyPOS.Enums;
+using IndyPOS.Common.Enums;
 using IndyPOS.Sales;
 using NUnit.Framework;
 using System.Linq;
@@ -8,7 +8,7 @@ using InventoryProductModel = IndyPOS.DataAccess.Models.InventoryProduct;
 
 namespace IndyPOS.Tests.Sales
 {
-    [TestFixture]
+	[TestFixture]
     public class SaleInvoiceTests
 	{
 		private SaleInvoice _saleInvoice;

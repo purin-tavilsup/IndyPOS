@@ -1,4 +1,5 @@
 ﻿using IndyPOS.Common.Interfaces;
+using IndyPOS.DataAccess.Interfaces;
 using System.Data;
 using System.Data.SQLite;
 using System.IO;

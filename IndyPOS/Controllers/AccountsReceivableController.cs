@@ -1,10 +1,10 @@
 ﻿using IndyPOS.Adapters;
-using IndyPOS.DataAccess.Repositories;
-using IndyPOS.Enums;
 using IndyPOS.Interfaces;
 using Prism.Events;
 using System.Collections.Generic;
 using System.Linq;
+using IndyPOS.Common.Enums;
+using IndyPOS.DataAccess.Interfaces;
 using AccountsReceivableModel = IndyPOS.DataAccess.Models.AccountsReceivable;
 using PaymentModel = IndyPOS.DataAccess.Models.Payment;
 

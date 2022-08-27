@@ -1,19 +1,14 @@
 ﻿using Autofac;
-using IndyPOS.Barcode;
 using IndyPOS.Common.Interfaces;
-using IndyPOS.Common.Utilities;
 using IndyPOS.Constants;
-using IndyPOS.Cryptography;
 using IndyPOS.DataAccess;
-using IndyPOS.DataAccess.Repositories;
-using IndyPOS.DataAccess.SQLite.Repositories;
-using IndyPOS.Devices;
+using IndyPOS.DataAccess.Interfaces;
+using IndyPOS.DataAccess.Repositories.SQLite;
+using IndyPOS.Facade.Cryptography;
 using IndyPOS.Facade.Helpers;
 using IndyPOS.Facade.Interfaces;
 using IndyPOS.Interfaces;
-using IndyPOS.Mappers;
 using IndyPOS.Sales;
-using IndyPOS.Users;
 using LazyCache;
 using Prism.Events;
 using Serilog;
@@ -22,6 +17,8 @@ using System.Configuration;
 using System.IO;
 using System.Net.Http;
 using System.Reflection;
+using IndyPOS.Facade.Mappers;
+using IndyPOS.Facade.Utilities;
 using Configuration = IndyPOS.Configurations.Configuration;
 
 namespace IndyPOS.IoC
@@ -87,12 +84,12 @@ namespace IndyPOS.IoC
 			builder.RegisterType<AccountsReceivableRepository>()
 				   .As<IAccountsReceivableRepository>();
 
-            builder.RegisterType<BarcodeScanner>()
-				   .As<IBarcodeScanner>()
+            builder.RegisterType<BarcodeScannerHelper>()
+				   .As<IBarcodeScannerHelper>()
 				   .SingleInstance();
 
-			builder.RegisterType<ReceiptPrinter>()
-				   .As<IReceiptPrinter>()
+			builder.RegisterType<ReceiptPrinterHelper>()
+				   .As<IReceiptPrinterHelper>()
 				   .SingleInstance();
 
 			builder.RegisterType<CryptographyHelper>()
@@ -103,8 +100,8 @@ namespace IndyPOS.IoC
                    .As<IUserAccountHelper>()
                    .SingleInstance();
 
-			builder.RegisterType<BarcodeHelper>()
-				   .As<IBarcodeHelper>()
+			builder.RegisterType<BarcodeUtility>()
+				   .As<IBarcodeUtility>()
 				   .SingleInstance();
 
 			builder.RegisterType<CachingService>()

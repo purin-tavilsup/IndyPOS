@@ -1,7 +1,7 @@
-﻿using IndyPOS.Enums;
-using IndyPOS.Sales;
+﻿using IndyPOS.Sales;
 using System;
 using System.Collections.Generic;
+using IndyPOS.Common.Enums;
 
 namespace IndyPOS.Interfaces
 {

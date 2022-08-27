@@ -1,4 +1,5 @@
 ﻿using IndyPOS.Common.Interfaces;
+using IndyPOS.Facade.Interfaces;
 using IndyPOS.Interfaces;
 using IndyPOS.Inventory;
 using System;
@@ -12,17 +13,17 @@ namespace IndyPOS.UI
     [ExcludeFromCodeCoverage]
 	public partial class AddNewInventoryProductWithCustomBarcodeForm : Form
     {
-        private readonly IBarcodeHelper _barcodeHelper;
+        private readonly IBarcodeUtility _barcodeUtility;
         private readonly IInventoryController _inventoryController;
         private readonly IReadOnlyDictionary<int, string> _productCategoryDictionary;
 		private readonly MessageForm _messageForm;
 
-        public AddNewInventoryProductWithCustomBarcodeForm(IBarcodeHelper barcodeHelper, 
+        public AddNewInventoryProductWithCustomBarcodeForm(IBarcodeUtility barcodeUtility, 
 														   IStoreConstants storeConstants, 
 														   IInventoryController inventoryController,
 														   MessageForm messageForm)
 		{
-			_barcodeHelper = barcodeHelper;
+			_barcodeUtility = barcodeUtility;
             _inventoryController = inventoryController;
             _productCategoryDictionary = storeConstants.ProductCategories;
 			_messageForm = messageForm;
@@ -190,11 +191,11 @@ namespace IndyPOS.UI
         private void GenerateProductBarcode(int categoryId)
 		{
 			var counter = _inventoryController.GetProductBarcodeCounter();
-			var barcode = _barcodeHelper.GenerateEan13Barcode(categoryId, counter + 1);
+			var barcode = _barcodeUtility.GenerateEan13Barcode(categoryId, counter + 1);
 
 			BarcodeTextBox.Texts = barcode;
 
-			var barcodeImage = _barcodeHelper.CreateEan13BarcodeImage(barcode, 200, 400, 10);
+			var barcodeImage = _barcodeUtility.CreateEan13BarcodeImage(barcode, 200, 400, 10);
 
             BarcodePictureBox.Image = barcodeImage;
 		}

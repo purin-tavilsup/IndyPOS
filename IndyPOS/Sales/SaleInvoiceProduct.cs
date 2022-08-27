@@ -1,4 +1,5 @@
-﻿using IndyPOS.Interfaces;
+﻿using IndyPOS.Facade.Interfaces;
+using IndyPOS.Interfaces;
 
 namespace IndyPOS.Sales
 {

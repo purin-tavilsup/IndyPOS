@@ -1,6 +1,5 @@
 ﻿using IndyPOS.Common.Extensions;
 using IndyPOS.Common.Interfaces;
-using IndyPOS.Events;
 using IndyPOS.Interfaces;
 using Prism.Events;
 using System;
@@ -8,7 +7,9 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Windows.Forms;
-using UserRoleEnum = IndyPOS.Enums.UserRole;
+using IndyPOS.Facade.Events;
+using IndyPOS.Facade.Interfaces;
+using UserRoleEnum = IndyPOS.Common.Enums.UserRole;
 
 namespace IndyPOS.UI
 {

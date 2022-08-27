@@ -1,7 +1,5 @@
 ﻿using IndyPOS.Common.Interfaces;
 using IndyPOS.DataAccess;
-using IndyPOS.Enums;
-using IndyPOS.Events;
 using IndyPOS.Interfaces;
 using Prism.Events;
 using System;
@@ -9,6 +7,10 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Windows.Forms;
+using IndyPOS.Common.Enums;
+using IndyPOS.DataAccess.Interfaces;
+using IndyPOS.Facade.Events;
+using IndyPOS.Facade.Interfaces;
 
 namespace IndyPOS.UI
 {
