@@ -1,16 +1,15 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 using IndyPOS.Common.Enums;
-using IndyPOS.Facade.Interfaces;
 using InventoryProductModel = IndyPOS.DataAccess.Models.InventoryProduct;
 
-namespace IndyPOS.Interfaces
+namespace IndyPOS.Facade.Interfaces
 {
-    public interface ISaleInvoiceController
+    public interface ISaleInvoiceHelper
     {
         IList<ISaleInvoiceProduct> Products { get; }
 
-		IList<IPayment> Payments { get; }
+        IList<IPayment> Payments { get; }
 
         decimal InvoiceTotal { get; }
 

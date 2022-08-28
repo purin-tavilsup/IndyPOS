@@ -111,7 +111,7 @@ namespace IndyPOS.Sales
 			Payments = new List<IPayment>();
 		}
 
-		private ISaleInvoiceProduct ConvertToSaleInvoiceProduct(InventoryProductModel product)
+		private static ISaleInvoiceProduct ConvertToSaleInvoiceProduct(InventoryProductModel product)
 		{
 			return new SaleInvoiceProduct
 				   {

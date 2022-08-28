@@ -55,6 +55,10 @@ namespace IndyPOS.IoC
 				   .As<ISaleInvoice>()
 				   .SingleInstance();
 
+			builder.RegisterType<SaleInvoiceHelper>()
+				   .As<ISaleInvoiceHelper>()
+				   .SingleInstance();
+
             builder.RegisterAssemblyTypes(Assembly.Load("IndyPOS"))
 				   .Where(t => t.Namespace?.Contains("UI") ?? false)
 				   .AsSelf()

@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace IndyPOS.Exceptions
+namespace IndyPOS.Facade.Exceptions
 {
     public class ProductNotFoundException : Exception
     {

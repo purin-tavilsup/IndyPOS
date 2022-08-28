@@ -217,7 +217,6 @@
     <Compile Include="Interfaces\IUserController.cs" />
     <Compile Include="Controllers\ReportController.cs" />
     <Compile Include="Controllers\UserController.cs" />
-    <Compile Include="Exceptions\ProductNotFoundException.cs" />
     <Compile Include="Interfaces\IInventoryProduct.cs" />
     <Compile Include="Sales\ArReport.cs" />
     <Compile Include="Interfaces\IAccountsReceivable.cs" />
