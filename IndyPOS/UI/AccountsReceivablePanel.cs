@@ -5,7 +5,6 @@ using System.Diagnostics.CodeAnalysis;
 using System.Drawing;
 using System.Linq;
 using System.Windows.Forms;
-using IndyPOS.Facade.Interfaces;
 
 namespace IndyPOS.UI
 {
@@ -13,7 +12,6 @@ namespace IndyPOS.UI
     public partial class AccountsReceivablePanel : UserControl
     {
 		private readonly IAccountsReceivableController _arController;
-		private readonly IUserAccountHelper _accountHelper;
 		private readonly SaleHistoryByInvoiceIdForm _saleHistoryByInvoiceIdForm;
 		private readonly MessageForm _messageForm;
 		private IList<IAccountsReceivable> _accountsReceivables;
@@ -32,12 +30,10 @@ namespace IndyPOS.UI
 		}
 
         public AccountsReceivablePanel(IAccountsReceivableController arController,
-									   IUserAccountHelper accountHelper,
 									   SaleHistoryByInvoiceIdForm saleHistoryByInvoiceIdForm,
 									   MessageForm messageForm)
 		{
 			_arController = arController;
-			_accountHelper = accountHelper;
 			_saleHistoryByInvoiceIdForm = saleHistoryByInvoiceIdForm;
 			_messageForm = messageForm;
 

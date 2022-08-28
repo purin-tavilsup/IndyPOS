@@ -1,7 +1,9 @@
 ﻿using CsvHelper;
 using IndyPOS.Adapters;
+using IndyPOS.Common.Enums;
 using IndyPOS.Common.Extensions;
 using IndyPOS.Common.Interfaces;
+using IndyPOS.DataAccess.Interfaces;
 using IndyPOS.Interfaces;
 using IndyPOS.Sales;
 using System;
@@ -9,16 +11,12 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
-using IndyPOS.Common.Enums;
-using IndyPOS.DataAccess.Interfaces;
-using IndyPOS.Facade.Interfaces;
 using SalesReport = IndyPOS.Sales.SalesReport;
 
 namespace IndyPOS.Controllers
 {
 	public class ReportController : IReportController
 	{
-		private readonly IUserAccountHelper _accountHelper;
 		private readonly IInvoiceRepository _invoicesRepository;
 		private readonly IAccountsReceivableRepository _accountsReceivableRepository;
 		private readonly IConfiguration _configuration;
@@ -36,12 +34,10 @@ namespace IndyPOS.Controllers
 
 		public IEnumerable<IAccountsReceivable> AccountsReceivables => _accountsReceivables ?? new List<IAccountsReceivable>();
 
-		public ReportController(IUserAccountHelper accountHelper,
-                                IInvoiceRepository invoicesRepository,
+		public ReportController(IInvoiceRepository invoicesRepository,
                                 IAccountsReceivableRepository accountsReceivableRepository,
 								IConfiguration configuration)
         {
-            _accountHelper = accountHelper;
             _invoicesRepository = invoicesRepository;
             _accountsReceivableRepository = accountsReceivableRepository;
 			_configuration = configuration;

@@ -59,6 +59,10 @@ namespace IndyPOS.IoC
 				   .As<ISaleInvoiceHelper>()
 				   .SingleInstance();
 
+			builder.RegisterType<UserHelper>()
+				   .As<IUserHelper>()
+				   .SingleInstance();
+
             builder.RegisterAssemblyTypes(Assembly.Load("IndyPOS"))
 				   .Where(t => t.Namespace?.Contains("UI") ?? false)
 				   .AsSelf()
@@ -99,10 +103,6 @@ namespace IndyPOS.IoC
 			builder.RegisterType<CryptographyHelper>()
 				   .As<ICryptographyHelper>()
 				   .SingleInstance();
-
-            builder.RegisterType<UserAccountHelper>()
-                   .As<IUserAccountHelper>()
-                   .SingleInstance();
 
 			builder.RegisterType<BarcodeUtility>()
 				   .As<IBarcodeUtility>()

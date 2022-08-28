@@ -165,11 +165,9 @@
     <Compile Include="Exceptions\ProductNotFoundException.cs" />
     <Compile Include="Extensions\SaleInvoiceExtensions.cs" />
     <Compile Include="Helpers\SaleInvoiceHelper.cs" />
-    <Compile Include="Helpers\UserAccountHelper.cs" />
     <Compile Include="Helpers\UserHelper.cs" />
     <Compile Include="Interfaces\ISaleInvoiceHelper.cs" />
     <Compile Include="Interfaces\ISaleInvoiceMapper.cs" />
-    <Compile Include="Interfaces\IUserAccountHelper.cs" />
     <Compile Include="Interfaces\IUserHelper.cs" />
     <Compile Include="Interfaces\IUserCredential.cs" />
     <Compile Include="Mappers\SaleInvoiceMapper.cs" />

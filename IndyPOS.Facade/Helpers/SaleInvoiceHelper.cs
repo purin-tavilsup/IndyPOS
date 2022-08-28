@@ -22,7 +22,7 @@ namespace IndyPOS.Facade.Helpers
         private readonly IInvoiceRepository _invoicesRepository;
         private readonly IInventoryProductRepository _inventoryProductsRepository;
 		private readonly IReceiptPrinterHelper _receiptPrinter;
-		private readonly IUserAccountHelper _userAccountHelper;
+		private readonly IUserHelper _userHelper;
 		private readonly IAccountsReceivableRepository _accountsReceivableRepository;
         private readonly ISaleInvoice _saleInvoice;
 		private readonly IReportHelper _reportHelper;
@@ -52,7 +52,7 @@ namespace IndyPOS.Facade.Helpers
 									 IInvoiceRepository invoicesRepository, 
 									 IInventoryProductRepository inventoryProductsRepository,
 									 IReceiptPrinterHelper receiptPrinter,
-									 IUserAccountHelper userAccountHelper,
+									 IUserHelper userHelper,
 									 IAccountsReceivableRepository accountsReceivableRepository,
 									 IReportHelper reportHelper,
 									 IDataFeedApiHelper dataFeedApiHelper,
@@ -63,7 +63,7 @@ namespace IndyPOS.Facade.Helpers
             _invoicesRepository = invoicesRepository;
             _inventoryProductsRepository = inventoryProductsRepository;
 			_receiptPrinter = receiptPrinter;
-			_userAccountHelper = userAccountHelper;
+			_userHelper = userHelper;
 			_accountsReceivableRepository = accountsReceivableRepository;
 			_reportHelper = reportHelper;
 			_dataFeedApiHelper = dataFeedApiHelper;
@@ -248,7 +248,7 @@ namespace IndyPOS.Facade.Helpers
 		{
 			var message = new List<string>();
 
-			if (_userAccountHelper.LoggedInUser == null)
+			if (_userHelper.LoggedInUser == null)
 				message.Add("ไม่พบผู้ใช้งานในระบบ");
 
             if (!_saleInvoice.Products.Any()) 
@@ -265,7 +265,7 @@ namespace IndyPOS.Facade.Helpers
 
 		public async Task CompleteSale()
 		{
-			var loggedInUserId = _userAccountHelper.LoggedInUser.UserId;
+			var loggedInUserId = _userHelper.LoggedInUser.UserId;
 
 			AddInvoiceToDatabase(_saleInvoice, loggedInUserId);
 			AddInvoiceProductsToDatabase(_saleInvoice);
@@ -277,7 +277,7 @@ namespace IndyPOS.Facade.Helpers
 
 		public void PrintReceipt()
 		{
-			var loggedInUser = _userAccountHelper.LoggedInUser;
+			var loggedInUser = _userHelper.LoggedInUser;
 
 			_receiptPrinter.PrintReceipt(_saleInvoice, loggedInUser);
 		}
