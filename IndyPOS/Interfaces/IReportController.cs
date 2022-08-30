@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using IndyPOS.Common.Enums;
+using IndyPOS.Facade.Interfaces;
 
 namespace IndyPOS.Interfaces
 {

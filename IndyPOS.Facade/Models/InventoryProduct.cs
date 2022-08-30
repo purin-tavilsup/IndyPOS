@@ -1,15 +1,12 @@
 ﻿using IndyPOS.Facade.Interfaces;
-using IndyPOS.Interfaces;
+using System.Diagnostics.CodeAnalysis;
 
-namespace IndyPOS.Sales
+namespace IndyPOS.Facade.Models
 {
-	public class SaleInvoiceProduct : ISaleInvoiceProduct
+    [ExcludeFromCodeCoverage]
+	public class InventoryProduct : IInventoryProduct
     {
-        public int InvoiceProductId { get; set; }
-
-        public int InvoiceId { get; set; }
-
-        public int InventoryProductId { get; set; }
+        public int InventoryProductId { get; }
 
         public string Barcode { get; set; }
 
@@ -23,16 +20,16 @@ namespace IndyPOS.Sales
 
         public decimal UnitPrice { get; set; }
 
-        public int Quantity { get; set; }
+        public int QuantityInStock { get; set; }
 
         public decimal? GroupPrice { get; set; }
 
         public int? GroupPriceQuantity { get; set; }
 
-		public int Priority { get; set; }
-
         public bool IsTrackable { get; set; }
 
-        public string Note { get; set; }
+        public string DateCreated { get; }
+
+        public string DateUpdated { get; }
     }
 }

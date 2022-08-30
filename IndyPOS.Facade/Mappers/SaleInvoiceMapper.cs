@@ -1,11 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using IndyPOS.Common.Enums;
+﻿using IndyPOS.Common.Enums;
 using IndyPOS.Common.Interfaces;
 using IndyPOS.Facade.Interfaces;
-using IndyPOS.Facade.Models;
-using Payment = IndyPOS.Facade.Models.Payment;
+using IndyPOS.Facade.Models.Report;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using Payment = IndyPOS.Facade.Models.Report.Payment;
 
 namespace IndyPOS.Facade.Mappers
 {

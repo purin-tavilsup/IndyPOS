@@ -16,17 +16,17 @@ namespace IndyPOS.UI
     {
         private readonly IUserController _userController;
         private readonly IReadOnlyDictionary<int, string> _userRoleDictionary;
-        private readonly ICryptographyHelper _cryptographyHelper;
+        private readonly ICryptographyUtility _cryptographyUtility;
         private readonly MessageForm _messageForm;
 
         public AddNewUserForm(IUserController userController,
 							  IStoreConstants storeConstants,
-							  ICryptographyHelper cryptographyHelper,
+							  ICryptographyUtility cryptographyUtility,
 							  MessageForm messageForm)
         {
             _userController = userController;
             _userRoleDictionary = storeConstants.UserRoles;
-            _cryptographyHelper = cryptographyHelper;
+            _cryptographyUtility = cryptographyUtility;
             _messageForm = messageForm;
 
             InitializeComponent();
@@ -87,7 +87,7 @@ namespace IndyPOS.UI
             var role = _userRoleDictionary.FirstOrDefault(x => x.Value == selectedRole);
             var roleId = role.Key;
 			var username = UsernameLabel.Text;
-            var encryptedPassword = _cryptographyHelper.Encrypt(UserSecretTextBox.Texts.Trim());
+            var encryptedPassword = _cryptographyUtility.Encrypt(UserSecretTextBox.Texts.Trim());
 
             var newUser = new UserAccount
             {

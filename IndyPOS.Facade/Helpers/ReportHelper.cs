@@ -1,8 +1,10 @@
 ﻿using IndyPOS.Common.Interfaces;
+using IndyPOS.DataAccess.Interfaces;
 using IndyPOS.Facade.Interfaces;
-using IndyPOS.Facade.Models;
+using IndyPOS.Facade.Models.Report;
 using Serilog;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
 
@@ -13,8 +15,25 @@ namespace IndyPOS.Facade.Helpers
 		private readonly string _reportsDirectory;
 		private readonly IJsonUtility _jsonUtility;
 		private readonly ILogger _logger; 
+		private readonly IInvoiceRepository _invoicesRepository;
+		private readonly IAccountsReceivableRepository _accountsReceivableRepository;
+		private readonly IConfiguration _configuration;
 
-		public ReportHelper(IConfiguration configuration, ILogger logger, IJsonUtility jsonUtility)
+		private IEnumerable<IFinalInvoice> _invoices;
+		private IEnumerable<IFinalInvoiceProduct> _invoiceProducts;
+		private IEnumerable<IFinalInvoicePayment> _payments;
+		private IEnumerable<IAccountsReceivable> _accountsReceivables;
+
+		public IEnumerable<IFinalInvoice> Invoices => _invoices ?? new List<IFinalInvoice>();
+
+		public IEnumerable<IFinalInvoiceProduct> InvoiceProducts => _invoiceProducts ?? new List<IFinalInvoiceProduct>();
+
+		public IEnumerable<IFinalInvoicePayment> InvoicePayments => _payments ?? new List<IFinalInvoicePayment>();
+		public IEnumerable<IAccountsReceivable> AccountsReceivables => _accountsReceivables ?? new List<IAccountsReceivable>();
+
+		public ReportHelper(IConfiguration configuration, 
+							ILogger logger, 
+							IJsonUtility jsonUtility)
         {
 			_logger = logger;
 			_reportsDirectory = configuration.ReportsDirectory;

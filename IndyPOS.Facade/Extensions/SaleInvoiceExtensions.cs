@@ -1,6 +1,6 @@
 ﻿using IndyPOS.Common.Enums;
 using IndyPOS.Facade.Interfaces;
-using IndyPOS.Facade.Models;
+using IndyPOS.Facade.Models.Report;
 using System.Linq;
 
 namespace IndyPOS.Facade.Extensions

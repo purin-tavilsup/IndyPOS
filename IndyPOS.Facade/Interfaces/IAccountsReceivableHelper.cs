@@ -1,9 +1,8 @@
 ﻿using System.Collections.Generic;
-using IndyPOS.Facade.Interfaces;
 
-namespace IndyPOS.Interfaces
+namespace IndyPOS.Facade.Interfaces
 {
-    public interface IAccountsReceivableController
+    public interface IAccountsReceivableHelper
 	{
 		IList<IAccountsReceivable> GetAccountsReceivables();
 

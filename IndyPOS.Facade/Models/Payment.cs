@@ -1,15 +1,17 @@
-﻿using System;
+﻿using IndyPOS.Facade.Interfaces;
 using System.Diagnostics.CodeAnalysis;
 
 namespace IndyPOS.Facade.Models
 {
-    [ExcludeFromCodeCoverage]
-	public class Payment
+	[ExcludeFromCodeCoverage]
+	public class Payment : IPayment
 	{
+		public int PaymentTypeId { get; set; }
+
+		public decimal Amount { get; set; }
+
 		public int Priority { get; set; }
-		public string PaymentType { get; set; }
-		public double Amount { get; set; }
+
 		public string Note { get; set; }
-		public DateTime DateTime { get; set; }
 	}
 }

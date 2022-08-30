@@ -1,11 +1,11 @@
-﻿using IndyPOS.Facade.Interfaces;
-using System;
+﻿using System;
 using System.Security.Cryptography;
 using System.Text;
+using IndyPOS.Facade.Interfaces;
 
-namespace IndyPOS.Facade.Cryptography
+namespace IndyPOS.Facade.Utilities
 {
-	public class CryptographyHelper : ICryptographyHelper
+	public class CryptographyUtility : ICryptographyUtility
 	{
 		private const string Hash = "b415407e-3f08-43be-8130-46f8146467f7";
 

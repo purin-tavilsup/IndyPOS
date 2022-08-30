@@ -1,4 +1,5 @@
 ﻿using IndyPOS.Facade.Models;
+using IndyPOS.Facade.Models.Report;
 
 namespace IndyPOS.Facade.Interfaces
 {

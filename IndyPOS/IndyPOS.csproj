@@ -206,9 +206,6 @@
     <Reference Include="WindowsFormsIntegration" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Adapters\AccountsReceivableAdapter.cs" />
-    <Compile Include="Adapters\FinalInvoiceAdapter.cs" />
-    <Compile Include="Adapters\FinalInvoicePaymentAdapter.cs" />
     <Compile Include="Configurations\Configuration.cs" />
     <Compile Include="Configurations\Models\UserConfiguration.cs" />
     <Compile Include="Controllers\AccountsReceivableController.cs" />
@@ -217,25 +214,14 @@
     <Compile Include="Interfaces\IUserController.cs" />
     <Compile Include="Controllers\ReportController.cs" />
     <Compile Include="Controllers\UserController.cs" />
-    <Compile Include="Interfaces\IInventoryProduct.cs" />
     <Compile Include="Sales\ArReport.cs" />
-    <Compile Include="Interfaces\IAccountsReceivable.cs" />
-    <Compile Include="Interfaces\IFinalInvoice.cs" />
-    <Compile Include="Interfaces\IFinalInvoicePayment.cs" />
-    <Compile Include="Interfaces\IFinalInvoiceProduct.cs" />
-    <Compile Include="Adapters\InventoryProductAdapter.cs" />
-    <Compile Include="Adapters\FinalInvoiceProductAdapter.cs" />
     <Compile Include="Interfaces\IInventoryController.cs" />
     <Compile Include="Controllers\InventoryController.cs" />
     <Compile Include="Interfaces\ISaleInvoiceController.cs" />
     <Compile Include="Controllers\SaleInvoiceController.cs" />
     <Compile Include="Interfaces\IMachine.cs" />
-    <Compile Include="Inventory\InventoryProduct.cs" />
     <Compile Include="IoC\ContainerConfig.cs" />
-    <Compile Include="Sales\Payment.cs" />
     <Compile Include="Sales\PaymentReport.cs" />
-    <Compile Include="Sales\SaleInvoice.cs" />
-    <Compile Include="Sales\SaleInvoiceProduct.cs" />
     <Compile Include="Constants\StoreConstants.cs" />
     <Compile Include="Extensions\UiControlExtensions.cs" />
     <Compile Include="Machine.cs" />

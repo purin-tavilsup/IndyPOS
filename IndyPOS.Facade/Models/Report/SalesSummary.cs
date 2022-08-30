@@ -1,6 +1,6 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 
-namespace IndyPOS.Facade.Models
+namespace IndyPOS.Facade.Models.Report
 {
     [ExcludeFromCodeCoverage]
     public class SalesSummary

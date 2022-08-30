@@ -4,11 +4,12 @@ using IndyPOS.Constants;
 using IndyPOS.DataAccess;
 using IndyPOS.DataAccess.Interfaces;
 using IndyPOS.DataAccess.Repositories.SQLite;
-using IndyPOS.Facade.Cryptography;
 using IndyPOS.Facade.Helpers;
 using IndyPOS.Facade.Interfaces;
+using IndyPOS.Facade.Mappers;
+using IndyPOS.Facade.Models;
+using IndyPOS.Facade.Utilities;
 using IndyPOS.Interfaces;
-using IndyPOS.Sales;
 using LazyCache;
 using Prism.Events;
 using Serilog;
@@ -17,8 +18,6 @@ using System.Configuration;
 using System.IO;
 using System.Net.Http;
 using System.Reflection;
-using IndyPOS.Facade.Mappers;
-using IndyPOS.Facade.Utilities;
 using Configuration = IndyPOS.Configurations.Configuration;
 
 namespace IndyPOS.IoC
@@ -29,7 +28,9 @@ namespace IndyPOS.IoC
         {
             var builder = new ContainerBuilder();
 
-			ConfigureLogger(builder);
+			RegisterLogger(builder);
+
+			RegisterHelpers(builder);
 
 			builder.RegisterType<JsonUtility>()
 				   .As<IJsonUtility>()
@@ -55,15 +56,7 @@ namespace IndyPOS.IoC
 				   .As<ISaleInvoice>()
 				   .SingleInstance();
 
-			builder.RegisterType<SaleInvoiceHelper>()
-				   .As<ISaleInvoiceHelper>()
-				   .SingleInstance();
-
-			builder.RegisterType<UserHelper>()
-				   .As<IUserHelper>()
-				   .SingleInstance();
-
-            builder.RegisterAssemblyTypes(Assembly.Load("IndyPOS"))
+			builder.RegisterAssemblyTypes(Assembly.Load("IndyPOS"))
 				   .Where(t => t.Namespace?.Contains("UI") ?? false)
 				   .AsSelf()
 				   .SingleInstance();
@@ -92,28 +85,12 @@ namespace IndyPOS.IoC
 			builder.RegisterType<AccountsReceivableRepository>()
 				   .As<IAccountsReceivableRepository>();
 
-            builder.RegisterType<BarcodeScannerHelper>()
-				   .As<IBarcodeScannerHelper>()
-				   .SingleInstance();
-
-			builder.RegisterType<ReceiptPrinterHelper>()
-				   .As<IReceiptPrinterHelper>()
-				   .SingleInstance();
-
-			builder.RegisterType<CryptographyHelper>()
-				   .As<ICryptographyHelper>()
-				   .SingleInstance();
-
 			builder.RegisterType<BarcodeUtility>()
 				   .As<IBarcodeUtility>()
 				   .SingleInstance();
 
 			builder.RegisterType<CachingService>()
 				   .As<IAppCache>()
-				   .SingleInstance();
-
-			builder.RegisterType<ReportHelper>()
-				   .As<IReportHelper>()
 				   .SingleInstance();
 
 			builder.RegisterType<SaleInvoiceMapper>()
@@ -124,14 +101,10 @@ namespace IndyPOS.IoC
 				   .As<HttpClient>()
 				   .SingleInstance();
 
-			builder.RegisterType<DataFeedApiHelper>()
-				   .As<IDataFeedApiHelper>()
-				   .SingleInstance();
-
 			return builder.Build();
         }
 
-		private static void ConfigureLogger(ContainerBuilder builder)
+		private static void RegisterLogger(ContainerBuilder builder)
 		{
 			var logDirectory = ConfigurationManager.AppSettings.Get("LogDirectory");
 
@@ -146,6 +119,45 @@ namespace IndyPOS.IoC
 												  .CreateLogger();
 
 			builder.Register<ILogger>((c, p) => logger);
+		}
+
+		private static void RegisterHelpers(ContainerBuilder builder)
+		{
+			builder.RegisterType<SaleInvoiceHelper>()
+				   .As<ISaleInvoiceHelper>()
+				   .SingleInstance();
+
+			builder.RegisterType<InventoryHelper>()
+				   .As<IInventoryHelper>()
+				   .SingleInstance();
+
+			builder.RegisterType<UserHelper>()
+				   .As<IUserHelper>()
+				   .SingleInstance();
+
+			builder.RegisterType<BarcodeScannerHelper>()
+				   .As<IBarcodeScannerHelper>()
+				   .SingleInstance();
+
+			builder.RegisterType<ReceiptPrinterHelper>()
+				   .As<IReceiptPrinterHelper>()
+				   .SingleInstance();
+
+			builder.RegisterType<CryptographyUtility>()
+				   .As<ICryptographyUtility>()
+				   .SingleInstance();
+
+			builder.RegisterType<AccountsReceivableHelper>()
+				   .As<IAccountsReceivableHelper>()
+				   .SingleInstance();
+
+			builder.RegisterType<ReportHelper>()
+				   .As<IReportHelper>()
+				   .SingleInstance();
+
+			builder.RegisterType<DataFeedApiHelper>()
+				   .As<IDataFeedApiHelper>()
+				   .SingleInstance();
 		}
     }
 }

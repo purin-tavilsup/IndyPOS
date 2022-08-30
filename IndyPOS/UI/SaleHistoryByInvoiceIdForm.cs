@@ -6,6 +6,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Drawing;
 using System.Windows.Forms;
 using IndyPOS.Common.Enums;
+using IndyPOS.Facade.Interfaces;
 
 namespace IndyPOS.UI
 {

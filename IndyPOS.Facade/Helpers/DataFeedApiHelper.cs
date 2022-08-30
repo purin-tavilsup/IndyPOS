@@ -1,7 +1,7 @@
 ﻿using IndyPOS.Common.Extensions;
 using IndyPOS.Common.Interfaces;
 using IndyPOS.Facade.Interfaces;
-using IndyPOS.Facade.Models;
+using IndyPOS.Facade.Models.Report;
 using Serilog;
 using System;
 using System.Net.Http;

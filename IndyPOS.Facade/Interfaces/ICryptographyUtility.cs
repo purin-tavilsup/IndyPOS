@@ -1,6 +1,6 @@
 ﻿namespace IndyPOS.Facade.Interfaces
 {
-	public interface ICryptographyHelper
+	public interface ICryptographyUtility
 	{
 		string Encrypt(string input);
 		string Decrypt(string input);

@@ -1,7 +1,7 @@
-﻿using IndyPOS.Interfaces;
+﻿using IndyPOS.Facade.Interfaces;
 using InventoryProductModel = IndyPOS.DataAccess.Models.InventoryProduct;
 
-namespace IndyPOS.Adapters
+namespace IndyPOS.Facade.Adapters
 {
     public class InventoryProductAdapter : IInventoryProduct
     {

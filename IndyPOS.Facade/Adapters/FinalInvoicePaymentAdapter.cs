@@ -1,9 +1,9 @@
-﻿using IndyPOS.Interfaces;
+﻿using IndyPOS.Facade.Interfaces;
 using PaymentModel = IndyPOS.DataAccess.Models.Payment;
 
-namespace IndyPOS.Adapters
+namespace IndyPOS.Facade.Adapters
 {
-	internal class FinalInvoicePaymentAdapter : IFinalInvoicePayment
+	public class FinalInvoicePaymentAdapter : IFinalInvoicePayment
     {
 		private readonly PaymentModel _adaptee;
 

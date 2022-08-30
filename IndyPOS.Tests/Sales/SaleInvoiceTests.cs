@@ -3,6 +3,7 @@ using IndyPOS.Common.Enums;
 using IndyPOS.Sales;
 using IndyPOS.Tests.Attributes;
 using System.Linq;
+using IndyPOS.Facade.Models;
 using Xunit;
 using InventoryProductModel = IndyPOS.DataAccess.Models.InventoryProduct;
 

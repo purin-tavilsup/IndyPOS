@@ -1,7 +1,7 @@
 ﻿using IndyPOS.DataAccess.Models;
-using IndyPOS.Interfaces;
+using IndyPOS.Facade.Interfaces;
 
-namespace IndyPOS.Adapters
+namespace IndyPOS.Facade.Adapters
 {
 	public class FinalInvoiceProductAdapter : IFinalInvoiceProduct
 	{

@@ -1,7 +1,7 @@
-﻿using IndyPOS.Interfaces;
+﻿using IndyPOS.Facade.Interfaces;
 using AccountsReceivableModel = IndyPOS.DataAccess.Models.AccountsReceivable;
 
-namespace IndyPOS.Adapters
+namespace IndyPOS.Facade.Adapters
 {
 	public class AccountsReceivableAdapter : IAccountsReceivable
     {

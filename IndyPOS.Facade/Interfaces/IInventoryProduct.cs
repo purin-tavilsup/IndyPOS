@@ -1,4 +1,4 @@
-﻿namespace IndyPOS.Interfaces
+﻿namespace IndyPOS.Facade.Interfaces
 {
 	public interface IInventoryProduct
     {

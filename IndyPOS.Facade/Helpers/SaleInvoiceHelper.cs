@@ -1,13 +1,13 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using IndyPOS.Common.Enums;
+﻿using IndyPOS.Common.Enums;
 using IndyPOS.DataAccess.Interfaces;
 using IndyPOS.Facade.Events;
 using IndyPOS.Facade.Exceptions;
 using IndyPOS.Facade.Extensions;
 using IndyPOS.Facade.Interfaces;
 using Prism.Events;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 using AccountsReceivableModel = IndyPOS.DataAccess.Models.AccountsReceivable;
 using InventoryProductModel = IndyPOS.DataAccess.Models.InventoryProduct;
 using InvoiceModel = IndyPOS.DataAccess.Models.Invoice;

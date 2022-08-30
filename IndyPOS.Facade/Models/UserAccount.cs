@@ -1,7 +1,9 @@
 ﻿using IndyPOS.Facade.Interfaces;
+using System.Diagnostics.CodeAnalysis;
 
 namespace IndyPOS.Facade.Models
 {
+	[ExcludeFromCodeCoverage]
 	public class UserAccount : IUserAccount
 	{
 		public int UserId { get; }
