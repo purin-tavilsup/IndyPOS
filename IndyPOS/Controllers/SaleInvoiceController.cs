@@ -3,31 +3,12 @@ using IndyPOS.Facade.Interfaces;
 using IndyPOS.Interfaces;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using InventoryProductModel = IndyPOS.DataAccess.Models.InventoryProduct;
 
 namespace IndyPOS.Controllers
 {
 	public class SaleInvoiceController : ISaleInvoiceController
     {
 		private readonly ISaleInvoiceHelper _saleInvoiceHelper;
-
-        public IList<ISaleInvoiceProduct> Products => _saleInvoiceHelper.Products;
-
-        public IList<IPayment> Payments => _saleInvoiceHelper.Payments;
-
-        public decimal InvoiceTotal => _saleInvoiceHelper.InvoiceTotal;
-
-        public decimal PaymentTotal => _saleInvoiceHelper.PaymentTotal;
-
-		public decimal BalanceRemaining => _saleInvoiceHelper.BalanceRemaining;
-
-		public bool IsRefundInvoice => _saleInvoiceHelper.IsRefundInvoice;
-
-		public bool IsPendingPayment => IsRefundInvoice
-											? _saleInvoiceHelper.InvoiceTotal != _saleInvoiceHelper.PaymentTotal
-											: _saleInvoiceHelper.InvoiceTotal > _saleInvoiceHelper.PaymentTotal;
-
-        public decimal Changes => _saleInvoiceHelper.Changes;
 
         public SaleInvoiceController(ISaleInvoiceHelper saleInvoiceHelper)
         {
@@ -44,22 +25,27 @@ namespace IndyPOS.Controllers
 			_saleInvoiceHelper.RemoveAllPayments();
 		}
 
-		public void AddProduct(InventoryProductModel product)
+		public void AddProduct(IInventoryProduct product)
 		{
 			_saleInvoiceHelper.AddProduct(product);
 		}
 
-		public void AddProduct(InventoryProductModel product, decimal unitPrice, int quantity, string note)
+		public void AddProduct(IInventoryProduct product, decimal unitPrice, int quantity, string note)
         {
 			_saleInvoiceHelper.AddProduct(product, unitPrice, quantity, note);
         }
+
+		public ISaleInvoiceProduct GetSaleInvoiceProduct(string barcode, int priority)
+		{
+			return _saleInvoiceHelper.GetSaleInvoiceProduct(barcode, priority);
+		}
 
         public void RemoveProduct(ISaleInvoiceProduct product)
         {
 			_saleInvoiceHelper.RemoveProduct(product);
         }
 
-        public InventoryProductModel GetInventoryProductByBarcode(string barcode)
+        public IInventoryProduct GetInventoryProductByBarcode(string barcode)
 		{
 			return _saleInvoiceHelper.GetInventoryProductByBarcode(barcode);
         }
@@ -84,6 +70,11 @@ namespace IndyPOS.Controllers
 			return _saleInvoiceHelper.ValidateSaleInvoice();
 		}
 
+		public IInvoiceInfo GetInvoiceInfo()
+		{
+			return _saleInvoiceHelper.GetInvoiceInfo();
+		}
+
 		public async Task CompleteSale()
 		{
 			await _saleInvoiceHelper.CompleteSale();
@@ -92,6 +83,36 @@ namespace IndyPOS.Controllers
 		public void PrintReceipt()
 		{
 			_saleInvoiceHelper.PrintReceipt();
+		}
+
+		public bool IsRefundInvoice()
+		{
+			return _saleInvoiceHelper.IsRefundInvoice();
+		}
+
+		public bool IsPendingPayment()
+		{
+			return _saleInvoiceHelper.IsPendingPayment();
+		}
+
+		public decimal CalculateInvoiceTotal()
+		{
+			return _saleInvoiceHelper.CalculateInvoiceTotal();
+		}
+
+		public decimal CalculatePaymentTotal()
+		{
+			return _saleInvoiceHelper.CalculatePaymentTotal();
+		}
+
+		public decimal CalculateBalanceRemaining()
+		{
+			return _saleInvoiceHelper.CalculateBalanceRemaining();
+		}
+
+		public decimal CalculateChanges()
+		{
+			return _saleInvoiceHelper.CalculateChanges();
 		}
 	}
 }

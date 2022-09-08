@@ -2,6 +2,6 @@
 {
 	public interface IReceiptPrinterHelper
 	{
-		void PrintReceipt(ISaleInvoice saleInvoice, IUserAccount loggedInUser);
+		void PrintReceipt(IInvoiceInfo invoiceInfo, IUserAccount loggedInUser);
 	}
 }

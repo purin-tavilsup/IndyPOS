@@ -1,4 +1,5 @@
-﻿using IndyPOS.Interfaces;
+﻿using IndyPOS.Facade.Interfaces;
+using IndyPOS.Interfaces;
 using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Windows.Forms;
@@ -11,7 +12,7 @@ namespace IndyPOS.UI
     {
         private readonly ISaleInvoiceController _saleInvoiceController;
 		private readonly MessageForm _messageForm;
-        private InventoryProductModel _product;
+        private IInventoryProduct _product;
 
         public AddInvoiceProductForm(ISaleInvoiceController saleInvoiceController,
 									 MessageForm messageForm)
@@ -33,7 +34,7 @@ namespace IndyPOS.UI
             ShowDialog();
         }
 
-        private void PopulateProductProperties(InventoryProductModel product)
+        private void PopulateProductProperties(IInventoryProduct product)
         {
             ProductCodeLabel.Text = product.Barcode;
             DescriptionLabel.Text = product.Description;

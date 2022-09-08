@@ -10,7 +10,6 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Xunit;
-using InventoryProductModel = IndyPOS.DataAccess.Models.InventoryProduct;
 
 namespace IndyPOS.Tests.Controllers
 {
@@ -21,69 +20,66 @@ namespace IndyPOS.Tests.Controllers
 		[Theory]
 		[AutoMoqData]
 		public void StartNewSale_NewInvoiceShouldBeCreated(
-			[Frozen] Mock<ISaleInvoiceHelper> saleInvoice, 
+			[Frozen] Mock<ISaleInvoiceHelper> saleInvoiceHelper, 
 			SaleInvoiceController sut)
 		{
 			// Arrange
-			saleInvoice.Setup(s => s.Products)
-					   .Returns(new List<ISaleInvoiceProduct>());
+			saleInvoiceHelper.Setup(s => s.Products)
+							 .Returns(new List<ISaleInvoiceProduct>());
 
-			saleInvoice.Setup(s => s.Payments)
-					   .Returns(new List<IPayment>());
+			saleInvoiceHelper.Setup(s => s.Payments)
+							 .Returns(new List<IPayment>());
 
 			// Act
 			sut.StartNewSale();
 
 			// Assert
-			sut.Products.Should().BeEmpty();
-			sut.Payments.Should().BeEmpty();
-			sut.InvoiceTotal.Should().Be(ZeroMoneyValue);
-			sut.PaymentTotal.Should().Be(ZeroMoneyValue);
-			sut.BalanceRemaining.Should().Be(ZeroMoneyValue);
-			sut.IsRefundInvoice.Should().BeFalse();
-			sut.IsPendingPayment.Should().BeFalse();
-			sut.Changes.Should().Be(ZeroMoneyValue);
+			sut.CalculateInvoiceTotal().Should().Be(ZeroMoneyValue);
+			sut.CalculatePaymentTotal().Should().Be(ZeroMoneyValue);
+			sut.CalculateBalanceRemaining().Should().Be(ZeroMoneyValue);
+			sut.IsRefundInvoice().Should().BeFalse();
+			sut.IsPendingPayment().Should().BeFalse();
+			sut.CalculateChanges().Should().Be(ZeroMoneyValue);
 
-			saleInvoice.Verify(s => s.StartNewSale(), Times.Once);
+			saleInvoiceHelper.Verify(s => s.StartNewSale(), Times.Once);
 		}
 
 		[Theory]
 		[AutoMoqData]
 		public void RemoveAllPayments_PaymentsShouldBeCleared(
-			[Frozen] Mock<ISaleInvoiceHelper> saleInvoice, 
+			[Frozen] Mock<ISaleInvoiceHelper> saleInvoiceHelper, 
 			SaleInvoiceController sut)
 		{
 			// Act
 			sut.RemoveAllPayments();
 
 			// Assert
-			sut.Payments.Should().BeEmpty();
-			sut.PaymentTotal.Should().Be(ZeroMoneyValue);
-			sut.Changes.Should().Be(ZeroMoneyValue);
+			sut.CalculatePaymentTotal().Should().Be(ZeroMoneyValue);
+			sut.CalculateChanges().Should().Be(ZeroMoneyValue);
 
-			saleInvoice.Verify(s => s.RemoveAllPayments(), Times.Once);
+			saleInvoiceHelper.Verify(s => s.RemoveAllPayments(), Times.Once);
 		}
 
 		[Theory]
 		[AutoMoqData]
 		public void AddProduct_WithDefaultSettings_ProductShouldBeAdded(
-			[Frozen] Mock<ISaleInvoiceHelper> saleInvoice, 
+			[Frozen] Mock<ISaleInvoiceHelper> saleInvoiceHelper, 
 			SaleInvoiceController sut,
-			InventoryProductModel product)
+			IInventoryProduct product)
 		{
 			// Act
 			sut.AddProduct(product);
 
 			// Assert
-			saleInvoice.Verify(s => s.AddProduct(product), Times.Once);
+			saleInvoiceHelper.Verify(s => s.AddProduct(product), Times.Once);
 		}
 
 		[Theory]
 		[AutoMoqData]
 		public void AddProduct_WithSpecification_ProductShouldBeAddedWithSpecifiedValues(
-			[Frozen] Mock<ISaleInvoiceHelper> saleInvoice,
+			[Frozen] Mock<ISaleInvoiceHelper> saleInvoiceHelper,
 			SaleInvoiceController sut,
-			InventoryProductModel product,
+			IInventoryProduct product,
 			decimal unitPrice,
 			int quantity,
 			string note)
@@ -92,19 +88,19 @@ namespace IndyPOS.Tests.Controllers
 			sut.AddProduct(product, unitPrice, quantity, note);
 
 			// Assert
-			saleInvoice.Verify(s => s.AddProduct(product, unitPrice, quantity, note), Times.Once);
+			saleInvoiceHelper.Verify(s => s.AddProduct(product, unitPrice, quantity, note), Times.Once);
 		}
 
 		[Theory]
 		[AutoMoqData]
 		public void GetInventoryProductByBarcode_ProductFound_ShouldReturnProduct(
-			[Frozen] Mock<ISaleInvoiceHelper> saleInvoice,
+			[Frozen] Mock<ISaleInvoiceHelper> saleInvoiceHelper,
 			SaleInvoiceController sut,
-			InventoryProductModel product)
+			IInventoryProduct product)
 		{
 			// Arrange
-			saleInvoice.Setup(s => s.GetInventoryProductByBarcode(product.Barcode))
-					   .Returns(product);
+			saleInvoiceHelper.Setup(s => s.GetInventoryProductByBarcode(product.Barcode))
+							 .Returns(product);
 
 			// Act
 			var result = sut.GetInventoryProductByBarcode(product.Barcode);
@@ -116,13 +112,13 @@ namespace IndyPOS.Tests.Controllers
 		[Theory]
 		[AutoMoqData]
 		public void GetInventoryProductByBarcode_ProductNotFound_ShouldNotReturnProduct(
-			[Frozen] Mock<ISaleInvoiceHelper> saleInvoice,
+			[Frozen] Mock<ISaleInvoiceHelper> saleInvoiceHelper,
 			SaleInvoiceController sut,
 			string barcode)
 		{
 			// Arrange
-			saleInvoice.Setup(s => s.GetInventoryProductByBarcode(barcode))
-					   .Returns((InventoryProductModel) null);
+			saleInvoiceHelper.Setup(s => s.GetInventoryProductByBarcode(barcode))
+							 .Returns((IInventoryProduct) null);
 
 			// Act
 			var result = sut.GetInventoryProductByBarcode(barcode);
@@ -134,7 +130,7 @@ namespace IndyPOS.Tests.Controllers
 		[Theory]
 		[AutoMoqData]
 		public void RemoveProduct_ProductShouldBeRemoved(
-			[Frozen] Mock<ISaleInvoiceHelper> saleInvoice,
+			[Frozen] Mock<ISaleInvoiceHelper> saleInvoiceHelper,
 			SaleInvoiceController sut,
 			ISaleInvoiceProduct product)
 		{
@@ -142,13 +138,13 @@ namespace IndyPOS.Tests.Controllers
 			sut.RemoveProduct(product);
 
 			// Assert
-			saleInvoice.Verify(s => s.RemoveProduct(product), Times.Once);
+			saleInvoiceHelper.Verify(s => s.RemoveProduct(product), Times.Once);
 		}
 
 		[Theory]
 		[AutoMoqData]
 		public void AddPayment_PaymentShouldBeAdded(
-			[Frozen] Mock<ISaleInvoiceHelper> saleInvoice,
+			[Frozen] Mock<ISaleInvoiceHelper> saleInvoiceHelper,
 			SaleInvoiceController sut,
 			PaymentType type,
 			decimal amount,
@@ -158,13 +154,13 @@ namespace IndyPOS.Tests.Controllers
 			sut.AddPayment(type, amount, note);
 
 			// Assert
-			saleInvoice.Verify(s => s.AddPayment(type, amount, note), Times.Once);
+			saleInvoiceHelper.Verify(s => s.AddPayment(type, amount, note), Times.Once);
 		}
 
 		[Theory]
 		[AutoMoqData]
 		public void UpdateProductUnitPrice_ProductFound_UnitPriceShouldBeUpdated(
-			[Frozen] Mock<ISaleInvoiceHelper> saleInvoice,
+			[Frozen] Mock<ISaleInvoiceHelper> saleInvoiceHelper,
 			SaleInvoiceController sut,
 			int inventoryProductId,
 			int priority,
@@ -175,13 +171,13 @@ namespace IndyPOS.Tests.Controllers
 			sut.UpdateProductUnitPrice(inventoryProductId, priority, unitPrice, note);
 
 			// Assert
-			saleInvoice.Verify(s => s.UpdateProductUnitPrice(inventoryProductId, priority, unitPrice, note), Times.Once);
+			saleInvoiceHelper.Verify(s => s.UpdateProductUnitPrice(inventoryProductId, priority, unitPrice, note), Times.Once);
 		}
 
 		[Theory]
 		[AutoMoqData]
 		public void UpdateProductUnitPrice_ProductNotFound_ShouldThrowProductNotFoundException(
-			[Frozen] Mock<ISaleInvoiceHelper> saleInvoice,
+			[Frozen] Mock<ISaleInvoiceHelper> saleInvoiceHelper,
 			SaleInvoiceController sut,
 			int inventoryProductId,
 			int priority,
@@ -189,8 +185,8 @@ namespace IndyPOS.Tests.Controllers
 			string note)
 		{
 			// Arrange
-			saleInvoice.Setup(s => s.UpdateProductUnitPrice(inventoryProductId, priority, unitPrice, note))
-					   .Throws(new ProductNotFoundException(""));
+			saleInvoiceHelper.Setup(s => s.UpdateProductUnitPrice(inventoryProductId, priority, unitPrice, note))
+							 .Throws(new ProductNotFoundException(""));
 
 			// Act
 			Action act = () => sut.UpdateProductUnitPrice(inventoryProductId, priority, unitPrice, note);
@@ -202,7 +198,7 @@ namespace IndyPOS.Tests.Controllers
 		[Theory]
 		[AutoMoqData]
 		public void UpdateProductQuantity_ProductFound_ProductQuantityShouldBeUpdated(
-			[Frozen] Mock<ISaleInvoiceHelper> saleInvoice,
+			[Frozen] Mock<ISaleInvoiceHelper> saleInvoiceHelper,
 			SaleInvoiceController sut,
 			int inventoryProductId,
 			int priority,
@@ -212,21 +208,21 @@ namespace IndyPOS.Tests.Controllers
 			sut.UpdateProductQuantity(inventoryProductId, priority, quantity);
 
 			// Assert
-			saleInvoice.Verify(s => s.UpdateProductQuantity(inventoryProductId, priority, quantity), Times.Once);
+			saleInvoiceHelper.Verify(s => s.UpdateProductQuantity(inventoryProductId, priority, quantity), Times.Once);
 		}
 
 		[Theory]
 		[AutoMoqData]
 		public void UpdateProductQuantity_ProductNotFound_ShouldThrowProductNotFoundException(
-			[Frozen] Mock<ISaleInvoiceHelper> saleInvoice,
+			[Frozen] Mock<ISaleInvoiceHelper> saleInvoiceHelper,
 			SaleInvoiceController sut,
 			int inventoryProductId,
 			int priority,
 			int quantity)
 		{
 			// Arrange
-			saleInvoice.Setup(s => s.UpdateProductQuantity(inventoryProductId, priority, quantity))
-					   .Throws(new ProductNotFoundException(""));
+			saleInvoiceHelper.Setup(s => s.UpdateProductQuantity(inventoryProductId, priority, quantity))
+							 .Throws(new ProductNotFoundException(""));
 
 			// Act
 			Action act = () => sut.UpdateProductQuantity(inventoryProductId, priority, quantity);
@@ -238,13 +234,13 @@ namespace IndyPOS.Tests.Controllers
 		[Theory]
 		[AutoMoqData]
 		public void ValidateSaleInvoice_SaleInvoiceIsInvalid_ShouldReturnErrorMessage(
-			[Frozen] Mock<ISaleInvoiceHelper> saleInvoice,
+			[Frozen] Mock<ISaleInvoiceHelper> saleInvoiceHelper,
 			SaleInvoiceController sut,
 			string errorMessage)
 		{
 			// Arrange
-			saleInvoice.Setup(s => s.ValidateSaleInvoice())
-					   .Returns(new List<string> {errorMessage});
+			saleInvoiceHelper.Setup(s => s.ValidateSaleInvoice())
+							 .Returns(new List<string> {errorMessage});
 
 			// Act
 			var errorMessages = sut.ValidateSaleInvoice();
@@ -256,12 +252,12 @@ namespace IndyPOS.Tests.Controllers
 		[Theory]
 		[AutoMoqData]
 		public void ValidateSaleInvoice_SaleInvoiceIsValid_ShouldNotReturnErrorMessage(
-			[Frozen] Mock<ISaleInvoiceHelper> saleInvoice,
+			[Frozen] Mock<ISaleInvoiceHelper> saleInvoiceHelper,
 			SaleInvoiceController sut)
 		{
 			// Arrange
-			saleInvoice.Setup(s => s.ValidateSaleInvoice())
-					   .Returns(new List<string>());
+			saleInvoiceHelper.Setup(s => s.ValidateSaleInvoice())
+							 .Returns(new List<string>());
 
 			// Act
 			var errorMessages = sut.ValidateSaleInvoice();
@@ -273,27 +269,71 @@ namespace IndyPOS.Tests.Controllers
 		[Theory]
 		[AutoMoqData]
 		public async Task CompleteSale_SaleInvoiceShouldBeSavedToDatabase(
-			[Frozen] Mock<ISaleInvoiceHelper> saleInvoice,
+			[Frozen] Mock<ISaleInvoiceHelper> saleInvoiceHelper,
 			SaleInvoiceController sut)
 		{
 			// Act
 			await sut.CompleteSale();
 
 			// Assert
-			saleInvoice.Verify(s => s.CompleteSale(), Times.Once);
+			saleInvoiceHelper.Verify(s => s.CompleteSale(), Times.Once);
 		}
 
 		[Theory]
 		[AutoMoqData]
 		public void PrintReceipt_ShouldPrintReceipt(
-			[Frozen] Mock<ISaleInvoiceHelper> saleInvoice,
+			[Frozen] Mock<ISaleInvoiceHelper> saleInvoiceHelper,
 			SaleInvoiceController sut)
 		{
 			// Act
 			sut.PrintReceipt();
 
 			// Assert
-			saleInvoice.Verify(s => s.PrintReceipt(), Times.Once);
+			saleInvoiceHelper.Verify(s => s.PrintReceipt(), Times.Once);
+		}
+
+		[Theory]
+		[AutoMoqData]
+		public void GetInvoiceInfo_ShouldInvokeGetInvoiceInfo(
+			[Frozen] Mock<ISaleInvoiceHelper> saleInvoiceHelper,
+			SaleInvoiceController sut)
+		{
+			// Act
+			sut.GetInvoiceInfo();
+
+			// Assert
+			saleInvoiceHelper.Verify(s => s.GetInvoiceInfo(), Times.Once);
+		}
+
+		[Theory]
+		[AutoMoqData]
+		public void GetInvoiceInfo_ShouldReturnInvoiceInfo(SaleInvoiceController sut)
+		{
+			// Act
+			var result = sut.GetInvoiceInfo();
+
+			// Assert
+			result.Should().NotBeNull();
+		}
+		
+		[Theory]
+		[AutoMoqData]
+		public void GetSaleInvoiceProduct_ShouldReturnSaleInvoiceProduct(
+			[Frozen] Mock<ISaleInvoiceHelper> saleInvoiceHelper,
+			string barcode,
+			int priority,
+			ISaleInvoiceProduct product,
+			SaleInvoiceController sut)
+		{
+			//Arrange
+			saleInvoiceHelper.Setup(s => s.GetSaleInvoiceProduct(barcode, priority))
+							 .Returns(product);
+
+			// Act
+			var result = sut.GetSaleInvoiceProduct(barcode, priority);
+
+			// Assert
+			result.Should().NotBeNull();
 		}
 	}
 }

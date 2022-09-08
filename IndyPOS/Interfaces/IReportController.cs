@@ -20,8 +20,6 @@ namespace IndyPOS.Interfaces
 
 		IEnumerable<IFinalInvoiceProduct> GetInvoiceProductsByDate(DateTime date);
 
-		void WriteSaleRecordsToCsvFileByDate(DateTime date);
-
 		IFinalInvoice GetInvoiceByInvoiceId(int invoiceId);
 
 		IEnumerable<IFinalInvoiceProduct> GetInvoiceProductsByInvoiceId(int invoiceId);

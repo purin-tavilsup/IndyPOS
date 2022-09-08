@@ -6,8 +6,6 @@ using IndyPOS.DataAccess.Interfaces;
 using IndyPOS.DataAccess.Repositories.SQLite;
 using IndyPOS.Facade.Helpers;
 using IndyPOS.Facade.Interfaces;
-using IndyPOS.Facade.Mappers;
-using IndyPOS.Facade.Models;
 using IndyPOS.Facade.Utilities;
 using IndyPOS.Interfaces;
 using LazyCache;
@@ -52,10 +50,6 @@ namespace IndyPOS.IoC
 				   .As<IStoreConstants>()
 				   .SingleInstance();
 
-			builder.RegisterType<SaleInvoice>()
-				   .As<ISaleInvoice>()
-				   .SingleInstance();
-
 			builder.RegisterAssemblyTypes(Assembly.Load("IndyPOS"))
 				   .Where(t => t.Namespace?.Contains("UI") ?? false)
 				   .AsSelf()
@@ -91,10 +85,6 @@ namespace IndyPOS.IoC
 
 			builder.RegisterType<CachingService>()
 				   .As<IAppCache>()
-				   .SingleInstance();
-
-			builder.RegisterType<SaleInvoiceMapper>()
-				   .As<ISaleInvoiceMapper>()
 				   .SingleInstance();
 
 			builder.RegisterType<HttpClient>()

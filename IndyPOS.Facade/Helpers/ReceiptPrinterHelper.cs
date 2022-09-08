@@ -12,7 +12,7 @@ namespace IndyPOS.Facade.Helpers
 	{
 		private readonly IConfiguration _configuration;
 		private readonly IReadOnlyDictionary<int, string> _paymentTypeDictionary;
-		private ISaleInvoice _saleInvoice;
+		private IInvoiceInfo _invoiceInfo;
 		private IUserAccount _loggedInUser;
         private readonly PrintDocument _printDocument;
 		private readonly SolidBrush _brush;
@@ -29,8 +29,7 @@ namespace IndyPOS.Facade.Helpers
 		private const string FontFamilyName = "FC Subject [Non-commercial] Reg";
 		private const string LineString = "-------------------------------------------------------";
 
-		public ReceiptPrinterHelper(IConfiguration configuration,
-							  IStoreConstants storeConstants)
+		public ReceiptPrinterHelper(IConfiguration configuration, IStoreConstants storeConstants)
 		{
 			_configuration = configuration;
 			_paymentTypeDictionary = storeConstants.PaymentTypes;
@@ -45,9 +44,9 @@ namespace IndyPOS.Facade.Helpers
 			_printDocument.PrintPage += PrintPageHandler;
 		}
 
-		public void PrintReceipt(ISaleInvoice saleInvoice, IUserAccount loggedInUser)
+		public void PrintReceipt(IInvoiceInfo invoiceInfo, IUserAccount loggedInUser)
 		{
-			_saleInvoice = saleInvoice;
+			_invoiceInfo = invoiceInfo;
 			_loggedInUser = loggedInUser;
 
 			_printDocument.PrinterSettings.PrinterName = _configuration.PrinterName;
@@ -61,8 +60,8 @@ namespace IndyPOS.Facade.Helpers
 
             PrintHeader(graphics, ref currentPosition);
 			PrintInvoiceInfo(graphics, ref currentPosition);
-            PrintLineItems(graphics, ref currentPosition, _saleInvoice);
-            PrintPayments(graphics, ref currentPosition, _saleInvoice);
+            PrintLineItems(graphics, ref currentPosition);
+            PrintPayments(graphics, ref currentPosition);
         }
 
 		private void PrintStoreName(Graphics graphics, string text, int x, int y)
@@ -105,7 +104,7 @@ namespace IndyPOS.Facade.Helpers
         {
 			position.Y += SpaceOffset;
 
-			var invoiceNumberString = $"Invoice No.: {_saleInvoice.Id: 0000000000}";
+			var invoiceNumberString = $"Invoice No.: {_invoiceInfo.Id: 0000000000}";
 			PrintText(graphics, invoiceNumberString, position.X, position.Y);
 
 			position.Y += SpaceOffset;
@@ -128,7 +127,7 @@ namespace IndyPOS.Facade.Helpers
 			PrintLine(graphics, position.X, position.Y);
         }
 
-		private void PrintLineItems(Graphics graphics, ref Point position, ISaleInvoice saleInvoice)
+		private void PrintLineItems(Graphics graphics, ref Point position)
 		{
 			position.Y += SpaceOffset;
 
@@ -136,11 +135,11 @@ namespace IndyPOS.Facade.Helpers
 			
 			position.Y += SpaceOffset / 2;
 
-			foreach (var product in saleInvoice.Products)
+			foreach (var product in _invoiceInfo.Products)
 			{
 				position.Y += SpaceOffset;
 
-				var description = GetProductDescription(saleInvoice, product);
+				var description = GetProductDescription(product);
 
 				PrintText(graphics, description, position.X, position.Y);
 
@@ -160,19 +159,19 @@ namespace IndyPOS.Facade.Helpers
 			position.Y += SpaceOffset;
 
 			PrintText(graphics, "ราคารวม", position.X, position.Y);
-			PrintText(graphics, $"{saleInvoice.InvoiceTotal:N}", position.X + PriceColumn, position.Y);
+			PrintText(graphics, $"{_invoiceInfo.InvoiceTotal:N}", position.X + PriceColumn, position.Y);
 
 			position.Y += SpaceOffset;
 
 			PrintLine(graphics, position.X, position.Y);
         }
 
-		private string GetProductDescription(ISaleInvoice saleInvoice, ISaleInvoiceProduct product)
+		private string GetProductDescription(ISaleInvoiceProduct product)
 		{
-			if (saleInvoice.IsRefundInvoice && product.Note.HasValue())
+			if (_invoiceInfo.IsRefundInvoice && product.Note.HasValue())
 				return $"{product.Description} : {product.Note} (คืนสินค้า)"; 
 
-			if (saleInvoice.IsRefundInvoice)
+			if (_invoiceInfo.IsRefundInvoice)
 				return $"{product.Description} : (คืนสินค้า)";
 
 			if (product.Note.HasValue())
@@ -181,7 +180,7 @@ namespace IndyPOS.Facade.Helpers
 			return product.Description;
 		}
 		
-		private void PrintPayments(Graphics graphics, ref Point position, ISaleInvoice saleInvoice)
+		private void PrintPayments(Graphics graphics, ref Point position)
         {
 			position.Y += SpaceOffset;
 
@@ -189,11 +188,11 @@ namespace IndyPOS.Facade.Helpers
 			
 			position.Y += SpaceOffset / 2;
 
-			foreach (var payment in saleInvoice.Payments)
+			foreach (var payment in _invoiceInfo.Payments)
 			{
 				position.Y += SpaceOffset;
 				
-				var description = GetPaymentDescription(saleInvoice, payment);
+				var description = GetPaymentDescription(payment);
 
 				PrintText(graphics, description, position.X, position.Y);
 				PrintText(graphics, $"{payment.Amount:N}", position.X + PriceColumn, position.Y);
@@ -206,23 +205,23 @@ namespace IndyPOS.Facade.Helpers
 			position.Y += SpaceOffset;
 
 			PrintText(graphics, "เงินรวม", position.X, position.Y);
-			PrintText(graphics, $"{saleInvoice.PaymentTotal:N}", position.X + PriceColumn, position.Y);
+			PrintText(graphics, $"{_invoiceInfo.PaymentTotal:N}", position.X + PriceColumn, position.Y);
 
 			position.Y += SpaceOffset;
 
 			PrintText(graphics, "เงินทอน", position.X, position.Y);
-			PrintText(graphics, $"{saleInvoice.Changes:N}", position.X + PriceColumn, position.Y);
+			PrintText(graphics, $"{_invoiceInfo.Changes:N}", position.X + PriceColumn, position.Y);
 
 			position.Y += SpaceOffset;
 
 			PrintLine(graphics, position.X, position.Y);
         }
 
-		private string GetPaymentDescription(ISaleInvoice saleInvoice, IPayment payment)
+		private string GetPaymentDescription(IPayment payment)
 		{
 			var paymentType = _paymentTypeDictionary[payment.PaymentTypeId];
 
-			if (saleInvoice.IsRefundInvoice)
+			if (_invoiceInfo.IsRefundInvoice)
 				return $"{paymentType} : คืนเงิน";
 
 			if (payment.Note.HasValue())

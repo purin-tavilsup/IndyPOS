@@ -50,19 +50,15 @@
             this.label8 = new System.Windows.Forms.Label();
             this.BarcodeScannerPortNameTextBox = new ModernUI.ModernTextBox();
             this.panel4 = new System.Windows.Forms.Panel();
-            this.label14 = new System.Windows.Forms.Label();
-            this.BarcodeDirectoryTextBox = new ModernUI.ModernTextBox();
-            this.label11 = new System.Windows.Forms.Label();
-            this.ReportDirectoryTextBox = new ModernUI.ModernTextBox();
             this.label12 = new System.Windows.Forms.Label();
             this.label13 = new System.Windows.Forms.Label();
             this.BackupDBDirectoryTextBox = new ModernUI.ModernTextBox();
             this.panel5 = new System.Windows.Forms.Panel();
+            this.DataFeedEnabled = new System.Windows.Forms.CheckBox();
             this.label16 = new System.Windows.Forms.Label();
             this.DataFeedKeyTextBox = new ModernUI.ModernTextBox();
             this.label17 = new System.Windows.Forms.Label();
-            this.label18 = new System.Windows.Forms.Label();
-            this.DataFeedEnabled = new System.Windows.Forms.CheckBox();
+            this.DatabaseBackUpEnabled = new System.Windows.Forms.CheckBox();
             this.panel1.SuspendLayout();
             this.panel2.SuspendLayout();
             this.panel3.SuspendLayout();
@@ -390,79 +386,14 @@
             // panel4
             // 
             this.panel4.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
-            this.panel4.Controls.Add(this.label14);
-            this.panel4.Controls.Add(this.BarcodeDirectoryTextBox);
-            this.panel4.Controls.Add(this.label11);
-            this.panel4.Controls.Add(this.ReportDirectoryTextBox);
+            this.panel4.Controls.Add(this.DatabaseBackUpEnabled);
             this.panel4.Controls.Add(this.label12);
             this.panel4.Controls.Add(this.label13);
             this.panel4.Controls.Add(this.BackupDBDirectoryTextBox);
             this.panel4.Location = new System.Drawing.Point(618, 12);
             this.panel4.Name = "panel4";
-            this.panel4.Size = new System.Drawing.Size(600, 235);
+            this.panel4.Size = new System.Drawing.Size(605, 133);
             this.panel4.TabIndex = 85;
-            // 
-            // label14
-            // 
-            this.label14.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
-            this.label14.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label14.ForeColor = System.Drawing.Color.Gainsboro;
-            this.label14.Location = new System.Drawing.Point(17, 151);
-            this.label14.Name = "label14";
-            this.label14.Size = new System.Drawing.Size(172, 39);
-            this.label14.TabIndex = 86;
-            this.label14.Text = "Barcode Directory";
-            this.label14.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
-            // 
-            // BarcodeDirectoryTextBox
-            // 
-            this.BarcodeDirectoryTextBox.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
-            this.BarcodeDirectoryTextBox.BorderColor = System.Drawing.Color.DimGray;
-            this.BarcodeDirectoryTextBox.BorderSize = 1;
-            this.BarcodeDirectoryTextBox.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.BarcodeDirectoryTextBox.ForeColor = System.Drawing.Color.Gainsboro;
-            this.BarcodeDirectoryTextBox.Location = new System.Drawing.Point(195, 151);
-            this.BarcodeDirectoryTextBox.Multiline = false;
-            this.BarcodeDirectoryTextBox.Name = "BarcodeDirectoryTextBox";
-            this.BarcodeDirectoryTextBox.Padding = new System.Windows.Forms.Padding(7);
-            this.BarcodeDirectoryTextBox.PasswordChar = false;
-            this.BarcodeDirectoryTextBox.ReadOnly = false;
-            this.BarcodeDirectoryTextBox.Size = new System.Drawing.Size(372, 39);
-            this.BarcodeDirectoryTextBox.TabIndex = 87;
-            this.BarcodeDirectoryTextBox.TextAlign = System.Windows.Forms.HorizontalAlignment.Left;
-            this.BarcodeDirectoryTextBox.Texts = "";
-            this.BarcodeDirectoryTextBox.UnderlinedStyle = true;
-            // 
-            // label11
-            // 
-            this.label11.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
-            this.label11.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label11.ForeColor = System.Drawing.Color.Gainsboro;
-            this.label11.Location = new System.Drawing.Point(17, 61);
-            this.label11.Name = "label11";
-            this.label11.Size = new System.Drawing.Size(172, 39);
-            this.label11.TabIndex = 84;
-            this.label11.Text = "Report Directory";
-            this.label11.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
-            // 
-            // ReportDirectoryTextBox
-            // 
-            this.ReportDirectoryTextBox.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
-            this.ReportDirectoryTextBox.BorderColor = System.Drawing.Color.DimGray;
-            this.ReportDirectoryTextBox.BorderSize = 1;
-            this.ReportDirectoryTextBox.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.ReportDirectoryTextBox.ForeColor = System.Drawing.Color.Gainsboro;
-            this.ReportDirectoryTextBox.Location = new System.Drawing.Point(195, 61);
-            this.ReportDirectoryTextBox.Multiline = false;
-            this.ReportDirectoryTextBox.Name = "ReportDirectoryTextBox";
-            this.ReportDirectoryTextBox.Padding = new System.Windows.Forms.Padding(7);
-            this.ReportDirectoryTextBox.PasswordChar = false;
-            this.ReportDirectoryTextBox.ReadOnly = false;
-            this.ReportDirectoryTextBox.Size = new System.Drawing.Size(372, 39);
-            this.ReportDirectoryTextBox.TabIndex = 85;
-            this.ReportDirectoryTextBox.TextAlign = System.Windows.Forms.HorizontalAlignment.Left;
-            this.ReportDirectoryTextBox.Texts = "";
-            this.ReportDirectoryTextBox.UnderlinedStyle = true;
             // 
             // label12
             // 
@@ -472,7 +403,7 @@
             this.label12.ForeColor = System.Drawing.Color.Gainsboro;
             this.label12.Location = new System.Drawing.Point(0, 0);
             this.label12.Name = "label12";
-            this.label12.Size = new System.Drawing.Size(600, 39);
+            this.label12.Size = new System.Drawing.Size(605, 39);
             this.label12.TabIndex = 83;
             this.label12.Text = "Data";
             this.label12.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
@@ -482,7 +413,7 @@
             this.label13.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
             this.label13.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.label13.ForeColor = System.Drawing.Color.Gainsboro;
-            this.label13.Location = new System.Drawing.Point(17, 106);
+            this.label13.Location = new System.Drawing.Point(17, 61);
             this.label13.Name = "label13";
             this.label13.Size = new System.Drawing.Size(172, 39);
             this.label13.TabIndex = 71;
@@ -496,7 +427,7 @@
             this.BackupDBDirectoryTextBox.BorderSize = 1;
             this.BackupDBDirectoryTextBox.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.BackupDBDirectoryTextBox.ForeColor = System.Drawing.Color.Gainsboro;
-            this.BackupDBDirectoryTextBox.Location = new System.Drawing.Point(195, 106);
+            this.BackupDBDirectoryTextBox.Location = new System.Drawing.Point(195, 61);
             this.BackupDBDirectoryTextBox.Multiline = false;
             this.BackupDBDirectoryTextBox.Name = "BackupDBDirectoryTextBox";
             this.BackupDBDirectoryTextBox.Padding = new System.Windows.Forms.Padding(7);
@@ -515,11 +446,19 @@
             this.panel5.Controls.Add(this.label16);
             this.panel5.Controls.Add(this.DataFeedKeyTextBox);
             this.panel5.Controls.Add(this.label17);
-            this.panel5.Controls.Add(this.label18);
-            this.panel5.Location = new System.Drawing.Point(618, 253);
+            this.panel5.Location = new System.Drawing.Point(618, 151);
             this.panel5.Name = "panel5";
-            this.panel5.Size = new System.Drawing.Size(600, 175);
+            this.panel5.Size = new System.Drawing.Size(605, 141);
             this.panel5.TabIndex = 86;
+            // 
+            // DataFeedEnabled
+            // 
+            this.DataFeedEnabled.AutoSize = true;
+            this.DataFeedEnabled.Location = new System.Drawing.Point(573, 75);
+            this.DataFeedEnabled.Name = "DataFeedEnabled";
+            this.DataFeedEnabled.Size = new System.Drawing.Size(15, 14);
+            this.DataFeedEnabled.TabIndex = 86;
+            this.DataFeedEnabled.UseVisualStyleBackColor = true;
             // 
             // label16
             // 
@@ -560,31 +499,19 @@
             this.label17.ForeColor = System.Drawing.Color.Gainsboro;
             this.label17.Location = new System.Drawing.Point(0, 0);
             this.label17.Name = "label17";
-            this.label17.Size = new System.Drawing.Size(600, 39);
+            this.label17.Size = new System.Drawing.Size(605, 39);
             this.label17.TabIndex = 83;
             this.label17.Text = "Rungrat DataFeed";
             this.label17.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             // 
-            // label18
+            // DatabaseBackUpEnabled
             // 
-            this.label18.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
-            this.label18.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label18.ForeColor = System.Drawing.Color.Gainsboro;
-            this.label18.Location = new System.Drawing.Point(17, 106);
-            this.label18.Name = "label18";
-            this.label18.Size = new System.Drawing.Size(172, 39);
-            this.label18.TabIndex = 71;
-            this.label18.Text = "Enabled";
-            this.label18.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
-            // 
-            // DataFeedEnabled
-            // 
-            this.DataFeedEnabled.AutoSize = true;
-            this.DataFeedEnabled.Location = new System.Drawing.Point(195, 119);
-            this.DataFeedEnabled.Name = "DataFeedEnabled";
-            this.DataFeedEnabled.Size = new System.Drawing.Size(15, 14);
-            this.DataFeedEnabled.TabIndex = 86;
-            this.DataFeedEnabled.UseVisualStyleBackColor = true;
+            this.DatabaseBackUpEnabled.AutoSize = true;
+            this.DatabaseBackUpEnabled.Location = new System.Drawing.Point(573, 75);
+            this.DatabaseBackUpEnabled.Name = "DatabaseBackUpEnabled";
+            this.DatabaseBackUpEnabled.Size = new System.Drawing.Size(15, 14);
+            this.DatabaseBackUpEnabled.TabIndex = 87;
+            this.DatabaseBackUpEnabled.UseVisualStyleBackColor = true;
             // 
             // SettingsPanel
             // 
@@ -604,6 +531,7 @@
             this.panel2.ResumeLayout(false);
             this.panel3.ResumeLayout(false);
             this.panel4.ResumeLayout(false);
+            this.panel4.PerformLayout();
             this.panel5.ResumeLayout(false);
             this.panel5.PerformLayout();
             this.ResumeLayout(false);
@@ -634,18 +562,14 @@
         private System.Windows.Forms.Label label9;
         private ModernUI.ModernTextBox StoreFullNameTextBox;
         private System.Windows.Forms.Panel panel4;
-        private System.Windows.Forms.Label label11;
-        private ModernUI.ModernTextBox ReportDirectoryTextBox;
         private System.Windows.Forms.Label label12;
         private System.Windows.Forms.Label label13;
         private ModernUI.ModernTextBox BackupDBDirectoryTextBox;
-        private System.Windows.Forms.Label label14;
-        private ModernUI.ModernTextBox BarcodeDirectoryTextBox;
         private System.Windows.Forms.Panel panel5;
         private System.Windows.Forms.Label label16;
         private ModernUI.ModernTextBox DataFeedKeyTextBox;
         private System.Windows.Forms.Label label17;
-        private System.Windows.Forms.Label label18;
         private System.Windows.Forms.CheckBox DataFeedEnabled;
+        private System.Windows.Forms.CheckBox DatabaseBackUpEnabled;
     }
 }

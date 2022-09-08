@@ -6,7 +6,9 @@ using Serilog;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
+using IndyPOS.Common.Enums;
 
 namespace IndyPOS.Facade.Helpers
 {
@@ -24,6 +26,9 @@ namespace IndyPOS.Facade.Helpers
 		private IEnumerable<IFinalInvoicePayment> _payments;
 		private IEnumerable<IAccountsReceivable> _accountsReceivables;
 
+		private readonly IReadOnlyDictionary<int, string> _productCategories;
+		private readonly IReadOnlyDictionary<int, string> _paymentTypes;
+
 		public IEnumerable<IFinalInvoice> Invoices => _invoices ?? new List<IFinalInvoice>();
 
 		public IEnumerable<IFinalInvoiceProduct> InvoiceProducts => _invoiceProducts ?? new List<IFinalInvoiceProduct>();
@@ -31,19 +36,22 @@ namespace IndyPOS.Facade.Helpers
 		public IEnumerable<IFinalInvoicePayment> InvoicePayments => _payments ?? new List<IFinalInvoicePayment>();
 		public IEnumerable<IAccountsReceivable> AccountsReceivables => _accountsReceivables ?? new List<IAccountsReceivable>();
 
-		public ReportHelper(IConfiguration configuration, 
+		public ReportHelper(IConfiguration configuration,
+							IStoreConstants storeConstants,
 							ILogger logger, 
 							IJsonUtility jsonUtility)
         {
 			_logger = logger;
 			_reportsDirectory = configuration.ReportsDirectory;
 			_jsonUtility = jsonUtility;
+			_productCategories = storeConstants.ProductCategories;
+			_paymentTypes = storeConstants.PaymentTypes;
         }
 
 		public async Task<SalesReport> UpdateReport(SalesSummary summary)
 		{
 			var today = DateTime.Now;
-			var filePath = $"{_reportsDirectory}\\report-{today.Year}.json";
+			var filePath = $"{_reportsDirectory}\\SalesReport-{today.Year}.json";
 			var report = await GetReportFromFile(filePath, today);
 
 			report.YearSummary = GetYearSummary(report, summary, today);
@@ -137,5 +145,106 @@ namespace IndyPOS.Facade.Helpers
 				LastUpdateDateTime = today
 			};
         }
+
+		public SalesSummary CreateSalesSummary(IInvoiceInfo invoiceInfo)
+		{
+			var generalProductsTotal = 0m;
+			var hardwareProductsTotal = 0m;
+			var invoiceProducts = invoiceInfo.Products;
+
+			foreach (var product in invoiceProducts)
+			{
+				var productTotal = product.UnitPrice * product.Quantity;
+
+				if (product.Category < (int) ProductCategory.Hardware)
+				{
+					generalProductsTotal += productTotal;
+				}
+				else
+				{
+					hardwareProductsTotal += productTotal;
+				}
+			}
+
+			var hasArPayment = HasArPayment(invoiceInfo);
+			var arTotalForGeneralProducts = hasArPayment ? generalProductsTotal : 0m;
+			var arTotalForHardwareProducts = hasArPayment ? hardwareProductsTotal : 0m;
+			var arTotal = hasArPayment ? arTotalForGeneralProducts + arTotalForHardwareProducts : 0m;
+			var invoiceTotalWithoutAr = hasArPayment ? 0m : invoiceInfo.InvoiceTotal;
+			var generalProductsTotalWithoutAr = hasArPayment ? 0m : generalProductsTotal;
+			var hardwareProductsTotalWithoutAr = hasArPayment ? 0m : hardwareProductsTotal;
+
+			var summary = new SalesSummary
+			{
+				InvoiceTotal = (double) invoiceInfo.InvoiceTotal,
+				GeneralProductsTotal = (double) generalProductsTotal,
+				HardwareProductsTotal = (double) hardwareProductsTotal,
+				ArTotal = (double) arTotal,
+				ArTotalForGeneralProducts = (double) arTotalForGeneralProducts,
+				ArTotalForHardwareProducts = (double) arTotalForHardwareProducts,
+				InvoiceTotalWithoutAr = (double) invoiceTotalWithoutAr,
+				GeneralProductsTotalWithoutAr = (double) generalProductsTotalWithoutAr,
+				HardwareProductsTotalWithoutAr = (double) hardwareProductsTotalWithoutAr
+			};
+
+			return summary;
+		}
+
+		private static bool HasArPayment(IInvoiceInfo invoiceInfo)
+		{
+			return invoiceInfo.Payments.Any(p => p.PaymentTypeId == (int) PaymentType.AccountReceivable);
+		}
+
+		public Invoice CreateInvoiceForDataFeed(IInvoiceInfo invoiceInfo)
+		{
+			return new Invoice
+			{
+				Id = invoiceInfo.Id.ToString(),
+				Date = DateTime.Now.ToString("yyyy-M-d"),
+				DateTime = DateTime.UtcNow,
+				Products = MapProducts(invoiceInfo.Products),
+				Payments = MapPayments(invoiceInfo.Payments)
+			};
+		}
+
+		private Product[] MapProducts(IEnumerable<ISaleInvoiceProduct> invoiceProducts)
+		{
+			return invoiceProducts.Select(MapProduct)
+								  .ToArray();
+		}
+
+		private Payment[] MapPayments(IEnumerable<IPayment> invoicePayments)
+		{
+			return invoicePayments.Select(MapPayment)
+								  .ToArray();
+		}
+
+		private Product MapProduct(ISaleInvoiceProduct invoiceProduct)
+		{
+			return new Product
+			{
+				Priority = invoiceProduct.Priority,
+				Description = invoiceProduct.Description,
+				Barcode = invoiceProduct.Barcode,
+				Category = _productCategories[invoiceProduct.Category],
+				Group = invoiceProduct.Category < (int) ProductCategory.Hardware ? "General" : "Hardware",
+				UnitPrice = (double) invoiceProduct.UnitPrice,
+				Quantity = invoiceProduct.Quantity,
+				Note = invoiceProduct.Note,
+				DateTime = DateTime.UtcNow
+			};
+		}
+
+		private Payment MapPayment(IPayment invoicePayment)
+		{
+			return new Payment
+			{
+				Priority = invoicePayment.Priority,
+				PaymentType = _paymentTypes[invoicePayment.PaymentTypeId],
+				Amount = (double) invoicePayment.Amount,
+				Note = invoicePayment.Note,
+				DateTime = DateTime.UtcNow
+			};
+		}
     }
 }

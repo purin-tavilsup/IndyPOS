@@ -1,5 +1,4 @@
-﻿using CsvHelper;
-using IndyPOS.Common.Enums;
+﻿using IndyPOS.Common.Enums;
 using IndyPOS.Common.Extensions;
 using IndyPOS.Common.Interfaces;
 using IndyPOS.DataAccess.Interfaces;
@@ -9,8 +8,6 @@ using IndyPOS.Interfaces;
 using IndyPOS.Sales;
 using System;
 using System.Collections.Generic;
-using System.Globalization;
-using System.IO;
 using System.Linq;
 using SalesReport = IndyPOS.Sales.SalesReport;
 
@@ -299,53 +296,5 @@ namespace IndyPOS.Controllers
 
 			return results.Select(x => new FinalInvoicePaymentAdapter(x) as IFinalInvoicePayment);
 		}
-
-		public void WriteSaleRecordsToCsvFileByDate(DateTime date)
-		{
-			var directoryPath = $"{_configuration.ReportsDirectory}\\{date.Year}\\{date.Month:00}\\{date:yyyy-MMM-dd}";
-			
-			if (!Directory.Exists(directoryPath)) 
-				Directory.CreateDirectory(directoryPath);
-
-			WriteInvoiceRecordsToCsvFileByDate(directoryPath, date);
-			WriteInvoiceProductRecordsToCsvFileByDate(directoryPath, date);
-			WritePaymentRecordsToCsvFileByDate(directoryPath, date);
-		}
-
-		private void WriteInvoiceRecordsToCsvFileByDate(string directoryPath, DateTime date)
-		{
-			var filePath = $"{directoryPath}\\Invoices.csv";
-			var invoices = _invoicesRepository.GetInvoicesByDate(date);
-
-			using (var writer = new StreamWriter(filePath))
-			using (var csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
-			{
-				csv.WriteRecords(invoices);
-			}
-        }
-
-		private void WriteInvoiceProductRecordsToCsvFileByDate(string directoryPath, DateTime date)
-        {
-			var filePath = $"{directoryPath}\\InvoiceProducts.csv";
-			var products = _invoicesRepository.GetInvoiceProductsByDate(date);
-
-			using (var writer = new StreamWriter(filePath))
-			using (var csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
-			{
-				csv.WriteRecords(products);
-			}
-        }
-
-		private void WritePaymentRecordsToCsvFileByDate(string directoryPath, DateTime date)
-        {
-			var filePath = $"{directoryPath}\\Payments.csv";
-			var payments = _invoicesRepository.GetPaymentsByDate(date);
-
-			using (var writer = new StreamWriter(filePath))
-			using (var csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
-			{
-				csv.WriteRecords(payments);
-			}
-        }
 	}
 }

@@ -1,11 +1,10 @@
-﻿using IndyPOS.Facade.Models;
+﻿using IndyPOS.Facade.Models.Report;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using IndyPOS.Facade.Models.Report;
 
 namespace IndyPOS.Facade.Interfaces
 {
-    public interface IReportHelper
+	public interface IReportHelper
 	{
 		IEnumerable<IFinalInvoice> Invoices { get; }
 
@@ -13,6 +12,10 @@ namespace IndyPOS.Facade.Interfaces
 
 		IEnumerable<IFinalInvoicePayment> InvoicePayments { get; }
 
+		SalesSummary CreateSalesSummary(IInvoiceInfo invoiceInfo);
+
 		Task<SalesReport> UpdateReport(SalesSummary summary);
+
+		Invoice CreateInvoiceForDataFeed(IInvoiceInfo invoiceInfo);
 	}
 }

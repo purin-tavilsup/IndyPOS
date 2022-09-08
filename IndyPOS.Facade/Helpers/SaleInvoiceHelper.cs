@@ -1,18 +1,17 @@
-﻿using IndyPOS.Common.Enums;
-using IndyPOS.DataAccess.Interfaces;
+﻿using IndyPOS.DataAccess.Interfaces;
 using IndyPOS.Facade.Events;
 using IndyPOS.Facade.Exceptions;
-using IndyPOS.Facade.Extensions;
 using IndyPOS.Facade.Interfaces;
+using IndyPOS.Facade.Models;
 using Prism.Events;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AccountsReceivableModel = IndyPOS.DataAccess.Models.AccountsReceivable;
-using InventoryProductModel = IndyPOS.DataAccess.Models.InventoryProduct;
 using InvoiceModel = IndyPOS.DataAccess.Models.Invoice;
 using InvoiceProductModel = IndyPOS.DataAccess.Models.InvoiceProduct;
 using PaymentModel = IndyPOS.DataAccess.Models.Payment;
+using PaymentType = IndyPOS.Common.Enums.PaymentType;
 
 namespace IndyPOS.Facade.Helpers
 {
@@ -20,45 +19,29 @@ namespace IndyPOS.Facade.Helpers
     {
         private readonly IEventAggregator _eventAggregator;
         private readonly IInvoiceRepository _invoicesRepository;
-        private readonly IInventoryProductRepository _inventoryProductsRepository;
+		private readonly IInventoryHelper _inventoryHelper;
+		private readonly IInventoryProductRepository _inventoryProductsRepository;
 		private readonly IReceiptPrinterHelper _receiptPrinter;
 		private readonly IUserHelper _userHelper;
 		private readonly IAccountsReceivableRepository _accountsReceivableRepository;
-        private readonly ISaleInvoice _saleInvoice;
 		private readonly IReportHelper _reportHelper;
 		private readonly IDataFeedApiHelper _dataFeedApiHelper;
-		private readonly ISaleInvoiceMapper _invoiceMapper;
 
-        public IList<ISaleInvoiceProduct> Products => _saleInvoice.Products;
+        public IList<ISaleInvoiceProduct> Products { get; private set; }
 
-        public IList<IPayment> Payments => _saleInvoice.Payments;
+        public IList<IPayment> Payments { get; private set; }
 
-        public decimal InvoiceTotal => _saleInvoice.InvoiceTotal;
-
-        public decimal PaymentTotal => _saleInvoice.PaymentTotal;
-
-		public decimal BalanceRemaining => _saleInvoice.BalanceRemaining;
-
-		public bool IsRefundInvoice => _saleInvoice.IsRefundInvoice;
-
-		public bool IsPendingPayment => IsRefundInvoice
-											? _saleInvoice.InvoiceTotal != _saleInvoice.PaymentTotal
-											: _saleInvoice.InvoiceTotal > _saleInvoice.PaymentTotal;
-
-        public decimal Changes => _saleInvoice.Changes;
-
-        public SaleInvoiceHelper(ISaleInvoice saleInvoice,
-									 IEventAggregator eventAggregator, 
-									 IInvoiceRepository invoicesRepository, 
-									 IInventoryProductRepository inventoryProductsRepository,
-									 IReceiptPrinterHelper receiptPrinter,
-									 IUserHelper userHelper,
-									 IAccountsReceivableRepository accountsReceivableRepository,
-									 IReportHelper reportHelper,
-									 IDataFeedApiHelper dataFeedApiHelper,
-									 ISaleInvoiceMapper invoiceMapper)
+        public SaleInvoiceHelper(IInventoryHelper inventoryHelper,
+								 IEventAggregator eventAggregator, 
+								 IInvoiceRepository invoicesRepository, 
+								 IInventoryProductRepository inventoryProductsRepository,
+								 IReceiptPrinterHelper receiptPrinter,
+								 IUserHelper userHelper,
+								 IAccountsReceivableRepository accountsReceivableRepository,
+								 IReportHelper reportHelper,
+								 IDataFeedApiHelper dataFeedApiHelper)
         {
-			_saleInvoice = saleInvoice;
+			_inventoryHelper = inventoryHelper;
             _eventAggregator = eventAggregator;
             _invoicesRepository = invoicesRepository;
             _inventoryProductsRepository = inventoryProductsRepository;
@@ -67,65 +50,183 @@ namespace IndyPOS.Facade.Helpers
 			_accountsReceivableRepository = accountsReceivableRepository;
 			_reportHelper = reportHelper;
 			_dataFeedApiHelper = dataFeedApiHelper;
-			_invoiceMapper = invoiceMapper;
 		}
 		
         public void StartNewSale()
 		{
-			_saleInvoice.StartNewSale();
+			Products = new List<ISaleInvoiceProduct>();
+			Payments = new List<IPayment>();
 
             _eventAggregator.GetEvent<NewSaleStartedEvent>().Publish();
         }
 
         public void RemoveAllPayments()
 		{
-			_saleInvoice.RemoveAllPayments();
+			Payments.Clear();
 
             _eventAggregator.GetEvent<AllPaymentsRemovedEvent>().Publish();
 		}
 
-		public void AddProduct(InventoryProductModel product)
+		private void AddProductInternal(IInventoryProduct product, decimal unitPrice, int quantity, string note)
 		{
-			_saleInvoice.AddProduct(product);
+			var productToAdd = ConvertToSaleInvoiceProduct(product);
+
+			productToAdd.Priority = GetNextProductPriority();
+			productToAdd.UnitPrice = unitPrice;
+			productToAdd.Quantity = quantity;
+			productToAdd.Note = note;
+
+			Products.Add(productToAdd);
+		}
+
+		private void AddProductInternal(IInventoryProduct product, decimal unitPrice, int quantity)
+		{
+			AddProductInternal(product, unitPrice, quantity, string.Empty);
+		}
+
+		private void AddProductInternal(IInventoryProduct product)
+		{
+			AddProductInternal(product, product.UnitPrice, 1, string.Empty);
+		}
+
+		private static ISaleInvoiceProduct ConvertToSaleInvoiceProduct(IInventoryProduct product)
+		{
+			return new SaleInvoiceProduct
+			{
+				InventoryProductId = product.InventoryProductId,
+				Barcode = product.Barcode,
+				Description = product.Description,
+				Manufacturer = product.Manufacturer,
+				Brand = product.Brand,
+				Category = product.Category,
+				UnitPrice = product.UnitPrice,
+				Quantity = 1,
+				GroupPrice = product.GroupPrice,
+				GroupPriceQuantity = product.GroupPriceQuantity,
+				IsTrackable = product.IsTrackable
+			};
+		}
+
+		public bool IsRefundInvoice()
+		{
+			var invoiceTotal = CalculateInvoiceTotal();
+
+			return invoiceTotal < 0;
+		}
+
+		public bool IsPendingPayment()
+		{
+			var invoiceTotal = CalculateInvoiceTotal();
+			var paymentTotal = CalculatePaymentTotal();
+
+			if (invoiceTotal < 0)
+				return invoiceTotal != paymentTotal;
+
+			return invoiceTotal > paymentTotal;
+		}
+
+		public decimal CalculateInvoiceTotal()
+		{
+			return Products.Sum(p => p.Quantity * p.UnitPrice);
+		}
+
+		public decimal CalculatePaymentTotal()
+		{
+			return Payments.Sum(p => p.Amount);
+		}
+
+		public decimal CalculateBalanceRemaining()
+		{
+			var invoiceTotal = CalculateInvoiceTotal();
+			var paymentTotal = CalculatePaymentTotal();
+
+			return invoiceTotal - paymentTotal;
+		}
+
+		public decimal CalculateChanges()
+		{
+			var invoiceTotal = CalculateInvoiceTotal();
+			var paymentTotal = CalculatePaymentTotal();
+
+			if (invoiceTotal < 0)
+				return 0m;
+
+			var amount = paymentTotal - invoiceTotal;
+
+			return amount >= 0 ? amount : 0m;
+		}
+
+		private int GetNextProductPriority()
+		{
+			return Products.Count > 0 ? Products.Max(p => p.Priority) + 1 : 1;
+		}
+
+		private int GetNextPaymentPriority()
+		{
+			return Payments.Count > 0 ? Payments.Max(p => p.Priority) + 1 : 1;
+		}
+
+		public void AddProduct(IInventoryProduct product)
+		{
+			AddProductInternal(product);
 
 			_eventAggregator.GetEvent<SaleInvoiceProductAddedEvent>().Publish();
 		}
 
-		public void AddProduct(InventoryProductModel product, decimal unitPrice, int quantity, string note)
+		public void AddProduct(IInventoryProduct product, decimal unitPrice, int quantity, string note)
         {
-			_saleInvoice.AddProduct(product, unitPrice, quantity, note);
+			AddProductInternal(product, unitPrice, quantity, note);
 
 			_eventAggregator.GetEvent<SaleInvoiceProductAddedEvent>().Publish();
         }
 
+		public ISaleInvoiceProduct GetSaleInvoiceProduct(string barcode, int priority)
+		{
+			return Products.FirstOrDefault(p => p.Barcode  == barcode && 
+												p.Priority == priority);
+		}
+
         public void RemoveProduct(ISaleInvoiceProduct product)
         {
-            _saleInvoice.RemoveProduct(product);
+			Products.Remove(product);
 
             _eventAggregator.GetEvent<SaleInvoiceProductRemovedEvent>().Publish();
         }
 
-        public InventoryProductModel GetInventoryProductByBarcode(string barcode)
-        {
-            return _inventoryProductsRepository.GetProductByBarcode(barcode);
+        public IInventoryProduct GetInventoryProductByBarcode(string barcode)
+		{
+			return _inventoryHelper.GetInventoryProductByBarcode(barcode);
         }
 
-		private InventoryProductModel GetInventoryProductById(int id)
+		private IInventoryProduct GetInventoryProductById(int id)
 		{
-			return _inventoryProductsRepository.GetProductById(id);
+			return _inventoryHelper.GetProductById(id);
 		}
 
         public void AddPayment(PaymentType paymentType, decimal paymentAmount, string note)
 		{
-            _saleInvoice.AddPayment(paymentType, paymentAmount, note);
+			AddPaymentInternal(paymentType, paymentAmount, note);
 
             _eventAggregator.GetEvent<PaymentAddedEvent>().Publish();
         }
 
+		private void AddPaymentInternal(PaymentType paymentType, decimal paymentAmount, string note)
+		{
+			var payment = new Payment
+			{
+				PaymentTypeId = (int) paymentType,
+				Priority = GetNextPaymentPriority(),
+				Amount = paymentAmount,
+				Note = note
+			};
+
+			Payments.Add(payment);
+		}
+
 		public void UpdateProductUnitPrice(int inventoryProductId, int priority, decimal unitPrice, string note)
 		{
-			var productToUpdate = _saleInvoice.Products.FirstOrDefault(p => p.InventoryProductId == inventoryProductId &&
-																			p.Priority == priority);
+			var productToUpdate = Products.FirstOrDefault(p => p.InventoryProductId == inventoryProductId && 
+															   p.Priority == priority);
 
 			if (productToUpdate == null)
 				throw new ProductNotFoundException($"Product with InventoryProductId {inventoryProductId} and Priority {priority} could not be found.");
@@ -141,8 +242,8 @@ namespace IndyPOS.Facade.Helpers
 
         public void UpdateProductQuantity(int inventoryProductId, int priority, int newQuantity)
 		{
-            var productToUpdate = _saleInvoice.Products.FirstOrDefault(p => p.InventoryProductId == inventoryProductId &&
-																			p.Priority == priority);
+            var productToUpdate = Products.FirstOrDefault(p => p.InventoryProductId == inventoryProductId &&
+															   p.Priority == priority);
 
             if (productToUpdate == null)
 				throw new ProductNotFoundException($"Product with InventoryProductId {inventoryProductId} and Priority {priority} could not be found.");
@@ -221,7 +322,7 @@ namespace IndyPOS.Facade.Helpers
 			var groupPriceQuantity = product.GroupPriceQuantity.GetValueOrDefault();
 			var unitPrice = quantity == groupPriceQuantity ? groupPrice / groupPriceQuantity : product.UnitPrice;
 
-			_saleInvoice.AddProduct(product, unitPrice, quantity);
+			AddProductInternal(product, unitPrice, quantity);
 
 			_eventAggregator.GetEvent<SaleInvoiceProductAddedEvent>().Publish();
 		}
@@ -251,13 +352,13 @@ namespace IndyPOS.Facade.Helpers
 			if (_userHelper.LoggedInUser == null)
 				message.Add("ไม่พบผู้ใช้งานในระบบ");
 
-            if (!_saleInvoice.Products.Any()) 
+            if (!Products.Any()) 
 				message.Add("ไม่มีรายการสินค้า");
 
-			if (!_saleInvoice.Payments.Any()) 
+			if (!Payments.Any()) 
 				message.Add("ไม่มีรายการเงิน");
 
-            if (IsPendingPayment)
+            if (IsPendingPayment())
                 message.Add("รายการเงินยังไม่สมบูรณ์");
 
 			return message;
@@ -266,25 +367,45 @@ namespace IndyPOS.Facade.Helpers
 		public async Task CompleteSale()
 		{
 			var loggedInUserId = _userHelper.LoggedInUser.UserId;
+			var invoiceInfo = GetInvoiceInfo();
 
-			AddInvoiceToDatabase(_saleInvoice, loggedInUserId);
-			AddInvoiceProductsToDatabase(_saleInvoice);
-			AddPaymentsToDatabase(_saleInvoice);
-			UpdateInventoryProductsSoldOnInvoice(_saleInvoice);
+			AddInvoiceToDatabase(invoiceInfo, loggedInUserId);
+			AddInvoiceProductsToDatabase(invoiceInfo);
+			AddPaymentsToDatabase(invoiceInfo);
+			UpdateInventoryProductsSoldOnInvoice(invoiceInfo);
 
-			await UpdateReport(_saleInvoice);
+			await UpdateReport(invoiceInfo);
+		}
+
+		public IInvoiceInfo GetInvoiceInfo()
+		{
+			var invoiceTotal = CalculateInvoiceTotal();
+			var paymentTotal = CalculatePaymentTotal();
+			var isRefundInvoice = invoiceTotal < 0;
+
+			return new InvoiceInfo
+			{
+				Id = 0,
+				Products = Products,
+				Payments = Payments,
+				InvoiceTotal = invoiceTotal,
+				PaymentTotal = paymentTotal,
+				Changes = CalculateChanges(),
+				IsRefundInvoice = isRefundInvoice
+			};
 		}
 
 		public void PrintReceipt()
 		{
 			var loggedInUser = _userHelper.LoggedInUser;
-
-			_receiptPrinter.PrintReceipt(_saleInvoice, loggedInUser);
+			var invoiceInfo = GetInvoiceInfo();
+			
+			_receiptPrinter.PrintReceipt(invoiceInfo, loggedInUser);
 		}
 
-        private void UpdateInventoryProductsSoldOnInvoice(ISaleInvoice saleInvoice)
+        private void UpdateInventoryProductsSoldOnInvoice(IInvoiceInfo invoiceInfo)
 		{
-			var productGroups = saleInvoice.Products
+			var productGroups = invoiceInfo.Products
 										   .Where(p => p.IsTrackable)
 										   .GroupBy(p => p.InventoryProductId);
 
@@ -299,23 +420,23 @@ namespace IndyPOS.Facade.Helpers
 			}
 		}
 
-		private void AddInvoiceToDatabase(ISaleInvoice saleInvoice, int userId)
+		private void AddInvoiceToDatabase(IInvoiceInfo invoiceInfo, int userId)
 		{
-            var  invoiceId = _invoicesRepository.AddInvoice(new InvoiceModel
+            var invoiceId = _invoicesRepository.AddInvoice(new InvoiceModel
             { 
-																Total = saleInvoice.InvoiceTotal,
-																UserId = userId,
-																CustomerId = null
-															});
+				Total = invoiceInfo.InvoiceTotal,
+				UserId = userId,
+				CustomerId = null
+			});
 
-			saleInvoice.SetSaleInvoiceId(invoiceId);
-        }
+			invoiceInfo.Id = invoiceId;
+		}
 
-        private void AddInvoiceProductsToDatabase(ISaleInvoice saleInvoice)
+        private void AddInvoiceProductsToDatabase(IInvoiceInfo invoiceInfo)
 		{
-            foreach(var product in saleInvoice.Products)
+            foreach(var product in invoiceInfo.Products)
 			{
-                AddProductToDatabase(product, saleInvoice.Id.GetValueOrDefault());
+                AddProductToDatabase(product, invoiceInfo.Id);
             }
 		}
 
@@ -337,11 +458,11 @@ namespace IndyPOS.Facade.Helpers
             });
         }
 
-        private void AddPaymentsToDatabase(ISaleInvoice saleInvoice)
+        private void AddPaymentsToDatabase(IInvoiceInfo invoiceInfo)
         {
-            foreach(var payment in saleInvoice.Payments)
+            foreach(var payment in invoiceInfo.Payments)
 			{
-				var invoiceId = saleInvoice.Id.GetValueOrDefault();
+				var invoiceId = invoiceInfo.Id;
                 var paymentId = AddPaymentToDatabase(payment, invoiceId);
 
 				if (payment.PaymentTypeId == (int) PaymentType.AccountReceivable)
@@ -354,30 +475,30 @@ namespace IndyPOS.Facade.Helpers
         private int AddPaymentToDatabase(IPayment payment, int invoiceId)
         {
 			return _invoicesRepository.AddPayment(new PaymentModel
-												  {
-													  InvoiceId = invoiceId,
-													  PaymentTypeId = payment.PaymentTypeId,
-													  Amount = payment.Amount,
-													  Note = payment.Note
-												  });
+			{
+				InvoiceId = invoiceId,
+				PaymentTypeId = payment.PaymentTypeId,
+				Amount = payment.Amount,
+				Note = payment.Note
+			});
 		}
 
 		private void AddAccountsReceivableToDatabase(IPayment payment, int paymentId, int invoiceId)
 		{
 			_accountsReceivableRepository.AddAccountsReceivable(new AccountsReceivableModel
-																{
-																	PaymentId = paymentId,
-																	Description = payment.Note,
-																	InvoiceId = invoiceId,
-																	ReceivableAmount = payment.Amount
-																});
+			{
+				PaymentId = paymentId,
+				Description = payment.Note,
+				InvoiceId = invoiceId,
+				ReceivableAmount = payment.Amount
+			});
 		}
 
-		private async Task UpdateReport(ISaleInvoice invoice)
+		private async Task UpdateReport(IInvoiceInfo invoiceInfo)
 		{
-			var summary = invoice.CreateSalesSummary();
-			var invoiceToPush = _invoiceMapper.Map(invoice);
+			var summary = _reportHelper.CreateSalesSummary(invoiceInfo);
 			var reportToPush = await _reportHelper.UpdateReport(summary);
+			var invoiceToPush = _reportHelper.CreateInvoiceForDataFeed(invoiceInfo);
 
 			await _dataFeedApiHelper.PushInvoice(invoiceToPush);
 			await _dataFeedApiHelper.PushReport(reportToPush);

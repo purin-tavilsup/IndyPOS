@@ -151,6 +151,8 @@
     <Compile Include="Adapters\UserAccountAdapter.cs" />
     <Compile Include="Adapters\UserCredentialAdapter.cs" />
     <Compile Include="Helpers\AccountsReceivableHelper.cs" />
+    <Compile Include="Interfaces\IInvoiceInfo.cs" />
+    <Compile Include="Models\InvoiceInfo.cs" />
     <Compile Include="Utilities\CryptographyUtility.cs" />
     <Compile Include="Events\ActiveSubpanelChangedEvent.cs" />
     <Compile Include="Events\AllPaymentsRemovedEvent.cs" />
@@ -169,7 +171,6 @@
     <Compile Include="Events\UserLoggedOutEvent.cs" />
     <Compile Include="Events\UserRemovedEvent.cs" />
     <Compile Include="Exceptions\ProductNotFoundException.cs" />
-    <Compile Include="Extensions\SaleInvoiceExtensions.cs" />
     <Compile Include="Helpers\InventoryHelper.cs" />
     <Compile Include="Helpers\SaleInvoiceHelper.cs" />
     <Compile Include="Helpers\UserHelper.cs" />
@@ -181,13 +182,10 @@
     <Compile Include="Interfaces\IInventoryHelper.cs" />
     <Compile Include="Interfaces\IInventoryProduct.cs" />
     <Compile Include="Interfaces\ISaleInvoiceHelper.cs" />
-    <Compile Include="Interfaces\ISaleInvoiceMapper.cs" />
     <Compile Include="Interfaces\IUserHelper.cs" />
     <Compile Include="Interfaces\IUserCredential.cs" />
-    <Compile Include="Mappers\SaleInvoiceMapper.cs" />
     <Compile Include="Models\InventoryProduct.cs" />
     <Compile Include="Models\Payment.cs" />
-    <Compile Include="Models\SaleInvoice.cs" />
     <Compile Include="Models\SaleInvoiceProduct.cs" />
     <Compile Include="Models\UserAccount.cs" />
     <Compile Include="Models\UserCredential.cs" />
@@ -204,7 +202,6 @@
     <Compile Include="Interfaces\IPayment.cs" />
     <Compile Include="Interfaces\IReceiptPrinterHelper.cs" />
     <Compile Include="Interfaces\IReportHelper.cs" />
-    <Compile Include="Interfaces\ISaleInvoice.cs" />
     <Compile Include="Interfaces\ISaleInvoiceProduct.cs" />
     <Compile Include="Interfaces\IUserAccount.cs" />
     <Compile Include="Models\Report\Invoice.cs" />

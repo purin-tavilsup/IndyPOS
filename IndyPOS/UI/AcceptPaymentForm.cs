@@ -52,11 +52,13 @@ namespace IndyPOS.UI
 
 			ResetPaymentTypeSelection();
 
-			BalanceRemainingLabel.Text = $"{_saleInvoiceController.BalanceRemaining:N}";
+			var balanceRemaining = _saleInvoiceController.CalculateBalanceRemaining();
 
-			var isRefundInvoice = _saleInvoiceController.IsRefundInvoice;
+			BalanceRemainingLabel.Text = $"{balanceRemaining:N}";
 
-			_amount = isRefundInvoice ? _saleInvoiceController.BalanceRemaining : 0m;
+			var isRefundInvoice = _saleInvoiceController.IsRefundInvoice();
+
+			_amount = isRefundInvoice ? balanceRemaining : 0m;
 			
 			DisplayValue(_amount);
 
@@ -158,7 +160,7 @@ namespace IndyPOS.UI
 		{
 			ChangePaymentType(PaymentType.AccountReceivable);
 
-			DisplayValue(_saleInvoiceController.BalanceRemaining);
+			DisplayValue(_saleInvoiceController.CalculateBalanceRemaining());
 		}
 
 		private void ChangePaymentType(PaymentType type)
@@ -168,8 +170,10 @@ namespace IndyPOS.UI
 
 			PaymentTypeLabel.Text = _paymentTypeDictionary[(int) type];
 
-			AcceptPaymentButton.Visible = type != PaymentType.AccountReceivable && !_saleInvoiceController.IsRefundInvoice;
-			AcceptArPaymentButton.Visible = type == PaymentType.AccountReceivable && !_saleInvoiceController.IsRefundInvoice;
+			var isRefundInvoice = _saleInvoiceController.IsRefundInvoice();
+
+			AcceptPaymentButton.Visible = type != PaymentType.AccountReceivable && !isRefundInvoice;
+			AcceptArPaymentButton.Visible = type == PaymentType.AccountReceivable && !isRefundInvoice;
 		}
 
         private void AddByBankNoteValue(decimal value)
@@ -340,7 +344,7 @@ namespace IndyPOS.UI
 
 			var note = NoteTextBox.Texts.Trim();
 
-			_amount = _saleInvoiceController.BalanceRemaining;
+			_amount = _saleInvoiceController.CalculateBalanceRemaining();
 
 			_saleInvoiceController.AddPayment(_selectedPaymentType, _amount, note);
 

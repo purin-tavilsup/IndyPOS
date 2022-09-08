@@ -27,11 +27,10 @@ namespace IndyPOS.UI
 			StorePhoneTextBox.Texts = _configuration.StorePhoneNumber;
 			ReceiptPrinterNameTextBox.Texts = _configuration.PrinterName;
 			BarcodeScannerPortNameTextBox.Texts = _configuration.BarcodeScannerPortName;
-			ReportDirectoryTextBox.Texts = _configuration.ReportsDirectory;
 			BackupDBDirectoryTextBox.Texts = _configuration.BackupDbDirectory;
-			BarcodeDirectoryTextBox.Texts = _configuration.BarcodeDirectory;
 			DataFeedKeyTextBox.Texts = _configuration.DataFeedKey;
 			DataFeedEnabled.Checked = _configuration.DataFeedEnabled;
+			DatabaseBackUpEnabled.Checked = _configuration.DatabaseBackUpEnabled;
 		}
 
 		private async Task SaveSettings()
@@ -44,9 +43,9 @@ namespace IndyPOS.UI
 			_configuration.PrinterName = ReceiptPrinterNameTextBox.Texts.Trim();
 			_configuration.BarcodeScannerPortName = BarcodeScannerPortNameTextBox.Texts.Trim();
 			_configuration.BackupDbDirectory = BackupDBDirectoryTextBox.Texts.Trim();
-			_configuration.BarcodeDirectory = BarcodeDirectoryTextBox.Texts.Trim();
 			_configuration.DataFeedKey = DataFeedKeyTextBox.Texts.Trim();
 			_configuration.DataFeedEnabled = DataFeedEnabled.Checked;
+			_configuration.DatabaseBackUpEnabled = DatabaseBackUpEnabled.Checked;
 
 			await _configuration.UpdateAsync();
 		}

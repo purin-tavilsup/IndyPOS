@@ -8,6 +8,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Windows.Forms;
 using IndyPOS.Common.Enums;
+using IndyPOS.Common.Extensions;
 using IndyPOS.DataAccess.Interfaces;
 using IndyPOS.Facade.Events;
 using IndyPOS.Facade.Interfaces;
@@ -241,12 +242,6 @@ namespace IndyPOS.UI
 			CloseApplication();
 		}
 
-		[Conditional("RELEASE")]
-        private void WriteSaleRecordsToCsvFile()
-        {
-			_reportController.WriteSaleRecordsToCsvFileByDate(DateTime.Today);
-        }
-
 		private void MinimizeWindows_Click(object sender, EventArgs e)
 		{
             WindowState = FormWindowState.Minimized;
@@ -276,7 +271,6 @@ namespace IndyPOS.UI
 
 		private void CloseApplication()
         {
-			WriteSaleRecordsToCsvFile();
 			BackupDatabase();
 
 			Close();
@@ -284,7 +278,10 @@ namespace IndyPOS.UI
 
 		[Conditional("RELEASE")]
 		private void BackupDatabase()
-        {
+		{
+			if (_configuration.DatabaseBackUpEnabled.IsFalse())
+				return;
+
 			var today = DateTime.Today;
 			var rootBackupDirectory = _configuration.BackupDbDirectory;
 			var byDateBackupDirectory = $"{rootBackupDirectory}\\{today.Year}\\{today.Month:00}\\{today.Day:00}";
