@@ -1,14 +1,10 @@
 ﻿using Autofac;
 using IndyPOS.Interfaces;
 using IndyPOS.IoC;
-using Squirrel;
 using System;
-using System.Configuration;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
-using System.IO;
 using System.Linq;
-using System.Threading.Tasks;
 
 namespace IndyPOS
 {
@@ -16,19 +12,10 @@ namespace IndyPOS
     internal static class Application
 	{
 		private const string ProcessName = "IndyPOS";
-		private static string _localReleaseDirectoryPath;
-		private static string _remoteReleaseDirectoryPath;
 
         [STAThread]
 		private static void Main()
 		{
-			var appSettings = ConfigurationManager.AppSettings;
-
-			_localReleaseDirectoryPath = appSettings.Get("LocalReleasesDirectory");
-			_remoteReleaseDirectoryPath = appSettings.Get("RemoteReleasesDirectory");
-
-			UpdateApplication();
-
 			System.Windows.Forms.Application.EnableVisualStyles();
             System.Windows.Forms.Application.SetCompatibleTextRenderingDefault(false);
 
@@ -71,70 +58,5 @@ namespace IndyPOS
 				scope.Resolve<IMachine>().Launch();
 			}
         }
-
-		private static void CopyNewPackageFiles()
-		{
-			if (!Directory.Exists(_remoteReleaseDirectoryPath))
-				return;
-
-			if (!Directory.Exists(_localReleaseDirectoryPath))
-			{
-				Directory.CreateDirectory(_localReleaseDirectoryPath);
-			}
-
-            var originalFiles = Directory.GetFiles(_remoteReleaseDirectoryPath);
-
-            foreach (var originalFile in originalFiles)
-            {
-                var fileName = Path.GetFileName(originalFile);
-                var destinationFile = Path.Combine(_localReleaseDirectoryPath, fileName);
-
-                File.Copy(originalFile, destinationFile, true);
-            }
-        }
-
-		private static void DeletePreviousPackageFiles()
-        {
-			if (!Directory.Exists(_localReleaseDirectoryPath))
-				return;
-
-			var files = Directory.GetFiles(_localReleaseDirectoryPath, "*.nupkg");
-
-			foreach (var file in files)
-            {
-				File.Delete(file);
-            }
-        }
-
-		[Conditional("RELEASE")]
-		private static void UpdateApplication()
-        {
-			DeletePreviousPackageFiles();
-			CopyNewPackageFiles();
-
-			Task.Run(CheckAndApplyUpdate).GetAwaiter().GetResult();
-        }
-
-		private static async Task CheckAndApplyUpdate()
-		{
-			var updated = false;
-
-			using (var updateManager = new UpdateManager(_localReleaseDirectoryPath))
-			{
-				var updateInfo = await updateManager.CheckForUpdate();
-
-				if (updateInfo.ReleasesToApply != null && 
-					updateInfo.ReleasesToApply.Count > 0)
-				{
-					await updateManager.UpdateApp();
-					updated = true;
-				}
-			}
-
-			if (updated)
-			{
-				UpdateManager.RestartApp($"{ProcessName}.exe");
-			}
-		}
-    }
+	}
 }

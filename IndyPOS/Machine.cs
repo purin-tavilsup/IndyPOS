@@ -50,11 +50,13 @@ namespace IndyPOS
             DisconnectDevices();
         }
 
+		[Conditional("RELEASE")]
         private void ConnectDevices()
 		{
             _barcodeScanner.Connect();
         }
 
+		[Conditional("RELEASE")]
         private void DisconnectDevices()
 		{
             _barcodeScanner?.Disconnect();
