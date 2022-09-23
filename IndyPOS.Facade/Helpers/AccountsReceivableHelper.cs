@@ -3,6 +3,7 @@ using IndyPOS.DataAccess.Interfaces;
 using IndyPOS.Facade.Adapters;
 using IndyPOS.Facade.Interfaces;
 using Prism.Events;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using AccountsReceivableModel = IndyPOS.DataAccess.Models.AccountsReceivable;
@@ -37,6 +38,13 @@ namespace IndyPOS.Facade.Helpers
 			var result = _accountsReceivableRepository.GetAccountsReceivableByInvoiceId(invoiceId);
 
 			return result != null ? new AccountsReceivableAdapter(result) as IAccountsReceivable : null;
+		}
+
+		public IEnumerable<IAccountsReceivable> GetAccountsReceivablesByDateRange(DateTime startDate, DateTime endDate)
+		{
+			var results = _accountsReceivableRepository.GetAccountsReceivablesByDateRange(startDate, endDate);
+
+			return results.Select(x => new AccountsReceivableAdapter(x) as IAccountsReceivable);
 		}
 
         public void UpdateAccountsReceivable(IAccountsReceivable accountsReceivable)

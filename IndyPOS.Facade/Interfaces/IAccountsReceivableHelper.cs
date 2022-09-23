@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 namespace IndyPOS.Facade.Interfaces
 {
@@ -7,6 +8,8 @@ namespace IndyPOS.Facade.Interfaces
 		IList<IAccountsReceivable> GetAccountsReceivables();
 
 		IAccountsReceivable GetAccountsReceivableByInvoiceId(int invoiceId);
+
+		IEnumerable<IAccountsReceivable> GetAccountsReceivablesByDateRange(DateTime startDate, DateTime endDate);
 
 		void UpdateAccountsReceivable(IAccountsReceivable accountsReceivable);
 
