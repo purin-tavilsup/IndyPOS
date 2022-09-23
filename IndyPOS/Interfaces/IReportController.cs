@@ -1,8 +1,9 @@
-﻿using IndyPOS.Sales;
+﻿using IndyPOS.Common.Enums;
+using IndyPOS.Facade.Interfaces;
+using IndyPOS.Facade.Models.Report;
 using System;
 using System.Collections.Generic;
-using IndyPOS.Common.Enums;
-using IndyPOS.Facade.Interfaces;
+using System.Threading.Tasks;
 
 namespace IndyPOS.Interfaces
 {
@@ -14,10 +15,6 @@ namespace IndyPOS.Interfaces
 
 		IEnumerable<IFinalInvoicePayment> InvoicePayments { get; }
 
-		void LoadInvoicesByPeriod(ReportPeriod period);
-
-		void LoadInvoicesByDateRange(DateTime startDate, DateTime endDate);
-
 		IEnumerable<IFinalInvoiceProduct> GetInvoiceProductsByDate(DateTime date);
 
 		IFinalInvoice GetInvoiceByInvoiceId(int invoiceId);
@@ -26,9 +23,9 @@ namespace IndyPOS.Interfaces
 
 		IEnumerable<IFinalInvoicePayment> GetPaymentsByInvoiceId(int invoiceId);
 
-		SalesReport GetSaleReport();
+		Task<SalesReport> GetSaleReportAsync();
 
-		PaymentReport GetPaymentReport();
+		Task<PaymentsReport> GetPaymentsReportAsync();
 
 		ArReport GetArReport();
 	}

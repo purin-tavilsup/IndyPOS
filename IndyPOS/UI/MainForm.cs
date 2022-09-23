@@ -1,17 +1,15 @@
-﻿using IndyPOS.Common.Interfaces;
-using IndyPOS.DataAccess;
-using IndyPOS.Interfaces;
+﻿using IndyPOS.Common.Enums;
+using IndyPOS.Common.Extensions;
+using IndyPOS.Common.Interfaces;
+using IndyPOS.DataAccess.Interfaces;
+using IndyPOS.Facade.Events;
+using IndyPOS.Facade.Interfaces;
 using Prism.Events;
 using System;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Windows.Forms;
-using IndyPOS.Common.Enums;
-using IndyPOS.Common.Extensions;
-using IndyPOS.DataAccess.Interfaces;
-using IndyPOS.Facade.Events;
-using IndyPOS.Facade.Interfaces;
 
 namespace IndyPOS.UI
 {
@@ -26,7 +24,6 @@ namespace IndyPOS.UI
         private readonly SettingsPanel _settingsPanel;
 		private readonly UserLogInPanel _userLogInPanel;
         private readonly IEventAggregator _eventAggregator;
-		private readonly IReportController _reportController;
 		private readonly IConfiguration _configuration;
 		private readonly IDbConnectionProvider _dbConnectionProvider;
         private UserControl _activePanel;
@@ -42,7 +39,6 @@ namespace IndyPOS.UI
                         SettingsPanel settingsPanel,
 						UserLogInPanel userLogInPanel,
                         IEventAggregator eventAggregator,
-						IReportController reportController,
 						IDbConnectionProvider dbConnectionProvider,
 						IConfiguration configuration)
 		{
@@ -64,7 +60,6 @@ namespace IndyPOS.UI
 			_userLogInPanel.Visible = false;
 			_eventAggregator = eventAggregator;
 			_isUserLoggedIn = false;
-			_reportController = reportController;
 			_dbConnectionProvider = dbConnectionProvider;
 			_configuration = configuration;
 

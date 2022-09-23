@@ -158,18 +158,15 @@
     <Compile Include="Interfaces\IUserController.cs" />
     <Compile Include="Controllers\ReportController.cs" />
     <Compile Include="Controllers\UserController.cs" />
-    <Compile Include="Sales\ArReport.cs" />
     <Compile Include="Interfaces\IInventoryController.cs" />
     <Compile Include="Controllers\InventoryController.cs" />
     <Compile Include="Interfaces\ISaleInvoiceController.cs" />
     <Compile Include="Controllers\SaleInvoiceController.cs" />
     <Compile Include="Interfaces\IMachine.cs" />
     <Compile Include="IoC\ContainerConfig.cs" />
-    <Compile Include="Sales\PaymentReport.cs" />
     <Compile Include="Constants\StoreConstants.cs" />
     <Compile Include="Extensions\UiControlExtensions.cs" />
     <Compile Include="Machine.cs" />
-    <Compile Include="Sales\SalesReport.cs" />
     <Compile Include="UI\AcceptPaymentForm.cs">
       <SubType>Form</SubType>
     </Compile>
