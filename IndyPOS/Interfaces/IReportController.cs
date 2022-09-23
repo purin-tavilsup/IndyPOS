@@ -9,15 +9,11 @@ namespace IndyPOS.Interfaces
 {
 	public interface IReportController
 	{
-		IEnumerable<IFinalInvoice> Invoices { get; }
+		IEnumerable<IFinalInvoice> GetInvoicesByPeriod(TimePeriod period);
 
-		IEnumerable<IFinalInvoiceProduct> InvoiceProducts { get; }
-
-		IEnumerable<IFinalInvoicePayment> InvoicePayments { get; }
+		IEnumerable<IFinalInvoice> GetInvoicesByDateRange(DateTime startDate, DateTime endDate);
 
 		IEnumerable<IFinalInvoiceProduct> GetInvoiceProductsByDate(DateTime date);
-
-		IFinalInvoice GetInvoiceByInvoiceId(int invoiceId);
 
 		IEnumerable<IFinalInvoiceProduct> GetInvoiceProductsByInvoiceId(int invoiceId);
 

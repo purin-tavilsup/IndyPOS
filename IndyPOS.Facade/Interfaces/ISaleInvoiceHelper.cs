@@ -1,10 +1,10 @@
 ﻿using IndyPOS.Common.Enums;
+using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
 
 namespace IndyPOS.Facade.Interfaces
 {
-    public interface ISaleInvoiceHelper
+	public interface ISaleInvoiceHelper
     {
         IList<ISaleInvoiceProduct> Products { get; }
 
@@ -14,7 +14,7 @@ namespace IndyPOS.Facade.Interfaces
 
 		IList<string> ValidateSaleInvoice();
 
-        Task CompleteSale();
+		IInvoiceInfo CompleteSale();
 
 		IInvoiceInfo GetInvoiceInfo();
 
@@ -49,5 +49,15 @@ namespace IndyPOS.Facade.Interfaces
 		void UpdateProductUnitPrice(int inventoryProductId, int priority, decimal unitPrice, string note);
 
 		IInventoryProduct GetInventoryProductByBarcode(string barcode);
+
+		IEnumerable<IFinalInvoice> GetInvoicesByPeriod(TimePeriod period);
+
+		IEnumerable<IFinalInvoice> GetInvoicesByDateRange(DateTime startDate, DateTime endDate);
+
+		IEnumerable<IFinalInvoiceProduct> GetInvoiceProductsByDate(DateTime date);
+
+		IEnumerable<IFinalInvoiceProduct> GetInvoiceProductsByInvoiceId(int invoiceId);
+
+		IEnumerable<IFinalInvoicePayment> GetPaymentsByInvoiceId(int invoiceId);
 	}
 }

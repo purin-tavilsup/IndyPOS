@@ -9,10 +9,13 @@ namespace IndyPOS.Controllers
 	public class SaleInvoiceController : ISaleInvoiceController
     {
 		private readonly ISaleInvoiceHelper _saleInvoiceHelper;
+		private readonly IReportHelper _reportHelper;
 
-        public SaleInvoiceController(ISaleInvoiceHelper saleInvoiceHelper)
+        public SaleInvoiceController(ISaleInvoiceHelper saleInvoiceHelper,
+									 IReportHelper reportHelper)
         {
 			_saleInvoiceHelper = saleInvoiceHelper;
+			_reportHelper = reportHelper;
 		}
 		
         public void StartNewSale()
@@ -77,7 +80,9 @@ namespace IndyPOS.Controllers
 
 		public async Task CompleteSale()
 		{
-			await _saleInvoiceHelper.CompleteSale();
+			var invoiceInfo = _saleInvoiceHelper.CompleteSale();
+
+			await _reportHelper.UpdateReportAsync(invoiceInfo);
 		}
 
 		public void PrintReceipt()

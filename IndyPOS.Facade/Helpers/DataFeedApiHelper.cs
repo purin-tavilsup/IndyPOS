@@ -53,7 +53,6 @@ namespace IndyPOS.Facade.Helpers
 			catch (Exception ex)
 			{
 				_logger.Error(ex, $"Failed to push Invoice ({invoice.Id}) to DataFeed.");
-				throw;
 			}
 		}
 
@@ -75,7 +74,6 @@ namespace IndyPOS.Facade.Helpers
 			catch (Exception ex)
 			{
 				_logger.Error(ex, $"Failed to push SalesReport ({report.Id}) to DataFeed.");
-				throw;
 			}
         }
 	}

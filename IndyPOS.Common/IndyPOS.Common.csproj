@@ -41,7 +41,7 @@
     <Compile Include="Enums\Panels.cs" />
     <Compile Include="Enums\PaymentTypes.cs" />
     <Compile Include="Enums\ProductCategories.cs" />
-    <Compile Include="Enums\ReportPeriods.cs" />
+    <Compile Include="Enums\TimePeriods.cs" />
     <Compile Include="Enums\UserRoles.cs" />
     <Compile Include="Extensions\BooleanExtensions.cs" />
     <Compile Include="Extensions\DateTimeExtensions.cs" />

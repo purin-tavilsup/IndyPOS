@@ -1,14 +1,16 @@
-﻿using IndyPOS.Common.Interfaces;
-using IndyPOS.DataAccess.Interfaces;
+﻿using IndyPOS.Common.Enums;
+using IndyPOS.Common.Extensions;
+using IndyPOS.Common.Interfaces;
+using IndyPOS.Facade.Events;
 using IndyPOS.Facade.Interfaces;
 using IndyPOS.Facade.Models.Report;
+using Prism.Events;
 using Serilog;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using IndyPOS.Common.Enums;
 
 namespace IndyPOS.Facade.Helpers
 {
@@ -17,46 +19,73 @@ namespace IndyPOS.Facade.Helpers
 		private readonly string _reportsDirectory;
 		private readonly IJsonUtility _jsonUtility;
 		private readonly ILogger _logger; 
-		private readonly IInvoiceRepository _invoicesRepository;
-		private readonly IAccountsReceivableRepository _accountsReceivableRepository;
-		private readonly IConfiguration _configuration;
-
-		private IEnumerable<IFinalInvoice> _invoices;
-		private IEnumerable<IFinalInvoiceProduct> _invoiceProducts;
-		private IEnumerable<IFinalInvoicePayment> _payments;
-		private IEnumerable<IAccountsReceivable> _accountsReceivables;
-
+		private readonly ISaleInvoiceHelper _saleInvoiceHelper;
+		private readonly IAccountsReceivableHelper _accountsReceivableHelper;
+		private readonly IDataFeedApiHelper _dataFeedApiHelper;
+		private readonly IEventAggregator _eventAggregator;
 		private readonly IReadOnlyDictionary<int, string> _productCategories;
 		private readonly IReadOnlyDictionary<int, string> _paymentTypes;
 
-		public IEnumerable<IFinalInvoice> Invoices => _invoices ?? new List<IFinalInvoice>();
-
-		public IEnumerable<IFinalInvoiceProduct> InvoiceProducts => _invoiceProducts ?? new List<IFinalInvoiceProduct>();
-
-		public IEnumerable<IFinalInvoicePayment> InvoicePayments => _payments ?? new List<IFinalInvoicePayment>();
-		public IEnumerable<IAccountsReceivable> AccountsReceivables => _accountsReceivables ?? new List<IAccountsReceivable>();
-
 		public ReportHelper(IConfiguration configuration,
 							IStoreConstants storeConstants,
+							ISaleInvoiceHelper saleInvoiceHelper,
+							IAccountsReceivableHelper accountsReceivableHelper,
+							IDataFeedApiHelper dataFeedApiHelper,
+							IEventAggregator eventAggregator,
 							ILogger logger, 
 							IJsonUtility jsonUtility)
         {
 			_logger = logger;
 			_reportsDirectory = configuration.ReportsDirectory;
+			_saleInvoiceHelper = saleInvoiceHelper;
+			_accountsReceivableHelper = accountsReceivableHelper;
+			_dataFeedApiHelper = dataFeedApiHelper;
+			_eventAggregator = eventAggregator;
 			_jsonUtility = jsonUtility;
 			_productCategories = storeConstants.ProductCategories;
 			_paymentTypes = storeConstants.PaymentTypes;
         }
 
-		public async Task<SalesReport> UpdateReport(SalesSummary summary)
+		public async Task<SalesReport> GetSalesReportAsync()
 		{
 			var today = DateTime.Now;
 			var filePath = $"{_reportsDirectory}\\SalesReport-{today.Year}.json";
-			var report = await GetReportFromFile(filePath, today);
 
-			report.YearSummary = GetYearSummary(report, summary, today);
-			report.MonthSummary = GetMonthSummary(report, summary, today);
-			report.DaySummary = GetDaySummary(report, summary, today);
+			return await GetSalesReportFromFile(filePath, today);
+		}
+
+		public async Task<PaymentsReport> GetPaymentsReportAsync()
+		{
+			var today = DateTime.Now;
+			var filePath = $"{_reportsDirectory}\\PaymentsReport-{today.Year}.json";
+
+			return await GetPaymentsReportFromFile(filePath, today);
+		}
+
+		public ArReport GetArReport()
+		{
+			var today = DateTime.Now;
+			var report = new ArReport
+			{
+				Id = $"{today.Year}",
+				YearSummary = GetYearArSummary(),
+				MonthSummary = GetMonthArSummary(),
+				DaySummary = GetDayArSummary(),
+				LastUpdateDateTime = today
+			};
+
+			return report;
+		}
+
+		private async Task<SalesReport> UpdateSalesReport(SalesSummary summary)
+		{
+			var today = DateTime.Now;
+			var filePath = $"{_reportsDirectory}\\SalesReport-{today.Year}.json";
+			var report = await GetSalesReportFromFile(filePath, today);
+
+			report.YearSummary = GetYearSalesSummary(report, summary, today);
+			report.MonthSummary = GetMonthSalesSummary(report, summary, today);
+			report.DaySummary = GetDaySalesSummary(report, summary, today);
 			report.LastUpdateDateTime = today;
 
 			await SaveReportToFile(report, filePath);
@@ -64,28 +93,63 @@ namespace IndyPOS.Facade.Helpers
 			return report;
 		}
 
-		private static SalesSummary GetYearSummary(SalesReport report, SalesSummary summary, DateTime today)
+		private async Task UpdatePaymentsReport(PaymentsSummary summary)
+		{
+			var today = DateTime.Now;
+			var filePath = $"{_reportsDirectory}\\PaymentsReport-{today.Year}.json";
+			var report = await GetPaymentsReportFromFile(filePath, today);
+
+			report.YearSummary = GetYearPaymentsSummary(report, summary, today);
+			report.MonthSummary = GetMonthPaymentsSummary(report, summary, today);
+			report.DaySummary = GetDayPaymentsSummary(report, summary, today);
+			report.LastUpdateDateTime = today;
+
+			await SaveReportToFile(report, filePath);
+		}
+
+		private static SalesSummary GetYearSalesSummary(SalesReport report, SalesSummary summary, DateTime today)
 		{
 			var resetRequired = report.LastUpdateDateTime.Year != today.Year;
 
-			return resetRequired ? summary : UpdateSummary(report.YearSummary, summary);
+			return resetRequired ? summary : UpdateSalesSummary(report.YearSummary, summary);
 		}
 
-		private static SalesSummary GetMonthSummary(SalesReport report, SalesSummary summary, DateTime today)
+		private static SalesSummary GetMonthSalesSummary(SalesReport report, SalesSummary summary, DateTime today)
 		{
 			var resetRequired = report.LastUpdateDateTime.ToString("MM-yyyy") != today.ToString("MM-yyyy");
 
-			return resetRequired ? summary : UpdateSummary(report.MonthSummary, summary);
+			return resetRequired ? summary : UpdateSalesSummary(report.MonthSummary, summary);
 		}
 
-		private static SalesSummary GetDaySummary(SalesReport report, SalesSummary summary, DateTime today)
+		private static SalesSummary GetDaySalesSummary(SalesReport report, SalesSummary summary, DateTime today)
         {
 			var resetRequired = report.LastUpdateDateTime.ToString("MM-dd-yyyy") != today.ToString("MM-dd-yyyy");
 
-			return resetRequired ? summary : UpdateSummary(report.DaySummary, summary);
+			return resetRequired ? summary : UpdateSalesSummary(report.DaySummary, summary);
 		}
 
-		private static SalesSummary UpdateSummary(SalesSummary previousSummary, SalesSummary newSummary)
+		private static PaymentsSummary GetYearPaymentsSummary(PaymentsReport report, PaymentsSummary summary, DateTime today)
+		{
+			var resetRequired = report.LastUpdateDateTime.Year != today.Year;
+
+			return resetRequired ? summary : UpdatePaymentsSummary(report.YearSummary, summary);
+		}
+
+		private static PaymentsSummary GetMonthPaymentsSummary(PaymentsReport report, PaymentsSummary summary, DateTime today)
+		{
+			var resetRequired = report.LastUpdateDateTime.ToString("MM-yyyy") != today.ToString("MM-yyyy");
+
+			return resetRequired ? summary : UpdatePaymentsSummary(report.MonthSummary, summary);
+		}
+
+		private static PaymentsSummary GetDayPaymentsSummary(PaymentsReport report, PaymentsSummary summary, DateTime today)
+		{
+			var resetRequired = report.LastUpdateDateTime.ToString("MM-dd-yyyy") != today.ToString("MM-dd-yyyy");
+
+			return resetRequired ? summary : UpdatePaymentsSummary(report.DaySummary, summary);
+		}
+
+		private static SalesSummary UpdateSalesSummary(SalesSummary previousSummary, SalesSummary newSummary)
         {
 			return new SalesSummary
 			{
@@ -101,7 +165,20 @@ namespace IndyPOS.Facade.Helpers
 			};
         }
 
-		private async Task SaveReportToFile(SalesReport report, string filePath)
+		private static PaymentsSummary UpdatePaymentsSummary(PaymentsSummary previousSummary, PaymentsSummary newSummary)
+		{
+			return new PaymentsSummary
+			{
+				MoneyTransferTotal = previousSummary.MoneyTransferTotal + newSummary.MoneyTransferTotal,
+				FiftyFiftyTotal = previousSummary.FiftyFiftyTotal + newSummary.FiftyFiftyTotal,
+				M33WeLoveTotal = previousSummary.M33WeLoveTotal + newSummary.M33WeLoveTotal,
+				WeWinTotal = previousSummary.WeWinTotal + newSummary.WeWinTotal,
+				WelfareCardTotal = previousSummary.WelfareCardTotal + newSummary.WelfareCardTotal,
+				ArTotal = previousSummary.ArTotal + newSummary.ArTotal
+			};
+		}
+
+		private async Task SaveReportToFile<TValue>(TValue report, string filePath)
 		{
 			try
 			{
@@ -114,13 +191,13 @@ namespace IndyPOS.Facade.Helpers
 			}
 		}
 
-		private async Task<SalesReport> GetReportFromFile(string filePath, DateTime today)
+		private async Task<SalesReport> GetSalesReportFromFile(string filePath, DateTime today)
 		{
 			try
 			{
 				if (!File.Exists(filePath))
                 {
-					var report = CreateNewReport(today);
+					var report = CreateNewSalesReport(today);
 
 					await SaveReportToFile(report, filePath);
 				}
@@ -134,7 +211,27 @@ namespace IndyPOS.Facade.Helpers
 			}
 		}
 
-		private static SalesReport CreateNewReport(DateTime today)
+		private async Task<PaymentsReport> GetPaymentsReportFromFile(string filePath, DateTime today)
+		{
+			try
+			{
+				if (!File.Exists(filePath))
+				{
+					var report = CreateNewPaymentsReport(today);
+
+					await SaveReportToFile(report, filePath);
+				}
+
+				return await _jsonUtility.ReadFromFileAsync<PaymentsReport>(filePath);
+			}
+			catch (Exception ex)
+			{
+				_logger.Error(ex, "Failed to get report from file.");
+				throw;
+			}
+		}
+
+		private static SalesReport CreateNewSalesReport(DateTime today)
         {
 			return new SalesReport
 			{
@@ -146,7 +243,19 @@ namespace IndyPOS.Facade.Helpers
 			};
         }
 
-		public SalesSummary CreateSalesSummary(IInvoiceInfo invoiceInfo)
+		private static PaymentsReport CreateNewPaymentsReport(DateTime today)
+		{
+			return new PaymentsReport
+			{
+				Id = $"{today.Year}",
+				DaySummary = new PaymentsSummary(),
+				MonthSummary = new PaymentsSummary(),
+				YearSummary = new PaymentsSummary(),
+				LastUpdateDateTime = today
+			};
+		}
+
+		private static SalesSummary CreateSalesSummary(IInvoiceInfo invoiceInfo)
 		{
 			var generalProductsTotal = 0m;
 			var hardwareProductsTotal = 0m;
@@ -190,12 +299,67 @@ namespace IndyPOS.Facade.Helpers
 			return summary;
 		}
 
+		private static PaymentsSummary CreatePaymentsSummary(IInvoiceInfo invoiceInfo)
+		{
+			var arTotal = 0m;
+			var fiftyFiftyTotal = 0m;
+			var m33WeLoveTotal = 0m;
+			var moneyTransferTotal = 0m;
+			var welfareCardTotal = 0m;
+			var weWinTotal = 0m;
+			var payments = invoiceInfo.Payments;
+
+			foreach (var payment in payments)
+			{
+				var amount = payment.Amount;
+
+				switch (payment.PaymentTypeId)
+				{
+					case (int) PaymentType.AccountReceivable:
+						arTotal += amount;
+						break;
+
+					case (int) PaymentType.WelfareCard:
+						welfareCardTotal += amount;
+						break;
+
+					case (int) PaymentType.M33WeLove:
+						m33WeLoveTotal += amount;
+						break;
+
+					case (int) PaymentType.MoneyTransfer:
+						moneyTransferTotal += amount;
+						break;
+
+					case (int) PaymentType.FiftyFifty:
+						fiftyFiftyTotal += amount;
+						break;
+
+					case (int) PaymentType.WeWin:
+						weWinTotal += amount;
+						break;
+				}
+			}
+
+			var summary = new PaymentsSummary
+			{
+				MoneyTransferTotal = (double) moneyTransferTotal,
+				FiftyFiftyTotal = (double) fiftyFiftyTotal,
+				M33WeLoveTotal = (double) m33WeLoveTotal,
+				WeWinTotal = (double) weWinTotal,
+				WelfareCardTotal = (double) welfareCardTotal,
+				ArTotal = (double) arTotal,
+			};
+
+			return summary;
+		}
+
 		private static bool HasArPayment(IInvoiceInfo invoiceInfo)
 		{
 			return invoiceInfo.Payments.Any(p => p.PaymentTypeId == (int) PaymentType.AccountReceivable);
 		}
 
-		public Invoice CreateInvoiceForDataFeed(IInvoiceInfo invoiceInfo)
+		private Invoice CreateInvoiceForDataFeed(IInvoiceInfo invoiceInfo)
 		{
 			return new Invoice
 			{
@@ -245,6 +409,105 @@ namespace IndyPOS.Facade.Helpers
 				Note = invoicePayment.Note,
 				DateTime = DateTime.UtcNow
 			};
+		}
+
+		private ArSummary GetYearArSummary()
+		{
+			var startDate = DateTime.Today.FirstDayOfYear();
+			var endDate = DateTime.Today.LastDayOfYear();
+
+			var ar = _accountsReceivableHelper.GetAccountsReceivablesByDateRange(startDate, endDate);
+
+			return CreateArSummary(ar);
+		}
+
+		private ArSummary GetMonthArSummary()
+		{
+			var startDate = DateTime.Today.FirstDayOfMonth();
+			var endDate = DateTime.Today.LastDayOfMonth();
+
+			var ar = _accountsReceivableHelper.GetAccountsReceivablesByDateRange(startDate, endDate);
+
+			return CreateArSummary(ar);
+		}
+
+		private ArSummary GetDayArSummary()
+		{
+			var startDate = DateTime.Today;
+			var endDate = DateTime.Today;
+
+			var ar = _accountsReceivableHelper.GetAccountsReceivablesByDateRange(startDate, endDate);
+
+			return CreateArSummary(ar);
+		}
+
+		private static ArSummary CreateArSummary(IEnumerable<IAccountsReceivable> accountsReceivables)
+		{
+			var arTotal = 0m;
+			var completedArTotal = 0m;
+
+			foreach (var ar in accountsReceivables)
+			{
+				var amount = ar.ReceivableAmount;
+
+				arTotal += amount;
+
+				if (ar.IsCompleted)
+					completedArTotal += amount;
+			}
+
+			var incompleteArTotal = arTotal - completedArTotal;
+
+			var summary = new ArSummary
+			{
+				ArTotal = (double) arTotal,
+				CompletedArTotal = (double) completedArTotal,
+				IncompleteArTotal = (double) incompleteArTotal
+			};
+
+			return summary;
+		}
+
+		public IEnumerable<IFinalInvoice> GetInvoicesByPeriod(TimePeriod period)
+		{
+			return _saleInvoiceHelper.GetInvoicesByPeriod(period);
+		}
+
+		public IEnumerable<IFinalInvoice> GetInvoicesByDateRange(DateTime startDate, DateTime endDate)
+		{
+			return _saleInvoiceHelper.GetInvoicesByDateRange(startDate, endDate);
+		}
+
+		public IEnumerable<IFinalInvoiceProduct> GetInvoiceProductsByDate(DateTime date)
+		{
+			return _saleInvoiceHelper.GetInvoiceProductsByDate(date);
+		}
+
+		public IEnumerable<IFinalInvoiceProduct> GetInvoiceProductsByInvoiceId(int invoiceId)
+		{
+			return _saleInvoiceHelper.GetInvoiceProductsByInvoiceId(invoiceId);
+		}
+
+		public IEnumerable<IFinalInvoicePayment> GetPaymentsByInvoiceId(int invoiceId)
+		{
+			return _saleInvoiceHelper.GetPaymentsByInvoiceId(invoiceId);
+		}
+
+		public async Task UpdateReportAsync(IInvoiceInfo invoiceInfo)
+		{
+			var salesSummary = CreateSalesSummary(invoiceInfo);
+			var paymentsSummary = CreatePaymentsSummary(invoiceInfo);
+			var invoiceToPush = CreateInvoiceForDataFeed(invoiceInfo);
+			var salesReportToPush = await UpdateSalesReport(salesSummary);
+			
+			await UpdatePaymentsReport(paymentsSummary);
+
+			await _dataFeedApiHelper.PushInvoice(invoiceToPush);
+			await _dataFeedApiHelper.PushReport(salesReportToPush);
+
+			var dataFeedStatus = "DataFeed Push : " + salesReportToPush.LastUpdateDateTime.ToString("O");
+
+			_eventAggregator.GetEvent<SalesReportPushedEvent>().Publish(dataFeedStatus);
 		}
     }
 }

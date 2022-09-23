@@ -1,9 +1,8 @@
 ﻿namespace IndyPOS.Common.Enums
 {
-    public enum ReportPeriod
+    public enum TimePeriod
 	{
 		Today,
-		ThisWeek,
 		ThisMonth,
 		ThisYear
 	}

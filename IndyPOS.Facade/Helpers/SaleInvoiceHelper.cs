@@ -1,12 +1,15 @@
-﻿using IndyPOS.DataAccess.Interfaces;
+﻿using IndyPOS.Common.Enums;
+using IndyPOS.Common.Extensions;
+using IndyPOS.DataAccess.Interfaces;
+using IndyPOS.Facade.Adapters;
 using IndyPOS.Facade.Events;
 using IndyPOS.Facade.Exceptions;
 using IndyPOS.Facade.Interfaces;
 using IndyPOS.Facade.Models;
 using Prism.Events;
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 using AccountsReceivableModel = IndyPOS.DataAccess.Models.AccountsReceivable;
 using InvoiceModel = IndyPOS.DataAccess.Models.Invoice;
 using InvoiceProductModel = IndyPOS.DataAccess.Models.InvoiceProduct;
@@ -24,8 +27,6 @@ namespace IndyPOS.Facade.Helpers
 		private readonly IReceiptPrinterHelper _receiptPrinter;
 		private readonly IUserHelper _userHelper;
 		private readonly IAccountsReceivableRepository _accountsReceivableRepository;
-		private readonly IReportHelper _reportHelper;
-		private readonly IDataFeedApiHelper _dataFeedApiHelper;
 
         public IList<ISaleInvoiceProduct> Products { get; private set; }
 
@@ -37,9 +38,7 @@ namespace IndyPOS.Facade.Helpers
 								 IInventoryProductRepository inventoryProductsRepository,
 								 IReceiptPrinterHelper receiptPrinter,
 								 IUserHelper userHelper,
-								 IAccountsReceivableRepository accountsReceivableRepository,
-								 IReportHelper reportHelper,
-								 IDataFeedApiHelper dataFeedApiHelper)
+								 IAccountsReceivableRepository accountsReceivableRepository)
         {
 			_inventoryHelper = inventoryHelper;
             _eventAggregator = eventAggregator;
@@ -48,8 +47,6 @@ namespace IndyPOS.Facade.Helpers
 			_receiptPrinter = receiptPrinter;
 			_userHelper = userHelper;
 			_accountsReceivableRepository = accountsReceivableRepository;
-			_reportHelper = reportHelper;
-			_dataFeedApiHelper = dataFeedApiHelper;
 		}
 		
         public void StartNewSale()
@@ -364,7 +361,7 @@ namespace IndyPOS.Facade.Helpers
 			return message;
 		}
 
-		public async Task CompleteSale()
+		public IInvoiceInfo CompleteSale()
 		{
 			var loggedInUserId = _userHelper.LoggedInUser.UserId;
 			var invoiceInfo = GetInvoiceInfo();
@@ -374,7 +371,7 @@ namespace IndyPOS.Facade.Helpers
 			AddPaymentsToDatabase(invoiceInfo);
 			UpdateInventoryProductsSoldOnInvoice(invoiceInfo);
 
-			await UpdateReport(invoiceInfo);
+			return invoiceInfo;
 		}
 
 		public IInvoiceInfo GetInvoiceInfo()
@@ -494,18 +491,60 @@ namespace IndyPOS.Facade.Helpers
 			});
 		}
 
-		private async Task UpdateReport(IInvoiceInfo invoiceInfo)
+		public IEnumerable<IFinalInvoice> GetInvoicesByPeriod(TimePeriod period)
 		{
-			var summary = _reportHelper.CreateSalesSummary(invoiceInfo);
-			var reportToPush = await _reportHelper.UpdateReport(summary);
-			var invoiceToPush = _reportHelper.CreateInvoiceForDataFeed(invoiceInfo);
+			DateTime startDate;
+			DateTime endDate; 
 
-			await _dataFeedApiHelper.PushInvoice(invoiceToPush);
-			await _dataFeedApiHelper.PushReport(reportToPush);
+			switch (period)
+			{
+				case TimePeriod.Today:
+					startDate = DateTime.Today;
+					endDate = DateTime.Today;
+					break;
+				case TimePeriod.ThisMonth:
+					startDate = DateTime.Today.FirstDayOfMonth();
+					endDate = DateTime.Today.LastDayOfMonth();
+					break;
+				case TimePeriod.ThisYear:
+					startDate = DateTime.Today.FirstDayOfYear();
+					endDate = DateTime.Today.LastDayOfYear();
+					break;
+				default:
+					startDate = DateTime.Today;
+					endDate = DateTime.Today;
+					break;
+			}
 
-			var dataFeedStatus = "DataFeed Push : " + reportToPush.LastUpdateDateTime.ToString("O");
+			return GetInvoicesByDateRange(startDate, endDate);
+		}
 
-			_eventAggregator.GetEvent<SalesReportPushedEvent>().Publish(dataFeedStatus);
+		public IEnumerable<IFinalInvoice> GetInvoicesByDateRange(DateTime startDate, DateTime endDate)
+		{
+			var results = _invoicesRepository.GetInvoicesByDateRange(startDate, endDate);
+
+			return results.Select(x => new FinalInvoiceAdapter(x) as IFinalInvoice);
+		}
+
+		public IEnumerable<IFinalInvoiceProduct> GetInvoiceProductsByDate(DateTime date)
+		{
+			var results = _invoicesRepository.GetInvoiceProductsByDate(date);
+
+			return results.Select(x => new FinalInvoiceProductAdapter(x) as IFinalInvoiceProduct);
+		}
+
+		public IEnumerable<IFinalInvoiceProduct> GetInvoiceProductsByInvoiceId(int invoiceId)
+		{
+			var results = _invoicesRepository.GetInvoiceProductsByInvoiceId(invoiceId);
+
+			return results.Select(x => new FinalInvoiceProductAdapter(x) as IFinalInvoiceProduct);
+		}
+
+		public IEnumerable<IFinalInvoicePayment> GetPaymentsByInvoiceId(int invoiceId)
+		{
+			var results = _invoicesRepository.GetPaymentsByInvoiceId(invoiceId);
+
+			return results.Select(x => new FinalInvoicePaymentAdapter(x) as IFinalInvoicePayment);
 		}
 	}
 }

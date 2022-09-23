@@ -1,4 +1,6 @@
-﻿using IndyPOS.Facade.Models.Report;
+﻿using IndyPOS.Common.Enums;
+using IndyPOS.Facade.Models.Report;
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
@@ -6,16 +8,22 @@ namespace IndyPOS.Facade.Interfaces
 {
 	public interface IReportHelper
 	{
-		IEnumerable<IFinalInvoice> Invoices { get; }
+		Task<SalesReport> GetSalesReportAsync();
 
-		IEnumerable<IFinalInvoiceProduct> InvoiceProducts { get; }
+		Task<PaymentsReport> GetPaymentsReportAsync();
 
-		IEnumerable<IFinalInvoicePayment> InvoicePayments { get; }
+		ArReport GetArReport();
 
-		SalesSummary CreateSalesSummary(IInvoiceInfo invoiceInfo);
+		IEnumerable<IFinalInvoice> GetInvoicesByPeriod(TimePeriod period);
 
-		Task<SalesReport> UpdateReport(SalesSummary summary);
+		IEnumerable<IFinalInvoice> GetInvoicesByDateRange(DateTime startDate, DateTime endDate);
 
-		Invoice CreateInvoiceForDataFeed(IInvoiceInfo invoiceInfo);
+		IEnumerable<IFinalInvoiceProduct> GetInvoiceProductsByDate(DateTime date);
+
+		IEnumerable<IFinalInvoiceProduct> GetInvoiceProductsByInvoiceId(int invoiceId);
+
+		IEnumerable<IFinalInvoicePayment> GetPaymentsByInvoiceId(int invoiceId);
+
+		Task UpdateReportAsync(IInvoiceInfo invoiceInfo);
 	}
 }
