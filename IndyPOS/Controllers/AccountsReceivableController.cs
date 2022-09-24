@@ -1,75 +1,36 @@
-﻿using IndyPOS.Adapters;
+﻿using IndyPOS.Facade.Interfaces;
 using IndyPOS.Interfaces;
-using Prism.Events;
 using System.Collections.Generic;
-using System.Linq;
-using IndyPOS.Common.Enums;
-using IndyPOS.DataAccess.Interfaces;
-using AccountsReceivableModel = IndyPOS.DataAccess.Models.AccountsReceivable;
-using PaymentModel = IndyPOS.DataAccess.Models.Payment;
 
 namespace IndyPOS.Controllers
 {
 	public class AccountsReceivableController : IAccountsReceivableController
     {
-		private readonly IEventAggregator _eventAggregator;
-        private readonly IAccountsReceivableRepository _accountsReceivableRepository;
-		private readonly IInvoiceRepository _invoicesRepository;
+		private readonly IAccountsReceivableHelper _accountsReceivableHelper;
 
-        public AccountsReceivableController(IAccountsReceivableRepository accountsReceivableRepository,
-											IInvoiceRepository invoicesRepository,
-											IEventAggregator eventAggregator)
+        public AccountsReceivableController(IAccountsReceivableHelper accountsReceivableHelper)
 		{
-			_accountsReceivableRepository = accountsReceivableRepository;
-			_invoicesRepository = invoicesRepository;
-			_eventAggregator = eventAggregator;
+			_accountsReceivableHelper = accountsReceivableHelper;
 		}
 
         public IList<IAccountsReceivable> GetAccountsReceivables()
 		{
-			var results = _accountsReceivableRepository.GetAccountsReceivables();
-
-			return results.Select(x => new AccountsReceivableAdapter(x) as IAccountsReceivable).ToList();
+			return _accountsReceivableHelper.GetAccountsReceivables();
 		}
 
 		public IAccountsReceivable GetAccountsReceivableByInvoiceId(int invoiceId)
 		{
-			var result = _accountsReceivableRepository.GetAccountsReceivableByInvoiceId(invoiceId);
-
-			return result != null ? new AccountsReceivableAdapter(result) as IAccountsReceivable : null;
+			return _accountsReceivableHelper.GetAccountsReceivableByInvoiceId(invoiceId);
 		}
 
         public void UpdateAccountsReceivable(IAccountsReceivable accountsReceivable)
 		{
-			var isCompleted = accountsReceivable.ReceivableAmount == accountsReceivable.PaidAmount;
-
-			_accountsReceivableRepository.UpdateAccountsReceivable(new AccountsReceivableModel
-																   {
-																	   PaymentId = accountsReceivable.PaymentId,
-																	   PaidAmount = accountsReceivable.PaidAmount,
-																	   IsCompleted = isCompleted
-																   });
-        }
+			_accountsReceivableHelper.UpdateAccountsReceivable(accountsReceivable);
+		}
 
 		public void ConvertPaymentsToAccountsReceivables()
 		{
-			var accountsReceivablePayments = _invoicesRepository.GetPaymentsByPaymentTypeId((int) PaymentType.AccountReceivable);
-			var accountsReceivables = _accountsReceivableRepository.GetAccountsReceivables();
-
-			var arPaymentIds = accountsReceivables.Select(ar => ar.PaymentId).ToHashSet();
-
-			foreach (var arPayment in accountsReceivablePayments)
-            {
-				if (arPaymentIds.Contains(arPayment.PaymentId))
-					continue;
-
-				ConvertPaymentToAccountsReceivable(arPayment);
-			}
-		}
-
-		private void ConvertPaymentToAccountsReceivable(PaymentModel payment)
-		{
-			_accountsReceivableRepository.ConvertPaymentToAccountsReceivable(payment);
+			_accountsReceivableHelper.ConvertPaymentsToAccountsReceivables();
 		}
 	}
 }

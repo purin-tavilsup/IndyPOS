@@ -89,12 +89,6 @@ namespace IndyPOS.Configurations
 			set => _userConfiguration.BackupDbDirectory = value;
 		}
 
-		public string BarcodeDirectory
-		{
-			get => _userConfiguration.BarcodeDirectory; 
-			set => _userConfiguration.BarcodeDirectory = value;
-		}
-
 		public string DataFeedKey
 		{
 			get => _userConfiguration.DataFeedKey; 
@@ -105,6 +99,12 @@ namespace IndyPOS.Configurations
 		{
 			get => _userConfiguration.DataFeedEnabled; 
 			set => _userConfiguration.DataFeedEnabled = value;
+		}
+
+		public bool DatabaseBackUpEnabled
+		{
+			get => _userConfiguration.DatabaseBackUpEnabled;
+			set => _userConfiguration.DatabaseBackUpEnabled = value;
 		}
 
 		public async Task UpdateAsync()
@@ -168,7 +168,6 @@ namespace IndyPOS.Configurations
 		private static UserConfiguration CreateNewUserConfiguration()
 		{
 			const string defaultBackupDbDirectory = @"G:\My Drive\Rungrat\Data\db";
-			const string defaultBarcodeDirectory = @"G:\My Drive\Rungrat\Data\Product Barcode";
 
 			return new UserConfiguration
 			{
@@ -180,9 +179,9 @@ namespace IndyPOS.Configurations
 				PrinterName = "XP-58",
 				BarcodeScannerPortName = "COM4",
 				BackupDbDirectory = defaultBackupDbDirectory,
-				BarcodeDirectory = defaultBarcodeDirectory,
 				DataFeedKey = "dummyKey",
-				DataFeedEnabled = false
+				DataFeedEnabled = false,
+				DatabaseBackUpEnabled = false
 			};
 		}
 	}

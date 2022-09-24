@@ -10,15 +10,15 @@ namespace IndyPOS.UI
     public partial class UserLogInPanel : UserControl
     {
 		private readonly IUserController _userController;
-		private readonly ICryptographyHelper _cryptographyHelper;
+		private readonly ICryptographyUtility _cryptographyUtility;
 		private readonly MessageForm _messageForm;
 		
 		public UserLogInPanel(IUserController userController,
-							  ICryptographyHelper cryptographyHelper,
+							  ICryptographyUtility cryptographyUtility,
 							  MessageForm messageForm)
 		{
 			_userController = userController;
-			_cryptographyHelper = cryptographyHelper;
+			_cryptographyUtility = cryptographyUtility;
 			_messageForm = messageForm;
 
 			InitializeComponent();
@@ -58,7 +58,7 @@ namespace IndyPOS.UI
 			}
 			
 			var username = UsersComboBox.SelectedItem.ToString();
-			var password = _cryptographyHelper.Encrypt(UserSecretTextBox.Texts.Trim());
+			var password = _cryptographyUtility.Encrypt(UserSecretTextBox.Texts.Trim());
 
 			if (_userController.LogIn(username, password))
 			{

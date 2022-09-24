@@ -1,42 +1,29 @@
-﻿using System.Collections.Generic;
-using System.Threading.Tasks;
-using IndyPOS.Common.Enums;
+﻿using IndyPOS.Common.Enums;
 using IndyPOS.Facade.Interfaces;
-using InventoryProductModel = IndyPOS.DataAccess.Models.InventoryProduct;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace IndyPOS.Interfaces
 {
     public interface ISaleInvoiceController
     {
-        IReadOnlyCollection<ISaleInvoiceProduct> Products { get; }
-
-        IReadOnlyCollection<IPayment> Payments { get; }
-
-        decimal InvoiceTotal { get; }
-
-        decimal PaymentTotal { get; }
-
-		decimal BalanceRemaining { get; }
-
-		bool IsRefundInvoice { get; }
-
-        bool IsPendingPayment { get; }
-
-		decimal Changes { get; }
-
-        void StartNewSale();
+		void StartNewSale();
 
 		IList<string> ValidateSaleInvoice();
 
         Task CompleteSale();
 
+		IInvoiceInfo GetInvoiceInfo();
+
 		void PrintReceipt();
 
         void RemoveAllPayments();
 
-        void AddProduct(InventoryProductModel product);
+        void AddProduct(IInventoryProduct product);
 
-		void AddProduct(InventoryProductModel product, decimal unitPrice, int quantity, string note);
+		void AddProduct(IInventoryProduct product, decimal unitPrice, int quantity, string note);
+
+		ISaleInvoiceProduct GetSaleInvoiceProduct(string barcode, int priority);
 
         void RemoveProduct(ISaleInvoiceProduct product);
 
@@ -46,6 +33,18 @@ namespace IndyPOS.Interfaces
 
 		void UpdateProductUnitPrice(int inventoryProductId, int priority, decimal unitPrice, string note);
 
-		InventoryProductModel GetInventoryProductByBarcode(string barcode);
+		IInventoryProduct GetInventoryProductByBarcode(string barcode);
+
+		bool IsRefundInvoice();
+
+		bool IsPendingPayment();
+
+		decimal CalculateInvoiceTotal();
+
+		decimal CalculatePaymentTotal();
+
+		decimal CalculateBalanceRemaining();
+
+		decimal CalculateChanges();
 	}
 }

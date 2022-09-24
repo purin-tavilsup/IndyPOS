@@ -1,35 +1,27 @@
-﻿using IndyPOS.Sales;
+﻿using IndyPOS.Common.Enums;
+using IndyPOS.Facade.Interfaces;
+using IndyPOS.Facade.Models.Report;
 using System;
 using System.Collections.Generic;
-using IndyPOS.Common.Enums;
+using System.Threading.Tasks;
 
 namespace IndyPOS.Interfaces
 {
 	public interface IReportController
 	{
-		IEnumerable<IFinalInvoice> Invoices { get; }
+		IEnumerable<IFinalInvoice> GetInvoicesByPeriod(TimePeriod period);
 
-		IEnumerable<IFinalInvoiceProduct> InvoiceProducts { get; }
-
-		IEnumerable<IFinalInvoicePayment> InvoicePayments { get; }
-
-		void LoadInvoicesByPeriod(ReportPeriod period);
-
-		void LoadInvoicesByDateRange(DateTime startDate, DateTime endDate);
+		IEnumerable<IFinalInvoice> GetInvoicesByDateRange(DateTime startDate, DateTime endDate);
 
 		IEnumerable<IFinalInvoiceProduct> GetInvoiceProductsByDate(DateTime date);
-
-		void WriteSaleRecordsToCsvFileByDate(DateTime date);
-
-		IFinalInvoice GetInvoiceByInvoiceId(int invoiceId);
 
 		IEnumerable<IFinalInvoiceProduct> GetInvoiceProductsByInvoiceId(int invoiceId);
 
 		IEnumerable<IFinalInvoicePayment> GetPaymentsByInvoiceId(int invoiceId);
 
-		SalesReport GetSaleReport();
+		Task<SalesReport> GetSaleReportAsync();
 
-		PaymentReport GetPaymentReport();
+		Task<PaymentsReport> GetPaymentsReportAsync();
 
 		ArReport GetArReport();
 	}

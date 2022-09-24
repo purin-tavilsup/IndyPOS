@@ -3,6 +3,7 @@ using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Drawing;
 using System.Windows.Forms;
+using IndyPOS.Facade.Interfaces;
 
 namespace IndyPOS.UI.Reports
 {

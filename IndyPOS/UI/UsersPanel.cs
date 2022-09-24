@@ -19,7 +19,7 @@ namespace IndyPOS.UI
         private readonly IUserController _userController;
 		private readonly IEventAggregator _eventAggregator;
 		private readonly IReadOnlyDictionary<int, string> _userRoleDictionary;
-		private readonly ICryptographyHelper _cryptographyHelper;
+		private readonly ICryptographyUtility _cryptographyUtility;
 		private readonly AddNewUserForm _addNewUserForm;
 		private IUserAccount _selectedUser;
 
@@ -38,13 +38,13 @@ namespace IndyPOS.UI
         public UsersPanel(IEventAggregator eventAggregator,
 						  IUserController userController,
 						  IStoreConstants storeConstants,
-						  ICryptographyHelper cryptographyHelper,
+						  ICryptographyUtility cryptographyUtility,
 						  AddNewUserForm addNewUserForm)
 		{
 			_userController = userController;
 			_eventAggregator = eventAggregator;
 			_userRoleDictionary = storeConstants.UserRoles;
-			_cryptographyHelper = cryptographyHelper;
+			_cryptographyUtility = cryptographyUtility;
 			_addNewUserForm = addNewUserForm;
 
             InitializeComponent();
@@ -223,7 +223,7 @@ namespace IndyPOS.UI
 			UsernameLabel.Text = userCredential.Username;
 
 			if (isVisibleToLoggedInUser) 
-				UserPasswordTextBox.Texts = _cryptographyHelper.Decrypt(userCredential.Password);
+				UserPasswordTextBox.Texts = _cryptographyUtility.Decrypt(userCredential.Password);
 		}
 
 		private void ResetUserDetails()
@@ -246,7 +246,7 @@ namespace IndyPOS.UI
 			if (!UserPasswordTextBox.Texts.HasValue())
 				return;
 
-			var encryptedPassword = _cryptographyHelper.Encrypt(UserPasswordTextBox.Texts.Trim());
+			var encryptedPassword = _cryptographyUtility.Encrypt(UserPasswordTextBox.Texts.Trim());
 
 			_userController.UpdateUserCredentialById(_selectedUser.UserId, encryptedPassword);
 		}

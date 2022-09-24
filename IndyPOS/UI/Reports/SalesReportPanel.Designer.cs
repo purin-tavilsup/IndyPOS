@@ -48,19 +48,11 @@
             this.PaymentByTransferLabel = new System.Windows.Forms.Label();
             this.label14 = new System.Windows.Forms.Label();
             this.label13 = new System.Windows.Forms.Label();
-            this.panel7 = new System.Windows.Forms.Panel();
-            this.ShowReportByDateRangeButton = new ModernUI.ModernButton();
-            this.label11 = new System.Windows.Forms.Label();
-            this.label9 = new System.Windows.Forms.Label();
-            this.StartDatePicker = new System.Windows.Forms.DateTimePicker();
-            this.label7 = new System.Windows.Forms.Label();
-            this.EndDatePicker = new System.Windows.Forms.DateTimePicker();
             this.panel6 = new System.Windows.Forms.Panel();
             this.PeriodLabel = new System.Windows.Forms.Label();
             this.ShowReportByThisYearButton = new ModernUI.ModernButton();
             this.ShowReportByTodayButton = new ModernUI.ModernButton();
             this.ShowReportByThisMonthButton = new ModernUI.ModernButton();
-            this.ShowReportByThisWeekButton = new ModernUI.ModernButton();
             this.panel5 = new System.Windows.Forms.Panel();
             this.HardwareSaleLabel = new System.Windows.Forms.Label();
             this.label28 = new System.Windows.Forms.Label();
@@ -74,6 +66,7 @@
             this.label26 = new System.Windows.Forms.Label();
             this.label5 = new System.Windows.Forms.Label();
             this.panel15 = new System.Windows.Forms.Panel();
+            this.TestDataFeedButton = new ModernUI.ModernButton();
             this.label12 = new System.Windows.Forms.Label();
             this.panel14 = new System.Windows.Forms.Panel();
             this.ArTotalLabel = new System.Windows.Forms.Label();
@@ -107,7 +100,6 @@
             this.ArTotalForGeneralProductsLabel = new System.Windows.Forms.Label();
             this.label35 = new System.Windows.Forms.Label();
             this.label36 = new System.Windows.Forms.Label();
-            this.TestDataFeedButton = new ModernUI.ModernButton();
             this.panel9.SuspendLayout();
             this.panel13.SuspendLayout();
             this.panel12.SuspendLayout();
@@ -115,7 +107,6 @@
             this.panel10.SuspendLayout();
             this.panel8.SuspendLayout();
             this.panel3.SuspendLayout();
-            this.panel7.SuspendLayout();
             this.panel6.SuspendLayout();
             this.panel5.SuspendLayout();
             this.panel4.SuspendLayout();
@@ -375,93 +366,6 @@
             this.label13.Text = " รายการเงิน";
             this.label13.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
             // 
-            // panel7
-            // 
-            this.panel7.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
-            this.panel7.Controls.Add(this.ShowReportByDateRangeButton);
-            this.panel7.Controls.Add(this.label11);
-            this.panel7.Controls.Add(this.label9);
-            this.panel7.Controls.Add(this.StartDatePicker);
-            this.panel7.Controls.Add(this.label7);
-            this.panel7.Controls.Add(this.EndDatePicker);
-            this.panel7.Location = new System.Drawing.Point(584, 7);
-            this.panel7.Name = "panel7";
-            this.panel7.Size = new System.Drawing.Size(1002, 92);
-            this.panel7.TabIndex = 107;
-            // 
-            // ShowReportByDateRangeButton
-            // 
-            this.ShowReportByDateRangeButton.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
-            this.ShowReportByDateRangeButton.BackgroundColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
-            this.ShowReportByDateRangeButton.BorderColor = System.Drawing.Color.DarkGray;
-            this.ShowReportByDateRangeButton.BorderRadius = 5;
-            this.ShowReportByDateRangeButton.BorderSize = 1;
-            this.ShowReportByDateRangeButton.FlatAppearance.BorderSize = 0;
-            this.ShowReportByDateRangeButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.ShowReportByDateRangeButton.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.ShowReportByDateRangeButton.ForeColor = System.Drawing.Color.White;
-            this.ShowReportByDateRangeButton.Location = new System.Drawing.Point(804, 29);
-            this.ShowReportByDateRangeButton.Name = "ShowReportByDateRangeButton";
-            this.ShowReportByDateRangeButton.Size = new System.Drawing.Size(180, 49);
-            this.ShowReportByDateRangeButton.TabIndex = 103;
-            this.ShowReportByDateRangeButton.Text = "แสดงผล";
-            this.ShowReportByDateRangeButton.TextColor = System.Drawing.Color.White;
-            this.ShowReportByDateRangeButton.UseVisualStyleBackColor = false;
-            this.ShowReportByDateRangeButton.Click += new System.EventHandler(this.ShowReportByDateRangeButton_Click);
-            // 
-            // label11
-            // 
-            this.label11.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
-            this.label11.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 14.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label11.ForeColor = System.Drawing.Color.Gainsboro;
-            this.label11.Location = new System.Drawing.Point(426, 44);
-            this.label11.Name = "label11";
-            this.label11.Size = new System.Drawing.Size(56, 31);
-            this.label11.TabIndex = 102;
-            this.label11.Text = "ถึง";
-            this.label11.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
-            // 
-            // label9
-            // 
-            this.label9.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
-            this.label9.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 14.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label9.ForeColor = System.Drawing.Color.Gainsboro;
-            this.label9.Location = new System.Drawing.Point(57, 44);
-            this.label9.Name = "label9";
-            this.label9.Size = new System.Drawing.Size(56, 31);
-            this.label9.TabIndex = 101;
-            this.label9.Text = "จาก";
-            this.label9.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
-            // 
-            // StartDatePicker
-            // 
-            this.StartDatePicker.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.StartDatePicker.Location = new System.Drawing.Point(119, 46);
-            this.StartDatePicker.Name = "StartDatePicker";
-            this.StartDatePicker.Size = new System.Drawing.Size(301, 25);
-            this.StartDatePicker.TabIndex = 100;
-            // 
-            // label7
-            // 
-            this.label7.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
-            this.label7.Dock = System.Windows.Forms.DockStyle.Top;
-            this.label7.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 14.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label7.ForeColor = System.Drawing.Color.Gainsboro;
-            this.label7.Location = new System.Drawing.Point(0, 0);
-            this.label7.Name = "label7";
-            this.label7.Size = new System.Drawing.Size(1002, 39);
-            this.label7.TabIndex = 83;
-            this.label7.Text = " เลือกช่วงเวลาแบบกำหนดเอง";
-            this.label7.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
-            // 
-            // EndDatePicker
-            // 
-            this.EndDatePicker.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.EndDatePicker.Location = new System.Drawing.Point(488, 46);
-            this.EndDatePicker.Name = "EndDatePicker";
-            this.EndDatePicker.Size = new System.Drawing.Size(301, 25);
-            this.EndDatePicker.TabIndex = 84;
-            // 
             // panel6
             // 
             this.panel6.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
@@ -469,10 +373,9 @@
             this.panel6.Controls.Add(this.ShowReportByThisYearButton);
             this.panel6.Controls.Add(this.ShowReportByTodayButton);
             this.panel6.Controls.Add(this.ShowReportByThisMonthButton);
-            this.panel6.Controls.Add(this.ShowReportByThisWeekButton);
             this.panel6.Location = new System.Drawing.Point(3, 7);
             this.panel6.Name = "panel6";
-            this.panel6.Size = new System.Drawing.Size(575, 92);
+            this.panel6.Size = new System.Drawing.Size(433, 92);
             this.panel6.TabIndex = 106;
             // 
             // PeriodLabel
@@ -483,7 +386,7 @@
             this.PeriodLabel.ForeColor = System.Drawing.Color.MediumAquamarine;
             this.PeriodLabel.Location = new System.Drawing.Point(0, 0);
             this.PeriodLabel.Name = "PeriodLabel";
-            this.PeriodLabel.Size = new System.Drawing.Size(575, 39);
+            this.PeriodLabel.Size = new System.Drawing.Size(433, 39);
             this.PeriodLabel.TabIndex = 83;
             this.PeriodLabel.Text = "เลือกเวลา";
             this.PeriodLabel.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
@@ -499,7 +402,7 @@
             this.ShowReportByThisYearButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.ShowReportByThisYearButton.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.ShowReportByThisYearButton.ForeColor = System.Drawing.Color.White;
-            this.ShowReportByThisYearButton.Location = new System.Drawing.Point(424, 42);
+            this.ShowReportByThisYearButton.Location = new System.Drawing.Point(286, 42);
             this.ShowReportByThisYearButton.Name = "ShowReportByThisYearButton";
             this.ShowReportByThisYearButton.Size = new System.Drawing.Size(130, 36);
             this.ShowReportByThisYearButton.TabIndex = 97;
@@ -539,7 +442,7 @@
             this.ShowReportByThisMonthButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.ShowReportByThisMonthButton.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.ShowReportByThisMonthButton.ForeColor = System.Drawing.Color.White;
-            this.ShowReportByThisMonthButton.Location = new System.Drawing.Point(288, 42);
+            this.ShowReportByThisMonthButton.Location = new System.Drawing.Point(151, 42);
             this.ShowReportByThisMonthButton.Name = "ShowReportByThisMonthButton";
             this.ShowReportByThisMonthButton.Size = new System.Drawing.Size(130, 36);
             this.ShowReportByThisMonthButton.TabIndex = 96;
@@ -547,26 +450,6 @@
             this.ShowReportByThisMonthButton.TextColor = System.Drawing.Color.White;
             this.ShowReportByThisMonthButton.UseVisualStyleBackColor = false;
             this.ShowReportByThisMonthButton.Click += new System.EventHandler(this.ShowReportByThisMonthButton_Click);
-            // 
-            // ShowReportByThisWeekButton
-            // 
-            this.ShowReportByThisWeekButton.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
-            this.ShowReportByThisWeekButton.BackgroundColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
-            this.ShowReportByThisWeekButton.BorderColor = System.Drawing.Color.Gray;
-            this.ShowReportByThisWeekButton.BorderRadius = 5;
-            this.ShowReportByThisWeekButton.BorderSize = 1;
-            this.ShowReportByThisWeekButton.FlatAppearance.BorderSize = 0;
-            this.ShowReportByThisWeekButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.ShowReportByThisWeekButton.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.ShowReportByThisWeekButton.ForeColor = System.Drawing.Color.White;
-            this.ShowReportByThisWeekButton.Location = new System.Drawing.Point(152, 42);
-            this.ShowReportByThisWeekButton.Name = "ShowReportByThisWeekButton";
-            this.ShowReportByThisWeekButton.Size = new System.Drawing.Size(130, 36);
-            this.ShowReportByThisWeekButton.TabIndex = 95;
-            this.ShowReportByThisWeekButton.Text = "สัปดาห์นี้";
-            this.ShowReportByThisWeekButton.TextColor = System.Drawing.Color.White;
-            this.ShowReportByThisWeekButton.UseVisualStyleBackColor = false;
-            this.ShowReportByThisWeekButton.Click += new System.EventHandler(this.ShowReportByThisWeekButton_Click);
             // 
             // panel5
             // 
@@ -727,6 +610,26 @@
             this.panel15.Name = "panel15";
             this.panel15.Size = new System.Drawing.Size(333, 213);
             this.panel15.TabIndex = 111;
+            // 
+            // TestDataFeedButton
+            // 
+            this.TestDataFeedButton.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
+            this.TestDataFeedButton.BackgroundColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
+            this.TestDataFeedButton.BorderColor = System.Drawing.Color.DarkGray;
+            this.TestDataFeedButton.BorderRadius = 5;
+            this.TestDataFeedButton.BorderSize = 1;
+            this.TestDataFeedButton.FlatAppearance.BorderSize = 0;
+            this.TestDataFeedButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.TestDataFeedButton.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.TestDataFeedButton.ForeColor = System.Drawing.Color.White;
+            this.TestDataFeedButton.Location = new System.Drawing.Point(73, 65);
+            this.TestDataFeedButton.Name = "TestDataFeedButton";
+            this.TestDataFeedButton.Size = new System.Drawing.Size(180, 49);
+            this.TestDataFeedButton.TabIndex = 104;
+            this.TestDataFeedButton.Text = "ทดสอบ";
+            this.TestDataFeedButton.TextColor = System.Drawing.Color.White;
+            this.TestDataFeedButton.UseVisualStyleBackColor = false;
+            this.TestDataFeedButton.Click += new System.EventHandler(this.TestDataFeedButton_Click);
             // 
             // label12
             // 
@@ -1141,26 +1044,6 @@
             this.label36.Text = "ยอดลงบัญชี (สินค้าเบ็ดเตล็ด)";
             this.label36.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
             // 
-            // TestDataFeedButton
-            // 
-            this.TestDataFeedButton.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
-            this.TestDataFeedButton.BackgroundColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
-            this.TestDataFeedButton.BorderColor = System.Drawing.Color.DarkGray;
-            this.TestDataFeedButton.BorderRadius = 5;
-            this.TestDataFeedButton.BorderSize = 1;
-            this.TestDataFeedButton.FlatAppearance.BorderSize = 0;
-            this.TestDataFeedButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.TestDataFeedButton.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.TestDataFeedButton.ForeColor = System.Drawing.Color.White;
-            this.TestDataFeedButton.Location = new System.Drawing.Point(73, 65);
-            this.TestDataFeedButton.Name = "TestDataFeedButton";
-            this.TestDataFeedButton.Size = new System.Drawing.Size(180, 49);
-            this.TestDataFeedButton.TabIndex = 104;
-            this.TestDataFeedButton.Text = "ทดสอบ";
-            this.TestDataFeedButton.TextColor = System.Drawing.Color.White;
-            this.TestDataFeedButton.UseVisualStyleBackColor = false;
-            this.TestDataFeedButton.Click += new System.EventHandler(this.TestDataFeedButton_Click);
-            // 
             // SalesReportPanel
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -1176,7 +1059,6 @@
             this.Controls.Add(this.panel14);
             this.Controls.Add(this.panel15);
             this.Controls.Add(this.panel9);
-            this.Controls.Add(this.panel7);
             this.Controls.Add(this.panel6);
             this.Controls.Add(this.panel5);
             this.Controls.Add(this.panel4);
@@ -1190,7 +1072,6 @@
             this.panel10.ResumeLayout(false);
             this.panel8.ResumeLayout(false);
             this.panel3.ResumeLayout(false);
-            this.panel7.ResumeLayout(false);
             this.panel6.ResumeLayout(false);
             this.panel5.ResumeLayout(false);
             this.panel4.ResumeLayout(false);
@@ -1212,19 +1093,11 @@
 
         private System.Windows.Forms.Panel panel9;
         private System.Windows.Forms.Label label13;
-        private System.Windows.Forms.Panel panel7;
-        private ModernUI.ModernButton ShowReportByDateRangeButton;
-        private System.Windows.Forms.Label label11;
-        private System.Windows.Forms.Label label9;
-        private System.Windows.Forms.DateTimePicker StartDatePicker;
-        private System.Windows.Forms.Label label7;
-        private System.Windows.Forms.DateTimePicker EndDatePicker;
         private System.Windows.Forms.Panel panel6;
         private System.Windows.Forms.Label PeriodLabel;
         private ModernUI.ModernButton ShowReportByThisYearButton;
         private ModernUI.ModernButton ShowReportByTodayButton;
         private ModernUI.ModernButton ShowReportByThisMonthButton;
-        private ModernUI.ModernButton ShowReportByThisWeekButton;
         private System.Windows.Forms.Panel panel5;
         private System.Windows.Forms.Label HardwareSaleLabel;
         private System.Windows.Forms.Label label10;

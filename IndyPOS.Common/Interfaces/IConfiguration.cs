@@ -30,11 +30,11 @@ namespace IndyPOS.Common.Interfaces
 
 		string BackupDbDirectory { get; set; }
 
-		string BarcodeDirectory { get; set; }
-
 		string DataFeedKey { get; set; }
 
 		bool DataFeedEnabled { get; set; }
+
+		bool DatabaseBackUpEnabled { get; set; }
 
 		Task UpdateAsync();
 	}

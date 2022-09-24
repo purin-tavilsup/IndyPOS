@@ -28,9 +28,8 @@ namespace IndyPOS.UI
         }
 
         public void ShowDialog(string barcode, int priority)
-        {
-            _product = _saleInvoiceController.Products.FirstOrDefault(p => p.Barcode == barcode && 
-																		   p.Priority == priority);
+		{
+			_product = _saleInvoiceController.GetSaleInvoiceProduct(barcode, priority);
 
             PopulateProductProperties(_product);
 

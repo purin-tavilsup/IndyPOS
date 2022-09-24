@@ -13,8 +13,8 @@ namespace IndyPOS.Configurations.Models
 		public string PrinterName { get; set; }
 		public string BarcodeScannerPortName { get; set; }
 		public string BackupDbDirectory { get; set; }
-		public string BarcodeDirectory { get; set; }
 		public string DataFeedKey { get; set; }
 		public bool DataFeedEnabled { get; set; }
+		public bool DatabaseBackUpEnabled { get; set; }
     }
 }

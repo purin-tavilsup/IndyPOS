@@ -1,12 +1,12 @@
-﻿using IndyPOS.Common.Interfaces;
+﻿using IndyPOS.Common.Enums;
+using IndyPOS.Common.Interfaces;
+using IndyPOS.Facade.Interfaces;
 using IndyPOS.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Drawing;
-using System.Linq;
 using System.Windows.Forms;
-using IndyPOS.Common.Enums;
 
 namespace IndyPOS.UI.Reports
 {
@@ -129,36 +129,31 @@ namespace IndyPOS.UI.Reports
 		{
 			PeriodLabel.Text = ShowReportByTodayButton.Text;
 
-			_reportController.LoadInvoicesByPeriod(ReportPeriod.Today);
+			var invoices = _reportController.GetInvoicesByPeriod(TimePeriod.Today);
 
-			ShowSaleInvoices();
+			ShowInvoices(invoices);
 		}
 
 		private void ShowReportByThisWeekButton_Click(object sender, EventArgs e)
 		{
-			PeriodLabel.Text = ShowReportByThisWeekButton.Text;
-
-			_reportController.LoadInvoicesByPeriod(ReportPeriod.ThisWeek);
-
-			ShowSaleInvoices();
 		}
 
 		private void ShowReportByThisMonthButton_Click(object sender, EventArgs e)
 		{
 			PeriodLabel.Text = ShowReportByThisMonthButton.Text;
 
-			_reportController.LoadInvoicesByPeriod(ReportPeriod.ThisMonth);
+			var invoices = _reportController.GetInvoicesByPeriod(TimePeriod.ThisMonth);
 
-			ShowSaleInvoices();
+			ShowInvoices(invoices);
 		}
 
 		private void ShowReportByThisYearButton_Click(object sender, EventArgs e)
 		{
 			PeriodLabel.Text = ShowReportByThisYearButton.Text;
 
-			_reportController.LoadInvoicesByPeriod(ReportPeriod.ThisYear);
+			var invoices = _reportController.GetInvoicesByPeriod(TimePeriod.ThisYear);
 
-			ShowSaleInvoices();
+			ShowInvoices(invoices);
 		}
 
 		private void ShowReportByDateRangeButton_Click(object sender, EventArgs e)
@@ -168,14 +163,9 @@ namespace IndyPOS.UI.Reports
 
 			PeriodLabel.Text = $"{startDate:yyyy MMMM dd} - {endDate:yyyy MMMM dd}";
 
-			_reportController.LoadInvoicesByDateRange(startDate, endDate);
+			var invoices = _reportController.GetInvoicesByDateRange(startDate, endDate);
 
-			ShowSaleInvoices();
-		}
-
-		private void ShowSaleInvoices()
-		{
-			ShowInvoices(_reportController.Invoices);
+			ShowInvoices(invoices);
 		}
 
 		private void ShowInvoices(IEnumerable<IFinalInvoice> invoices)
@@ -202,7 +192,7 @@ namespace IndyPOS.UI.Reports
 
         private void ShowInvoiceProductsByInvoiceId(int invoiceId)
 		{
-			var products = _reportController.InvoiceProducts.Where(x => x.InvoiceId == invoiceId);
+			var products = _reportController.GetInvoiceProductsByInvoiceId(invoiceId);
 
 			InvoiceProductsDataView.Rows.Clear();
 
@@ -214,7 +204,7 @@ namespace IndyPOS.UI.Reports
 
 		private void ShowInvoicePaymentsByInvoiceId(int invoiceId)
 		{
-			var payments = _reportController.InvoicePayments.Where(x => x.InvoiceId == invoiceId);
+			var payments = _reportController.GetPaymentsByInvoiceId(invoiceId);
 
 			PaymentDataView.Rows.Clear();
 

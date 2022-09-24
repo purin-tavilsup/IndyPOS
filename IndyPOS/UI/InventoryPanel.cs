@@ -10,6 +10,7 @@ using System.Linq;
 using System.Windows.Forms;
 using IndyPOS.Common.Enums;
 using IndyPOS.Facade.Events;
+using IndyPOS.Facade.Interfaces;
 
 namespace IndyPOS.UI
 {

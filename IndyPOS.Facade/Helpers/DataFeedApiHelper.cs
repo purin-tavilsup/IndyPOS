@@ -1,7 +1,7 @@
 ﻿using IndyPOS.Common.Extensions;
 using IndyPOS.Common.Interfaces;
 using IndyPOS.Facade.Interfaces;
-using IndyPOS.Facade.Models;
+using IndyPOS.Facade.Models.Report;
 using Serilog;
 using System;
 using System.Net.Http;
@@ -53,7 +53,6 @@ namespace IndyPOS.Facade.Helpers
 			catch (Exception ex)
 			{
 				_logger.Error(ex, $"Failed to push Invoice ({invoice.Id}) to DataFeed.");
-				throw;
 			}
 		}
 
@@ -75,7 +74,6 @@ namespace IndyPOS.Facade.Helpers
 			catch (Exception ex)
 			{
 				_logger.Error(ex, $"Failed to push SalesReport ({report.Id}) to DataFeed.");
-				throw;
 			}
         }
 	}

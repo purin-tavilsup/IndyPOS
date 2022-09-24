@@ -159,15 +159,15 @@ namespace IndyPOS.UI
 						  {
 							  InvoiceDataView.Rows.Clear();
 
-							  var products = _saleInvoiceController.Products;
+                              var invoiceInfo = _saleInvoiceController.GetInvoiceInfo();
 
-							  foreach (var product in products)
+							  foreach (var product in invoiceInfo.Products)
 							  {
 								  AddProductToInvoiceDataView(product);
 							  }
 
-							  InvoiceTotalLabel.Text = $"{_saleInvoiceController.InvoiceTotal:N}";
-							  ChangesLabel.Text = $"{_saleInvoiceController.Changes:N}";
+							  InvoiceTotalLabel.Text = $"{invoiceInfo.InvoiceTotal:N}";
+							  ChangesLabel.Text = $"{invoiceInfo.Changes:N}";
 						  });
 		}
 
@@ -209,7 +209,7 @@ namespace IndyPOS.UI
 
         private void GetPaymentButton_Click(object sender, EventArgs e)
         {
-			if (!_saleInvoiceController.IsPendingPayment)
+			if (!_saleInvoiceController.IsPendingPayment())
 			{
 				_messageForm.Show("รายการเงินที่รับมาสมบูรณ์แล้ว", "ไม่สามารถรับรายการเงินเพิ่มได้อีก");
 
@@ -283,15 +283,15 @@ namespace IndyPOS.UI
 						  {
 							  PaymentDataView.Rows.Clear();
 
-							  var payments = _saleInvoiceController.Payments;
+							  var invoiceInfo = _saleInvoiceController.GetInvoiceInfo();
 
-							  foreach (var payment in payments)
+							  foreach (var payment in invoiceInfo.Payments)
 							  {
 								  AddPaymentToPaymentDataView(payment);
 							  }
 
-							  PaymentsTotalLabel.Text = $"{_saleInvoiceController.PaymentTotal:N}";
-							  ChangesLabel.Text = $"{_saleInvoiceController.Changes:N}";
+							  PaymentsTotalLabel.Text = $"{invoiceInfo.PaymentTotal:N}";
+							  ChangesLabel.Text = $"{invoiceInfo.Changes:N}";
 						  });
 		}
 
@@ -301,9 +301,11 @@ namespace IndyPOS.UI
 						  {
 							  InvoiceDataView.Rows.Clear();
 
-							  InvoiceTotalLabel.Text = $"{_saleInvoiceController.InvoiceTotal:N}";
-							  PaymentsTotalLabel.Text = $"{_saleInvoiceController.PaymentTotal:N}";
-							  ChangesLabel.Text = $"{_saleInvoiceController.Changes:N}";
+							  var invoiceInfo = _saleInvoiceController.GetInvoiceInfo();
+
+							  InvoiceTotalLabel.Text = $"{invoiceInfo.InvoiceTotal:N}";
+							  PaymentsTotalLabel.Text = $"{invoiceInfo.PaymentTotal:N}";
+							  ChangesLabel.Text = $"{invoiceInfo.Changes:N}";
 
 							  PaymentDataView.Rows.Clear();
 						  });

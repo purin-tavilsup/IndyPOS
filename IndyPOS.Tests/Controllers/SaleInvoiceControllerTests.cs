@@ -1,728 +1,339 @@
-﻿using AutoFixture;
-using FakeItEasy;
+﻿using AutoFixture.Xunit2;
 using FluentAssertions;
 using IndyPOS.Common.Enums;
 using IndyPOS.Controllers;
-using IndyPOS.Exceptions;
-using IndyPOS.Facade.Events;
+using IndyPOS.Facade.Exceptions;
 using IndyPOS.Facade.Interfaces;
-using IndyPOS.Interfaces;
-using IndyPOS.Sales;
-using NUnit.Framework;
-using Prism.Events;
+using IndyPOS.Tests.Attributes;
+using Moq;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using IndyPOS.DataAccess.Interfaces;
-using IndyPOS.Facade.Models;
-using AccountsReceivableModel = IndyPOS.DataAccess.Models.AccountsReceivable;
-using InventoryProductModel = IndyPOS.DataAccess.Models.InventoryProduct;
-using InvoiceProductModel = IndyPOS.DataAccess.Models.InvoiceProduct;
-using Payment = IndyPOS.Sales.Payment;
-using PaymentModel = IndyPOS.DataAccess.Models.Payment;
+using Xunit;
 
 namespace IndyPOS.Tests.Controllers
 {
-	[TestFixture]
-    public class SaleInvoiceControllerTests
+	public class SaleInvoiceControllerTests
     {
-        private SaleInvoiceController _saleInvoiceController;
-		private ISaleInvoice _saleInvoice;
-		private IEventAggregator _eventAggregator;
-        private IInvoiceRepository _invoicesRepository;
-        private IInventoryProductRepository _inventoryProductsRepository;
-        private IReceiptPrinterHelper _receiptPrinter;
-        private IUserAccountHelper _userAccountHelper;
-		private IAccountsReceivableRepository _accountsReceivableRepository;
-		private IReportHelper _reportHelper;
-		private IDataFeedApiHelper _dataFeedApiHelper;
-		private ISaleInvoiceMapper _invoiceMapper;
-        private IFixture _fixture;
-		private int _inventoryProductId;
-		private int _productPriority;
-
 		private const decimal ZeroMoneyValue = 0m;
 
-        [SetUp]
-        public void Setup()
+		[Theory]
+		[AutoMoqData]
+		public void StartNewSale_NewInvoiceShouldBeCreated(
+			[Frozen] Mock<ISaleInvoiceHelper> saleInvoiceHelper, 
+			SaleInvoiceController sut)
 		{
-			SetupFixture();
-			InstantiateFakeObjects();
-			SetupFakeEventObjects();
-			
-			_inventoryProductId = _fixture.Create<int>();
-			_productPriority = _fixture.Create<int>();
+			// Arrange
+			saleInvoiceHelper.Setup(s => s.Products)
+							 .Returns(new List<ISaleInvoiceProduct>());
 
-            _saleInvoiceController = new SaleInvoiceController(_saleInvoice,
-                                                               _eventAggregator,
-                                                               _invoicesRepository,
-                                                               _inventoryProductsRepository,
-                                                               _receiptPrinter,
-                                                               _userAccountHelper,
-															   _accountsReceivableRepository,
-															   _reportHelper,
-															   _dataFeedApiHelper,
-															   _invoiceMapper);
-        }
+			saleInvoiceHelper.Setup(s => s.Payments)
+							 .Returns(new List<IPayment>());
 
-		private void SetupFakeEventObjects()
-		{
-			A.CallTo(() => _eventAggregator.GetEvent<AllPaymentsRemovedEvent>()).Returns(A.Fake<AllPaymentsRemovedEvent>());
-			A.CallTo(() => _eventAggregator.GetEvent<NewSaleStartedEvent>()).Returns(A.Fake<NewSaleStartedEvent>());
-			A.CallTo(() => _eventAggregator.GetEvent<SaleInvoiceProductAddedEvent>()).Returns(A.Fake<SaleInvoiceProductAddedEvent>());
-			A.CallTo(() => _eventAggregator.GetEvent<SaleInvoiceProductUpdatedEvent>()).Returns(A.Fake<SaleInvoiceProductUpdatedEvent>());
+			// Act
+			sut.StartNewSale();
+
+			// Assert
+			sut.CalculateInvoiceTotal().Should().Be(ZeroMoneyValue);
+			sut.CalculatePaymentTotal().Should().Be(ZeroMoneyValue);
+			sut.CalculateBalanceRemaining().Should().Be(ZeroMoneyValue);
+			sut.IsRefundInvoice().Should().BeFalse();
+			sut.IsPendingPayment().Should().BeFalse();
+			sut.CalculateChanges().Should().Be(ZeroMoneyValue);
+
+			saleInvoiceHelper.Verify(s => s.StartNewSale(), Times.Once);
 		}
 
-		private void InstantiateFakeObjects()
+		[Theory]
+		[AutoMoqData]
+		public void RemoveAllPayments_PaymentsShouldBeCleared(
+			[Frozen] Mock<ISaleInvoiceHelper> saleInvoiceHelper, 
+			SaleInvoiceController sut)
 		{
-			_saleInvoice = A.Fake<ISaleInvoice>();
-			_eventAggregator = A.Fake<IEventAggregator>();
-			_invoicesRepository = A.Fake<IInvoiceRepository>();
-			_inventoryProductsRepository = A.Fake<IInventoryProductRepository>();
-			_receiptPrinter = A.Fake<IReceiptPrinterHelper>();
-			_userAccountHelper = A.Fake<IUserAccountHelper>();
-			_accountsReceivableRepository = A.Fake<IAccountsReceivableRepository>();
-			_reportHelper = A.Fake<IReportHelper>();
-			_dataFeedApiHelper = A.Fake<IDataFeedApiHelper>();
-			_invoiceMapper = A.Fake<ISaleInvoiceMapper>();
+			// Act
+			sut.RemoveAllPayments();
+
+			// Assert
+			sut.CalculatePaymentTotal().Should().Be(ZeroMoneyValue);
+			sut.CalculateChanges().Should().Be(ZeroMoneyValue);
+
+			saleInvoiceHelper.Verify(s => s.RemoveAllPayments(), Times.Once);
 		}
 
-		private void SetupFixture()
-        {
-			_fixture = new Fixture();
-			_fixture.Register<ISaleInvoiceProduct>(() => _fixture.Create<SaleInvoiceProduct>());
-			_fixture.Register<IPayment>(() => _fixture.Create<Payment>());
-			_fixture.Register<IUserAccount>(() => _fixture.Create<UserAccount>());
-        }
-
-        [Test]
-        public void StartNewSale_NewInvoiceShouldBeCreated()
+		[Theory]
+		[AutoMoqData]
+		public void AddProduct_WithDefaultSettings_ProductShouldBeAdded(
+			[Frozen] Mock<ISaleInvoiceHelper> saleInvoiceHelper, 
+			SaleInvoiceController sut,
+			IInventoryProduct product)
 		{
-			A.CallTo(() => _saleInvoice.Products).Returns(new List<ISaleInvoiceProduct>());
-			A.CallTo(() => _saleInvoice.Payments).Returns(new List<IPayment>());
+			// Act
+			sut.AddProduct(product);
 
-			_saleInvoiceController.StartNewSale();
-
-			A.CallTo(() => _saleInvoice.StartNewSale()).MustHaveHappenedOnceExactly();
-
-			_saleInvoiceController.Products.Should().BeEmpty();
-            _saleInvoiceController.Payments.Should().BeEmpty();
-            _saleInvoiceController.InvoiceTotal.Should().Be(ZeroMoneyValue);
-            _saleInvoiceController.PaymentTotal.Should().Be(ZeroMoneyValue);
-            _saleInvoiceController.BalanceRemaining.Should().Be(ZeroMoneyValue);
-            _saleInvoiceController.IsRefundInvoice.Should().BeFalse();
-            _saleInvoiceController.IsPendingPayment.Should().BeFalse();
-            _saleInvoiceController.Changes.Should().Be(ZeroMoneyValue);
-
-			A.CallTo(() => _eventAggregator.GetEvent<NewSaleStartedEvent>().Publish()).MustHaveHappenedOnceExactly();
-        }
-
-		[Test]
-		public void RemoveAllPayments_PaymentsShouldBeCleared()
-        {
-			A.CallTo(() => _saleInvoice.Products).Returns(new List<ISaleInvoiceProduct>());
-			A.CallTo(() => _saleInvoice.Payments).Returns(new List<IPayment>());
-			
-			_saleInvoiceController.RemoveAllPayments();
-
-			A.CallTo(() => _saleInvoice.RemoveAllPayments()).MustHaveHappenedOnceExactly();
-
-			_saleInvoiceController.Payments.Should().BeEmpty();
-			_saleInvoiceController.PaymentTotal.Should().Be(ZeroMoneyValue);
-			_saleInvoiceController.Changes.Should().Be(ZeroMoneyValue);
-
-			A.CallTo(() => _eventAggregator.GetEvent<AllPaymentsRemovedEvent>().Publish()).MustHaveHappenedOnceExactly();
+			// Assert
+			saleInvoiceHelper.Verify(s => s.AddProduct(product), Times.Once);
 		}
 
-		[Test]
-		public void AddProduct_WithDefaultSettings_ProductShouldBeAdded()
+		[Theory]
+		[AutoMoqData]
+		public void AddProduct_WithSpecification_ProductShouldBeAddedWithSpecifiedValues(
+			[Frozen] Mock<ISaleInvoiceHelper> saleInvoiceHelper,
+			SaleInvoiceController sut,
+			IInventoryProduct product,
+			decimal unitPrice,
+			int quantity,
+			string note)
 		{
-			var product = _fixture.Create<InventoryProductModel>();
+			// Act
+			sut.AddProduct(product, unitPrice, quantity, note);
 
-			_saleInvoiceController.AddProduct(product);
-
-			A.CallTo(() => _saleInvoice.AddProduct(product)).MustHaveHappenedOnceExactly();
-			A.CallTo(() => _eventAggregator.GetEvent<SaleInvoiceProductAddedEvent>().Publish()).MustHaveHappenedOnceExactly();
+			// Assert
+			saleInvoiceHelper.Verify(s => s.AddProduct(product, unitPrice, quantity, note), Times.Once);
 		}
 
-		[Test]
-		public void AddProduct_WithSpecification_ProductShouldBeAddedWithSpecifiedValues()
+		[Theory]
+		[AutoMoqData]
+		public void GetInventoryProductByBarcode_ProductFound_ShouldReturnProduct(
+			[Frozen] Mock<ISaleInvoiceHelper> saleInvoiceHelper,
+			SaleInvoiceController sut,
+			IInventoryProduct product)
 		{
-			var product = _fixture.Create<InventoryProductModel>();
-			var unitPrice = _fixture.Create<decimal>();
-			var quantity = _fixture.Create<int>();
-			var note = _fixture.Create<string>();
+			// Arrange
+			saleInvoiceHelper.Setup(s => s.GetInventoryProductByBarcode(product.Barcode))
+							 .Returns(product);
 
-			_saleInvoiceController.AddProduct(product, unitPrice, quantity, note);
+			// Act
+			var result = sut.GetInventoryProductByBarcode(product.Barcode);
 
-			A.CallTo(() => _saleInvoice.AddProduct(product, unitPrice, quantity, note)).MustHaveHappenedOnceExactly();
-			A.CallTo(() => _eventAggregator.GetEvent<SaleInvoiceProductAddedEvent>().Publish()).MustHaveHappenedOnceExactly();
+			// Assert
+			result.Should().Be(product);
 		}
 
-		[Test]
-		public void GetInventoryProductByBarcode_ProductFound_ShouldReturnProduct()
+		[Theory]
+		[AutoMoqData]
+		public void GetInventoryProductByBarcode_ProductNotFound_ShouldNotReturnProduct(
+			[Frozen] Mock<ISaleInvoiceHelper> saleInvoiceHelper,
+			SaleInvoiceController sut,
+			string barcode)
 		{
-			var product = _fixture.Create<InventoryProductModel>();
+			// Arrange
+			saleInvoiceHelper.Setup(s => s.GetInventoryProductByBarcode(barcode))
+							 .Returns((IInventoryProduct) null);
 
-			A.CallTo(() => _inventoryProductsRepository.GetProductByBarcode(product.Barcode)).Returns(product);
+			// Act
+			var result = sut.GetInventoryProductByBarcode(barcode);
 
-            var result = _saleInvoiceController.GetInventoryProductByBarcode(product.Barcode);
-
-            result.Should().Be(product);
-        }
-
-		[Test]
-		public void GetInventoryProductByBarcode_ProductNotFound_ShouldNotReturnProduct()
-		{
-			var barcode = _fixture.Create<string>();
-
-			A.CallTo(() => _inventoryProductsRepository.GetProductByBarcode(barcode)).Returns(null);
-
-			var result = _saleInvoiceController.GetInventoryProductByBarcode(barcode);
-
+			// Assert
 			result.Should().BeNull();
 		}
 
-		[Test]
-		public void RemoveProduct_ProductShouldBeRemoved()
+		[Theory]
+		[AutoMoqData]
+		public void RemoveProduct_ProductShouldBeRemoved(
+			[Frozen] Mock<ISaleInvoiceHelper> saleInvoiceHelper,
+			SaleInvoiceController sut,
+			ISaleInvoiceProduct product)
 		{
-            var product = A.Fake<ISaleInvoiceProduct>();
+			// Act
+			sut.RemoveProduct(product);
 
-			A.CallTo(() => _eventAggregator.GetEvent<SaleInvoiceProductRemovedEvent>()).Returns(A.Fake<SaleInvoiceProductRemovedEvent>());
-
-            _saleInvoiceController.RemoveProduct(product);
-
-			A.CallTo(() => _saleInvoice.RemoveProduct(product)).MustHaveHappenedOnceExactly();
-			A.CallTo(() => _eventAggregator.GetEvent<SaleInvoiceProductRemovedEvent>().Publish()).MustHaveHappenedOnceExactly();
-        }
-
-		[Test]
-		public void AddPayment_PaymentShouldBeAdded()
-		{
-			var type = _fixture.Create<PaymentType>();
-			var amount = _fixture.Create<decimal>();
-            var note = _fixture.Create<string>();
-
-			A.CallTo(() => _eventAggregator.GetEvent<PaymentAddedEvent>()).Returns(A.Fake<PaymentAddedEvent>());
-
-            _saleInvoiceController.AddPayment(type, amount, note);
-
-			A.CallTo(() => _saleInvoice.AddPayment(type, amount, note)).MustHaveHappenedOnceExactly();
-			A.CallTo(() => _eventAggregator.GetEvent<PaymentAddedEvent>().Publish()).MustHaveHappenedOnceExactly();
-        }
-
-		[Test]
-		public void UpdateProductUnitPrice_ProductFound_UnitPriceShouldBeUpdated()
-		{
-			var unitPrice = _fixture.Create<decimal>();
-			var note = _fixture.Create<string>();
-			var product = _fixture.Create<ISaleInvoiceProduct>();
-			var productList = new List<ISaleInvoiceProduct> { product };
-			
-			A.CallTo(() => _saleInvoice.Products).Returns(productList);
-
-			_saleInvoiceController.UpdateProductUnitPrice(product.InventoryProductId, product.Priority, unitPrice, note);
-
-			product.UnitPrice.Should().Be(unitPrice);
-			product.Note.Should().Be(note);
-
-			A.CallTo(() => _eventAggregator.GetEvent<SaleInvoiceProductUpdatedEvent>().Publish()).MustHaveHappenedOnceExactly();
+			// Assert
+			saleInvoiceHelper.Verify(s => s.RemoveProduct(product), Times.Once);
 		}
 
-		[Test]
-		public void UpdateProductUnitPrice_ProductNotFound_ShouldThrowProductNotFoundException()
+		[Theory]
+		[AutoMoqData]
+		public void AddPayment_PaymentShouldBeAdded(
+			[Frozen] Mock<ISaleInvoiceHelper> saleInvoiceHelper,
+			SaleInvoiceController sut,
+			PaymentType type,
+			decimal amount,
+			string note)
 		{
-			var unitPrice = _fixture.Create<decimal>();
-			var note = _fixture.Create<string>();
-			var product = _fixture.Create<ISaleInvoiceProduct>();
-			var productList = new List<ISaleInvoiceProduct> { product };
-			
-			A.CallTo(() => _saleInvoice.Products).Returns(productList);
+			// Act
+			sut.AddPayment(type, amount, note);
 
-			Action act = () => _saleInvoiceController.UpdateProductUnitPrice(_inventoryProductId, _productPriority, unitPrice, note);
+			// Assert
+			saleInvoiceHelper.Verify(s => s.AddPayment(type, amount, note), Times.Once);
+		}
 
+		[Theory]
+		[AutoMoqData]
+		public void UpdateProductUnitPrice_ProductFound_UnitPriceShouldBeUpdated(
+			[Frozen] Mock<ISaleInvoiceHelper> saleInvoiceHelper,
+			SaleInvoiceController sut,
+			int inventoryProductId,
+			int priority,
+			decimal unitPrice,
+			string note)
+		{
+			// Act
+			sut.UpdateProductUnitPrice(inventoryProductId, priority, unitPrice, note);
+
+			// Assert
+			saleInvoiceHelper.Verify(s => s.UpdateProductUnitPrice(inventoryProductId, priority, unitPrice, note), Times.Once);
+		}
+
+		[Theory]
+		[AutoMoqData]
+		public void UpdateProductUnitPrice_ProductNotFound_ShouldThrowProductNotFoundException(
+			[Frozen] Mock<ISaleInvoiceHelper> saleInvoiceHelper,
+			SaleInvoiceController sut,
+			int inventoryProductId,
+			int priority,
+			decimal unitPrice,
+			string note)
+		{
+			// Arrange
+			saleInvoiceHelper.Setup(s => s.UpdateProductUnitPrice(inventoryProductId, priority, unitPrice, note))
+							 .Throws(new ProductNotFoundException(""));
+
+			// Act
+			Action act = () => sut.UpdateProductUnitPrice(inventoryProductId, priority, unitPrice, note);
+
+			// Assert
 			act.Should().ThrowExactly<ProductNotFoundException>();
 		}
 
-		[Test]
-		public void UpdateProductUnitPrice_SameUnitPrice_UnitPriceShouldNotBeUpdated()
+		[Theory]
+		[AutoMoqData]
+		public void UpdateProductQuantity_ProductFound_ProductQuantityShouldBeUpdated(
+			[Frozen] Mock<ISaleInvoiceHelper> saleInvoiceHelper,
+			SaleInvoiceController sut,
+			int inventoryProductId,
+			int priority,
+			int quantity)
 		{
-			var note = _fixture.Create<string>();
-			var product = _fixture.Create<ISaleInvoiceProduct>();
-			var productList = new List<ISaleInvoiceProduct> { product };
-			
-			A.CallTo(() => _saleInvoice.Products).Returns(productList);
+			// Act
+			sut.UpdateProductQuantity(inventoryProductId, priority, quantity);
 
-			_saleInvoiceController.UpdateProductUnitPrice(product.InventoryProductId, product.Priority, product.UnitPrice, note);
-
-			A.CallTo(() => _eventAggregator.GetEvent<SaleInvoiceProductUpdatedEvent>().Publish()).MustNotHaveHappened();
+			// Assert
+			saleInvoiceHelper.Verify(s => s.UpdateProductQuantity(inventoryProductId, priority, quantity), Times.Once);
 		}
 
-		[Test]
-		public void UpdateProductQuantity_WithoutGroupPrice_QuantityShouldBeUpdated()
-        {
-			var quantity = _fixture.Create<int>();
-			var product = _fixture.Create<ISaleInvoiceProduct>();
-			var productList = new List<ISaleInvoiceProduct> { product };
-
-			product.GroupPriceQuantity = null;
-			product.GroupPrice = null;
-			product.Quantity = _fixture.Create<int>();
-			
-			A.CallTo(() => _saleInvoice.Products).Returns(productList);
-
-			_saleInvoiceController.UpdateProductQuantity(product.InventoryProductId, product.Priority, quantity);
-
-			product.Quantity.Should().Be(quantity);
-
-			A.CallTo(() => _eventAggregator.GetEvent<SaleInvoiceProductUpdatedEvent>().Publish()).MustHaveHappenedOnceExactly();
-        }
-
-		[Test]
-		public void UpdateProductQuantity_ProductNotFound_ShouldThrowProductNotFoundException()
+		[Theory]
+		[AutoMoqData]
+		public void UpdateProductQuantity_ProductNotFound_ShouldThrowProductNotFoundException(
+			[Frozen] Mock<ISaleInvoiceHelper> saleInvoiceHelper,
+			SaleInvoiceController sut,
+			int inventoryProductId,
+			int priority,
+			int quantity)
 		{
-			var quantity = _fixture.Create<int>();
-			var product = _fixture.Create<ISaleInvoiceProduct>();
-			var productList = new List<ISaleInvoiceProduct> { product };
-			
-			A.CallTo(() => _saleInvoice.Products).Returns(productList);
+			// Arrange
+			saleInvoiceHelper.Setup(s => s.UpdateProductQuantity(inventoryProductId, priority, quantity))
+							 .Throws(new ProductNotFoundException(""));
 
-			Action act = () => _saleInvoiceController.UpdateProductQuantity(_inventoryProductId, _productPriority, quantity);
+			// Act
+			Action act = () => sut.UpdateProductQuantity(inventoryProductId, priority, quantity);
 
+			// Assert 
 			act.Should().ThrowExactly<ProductNotFoundException>();
 		}
 
-		[Test]
-		public void UpdateProductQuantity_SameQuantity_QuantityShouldNotBeUpdated()
+		[Theory]
+		[AutoMoqData]
+		public void ValidateSaleInvoice_SaleInvoiceIsInvalid_ShouldReturnErrorMessage(
+			[Frozen] Mock<ISaleInvoiceHelper> saleInvoiceHelper,
+			SaleInvoiceController sut,
+			string errorMessage)
 		{
-			var product = _fixture.Create<ISaleInvoiceProduct>();
-			var productList = new List<ISaleInvoiceProduct> { product };
+			// Arrange
+			saleInvoiceHelper.Setup(s => s.ValidateSaleInvoice())
+							 .Returns(new List<string> {errorMessage});
 
-			product.InventoryProductId = _inventoryProductId;
-			product.Priority = _productPriority;
-			product.Quantity = _fixture.Create<int>();
-			
-			A.CallTo(() => _saleInvoice.Products).Returns(productList);
+			// Act
+			var errorMessages = sut.ValidateSaleInvoice();
 
-			_saleInvoiceController.UpdateProductQuantity(_inventoryProductId, _productPriority, product.Quantity);
-
-			A.CallTo(() => _eventAggregator.GetEvent<SaleInvoiceProductUpdatedEvent>().Publish()).MustNotHaveHappened();
-		}
-
-		[Test]
-		public void UpdateProductQuantity_IncreaseBelowGroupPriceSettings_UnitPriceShouldNotBeUpdated()
-		{
-			var groupPrice = _fixture.Create<decimal>();
-			var originalQuantity = _fixture.Create<int>();
-			var groupPriceQuantity = originalQuantity + 3;
-			var newQuantity = groupPriceQuantity - 1;
-			var product = _fixture.Create<ISaleInvoiceProduct>();
-			var productList = new List<ISaleInvoiceProduct> { product };
-
-			product.InventoryProductId = _inventoryProductId;
-			product.Priority = _productPriority;
-			product.Quantity = originalQuantity;
-			product.GroupPriceQuantity = groupPriceQuantity;
-			product.GroupPrice = groupPrice;
-
-			var originalUnitPrice = product.UnitPrice;
-			
-			A.CallTo(() => _saleInvoice.Products).Returns(productList);
-
-			_saleInvoiceController.UpdateProductQuantity(_inventoryProductId, _productPriority, newQuantity);
-
-			product.Quantity.Should().Be(newQuantity);
-			product.UnitPrice.Should().Be(originalUnitPrice);
-
-			A.CallTo(() => _eventAggregator.GetEvent<SaleInvoiceProductUpdatedEvent>().Publish()).MustHaveHappenedOnceExactly();
-		}
-
-		[Test]
-		public void UpdateProductQuantity_IncreaseToGroupPriceSettings_UnitPriceShouldBeUpdated()
-		{
-			var groupPrice = _fixture.Create<decimal>();
-			var originalQuantity = _fixture.Create<int>();
-			var groupPriceQuantity = originalQuantity + 3;
-			var product = _fixture.Create<ISaleInvoiceProduct>();
-			var productList = new List<ISaleInvoiceProduct> { product };
-
-			product.InventoryProductId = _inventoryProductId;
-			product.Priority = _productPriority;
-			product.Quantity = originalQuantity;
-			product.GroupPriceQuantity = groupPriceQuantity;
-			product.GroupPrice = groupPrice;
-			
-			A.CallTo(() => _saleInvoice.Products).Returns(productList);
-
-			_saleInvoiceController.UpdateProductQuantity(_inventoryProductId, _productPriority, groupPriceQuantity);
-
-			var newUnitPrice = groupPrice / groupPriceQuantity;
-
-			product.Quantity.Should().Be(groupPriceQuantity);
-			product.UnitPrice.Should().Be(newUnitPrice);
-
-			A.CallTo(() => _eventAggregator.GetEvent<SaleInvoiceProductUpdatedEvent>().Publish()).MustHaveHappenedOnceExactly();
-		}
-
-		[Test]
-		public void UpdateProductQuantity_IncreaseToAboveGroupPriceSettings_NewProductsShouldBeAdded()
-		{
-			var groupPrice = _fixture.Create<decimal>();
-			var originalQuantity = _fixture.Create<int>();
-			var groupPriceQuantity = originalQuantity + 3;
-			var newQuantity = groupPriceQuantity * 3;
-			var inventoryProduct = _fixture.Create<InventoryProductModel>();
-			var product = _fixture.Create<ISaleInvoiceProduct>();
-			var productList = new List<ISaleInvoiceProduct> { product };
-
-			product.InventoryProductId = _inventoryProductId;
-			product.Priority = _productPriority;
-			product.Quantity = originalQuantity;
-			product.GroupPriceQuantity = groupPriceQuantity;
-			product.GroupPrice = groupPrice;
-
-			A.CallTo(() => _saleInvoice.Products).Returns(productList);
-			A.CallTo(() => _inventoryProductsRepository.GetProductById(_inventoryProductId)).Returns(inventoryProduct);
-
-			_saleInvoiceController.UpdateProductQuantity(_inventoryProductId, _productPriority, newQuantity);
-
-			var newUnitPrice = groupPrice / groupPriceQuantity;
-
-			product.Quantity.Should().Be(groupPriceQuantity);
-			product.UnitPrice.Should().Be(newUnitPrice);
-
-			A.CallTo(() => _eventAggregator.GetEvent<SaleInvoiceProductUpdatedEvent>().Publish()).MustHaveHappenedOnceExactly();
-			A.CallTo(() => _eventAggregator.GetEvent<SaleInvoiceProductAddedEvent>().Publish()).MustHaveHappenedTwiceExactly();
-			A.CallTo(() => _saleInvoice.AddProduct(inventoryProduct, A<decimal>.Ignored, A<int>.Ignored))
-			 .MustHaveHappenedTwiceExactly();
-		}
-
-		[Test]
-		public void UpdateProductQuantity_IncreaseToAboveGroupPriceSettings_ProductNotFound_ShouldThrowException()
-		{
-			var originalQuantity = _fixture.Create<int>();
-			var groupPriceQuantity = originalQuantity + 3;
-			var newQuantity = groupPriceQuantity * 3;
-			var product = _fixture.Create<ISaleInvoiceProduct>();
-			var productList = new List<ISaleInvoiceProduct> { product };
-
-			product.InventoryProductId = _inventoryProductId;
-			product.Priority = _productPriority;
-			product.Quantity = originalQuantity;
-			product.GroupPriceQuantity = groupPriceQuantity;
-
-			A.CallTo(() => _saleInvoice.Products).Returns(productList);
-			A.CallTo(() => _inventoryProductsRepository.GetProductById(_inventoryProductId)).Returns(null);
-
-			Action act = () => _saleInvoiceController.UpdateProductQuantity(_inventoryProductId, _productPriority, newQuantity);
-
-			act.Should().ThrowExactly<ProductNotFoundException>();
-		}
-
-		[Test]
-		public void UpdateProductQuantity_DecreaseQuantityFromBelowGroupPriceSettings_UnitPriceShouldNotBeUpdated()
-		{
-			var groupPrice = _fixture.Create<decimal>();
-			var originalQuantity = _fixture.Create<int>();
-			var groupPriceQuantity = originalQuantity + 3;
-			var newQuantity = originalQuantity - 1;
-			var product = _fixture.Create<ISaleInvoiceProduct>();
-			var productList = new List<ISaleInvoiceProduct> { product };
-
-			product.InventoryProductId = _inventoryProductId;
-			product.Priority = _productPriority;
-			product.Quantity = originalQuantity;
-			product.GroupPriceQuantity = groupPriceQuantity;
-			product.GroupPrice = groupPrice;
-
-			var originalUnitPrice = product.UnitPrice;
-
-			A.CallTo(() => _saleInvoice.Products).Returns(productList);
-
-			_saleInvoiceController.UpdateProductQuantity(_inventoryProductId, _productPriority, newQuantity);
-
-			product.Quantity.Should().Be(newQuantity);
-			product.UnitPrice.Should().Be(originalUnitPrice);
-
-			A.CallTo(() => _eventAggregator.GetEvent<SaleInvoiceProductUpdatedEvent>().Publish()).MustHaveHappenedOnceExactly();
-		}
-
-		[Test]
-		public void UpdateProductQuantity_DecreaseQuantityFromGroupPriceSettings_UnitPriceShouldBeRestored()
-		{
-			var groupPrice = _fixture.Create<decimal>();
-			var groupPriceQuantity = _fixture.Create<int>();
-			var newQuantity = groupPriceQuantity - 1;
-			var inventoryProduct = _fixture.Create<InventoryProductModel>();
-			var product = _fixture.Create<ISaleInvoiceProduct>();
-			var productList = new List<ISaleInvoiceProduct> { product };
-
-			product.InventoryProductId = _inventoryProductId;
-			product.Priority = _productPriority;
-			product.Quantity = groupPriceQuantity;
-			product.GroupPriceQuantity = groupPriceQuantity;
-			product.GroupPrice = groupPrice;
-			product.UnitPrice = groupPrice / groupPriceQuantity;
-
-			A.CallTo(() => _inventoryProductsRepository.GetProductById(_inventoryProductId)).Returns(inventoryProduct);
-			A.CallTo(() => _saleInvoice.Products).Returns(productList);
-
-			_saleInvoiceController.UpdateProductQuantity(_inventoryProductId, _productPriority, newQuantity);
-
-			product.Quantity.Should().Be(newQuantity);
-			product.UnitPrice.Should().Be(inventoryProduct.UnitPrice);
-
-			A.CallTo(() => _eventAggregator.GetEvent<SaleInvoiceProductUpdatedEvent>().Publish()).MustHaveHappenedOnceExactly();
-		}
-
-		[Test]
-		public void UpdateProductQuantity_DecreaseQuantityFromGroupPriceSettings_ProductNotFound_ShouldThrowException()
-		{
-			var groupPriceQuantity = _fixture.Create<int>();
-			var newQuantity = groupPriceQuantity - 1;
-			var product = _fixture.Create<ISaleInvoiceProduct>();
-			var productList = new List<ISaleInvoiceProduct> { product };
-
-			product.InventoryProductId = _inventoryProductId;
-			product.Priority = _productPriority;
-			product.Quantity = groupPriceQuantity;
-			product.GroupPriceQuantity = groupPriceQuantity;
-
-			A.CallTo(() => _inventoryProductsRepository.GetProductById(_inventoryProductId)).Returns(null);
-			A.CallTo(() => _saleInvoice.Products).Returns(productList);
-
-			Action act = () => _saleInvoiceController.UpdateProductQuantity(_inventoryProductId, _productPriority, newQuantity);
-
-			act.Should().ThrowExactly<ProductNotFoundException>();
-		}
-
-		[Test]
-		public void ValidateSaleInvoice_UserHasNotLoggedIn_ShouldReturnErrorMessage()
-		{
-			var payment = _fixture.Create<IPayment>();
-			var product = _fixture.Create<ISaleInvoiceProduct>();
-			var productList = new List<ISaleInvoiceProduct> { product };
-			var paymentList = new List<IPayment> { payment };
-
-			A.CallTo(() => _saleInvoice.Products).Returns(productList);
-			A.CallTo(() => _saleInvoice.Payments).Returns(paymentList);
-			A.CallTo(() => _userAccountHelper.LoggedInUser).Returns(null);
-
-			var errorMessages = _saleInvoiceController.ValidateSaleInvoice();
-
+			// Assert
 			errorMessages.Should().NotBeEmpty();
 		}
 
-		[Test]
-		public void ValidateSaleInvoice_SaleInvoiceHasNoProduct_ShouldReturnErrorMessage()
+		[Theory]
+		[AutoMoqData]
+		public void ValidateSaleInvoice_SaleInvoiceIsValid_ShouldNotReturnErrorMessage(
+			[Frozen] Mock<ISaleInvoiceHelper> saleInvoiceHelper,
+			SaleInvoiceController sut)
 		{
-			var payment = _fixture.Create<IPayment>();
-			var paymentList = new List<IPayment> { payment };
+			// Arrange
+			saleInvoiceHelper.Setup(s => s.ValidateSaleInvoice())
+							 .Returns(new List<string>());
 
-			A.CallTo(() => _saleInvoice.Products).Returns(new List<ISaleInvoiceProduct>());
-			A.CallTo(() => _saleInvoice.Payments).Returns(paymentList);
-			A.CallTo(() => _userAccountHelper.LoggedInUser).Returns(_fixture.Create<IUserAccount>());
+			// Act
+			var errorMessages = sut.ValidateSaleInvoice();
 
-			var errorMessages = _saleInvoiceController.ValidateSaleInvoice();
-
-			errorMessages.Should().NotBeEmpty();
-		}
-
-		[Test]
-		public void ValidateSaleInvoice_SaleInvoiceHasNoPayment_ShouldReturnErrorMessage()
-		{
-			var product = _fixture.Create<ISaleInvoiceProduct>();
-			var productList = new List<ISaleInvoiceProduct> { product };
-
-			A.CallTo(() => _saleInvoice.Products).Returns(productList);
-			A.CallTo(() => _saleInvoice.Payments).Returns(new List<IPayment>());
-			A.CallTo(() => _userAccountHelper.LoggedInUser).Returns(_fixture.Create<IUserAccount>());
-
-			var errorMessages = _saleInvoiceController.ValidateSaleInvoice();
-
-			errorMessages.Should().NotBeEmpty();
-		}
-
-		[Test]
-		public void ValidateSaleInvoice_SaleInvoiceIsPendingPayment_ShouldReturnErrorMessage()
-		{
-			var payment = _fixture.Create<IPayment>();
-			var product = _fixture.Create<ISaleInvoiceProduct>();
-			var productList = new List<ISaleInvoiceProduct> { product };
-			var paymentList = new List<IPayment> { payment };
-			var paymentTotal = _fixture.Create<decimal>();
-			var invoiceTotal = paymentTotal + _fixture.Create<decimal>();
-
-			A.CallTo(() => _saleInvoice.Products).Returns(productList);
-			A.CallTo(() => _saleInvoice.Payments).Returns(paymentList);
-			A.CallTo(() => _saleInvoice.IsRefundInvoice).Returns(false);
-			A.CallTo(() => _saleInvoice.InvoiceTotal).Returns(invoiceTotal);
-			A.CallTo(() => _saleInvoice.PaymentTotal).Returns(paymentTotal);
-			A.CallTo(() => _userAccountHelper.LoggedInUser).Returns(_fixture.Create<IUserAccount>());
-
-			var errorMessages = _saleInvoiceController.ValidateSaleInvoice();
-
-			errorMessages.Should().NotBeEmpty();
-		}
-
-		[Test]
-		public void ValidateSaleInvoice_RefundInvoiceIsPendingPayment_ShouldReturnErrorMessage()
-		{
-			var payment = _fixture.Create<IPayment>();
-			var product = _fixture.Create<ISaleInvoiceProduct>();
-			var productList = new List<ISaleInvoiceProduct> { product };
-			var paymentList = new List<IPayment> { payment };
-			var invoiceTotal = _fixture.Create<decimal>() * -1;
-
-			A.CallTo(() => _saleInvoice.Products).Returns(productList);
-			A.CallTo(() => _saleInvoice.Payments).Returns(paymentList);
-			A.CallTo(() => _saleInvoice.IsRefundInvoice).Returns(true);
-			A.CallTo(() => _saleInvoice.InvoiceTotal).Returns(invoiceTotal);
-			A.CallTo(() => _saleInvoice.PaymentTotal).Returns(0m);
-			A.CallTo(() => _userAccountHelper.LoggedInUser).Returns(_fixture.Create<IUserAccount>());
-
-			var errorMessages = _saleInvoiceController.ValidateSaleInvoice();
-
-			errorMessages.Should().NotBeEmpty();
-		}
-
-		[Test]
-		public void ValidateSaleInvoice_SaleInvoiceIsValid_ShouldNotReturnErrorMessage()
-		{
-			var payment = _fixture.Create<IPayment>();
-			var product = _fixture.Create<ISaleInvoiceProduct>();
-			var productList = new List<ISaleInvoiceProduct> { product };
-			var paymentList = new List<IPayment> { payment };
-			var invoiceTotal = _fixture.Create<decimal>();
-
-			A.CallTo(() => _saleInvoice.Products).Returns(productList);
-			A.CallTo(() => _saleInvoice.Payments).Returns(paymentList);
-			A.CallTo(() => _saleInvoice.IsRefundInvoice).Returns(false);
-			A.CallTo(() => _saleInvoice.InvoiceTotal).Returns(invoiceTotal);
-			A.CallTo(() => _saleInvoice.PaymentTotal).Returns(invoiceTotal);
-			A.CallTo(() => _userAccountHelper.LoggedInUser).Returns(_fixture.Create<IUserAccount>());
-
-			var errorMessages = _saleInvoiceController.ValidateSaleInvoice();
-
+			// Assert
 			errorMessages.Should().BeEmpty();
 		}
 
-		[Test]
-		public async Task CompleteSale_SaleInvoiceShouldBeSavedToDatabase()
-        {
-			await _saleInvoiceController.CompleteSale();
+		[Theory]
+		[AutoMoqData]
+		public async Task CompleteSale_SaleInvoiceShouldBeSavedToDatabase(
+			[Frozen] Mock<ISaleInvoiceHelper> saleInvoiceHelper,
+			SaleInvoiceController sut)
+		{
+			// Act
+			await sut.CompleteSale();
 
-			A.CallTo(() => _invoicesRepository.AddInvoice(A<DataAccess.Models.Invoice>.Ignored))
-			 .MustHaveHappenedOnceExactly();
+			// Assert
+			saleInvoiceHelper.Verify(s => s.CompleteSale(), Times.Once);
 		}
 
-		[Test]
-		[TestCase(1)]
-		[TestCase(2)]
-		[TestCase(3)]
-		public async Task CompleteSale_AllPaymentsShouldBeSavedToDatabase(int numberOfPayments)
+		[Theory]
+		[AutoMoqData]
+		public void PrintReceipt_ShouldPrintReceipt(
+			[Frozen] Mock<ISaleInvoiceHelper> saleInvoiceHelper,
+			SaleInvoiceController sut)
 		{
-			var product = _fixture.Create<ISaleInvoiceProduct>();
-			var productList = new List<ISaleInvoiceProduct> { product };
-			var paymentList = new List<IPayment>();
+			// Act
+			sut.PrintReceipt();
 
-			for (var i = 0; i < numberOfPayments; i++)
-			{
-				paymentList.Add(_fixture.Create<IPayment>());
-			}
-
-			A.CallTo(() => _saleInvoice.Products).Returns(productList);
-			A.CallTo(() => _saleInvoice.Payments).Returns(paymentList);
-			A.CallTo(() => _saleInvoice.Id).Returns(_fixture.Create<int>());
-
-			await _saleInvoiceController.CompleteSale();
-
-			A.CallTo(() => _invoicesRepository.AddPayment(A<PaymentModel>.Ignored))
-			 .MustHaveHappened(paymentList.Count, Times.Exactly);
+			// Assert
+			saleInvoiceHelper.Verify(s => s.PrintReceipt(), Times.Once);
 		}
 
-		[Test]
-		public async Task CompleteSale_PaymentTypeIsAccountsReceivable_AccountsReceivableShouldBeSavedToDatabase()
+		[Theory]
+		[AutoMoqData]
+		public void GetInvoiceInfo_ShouldInvokeGetInvoiceInfo(
+			[Frozen] Mock<ISaleInvoiceHelper> saleInvoiceHelper,
+			SaleInvoiceController sut)
 		{
-			var product = _fixture.Create<ISaleInvoiceProduct>();
-			var productList = new List<ISaleInvoiceProduct> { product };
-			var payment = A.Fake<IPayment>();
+			// Act
+			sut.GetInvoiceInfo();
 
-			A.CallTo(() => _saleInvoice.Products).Returns(productList);
-			A.CallTo(() => payment.PaymentTypeId).Returns((int) PaymentType.AccountReceivable);
-			A.CallTo(() => _saleInvoice.Payments).Returns(new List<IPayment> { payment });
-
-			await _saleInvoiceController.CompleteSale();
-
-			A.CallTo(() => _accountsReceivableRepository.AddAccountsReceivable(A<AccountsReceivableModel>.Ignored))
-			 .MustHaveHappenedOnceExactly();
+			// Assert
+			saleInvoiceHelper.Verify(s => s.GetInvoiceInfo(), Times.Once);
 		}
 
-		[Test]
-		[TestCase(1)]
-		[TestCase(2)]
-		[TestCase(3)]
-		public async Task CompleteSale_AllProductsShouldBeSavedToDatabase(int numberOfProducts)
+		[Theory]
+		[AutoMoqData]
+		public void GetInvoiceInfo_ShouldReturnInvoiceInfo(SaleInvoiceController sut)
 		{
-			var productList = new List<ISaleInvoiceProduct>();
+			// Act
+			var result = sut.GetInvoiceInfo();
 
-			for (var i = 0; i < numberOfProducts; i++)
-            {
-				productList.Add(_fixture.Create<ISaleInvoiceProduct>());
-            }
-
-			A.CallTo(() => _saleInvoice.Products).Returns(productList);
-
-			await _saleInvoiceController.CompleteSale();
-
-			A.CallTo(() => _invoicesRepository.AddInvoiceProduct(A<InvoiceProductModel>.Ignored))
-			 .MustHaveHappened(productList.Count, Times.Exactly);
+			// Assert
+			result.Should().NotBeNull();
 		}
-
-		[Test]
-		public async Task CompleteSale_ProductQuantityInStockShouldBeUpdated()
+		
+		[Theory]
+		[AutoMoqData]
+		public void GetSaleInvoiceProduct_ShouldReturnSaleInvoiceProduct(
+			[Frozen] Mock<ISaleInvoiceHelper> saleInvoiceHelper,
+			string barcode,
+			int priority,
+			ISaleInvoiceProduct product,
+			SaleInvoiceController sut)
 		{
-			const int quantityInStock = 100;
-			const int quantity = 5;
-			const int numberOfProducts = 3;
-			const int expectedNewQuantityInStock = quantityInStock - quantity * numberOfProducts;
+			//Arrange
+			saleInvoiceHelper.Setup(s => s.GetSaleInvoiceProduct(barcode, priority))
+							 .Returns(product);
 
-			var productList = new List<ISaleInvoiceProduct>();
-			var product = A.Fake<ISaleInvoiceProduct>();
+			// Act
+			var result = sut.GetSaleInvoiceProduct(barcode, priority);
 
-			A.CallTo(() => product.IsTrackable).Returns(true);
-			A.CallTo(() => product.InventoryProductId).Returns(_inventoryProductId);
-			A.CallTo(() => product.Quantity).Returns(quantity);
-
-			for (var i = 0; i < numberOfProducts; i++)
-            {
-				productList.Add(product);
-            }
-
-			var inventoryProduct = _fixture.Create<InventoryProductModel>();
-			inventoryProduct.InventoryProductId = _inventoryProductId;
-			inventoryProduct.QuantityInStock = quantityInStock;
-
-            A.CallTo(() => _inventoryProductsRepository.GetProductById(_inventoryProductId)).Returns(inventoryProduct);
-			A.CallTo(() => _saleInvoice.Products).Returns(productList);
-
-            await _saleInvoiceController.CompleteSale();
-
-            A.CallTo(() => _inventoryProductsRepository.UpdateProductQuantityById(_inventoryProductId, expectedNewQuantityInStock))
-			 .MustHaveHappenedOnceExactly();
-        }
-
-		[Test]
-		public void PrintReceipt_ShouldPrintReceipt()
-		{
-			var loggedUser = _fixture.Create<IUserAccount>();
-
-			A.CallTo(() => _userAccountHelper.LoggedInUser).Returns(loggedUser);
-
-			_saleInvoiceController.PrintReceipt();
-
-			A.CallTo(() => _receiptPrinter.PrintReceipt(A<ISaleInvoice>.Ignored, loggedUser))
-			 .MustHaveHappenedOnceExactly();
+			// Assert
+			result.Should().NotBeNull();
 		}
 	}
 }
