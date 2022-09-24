@@ -20,6 +20,8 @@ namespace IndyPOS.Facade.Interfaces
 
 		IEnumerable<IFinalInvoiceProduct> GetInvoiceProductsByDate(DateTime date);
 
+		IEnumerable<IFinalInvoiceProduct> GetInvoiceProductsByDateRange(DateTime startDate, DateTime endDate);
+
 		IEnumerable<IFinalInvoiceProduct> GetInvoiceProductsByInvoiceId(int invoiceId);
 
 		IEnumerable<IFinalInvoicePayment> GetPaymentsByInvoiceId(int invoiceId);

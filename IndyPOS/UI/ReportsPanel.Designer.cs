@@ -108,7 +108,7 @@
             this.ShowInvoiceProductsButton.Name = "ShowInvoiceProductsButton";
             this.ShowInvoiceProductsButton.Size = new System.Drawing.Size(238, 37);
             this.ShowInvoiceProductsButton.TabIndex = 12;
-            this.ShowInvoiceProductsButton.Text = "รายการสินค้าที่ขายไปในวันนี้";
+            this.ShowInvoiceProductsButton.Text = "รายการสินค้าที่ขายไป";
             this.ShowInvoiceProductsButton.TextColor = System.Drawing.Color.White;
             this.ShowInvoiceProductsButton.UseVisualStyleBackColor = false;
             this.ShowInvoiceProductsButton.Click += new System.EventHandler(this.ShowInvoiceProductsButton_Click);

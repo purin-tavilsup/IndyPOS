@@ -483,6 +483,11 @@ namespace IndyPOS.Facade.Helpers
 			return _saleInvoiceHelper.GetInvoiceProductsByDate(date);
 		}
 
+		public IEnumerable<IFinalInvoiceProduct> GetInvoiceProductsByDateRange(DateTime startDate, DateTime endDate)
+		{
+			return _saleInvoiceHelper.GetInvoiceProductsByDateRange(startDate, endDate);
+		}
+
 		public IEnumerable<IFinalInvoiceProduct> GetInvoiceProductsByInvoiceId(int invoiceId)
 		{
 			return _saleInvoiceHelper.GetInvoiceProductsByInvoiceId(invoiceId);

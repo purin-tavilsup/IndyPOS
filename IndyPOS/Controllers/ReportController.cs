@@ -47,6 +47,11 @@ namespace IndyPOS.Controllers
 			return _reportHelper.GetInvoiceProductsByDate(date);
 		}
 
+		public IEnumerable<IFinalInvoiceProduct> GetInvoiceProductsByDateRange(DateTime startDate, DateTime endDate)
+		{
+			return _reportHelper.GetInvoiceProductsByDateRange(startDate, endDate);
+		}
+
 		public IEnumerable<IFinalInvoiceProduct> GetInvoiceProductsByInvoiceId(int invoiceId)
 		{
 			return _reportHelper.GetInvoiceProductsByInvoiceId(invoiceId);

@@ -201,7 +201,7 @@
             this.ShowReportByDateRangeButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.ShowReportByDateRangeButton.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.ShowReportByDateRangeButton.ForeColor = System.Drawing.Color.White;
-            this.ShowReportByDateRangeButton.Location = new System.Drawing.Point(804, 29);
+            this.ShowReportByDateRangeButton.Location = new System.Drawing.Point(561, 29);
             this.ShowReportByDateRangeButton.Name = "ShowReportByDateRangeButton";
             this.ShowReportByDateRangeButton.Size = new System.Drawing.Size(180, 49);
             this.ShowReportByDateRangeButton.TabIndex = 103;
@@ -215,7 +215,7 @@
             this.label11.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
             this.label11.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 14.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.label11.ForeColor = System.Drawing.Color.Gainsboro;
-            this.label11.Location = new System.Drawing.Point(426, 44);
+            this.label11.Location = new System.Drawing.Point(290, 44);
             this.label11.Name = "label11";
             this.label11.Size = new System.Drawing.Size(56, 31);
             this.label11.TabIndex = 102;
@@ -237,9 +237,10 @@
             // StartDatePicker
             // 
             this.StartDatePicker.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.StartDatePicker.Format = System.Windows.Forms.DateTimePickerFormat.Short;
             this.StartDatePicker.Location = new System.Drawing.Point(119, 46);
             this.StartDatePicker.Name = "StartDatePicker";
-            this.StartDatePicker.Size = new System.Drawing.Size(301, 25);
+            this.StartDatePicker.Size = new System.Drawing.Size(153, 25);
             this.StartDatePicker.TabIndex = 100;
             // 
             // label7
@@ -258,9 +259,10 @@
             // EndDatePicker
             // 
             this.EndDatePicker.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.EndDatePicker.Location = new System.Drawing.Point(488, 46);
+            this.EndDatePicker.Format = System.Windows.Forms.DateTimePickerFormat.Short;
+            this.EndDatePicker.Location = new System.Drawing.Point(352, 46);
             this.EndDatePicker.Name = "EndDatePicker";
-            this.EndDatePicker.Size = new System.Drawing.Size(301, 25);
+            this.EndDatePicker.Size = new System.Drawing.Size(153, 25);
             this.EndDatePicker.TabIndex = 84;
             // 
             // panel6

@@ -1,9 +1,12 @@
-﻿using IndyPOS.Interfaces;
+﻿using IndyPOS.Common.Enums;
+using IndyPOS.Facade.Interfaces;
+using IndyPOS.Interfaces;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Drawing;
+using System.Linq;
 using System.Windows.Forms;
-using IndyPOS.Facade.Interfaces;
 
 namespace IndyPOS.UI.Reports
 {
@@ -11,7 +14,7 @@ namespace IndyPOS.UI.Reports
     public partial class InvoiceProductsReportPanel : UserControl
     {
 		private readonly IReportController _reportController;
-		private decimal _accumulatedSaleAmount;
+		private IEnumerable<IFinalInvoiceProduct> _products;
 
 		private enum ProductColumn
 		{
@@ -21,7 +24,7 @@ namespace IndyPOS.UI.Reports
 			Quantity,
 			UnitPrice,
 			Total,
-			Accumulation,
+			Category,
 			DateCreated,
 			Note
 		}
@@ -32,6 +35,9 @@ namespace IndyPOS.UI.Reports
 
             InitializeComponent();
 			InitializeInvoiceProductsDataView();
+
+			StartDatePicker.Value = DateTime.Today;
+			EndDatePicker.Value = DateTime.Today;
 		}
 
 		private void InitializeInvoiceProductsDataView()
@@ -65,9 +71,9 @@ namespace IndyPOS.UI.Reports
 			InvoiceProductsDataView.Columns[(int)ProductColumn.Total].Width = 150;
 			InvoiceProductsDataView.Columns[(int)ProductColumn.Total].ReadOnly = true;
 
-			InvoiceProductsDataView.Columns[(int)ProductColumn.Accumulation].Name = "ยอดขายสะสม";
-			InvoiceProductsDataView.Columns[(int)ProductColumn.Accumulation].Width = 150;
-			InvoiceProductsDataView.Columns[(int)ProductColumn.Accumulation].ReadOnly = true;
+			InvoiceProductsDataView.Columns[(int)ProductColumn.Category].Name = "กลุ่มสินค้า";
+			InvoiceProductsDataView.Columns[(int)ProductColumn.Category].Width = 200;
+			InvoiceProductsDataView.Columns[(int)ProductColumn.Category].ReadOnly = true;
 
 			InvoiceProductsDataView.Columns[(int)ProductColumn.DateCreated].Name = "วันและเวลาที่บันทึก";
 			InvoiceProductsDataView.Columns[(int)ProductColumn.DateCreated].Width = 200;
@@ -86,15 +92,13 @@ namespace IndyPOS.UI.Reports
 			var productRow = new object[columnCount];
 			var total = product.UnitPrice * product.Quantity;
 
-			_accumulatedSaleAmount += total;
-
 			productRow[(int) ProductColumn.InvoiceId] = product.InvoiceId;
 			productRow[(int) ProductColumn.ProductCode] = product.Barcode;
 			productRow[(int) ProductColumn.Description] = product.Description;
 			productRow[(int) ProductColumn.Quantity] = product.Quantity;
 			productRow[(int) ProductColumn.UnitPrice] = product.UnitPrice;
 			productRow[(int) ProductColumn.Total] = total;
-			productRow[(int) ProductColumn.Accumulation] = _accumulatedSaleAmount;
+			productRow[(int) ProductColumn.Category] = IsHardwareProductGroup(product) ? "Hardware" : "General";
 			productRow[(int) ProductColumn.DateCreated] = product.DateCreated;
 			productRow[(int) ProductColumn.Note] = product.Note;
 
@@ -104,19 +108,18 @@ namespace IndyPOS.UI.Reports
 			InvoiceProductsDataView.Rows[rowIndex].DefaultCellStyle.BackColor = rowBackColor;
 		}
 
-        private void InvoiceProductsReportPanel_VisibleChanged(object sender, EventArgs e)
+		private static bool IsHardwareProductGroup(IFinalInvoiceProduct product)
 		{
-			if (!Visible)
-				return;
-
-			InvoiceProductsReport();
+			return product.Category >= (int) ProductCategory.Hardware;
 		}
 
-		private void InvoiceProductsReport()
+		private static bool IsGeneralProductGroup(IFinalInvoiceProduct product)
 		{
-			var products = _reportController.GetInvoiceProductsByDate(DateTime.Today);
+			return product.Category < (int) ProductCategory.Hardware;
+		}
 
-			_accumulatedSaleAmount = 0m;
+		private void ShowInvoiceProducts(IEnumerable<IFinalInvoiceProduct> products)
+		{
 			InvoiceProductsDataView.Rows.Clear();
 
 			foreach (var product in products)
@@ -124,5 +127,61 @@ namespace IndyPOS.UI.Reports
 				AddProductToInvoiceDataView(product);
 			}
 		}
-    }
+
+		private IEnumerable<IFinalInvoiceProduct> GetInvoiceProducts()
+		{
+			var startDate = StartDatePicker.Value;
+			var endDate = EndDatePicker.Value;
+
+			return _reportController.GetInvoiceProductsByDateRange(startDate, endDate);
+		}
+
+		private void GeneralProductsOnlyButton_Click(object sender, EventArgs e)
+		{
+			if (_products == null)
+			{
+				_products = GetInvoiceProducts();
+			}
+
+			ShowInvoiceProducts(_products.Where(IsGeneralProductGroup));
+		}
+
+		private void HardwareProductsOnlyButton_Click(object sender, EventArgs e)
+		{
+			if (_products == null)
+			{
+				_products = GetInvoiceProducts();
+			}
+
+			ShowInvoiceProducts(_products.Where(IsHardwareProductGroup));
+		}
+
+		private void AllProductGroupsButton_Click(object sender, EventArgs e)
+		{
+			if (_products == null)
+			{
+				_products = GetInvoiceProducts();
+			}
+
+			ShowInvoiceProducts(_products);
+		}
+
+		private void ShowProductsByDateRangeButton_Click(object sender, EventArgs e)
+		{
+			_products = GetInvoiceProducts();
+
+			if (AllProductGroupsButton.Checked)
+			{
+				ShowInvoiceProducts(_products);
+			}
+			else if (HardwareProductsOnlyButton.Checked)
+			{
+				ShowInvoiceProducts(_products.Where(IsHardwareProductGroup));
+			}
+			else
+			{
+				ShowInvoiceProducts(_products.Where(IsGeneralProductGroup));
+			}
+		}
+	}
 }
