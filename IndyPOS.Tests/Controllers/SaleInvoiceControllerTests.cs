@@ -4,7 +4,7 @@ using IndyPOS.Common.Enums;
 using IndyPOS.Controllers;
 using IndyPOS.Facade.Exceptions;
 using IndyPOS.Facade.Interfaces;
-using IndyPOS.Tests.Attributes;
+using IndyPOS.Mock.Attributes;
 using Moq;
 using System;
 using System.Collections.Generic;

@@ -26,6 +26,10 @@ namespace IndyPOS.Facade.Interfaces
 
 		IEnumerable<IFinalInvoicePayment> GetPaymentsByInvoiceId(int invoiceId);
 
+		SalesSummary CreateSalesSummary(IInvoiceInfo invoiceInfo);
+
+		PaymentsSummary CreatePaymentsSummary(IInvoiceInfo invoiceInfo);
+
 		Task UpdateReportAsync(IInvoiceInfo invoiceInfo);
 	}
 }

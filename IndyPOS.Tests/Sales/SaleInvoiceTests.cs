@@ -1,7 +1,7 @@
 ﻿using FluentAssertions;
 using IndyPOS.Common.Enums;
 using IndyPOS.Facade.Models;
-using IndyPOS.Tests.Attributes;
+using IndyPOS.Mock.Attributes;
 using System.Linq;
 using Xunit;
 using InventoryProductModel = IndyPOS.DataAccess.Models.InventoryProduct;
