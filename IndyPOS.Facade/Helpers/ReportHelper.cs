@@ -255,7 +255,7 @@ namespace IndyPOS.Facade.Helpers
 			};
 		}
 
-		private static SalesSummary CreateSalesSummary(IInvoiceInfo invoiceInfo)
+		public SalesSummary CreateSalesSummary(IInvoiceInfo invoiceInfo)
 		{
 			var generalProductsTotal = 0m;
 			var hardwareProductsTotal = 0m;
@@ -299,7 +299,7 @@ namespace IndyPOS.Facade.Helpers
 			return summary;
 		}
 
-		private static PaymentsSummary CreatePaymentsSummary(IInvoiceInfo invoiceInfo)
+		public PaymentsSummary CreatePaymentsSummary(IInvoiceInfo invoiceInfo)
 		{
 			var arTotal = 0m;
 			var fiftyFiftyTotal = 0m;
@@ -502,11 +502,11 @@ namespace IndyPOS.Facade.Helpers
 		{
 			var salesSummary = CreateSalesSummary(invoiceInfo);
 			var paymentsSummary = CreatePaymentsSummary(invoiceInfo);
-			var invoiceToPush = CreateInvoiceForDataFeed(invoiceInfo);
-			var salesReportToPush = await UpdateSalesReport(salesSummary);
 			
+			var salesReportToPush = await UpdateSalesReport(salesSummary);
 			await UpdatePaymentsReport(paymentsSummary);
 
+			var invoiceToPush = CreateInvoiceForDataFeed(invoiceInfo);
 			await _dataFeedApiHelper.PushInvoice(invoiceToPush);
 			await _dataFeedApiHelper.PushReport(salesReportToPush);
 

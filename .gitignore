@@ -42,3 +42,11 @@ IndyPOS.Facade/obj/
 IndyPOS.Common/bin/
 
 IndyPOS.Common/obj/
+
+IndyPOS.Mock/bin/
+
+IndyPOS.Mock/obj/
+
+IndyPOS.Facade.Tests/bin/
+
+IndyPOS.Facade.Tests/obj/
