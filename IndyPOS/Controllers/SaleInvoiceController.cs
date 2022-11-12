@@ -1,8 +1,6 @@
 ﻿using IndyPOS.Common.Enums;
 using IndyPOS.Facade.Interfaces;
 using IndyPOS.Interfaces;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 
 namespace IndyPOS.Controllers
 {

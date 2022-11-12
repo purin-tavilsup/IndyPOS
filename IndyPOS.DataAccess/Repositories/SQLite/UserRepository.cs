@@ -1,13 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using Dapper;
+﻿using Dapper;
 using IndyPOS.DataAccess.Interfaces;
 using IndyPOS.DataAccess.Models;
 
 namespace IndyPOS.DataAccess.Repositories.SQLite
 {
-    public class UserRepository : IUserRepository
+	public class UserRepository : IUserRepository
     {
         private readonly IDbConnectionProvider _dbConnectionProvider;
 

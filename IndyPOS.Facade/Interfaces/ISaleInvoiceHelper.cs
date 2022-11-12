@@ -1,6 +1,4 @@
 ﻿using IndyPOS.Common.Enums;
-using System;
-using System.Collections.Generic;
 
 namespace IndyPOS.Facade.Interfaces
 {

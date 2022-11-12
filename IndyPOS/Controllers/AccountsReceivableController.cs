@@ -1,6 +1,5 @@
 ﻿using IndyPOS.Facade.Interfaces;
 using IndyPOS.Interfaces;
-using System.Collections.Generic;
 
 namespace IndyPOS.Controllers
 {

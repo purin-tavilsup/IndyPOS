@@ -1,8 +1,8 @@
 ﻿using IndyPOS.Facade.Interfaces;
-using System;
 using System.Drawing;
 using ZXing;
 using ZXing.Common;
+using ZXing.Windows.Compatibility;
 
 namespace IndyPOS.Facade.Utilities
 {

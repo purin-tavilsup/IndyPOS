@@ -5,11 +5,10 @@ using IndyPOS.DataAccess.Interfaces;
 using IndyPOS.Facade.Events;
 using IndyPOS.Facade.Interfaces;
 using Prism.Events;
-using System;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
-using System.Windows.Forms;
+using Timer = System.Windows.Forms.Timer;
 
 namespace IndyPOS.UI
 {
@@ -24,7 +23,7 @@ namespace IndyPOS.UI
         private readonly SettingsPanel _settingsPanel;
 		private readonly UserLogInPanel _userLogInPanel;
         private readonly IEventAggregator _eventAggregator;
-		private readonly IConfiguration _configuration;
+		private readonly IConfig _config;
 		private readonly IDbConnectionProvider _dbConnectionProvider;
         private UserControl _activePanel;
 		private bool _isUserLoggedIn;
@@ -40,7 +39,7 @@ namespace IndyPOS.UI
 						UserLogInPanel userLogInPanel,
                         IEventAggregator eventAggregator,
 						IDbConnectionProvider dbConnectionProvider,
-						IConfiguration configuration)
+						IConfig config)
 		{
             InitializeComponent();
 
@@ -61,7 +60,7 @@ namespace IndyPOS.UI
 			_eventAggregator = eventAggregator;
 			_isUserLoggedIn = false;
 			_dbConnectionProvider = dbConnectionProvider;
-			_configuration = configuration;
+			_config = config;
 
 			SubscribeEvents();
 			CreateDateTimeUpdateTimer();
@@ -274,11 +273,11 @@ namespace IndyPOS.UI
 		[Conditional("RELEASE")]
 		private void BackupDatabase()
 		{
-			if (_configuration.DatabaseBackUpEnabled.IsFalse())
+			if (_config.DatabaseBackUpEnabled.IsFalse())
 				return;
 
 			var today = DateTime.Today;
-			var rootBackupDirectory = _configuration.BackupDbDirectory;
+			var rootBackupDirectory = _config.BackupDbDirectory;
 			var byDateBackupDirectory = $"{rootBackupDirectory}\\{today.Year}\\{today.Month:00}\\{today.Day:00}";
 			
 			if (!Directory.Exists(byDateBackupDirectory)) 

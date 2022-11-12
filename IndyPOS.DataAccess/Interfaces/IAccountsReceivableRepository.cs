@@ -1,10 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using IndyPOS.DataAccess.Models;
+﻿using IndyPOS.DataAccess.Models;
 
 namespace IndyPOS.DataAccess.Interfaces
 {
-    public interface IAccountsReceivableRepository
+	public interface IAccountsReceivableRepository
 	{
 		int AddAccountsReceivable(AccountsReceivable accountsReceivable);
 

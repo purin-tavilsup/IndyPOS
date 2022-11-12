@@ -1,9 +1,8 @@
-﻿using System.Collections.Generic;
-using IndyPOS.Facade.Interfaces;
+﻿using IndyPOS.Facade.Interfaces;
 
 namespace IndyPOS.Interfaces
 {
-	public interface IInventoryController
+    public interface IInventoryController
     {
         IList<IInventoryProduct> GetInventoryProductsByCategoryId(int id);
 

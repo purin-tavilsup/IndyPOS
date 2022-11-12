@@ -2,7 +2,6 @@
 using IndyPOS.DataAccess.Interfaces;
 using System.Data;
 using System.Data.SQLite;
-using System.IO;
 
 namespace IndyPOS.DataAccess
 {
@@ -10,9 +9,9 @@ namespace IndyPOS.DataAccess
 	{
 		private readonly string _databasePath;
 
-		public DbConnectionProvider(IConfiguration configuration)
+		public DbConnectionProvider(IConfig config)
 		{
-			_databasePath = configuration.DatabasePath;
+			_databasePath = config.DatabasePath;
 		}
 
 		public IDbConnection GetDbConnection()

@@ -1,5 +1,3 @@
-using System;
-using System.Threading.Tasks;
 using AutoFixture;
 using AutoFixture.AutoMoq;
 using AutoFixture.Xunit2;
@@ -12,7 +10,7 @@ using Xunit;
 
 namespace IndyPOS.Facade.Tests
 {
-    public class ReportHelperTests
+	public class ReportHelperTests
     {
 		public class ArrangeAttribute : AutoDataAttribute
 		{

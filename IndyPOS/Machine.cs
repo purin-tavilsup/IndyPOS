@@ -2,7 +2,6 @@
 using IndyPOS.Facade.Interfaces;
 using IndyPOS.Interfaces;
 using IndyPOS.UI;
-using System;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 
@@ -12,15 +11,15 @@ namespace IndyPOS
     public class Machine : IMachine
 	{
         private readonly MainForm _mainForm;
-		private readonly IConfiguration _configuration;
+		private readonly IConfig _config;
         private readonly IBarcodeScannerHelper _barcodeScanner;
 
 		public Machine(MainForm mainForm,
-					   IConfiguration configuration,
+					   IConfig config,
 					   IBarcodeScannerHelper barcodeScanner)
         {
             _mainForm = mainForm;
-			_configuration = configuration;
+			_config = config;
             _barcodeScanner = barcodeScanner;
 		}
 
@@ -40,7 +39,7 @@ namespace IndyPOS
 			var assembly = System.Reflection.Assembly.GetExecutingAssembly();
 			var versionInfo = FileVersionInfo.GetVersionInfo(assembly.Location);
 
-			return versionInfo.FileVersion;
+			return versionInfo.FileVersion ?? "0.0.0";
 		}
 
 		private void Shutdown()
@@ -67,9 +66,9 @@ namespace IndyPOS
 			var version = GetVersion();
 
 			_mainForm.SetVersion(version);
-			_mainForm.SetStoreName(_configuration.StoreFullName);
+			_mainForm.SetStoreName(_config.StoreFullName);
 
-            System.Windows.Forms.Application.Run(_mainForm);
+            Application.Run(_mainForm);
         }
 	}
 }

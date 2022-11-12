@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-
-namespace IndyPOS.Facade.Interfaces
+﻿namespace IndyPOS.Facade.Interfaces
 {
 	public interface IInvoiceInfo
     {

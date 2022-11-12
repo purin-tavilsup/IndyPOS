@@ -6,9 +6,6 @@ using IndyPOS.Facade.Exceptions;
 using IndyPOS.Facade.Interfaces;
 using IndyPOS.Mock.Attributes;
 using Moq;
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 using Xunit;
 
 namespace IndyPOS.Tests.Controllers

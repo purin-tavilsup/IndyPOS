@@ -1,53 +1,50 @@
 ﻿using IndyPOS.Common.Interfaces;
-using System;
 using System.Diagnostics.CodeAnalysis;
-using System.Threading.Tasks;
-using System.Windows.Forms;
 
 namespace IndyPOS.UI
 {
 	[ExcludeFromCodeCoverage]
     public partial class SettingsPanel : UserControl
     {
-		private readonly IConfiguration _configuration;
+		private readonly IConfig _config;
 
-        public SettingsPanel(IConfiguration configuration)
+        public SettingsPanel(IConfig config)
 		{
-			_configuration = configuration;
+			_config = config;
 
             InitializeComponent();
 		}
 
         private void LoadSettings()
 		{
-			StoreFullNameTextBox.Texts = _configuration.StoreFullName;
-			StoreNameTextBox.Texts = _configuration.StoreName;
-			StoreAddressLine1TextBox.Texts = _configuration.StoreAddressLine1;
-			StoreAddressLine2TextBox.Texts = _configuration.StoreAddressLine2;
-			StorePhoneTextBox.Texts = _configuration.StorePhoneNumber;
-			ReceiptPrinterNameTextBox.Texts = _configuration.PrinterName;
-			BarcodeScannerPortNameTextBox.Texts = _configuration.BarcodeScannerPortName;
-			BackupDBDirectoryTextBox.Texts = _configuration.BackupDbDirectory;
-			DataFeedKeyTextBox.Texts = _configuration.DataFeedKey;
-			DataFeedEnabled.Checked = _configuration.DataFeedEnabled;
-			DatabaseBackUpEnabled.Checked = _configuration.DatabaseBackUpEnabled;
+			StoreFullNameTextBox.Texts = _config.StoreFullName;
+			StoreNameTextBox.Texts = _config.StoreName;
+			StoreAddressLine1TextBox.Texts = _config.StoreAddressLine1;
+			StoreAddressLine2TextBox.Texts = _config.StoreAddressLine2;
+			StorePhoneTextBox.Texts = _config.StorePhoneNumber;
+			ReceiptPrinterNameTextBox.Texts = _config.PrinterName;
+			BarcodeScannerPortNameTextBox.Texts = _config.BarcodeScannerPortName;
+			BackupDBDirectoryTextBox.Texts = _config.BackupDbDirectory;
+			DataFeedKeyTextBox.Texts = _config.DataFeedKey;
+			DataFeedEnabled.Checked = _config.DataFeedEnabled;
+			DatabaseBackUpEnabled.Checked = _config.DatabaseBackUpEnabled;
 		}
 
 		private async Task SaveSettings()
 		{
-			_configuration.StoreFullName = StoreFullNameTextBox.Texts.Trim();
-			_configuration.StoreName = StoreNameTextBox.Texts.Trim();
-			_configuration.StoreAddressLine1 = StoreAddressLine1TextBox.Texts.Trim();
-			_configuration.StoreAddressLine2 = StoreAddressLine2TextBox.Texts.Trim();
-			_configuration.StorePhoneNumber = StorePhoneTextBox.Texts.Trim();
-			_configuration.PrinterName = ReceiptPrinterNameTextBox.Texts.Trim();
-			_configuration.BarcodeScannerPortName = BarcodeScannerPortNameTextBox.Texts.Trim();
-			_configuration.BackupDbDirectory = BackupDBDirectoryTextBox.Texts.Trim();
-			_configuration.DataFeedKey = DataFeedKeyTextBox.Texts.Trim();
-			_configuration.DataFeedEnabled = DataFeedEnabled.Checked;
-			_configuration.DatabaseBackUpEnabled = DatabaseBackUpEnabled.Checked;
+			_config.StoreFullName = StoreFullNameTextBox.Texts.Trim();
+			_config.StoreName = StoreNameTextBox.Texts.Trim();
+			_config.StoreAddressLine1 = StoreAddressLine1TextBox.Texts.Trim();
+			_config.StoreAddressLine2 = StoreAddressLine2TextBox.Texts.Trim();
+			_config.StorePhoneNumber = StorePhoneTextBox.Texts.Trim();
+			_config.PrinterName = ReceiptPrinterNameTextBox.Texts.Trim();
+			_config.BarcodeScannerPortName = BarcodeScannerPortNameTextBox.Texts.Trim();
+			_config.BackupDbDirectory = BackupDBDirectoryTextBox.Texts.Trim();
+			_config.DataFeedKey = DataFeedKeyTextBox.Texts.Trim();
+			_config.DataFeedEnabled = DataFeedEnabled.Checked;
+			_config.DatabaseBackUpEnabled = DatabaseBackUpEnabled.Checked;
 
-			await _configuration.UpdateAsync();
+			await _config.UpdateAsync();
 		}
 
         private async void SaveSettingsButton_Click(object sender, EventArgs e)

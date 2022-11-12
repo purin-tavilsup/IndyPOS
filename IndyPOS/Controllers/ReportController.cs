@@ -2,9 +2,6 @@
 using IndyPOS.Facade.Interfaces;
 using IndyPOS.Facade.Models.Report;
 using IndyPOS.Interfaces;
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 
 namespace IndyPOS.Controllers
 {

@@ -1,8 +1,6 @@
 ﻿using IndyPOS.Common.Extensions;
 using IndyPOS.Common.Interfaces;
 using IndyPOS.Facade.Interfaces;
-using System;
-using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Printing;
 
@@ -10,7 +8,7 @@ namespace IndyPOS.Facade.Helpers
 {
 	public class ReceiptPrinterHelper : IReceiptPrinterHelper
 	{
-		private readonly IConfiguration _configuration;
+		private readonly IConfig _config;
 		private readonly IReadOnlyDictionary<int, string> _paymentTypeDictionary;
 		private IInvoiceInfo _invoiceInfo;
 		private IUserAccount _loggedInUser;
@@ -29,9 +27,9 @@ namespace IndyPOS.Facade.Helpers
 		private const string FontFamilyName = "FC Subject [Non-commercial] Reg";
 		private const string LineString = "-------------------------------------------------------";
 
-		public ReceiptPrinterHelper(IConfiguration configuration, IStoreConstants storeConstants)
+		public ReceiptPrinterHelper(IConfig config, IStoreConstants storeConstants)
 		{
-			_configuration = configuration;
+			_config = config;
 			_paymentTypeDictionary = storeConstants.PaymentTypes;
 
 			_brush = new SolidBrush(Color.Black);
@@ -49,7 +47,7 @@ namespace IndyPOS.Facade.Helpers
 			_invoiceInfo = invoiceInfo;
 			_loggedInUser = loggedInUser;
 
-			_printDocument.PrinterSettings.PrinterName = _configuration.PrinterName;
+			_printDocument.PrinterSettings.PrinterName = _config.PrinterName;
 			_printDocument.Print();
 		}
 
@@ -81,19 +79,19 @@ namespace IndyPOS.Facade.Helpers
 
 		private void PrintHeader(Graphics graphics, ref Point position)
 		{
-			PrintStoreName(graphics, _configuration.StoreName, position.X + 60, position.Y);
+			PrintStoreName(graphics, _config.StoreName, position.X + 60, position.Y);
 
 			position.Y += 30;
 			
-			PrintText(graphics, _configuration.StoreAddressLine1, position.X, position.Y);
+			PrintText(graphics, _config.StoreAddressLine1, position.X, position.Y);
 
 			position.Y += SpaceOffset;
 			
-			PrintText(graphics, _configuration.StoreAddressLine2, position.X, position.Y);
+			PrintText(graphics, _config.StoreAddressLine2, position.X, position.Y);
 
 			position.Y += SpaceOffset;
 			
-			PrintText(graphics, $"Tel.: {_configuration.StorePhoneNumber}", position.X, position.Y);
+			PrintText(graphics, $"Tel.: {_config.StorePhoneNumber}", position.X, position.Y);
 
 			position.Y += SpaceOffset;
 

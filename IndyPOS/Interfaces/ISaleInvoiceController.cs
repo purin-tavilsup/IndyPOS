@@ -1,11 +1,9 @@
 ﻿using IndyPOS.Common.Enums;
 using IndyPOS.Facade.Interfaces;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 
 namespace IndyPOS.Interfaces
 {
-    public interface ISaleInvoiceController
+	public interface ISaleInvoiceController
     {
 		void StartNewSale();
 

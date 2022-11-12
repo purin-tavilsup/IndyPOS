@@ -1,6 +1,4 @@
 ﻿using IndyPOS.Common.Interfaces;
-using System.Collections.Generic;
-using System.Linq;
 using IndyPOS.DataAccess.Interfaces;
 
 namespace IndyPOS.Constants

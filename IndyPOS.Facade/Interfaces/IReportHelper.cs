@@ -1,8 +1,5 @@
 ﻿using IndyPOS.Common.Enums;
 using IndyPOS.Facade.Models.Report;
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 
 namespace IndyPOS.Facade.Interfaces
 {

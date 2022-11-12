@@ -3,7 +3,6 @@ using IndyPOS.Facade.Events;
 using IndyPOS.Facade.Interfaces;
 using Prism.Events;
 using Serilog;
-using System;
 using System.IO.Ports;
 
 namespace IndyPOS.Facade.Helpers
@@ -11,17 +10,17 @@ namespace IndyPOS.Facade.Helpers
 	public class BarcodeScannerHelper : IBarcodeScannerHelper
     {
         private readonly IEventAggregator _eventAggregator;
-		private readonly IConfiguration _configuration;
+		private readonly IConfig _config;
 		private readonly ILogger _logger;
 
         private SerialPort _serialPort;
 
         public BarcodeScannerHelper(IEventAggregator eventAggregator, 
-									IConfiguration configuration, 
+									IConfig config, 
 									ILogger logger)
 		{
             _eventAggregator = eventAggregator;
-			_configuration = configuration;
+			_config = config;
 			_logger = logger;
 		}
 
@@ -31,7 +30,7 @@ namespace IndyPOS.Facade.Helpers
 			{
 				_serialPort = new SerialPort
 				{
-					PortName = _configuration.BarcodeScannerPortName,
+					PortName = _config.BarcodeScannerPortName,
 					BaudRate = 115200,
 					DataBits = 8,
 					StopBits = StopBits.One,

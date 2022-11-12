@@ -1,9 +1,6 @@
 ﻿using Dapper;
 using IndyPOS.DataAccess.Interfaces;
 using IndyPOS.DataAccess.Models;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 
 namespace IndyPOS.DataAccess.Repositories.SQLite
 {

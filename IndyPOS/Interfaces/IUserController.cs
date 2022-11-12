@@ -1,5 +1,4 @@
 ﻿using IndyPOS.Facade.Interfaces;
-using System.Collections.Generic;
 
 namespace IndyPOS.Interfaces
 {

@@ -3,9 +3,6 @@ using IndyPOS.Facade.Adapters;
 using IndyPOS.Facade.Events;
 using IndyPOS.Facade.Interfaces;
 using Prism.Events;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 
 namespace IndyPOS.Facade.Helpers
 {

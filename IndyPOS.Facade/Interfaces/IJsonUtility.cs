@@ -1,6 +1,4 @@
-﻿using System.Threading.Tasks;
-
-namespace IndyPOS.Facade.Interfaces
+﻿namespace IndyPOS.Facade.Interfaces
 {
 	public interface IJsonUtility
 	{

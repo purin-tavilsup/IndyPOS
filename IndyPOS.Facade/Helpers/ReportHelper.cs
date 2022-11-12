@@ -6,11 +6,6 @@ using IndyPOS.Facade.Interfaces;
 using IndyPOS.Facade.Models.Report;
 using Prism.Events;
 using Serilog;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace IndyPOS.Facade.Helpers
 {
@@ -26,7 +21,7 @@ namespace IndyPOS.Facade.Helpers
 		private readonly IReadOnlyDictionary<int, string> _productCategories;
 		private readonly IReadOnlyDictionary<int, string> _paymentTypes;
 
-		public ReportHelper(IConfiguration configuration,
+		public ReportHelper(IConfig config,
 							IStoreConstants storeConstants,
 							ISaleInvoiceHelper saleInvoiceHelper,
 							IAccountsReceivableHelper accountsReceivableHelper,
@@ -36,7 +31,7 @@ namespace IndyPOS.Facade.Helpers
 							IJsonUtility jsonUtility)
         {
 			_logger = logger;
-			_reportsDirectory = configuration.ReportsDirectory;
+			_reportsDirectory = config.ReportsDirectory;
 			_saleInvoiceHelper = saleInvoiceHelper;
 			_accountsReceivableHelper = accountsReceivableHelper;
 			_dataFeedApiHelper = dataFeedApiHelper;

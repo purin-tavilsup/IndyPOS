@@ -1,7 +1,4 @@
-﻿using System;
-using System.Windows.Forms;
-
-namespace IndyPOS.Extensions
+﻿namespace IndyPOS.Extensions
 {
     /// <summary>
 	/// Extension for updating Control's properties

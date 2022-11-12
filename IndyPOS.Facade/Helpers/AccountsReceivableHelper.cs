@@ -3,9 +3,6 @@ using IndyPOS.DataAccess.Interfaces;
 using IndyPOS.Facade.Adapters;
 using IndyPOS.Facade.Interfaces;
 using Prism.Events;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using AccountsReceivableModel = IndyPOS.DataAccess.Models.AccountsReceivable;
 using PaymentModel = IndyPOS.DataAccess.Models.Payment;
 

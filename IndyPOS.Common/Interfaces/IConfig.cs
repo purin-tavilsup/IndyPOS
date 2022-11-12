@@ -1,12 +1,8 @@
-﻿using System.Threading.Tasks;
-
-namespace IndyPOS.Common.Interfaces
+﻿namespace IndyPOS.Common.Interfaces
 {
-    public interface IConfiguration
+	public interface IConfig
     {
-        string ConfigDirectory { get; }
-
-        string DatabasePath { get; }
+		string DatabasePath { get; }
 
         string ReportsDirectory { get; }
 

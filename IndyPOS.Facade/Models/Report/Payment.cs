@@ -1,9 +1,8 @@
-﻿using System;
-using System.Diagnostics.CodeAnalysis;
+﻿using System.Diagnostics.CodeAnalysis;
 
 namespace IndyPOS.Facade.Models.Report
 {
-    [ExcludeFromCodeCoverage]
+	[ExcludeFromCodeCoverage]
 	public class Payment
 	{
 		public int Priority { get; set; }

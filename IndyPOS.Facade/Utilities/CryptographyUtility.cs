@@ -1,7 +1,6 @@
-﻿using System;
+﻿using IndyPOS.Facade.Interfaces;
 using System.Security.Cryptography;
 using System.Text;
-using IndyPOS.Facade.Interfaces;
 
 namespace IndyPOS.Facade.Utilities
 {

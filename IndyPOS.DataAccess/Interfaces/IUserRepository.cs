@@ -1,9 +1,8 @@
-﻿using System.Collections.Generic;
-using IndyPOS.DataAccess.Models;
+﻿using IndyPOS.DataAccess.Models;
 
 namespace IndyPOS.DataAccess.Interfaces
 {
-    public interface IUserRepository
+	public interface IUserRepository
 	{
 		int CreateUser(UserAccount user);
 
