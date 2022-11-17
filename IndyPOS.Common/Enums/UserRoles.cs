@@ -1,9 +1,8 @@
-﻿namespace IndyPOS.Common.Enums
+﻿namespace IndyPOS.Common.Enums;
+
+public enum UserRole
 {
-	public enum UserRole
-	{
-		Cashier = 1,
-		StoreManager = 2,
-		SystemAdmin = 3
-	}
+	Cashier = 1,
+	StoreManager = 2,
+	SystemAdmin = 3
 }

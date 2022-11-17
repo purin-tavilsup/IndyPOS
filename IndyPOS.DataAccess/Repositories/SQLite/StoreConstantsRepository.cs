@@ -2,96 +2,86 @@
 using IndyPOS.DataAccess.Interfaces;
 using IndyPOS.DataAccess.Models;
 
-namespace IndyPOS.DataAccess.Repositories.SQLite
+namespace IndyPOS.DataAccess.Repositories.SQLite;
+
+public class StoreConstantRepository : IStoreConstantRepository
 {
-    public class StoreConstantRepository : IStoreConstantRepository
-    {
-        private readonly IDbConnectionProvider _dbConnectionProvider;
+	private readonly IDbConnectionProvider _dbConnectionProvider;
 
-        public StoreConstantRepository(IDbConnectionProvider dbConnectionProvider)
-        {
-            _dbConnectionProvider = dbConnectionProvider;
-        }
+	public StoreConstantRepository(IDbConnectionProvider dbConnectionProvider)
+	{
+		_dbConnectionProvider = dbConnectionProvider;
+	}
 
-        public IList<PaymentType> GetPaymentTypes()
-        {
-            using (var connection = _dbConnectionProvider.GetDbConnection())
-            {
-                connection.Open();
+	public IList<PaymentType> GetPaymentTypes()
+	{
+		using var connection = _dbConnectionProvider.GetDbConnection();
+		connection.Open();
 
-                const string sqlCommand =   @"SELECT * 
-                                            FROM [PaymentTypes]";
+		const string sqlCommand =   @"SELECT * FROM [PaymentTypes]";
 
-                var results = connection.Query(sqlCommand, new DynamicParameters());
+		var results = connection.Query(sqlCommand, new DynamicParameters());
 
-                return MapPaymentTypes(results);
-            }
-        }
+		return MapPaymentTypes(results);
+	}
 
-        public IList<UserRole> GetUserRoles()
-        {
-            using (var connection = _dbConnectionProvider.GetDbConnection())
-            {
-                connection.Open();
+	public IList<UserRole> GetUserRoles()
+	{
+		using var connection = _dbConnectionProvider.GetDbConnection();
+		connection.Open();
 
-                const string sqlCommand =   @"SELECT * 
-                                            FROM [UserRoles]";
+		const string sqlCommand =   @"SELECT * FROM [UserRoles]";
 
-                var results = connection.Query(sqlCommand, new DynamicParameters());
+		var results = connection.Query(sqlCommand, new DynamicParameters());
 
-                return MapUserRoles(results);
-            }
-        }
+		return MapUserRoles(results);
+	}
 
-        public IList<ProductCategory> GetProductCategories()
-        {
-            using (var connection = _dbConnectionProvider.GetDbConnection())
-            {
-                connection.Open();
+	public IList<ProductCategory> GetProductCategories()
+	{
+		using var connection = _dbConnectionProvider.GetDbConnection();
+		connection.Open();
 
-                const string sqlCommand =   @"SELECT * 
-                                            FROM [ProductCategories]";
+		const string sqlCommand =   @"SELECT * FROM [ProductCategories]";
 
-                var results = connection.Query(sqlCommand, new DynamicParameters());
+		var results = connection.Query(sqlCommand, new DynamicParameters());
 
-                return MapProductCategories(results);
-            }
-        }
+		return MapProductCategories(results);
+	}
 
-        private IList<PaymentType> MapPaymentTypes(IEnumerable<dynamic> results)
-        {
-            var types = results?.Select(x => new PaymentType
-            {
-                Id = (int)x.Id,
+	private IList<PaymentType> MapPaymentTypes(IEnumerable<dynamic> results)
+	{
+		var types = results?.Select(x => new PaymentType
+		{
+			Id = (int)x.Id,
 
-                Type = x.Type
-            }) ?? Enumerable.Empty<PaymentType>();
+			Type = x.Type
+		}) ?? Enumerable.Empty<PaymentType>();
 
-            return types.ToList();
-        }
+		return types.ToList();
+	}
 
-        private IList<UserRole> MapUserRoles(IEnumerable<dynamic> results)
-        {
-            var roles = results?.Select(x => new UserRole
-            {
-                Id = (int)x.Id,
+	private IList<UserRole> MapUserRoles(IEnumerable<dynamic> results)
+	{
+		var roles = results?.Select(x => new UserRole
+		{
+			Id = (int)x.Id,
 
-                Role = x.Role
-            }) ?? Enumerable.Empty<UserRole>();
+			Role = x.Role
+		}) ?? Enumerable.Empty<UserRole>();
 
-            return roles.ToList();
-        }
+		return roles.ToList();
+	}
 
-        private IList<ProductCategory> MapProductCategories(IEnumerable<dynamic> results)
-        {
-            var categories = results?.Select(x => new ProductCategory
-            {
-                Id = (int)x.Id,
+	private IList<ProductCategory> MapProductCategories(IEnumerable<dynamic> results)
+	{
+		var categories = results?.Select(x => new ProductCategory
+		{
+			Id = (int)x.Id,
 
-                Category = x.Category
-            }) ?? Enumerable.Empty<ProductCategory>();
+			Category = x.Category
+		}) ?? Enumerable.Empty<ProductCategory>();
 
-            return categories.ToList();
-        }
-    }
+		return categories.ToList();
+	}
 }

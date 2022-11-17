@@ -1,21 +1,20 @@
 ﻿using IndyPOS.Facade.Interfaces;
 
-namespace IndyPOS.Facade.Models
+namespace IndyPOS.Facade.Models;
+
+internal class InvoiceInfo : IInvoiceInfo
 {
-	internal class InvoiceInfo : IInvoiceInfo
-    {
-		public int Id { get; set; }
+	public int Id { get; set; }
 
-		public IList<ISaleInvoiceProduct> Products { get; set; }
+	public IList<ISaleInvoiceProduct> Products { get; set; }
 
-		public IList<IPayment> Payments { get; set; }
+	public IList<IPayment> Payments { get; set; }
 
-		public bool IsRefundInvoice { get; set; }
+	public bool IsRefundInvoice { get; set; }
 
-		public decimal InvoiceTotal { get; set; }
+	public decimal InvoiceTotal { get; set; }
 
-		public decimal PaymentTotal { get; set; }
+	public decimal PaymentTotal { get; set; }
 
-		public decimal Changes { get; set; }
-    }
+	public decimal Changes { get; set; }
 }

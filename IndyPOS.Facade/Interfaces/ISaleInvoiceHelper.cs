@@ -1,63 +1,62 @@
 ﻿using IndyPOS.Common.Enums;
 
-namespace IndyPOS.Facade.Interfaces
+namespace IndyPOS.Facade.Interfaces;
+
+public interface ISaleInvoiceHelper
 {
-	public interface ISaleInvoiceHelper
-    {
-        IList<ISaleInvoiceProduct> Products { get; }
+	IList<ISaleInvoiceProduct> Products { get; }
 
-        IList<IPayment> Payments { get; }
+	IList<IPayment> Payments { get; }
 
-        void StartNewSale();
+	void StartNewSale();
 
-		IList<string> ValidateSaleInvoice();
+	IList<string> ValidateSaleInvoice();
 
-		IInvoiceInfo CompleteSale();
+	IInvoiceInfo CompleteSale();
 
-		IInvoiceInfo GetInvoiceInfo();
+	IInvoiceInfo GetInvoiceInfo();
 
-		bool IsRefundInvoice();
+	bool IsRefundInvoice();
 
-		bool IsPendingPayment();
+	bool IsPendingPayment();
 
-		decimal CalculateInvoiceTotal();
+	decimal CalculateInvoiceTotal();
 
-		decimal CalculatePaymentTotal();
+	decimal CalculatePaymentTotal();
 
-		decimal CalculateBalanceRemaining();
+	decimal CalculateBalanceRemaining();
 
-		decimal CalculateChanges();
+	decimal CalculateChanges();
 
-		void PrintReceipt();
+	void PrintReceipt();
 
-        void RemoveAllPayments();
+	void RemoveAllPayments();
 
-        void AddProduct(IInventoryProduct product);
+	void AddProduct(IInventoryProduct product);
 
-		void AddProduct(IInventoryProduct product, decimal unitPrice, int quantity, string note);
+	void AddProduct(IInventoryProduct product, decimal unitPrice, int quantity, string note);
 
-		ISaleInvoiceProduct GetSaleInvoiceProduct(string barcode, int priority);
+	ISaleInvoiceProduct GetSaleInvoiceProduct(string barcode, int priority);
 
-        void RemoveProduct(ISaleInvoiceProduct product);
+	void RemoveProduct(ISaleInvoiceProduct product);
 
-        void AddPayment(PaymentType paymentType, decimal paymentAmount, string note);
+	void AddPayment(PaymentType paymentType, decimal paymentAmount, string note);
 
-        void UpdateProductQuantity(int inventoryProductId, int priority, int quantity);
+	void UpdateProductQuantity(int inventoryProductId, int priority, int quantity);
 
-		void UpdateProductUnitPrice(int inventoryProductId, int priority, decimal unitPrice, string note);
+	void UpdateProductUnitPrice(int inventoryProductId, int priority, decimal unitPrice, string note);
 
-		IInventoryProduct GetInventoryProductByBarcode(string barcode);
+	IInventoryProduct GetInventoryProductByBarcode(string barcode);
 
-		IEnumerable<IFinalInvoice> GetInvoicesByPeriod(TimePeriod period);
+	IEnumerable<IFinalInvoice> GetInvoicesByPeriod(TimePeriod period);
 
-		IEnumerable<IFinalInvoice> GetInvoicesByDateRange(DateTime startDate, DateTime endDate);
+	IEnumerable<IFinalInvoice> GetInvoicesByDateRange(DateTime startDate, DateTime endDate);
 
-		IEnumerable<IFinalInvoiceProduct> GetInvoiceProductsByDate(DateTime date);
+	IEnumerable<IFinalInvoiceProduct> GetInvoiceProductsByDate(DateTime date);
 
-		IEnumerable<IFinalInvoiceProduct> GetInvoiceProductsByDateRange(DateTime startDate, DateTime endDate);
+	IEnumerable<IFinalInvoiceProduct> GetInvoiceProductsByDateRange(DateTime startDate, DateTime endDate);
 
-		IEnumerable<IFinalInvoiceProduct> GetInvoiceProductsByInvoiceId(int invoiceId);
+	IEnumerable<IFinalInvoiceProduct> GetInvoiceProductsByInvoiceId(int invoiceId);
 
-		IEnumerable<IFinalInvoicePayment> GetPaymentsByInvoiceId(int invoiceId);
-	}
+	IEnumerable<IFinalInvoicePayment> GetPaymentsByInvoiceId(int invoiceId);
 }

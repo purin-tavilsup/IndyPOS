@@ -1,19 +1,18 @@
-﻿namespace IndyPOS.Facade.Interfaces
+﻿namespace IndyPOS.Facade.Interfaces;
+
+public interface IInvoiceInfo
 {
-	public interface IInvoiceInfo
-    {
-		int Id { get; set; }
+	int Id { get; set; }
 
-		IList<ISaleInvoiceProduct> Products { get; }
+	IList<ISaleInvoiceProduct> Products { get; }
 
-		IList<IPayment> Payments { get; }
+	IList<IPayment> Payments { get; }
 
-		bool IsRefundInvoice { get; }
+	bool IsRefundInvoice { get; }
 
-		decimal InvoiceTotal { get; }
+	decimal InvoiceTotal { get; }
 
-		decimal PaymentTotal { get; }
+	decimal PaymentTotal { get; }
 
-		decimal Changes { get; }
-    }
+	decimal Changes { get; }
 }

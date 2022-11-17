@@ -1,21 +1,20 @@
 ﻿using IndyPOS.Facade.Interfaces;
 using System.Diagnostics.CodeAnalysis;
 
-namespace IndyPOS.Facade.Models
+namespace IndyPOS.Facade.Models;
+
+[ExcludeFromCodeCoverage]
+public class UserAccount : IUserAccount
 {
-	[ExcludeFromCodeCoverage]
-	public class UserAccount : IUserAccount
-	{
-		public int UserId { get; }
+	public int UserId { get; }
         
-		public string FirstName { get; set; }
+	public string FirstName { get; set; }
 
-		public string LastName { get; set; }
+	public string LastName { get; set; }
 
-		public int RoleId { get; set; }
+	public int RoleId { get; set; }
 
-		public string DateCreated { get; }
+	public string DateCreated { get; }
 
-		public string DateUpdated { get; }
-	}
+	public string DateUpdated { get; }
 }

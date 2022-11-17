@@ -1,25 +1,25 @@
 ﻿using Dapper;
+using IndyPOS.Common.Exceptions;
 using IndyPOS.DataAccess.Interfaces;
 using IndyPOS.DataAccess.Models;
 
-namespace IndyPOS.DataAccess.Repositories.SQLite
+namespace IndyPOS.DataAccess.Repositories.SQLite;
+
+public class InvoiceRepository : IInvoiceRepository
 {
-    public class InvoiceRepository : IInvoiceRepository
-    {
-        private readonly IDbConnectionProvider _dbConnectionProvider;
+	private readonly IDbConnectionProvider _dbConnectionProvider;
 
-        public InvoiceRepository(IDbConnectionProvider dbConnectionProvider)
-        {
-            _dbConnectionProvider = dbConnectionProvider;
-        }
+	public InvoiceRepository(IDbConnectionProvider dbConnectionProvider)
+	{
+		_dbConnectionProvider = dbConnectionProvider;
+	}
 
-        public int AddInvoice(Invoice invoice)
-        {
-            using (var connection = _dbConnectionProvider.GetDbConnection())
-            {
-                connection.Open();
+	public int AddInvoice(Invoice invoice)
+	{
+		using var connection = _dbConnectionProvider.GetDbConnection();
+		connection.Open();
 
-                const string sqlCommand = @"INSERT INTO Invoices
+		const string sqlCommand = @"INSERT INTO Invoices
                 (
                     Total,
                     CustomerId,
@@ -35,28 +35,26 @@ namespace IndyPOS.DataAccess.Repositories.SQLite
                 );
                 SELECT last_insert_rowid()";
 
-                var sqlParameters = new
-                {
-                    Total = MapMoneyToString(invoice.Total),
-                    invoice.CustomerId,
-                    invoice.UserId
-                };
+		var sqlParameters = new
+		{
+			Total = MapMoneyToString(invoice.Total),
+			invoice.CustomerId,
+			invoice.UserId
+		};
 
-                var invoiceId = connection.Query<int>(sqlCommand, sqlParameters).FirstOrDefault();
+		var invoiceId = connection.Query<int>(sqlCommand, sqlParameters).FirstOrDefault();
 
-                if (invoiceId < 1) throw new Exception("Failed to get the last insert Row ID after adding a new invoice.");
+		if (invoiceId < 1) throw new Exception("Failed to get the last insert Row ID after adding a new invoice.");
 
-                return invoiceId;
-            }
-        }
+		return invoiceId;
+	}
 
-        public int AddInvoiceProduct(InvoiceProduct product)
-        {
-            using (var connection = _dbConnectionProvider.GetDbConnection())
-            {
-                connection.Open();
+	public int AddInvoiceProduct(InvoiceProduct product)
+	{
+		using var connection = _dbConnectionProvider.GetDbConnection();
+		connection.Open();
 
-                const string sqlCommand = @"INSERT INTO InvoiceProducts
+		const string sqlCommand = @"INSERT INTO InvoiceProducts
                 (
                     InvoiceId,
                     Priority,
@@ -88,36 +86,34 @@ namespace IndyPOS.DataAccess.Repositories.SQLite
                 );
                 SELECT last_insert_rowid()";
 
-				var sqlParameters = new
-				{
-                    product.InvoiceId,
-                    product.Priority,
-                    product.InventoryProductId,
-                    product.Barcode,
-                    product.Description,
-                    product.Manufacturer,
-                    product.Brand,
-                    product.Category,
-					UnitPrice = MapMoneyToString(product.UnitPrice),
-                    product.Quantity,
-                    product.Note
-				};
+		var sqlParameters = new
+		{
+			product.InvoiceId,
+			product.Priority,
+			product.InventoryProductId,
+			product.Barcode,
+			product.Description,
+			product.Manufacturer,
+			product.Brand,
+			product.Category,
+			UnitPrice = MapMoneyToString(product.UnitPrice),
+			product.Quantity,
+			product.Note
+		};
 
-				var invoiceProductId = connection.Query<int>(sqlCommand, sqlParameters).FirstOrDefault();
+		var invoiceProductId = connection.Query<int>(sqlCommand, sqlParameters).FirstOrDefault();
 
-                if (invoiceProductId < 1) throw new Exception("Failed to get the last insert Row ID after adding an invoice product.");
+		if (invoiceProductId < 1) throw new Exception("Failed to get the last insert Row ID after adding an invoice product.");
 
-                return invoiceProductId;
-            }
-        }
+		return invoiceProductId;
+	}
 
-        public int AddPayment(Payment payment)
-        {
-            using (var connection = _dbConnectionProvider.GetDbConnection())
-            {
-                connection.Open();
+	public int AddPayment(Payment payment)
+	{
+		using var connection = _dbConnectionProvider.GetDbConnection();
+		connection.Open();
 
-                const string sqlCommand = @"INSERT INTO Payments
+		const string sqlCommand = @"INSERT INTO Payments
                 (
                     InvoiceId,
                     PaymentTypeId,
@@ -135,29 +131,27 @@ namespace IndyPOS.DataAccess.Repositories.SQLite
                 );
                 SELECT last_insert_rowid()";
 
-                var sqlParameters = new
-                {
-                    payment.InvoiceId,
-                    payment.PaymentTypeId,
-                    Amount = MapMoneyToString(payment.Amount),
-                    payment.Note
-				};
+		var sqlParameters = new
+		{
+			payment.InvoiceId,
+			payment.PaymentTypeId,
+			Amount = MapMoneyToString(payment.Amount),
+			payment.Note
+		};
 
-                var paymentId = connection.Query<int>(sqlCommand, sqlParameters).FirstOrDefault();
+		var paymentId = connection.Query<int>(sqlCommand, sqlParameters).FirstOrDefault();
 
-                if (paymentId < 1) throw new Exception("Failed to get the last insert Row ID after adding a new payment.");
+		if (paymentId < 1) throw new Exception("Failed to get the last insert Row ID after adding a new payment.");
 
-                return paymentId;
-            }
-        }
+		return paymentId;
+	}
 
-        public Invoice GetInvoiceByInvoiceId(int id)
-        {
-            using (var connection = _dbConnectionProvider.GetDbConnection())
-            {
-                connection.Open();
+	public Invoice GetInvoiceByInvoiceId(int id)
+	{
+		using var connection = _dbConnectionProvider.GetDbConnection();
+		connection.Open();
 
-                const string sqlCommand = @"SELECT
+		const string sqlCommand = @"SELECT
                 InvoiceId,
                 Total,
                 CustomerId,
@@ -166,24 +160,26 @@ namespace IndyPOS.DataAccess.Repositories.SQLite
                 FROM Invoices 
                 WHERE InvoiceId = @invoiceId";
 
-                var sqlParameters = new
-                {
-                    invoiceId = id
-                };
+		var sqlParameters = new
+		{
+			invoiceId = id
+		};
 
-                var results = connection.Query(sqlCommand, sqlParameters);
+		var results = connection.Query(sqlCommand, sqlParameters);
+		var invoice = MapInvoices(results).FirstOrDefault();
 
-                return MapInvoices(results).FirstOrDefault();
-            }
-        }
+		if (invoice == null)
+			throw new InvoiceNotFoundException($"Invoice with Id {id} is not found.");
 
-        public IList<Invoice> GetInvoicesByDateRange(DateTime start, DateTime end)
-        {
-            using (var connection = _dbConnectionProvider.GetDbConnection())
-            {
-                connection.Open();
+		return invoice;
+	}
 
-                const string sqlCommand = @"SELECT
+	public IList<Invoice> GetInvoicesByDateRange(DateTime start, DateTime end)
+	{
+		using var connection = _dbConnectionProvider.GetDbConnection();
+		connection.Open();
+
+		const string sqlCommand = @"SELECT
                 InvoiceId,
                 Total,
                 CustomerId,
@@ -192,30 +188,28 @@ namespace IndyPOS.DataAccess.Repositories.SQLite
                 FROM Invoices 
                 WHERE DateCreated BETWEEN @startDate AND @endDate";
 
-                var sqlParameters = new
-                {
-                    startDate = MapStartDateToString(start),
-                    endDate = MapEndDateToString(end)
-                };
-
-                var results = connection.Query(sqlCommand, sqlParameters);
-
-                return MapInvoices(results);
-            }
-        }
-
-        public IList<Invoice> GetInvoicesByDate(DateTime date)
-        {
-            return GetInvoicesByDateRange(date, date);
-        }
-
-		public IList<InvoiceProduct> GetInvoiceProductsByInvoiceId(int id)
+		var sqlParameters = new
 		{
-            using (var connection = _dbConnectionProvider.GetDbConnection())
-            {
-                connection.Open();
+			startDate = MapStartDateToString(start),
+			endDate = MapEndDateToString(end)
+		};
 
-                const string sqlCommand = @"SELECT
+		var results = connection.Query(sqlCommand, sqlParameters);
+
+		return MapInvoices(results);
+	}
+
+	public IList<Invoice> GetInvoicesByDate(DateTime date)
+	{
+		return GetInvoicesByDateRange(date, date);
+	}
+
+	public IList<InvoiceProduct> GetInvoiceProductsByInvoiceId(int id)
+	{
+		using var connection = _dbConnectionProvider.GetDbConnection();
+		connection.Open();
+
+		const string sqlCommand = @"SELECT
                 InvoiceProductId,
                 Priority,
                 InvoiceId,
@@ -232,24 +226,22 @@ namespace IndyPOS.DataAccess.Repositories.SQLite
                 FROM InvoiceProducts 
                 WHERE InvoiceId = @invoiceId";
 
-                var sqlParameters = new
-                {
-                    invoiceId = id
-                };
+		var sqlParameters = new
+		{
+			invoiceId = id
+		};
 
-                var results = connection.Query(sqlCommand, sqlParameters);
+		var results = connection.Query(sqlCommand, sqlParameters);
 
-                return MapInvoiceProducts(results);
-            }
-        }
+		return MapInvoiceProducts(results);
+	}
 
-        public IList<InvoiceProduct> GetInvoiceProductsByDateRange(DateTime start, DateTime end)
-        {
-            using (var connection = _dbConnectionProvider.GetDbConnection())
-            {
-                connection.Open();
+	public IList<InvoiceProduct> GetInvoiceProductsByDateRange(DateTime start, DateTime end)
+	{
+		using var connection = _dbConnectionProvider.GetDbConnection();
+		connection.Open();
 
-                const string sqlCommand = @"SELECT
+		const string sqlCommand = @"SELECT
                 InvoiceProductId,
                 Priority,
                 InvoiceId,
@@ -266,30 +258,28 @@ namespace IndyPOS.DataAccess.Repositories.SQLite
                 FROM InvoiceProducts 
                 WHERE DateCreated BETWEEN @startDate AND @endDate";
 
-                var sqlParameters = new
-                {
-                    startDate = MapStartDateToString(start),
-                    endDate = MapEndDateToString(end)
-                };
+		var sqlParameters = new
+		{
+			startDate = MapStartDateToString(start),
+			endDate = MapEndDateToString(end)
+		};
 
-                var results = connection.Query(sqlCommand, sqlParameters);
+		var results = connection.Query(sqlCommand, sqlParameters);
 
-                return MapInvoiceProducts(results);
-            }
-        }
+		return MapInvoiceProducts(results);
+	}
 
-        public IList<InvoiceProduct> GetInvoiceProductsByDate(DateTime date)
-        {
-            return GetInvoiceProductsByDateRange(date, date);
-        }
+	public IList<InvoiceProduct> GetInvoiceProductsByDate(DateTime date)
+	{
+		return GetInvoiceProductsByDateRange(date, date);
+	}
 
-        public IList<Payment> GetPaymentsByInvoiceId(int id)
-        {
-            using (var connection = _dbConnectionProvider.GetDbConnection())
-            {
-                connection.Open();
+	public IList<Payment> GetPaymentsByInvoiceId(int id)
+	{
+		using var connection = _dbConnectionProvider.GetDbConnection();
+		connection.Open();
 
-                const string sqlCommand = @"SELECT
+		const string sqlCommand = @"SELECT
                 PaymentId,
                 InvoiceId,
                 PaymentTypeId,
@@ -299,29 +289,27 @@ namespace IndyPOS.DataAccess.Repositories.SQLite
                 FROM Payments 
                 WHERE InvoiceId = @invoiceId";
 
-                var sqlParameters = new
-                {
-                    invoiceId = id
-                };
-
-                var results = connection.Query(sqlCommand, sqlParameters);
-
-                return MapPayments(results);
-            }
-        }
-
-		public IList<Payment> GetPaymentsByDate(DateTime date)
+		var sqlParameters = new
 		{
-			return GetPaymentsByDateRange(date, date);
-		}
+			invoiceId = id
+		};
 
-		public IList<Payment> GetPaymentsByDateRange(DateTime start, DateTime end)
-		{
-			using (var connection = _dbConnectionProvider.GetDbConnection())
-			{
-				connection.Open();
+		var results = connection.Query(sqlCommand, sqlParameters);
 
-				const string sqlCommand = @"SELECT
+		return MapPayments(results);
+	}
+
+	public IList<Payment> GetPaymentsByDate(DateTime date)
+	{
+		return GetPaymentsByDateRange(date, date);
+	}
+
+	public IList<Payment> GetPaymentsByDateRange(DateTime start, DateTime end)
+	{
+		using var connection = _dbConnectionProvider.GetDbConnection();
+		connection.Open();
+
+		const string sqlCommand = @"SELECT
                 PaymentId,
                 InvoiceId,
                 PaymentTypeId,
@@ -331,25 +319,23 @@ namespace IndyPOS.DataAccess.Repositories.SQLite
                 FROM Payments 
                 WHERE DateCreated BETWEEN @startDate AND @endDate";
 
-				var sqlParameters = new
-									{
-										startDate = MapStartDateToString(start),
-										endDate = MapEndDateToString(end)
-									};
-
-				var results = connection.Query(sqlCommand, sqlParameters);
-
-				return MapPayments(results);
-			}
-		}
-
-		public IList<Payment> GetPaymentsByPaymentTypeId(int id)
+		var sqlParameters = new
 		{
-			using (var connection = _dbConnectionProvider.GetDbConnection())
-			{
-				connection.Open();
+			startDate = MapStartDateToString(start),
+			endDate = MapEndDateToString(end)
+		};
 
-				const string sqlCommand = @"SELECT
+		var results = connection.Query(sqlCommand, sqlParameters);
+
+		return MapPayments(results);
+	}
+
+	public IList<Payment> GetPaymentsByPaymentTypeId(int id)
+	{
+		using var connection = _dbConnectionProvider.GetDbConnection();
+		connection.Open();
+
+		const string sqlCommand = @"SELECT
                 PaymentId,
                 InvoiceId,
                 PaymentTypeId,
@@ -359,119 +345,117 @@ namespace IndyPOS.DataAccess.Repositories.SQLite
                 FROM Payments 
                 WHERE PaymentTypeId = @PaymentTypeId";
 
-				var sqlParameters = new
-									{
-										PaymentTypeId = id
-									};
-
-				var results = connection.Query(sqlCommand, sqlParameters);
-
-				return MapPayments(results);
-			}
-		}
-
-        private string MapStartDateToString(DateTime date)
+		var sqlParameters = new
 		{
-            var dateString = date.ToString("yyyy-MM-dd");
+			PaymentTypeId = id
+		};
 
-            return $"{dateString} 00:00";
-		}
+		var results = connection.Query(sqlCommand, sqlParameters);
 
-        private string MapEndDateToString(DateTime date)
-        {
-            var dateString = date.ToString("yyyy-MM-dd");
+		return MapPayments(results);
+	}
 
-            return $"{dateString} 24:00";
-        }
+	private string MapStartDateToString(DateTime date)
+	{
+		var dateString = date.ToString("yyyy-MM-dd");
 
-        private IList<Invoice> MapInvoices(IEnumerable<dynamic> results)
-        {
-            var invoices = results?.Select(x => new Invoice
-            {
-                InvoiceId = (int)x.InvoiceId,
+		return $"{dateString} 00:00";
+	}
 
-                Total = MapMoneyToDecimal(x.Total),
+	private string MapEndDateToString(DateTime date)
+	{
+		var dateString = date.ToString("yyyy-MM-dd");
 
-                CustomerId = (int?)x.CustomerId,
+		return $"{dateString} 24:00";
+	}
 
-                UserId = (int)x.UserId,
+	private IList<Invoice> MapInvoices(IEnumerable<dynamic> results)
+	{
+		var invoices = results?.Select(x => new Invoice
+		{
+			InvoiceId = (int)x.InvoiceId,
 
-                DateCreated = x.DateCreated
-            }) ?? Enumerable.Empty<Invoice>();
+			Total = MapMoneyToDecimal(x.Total),
 
-            return invoices.ToList();
-        }
+			CustomerId = (int?)x.CustomerId,
 
-        private IList<InvoiceProduct> MapInvoiceProducts(IEnumerable<dynamic> results)
-        {
-            var products = results?.Select(x => new InvoiceProduct
-            {
-                InvoiceProductId = (int)x.InvoiceProductId,
+			UserId = (int)x.UserId,
 
-                Priority = (int)x.Priority,
+			DateCreated = x.DateCreated
+		}) ?? Enumerable.Empty<Invoice>();
 
-                InvoiceId = (int)x.InvoiceId,
+		return invoices.ToList();
+	}
 
-                InventoryProductId = (int)x.InventoryProductId,
+	private IList<InvoiceProduct> MapInvoiceProducts(IEnumerable<dynamic> results)
+	{
+		var products = results?.Select(x => new InvoiceProduct
+		{
+			InvoiceProductId = (int)x.InvoiceProductId,
 
-                Barcode = x.Barcode,
+			Priority = (int)x.Priority,
 
-                Description = x.Description,
+			InvoiceId = (int)x.InvoiceId,
 
-                Manufacturer = x.Manufacturer,
+			InventoryProductId = (int)x.InventoryProductId,
 
-                Brand = x.Brand,
+			Barcode = x.Barcode,
 
-                Category = (int)x.Category,
+			Description = x.Description,
 
-                UnitPrice = MapMoneyToDecimal(x.UnitPrice),
+			Manufacturer = x.Manufacturer,
 
-                Quantity = (int)x.Quantity,
+			Brand = x.Brand,
 
-                DateCreated = x.DateCreated,
+			Category = (int)x.Category,
 
-                Note = x.Note
-            }) ?? Enumerable.Empty<InvoiceProduct>();
+			UnitPrice = MapMoneyToDecimal(x.UnitPrice),
 
-            return products.ToList();
-        }
+			Quantity = (int)x.Quantity,
 
-        private IList<Payment> MapPayments(IEnumerable<dynamic> results)
-        {
-            var payments = results?.Select(x => new Payment
-            {
-                PaymentId = (int)x.PaymentId,
+			DateCreated = x.DateCreated,
 
-                InvoiceId = (int)x.InvoiceId,
+			Note = x.Note
+		}) ?? Enumerable.Empty<InvoiceProduct>();
 
-                PaymentTypeId = (int)x.PaymentTypeId,
+		return products.ToList();
+	}
 
-                Amount = MapMoneyToDecimal(x.Amount),
+	private IList<Payment> MapPayments(IEnumerable<dynamic> results)
+	{
+		var payments = results?.Select(x => new Payment
+		{
+			PaymentId = (int)x.PaymentId,
 
-                DateCreated = x.DateCreated,
+			InvoiceId = (int)x.InvoiceId,
 
-                Note = x.Note
-            }) ?? Enumerable.Empty<Payment>();
+			PaymentTypeId = (int)x.PaymentTypeId,
 
-            return payments.ToList();
-        }
+			Amount = MapMoneyToDecimal(x.Amount),
 
-        private decimal MapMoneyToDecimal(string value)
-        {
-            if (decimal.TryParse(value.Trim(), out var result))
-                return result / 100m;
+			DateCreated = x.DateCreated,
 
-            return 0m;
-        }
+			Note = x.Note
+		}) ?? Enumerable.Empty<Payment>();
 
-        private string MapMoneyToString(decimal? value)
-        {
-            if (!value.HasValue)
-                return null;
+		return payments.ToList();
+	}
 
-            var result = Math.Round(value.GetValueOrDefault(), 2, MidpointRounding.AwayFromZero) * 100m;
+	private decimal MapMoneyToDecimal(string value)
+	{
+		if (decimal.TryParse(value.Trim(), out var result))
+			return result / 100m;
 
-            return $"{result}";
-        }
-    }
+		return 0m;
+	}
+
+	private string? MapMoneyToString(decimal? value)
+	{
+		if (!value.HasValue)
+			return null;
+
+		var result = Math.Round(value.GetValueOrDefault(), 2, MidpointRounding.AwayFromZero) * 100m;
+
+		return $"{result}";
+	}
 }

@@ -1,27 +1,26 @@
-﻿namespace IndyPOS.Facade.Interfaces
+﻿namespace IndyPOS.Facade.Interfaces;
+
+public interface IUserHelper
 {
-	public interface IUserHelper
-	{
-		IUserAccount LoggedInUser { get; }
+	IUserAccount? LoggedInUser { get; }
 
-		bool IsLoggedIn { get; }
+	bool IsLoggedIn { get; }
 
-		void AddNewUser(IUserAccount user, string username, string password);
+	void AddNewUser(IUserAccount user, string username, string password);
 
-		IEnumerable<IUserAccount> GetUsers();
+	IEnumerable<IUserAccount> GetUsers();
 
-		IUserAccount GetUserById(int id);
+	IUserAccount GetUserById(int id);
 
-		void UpdateUser(IUserAccount user);
+	void UpdateUser(IUserAccount user);
 
-		void RemoveUserById(int id);
+	void RemoveUserById(int id);
 
-		void UpdateUserCredentialById(int userId, string password);
+	void UpdateUserCredentialById(int userId, string password);
 
-		IUserCredential GetUserCredentialById(int id);
+	IUserCredential GetUserCredentialById(int id);
 
-		bool LogIn(string username, string password);
+	bool LogIn(string username, string password);
 
-		void LogOut();
-	}
+	void LogOut();
 }

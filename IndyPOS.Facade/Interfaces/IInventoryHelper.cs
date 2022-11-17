@@ -1,21 +1,20 @@
-﻿namespace IndyPOS.Facade.Interfaces
+﻿namespace IndyPOS.Facade.Interfaces;
+
+public interface IInventoryHelper
 {
-    public interface IInventoryHelper
-    {
-        IList<IInventoryProduct> GetInventoryProductsByCategoryId(int id);
+	IList<IInventoryProduct> GetInventoryProductsByCategoryId(int id);
 
-        IInventoryProduct GetInventoryProductByBarcode(string barcode);
+	IInventoryProduct GetInventoryProductByBarcode(string barcode);
 
-        IInventoryProduct GetProductById(int id);
+	IInventoryProduct GetProductById(int id);
 
-        void AddNewProduct(IInventoryProduct product);
+	void AddNewProduct(IInventoryProduct product);
 
-        void UpdateProduct(IInventoryProduct product);
+	void UpdateProduct(IInventoryProduct product);
 
-        void RemoveProductById(int id);
+	void RemoveProductById(int id);
 
-		int GetProductBarcodeCounter();
+	int GetProductBarcodeCounter();
 
-		void IncrementProductBarcodeCounter();
-	}
+	void IncrementProductBarcodeCounter();
 }

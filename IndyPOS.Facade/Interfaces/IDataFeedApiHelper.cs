@@ -1,11 +1,10 @@
 ﻿using IndyPOS.Facade.Models.Report;
 
-namespace IndyPOS.Facade.Interfaces
-{
-	public interface IDataFeedApiHelper
-	{
-		Task PushInvoice(Invoice invoice);
+namespace IndyPOS.Facade.Interfaces;
 
-		Task PushReport(SalesReport report);
-	}
+public interface IDataFeedApiHelper
+{
+	Task PushInvoice(Invoice invoice);
+
+	Task PushReport(SalesReport report);
 }

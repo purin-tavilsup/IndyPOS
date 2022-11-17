@@ -1,7 +1,6 @@
-﻿namespace IndyPOS.Facade.Interfaces
+﻿namespace IndyPOS.Facade.Interfaces;
+
+public interface IReceiptPrinterHelper
 {
-	public interface IReceiptPrinterHelper
-	{
-		void PrintReceipt(IInvoiceInfo invoiceInfo, IUserAccount loggedInUser);
-	}
+	void PrintReceipt(IInvoiceInfo invoiceInfo, IUserAccount loggedInUser);
 }

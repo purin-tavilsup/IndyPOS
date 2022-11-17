@@ -2,46 +2,45 @@
 using System.Security.Cryptography;
 using System.Text;
 
-namespace IndyPOS.Facade.Utilities
+namespace IndyPOS.Facade.Utilities;
+
+public class CryptographyUtility : ICryptographyUtility
 {
-	public class CryptographyUtility : ICryptographyUtility
+	private const string Hash = "b415407e-3f08-43be-8130-46f8146467f7";
+
+	public string Encrypt(string input)
 	{
-		private const string Hash = "b415407e-3f08-43be-8130-46f8146467f7";
+		var data = Encoding.UTF8.GetBytes(input);
+			
+		using var md5 = MD5.Create();
+		var keys = md5.ComputeHash(Encoding.UTF8.GetBytes(Hash));
 
-		public string Encrypt(string input)
-		{
-			var data = Encoding.UTF8.GetBytes(input);
+		using var tripleDes = TripleDES.Create();
+		tripleDes.Key = keys;
+		tripleDes.Mode = CipherMode.ECB;
+		tripleDes.Padding = PaddingMode.PKCS7;
+			
+		var transform = tripleDes.CreateEncryptor();
+		var results = transform.TransformFinalBlock(data, 0, data.Length);
 
-			using (var md5 = new MD5CryptoServiceProvider())
-			{
-				var keys = md5.ComputeHash(Encoding.UTF8.GetBytes(Hash));
+		return Convert.ToBase64String(results, 0, results.Length);
+	}
 
-				using (var tripleDes = new TripleDESCryptoServiceProvider {Key = keys, Mode = CipherMode.ECB, Padding = PaddingMode.PKCS7})
-				{
-					var transform = tripleDes.CreateEncryptor();
-					var results = transform.TransformFinalBlock(data, 0, data.Length);
+	public string Decrypt(string input)
+	{
+		var data = Convert.FromBase64String(input);
 
-					return Convert.ToBase64String(results, 0, results.Length);
-				}
-			}
-		}
+		using var md5 = MD5.Create();
+		var keys = md5.ComputeHash(Encoding.UTF8.GetBytes(Hash));
 
-		public string Decrypt(string input)
-		{
-			var data = Convert.FromBase64String(input);
+		using var tripleDes = TripleDES.Create();
+		tripleDes.Key = keys;
+		tripleDes.Mode = CipherMode.ECB;
+		tripleDes.Padding = PaddingMode.PKCS7;
 
-			using (var md5 = new MD5CryptoServiceProvider())
-			{
-				var keys = md5.ComputeHash(Encoding.UTF8.GetBytes(Hash));
+		var transform = tripleDes.CreateDecryptor();
+		var results = transform.TransformFinalBlock(data, 0, data.Length);
 
-				using (var tripDes = new TripleDESCryptoServiceProvider { Key = keys, Mode = CipherMode.ECB, Padding = PaddingMode.PKCS7 })
-				{
-					var transform = tripDes.CreateDecryptor();
-					var results = transform.TransformFinalBlock(data, 0, data.Length);
-
-					return Encoding.UTF8.GetString(results);
-				}
-			}
-		}
+		return Encoding.UTF8.GetString(results);
 	}
 }

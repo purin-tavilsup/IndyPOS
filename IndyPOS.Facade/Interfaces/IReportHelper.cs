@@ -1,32 +1,31 @@
 ﻿using IndyPOS.Common.Enums;
 using IndyPOS.Facade.Models.Report;
 
-namespace IndyPOS.Facade.Interfaces
+namespace IndyPOS.Facade.Interfaces;
+
+public interface IReportHelper
 {
-	public interface IReportHelper
-	{
-		Task<SalesReport> GetSalesReportAsync();
+	Task<SalesReport> GetSalesReportAsync();
 
-		Task<PaymentsReport> GetPaymentsReportAsync();
+	Task<PaymentsReport> GetPaymentsReportAsync();
 
-		ArReport GetArReport();
+	ArReport GetArReport();
 
-		IEnumerable<IFinalInvoice> GetInvoicesByPeriod(TimePeriod period);
+	IEnumerable<IFinalInvoice> GetInvoicesByPeriod(TimePeriod period);
 
-		IEnumerable<IFinalInvoice> GetInvoicesByDateRange(DateTime startDate, DateTime endDate);
+	IEnumerable<IFinalInvoice> GetInvoicesByDateRange(DateTime startDate, DateTime endDate);
 
-		IEnumerable<IFinalInvoiceProduct> GetInvoiceProductsByDate(DateTime date);
+	IEnumerable<IFinalInvoiceProduct> GetInvoiceProductsByDate(DateTime date);
 
-		IEnumerable<IFinalInvoiceProduct> GetInvoiceProductsByDateRange(DateTime startDate, DateTime endDate);
+	IEnumerable<IFinalInvoiceProduct> GetInvoiceProductsByDateRange(DateTime startDate, DateTime endDate);
 
-		IEnumerable<IFinalInvoiceProduct> GetInvoiceProductsByInvoiceId(int invoiceId);
+	IEnumerable<IFinalInvoiceProduct> GetInvoiceProductsByInvoiceId(int invoiceId);
 
-		IEnumerable<IFinalInvoicePayment> GetPaymentsByInvoiceId(int invoiceId);
+	IEnumerable<IFinalInvoicePayment> GetPaymentsByInvoiceId(int invoiceId);
 
-		SalesSummary CreateSalesSummary(IInvoiceInfo invoiceInfo);
+	SalesSummary CreateSalesSummary(IInvoiceInfo invoiceInfo);
 
-		PaymentsSummary CreatePaymentsSummary(IInvoiceInfo invoiceInfo);
+	PaymentsSummary CreatePaymentsSummary(IInvoiceInfo invoiceInfo);
 
-		Task UpdateReportAsync(IInvoiceInfo invoiceInfo);
-	}
+	Task UpdateReportAsync(IInvoiceInfo invoiceInfo);
 }

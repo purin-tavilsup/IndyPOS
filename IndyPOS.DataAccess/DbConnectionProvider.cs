@@ -3,34 +3,33 @@ using IndyPOS.DataAccess.Interfaces;
 using System.Data;
 using System.Data.SQLite;
 
-namespace IndyPOS.DataAccess
+namespace IndyPOS.DataAccess;
+
+public class DbConnectionProvider : IDbConnectionProvider
 {
-	public class DbConnectionProvider : IDbConnectionProvider
+	private readonly string _databasePath;
+
+	public DbConnectionProvider(IConfig config)
 	{
-		private readonly string _databasePath;
+		_databasePath = config.DatabasePath;
+	}
 
-		public DbConnectionProvider(IConfig config)
-		{
-			_databasePath = config.DatabasePath;
-		}
+	public IDbConnection GetDbConnection()
+	{
+		if (!File.Exists(_databasePath))
+			throw new FileNotFoundException("Database file could not be found.");
 
-		public IDbConnection GetDbConnection()
-		{
-			if (!File.Exists(_databasePath))
-				throw new FileNotFoundException("Database file could not be found.");
+		return new SQLiteConnection($"Data Source={_databasePath};Version=3;");
+	}
 
-			return new SQLiteConnection($"Data Source={_databasePath};Version=3;");
-		}
+	public void BackupDatabase(string backupDatabaseDirectory)
+	{
+		var backupDbPath = $"{backupDatabaseDirectory}\\Store.db";
+		var dbConnection = GetDbConnection();
 
-		public void BackupDatabase(string backupDatabaseDirectory)
-		{
-			var backupDbPath = $"{backupDatabaseDirectory}\\Store.db";
-			var dbConnection = GetDbConnection();
+		if (dbConnection.State != ConnectionState.Closed)
+			dbConnection.Close();
 
-			if (dbConnection.State != ConnectionState.Closed)
-				dbConnection.Close();
-
-			File.Copy(_databasePath, backupDbPath, true);
-		}
+		File.Copy(_databasePath, backupDbPath, true);
 	}
 }

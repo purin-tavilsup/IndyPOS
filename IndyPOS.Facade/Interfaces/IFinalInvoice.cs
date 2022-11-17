@@ -1,15 +1,14 @@
-﻿namespace IndyPOS.Facade.Interfaces
+﻿namespace IndyPOS.Facade.Interfaces;
+
+public interface IFinalInvoice
 {
-    public interface IFinalInvoice
-    {
-		int InvoiceId { get; }
+	int InvoiceId { get; }
 
-		decimal Total { get; }
+	decimal Total { get; }
 
-		int? CustomerId { get; }
+	int? CustomerId { get; }
 
-		int UserId { get; }
+	int UserId { get; }
 
-		string DateCreated { get; }
-    }
+	string DateCreated { get; }
 }

@@ -1,9 +1,8 @@
-﻿namespace IndyPOS.Facade.Interfaces
-{
-	public interface IBarcodeScannerHelper : IDisposable
-	{
-		void Connect();
+﻿namespace IndyPOS.Facade.Interfaces;
 
-		void Disconnect();
-	}
+public interface IBarcodeScannerHelper : IDisposable
+{
+	void Connect();
+
+	void Disconnect();
 }

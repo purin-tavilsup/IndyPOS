@@ -1,8 +1,7 @@
-﻿namespace IndyPOS.Common.Enums
+﻿namespace IndyPOS.Common.Enums;
+
+public enum ProductCategory
 {
-    public enum ProductCategory
-    {
-        GeneralGoods = 10,
-        Hardware = 50
-    }
+	GeneralGoods = 10,
+	Hardware = 50
 }

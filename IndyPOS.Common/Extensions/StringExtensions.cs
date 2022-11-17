@@ -1,10 +1,9 @@
-﻿namespace IndyPOS.Common.Extensions
+﻿namespace IndyPOS.Common.Extensions;
+
+public static class StringExtensions
 {
-    public static class StringExtensions
-    {
-        public static bool HasValue(this string value)
-        {
-            return !string.IsNullOrWhiteSpace(value);
-        }
-    }
+	public static bool HasValue(this string value)
+	{
+		return !string.IsNullOrWhiteSpace(value);
+	}
 }

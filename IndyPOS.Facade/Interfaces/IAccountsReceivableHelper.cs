@@ -1,15 +1,14 @@
-﻿namespace IndyPOS.Facade.Interfaces
+﻿namespace IndyPOS.Facade.Interfaces;
+
+public interface IAccountsReceivableHelper
 {
-	public interface IAccountsReceivableHelper
-	{
-		IList<IAccountsReceivable> GetAccountsReceivables();
+	IList<IAccountsReceivable> GetAccountsReceivables();
 
-		IAccountsReceivable GetAccountsReceivableByInvoiceId(int invoiceId);
+	IAccountsReceivable GetAccountsReceivableByInvoiceId(int invoiceId);
 
-		IEnumerable<IAccountsReceivable> GetAccountsReceivablesByDateRange(DateTime startDate, DateTime endDate);
+	IEnumerable<IAccountsReceivable> GetAccountsReceivablesByDateRange(DateTime startDate, DateTime endDate);
 
-		void UpdateAccountsReceivable(IAccountsReceivable accountsReceivable);
+	void UpdateAccountsReceivable(IAccountsReceivable accountsReceivable);
 
-		void ConvertPaymentsToAccountsReceivables();
-	}
+	void ConvertPaymentsToAccountsReceivables();
 }

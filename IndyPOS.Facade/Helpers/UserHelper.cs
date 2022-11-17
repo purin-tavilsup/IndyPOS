@@ -4,140 +4,139 @@ using IndyPOS.Facade.Events;
 using IndyPOS.Facade.Interfaces;
 using Prism.Events;
 
-namespace IndyPOS.Facade.Helpers
+namespace IndyPOS.Facade.Helpers;
+
+public class UserHelper : IUserHelper
 {
-	public class UserHelper : IUserHelper
+	private readonly IUserRepository _userRepository;
+	private readonly IEventAggregator _eventAggregator;
+
+	public UserHelper(IEventAggregator eventAggregator, IUserRepository userRepository)
 	{
-		private readonly IUserRepository _userRepository;
-		private readonly IEventAggregator _eventAggregator;
+		_eventAggregator = eventAggregator;
+		_userRepository = userRepository;
+	}
 
-		public UserHelper(IEventAggregator eventAggregator, IUserRepository userRepository)
+	public IUserAccount? LoggedInUser { get; private set; }
+
+	public bool IsLoggedIn => LoggedInUser != null;
+
+	public bool LogIn(string username, string password)
+	{
+		try
 		{
-			_eventAggregator = eventAggregator;
-			_userRepository = userRepository;
-		}
+			var userCredential = GetUserCredentialByUserName(username);
 
-		public IUserAccount LoggedInUser { get; private set; }
-
-		public bool IsLoggedIn => LoggedInUser != null;
-
-		public bool LogIn(string username, string password)
-		{
-			try
-			{
-				var userCredential = GetUserCredentialByUserName(username);
-
-				if (userCredential == null || userCredential.Password != password)
-					return false;
-
-				var user = GetUserById(userCredential.UserId);
-
-				if (user == null)
-					return false;
-
-				LoggedInUser = user;
-
-				_eventAggregator.GetEvent<UserLoggedInEvent>().Publish(LoggedInUser);
-
-				return true;
-			}
-			catch
-			{
+			if (userCredential == null || userCredential.Password != password)
 				return false;
-			}
-		}
 
-		public void LogOut()
+			var user = GetUserById(userCredential.UserId);
+
+			if (user == null)
+				return false;
+
+			LoggedInUser = user;
+
+			_eventAggregator.GetEvent<UserLoggedInEvent>().Publish(LoggedInUser);
+
+			return true;
+		}
+		catch
 		{
-			LoggedInUser = null;
-
-			_eventAggregator.GetEvent<UserLoggedOutEvent>().Publish();
+			return false;
 		}
+	}
 
-		public void AddNewUser(IUserAccount user, string username, string password)
-        {
-			var userId = AddNewUserInternal(user);
+	public void LogOut()
+	{
+		LoggedInUser = null;
 
-			AddNewUserCredentialById(userId, username, password);
+		_eventAggregator.GetEvent<UserLoggedOutEvent>().Publish();
+	}
 
-			_eventAggregator.GetEvent<UserAddedEvent>().Publish();
-		}
+	public void AddNewUser(IUserAccount user, string username, string password)
+	{
+		var userId = AddNewUserInternal(user);
 
-		private int AddNewUserInternal(IUserAccount user)
-        {
-			var userModel = new DataAccess.Models.UserAccount
-			{
-				FirstName = user.FirstName,
-				LastName = user.LastName,
-				RoleId = user.RoleId
-			};
+		AddNewUserCredentialById(userId, username, password);
 
-			return _userRepository.CreateUser(userModel);
-		}
+		_eventAggregator.GetEvent<UserAddedEvent>().Publish();
+	}
 
-		private void AddNewUserCredentialById(int id, string username, string password)
-        {
-			_userRepository.CreateUserCredential(id, username, password);
-		}
-
-		public IEnumerable<IUserAccount> GetUsers()
+	private int AddNewUserInternal(IUserAccount user)
+	{
+		var userModel = new DataAccess.Models.UserAccount
 		{
-			var results = _userRepository.GetUsers();
+			FirstName = user.FirstName,
+			LastName = user.LastName,
+			RoleId = user.RoleId
+		};
 
-			return results.Select(p => new UserAccountAdapter(p) as IUserAccount).ToList();
-		}
+		return _userRepository.CreateUser(userModel);
+	}
 
-		public IUserAccount GetUserById(int id)
-        {
-			var result = _userRepository.GetUserById(id);
+	private void AddNewUserCredentialById(int id, string username, string password)
+	{
+		_userRepository.CreateUserCredential(id, username, password);
+	}
 
-			return new UserAccountAdapter(result);
-        }
+	public IEnumerable<IUserAccount> GetUsers()
+	{
+		var results = _userRepository.GetUsers();
 
-		public void UpdateUser(IUserAccount user)
-        {
-			var userModel = new DataAccess.Models.UserAccount
-            {
-				UserId = user.UserId,
-				FirstName = user.FirstName,
-				LastName = user.LastName
-            };
+		return results.Select(p => new UserAccountAdapter(p) as IUserAccount).ToList();
+	}
 
-			_userRepository.UpdateUser(userModel);
-		}
+	public IUserAccount GetUserById(int id)
+	{
+		var result = _userRepository.GetUserById(id);
 
-		public void RemoveUserById(int id)
-        {
-			try
-			{
-				_userRepository.RemoveUserCredentialById(id);
-				_userRepository.RemoveUserById(id);
+		return new UserAccountAdapter(result);
+	}
 
-				_eventAggregator.GetEvent<UserRemovedEvent>().Publish();
-			}
-			catch (Exception ex)
-			{
-				throw new Exception($"Error occurred while trying to delete the user. {ex.Message}", ex);
-			}
-        }
-
-		public void UpdateUserCredentialById(int userId, string password)
+	public void UpdateUser(IUserAccount user)
+	{
+		var userModel = new DataAccess.Models.UserAccount
 		{
-			_userRepository.UpdateUserCredentialById(userId, password);
-		}
+			UserId = user.UserId,
+			FirstName = user.FirstName,
+			LastName = user.LastName
+		};
 
-		public IUserCredential GetUserCredentialById(int id)
+		_userRepository.UpdateUser(userModel);
+	}
+
+	public void RemoveUserById(int id)
+	{
+		try
 		{
-			var result = _userRepository.GetUserCredentialById(id);
+			_userRepository.RemoveUserCredentialById(id);
+			_userRepository.RemoveUserById(id);
 
-			return new UserCredentialAdapter(result);
+			_eventAggregator.GetEvent<UserRemovedEvent>().Publish();
 		}
-
-		private IUserCredential GetUserCredentialByUserName(string username)
+		catch (Exception ex)
 		{
-			var result = _userRepository.GetUserCredentialByUsername(username);
-
-			return new UserCredentialAdapter(result);
+			throw new Exception($"Error occurred while trying to delete the user. {ex.Message}", ex);
 		}
+	}
+
+	public void UpdateUserCredentialById(int userId, string password)
+	{
+		_userRepository.UpdateUserCredentialById(userId, password);
+	}
+
+	public IUserCredential GetUserCredentialById(int id)
+	{
+		var result = _userRepository.GetUserCredentialById(id);
+
+		return new UserCredentialAdapter(result);
+	}
+
+	private IUserCredential GetUserCredentialByUserName(string username)
+	{
+		var result = _userRepository.GetUserCredentialByUsername(username);
+
+		return new UserCredentialAdapter(result);
 	}
 }

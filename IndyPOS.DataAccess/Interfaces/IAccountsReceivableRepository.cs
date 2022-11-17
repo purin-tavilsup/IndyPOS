@@ -1,21 +1,20 @@
 ﻿using IndyPOS.DataAccess.Models;
 
-namespace IndyPOS.DataAccess.Interfaces
+namespace IndyPOS.DataAccess.Interfaces;
+
+public interface IAccountsReceivableRepository
 {
-	public interface IAccountsReceivableRepository
-	{
-		int AddAccountsReceivable(AccountsReceivable accountsReceivable);
+	int AddAccountsReceivable(AccountsReceivable accountsReceivable);
 
-		void UpdateAccountsReceivable(AccountsReceivable accountsReceivable);
+	void UpdateAccountsReceivable(AccountsReceivable accountsReceivable);
 
-		IEnumerable<AccountsReceivable> GetAccountsReceivables();
+	IEnumerable<AccountsReceivable> GetAccountsReceivables();
 
-		IEnumerable<AccountsReceivable> GetIncompleteAccountsReceivables();
+	IEnumerable<AccountsReceivable> GetIncompleteAccountsReceivables();
 
-		AccountsReceivable GetAccountsReceivableByInvoiceId(int invoiceId);
+	AccountsReceivable? GetAccountsReceivableByInvoiceId(int invoiceId);
 
-		IEnumerable<AccountsReceivable> GetAccountsReceivablesByDateRange(DateTime start, DateTime end);
+	IEnumerable<AccountsReceivable> GetAccountsReceivablesByDateRange(DateTime start, DateTime end);
 
-		void ConvertPaymentToAccountsReceivable(Payment payment);
-	}
+	void ConvertPaymentToAccountsReceivable(Payment payment);
 }

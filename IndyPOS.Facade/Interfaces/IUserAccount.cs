@@ -1,12 +1,11 @@
-﻿namespace IndyPOS.Facade.Interfaces
+﻿namespace IndyPOS.Facade.Interfaces;
+
+public interface IUserAccount
 {
-	public interface IUserAccount
-	{
-		int UserId { get; }
-		string FirstName { get; }
-		string LastName { get;}
-		int RoleId { get; }
-		string DateCreated { get; }
-		string DateUpdated { get; }
-	}
+	int UserId { get; }
+	string FirstName { get; }
+	string LastName { get;}
+	int RoleId { get; }
+	string DateCreated { get; }
+	string DateUpdated { get; }
 }

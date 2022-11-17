@@ -1,21 +1,20 @@
-﻿namespace IndyPOS.Facade.Interfaces
+﻿namespace IndyPOS.Facade.Interfaces;
+
+public interface IAccountsReceivable
 {
-    public interface IAccountsReceivable
-    {
-		int PaymentId { get; }
+	int PaymentId { get; }
 
-		string Description { get; }
+	string Description { get; }
 
-		int InvoiceId { get; }
+	int InvoiceId { get; }
 
-		decimal ReceivableAmount { get; }
+	decimal ReceivableAmount { get; }
 
-		decimal PaidAmount { get; set; }
+	decimal PaidAmount { get; set; }
 
-		bool IsCompleted { get; set; }
+	bool IsCompleted { get; set; }
 
-		string DateCreated { get; }
+	string DateCreated { get; }
 
-		string DateUpdated { get; }
-	}
+	string DateUpdated { get; }
 }

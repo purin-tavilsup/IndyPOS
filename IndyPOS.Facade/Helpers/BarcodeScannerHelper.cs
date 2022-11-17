@@ -1,79 +1,81 @@
-﻿using IndyPOS.Common.Interfaces;
+﻿#nullable enable
+using IndyPOS.Common.Interfaces;
 using IndyPOS.Facade.Events;
 using IndyPOS.Facade.Interfaces;
 using Prism.Events;
 using Serilog;
 using System.IO.Ports;
 
-namespace IndyPOS.Facade.Helpers
+namespace IndyPOS.Facade.Helpers;
+
+public class BarcodeScannerHelper : IBarcodeScannerHelper
 {
-	public class BarcodeScannerHelper : IBarcodeScannerHelper
-    {
-        private readonly IEventAggregator _eventAggregator;
-		private readonly IConfig _config;
-		private readonly ILogger _logger;
+	private readonly IEventAggregator _eventAggregator;
+	private readonly IConfig _config;
+	private readonly ILogger _logger;
+	private SerialPort? _serialPort;
+		
+	public BarcodeScannerHelper(IEventAggregator eventAggregator, 
+								IConfig config, 
+								ILogger logger)
+	{
+		_eventAggregator = eventAggregator;
+		_config = config;
+		_logger = logger;
+	}
 
-        private SerialPort _serialPort;
-
-        public BarcodeScannerHelper(IEventAggregator eventAggregator, 
-									IConfig config, 
-									ILogger logger)
+	public void Connect()
+	{
+		try
 		{
-            _eventAggregator = eventAggregator;
-			_config = config;
-			_logger = logger;
-		}
-
-        public void Connect()
-		{
-            try
+			_serialPort = new SerialPort
 			{
-				_serialPort = new SerialPort
-				{
-					PortName = _config.BarcodeScannerPortName,
-					BaudRate = 115200,
-					DataBits = 8,
-					StopBits = StopBits.One,
-					Parity = Parity.None
-				};
+				PortName = _config.BarcodeScannerPortName,
+				BaudRate = 115200,
+				DataBits = 8,
+				StopBits = StopBits.One,
+				Parity = Parity.None
+			};
 
-				_serialPort.Open();
-				_serialPort.DataReceived += SerialPort_DataReceived;
-			}
-			catch (Exception ex)
-			{
-				_logger.Error(ex, $"Failed to connect to Barcode Scanner on port {_serialPort.PortName}.");
-			}
+			_serialPort.Open();
+			_serialPort.DataReceived += SerialPort_DataReceived;
 		}
-
-		private void SerialPort_DataReceived(object sender, SerialDataReceivedEventArgs e)
+		catch (Exception ex)
 		{
-			var data = _serialPort.ReadTo("\r");
-
-			_eventAggregator.GetEvent<BarcodeReceivedEvent>().Publish(data);
+			_logger.Error(ex, $"Failed to connect to Barcode Scanner on port {_serialPort?.PortName}.");
 		}
+	}
 
-		public void Disconnect()
+	private void SerialPort_DataReceived(object sender, SerialDataReceivedEventArgs e)
+	{
+		if (_serialPort is null)
+			return;
+
+		var data = _serialPort.ReadTo("\r");
+
+		_eventAggregator.GetEvent<BarcodeReceivedEvent>().Publish(data);
+	}
+
+	public void Disconnect()
+	{
+		if (_serialPort is null)
+			return;
+
+		try
 		{
-			if (_serialPort == null)
-				return;
+			_serialPort.DataReceived -= SerialPort_DataReceived;
 
-			try
-			{
-				_serialPort.DataReceived -= SerialPort_DataReceived;
-
-				if (_serialPort.IsOpen)
-					_serialPort.Close();
-			}
-			catch (Exception ex)
-			{
-				_logger.Error(ex, $"Failed to disconnect Barcode Scanner on port {_serialPort.PortName}.");
-			}
+			if (_serialPort.IsOpen)
+				_serialPort.Close();
 		}
-
-		public void Dispose()
+		catch (Exception ex)
 		{
-			Disconnect();
+			_logger.Error(ex, $"Failed to disconnect Barcode Scanner on port {_serialPort.PortName}.");
 		}
+	}
+
+	public void Dispose()
+	{
+		Disconnect();
 	}
 }

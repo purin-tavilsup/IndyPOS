@@ -1,13 +1,12 @@
 ﻿using IndyPOS.DataAccess.Models;
 
-namespace IndyPOS.DataAccess.Interfaces
+namespace IndyPOS.DataAccess.Interfaces;
+
+public interface IStoreConstantRepository
 {
-    public interface IStoreConstantRepository
-    {
-        IList<UserRole> GetUserRoles();
+	IList<UserRole> GetUserRoles();
 
-        IList<PaymentType> GetPaymentTypes();
+	IList<PaymentType> GetPaymentTypes();
 
-        IList<ProductCategory> GetProductCategories();
-    }
+	IList<ProductCategory> GetProductCategories();
 }

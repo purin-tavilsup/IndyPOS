@@ -1,14 +1,13 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 
-namespace IndyPOS.Facade.Models.Report
+namespace IndyPOS.Facade.Models.Report;
+
+[ExcludeFromCodeCoverage]
+public class SalesReport
 {
-    [ExcludeFromCodeCoverage]
-    public class SalesReport
-    {
-		public string Id { get; set; }
-		public SalesSummary DaySummary { get; set; }
-		public SalesSummary MonthSummary { get; set; }
-		public SalesSummary YearSummary { get; set; }
-        public DateTime LastUpdateDateTime { get; set; }
-    }
+	public string Id { get; set; }
+	public SalesSummary DaySummary { get; set; }
+	public SalesSummary MonthSummary { get; set; }
+	public SalesSummary YearSummary { get; set; }
+	public DateTime LastUpdateDateTime { get; set; }
 }

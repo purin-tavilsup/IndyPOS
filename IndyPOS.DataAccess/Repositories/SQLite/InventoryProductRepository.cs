@@ -1,86 +1,89 @@
-﻿using Dapper;
+﻿#nullable enable
+using Dapper;
+using IndyPOS.Common.Exceptions;
 using IndyPOS.Common.Extensions;
 using IndyPOS.DataAccess.Interfaces;
 using IndyPOS.DataAccess.Models;
 
-namespace IndyPOS.DataAccess.Repositories.SQLite
+namespace IndyPOS.DataAccess.Repositories.SQLite;
+
+public class InventoryProductRepository : IInventoryProductRepository
 {
-    public class InventoryProductRepository : IInventoryProductRepository
-    {
-        private readonly IDbConnectionProvider _dbConnectionProvider;
+	private readonly IDbConnectionProvider _dbConnectionProvider;
 
-        public InventoryProductRepository(IDbConnectionProvider dbConnectionProvider)
-        {
-            _dbConnectionProvider = dbConnectionProvider;
-        }
+	public InventoryProductRepository(IDbConnectionProvider dbConnectionProvider)
+	{
+		_dbConnectionProvider = dbConnectionProvider;
+	}
 
-        public InventoryProduct GetProductByBarcode(string barcode)
-        {
-            using (var connection = _dbConnectionProvider.GetDbConnection())
-            {
-                connection.Open();
+	public InventoryProduct GetProductByBarcode(string barcode)
+	{
+		using var connection = _dbConnectionProvider.GetDbConnection();
+		connection.Open();
 
-                const string sqlCommand = @"SELECT * FROM InventoryProducts 
+		const string sqlCommand = @"SELECT * FROM InventoryProducts 
                 WHERE Barcode = @productBarcode";
 
-                var sqlParameters = new
-                {
-                    productBarcode = barcode
-                };
+		var sqlParameters = new
+		{
+			productBarcode = barcode
+		};
 
-                var results = connection.Query(sqlCommand, sqlParameters);
+		var results = connection.Query(sqlCommand, sqlParameters);
+		var product = MapInventoryProducts(results).FirstOrDefault();
 
-                return MapInventoryProducts(results).FirstOrDefault();
-            }
-        }
+		if (product == null)
+			throw new ProductNotFoundException($"Product with barcode {barcode} is not found.");
 
-        public IList<InventoryProduct> GetProductsByCategoryId(int id)
-        {
-            using (var connection = _dbConnectionProvider.GetDbConnection())
-            {
-                connection.Open();
+		return product;
+	}
 
-                const string sqlCommand = @"SELECT * FROM InventoryProducts 
+	public IList<InventoryProduct> GetProductsByCategoryId(int id)
+	{
+		using var connection = _dbConnectionProvider.GetDbConnection();
+		connection.Open();
+
+		const string sqlCommand = @"SELECT * FROM InventoryProducts 
                 WHERE Category = @category";
 
-                var sqlParameters = new
-                {
-                    category = id
-                };
+		var sqlParameters = new
+		{
+			category = id
+		};
 
-                var results = connection.Query(sqlCommand, sqlParameters);
+		var results = connection.Query(sqlCommand, sqlParameters);
 
-                return MapInventoryProducts(results);
-            }
-        }
+		return MapInventoryProducts(results).ToList();
+	}
 
-        public InventoryProduct GetProductById(int id)
-        {
-            using (var connection = _dbConnectionProvider.GetDbConnection())
-            {
-                connection.Open();
+	public InventoryProduct GetProductById(int id)
+	{
+		using var connection = _dbConnectionProvider.GetDbConnection();
+		connection.Open();
 
-                const string sqlCommand = @"SELECT * FROM InventoryProducts 
+		const string sqlCommand = @"SELECT * FROM InventoryProducts 
                 WHERE InventoryProductId = @inventoryProductId";
 
-                var sqlParameters = new
-                {
-                    inventoryProductId = id
-                };
+		var sqlParameters = new
+		{
+			inventoryProductId = id
+		};
 
-                var results = connection.Query(sqlCommand, sqlParameters);
+		var results = connection.Query(sqlCommand, sqlParameters);
+		var product = MapInventoryProducts(results).FirstOrDefault();
 
-                return MapInventoryProducts(results).FirstOrDefault();
-            }
-        }
+		if (product == null)
+			throw new ProductNotFoundException($"Product with Id {id} is not found.");
 
-        public int AddProduct(InventoryProduct product)
-        {
-            using (var connection = _dbConnectionProvider.GetDbConnection())
-            {
-                connection.Open();
+		return product;
+	}
 
-                const string sqlCommand = @"INSERT INTO InventoryProducts
+	public int AddProduct(InventoryProduct product)
+	{
+		using var connection = _dbConnectionProvider.GetDbConnection();
+		connection.Open();
+
+		const string sqlCommand = @"INSERT INTO InventoryProducts
                 (
                     Barcode,
                     Description,
@@ -110,35 +113,33 @@ namespace IndyPOS.DataAccess.Repositories.SQLite
                 );
                 SELECT last_insert_rowid()";
 
-				var sqlParameters = new
-				{
-					product.Barcode,
-					product.Description,
-					product.Manufacturer,
-					product.Brand,
-					product.Category,
-                    UnitPrice = MapMoneyToString(product.UnitPrice),
-					product.QuantityInStock,
-                    GroupPrice = MapMoneyToString(product.GroupPrice),
-                    product.GroupPriceQuantity,
-					IsTrackable = product.IsTrackable ? 1 : 0
-                };
+		var sqlParameters = new
+		{
+			product.Barcode,
+			product.Description,
+			product.Manufacturer,
+			product.Brand,
+			product.Category,
+			UnitPrice = MapMoneyToString(product.UnitPrice),
+			product.QuantityInStock,
+			GroupPrice = MapMoneyToString(product.GroupPrice),
+			product.GroupPriceQuantity,
+			IsTrackable = product.IsTrackable ? 1 : 0
+		};
 
-                var inventoryProductId = connection.Query<int>(sqlCommand, sqlParameters).FirstOrDefault();
+		var inventoryProductId = connection.Query<int>(sqlCommand, sqlParameters).FirstOrDefault();
 
-                if (inventoryProductId < 1) throw new Exception("Failed to get the last insert Row ID after adding a product.");
+		if (inventoryProductId < 1) throw new Exception("Failed to get the last insert Row ID after adding a product.");
 
-                return inventoryProductId;
-            }
-        }
+		return inventoryProductId;
+	}
 
-        public void UpdateProduct(InventoryProduct product)
-        {
-            using (var connection = _dbConnectionProvider.GetDbConnection())
-            {
-                connection.Open();
+	public void UpdateProduct(InventoryProduct product)
+	{
+		using var connection = _dbConnectionProvider.GetDbConnection();
+		connection.Open();
 
-                const string sqlCommand = @"UPDATE InventoryProducts
+		const string sqlCommand = @"UPDATE InventoryProducts
                 SET
                     Description = @Description,
                     Manufacturer = @Manufacturer,
@@ -151,183 +152,176 @@ namespace IndyPOS.DataAccess.Repositories.SQLite
                     DateUpdated = datetime('now','localtime')
                 WHERE InventoryProductId = @InventoryProductId";
 
-                var sqlParameters = new
-                {
-                    product.InventoryProductId,
-                    product.Description,
-                    product.Manufacturer,
-                    product.Brand,
-                    product.Category,
-                    UnitPrice = MapMoneyToString(product.UnitPrice),
-                    product.QuantityInStock,
-                    GroupPrice = MapMoneyToString(product.GroupPrice),
-                    product.GroupPriceQuantity
-                };
-
-                var affectedRowsCount = connection.Execute(sqlCommand, sqlParameters);
-
-                if (affectedRowsCount != 1)
-                    throw new Exception("Failed to update the product.");
-            }
-        }
-
-		public void UpdateProductQuantityById(int id, int quantity)
+		var sqlParameters = new
 		{
-			using (var connection = _dbConnectionProvider.GetDbConnection())
-			{
-				connection.Open();
+			product.InventoryProductId,
+			product.Description,
+			product.Manufacturer,
+			product.Brand,
+			product.Category,
+			UnitPrice = MapMoneyToString(product.UnitPrice),
+			product.QuantityInStock,
+			GroupPrice = MapMoneyToString(product.GroupPrice),
+			product.GroupPriceQuantity
+		};
 
-				const string sqlCommand = @"UPDATE InventoryProducts
+		var affectedRowsCount = connection.Execute(sqlCommand, sqlParameters);
+
+		if (affectedRowsCount != 1)
+			throw new Exception("Failed to update the product.");
+	}
+
+	public void UpdateProductQuantityById(int id, int quantity)
+	{
+		using var connection = _dbConnectionProvider.GetDbConnection();
+		connection.Open();
+
+		const string sqlCommand = @"UPDATE InventoryProducts
                 SET
                     QuantityInStock = @QuantityInStock
                 WHERE InventoryProductId = @InventoryProductId";
 
-				var sqlParameters = new
-									{
-										InventoryProductId = id,
-										QuantityInStock = quantity
-									};
+		var sqlParameters = new
+		{
+			InventoryProductId = id,
+			QuantityInStock = quantity
+		};
 
-				var affectedRowsCount = connection.Execute(sqlCommand, sqlParameters);
+		var affectedRowsCount = connection.Execute(sqlCommand, sqlParameters);
 
-				if (affectedRowsCount != 1)
-					throw new Exception("Failed to update product's quantity.");
-			}
-		}
+		if (affectedRowsCount != 1)
+			throw new Exception("Failed to update product's quantity.");
+	}
 
-        public void RemoveProduct(InventoryProduct product)
-        {
-            RemoveProductById(product.InventoryProductId);
-        }
+	public void RemoveProduct(InventoryProduct product)
+	{
+		RemoveProductById(product.InventoryProductId);
+	}
 
-        public void RemoveProductById(int id)
-        {
-            using (var connection = _dbConnectionProvider.GetDbConnection())
-            {
-                connection.Open();
+	public void RemoveProductById(int id)
+	{
+		using var connection = _dbConnectionProvider.GetDbConnection();
+		connection.Open();
 
-                const string sqlCommand = @"DELETE FROM InventoryProducts
+		const string sqlCommand = @"DELETE FROM InventoryProducts
                 WHERE InventoryProductId = @InventoryProductId";
 
-                var sqlParameters = new
-                {
-                    InventoryProductId = id
-                };
-
-                var affectedRowsCount = connection.Execute(sqlCommand, sqlParameters);
-
-                if (affectedRowsCount != 1)
-                    throw new Exception("Failed to delete the product.");
-            }
-        }
-
-		public int GetProductBarcodeCounter()
+		var sqlParameters = new
 		{
-			using (var connection = _dbConnectionProvider.GetDbConnection())
-			{
-				connection.Open();
+			InventoryProductId = id
+		};
 
-				const string sqlCommand = @"SELECT * FROM ProductBarcodeCounter 
+		var affectedRowsCount = connection.Execute(sqlCommand, sqlParameters);
+
+		if (affectedRowsCount != 1)
+			throw new Exception("Failed to delete the product.");
+	}
+
+	public int GetProductBarcodeCounter()
+	{
+		using var connection = _dbConnectionProvider.GetDbConnection();
+		connection.Open();
+
+		const string sqlCommand = @"SELECT * FROM ProductBarcodeCounter 
                 WHERE Id = @Id";
 
-				var sqlParameters = new
-									{
-										Id = 1
-									};
+		var sqlParameters = new
+		{
+			Id = 1
+		};
 
-				var results = connection.Query(sqlCommand, sqlParameters);
+		var results = connection.Query(sqlCommand, sqlParameters);
 
-				var result = results.FirstOrDefault();
+		var result = results.FirstOrDefault();
 
-				return result != null ?  (int) result.Counter : 1;
-			}
-		}
+		return result != null ?  (int) result.Counter : 1;
+	}
 
-        public void UpdateProductBarcodeCounter(int counter)
-        {
-			using (var connection = _dbConnectionProvider.GetDbConnection())
-			{
-				connection.Open();
+	public void UpdateProductBarcodeCounter(int counter)
+	{
+		using var connection = _dbConnectionProvider.GetDbConnection();
+		connection.Open();
 
-				const string sqlCommand = @"UPDATE ProductBarcodeCounter
+		const string sqlCommand = @"UPDATE ProductBarcodeCounter
                 SET
                     Counter = @Counter
                 WHERE Id = @Id";
 
-				var sqlParameters = new
-									{
-										Id = 1,
-										Counter = counter
-									};
-
-				var affectedRowsCount = connection.Execute(sqlCommand, sqlParameters);
-
-				if (affectedRowsCount != 1)
-					throw new Exception("Failed to update product barcode counter.");
-			}
-        }
-
-        private IList<InventoryProduct> MapInventoryProducts(IEnumerable<dynamic> results)
+		var sqlParameters = new
 		{
-            var products = results?.Select(x => new InventoryProduct
-            {
-                InventoryProductId = (int)x.InventoryProductId,
+			Id = 1,
+			Counter = counter
+		};
 
-                Barcode = x.Barcode,
+		var affectedRowsCount = connection.Execute(sqlCommand, sqlParameters);
 
-                Description = x.Description,
+		if (affectedRowsCount != 1)
+			throw new Exception("Failed to update product barcode counter.");
+	}
 
-                Manufacturer = x.Manufacturer,
+	private IEnumerable<InventoryProduct> MapInventoryProducts(IEnumerable<dynamic>? results)
+	{
+		if (results is null)
+			return Enumerable.Empty<InventoryProduct>();
 
-                Brand = x.Brand,
-
-                Category = (int)x.Category,
-
-                UnitPrice = MapMoneyToDecimal(x.UnitPrice),
-
-                QuantityInStock = (int)x.QuantityInStock,
-
-                GroupPrice = MapMoneyToNullableDecimal(x.GroupPrice),
-
-                GroupPriceQuantity = (int?)x.GroupPriceQuantity,
-
-				IsTrackable = x.IsTrackable == 1,
-
-                DateCreated = x.DateCreated,
-
-                DateUpdated = x.DateUpdated
-            }) ?? Enumerable.Empty<InventoryProduct>();
-
-            return products.ToList();
-        }
-
-        private decimal? MapMoneyToNullableDecimal(string value)
+		var products = results.Select(x => new InventoryProduct
 		{
-            if (!value.HasValue())
-                return null;
+			InventoryProductId = (int)x.InventoryProductId,
 
-            if (decimal.TryParse(value.Trim(), out var result))
-                return result / 100m;
+			Barcode = x.Barcode,
 
-            return null;
-        }
+			Description = x.Description,
 
-        private decimal MapMoneyToDecimal(string value)
-        {
-            if (decimal.TryParse(value.Trim(), out var result))
-                return result / 100m;
+			Manufacturer = x.Manufacturer,
 
-            return 0m;
-        }
+			Brand = x.Brand,
 
-        private string MapMoneyToString(decimal? value)
-        {
-            if (!value.HasValue)
-                return null;
+			Category = (int)x.Category,
 
-            var result = Math.Round(value.GetValueOrDefault(), 2, MidpointRounding.AwayFromZero) * 100m;
+			UnitPrice = MapMoneyToDecimal(x.UnitPrice),
 
-			return $"{result}";
-        }
-    }
+			QuantityInStock = (int)x.QuantityInStock,
+
+			GroupPrice = MapMoneyToNullableDecimal(x.GroupPrice),
+
+			GroupPriceQuantity = (int?)x.GroupPriceQuantity,
+
+			IsTrackable = x.IsTrackable == 1,
+
+			DateCreated = x.DateCreated,
+
+			DateUpdated = x.DateUpdated
+		});
+
+		return products;
+	}
+
+	private decimal? MapMoneyToNullableDecimal(string value)
+	{
+		if (!value.HasValue())
+			return null;
+
+		if (decimal.TryParse(value.Trim(), out var result))
+			return result / 100m;
+
+		return null;
+	}
+
+	private decimal MapMoneyToDecimal(string value)
+	{
+		if (decimal.TryParse(value.Trim(), out var result))
+			return result / 100m;
+
+		return 0m;
+	}
+
+	private string? MapMoneyToString(decimal? value)
+	{
+		if (!value.HasValue)
+			return null;
+
+		var result = Math.Round(value.GetValueOrDefault(), 2, MidpointRounding.AwayFromZero) * 100m;
+
+		return $"{result}";
+	}
 }

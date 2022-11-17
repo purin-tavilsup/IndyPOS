@@ -1,13 +1,12 @@
-﻿namespace IndyPOS.Facade.Interfaces
+﻿namespace IndyPOS.Facade.Interfaces;
+
+public interface IPayment
 {
-	public interface IPayment
-	{
-		int PaymentTypeId { get; }
+	int PaymentTypeId { get; }
 
-		int Priority { get; }
+	int Priority { get; }
 
-		decimal Amount { get; }
+	decimal Amount { get; }
 
-		string Note { get; }
-	}
+	string Note { get; }
 }

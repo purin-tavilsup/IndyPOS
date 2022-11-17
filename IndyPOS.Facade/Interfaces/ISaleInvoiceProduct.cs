@@ -1,35 +1,34 @@
-﻿namespace IndyPOS.Facade.Interfaces
+﻿namespace IndyPOS.Facade.Interfaces;
+
+public interface ISaleInvoiceProduct
 {
-	public interface ISaleInvoiceProduct
-    {
-        int InvoiceProductId { get; set; }
+	int InvoiceProductId { get; set; }
 
-        int Priority { get; set; }
+	int Priority { get; set; }
 
-        int InvoiceId { get; set; }
+	int InvoiceId { get; set; }
 
-        int InventoryProductId { get; set; }
+	int InventoryProductId { get; set; }
 
-        string Barcode { get; set; }
+	string Barcode { get; set; }
 
-        string Description { get; set; }
+	string Description { get; set; }
 
-        string Manufacturer { get; set; }
+	string Manufacturer { get; set; }
 
-        string Brand { get; set; }
+	string Brand { get; set; }
 
-        int Category { get; set; }
+	int Category { get; set; }
 
-        decimal UnitPrice { get; set; }
+	decimal UnitPrice { get; set; }
 
-        int Quantity { get; set; }
+	int Quantity { get; set; }
 
-        decimal? GroupPrice { get; set; }
+	decimal? GroupPrice { get; set; }
 
-        int? GroupPriceQuantity { get; set; }
+	int? GroupPriceQuantity { get; set; }
 
-        bool IsTrackable { get; }
+	bool IsTrackable { get; }
 
-        string Note { get; set; }
-    }
+	string Note { get; set; }
 }

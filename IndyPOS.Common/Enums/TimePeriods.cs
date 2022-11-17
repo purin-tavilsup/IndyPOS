@@ -1,9 +1,8 @@
-﻿namespace IndyPOS.Common.Enums
+﻿namespace IndyPOS.Common.Enums;
+
+public enum TimePeriod
 {
-    public enum TimePeriod
-	{
-		Today,
-		ThisMonth,
-		ThisYear
-	}
+	Today,
+	ThisMonth,
+	ThisYear
 }
