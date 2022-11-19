@@ -1,5 +1,4 @@
 ﻿#nullable enable
-using IndyPOS.Common.Interfaces;
 using IndyPOS.Facade.Events;
 using IndyPOS.Facade.Interfaces;
 using Prism.Events;
@@ -11,16 +10,16 @@ namespace IndyPOS.Facade.Helpers;
 public class BarcodeScannerHelper : IBarcodeScannerHelper
 {
 	private readonly IEventAggregator _eventAggregator;
-	private readonly IConfig _config;
+	private readonly IStoreConfigurationHelper _storeConfigurationHelper;
 	private readonly ILogger _logger;
 	private SerialPort? _serialPort;
 		
 	public BarcodeScannerHelper(IEventAggregator eventAggregator, 
-								IConfig config, 
+								IStoreConfigurationHelper storeConfigurationHelper, 
 								ILogger logger)
 	{
 		_eventAggregator = eventAggregator;
-		_config = config;
+		_storeConfigurationHelper = storeConfigurationHelper;
 		_logger = logger;
 	}
 
@@ -28,9 +27,12 @@ public class BarcodeScannerHelper : IBarcodeScannerHelper
 	{
 		try
 		{
+			var config = _storeConfigurationHelper.Get();
+			var portName = config.BarcodeScannerPortName ?? "COM4";
+
 			_serialPort = new SerialPort
 			{
-				PortName = _config.BarcodeScannerPortName,
+				PortName = portName,
 				BaudRate = 115200,
 				DataBits = 8,
 				StopBits = StopBits.One,

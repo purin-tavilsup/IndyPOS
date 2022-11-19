@@ -49,21 +49,9 @@
             this.label7 = new System.Windows.Forms.Label();
             this.label8 = new System.Windows.Forms.Label();
             this.BarcodeScannerPortNameTextBox = new ModernUI.ModernTextBox();
-            this.panel4 = new System.Windows.Forms.Panel();
-            this.label12 = new System.Windows.Forms.Label();
-            this.label13 = new System.Windows.Forms.Label();
-            this.BackupDBDirectoryTextBox = new ModernUI.ModernTextBox();
-            this.panel5 = new System.Windows.Forms.Panel();
-            this.DataFeedEnabled = new System.Windows.Forms.CheckBox();
-            this.label16 = new System.Windows.Forms.Label();
-            this.DataFeedKeyTextBox = new ModernUI.ModernTextBox();
-            this.label17 = new System.Windows.Forms.Label();
-            this.DatabaseBackUpEnabled = new System.Windows.Forms.CheckBox();
             this.panel1.SuspendLayout();
             this.panel2.SuspendLayout();
             this.panel3.SuspendLayout();
-            this.panel4.SuspendLayout();
-            this.panel5.SuspendLayout();
             this.SuspendLayout();
             // 
             // StoreNameTextBox
@@ -71,7 +59,7 @@
             this.StoreNameTextBox.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
             this.StoreNameTextBox.BorderColor = System.Drawing.Color.DimGray;
             this.StoreNameTextBox.BorderSize = 1;
-            this.StoreNameTextBox.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.StoreNameTextBox.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
             this.StoreNameTextBox.ForeColor = System.Drawing.Color.Gainsboro;
             this.StoreNameTextBox.Location = new System.Drawing.Point(195, 106);
             this.StoreNameTextBox.Multiline = false;
@@ -88,7 +76,7 @@
             // label10
             // 
             this.label10.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
-            this.label10.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label10.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
             this.label10.ForeColor = System.Drawing.Color.Gainsboro;
             this.label10.Location = new System.Drawing.Point(17, 106);
             this.label10.Name = "label10";
@@ -102,7 +90,7 @@
             this.StoreAddressLine1TextBox.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
             this.StoreAddressLine1TextBox.BorderColor = System.Drawing.Color.DimGray;
             this.StoreAddressLine1TextBox.BorderSize = 1;
-            this.StoreAddressLine1TextBox.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.StoreAddressLine1TextBox.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
             this.StoreAddressLine1TextBox.ForeColor = System.Drawing.Color.Gainsboro;
             this.StoreAddressLine1TextBox.Location = new System.Drawing.Point(195, 151);
             this.StoreAddressLine1TextBox.Multiline = false;
@@ -119,7 +107,7 @@
             // label1
             // 
             this.label1.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
-            this.label1.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label1.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
             this.label1.ForeColor = System.Drawing.Color.Gainsboro;
             this.label1.Location = new System.Drawing.Point(17, 151);
             this.label1.Name = "label1";
@@ -133,7 +121,7 @@
             this.StoreAddressLine2TextBox.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
             this.StoreAddressLine2TextBox.BorderColor = System.Drawing.Color.DimGray;
             this.StoreAddressLine2TextBox.BorderSize = 1;
-            this.StoreAddressLine2TextBox.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.StoreAddressLine2TextBox.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
             this.StoreAddressLine2TextBox.ForeColor = System.Drawing.Color.Gainsboro;
             this.StoreAddressLine2TextBox.Location = new System.Drawing.Point(195, 196);
             this.StoreAddressLine2TextBox.Multiline = false;
@@ -150,7 +138,7 @@
             // label2
             // 
             this.label2.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
-            this.label2.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label2.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
             this.label2.ForeColor = System.Drawing.Color.Gainsboro;
             this.label2.Location = new System.Drawing.Point(17, 196);
             this.label2.Name = "label2";
@@ -164,7 +152,7 @@
             this.StorePhoneTextBox.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
             this.StorePhoneTextBox.BorderColor = System.Drawing.Color.DimGray;
             this.StorePhoneTextBox.BorderSize = 1;
-            this.StorePhoneTextBox.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.StorePhoneTextBox.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
             this.StorePhoneTextBox.ForeColor = System.Drawing.Color.Gainsboro;
             this.StorePhoneTextBox.Location = new System.Drawing.Point(195, 241);
             this.StorePhoneTextBox.Multiline = false;
@@ -181,7 +169,7 @@
             // label3
             // 
             this.label3.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
-            this.label3.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label3.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
             this.label3.ForeColor = System.Drawing.Color.Gainsboro;
             this.label3.Location = new System.Drawing.Point(17, 241);
             this.label3.Name = "label3";
@@ -195,7 +183,7 @@
             this.ReceiptPrinterNameTextBox.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
             this.ReceiptPrinterNameTextBox.BorderColor = System.Drawing.Color.DimGray;
             this.ReceiptPrinterNameTextBox.BorderSize = 1;
-            this.ReceiptPrinterNameTextBox.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.ReceiptPrinterNameTextBox.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
             this.ReceiptPrinterNameTextBox.ForeColor = System.Drawing.Color.Gainsboro;
             this.ReceiptPrinterNameTextBox.Location = new System.Drawing.Point(152, 51);
             this.ReceiptPrinterNameTextBox.Multiline = false;
@@ -212,7 +200,7 @@
             // label4
             // 
             this.label4.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
-            this.label4.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label4.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
             this.label4.ForeColor = System.Drawing.Color.Gainsboro;
             this.label4.Location = new System.Drawing.Point(17, 51);
             this.label4.Name = "label4";
@@ -243,7 +231,7 @@
             // label9
             // 
             this.label9.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
-            this.label9.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label9.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
             this.label9.ForeColor = System.Drawing.Color.Gainsboro;
             this.label9.Location = new System.Drawing.Point(17, 61);
             this.label9.Name = "label9";
@@ -257,7 +245,7 @@
             this.StoreFullNameTextBox.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
             this.StoreFullNameTextBox.BorderColor = System.Drawing.Color.DimGray;
             this.StoreFullNameTextBox.BorderSize = 1;
-            this.StoreFullNameTextBox.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.StoreFullNameTextBox.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
             this.StoreFullNameTextBox.ForeColor = System.Drawing.Color.Gainsboro;
             this.StoreFullNameTextBox.Location = new System.Drawing.Point(195, 61);
             this.StoreFullNameTextBox.Multiline = false;
@@ -275,7 +263,7 @@
             // 
             this.label5.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
             this.label5.Dock = System.Windows.Forms.DockStyle.Top;
-            this.label5.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label5.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
             this.label5.ForeColor = System.Drawing.Color.Gainsboro;
             this.label5.Location = new System.Drawing.Point(0, 0);
             this.label5.Name = "label5";
@@ -299,7 +287,7 @@
             // 
             this.label6.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
             this.label6.Dock = System.Windows.Forms.DockStyle.Top;
-            this.label6.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label6.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
             this.label6.ForeColor = System.Drawing.Color.Gainsboro;
             this.label6.Location = new System.Drawing.Point(0, 0);
             this.label6.Name = "label6";
@@ -317,7 +305,7 @@
             this.SaveSettingsButton.BorderSize = 1;
             this.SaveSettingsButton.FlatAppearance.BorderSize = 0;
             this.SaveSettingsButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.SaveSettingsButton.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.SaveSettingsButton.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
             this.SaveSettingsButton.ForeColor = System.Drawing.Color.White;
             this.SaveSettingsButton.Location = new System.Drawing.Point(12, 602);
             this.SaveSettingsButton.Name = "SaveSettingsButton";
@@ -343,7 +331,7 @@
             // 
             this.label7.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
             this.label7.Dock = System.Windows.Forms.DockStyle.Top;
-            this.label7.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label7.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
             this.label7.ForeColor = System.Drawing.Color.Gainsboro;
             this.label7.Location = new System.Drawing.Point(0, 0);
             this.label7.Name = "label7";
@@ -355,7 +343,7 @@
             // label8
             // 
             this.label8.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
-            this.label8.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label8.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
             this.label8.ForeColor = System.Drawing.Color.Gainsboro;
             this.label8.Location = new System.Drawing.Point(17, 51);
             this.label8.Name = "label8";
@@ -369,7 +357,7 @@
             this.BarcodeScannerPortNameTextBox.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
             this.BarcodeScannerPortNameTextBox.BorderColor = System.Drawing.Color.DimGray;
             this.BarcodeScannerPortNameTextBox.BorderSize = 1;
-            this.BarcodeScannerPortNameTextBox.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.BarcodeScannerPortNameTextBox.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
             this.BarcodeScannerPortNameTextBox.ForeColor = System.Drawing.Color.Gainsboro;
             this.BarcodeScannerPortNameTextBox.Location = new System.Drawing.Point(152, 51);
             this.BarcodeScannerPortNameTextBox.Multiline = false;
@@ -383,143 +371,11 @@
             this.BarcodeScannerPortNameTextBox.Texts = "";
             this.BarcodeScannerPortNameTextBox.UnderlinedStyle = true;
             // 
-            // panel4
-            // 
-            this.panel4.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
-            this.panel4.Controls.Add(this.DatabaseBackUpEnabled);
-            this.panel4.Controls.Add(this.label12);
-            this.panel4.Controls.Add(this.label13);
-            this.panel4.Controls.Add(this.BackupDBDirectoryTextBox);
-            this.panel4.Location = new System.Drawing.Point(618, 12);
-            this.panel4.Name = "panel4";
-            this.panel4.Size = new System.Drawing.Size(605, 133);
-            this.panel4.TabIndex = 85;
-            // 
-            // label12
-            // 
-            this.label12.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
-            this.label12.Dock = System.Windows.Forms.DockStyle.Top;
-            this.label12.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label12.ForeColor = System.Drawing.Color.Gainsboro;
-            this.label12.Location = new System.Drawing.Point(0, 0);
-            this.label12.Name = "label12";
-            this.label12.Size = new System.Drawing.Size(605, 39);
-            this.label12.TabIndex = 83;
-            this.label12.Text = "Data";
-            this.label12.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
-            // 
-            // label13
-            // 
-            this.label13.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
-            this.label13.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label13.ForeColor = System.Drawing.Color.Gainsboro;
-            this.label13.Location = new System.Drawing.Point(17, 61);
-            this.label13.Name = "label13";
-            this.label13.Size = new System.Drawing.Size(172, 39);
-            this.label13.TabIndex = 71;
-            this.label13.Text = "Backup DB Directory";
-            this.label13.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
-            // 
-            // BackupDBDirectoryTextBox
-            // 
-            this.BackupDBDirectoryTextBox.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
-            this.BackupDBDirectoryTextBox.BorderColor = System.Drawing.Color.DimGray;
-            this.BackupDBDirectoryTextBox.BorderSize = 1;
-            this.BackupDBDirectoryTextBox.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.BackupDBDirectoryTextBox.ForeColor = System.Drawing.Color.Gainsboro;
-            this.BackupDBDirectoryTextBox.Location = new System.Drawing.Point(195, 61);
-            this.BackupDBDirectoryTextBox.Multiline = false;
-            this.BackupDBDirectoryTextBox.Name = "BackupDBDirectoryTextBox";
-            this.BackupDBDirectoryTextBox.Padding = new System.Windows.Forms.Padding(7);
-            this.BackupDBDirectoryTextBox.PasswordChar = false;
-            this.BackupDBDirectoryTextBox.ReadOnly = false;
-            this.BackupDBDirectoryTextBox.Size = new System.Drawing.Size(372, 39);
-            this.BackupDBDirectoryTextBox.TabIndex = 72;
-            this.BackupDBDirectoryTextBox.TextAlign = System.Windows.Forms.HorizontalAlignment.Left;
-            this.BackupDBDirectoryTextBox.Texts = "";
-            this.BackupDBDirectoryTextBox.UnderlinedStyle = true;
-            // 
-            // panel5
-            // 
-            this.panel5.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
-            this.panel5.Controls.Add(this.DataFeedEnabled);
-            this.panel5.Controls.Add(this.label16);
-            this.panel5.Controls.Add(this.DataFeedKeyTextBox);
-            this.panel5.Controls.Add(this.label17);
-            this.panel5.Location = new System.Drawing.Point(618, 151);
-            this.panel5.Name = "panel5";
-            this.panel5.Size = new System.Drawing.Size(605, 141);
-            this.panel5.TabIndex = 86;
-            // 
-            // DataFeedEnabled
-            // 
-            this.DataFeedEnabled.AutoSize = true;
-            this.DataFeedEnabled.Location = new System.Drawing.Point(573, 75);
-            this.DataFeedEnabled.Name = "DataFeedEnabled";
-            this.DataFeedEnabled.Size = new System.Drawing.Size(15, 14);
-            this.DataFeedEnabled.TabIndex = 86;
-            this.DataFeedEnabled.UseVisualStyleBackColor = true;
-            // 
-            // label16
-            // 
-            this.label16.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
-            this.label16.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label16.ForeColor = System.Drawing.Color.Gainsboro;
-            this.label16.Location = new System.Drawing.Point(17, 61);
-            this.label16.Name = "label16";
-            this.label16.Size = new System.Drawing.Size(172, 39);
-            this.label16.TabIndex = 84;
-            this.label16.Text = "Key";
-            this.label16.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
-            // 
-            // DataFeedKeyTextBox
-            // 
-            this.DataFeedKeyTextBox.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
-            this.DataFeedKeyTextBox.BorderColor = System.Drawing.Color.DimGray;
-            this.DataFeedKeyTextBox.BorderSize = 1;
-            this.DataFeedKeyTextBox.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.DataFeedKeyTextBox.ForeColor = System.Drawing.Color.Gainsboro;
-            this.DataFeedKeyTextBox.Location = new System.Drawing.Point(195, 61);
-            this.DataFeedKeyTextBox.Multiline = false;
-            this.DataFeedKeyTextBox.Name = "DataFeedKeyTextBox";
-            this.DataFeedKeyTextBox.Padding = new System.Windows.Forms.Padding(7);
-            this.DataFeedKeyTextBox.PasswordChar = true;
-            this.DataFeedKeyTextBox.ReadOnly = false;
-            this.DataFeedKeyTextBox.Size = new System.Drawing.Size(372, 39);
-            this.DataFeedKeyTextBox.TabIndex = 85;
-            this.DataFeedKeyTextBox.TextAlign = System.Windows.Forms.HorizontalAlignment.Left;
-            this.DataFeedKeyTextBox.Texts = "";
-            this.DataFeedKeyTextBox.UnderlinedStyle = true;
-            // 
-            // label17
-            // 
-            this.label17.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
-            this.label17.Dock = System.Windows.Forms.DockStyle.Top;
-            this.label17.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label17.ForeColor = System.Drawing.Color.Gainsboro;
-            this.label17.Location = new System.Drawing.Point(0, 0);
-            this.label17.Name = "label17";
-            this.label17.Size = new System.Drawing.Size(605, 39);
-            this.label17.TabIndex = 83;
-            this.label17.Text = "Rungrat DataFeed";
-            this.label17.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
-            // 
-            // DatabaseBackUpEnabled
-            // 
-            this.DatabaseBackUpEnabled.AutoSize = true;
-            this.DatabaseBackUpEnabled.Location = new System.Drawing.Point(573, 75);
-            this.DatabaseBackUpEnabled.Name = "DatabaseBackUpEnabled";
-            this.DatabaseBackUpEnabled.Size = new System.Drawing.Size(15, 14);
-            this.DatabaseBackUpEnabled.TabIndex = 87;
-            this.DatabaseBackUpEnabled.UseVisualStyleBackColor = true;
-            // 
             // SettingsPanel
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(30)))), ((int)(((byte)(30)))), ((int)(((byte)(30)))));
-            this.Controls.Add(this.panel5);
-            this.Controls.Add(this.panel4);
             this.Controls.Add(this.panel3);
             this.Controls.Add(this.SaveSettingsButton);
             this.Controls.Add(this.panel2);
@@ -530,10 +386,6 @@
             this.panel1.ResumeLayout(false);
             this.panel2.ResumeLayout(false);
             this.panel3.ResumeLayout(false);
-            this.panel4.ResumeLayout(false);
-            this.panel4.PerformLayout();
-            this.panel5.ResumeLayout(false);
-            this.panel5.PerformLayout();
             this.ResumeLayout(false);
 
         }
@@ -561,15 +413,5 @@
         private ModernUI.ModernTextBox BarcodeScannerPortNameTextBox;
         private System.Windows.Forms.Label label9;
         private ModernUI.ModernTextBox StoreFullNameTextBox;
-        private System.Windows.Forms.Panel panel4;
-        private System.Windows.Forms.Label label12;
-        private System.Windows.Forms.Label label13;
-        private ModernUI.ModernTextBox BackupDBDirectoryTextBox;
-        private System.Windows.Forms.Panel panel5;
-        private System.Windows.Forms.Label label16;
-        private ModernUI.ModernTextBox DataFeedKeyTextBox;
-        private System.Windows.Forms.Label label17;
-        private System.Windows.Forms.CheckBox DataFeedEnabled;
-        private System.Windows.Forms.CheckBox DatabaseBackUpEnabled;
     }
 }

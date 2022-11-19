@@ -1,17 +1,12 @@
-﻿using IndyPOS.Common.Extensions;
+﻿using IndyPOS.Common.Enums;
+using IndyPOS.Common.Extensions;
 using IndyPOS.Common.Interfaces;
 using IndyPOS.Extensions;
-using IndyPOS.Interfaces;
-using Prism.Events;
-using System;
-using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
-using System.Drawing;
-using System.Linq;
-using System.Windows.Forms;
-using IndyPOS.Common.Enums;
 using IndyPOS.Facade.Events;
 using IndyPOS.Facade.Interfaces;
+using IndyPOS.Interfaces;
+using Prism.Events;
+using System.Diagnostics.CodeAnalysis;
 
 namespace IndyPOS.UI
 {

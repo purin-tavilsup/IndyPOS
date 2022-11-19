@@ -1,6 +1,7 @@
 ﻿using IndyPOS.Common.Extensions;
 using IndyPOS.Common.Interfaces;
 using IndyPOS.Facade.Interfaces;
+using Serilog;
 using System.Drawing;
 using System.Drawing.Printing;
 using System.Runtime.Versioning;
@@ -10,7 +11,7 @@ namespace IndyPOS.Facade.Helpers;
 [type:SupportedOSPlatform("windows")]
 public class ReceiptPrinterHelper : IReceiptPrinterHelper
 {
-	private readonly IConfig _config;
+	private readonly ILogger _logger;
 	private readonly IReadOnlyDictionary<int, string> _paymentTypeDictionary;
 	private IInvoiceInfo _invoiceInfo;
 	private IUserAccount _loggedInUser;
@@ -19,6 +20,11 @@ public class ReceiptPrinterHelper : IReceiptPrinterHelper
 	private readonly Font _textFont;
 	private readonly Font _lineFont;
 	private readonly Font _logoFont;
+	private string _printerName;
+	private string _storeName;
+	private string _storeAddressLine1;
+	private string _storeAddressLine2;
+	private string _storePhoneNumber;
 
 	private const int SpaceOffset = 11;
 	private const int LogoFontSize = 15;
@@ -29,10 +35,14 @@ public class ReceiptPrinterHelper : IReceiptPrinterHelper
 	private const string FontFamilyName = "FC Subject [Non-commercial] Reg";
 	private const string LineString = "-------------------------------------------------------";
 
-	public ReceiptPrinterHelper(IConfig config, IStoreConstants storeConstants)
+	public ReceiptPrinterHelper(IStoreConfigurationHelper storeConfigurationHelper,
+								IStoreConstants storeConstants,
+								ILogger logger)
 	{
-		_config = config;
+		_logger = logger;
 		_paymentTypeDictionary = storeConstants.PaymentTypes;
+
+		GetStoreConfiguration(storeConfigurationHelper);
 
 		_brush = new SolidBrush(Color.Black);
 
@@ -41,15 +51,34 @@ public class ReceiptPrinterHelper : IReceiptPrinterHelper
 		_lineFont = new Font(FontFamilyName, LineFontSize);
 
 		_printDocument = new PrintDocument();
+		_printDocument.PrinterSettings.PrinterName = _printerName ?? "XP-58";
 		_printDocument.PrintPage += PrintPageHandler;
 	}
-		
+
+	private void GetStoreConfiguration(IStoreConfigurationHelper storeConfigurationHelper)
+	{
+		try
+		{
+			var config = storeConfigurationHelper.Get();
+
+			_printerName = config.PrinterName ?? "XP-58";
+			_storeName = config.StoreName ?? string.Empty;
+			_storeAddressLine1 = config.StoreAddressLine1 ?? string.Empty;
+			_storeAddressLine2 = config.StoreAddressLine2 ?? string.Empty;
+			_storePhoneNumber = config.StorePhoneNumber ?? string.Empty;
+		}
+		catch (Exception ex)
+		{
+			_logger.Error(ex, "Unable to get store configuration for a receipt printer!");
+			throw;
+		}
+	}
+
 	public void PrintReceipt(IInvoiceInfo invoiceInfo, IUserAccount loggedInUser)
 	{
 		_invoiceInfo = invoiceInfo;
 		_loggedInUser = loggedInUser;
 
-		_printDocument.PrinterSettings.PrinterName = _config.PrinterName;
 		_printDocument.Print();
 	}
 		
@@ -81,19 +110,19 @@ public class ReceiptPrinterHelper : IReceiptPrinterHelper
 
 	private void PrintHeader(Graphics graphics, ref Point position)
 	{
-		PrintStoreName(graphics, _config.StoreName, position.X + 60, position.Y);
+		PrintStoreName(graphics, _storeName, position.X + 60, position.Y);
 
 		position.Y += 30;
 			
-		PrintText(graphics, _config.StoreAddressLine1, position.X, position.Y);
+		PrintText(graphics, _storeAddressLine1, position.X, position.Y);
 
 		position.Y += SpaceOffset;
 			
-		PrintText(graphics, _config.StoreAddressLine2, position.X, position.Y);
+		PrintText(graphics, _storeAddressLine2, position.X, position.Y);
 
 		position.Y += SpaceOffset;
 			
-		PrintText(graphics, $"Tel.: {_config.StorePhoneNumber}", position.X, position.Y);
+		PrintText(graphics, $"Tel.: {_storePhoneNumber}", position.X, position.Y);
 
 		position.Y += SpaceOffset;
 

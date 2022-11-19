@@ -1,30 +1,35 @@
 ﻿using IndyPOS.Interfaces;
-using System;
 using System.Diagnostics.CodeAnalysis;
-using System.Windows.Forms;
 
-namespace IndyPOS.UI
+namespace IndyPOS.UI;
+
+[ExcludeFromCodeCoverage]
+public partial class PrintReceiptForm : Form
 {
-	[ExcludeFromCodeCoverage]
-	public partial class PrintReceiptForm : Form
+	private readonly ISaleInvoiceController _saleInvoiceController;
+
+	public PrintReceiptForm(ISaleInvoiceController saleInvoiceController)
 	{
-		private readonly ISaleInvoiceController _saleInvoiceController;
+		_saleInvoiceController = saleInvoiceController;
 
-		public PrintReceiptForm(ISaleInvoiceController saleInvoiceController)
-		{
-			_saleInvoiceController = saleInvoiceController;
+		InitializeComponent();
+	}
 
-			InitializeComponent();
-		}
-
-		private void PrintReceiptButton_Click(object sender, EventArgs e)
+	private void PrintReceiptButton_Click(object sender, EventArgs e)
+	{
+		try
 		{
 			_saleInvoiceController.PrintReceipt();
 		}
-
-		private void CloseFormButton_Click(object sender, EventArgs e)
+		catch (Exception ex)
 		{
-			Close();
+			var messageForm = new MessageForm();
+			messageForm.Show($"Error: {ex.Message}", "Unable To Print Receipt!");
 		}
+	}
+
+	private void CloseFormButton_Click(object sender, EventArgs e)
+	{
+		Close();
 	}
 }

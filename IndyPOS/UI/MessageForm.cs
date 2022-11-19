@@ -1,7 +1,5 @@
-﻿using IndyPOS.Common.Extensions;
-using System;
+﻿#nullable enable
 using System.Diagnostics.CodeAnalysis;
-using System.Windows.Forms;
 
 namespace IndyPOS.UI
 {
@@ -15,15 +13,19 @@ namespace IndyPOS.UI
 			InitializeComponent();
 		}
 		
-		public DialogResult Show(string message, string caption = null, bool cancelButtonVisible = false, string acceptButtonText = null, string cancelButtonText = null)
+		public DialogResult Show(string message, 
+								 string? caption = null, 
+								 bool cancelButtonVisible = false, 
+								 string? acceptButtonText = null, 
+								 string? cancelButtonText = null)
 		{
-			if (caption.HasValue())
+			if (caption is not null)
 				CaptionLabel.Text = caption;
 
-			if (acceptButtonText.HasValue())
+			if (acceptButtonText is not null)
 				AcceptButton.Text = acceptButtonText;
 
-			if (cancelButtonText.HasValue())
+			if (cancelButtonText is not null)
 				CancelButton.Text = cancelButtonText;
 
 			MessageTextBox.Texts = message;

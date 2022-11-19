@@ -4,6 +4,7 @@ using IndyPOS.Common.Interfaces;
 using IndyPOS.Facade.Events;
 using IndyPOS.Facade.Interfaces;
 using IndyPOS.Facade.Models.Report;
+using Microsoft.Extensions.Configuration;
 using Prism.Events;
 using Serilog;
 
@@ -21,7 +22,7 @@ public class ReportHelper : IReportHelper
 	private readonly IReadOnlyDictionary<int, string> _productCategories;
 	private readonly IReadOnlyDictionary<int, string> _paymentTypes;
 
-	public ReportHelper(IConfig config,
+	public ReportHelper(IConfiguration configuration,
 						IStoreConstants storeConstants,
 						ISaleInvoiceHelper saleInvoiceHelper,
 						IAccountsReceivableHelper accountsReceivableHelper,
@@ -31,7 +32,7 @@ public class ReportHelper : IReportHelper
 						IJsonUtility jsonUtility)
 	{
 		_logger = logger;
-		_reportsDirectory = config.ReportsDirectory;
+		_reportsDirectory = GetReportDirectory(configuration);
 		_saleInvoiceHelper = saleInvoiceHelper;
 		_accountsReceivableHelper = accountsReceivableHelper;
 		_dataFeedApiHelper = dataFeedApiHelper;
@@ -39,6 +40,13 @@ public class ReportHelper : IReportHelper
 		_jsonUtility = jsonUtility;
 		_productCategories = storeConstants.ProductCategories;
 		_paymentTypes = storeConstants.PaymentTypes;
+	}
+
+	private static string GetReportDirectory(IConfiguration configuration)
+	{
+		var path = configuration.GetValue<string>("Report:Directory");
+
+		return path ?? "C:\\ProgramData\\IndyPOS\\Reports";
 	}
 
 	public async Task<SalesReport> GetSalesReportAsync()
@@ -190,12 +198,15 @@ public class ReportHelper : IReportHelper
 	{
 		try
 		{
-			if (!File.Exists(filePath))
-			{
-				var report = CreateNewSalesReport(today);
+			if (filePath is null)
+				throw new ArgumentNullException(nameof(filePath));
 
-				await SaveReportToFile(report, filePath);
-			}
+			if (File.Exists(filePath)) 
+				return await _jsonUtility.ReadFromFileAsync<SalesReport>(filePath);
+
+			var report = CreateNewSalesReport(today);
+
+			await SaveReportToFile(report, filePath);
 
 			return await _jsonUtility.ReadFromFileAsync<SalesReport>(filePath);
 		}
@@ -210,12 +221,15 @@ public class ReportHelper : IReportHelper
 	{
 		try
 		{
-			if (!File.Exists(filePath))
-			{
-				var report = CreateNewPaymentsReport(today);
+			if (filePath is null)
+				throw new ArgumentNullException(nameof(filePath));
 
-				await SaveReportToFile(report, filePath);
-			}
+			if (File.Exists(filePath)) 
+				return await _jsonUtility.ReadFromFileAsync<PaymentsReport>(filePath);
+
+			var report = CreateNewPaymentsReport(today);
+
+			await SaveReportToFile(report, filePath);
 
 			return await _jsonUtility.ReadFromFileAsync<PaymentsReport>(filePath);
 		}

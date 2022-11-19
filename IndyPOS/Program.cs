@@ -1,5 +1,4 @@
 ﻿using IndyPOS.Common.Interfaces;
-using IndyPOS.Configurations;
 using IndyPOS.Constants;
 using IndyPOS.Extensions;
 using IndyPOS.Interfaces;
@@ -60,7 +59,6 @@ internal static class Program
 				.AddRepositories()
 				.AddControllers()
 				.AddUtilities()
-				.AddSingleton<IConfig, Config>()
 				.AddSingleton<IEventAggregator, EventAggregator>()
 				.AddSingleton<IStoreConstants, StoreConstants>()
 				.AddSingleton<IAppCache, CachingService>()

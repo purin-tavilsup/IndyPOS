@@ -1,9 +1,10 @@
-﻿using IndyPOS.Common.Enums;
+﻿#nullable enable
+using IndyPOS.Common.Enums;
 using IndyPOS.Common.Extensions;
-using IndyPOS.Common.Interfaces;
 using IndyPOS.DataAccess.Interfaces;
 using IndyPOS.Facade.Events;
 using IndyPOS.Facade.Interfaces;
+using Microsoft.Extensions.Configuration;
 using Prism.Events;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
@@ -23,25 +24,26 @@ namespace IndyPOS.UI
         private readonly SettingsPanel _settingsPanel;
 		private readonly UserLogInPanel _userLogInPanel;
         private readonly IEventAggregator _eventAggregator;
-		private readonly IConfig _config;
 		private readonly IDbConnectionProvider _dbConnectionProvider;
+		private readonly bool _isDatabaseBackupEnabled;
+		private readonly string _backupDatabaseDirectory;
+
         private UserControl _activePanel;
 		private bool _isUserLoggedIn;
-		private IUserAccount _loggedInUser;
-		private Timer _dateTimeUpdateTimer;
+		private IUserAccount? _loggedInUser;
 
-        public MainForm(SalePanel salesPanel, 
-                        InventoryPanel inventoryPanel, 
-                        UsersPanel usersPanel, 
-                        ReportsPanel reportsPanel, 
-                        AccountsReceivablePanel accountsReceivablePanel, 
-                        SettingsPanel settingsPanel,
+		public MainForm(SalePanel salesPanel, 
+						InventoryPanel inventoryPanel, 
+						UsersPanel usersPanel, 
+						ReportsPanel reportsPanel, 
+						AccountsReceivablePanel accountsReceivablePanel, 
+						SettingsPanel settingsPanel,
 						UserLogInPanel userLogInPanel,
-                        IEventAggregator eventAggregator,
+						IEventAggregator eventAggregator,
 						IDbConnectionProvider dbConnectionProvider,
-						IConfig config)
+						IConfiguration configuration)
 		{
-            InitializeComponent();
+			InitializeComponent();
 
 			_salesPanel = salesPanel;
 			_salesPanel.Visible = false;
@@ -60,15 +62,22 @@ namespace IndyPOS.UI
 			_eventAggregator = eventAggregator;
 			_isUserLoggedIn = false;
 			_dbConnectionProvider = dbConnectionProvider;
-			_config = config;
+			_activePanel = new UserControl();
+
+			_isDatabaseBackupEnabled = configuration.GetValue<bool>("Database:BackupEnabled");
+			_backupDatabaseDirectory = GetBackupDatabaseDirectory(configuration);
 
 			SubscribeEvents();
-			CreateDateTimeUpdateTimer();
+			
+			var dateTimeUpdateTimer = new Timer();
+			dateTimeUpdateTimer.Tick += DateTimeUpdateTimer_Tick;
+			dateTimeUpdateTimer.Interval = 500;
+			dateTimeUpdateTimer.Enabled = true;
 
             LogInButton.Select();
 		}
 
-        public void SetStoreName(string storeName)
+		public void SetStoreName(string storeName)
 		{
 			StoreNameLabel.Text = storeName;
 		}
@@ -78,15 +87,14 @@ namespace IndyPOS.UI
 			VersionLabel.Text = $"Version: {version}";
 		}
 
-        private void CreateDateTimeUpdateTimer()
-        {
-			_dateTimeUpdateTimer = new Timer();
-			_dateTimeUpdateTimer.Interval = 500;
-			_dateTimeUpdateTimer.Tick += DateTimeUpdateTimer_Tick;
-			_dateTimeUpdateTimer.Enabled = true;
-        }
+		private static string GetBackupDatabaseDirectory(IConfiguration configuration)
+		{
+			var path = configuration.GetValue<string>("Database:BackupDirectory");
 
-        private void DateTimeUpdateTimer_Tick(object sender, EventArgs e)
+			return path ?? "C:\\ProgramData\\IndyPOS\\Reports";
+		}
+
+        private void DateTimeUpdateTimer_Tick(object? sender, EventArgs e)
 		{
 			var dateTime = DateTime.Now.ToString("dddd, dd MMMM yyyy hh:mm tt");
 
@@ -149,17 +157,14 @@ namespace IndyPOS.UI
 					break;
             }
 
-            if (_activePanel != null)
-            {
-                if (_activePanel.Name == panelToShow.Name)
-                {
-                    return;
-                }
+			if (_activePanel.Name == panelToShow.Name)
+			{
+				return;
+			}
 
-                _activePanel.Visible = false;
+			_activePanel.Visible = false;
 
-                ActivePanel.Controls.Clear();
-            }
+			ActivePanel.Controls.Clear();
 
             panelToShow.Dock = DockStyle.Fill;
 
@@ -212,7 +217,7 @@ namespace IndyPOS.UI
 
         private void SettingsButton_Click(object sender, EventArgs e)
         { 
-			if (!_isUserLoggedIn || _loggedInUser.RoleId == (int) UserRole.Cashier)
+			if (!_isUserLoggedIn || _loggedInUser?.RoleId == (int) UserRole.Cashier)
 				return;
 			
 			SwitchToPanel(SubPanel.Settings);
@@ -273,18 +278,17 @@ namespace IndyPOS.UI
 		[Conditional("RELEASE")]
 		private void BackupDatabase()
 		{
-			if (_config.DatabaseBackUpEnabled.IsFalse())
+			if (_isDatabaseBackupEnabled.IsFalse())
 				return;
 
 			var today = DateTime.Today;
-			var rootBackupDirectory = _config.BackupDbDirectory;
-			var byDateBackupDirectory = $"{rootBackupDirectory}\\{today.Year}\\{today.Month:00}\\{today.Day:00}";
+			var byDateBackupDirectory = $"{_backupDatabaseDirectory}\\{today.Year}\\{today.Month:00}\\{today.Day:00}";
 			
 			if (!Directory.Exists(byDateBackupDirectory)) 
 				Directory.CreateDirectory(byDateBackupDirectory);
 
 			_dbConnectionProvider.BackupDatabase(byDateBackupDirectory);
-			_dbConnectionProvider.BackupDatabase(rootBackupDirectory);
+			_dbConnectionProvider.BackupDatabase(_backupDatabaseDirectory);
         }
         
 		private void MainForm_Load(object sender, EventArgs e)

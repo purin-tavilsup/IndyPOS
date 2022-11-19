@@ -43,73 +43,74 @@ internal static class DependencyInjectionExtensions
 
 	internal static IServiceCollection AddUtilities(this IServiceCollection services)
 	{
-		services.AddSingleton<IJsonUtility, JsonUtility>();
-		services.AddSingleton<IBarcodeUtility, BarcodeUtility>();
+		services.AddSingleton<IJsonUtility, JsonUtility>()
+				.AddSingleton<IBarcodeUtility, BarcodeUtility>();
 
 		return services;
 	}
 
 	internal static IServiceCollection AddHelpers(this IServiceCollection services)
 	{
-		services.AddSingleton<ISaleInvoiceHelper, SaleInvoiceHelper>();
-		services.AddSingleton<IInventoryHelper, InventoryHelper>();
-		services.AddSingleton<IUserHelper, UserHelper>();
-		services.AddSingleton<IBarcodeScannerHelper, BarcodeScannerHelper>();
-		services.AddSingleton<IReceiptPrinterHelper, ReceiptPrinterHelper>();
-		services.AddSingleton<ICryptographyUtility, CryptographyUtility>();
-		services.AddSingleton<IAccountsReceivableHelper, AccountsReceivableHelper>();
-		services.AddSingleton<IReportHelper, ReportHelper>();
-		services.AddSingleton<IDataFeedApiHelper, DataFeedApiHelper>();
+		services.AddSingleton<IStoreConfigurationHelper, StoreConfigurationHelper>()
+				.AddSingleton<ISaleInvoiceHelper, SaleInvoiceHelper>()
+				.AddSingleton<IInventoryHelper, InventoryHelper>()
+				.AddSingleton<IUserHelper, UserHelper>()
+				.AddSingleton<IBarcodeScannerHelper, BarcodeScannerHelper>()
+				.AddSingleton<IReceiptPrinterHelper, ReceiptPrinterHelper>()
+				.AddSingleton<ICryptographyUtility, CryptographyUtility>()
+				.AddSingleton<IAccountsReceivableHelper, AccountsReceivableHelper>()
+				.AddSingleton<IReportHelper, ReportHelper>()
+				.AddSingleton<IDataFeedApiHelper, DataFeedApiHelper>();
 
 		return services;
 	}
 
 	internal static IServiceCollection AddUserInterfaces(this IServiceCollection services)
 	{
-		services.AddSingleton<InvoiceProductsReportPanel>();
-		services.AddSingleton<SalesHistoryReportPanel>();
-		services.AddSingleton<SalesReportPanel>();
-		services.AddSingleton<AcceptPaymentForm>();
-		services.AddSingleton<AccountsReceivablePanel>();
-		services.AddSingleton<AddInvoiceProductForm>();
-		services.AddSingleton<AddNewInventoryProductForm>();
-		services.AddSingleton<AddNewInventoryProductWithCustomBarcodeForm>();
-		services.AddSingleton<AddNewUserForm>();
-		services.AddSingleton<InventoryPanel>();
-		services.AddSingleton<MainForm>();
-		services.AddSingleton<MessageForm>();
-		services.AddSingleton<PrintReceiptForm>();
-		services.AddSingleton<ReportsPanel>();
-		services.AddSingleton<SaleHistoryByInvoiceIdForm>();
-		services.AddSingleton<SalePanel>();
-		services.AddSingleton<SettingsPanel>();
-		services.AddSingleton<UpdateInventoryProductForm>();
-		services.AddSingleton<UpdateInvoiceProductForm>();
-		services.AddSingleton<UserLogInPanel>();
-		services.AddSingleton<UsersPanel>();
+		services.AddSingleton<InvoiceProductsReportPanel>()
+				.AddSingleton<SalesHistoryReportPanel>()
+				.AddSingleton<SalesReportPanel>()
+				.AddSingleton<AcceptPaymentForm>()
+				.AddSingleton<AccountsReceivablePanel>()
+				.AddSingleton<AddInvoiceProductForm>()
+				.AddSingleton<AddNewInventoryProductForm>()
+				.AddSingleton<AddNewInventoryProductWithCustomBarcodeForm>()
+				.AddSingleton<AddNewUserForm>()
+				.AddSingleton<InventoryPanel>()
+				.AddSingleton<MainForm>()
+				.AddSingleton<MessageForm>()
+				.AddSingleton<PrintReceiptForm>()
+				.AddSingleton<ReportsPanel>()
+				.AddSingleton<SaleHistoryByInvoiceIdForm>()
+				.AddSingleton<SalePanel>()
+				.AddSingleton<SettingsPanel>()
+				.AddSingleton<UpdateInventoryProductForm>()
+				.AddSingleton<UpdateInvoiceProductForm>()
+				.AddSingleton<UserLogInPanel>()
+				.AddSingleton<UsersPanel>();
 
 		return services;
 	}
 
 	internal static IServiceCollection AddRepositories(this IServiceCollection services)
 	{
-		services.AddSingleton<IDbConnectionProvider, DbConnectionProvider>();
-		services.AddSingleton<IInvoiceRepository, InvoiceRepository>();
-		services.AddSingleton<IInventoryProductRepository, InventoryProductRepository>();
-		services.AddSingleton<IStoreConstantRepository, StoreConstantRepository>();
-		services.AddSingleton<IUserRepository, UserRepository>();
-		services.AddSingleton<IAccountsReceivableRepository, AccountsReceivableRepository>();
+		services.AddSingleton<IDbConnectionProvider, DbConnectionProvider>()
+				.AddSingleton<IInvoiceRepository, InvoiceRepository>()
+				.AddSingleton<IInventoryProductRepository, InventoryProductRepository>()
+				.AddSingleton<IStoreConstantRepository, StoreConstantRepository>()
+				.AddSingleton<IUserRepository, UserRepository>()
+				.AddSingleton<IAccountsReceivableRepository, AccountsReceivableRepository>();
 
 		return services;
 	}
 
 	internal static IServiceCollection AddControllers(this IServiceCollection services)
 	{
-		services.AddSingleton<IAccountsReceivableController, AccountsReceivableController>();
-		services.AddSingleton<IInventoryController, InventoryController>();
-		services.AddSingleton<IReportController, ReportController>();
-		services.AddSingleton<ISaleInvoiceController, SaleInvoiceController>();
-		services.AddSingleton<IUserController, UserController>();
+		services.AddSingleton<IAccountsReceivableController, AccountsReceivableController>()
+				.AddSingleton<IInventoryController, InventoryController>()
+				.AddSingleton<IReportController, ReportController>()
+				.AddSingleton<ISaleInvoiceController, SaleInvoiceController>()
+				.AddSingleton<IUserController, UserController>();
 
 		return services;
 	}

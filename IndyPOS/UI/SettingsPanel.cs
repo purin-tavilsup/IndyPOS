@@ -1,63 +1,76 @@
-﻿using IndyPOS.Common.Interfaces;
+﻿using IndyPOS.Facade.Interfaces;
 using System.Diagnostics.CodeAnalysis;
+using IndyPOS.Facade.Models;
 
-namespace IndyPOS.UI
+namespace IndyPOS.UI;
+
+[ExcludeFromCodeCoverage]
+public partial class SettingsPanel : UserControl
 {
-	[ExcludeFromCodeCoverage]
-    public partial class SettingsPanel : UserControl
-    {
-		private readonly IConfig _config;
+	private readonly IStoreConfigurationHelper _storeConfigurationHelper;
 
-        public SettingsPanel(IConfig config)
+	public SettingsPanel(IStoreConfigurationHelper storeConfigurationHelper)
+	{
+		_storeConfigurationHelper = storeConfigurationHelper;
+
+		InitializeComponent();
+	}
+
+	private async Task LoadSettingsAsync()
+	{
+		try
 		{
-			_config = config;
+			var config = await _storeConfigurationHelper.GetAsync();
 
-            InitializeComponent();
+			StoreFullNameTextBox.Texts = config.StoreFullName ?? string.Empty;
+			StoreNameTextBox.Texts = config.StoreName ?? string.Empty;
+			StoreAddressLine1TextBox.Texts = config.StoreAddressLine1 ?? string.Empty;
+			StoreAddressLine2TextBox.Texts = config.StoreAddressLine2 ?? string.Empty;
+			StorePhoneTextBox.Texts = config.StorePhoneNumber ?? string.Empty;
+			ReceiptPrinterNameTextBox.Texts = config.PrinterName ?? string.Empty;
+			BarcodeScannerPortNameTextBox.Texts = config.BarcodeScannerPortName ?? string.Empty;
 		}
-
-        private void LoadSettings()
+		catch (Exception ex)
 		{
-			StoreFullNameTextBox.Texts = _config.StoreFullName;
-			StoreNameTextBox.Texts = _config.StoreName;
-			StoreAddressLine1TextBox.Texts = _config.StoreAddressLine1;
-			StoreAddressLine2TextBox.Texts = _config.StoreAddressLine2;
-			StorePhoneTextBox.Texts = _config.StorePhoneNumber;
-			ReceiptPrinterNameTextBox.Texts = _config.PrinterName;
-			BarcodeScannerPortNameTextBox.Texts = _config.BarcodeScannerPortName;
-			BackupDBDirectoryTextBox.Texts = _config.BackupDbDirectory;
-			DataFeedKeyTextBox.Texts = _config.DataFeedKey;
-			DataFeedEnabled.Checked = _config.DataFeedEnabled;
-			DatabaseBackUpEnabled.Checked = _config.DatabaseBackUpEnabled;
+			var messageForm = new MessageForm();
+			messageForm.Show($"Error: {ex.Message}", "Unable To Get Store Configuration!");
 		}
+	}
 
-		private async Task SaveSettings()
+	private async Task SaveSettings()
+	{
+		try
 		{
-			_config.StoreFullName = StoreFullNameTextBox.Texts.Trim();
-			_config.StoreName = StoreNameTextBox.Texts.Trim();
-			_config.StoreAddressLine1 = StoreAddressLine1TextBox.Texts.Trim();
-			_config.StoreAddressLine2 = StoreAddressLine2TextBox.Texts.Trim();
-			_config.StorePhoneNumber = StorePhoneTextBox.Texts.Trim();
-			_config.PrinterName = ReceiptPrinterNameTextBox.Texts.Trim();
-			_config.BarcodeScannerPortName = BarcodeScannerPortNameTextBox.Texts.Trim();
-			_config.BackupDbDirectory = BackupDBDirectoryTextBox.Texts.Trim();
-			_config.DataFeedKey = DataFeedKeyTextBox.Texts.Trim();
-			_config.DataFeedEnabled = DataFeedEnabled.Checked;
-			_config.DatabaseBackUpEnabled = DatabaseBackUpEnabled.Checked;
+			var config = new StoreConfiguration
+			{
+				StoreFullName = StoreFullNameTextBox.Texts.Trim(),
+				StoreName = StoreNameTextBox.Texts.Trim(),
+				StoreAddressLine1 = StoreAddressLine1TextBox.Texts.Trim(),
+				StoreAddressLine2 = StoreAddressLine2TextBox.Texts.Trim(),
+				StorePhoneNumber = StorePhoneTextBox.Texts.Trim(),
+				PrinterName = ReceiptPrinterNameTextBox.Texts.Trim(),
+				BarcodeScannerPortName = BarcodeScannerPortNameTextBox.Texts.Trim()
+			};
 
-			await _config.UpdateAsync();
+			await _storeConfigurationHelper.UpdateAsync(config);
 		}
+		catch (Exception ex)
+		{
+			var messageForm = new MessageForm();
+			messageForm.Show($"Error: {ex.Message}", "Unable To Update Store Configuration!");
+		}
+	}
 
-        private async void SaveSettingsButton_Click(object sender, EventArgs e)
-        {
-			await SaveSettings();
-        }
+	private async void SaveSettingsButton_Click(object sender, EventArgs e)
+	{
+		await SaveSettings();
+	}
 
-        private void SettingsPanel_VisibleChanged(object sender, EventArgs e)
-        {
-			if (!Visible)
-				return;
+	private async void SettingsPanel_VisibleChanged(object sender, EventArgs e)
+	{
+		if (!Visible)
+			return;
 
-			LoadSettings();
-        }
-    }
+		await LoadSettingsAsync();
+	}
 }

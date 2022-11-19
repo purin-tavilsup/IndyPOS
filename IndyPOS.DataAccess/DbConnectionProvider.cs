@@ -1,5 +1,5 @@
-﻿using IndyPOS.Common.Interfaces;
-using IndyPOS.DataAccess.Interfaces;
+﻿using IndyPOS.DataAccess.Interfaces;
+using Microsoft.Extensions.Configuration;
 using System.Data;
 using System.Data.SQLite;
 
@@ -9,9 +9,16 @@ public class DbConnectionProvider : IDbConnectionProvider
 {
 	private readonly string _databasePath;
 
-	public DbConnectionProvider(IConfig config)
+	public DbConnectionProvider(IConfiguration configuration)
 	{
-		_databasePath = config.DatabasePath;
+		_databasePath = GetDatabasePath(configuration);
+	}
+
+	private static string GetDatabasePath(IConfiguration configuration)
+	{
+		var path = configuration.GetValue<string>("Database:Path");
+
+		return path ?? "C:\\ProgramData\\IndyPOS\\db\\Store.db";
 	}
 
 	public IDbConnection GetDbConnection()

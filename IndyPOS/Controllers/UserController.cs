@@ -1,4 +1,5 @@
-﻿using IndyPOS.Facade.Interfaces;
+﻿#nullable enable
+using IndyPOS.Facade.Interfaces;
 using IndyPOS.Interfaces;
 
 namespace IndyPOS.Controllers
@@ -12,9 +13,9 @@ namespace IndyPOS.Controllers
 			_userHelper = userHelper;
 		}
 
-		public IUserAccount LoggedInUser => _userHelper.LoggedInUser;
+		public IUserAccount? LoggedInUser => _userHelper.LoggedInUser;
 
-		public bool IsLoggedIn => _userHelper.LoggedInUser != null;
+		public bool IsLoggedIn => _userHelper.LoggedInUser is not null;
 
 		public bool LogIn(string username, string password)
 		{
