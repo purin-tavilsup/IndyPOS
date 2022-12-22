@@ -1,5 +1,6 @@
-﻿#nullable enable
-using Dapper;
+﻿using Dapper;
+using IndyPOS.Common.Exceptions;
+using IndyPOS.DataAccess.Extensions;
 using IndyPOS.DataAccess.Interfaces;
 using IndyPOS.DataAccess.Models;
 
@@ -42,52 +43,16 @@ public class AccountsReceivableRepository : IAccountsReceivableRepository
 			accountsReceivable.PaymentId,
 			accountsReceivable.Description,
 			accountsReceivable.InvoiceId,
-			ReceivableAmount = MapMoneyToString(accountsReceivable.ReceivableAmount)
+			ReceivableAmount = accountsReceivable.ReceivableAmount.ToMoneyString()
 		};
 
-		var rowId = connection.Query<int>(sqlCommand, sqlParameters).FirstOrDefault();
-
-		if (rowId < 1) throw new Exception("Failed to get the last insert Row ID after adding a new account receivable.");
-
-		return rowId;
-	}
-
-	public void ConvertPaymentToAccountsReceivable(Payment payment)
-	{
-		using var connection = _dbConnectionProvider.GetDbConnection();
-		connection.Open();
-
-		const string sqlCommand = @"INSERT INTO AccountsReceivables
-                (
-                    PaymentId,
-                    Description,
-                    InvoiceId,
-                    ReceivableAmount,
-					DateCreated
-                )
-                VALUES
-                (
-                    @PaymentId,
-                    @Description,
-                    @InvoiceId,
-					@ReceivableAmount,
-                    @DateCreated
-                );
-                SELECT last_insert_rowid()";
-
-		var sqlParameters = new
-		{
-			payment.PaymentId,
-			Description = payment.Note,
-			payment.InvoiceId,
-			ReceivableAmount = MapMoneyToString(payment.Amount),
-			payment.DateCreated
-		};
-
-		var rowId = connection.Query<int>(sqlCommand, sqlParameters).FirstOrDefault();
+		var rowId = connection.Query<int>(sqlCommand, sqlParameters)
+							  .FirstOrDefault();
 
 		if (rowId < 1) 
-			throw new Exception("Failed to get the last insert Row ID after adding a new account receivable.");
+			throw new AccountReceivableNotAddedException($"Failed to add a new account receivable. InvoiceId: {accountsReceivable.InvoiceId}.");
+
+		return rowId;
 	}
 
 	public void UpdateAccountsReceivable(AccountsReceivable accountsReceivable)
@@ -105,14 +70,14 @@ public class AccountsReceivableRepository : IAccountsReceivableRepository
 		var sqlParameters = new
 		{
 			accountsReceivable.PaymentId,
-			PaidAmount = MapMoneyToString(accountsReceivable.PaidAmount),
+			PaidAmount = accountsReceivable.PaidAmount.ToMoneyString(),
 			IsCompleted = accountsReceivable.IsCompleted ? 1 : 0
 		};
 
 		var affectedRowsCount = connection.Execute(sqlCommand, sqlParameters);
 
 		if (affectedRowsCount != 1)
-			throw new Exception("Failed to update the account receivable.");
+			throw new AccountReceivableNotUpdatedException($"Failed to update an account receivable. InvoiceId: {accountsReceivable.InvoiceId}.");
 	}
 
 	public IEnumerable<AccountsReceivable> GetAccountsReceivables()
@@ -160,10 +125,10 @@ public class AccountsReceivableRepository : IAccountsReceivableRepository
 
 		var results = connection.Query(sqlCommand, sqlParameters);
 
-		return MapAccountsReceivables(results);
+		return results is null ? Enumerable.Empty<AccountsReceivable>() : MapAccountsReceivables(results);
 	}
 
-	public AccountsReceivable? GetAccountsReceivableByInvoiceId(int invoiceId)
+	public AccountsReceivable GetAccountsReceivableByInvoiceId(int invoiceId)
 	{
 		using var connection = _dbConnectionProvider.GetDbConnection();
 		connection.Open();
@@ -185,9 +150,13 @@ public class AccountsReceivableRepository : IAccountsReceivableRepository
 			InvoiceId = invoiceId
 		};
 
-		var results = connection.Query(sqlCommand, sqlParameters);
+		var result = connection.Query(sqlCommand, sqlParameters)
+							   .FirstOrDefault();
 
-		return MapAccountsReceivables(results).FirstOrDefault();
+		if (result is null)
+			throw new AccountReceivableNotFoundException($"Account Receivable is not found. InvoiceId: {invoiceId}.");
+
+		return MapAccountsReceivable(result);
 	}
 
 	public IEnumerable<AccountsReceivable> GetAccountsReceivablesByDateRange(DateTime start, DateTime end)
@@ -209,64 +178,34 @@ public class AccountsReceivableRepository : IAccountsReceivableRepository
 
 		var sqlParameters = new
 		{
-			startDate = MapStartDateToString(start),
-			endDate = MapEndDateToString(end)
+			startDate = start.ToStartDateString(),
+			endDate = end.ToEndDateString()
 		};
 
 		var results = connection.Query(sqlCommand, sqlParameters);
 
-		return MapAccountsReceivables(results);
+		return results is null ? Enumerable.Empty<AccountsReceivable>() : MapAccountsReceivables(results);
 	}
 
-	private string MapStartDateToString(DateTime date)
+	private static AccountsReceivable MapAccountsReceivable(dynamic result)
 	{
-		var dateString = date.ToString("yyyy-MM-dd");
-
-		return $"{dateString} 00:00";
-	}
-
-	private string MapEndDateToString(DateTime date)
-	{
-		var dateString = date.ToString("yyyy-MM-dd");
-
-		return $"{dateString} 24:00";
-	}
-
-	private static IEnumerable<AccountsReceivable> MapAccountsReceivables(IEnumerable<dynamic>? results)
-	{
-		if (results is null)
-			return Enumerable.Empty<AccountsReceivable>();
-
-		var accountsReceivables = results.Select(x => new AccountsReceivable
+		var accountsReceivables = new AccountsReceivable
 		{
-			PaymentId = (int)x.PaymentId,
-			Description = x.Description,
-			InvoiceId = (int)x.InvoiceId,
-			ReceivableAmount = MapMoneyToDecimal(x.ReceivableAmount),
-			PaidAmount = MapMoneyToDecimal(x.PaidAmount),
-			IsCompleted = x.IsCompleted == 1,
-			DateCreated = x.DateCreated,
-			DateUpdated = x.DateUpdated
-		});
+			PaymentId = (int)result.PaymentId,
+			Description = result.Description,
+			InvoiceId = (int)result.InvoiceId,
+			ReceivableAmount = ((string)result.ReceivableAmount).ToMoney(),
+			PaidAmount = ((string)result.PaidAmount).ToMoney(),
+			IsCompleted = result.IsCompleted == 1,
+			DateCreated = result.DateCreated,
+			DateUpdated = result.DateUpdated
+		};
 
 		return accountsReceivables;
 	}
 
-	private static decimal MapMoneyToDecimal(string value)
+	private static IEnumerable<AccountsReceivable> MapAccountsReceivables(IEnumerable<dynamic> results)
 	{
-		if (decimal.TryParse(value.Trim(), out var result))
-			return result / 100m;
-
-		return 0m;
-	}
-
-	private static string? MapMoneyToString(decimal? value)
-	{
-		if (!value.HasValue)
-			return null;
-
-		var result = Math.Round(value.GetValueOrDefault(), 2, MidpointRounding.AwayFromZero) * 100m;
-
-		return $"{result}";
+		return results.Select(MapAccountsReceivable);
 	}
 }

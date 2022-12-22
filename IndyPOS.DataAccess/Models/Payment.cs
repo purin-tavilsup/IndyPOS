@@ -13,7 +13,7 @@ public class Payment
 
 	public decimal Amount { get; set; }
 
-	public string DateCreated { get; set; }
+	public string DateCreated { get; set; } = string.Empty;
 
-	public string Note { get; set; }
+	public string Note { get; set; } = string.Empty;
 }

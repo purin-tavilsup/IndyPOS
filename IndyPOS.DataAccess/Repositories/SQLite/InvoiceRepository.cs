@@ -1,5 +1,6 @@
 ﻿using Dapper;
 using IndyPOS.Common.Exceptions;
+using IndyPOS.DataAccess.Extensions;
 using IndyPOS.DataAccess.Interfaces;
 using IndyPOS.DataAccess.Models;
 
@@ -37,14 +38,16 @@ public class InvoiceRepository : IInvoiceRepository
 
 		var sqlParameters = new
 		{
-			Total = MapMoneyToString(invoice.Total),
+			Total = invoice.Total.ToMoneyString(),
 			invoice.CustomerId,
 			invoice.UserId
 		};
 
-		var invoiceId = connection.Query<int>(sqlCommand, sqlParameters).FirstOrDefault();
+		var invoiceId = connection.Query<int>(sqlCommand, sqlParameters)
+								  .FirstOrDefault();
 
-		if (invoiceId < 1) throw new Exception("Failed to get the last insert Row ID after adding a new invoice.");
+		if (invoiceId < 1) 
+			throw new InvoiceNotAddedException("Failed to add a new invoice.");
 
 		return invoiceId;
 	}
@@ -96,14 +99,16 @@ public class InvoiceRepository : IInvoiceRepository
 			product.Manufacturer,
 			product.Brand,
 			product.Category,
-			UnitPrice = MapMoneyToString(product.UnitPrice),
+			UnitPrice = product.UnitPrice.ToMoneyString(),
 			product.Quantity,
 			product.Note
 		};
 
-		var invoiceProductId = connection.Query<int>(sqlCommand, sqlParameters).FirstOrDefault();
+		var invoiceProductId = connection.Query<int>(sqlCommand, sqlParameters)
+										 .FirstOrDefault();
 
-		if (invoiceProductId < 1) throw new Exception("Failed to get the last insert Row ID after adding an invoice product.");
+		if (invoiceProductId < 1) 
+			throw new ProductNotAddedException($"Failed to add an invoice product. Product barcode: {product.Barcode}.");
 
 		return invoiceProductId;
 	}
@@ -114,7 +119,7 @@ public class InvoiceRepository : IInvoiceRepository
 		connection.Open();
 
 		const string sqlCommand = @"INSERT INTO Payments
-                (
+				(
                     InvoiceId,
                     PaymentTypeId,
                     Amount,
@@ -135,13 +140,15 @@ public class InvoiceRepository : IInvoiceRepository
 		{
 			payment.InvoiceId,
 			payment.PaymentTypeId,
-			Amount = MapMoneyToString(payment.Amount),
+			Amount = payment.Amount.ToMoneyString(),
 			payment.Note
 		};
 
-		var paymentId = connection.Query<int>(sqlCommand, sqlParameters).FirstOrDefault();
+		var paymentId = connection.Query<int>(sqlCommand, sqlParameters)
+								  .FirstOrDefault();
 
-		if (paymentId < 1) throw new Exception("Failed to get the last insert Row ID after adding a new payment.");
+		if (paymentId < 1) 
+			throw new PaymentNotAddedException($"Failed to add a new payment. InvoiceId: {payment.InvoiceId}.");
 
 		return paymentId;
 	}
@@ -165,13 +172,12 @@ public class InvoiceRepository : IInvoiceRepository
 			invoiceId = id
 		};
 
-		var results = connection.Query(sqlCommand, sqlParameters);
-		var invoice = MapInvoices(results).FirstOrDefault();
+		var result = connection.Query(sqlCommand, sqlParameters)
+							   .FirstOrDefault();
+		if (result is null)
+			throw new InvoiceNotFoundException($"Invoice is not found. InvoiceId: {id}.");
 
-		if (invoice == null)
-			throw new InvoiceNotFoundException($"Invoice with Id {id} is not found.");
-
-		return invoice;
+		return MapInvoice(result);
 	}
 
 	public IList<Invoice> GetInvoicesByDateRange(DateTime start, DateTime end)
@@ -190,13 +196,13 @@ public class InvoiceRepository : IInvoiceRepository
 
 		var sqlParameters = new
 		{
-			startDate = MapStartDateToString(start),
-			endDate = MapEndDateToString(end)
+			startDate = start.ToStartDateString(),
+			endDate = end.ToEndDateString()
 		};
 
 		var results = connection.Query(sqlCommand, sqlParameters);
 
-		return MapInvoices(results);
+		return results is null ? new List<Invoice>() : MapInvoices(results);
 	}
 
 	public IList<Invoice> GetInvoicesByDate(DateTime date)
@@ -233,7 +239,7 @@ public class InvoiceRepository : IInvoiceRepository
 
 		var results = connection.Query(sqlCommand, sqlParameters);
 
-		return MapInvoiceProducts(results);
+		return results is null ? new List<InvoiceProduct>() : MapInvoiceProducts(results);
 	}
 
 	public IList<InvoiceProduct> GetInvoiceProductsByDateRange(DateTime start, DateTime end)
@@ -260,13 +266,13 @@ public class InvoiceRepository : IInvoiceRepository
 
 		var sqlParameters = new
 		{
-			startDate = MapStartDateToString(start),
-			endDate = MapEndDateToString(end)
+			startDate = start.ToStartDateString(),
+			endDate = end.ToEndDateString()
 		};
 
 		var results = connection.Query(sqlCommand, sqlParameters);
 
-		return MapInvoiceProducts(results);
+		return results is null ? new List<InvoiceProduct>() : MapInvoiceProducts(results);
 	}
 
 	public IList<InvoiceProduct> GetInvoiceProductsByDate(DateTime date)
@@ -296,7 +302,7 @@ public class InvoiceRepository : IInvoiceRepository
 
 		var results = connection.Query(sqlCommand, sqlParameters);
 
-		return MapPayments(results);
+		return results is null ? new List<Payment>() : MapPayments(results);
 	}
 
 	public IList<Payment> GetPaymentsByDate(DateTime date)
@@ -321,13 +327,13 @@ public class InvoiceRepository : IInvoiceRepository
 
 		var sqlParameters = new
 		{
-			startDate = MapStartDateToString(start),
-			endDate = MapEndDateToString(end)
+			startDate = start.ToStartDateString(),
+			endDate = end.ToEndDateString()
 		};
 
 		var results = connection.Query(sqlCommand, sqlParameters);
 
-		return MapPayments(results);
+		return results is null ? new List<Payment>() : MapPayments(results);
 	}
 
 	public IList<Payment> GetPaymentsByPaymentTypeId(int id)
@@ -352,110 +358,64 @@ public class InvoiceRepository : IInvoiceRepository
 
 		var results = connection.Query(sqlCommand, sqlParameters);
 
-		return MapPayments(results);
+		return results is null ? new List<Payment>() : MapPayments(results);
 	}
 
-	private string MapStartDateToString(DateTime date)
+	private static Invoice MapInvoice(dynamic result)
 	{
-		var dateString = date.ToString("yyyy-MM-dd");
-
-		return $"{dateString} 00:00";
-	}
-
-	private string MapEndDateToString(DateTime date)
-	{
-		var dateString = date.ToString("yyyy-MM-dd");
-
-		return $"{dateString} 24:00";
-	}
-
-	private IList<Invoice> MapInvoices(IEnumerable<dynamic> results)
-	{
-		var invoices = results?.Select(x => new Invoice
+		var invoice = new Invoice
 		{
-			InvoiceId = (int)x.InvoiceId,
+			InvoiceId = (int)result.InvoiceId,
+			Total = ((string)result.Total).ToMoney(),
+			CustomerId = (int?)result.CustomerId,
+			UserId = (int)result.UserId,
+			DateCreated = result.DateCreated
+		};
 
-			Total = MapMoneyToDecimal(x.Total),
+		return invoice;
+	}
 
-			CustomerId = (int?)x.CustomerId,
-
-			UserId = (int)x.UserId,
-
-			DateCreated = x.DateCreated
-		}) ?? Enumerable.Empty<Invoice>();
+	private static IList<Invoice> MapInvoices(IEnumerable<dynamic> results)
+	{
+		var invoices = results.Select(MapInvoice);
 
 		return invoices.ToList();
 	}
 
-	private IList<InvoiceProduct> MapInvoiceProducts(IEnumerable<dynamic> results)
+	private static IList<InvoiceProduct> MapInvoiceProducts(IEnumerable<dynamic> results)
 	{
-		var products = results?.Select(x => new InvoiceProduct
+		var products = results.Select(x => new InvoiceProduct
 		{
 			InvoiceProductId = (int)x.InvoiceProductId,
-
 			Priority = (int)x.Priority,
-
 			InvoiceId = (int)x.InvoiceId,
-
 			InventoryProductId = (int)x.InventoryProductId,
-
 			Barcode = x.Barcode,
-
 			Description = x.Description,
-
 			Manufacturer = x.Manufacturer,
-
 			Brand = x.Brand,
-
 			Category = (int)x.Category,
-
-			UnitPrice = MapMoneyToDecimal(x.UnitPrice),
-
+			UnitPrice = ((string)x.UnitPrice).ToMoney(),
 			Quantity = (int)x.Quantity,
-
 			DateCreated = x.DateCreated,
-
 			Note = x.Note
-		}) ?? Enumerable.Empty<InvoiceProduct>();
+		});
 
 		return products.ToList();
 	}
 
-	private IList<Payment> MapPayments(IEnumerable<dynamic> results)
+	private static IList<Payment> MapPayments(IEnumerable<dynamic> results)
 	{
-		var payments = results?.Select(x => new Payment
+		var payments = results.Select(x => new Payment
 		{
 			PaymentId = (int)x.PaymentId,
-
 			InvoiceId = (int)x.InvoiceId,
-
 			PaymentTypeId = (int)x.PaymentTypeId,
-
-			Amount = MapMoneyToDecimal(x.Amount),
-
+			Amount = ((string)x.Amount).ToMoney(),
 			DateCreated = x.DateCreated,
-
 			Note = x.Note
-		}) ?? Enumerable.Empty<Payment>();
+		});
 
 		return payments.ToList();
-	}
-
-	private decimal MapMoneyToDecimal(string value)
-	{
-		if (decimal.TryParse(value.Trim(), out var result))
-			return result / 100m;
-
-		return 0m;
-	}
-
-	private string? MapMoneyToString(decimal? value)
-	{
-		if (!value.HasValue)
-			return null;
-
-		var result = Math.Round(value.GetValueOrDefault(), 2, MidpointRounding.AwayFromZero) * 100m;
-
-		return $"{result}";
 	}
 }

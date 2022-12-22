@@ -27,13 +27,10 @@ public class UserHelper : IUserHelper
 		{
 			var userCredential = GetUserCredentialByUserName(username);
 
-			if (userCredential == null || userCredential.Password != password)
+			if (userCredential.Password != password)
 				return false;
 
 			var user = GetUserById(userCredential.UserId);
-
-			if (user == null)
-				return false;
 
 			LoggedInUser = user;
 

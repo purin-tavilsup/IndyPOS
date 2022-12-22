@@ -6,7 +6,7 @@ public interface IInventoryProductRepository
 {
 	InventoryProduct GetProductByBarcode(string barcode);
 
-	IList<InventoryProduct> GetProductsByCategoryId(int id);
+	IEnumerable<InventoryProduct> GetProductsByCategoryId(int id);
 
 	InventoryProduct GetProductById(int id);
 

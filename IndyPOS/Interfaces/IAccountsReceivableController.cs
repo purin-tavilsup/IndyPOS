@@ -1,15 +1,12 @@
 ﻿using IndyPOS.Facade.Interfaces;
 
-namespace IndyPOS.Interfaces
+namespace IndyPOS.Interfaces;
+
+public interface IAccountsReceivableController
 {
-	public interface IAccountsReceivableController
-	{
-		IList<IAccountsReceivable> GetAccountsReceivables();
+	IList<IAccountsReceivable> GetAccountsReceivables();
 
-		IAccountsReceivable GetAccountsReceivableByInvoiceId(int invoiceId);
+	IAccountsReceivable GetAccountsReceivableByInvoiceId(int invoiceId);
 
-		void UpdateAccountsReceivable(IAccountsReceivable accountsReceivable);
-
-		void ConvertPaymentsToAccountsReceivables();
-	}
+	void UpdateAccountsReceivable(IAccountsReceivable accountsReceivable);
 }

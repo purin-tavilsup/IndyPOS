@@ -6,9 +6,9 @@ internal class InvoiceInfo : IInvoiceInfo
 {
 	public int Id { get; set; }
 
-	public IList<ISaleInvoiceProduct> Products { get; set; }
+	public IList<ISaleInvoiceProduct> Products { get; set; } = new List<ISaleInvoiceProduct>();
 
-	public IList<IPayment> Payments { get; set; }
+	public IList<IPayment> Payments { get; set; } = new List<IPayment>();
 
 	public bool IsRefundInvoice { get; set; }
 

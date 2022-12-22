@@ -1,7 +1,7 @@
 ﻿#nullable enable
 using Dapper;
 using IndyPOS.Common.Exceptions;
-using IndyPOS.Common.Extensions;
+using IndyPOS.DataAccess.Extensions;
 using IndyPOS.DataAccess.Interfaces;
 using IndyPOS.DataAccess.Models;
 
@@ -29,16 +29,16 @@ public class InventoryProductRepository : IInventoryProductRepository
 			productBarcode = barcode
 		};
 
-		var results = connection.Query(sqlCommand, sqlParameters);
-		var product = MapInventoryProducts(results).FirstOrDefault();
+		var result = connection.Query(sqlCommand, sqlParameters)
+							   .FirstOrDefault();
 
-		if (product == null)
-			throw new ProductNotFoundException($"Product with barcode {barcode} is not found.");
+		if (result is null)
+			throw new ProductNotFoundException($"Inventory Product is not found. Product barcode: {barcode}.");
 
-		return product;
+		return MapInventoryProduct(result);
 	}
 
-	public IList<InventoryProduct> GetProductsByCategoryId(int id)
+	public IEnumerable<InventoryProduct> GetProductsByCategoryId(int id)
 	{
 		using var connection = _dbConnectionProvider.GetDbConnection();
 		connection.Open();
@@ -53,7 +53,7 @@ public class InventoryProductRepository : IInventoryProductRepository
 
 		var results = connection.Query(sqlCommand, sqlParameters);
 
-		return MapInventoryProducts(results).ToList();
+		return results is null ? Enumerable.Empty<InventoryProduct>() : MapInventoryProducts(results);
 	}
 
 	public InventoryProduct GetProductById(int id)
@@ -69,13 +69,13 @@ public class InventoryProductRepository : IInventoryProductRepository
 			inventoryProductId = id
 		};
 
-		var results = connection.Query(sqlCommand, sqlParameters);
-		var product = MapInventoryProducts(results).FirstOrDefault();
+		var result = connection.Query(sqlCommand, sqlParameters)
+							   .FirstOrDefault();
 
-		if (product == null)
-			throw new ProductNotFoundException($"Product with Id {id} is not found.");
+		if (result is null)
+			throw new ProductNotFoundException($"Inventory Product is not found. InventoryProductId: {id}.");
 
-		return product;
+		return MapInventoryProduct(result);
 	}
 
 	public int AddProduct(InventoryProduct product)
@@ -120,16 +120,18 @@ public class InventoryProductRepository : IInventoryProductRepository
 			product.Manufacturer,
 			product.Brand,
 			product.Category,
-			UnitPrice = MapMoneyToString(product.UnitPrice),
+			UnitPrice = product.UnitPrice.ToMoneyString(),
 			product.QuantityInStock,
-			GroupPrice = MapMoneyToString(product.GroupPrice),
+			GroupPrice = product.GroupPrice.ToNullableMoneyString(),
 			product.GroupPriceQuantity,
 			IsTrackable = product.IsTrackable ? 1 : 0
 		};
 
-		var inventoryProductId = connection.Query<int>(sqlCommand, sqlParameters).FirstOrDefault();
+		var inventoryProductId = connection.Query<int>(sqlCommand, sqlParameters)
+										   .FirstOrDefault();
 
-		if (inventoryProductId < 1) throw new Exception("Failed to get the last insert Row ID after adding a product.");
+		if (inventoryProductId < 1) 
+			throw new ProductNotAddedException($"Failed to add an inventory product. Product barcode: {product.Barcode}.");
 
 		return inventoryProductId;
 	}
@@ -159,16 +161,16 @@ public class InventoryProductRepository : IInventoryProductRepository
 			product.Manufacturer,
 			product.Brand,
 			product.Category,
-			UnitPrice = MapMoneyToString(product.UnitPrice),
+			UnitPrice = product.UnitPrice.ToMoneyString(),
 			product.QuantityInStock,
-			GroupPrice = MapMoneyToString(product.GroupPrice),
+			GroupPrice = product.GroupPrice.ToNullableMoneyString(),
 			product.GroupPriceQuantity
 		};
 
 		var affectedRowsCount = connection.Execute(sqlCommand, sqlParameters);
 
 		if (affectedRowsCount != 1)
-			throw new Exception("Failed to update the product.");
+			throw new ProductNotUpdatedException($"Failed to update inventory product. InventoryProductId: {product.InventoryProductId}.");
 	}
 
 	public void UpdateProductQuantityById(int id, int quantity)
@@ -190,7 +192,7 @@ public class InventoryProductRepository : IInventoryProductRepository
 		var affectedRowsCount = connection.Execute(sqlCommand, sqlParameters);
 
 		if (affectedRowsCount != 1)
-			throw new Exception("Failed to update product's quantity.");
+			throw new ProductNotUpdatedException($"Failed to update inventory product's quantity. InventoryProductId: {id}.");
 	}
 
 	public void RemoveProduct(InventoryProduct product)
@@ -214,7 +216,7 @@ public class InventoryProductRepository : IInventoryProductRepository
 		var affectedRowsCount = connection.Execute(sqlCommand, sqlParameters);
 
 		if (affectedRowsCount != 1)
-			throw new Exception("Failed to delete the product.");
+			throw new ProductNotDeletedException($"Failed to delete an inventory product. InventoryProductId: {id}.");
 	}
 
 	public int GetProductBarcodeCounter()
@@ -259,69 +261,30 @@ public class InventoryProductRepository : IInventoryProductRepository
 			throw new Exception("Failed to update product barcode counter.");
 	}
 
-	private IEnumerable<InventoryProduct> MapInventoryProducts(IEnumerable<dynamic>? results)
+	private static InventoryProduct MapInventoryProduct(dynamic result)
 	{
-		if (results is null)
-			return Enumerable.Empty<InventoryProduct>();
-
-		var products = results.Select(x => new InventoryProduct
+		var product = new InventoryProduct
 		{
-			InventoryProductId = (int)x.InventoryProductId,
+			InventoryProductId = (int)result.InventoryProductId,
+			Barcode = result.Barcode,
+			Description = result.Description,
+			Manufacturer = result.Manufacturer,
+			Brand = result.Brand,
+			Category = (int)result.Category,
+			UnitPrice = ((string)result.UnitPrice).ToMoney(),
+			QuantityInStock = (int)result.QuantityInStock,
+			GroupPrice = ((string)result.GroupPrice).ToNullableMoney(),
+			GroupPriceQuantity = (int?)result.GroupPriceQuantity,
+			IsTrackable = result.IsTrackable == 1,
+			DateCreated = result.DateCreated,
+			DateUpdated = result.DateUpdated
+		};
 
-			Barcode = x.Barcode,
-
-			Description = x.Description,
-
-			Manufacturer = x.Manufacturer,
-
-			Brand = x.Brand,
-
-			Category = (int)x.Category,
-
-			UnitPrice = MapMoneyToDecimal(x.UnitPrice),
-
-			QuantityInStock = (int)x.QuantityInStock,
-
-			GroupPrice = MapMoneyToNullableDecimal(x.GroupPrice),
-
-			GroupPriceQuantity = (int?)x.GroupPriceQuantity,
-
-			IsTrackable = x.IsTrackable == 1,
-
-			DateCreated = x.DateCreated,
-
-			DateUpdated = x.DateUpdated
-		});
-
-		return products;
+		return product;
 	}
 
-	private decimal? MapMoneyToNullableDecimal(string value)
+	private static IEnumerable<InventoryProduct> MapInventoryProducts(IEnumerable<dynamic> results)
 	{
-		if (!value.HasValue())
-			return null;
-
-		if (decimal.TryParse(value.Trim(), out var result))
-			return result / 100m;
-
-		return null;
-	}
-
-	private decimal MapMoneyToDecimal(string value)
-	{
-		if (decimal.TryParse(value.Trim(), out var result))
-			return result / 100m;
-
-		return 0m;
-	}
-
-	private string? MapMoneyToString(decimal? value)
-	{
-		if (!value.HasValue)
-			return null;
-
-		var result = Math.Round(value.GetValueOrDefault(), 2, MidpointRounding.AwayFromZero) * 100m;
-
-		return $"{result}";
+		return results.Select(MapInventoryProduct);
 	}
 }

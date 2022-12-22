@@ -9,6 +9,4 @@ public interface IAccountsReceivableHelper
 	IEnumerable<IAccountsReceivable> GetAccountsReceivablesByDateRange(DateTime startDate, DateTime endDate);
 
 	void UpdateAccountsReceivable(IAccountsReceivable accountsReceivable);
-
-	void ConvertPaymentsToAccountsReceivables();
 }

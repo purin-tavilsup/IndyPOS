@@ -1,4 +1,5 @@
-﻿using IndyPOS.Common.Extensions;
+﻿#nullable enable
+using IndyPOS.Common.Extensions;
 using IndyPOS.Common.Interfaces;
 using IndyPOS.Facade.Interfaces;
 using Serilog;
@@ -13,18 +14,18 @@ public class ReceiptPrinterHelper : IReceiptPrinterHelper
 {
 	private readonly ILogger _logger;
 	private readonly IReadOnlyDictionary<int, string> _paymentTypeDictionary;
-	private IInvoiceInfo _invoiceInfo;
-	private IUserAccount _loggedInUser;
+	private IInvoiceInfo? _invoiceInfo;
+	private IUserAccount? _loggedInUser;
 	private readonly PrintDocument _printDocument;
 	private readonly SolidBrush _brush;
 	private readonly Font _textFont;
 	private readonly Font _lineFont;
 	private readonly Font _logoFont;
-	private string _printerName;
-	private string _storeName;
-	private string _storeAddressLine1;
-	private string _storeAddressLine2;
-	private string _storePhoneNumber;
+	private string _printerName = string.Empty;
+	private string _storeName = string.Empty;
+	private string _storeAddressLine1 = string.Empty;
+	private string _storeAddressLine2 = string.Empty;
+	private string _storePhoneNumber = string.Empty;
 
 	private const int SpaceOffset = 11;
 	private const int LogoFontSize = 15;
@@ -51,7 +52,7 @@ public class ReceiptPrinterHelper : IReceiptPrinterHelper
 		_lineFont = new Font(FontFamilyName, LineFontSize);
 
 		_printDocument = new PrintDocument();
-		_printDocument.PrinterSettings.PrinterName = _printerName ?? "XP-58";
+		_printDocument.PrinterSettings.PrinterName = _printerName;
 		_printDocument.PrintPage += PrintPageHandler;
 	}
 
@@ -81,16 +82,19 @@ public class ReceiptPrinterHelper : IReceiptPrinterHelper
 
 		_printDocument.Print();
 	}
-		
+	
 	private void PrintPageHandler(object sender, PrintPageEventArgs e)
 	{
+		if (_invoiceInfo is null || _loggedInUser is null || e.Graphics is null)
+			throw new ArgumentNullException("", "At least one of parameters required for printing a receipt is null.");
+		
 		var graphics = e.Graphics;
 		var currentPosition = new Point(0, 5);
 
 		PrintHeader(graphics, ref currentPosition);
-		PrintInvoiceInfo(graphics, ref currentPosition);
-		PrintLineItems(graphics, ref currentPosition);
-		PrintPayments(graphics, ref currentPosition);
+		PrintInvoiceInfo(_invoiceInfo, _loggedInUser, graphics, ref currentPosition);
+		PrintLineItems(_invoiceInfo, graphics, ref currentPosition);
+		PrintPayments(_invoiceInfo, graphics, ref currentPosition);
 	}
 
 	private void PrintStoreName(Graphics graphics, string text, int x, int y)
@@ -129,11 +133,11 @@ public class ReceiptPrinterHelper : IReceiptPrinterHelper
 		PrintLine(graphics, position.X, position.Y);
 	}
 
-	private void PrintInvoiceInfo(Graphics graphics, ref Point position)
+	private void PrintInvoiceInfo(IInvoiceInfo invoiceInfo, IUserAccount userAccount, Graphics graphics, ref Point position)
 	{
 		position.Y += SpaceOffset;
 
-		var invoiceNumberString = $"Invoice No.: {_invoiceInfo.Id: 0000000000}";
+		var invoiceNumberString = $"Invoice No.: {invoiceInfo.Id: 0000000000}";
 		PrintText(graphics, invoiceNumberString, position.X, position.Y);
 
 		position.Y += SpaceOffset;
@@ -148,7 +152,7 @@ public class ReceiptPrinterHelper : IReceiptPrinterHelper
 
 		position.Y += SpaceOffset;
 
-		var cashierName = $"Cashier: {_loggedInUser.FirstName} {_loggedInUser.LastName}";
+		var cashierName = $"Cashier: {userAccount.FirstName} {userAccount.LastName}";
 		PrintText(graphics, cashierName, position.X, position.Y);
 
 		position.Y += SpaceOffset;
@@ -156,7 +160,7 @@ public class ReceiptPrinterHelper : IReceiptPrinterHelper
 		PrintLine(graphics, position.X, position.Y);
 	}
 
-	private void PrintLineItems(Graphics graphics, ref Point position)
+	private void PrintLineItems(IInvoiceInfo invoiceInfo, Graphics graphics, ref Point position)
 	{
 		position.Y += SpaceOffset;
 
@@ -164,11 +168,11 @@ public class ReceiptPrinterHelper : IReceiptPrinterHelper
 			
 		position.Y += SpaceOffset / 2;
 
-		foreach (var product in _invoiceInfo.Products)
+		foreach (var product in invoiceInfo.Products)
 		{
 			position.Y += SpaceOffset;
 
-			var description = GetProductDescription(product);
+			var description = GetProductDescription(invoiceInfo, product);
 
 			PrintText(graphics, description, position.X, position.Y);
 
@@ -188,19 +192,19 @@ public class ReceiptPrinterHelper : IReceiptPrinterHelper
 		position.Y += SpaceOffset;
 
 		PrintText(graphics, "ราคารวม", position.X, position.Y);
-		PrintText(graphics, $"{_invoiceInfo.InvoiceTotal:N}", position.X + PriceColumn, position.Y);
+		PrintText(graphics, $"{invoiceInfo.InvoiceTotal:N}", position.X + PriceColumn, position.Y);
 
 		position.Y += SpaceOffset;
 
 		PrintLine(graphics, position.X, position.Y);
 	}
 
-	private string GetProductDescription(ISaleInvoiceProduct product)
+	private static string GetProductDescription(IInvoiceInfo invoiceInfo, ISaleInvoiceProduct product)
 	{
-		if (_invoiceInfo.IsRefundInvoice && product.Note.HasValue())
+		if (invoiceInfo.IsRefundInvoice && product.Note.HasValue())
 			return $"{product.Description} : {product.Note} (คืนสินค้า)"; 
 
-		if (_invoiceInfo.IsRefundInvoice)
+		if (invoiceInfo.IsRefundInvoice)
 			return $"{product.Description} : (คืนสินค้า)";
 
 		if (product.Note.HasValue())
@@ -209,7 +213,7 @@ public class ReceiptPrinterHelper : IReceiptPrinterHelper
 		return product.Description;
 	}
 		
-	private void PrintPayments(Graphics graphics, ref Point position)
+	private void PrintPayments(IInvoiceInfo invoiceInfo, Graphics graphics, ref Point position)
 	{
 		position.Y += SpaceOffset;
 
@@ -217,11 +221,11 @@ public class ReceiptPrinterHelper : IReceiptPrinterHelper
 			
 		position.Y += SpaceOffset / 2;
 
-		foreach (var payment in _invoiceInfo.Payments)
+		foreach (var payment in invoiceInfo.Payments)
 		{
 			position.Y += SpaceOffset;
 				
-			var description = GetPaymentDescription(payment);
+			var description = GetPaymentDescription(invoiceInfo, payment);
 
 			PrintText(graphics, description, position.X, position.Y);
 			PrintText(graphics, $"{payment.Amount:N}", position.X + PriceColumn, position.Y);
@@ -234,23 +238,23 @@ public class ReceiptPrinterHelper : IReceiptPrinterHelper
 		position.Y += SpaceOffset;
 
 		PrintText(graphics, "เงินรวม", position.X, position.Y);
-		PrintText(graphics, $"{_invoiceInfo.PaymentTotal:N}", position.X + PriceColumn, position.Y);
+		PrintText(graphics, $"{invoiceInfo.PaymentTotal:N}", position.X + PriceColumn, position.Y);
 
 		position.Y += SpaceOffset;
 
 		PrintText(graphics, "เงินทอน", position.X, position.Y);
-		PrintText(graphics, $"{_invoiceInfo.Changes:N}", position.X + PriceColumn, position.Y);
+		PrintText(graphics, $"{invoiceInfo.Changes:N}", position.X + PriceColumn, position.Y);
 
 		position.Y += SpaceOffset;
 
 		PrintLine(graphics, position.X, position.Y);
 	}
 
-	private string GetPaymentDescription(IPayment payment)
+	private string GetPaymentDescription(IInvoiceInfo invoiceInfo, IPayment payment)
 	{
 		var paymentType = _paymentTypeDictionary[payment.PaymentTypeId];
 
-		if (_invoiceInfo.IsRefundInvoice)
+		if (invoiceInfo.IsRefundInvoice)
 			return $"{paymentType} : คืนเงิน";
 
 		if (payment.Note.HasValue())

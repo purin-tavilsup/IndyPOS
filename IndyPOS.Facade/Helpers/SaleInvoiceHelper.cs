@@ -25,9 +25,9 @@ public class SaleInvoiceHelper : ISaleInvoiceHelper
 	private readonly IUserHelper _userHelper;
 	private readonly IAccountsReceivableRepository _accountsReceivableRepository;
 
-	public IList<ISaleInvoiceProduct> Products { get; private set; }
+	public IList<ISaleInvoiceProduct> Products { get; private set; } = new List<ISaleInvoiceProduct>();
 
-	public IList<IPayment> Payments { get; private set; }
+	public IList<IPayment> Payments { get; private set; } = new List<IPayment>();
 
 	public SaleInvoiceHelper(IInventoryHelper inventoryHelper,
 							 IEventAggregator eventAggregator, 
@@ -176,8 +176,13 @@ public class SaleInvoiceHelper : ISaleInvoiceHelper
 
 	public ISaleInvoiceProduct GetSaleInvoiceProduct(string barcode, int priority)
 	{
-		return Products.FirstOrDefault(p => p.Barcode  == barcode && 
-											p.Priority == priority);
+		var result = Products.FirstOrDefault(p => p.Barcode  == barcode && 
+												  p.Priority == priority);
+
+		if (result is null)
+			throw new ProductNotFoundException($"Sale Invoice Product is not found. Barcode: {barcode}. Priority: {priority}.");
+
+		return result;
 	}
 
 	public void RemoveProduct(ISaleInvoiceProduct product)
@@ -222,8 +227,8 @@ public class SaleInvoiceHelper : ISaleInvoiceHelper
 		var productToUpdate = Products.FirstOrDefault(p => p.InventoryProductId == inventoryProductId && 
 														   p.Priority           == priority);
 
-		if (productToUpdate == null)
-			throw new ProductNotFoundException($"Product with InventoryProductId {inventoryProductId} and Priority {priority} could not be found.");
+		if (productToUpdate is null)
+			throw new ProductNotFoundException($"Sale Invoice Product is not found. InventoryProductId: {inventoryProductId}. Priority: {priority}.");
 
 		if (productToUpdate.UnitPrice == unitPrice)
 			return;
@@ -240,7 +245,7 @@ public class SaleInvoiceHelper : ISaleInvoiceHelper
 														   p.Priority           == priority);
 
 		if (productToUpdate == null)
-			throw new ProductNotFoundException($"Product with InventoryProductId {inventoryProductId} and Priority {priority} could not be found.");
+			throw new ProductNotFoundException($"Sale Invoice Product is not found. InventoryProductId: {inventoryProductId}. Priority: {priority}.");
 
 		if (productToUpdate.Quantity == newQuantity)
 			return;
@@ -327,8 +332,8 @@ public class SaleInvoiceHelper : ISaleInvoiceHelper
 		{
 			var inventoryProduct = GetInventoryProductById(product.InventoryProductId);
 
-			if (inventoryProduct == null)
-				throw new ProductNotFoundException($"Product with InventoryProductId {product.InventoryProductId} could not be found.");
+			if (inventoryProduct is null)
+				throw new ProductNotFoundException($"Sale Invoice Product is not found. InventoryProductId: {product.InventoryProductId}.");
 
 			// Restore original unit price
 			product.UnitPrice = inventoryProduct.UnitPrice;

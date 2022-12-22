@@ -1,10 +1,11 @@
-﻿using IndyPOS.Facade.Interfaces;
+﻿#nullable enable
+using IndyPOS.Facade.Interfaces;
 
 namespace IndyPOS.Interfaces
 {
 	public interface IUserController
 	{
-		IUserAccount LoggedInUser { get; }
+		IUserAccount? LoggedInUser { get; }
 
 		bool IsLoggedIn { get; }
 

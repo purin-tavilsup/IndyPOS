@@ -28,14 +28,14 @@ public class InventoryHelper : IInventoryHelper
 	{
 		var result = _inventoryProductsRepository.GetProductByBarcode(barcode);
 
-		return result != null ? new InventoryProductAdapter(result) : null;
+		return new InventoryProductAdapter(result);
 	}
 
 	public IInventoryProduct GetProductById(int id)
 	{
 		var result = _inventoryProductsRepository.GetProductById(id);
 
-		return result != null ? new InventoryProductAdapter(result) : null;
+		return new InventoryProductAdapter(result);
 	}
 
 	public void AddNewProduct(IInventoryProduct product)

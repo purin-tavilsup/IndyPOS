@@ -1,4 +1,5 @@
 ﻿using Dapper;
+using IndyPOS.Common.Exceptions;
 using IndyPOS.DataAccess.Interfaces;
 using IndyPOS.DataAccess.Models;
 
@@ -27,9 +28,9 @@ public class UserRepository : IUserRepository
 				DateUpdated
                 FROM Users";
 				
-		var results = connection.Query(sqlCommand);
+		var results = connection.Query<UserAccount>(sqlCommand);
 
-		return MapUsers(results);
+		return results;
 	}
 
 	public UserAccount GetUserById(int id)
@@ -52,9 +53,13 @@ public class UserRepository : IUserRepository
 			userId = id
 		};
 
-		var results = connection.Query(sqlCommand, sqlParameters);
+		var result = connection.Query<UserAccount>(sqlCommand, sqlParameters)
+							   .FirstOrDefault();
 
-		return MapUsers(results).FirstOrDefault();
+		if (result == null)
+			throw new UserNotFoundException($"User is not found. UserId: {id}.");
+
+		return result;
 	}
 
 	public int CreateUser(UserAccount user)
@@ -87,7 +92,8 @@ public class UserRepository : IUserRepository
 
 		var userId = connection.Query<int>(sqlCommand, sqlParameters).FirstOrDefault();
 
-		if (userId < 1) throw new Exception("Failed to get the last insert Row ID after adding a user.");
+		if (userId < 1) 
+			throw new UserNotCreatedException("Failed to add a new user.");
 
 		return userId;
 	}
@@ -114,7 +120,7 @@ public class UserRepository : IUserRepository
 		var affectedRowsCount = connection.Execute(sqlCommand, sqlParameters);
 
 		if (affectedRowsCount != 1)
-			throw new Exception("Failed to update the user.");
+			throw new UserNotUpdatedException($"Failed to update a user. UserId: {user.UserId}.");
 	}
 
 	public void RemoveUserById(int id)
@@ -133,7 +139,7 @@ public class UserRepository : IUserRepository
 		var affectedRowsCount = connection.Execute(sqlCommand, sqlParameters);
 
 		if (affectedRowsCount != 1)
-			throw new Exception("Failed to delete the user.");
+			throw new UserNotDeletedException($"Failed to delete a user. UserId: {id}.");
 	}
 
 	public UserCredential GetUserCredentialById(int id)
@@ -155,9 +161,13 @@ public class UserRepository : IUserRepository
 			userId = id
 		};
 
-		var result = connection.Query(sqlCommand, sqlParameters).FirstOrDefault();
+		var result = connection.Query<UserCredential>(sqlCommand, sqlParameters)
+							   .FirstOrDefault();
 
-		return result != null ? MapUserCredential(result) : null;
+		if (result is null)
+			throw new UserCredentialNotFoundException($"User Credential is not found. UserId: {id}.");
+
+		return result;
 	}
 
 	public void CreateUserCredential(int userId, string username, string password)
@@ -190,7 +200,7 @@ public class UserRepository : IUserRepository
 		var affectedRowsCount = connection.Execute(sqlCommand, sqlParameters);
 
 		if (affectedRowsCount != 1)
-			throw new Exception("Failed to add user credential.");
+			throw new UserCredentialNotCreatedException($"Failed to add a new user credential. UserId: {userId}.");
 	}
 
 	public UserCredential GetUserCredentialByUsername(string username)
@@ -212,9 +222,13 @@ public class UserRepository : IUserRepository
 			Username = username
 		};
 
-		var result = connection.Query(sqlCommand, sqlParameters).FirstOrDefault();
+		var result = connection.Query<UserCredential>(sqlCommand, sqlParameters)
+							   .FirstOrDefault();
 
-		return result != null ? MapUserCredential(result) : null;
+		if (result is null)
+			throw new UserCredentialNotFoundException($"User Credential is not found. Username: {username}.");
+
+		return result;
 	}
 
 	public void UpdateUserCredentialById(int userId, string password)
@@ -237,7 +251,7 @@ public class UserRepository : IUserRepository
 		var affectedRowsCount = connection.Execute(sqlCommand, sqlParameters);
 
 		if (affectedRowsCount != 1)
-			throw new Exception("Failed to update user credential.");
+			throw new UserCredentialNotUpdatedException($"Failed to update a user credential. UserId: {userId}.");
 	}
 
 	public void RemoveUserCredentialById(int userId)
@@ -256,35 +270,6 @@ public class UserRepository : IUserRepository
 		var affectedRowsCount = connection.Execute(sqlCommand, sqlParameters);
 
 		if (affectedRowsCount != 1)
-			throw new Exception("Failed to delete the user credential.");
-	}
-
-	private UserCredential MapUserCredential(dynamic result)
-	{
-		var credential = new UserCredential
-		{
-			UserId = (int) result.UserId,
-			Username = result.Username,
-			Password = result.Password,
-			DateCreated = result.DateCreated,
-			DateUpdated = result.DateUpdated
-		};
-
-		return credential;
-	}
-
-	private IEnumerable<UserAccount> MapUsers(IEnumerable<dynamic> results)
-	{
-		var users = results?.Select(x => new UserAccount
-		{
-			UserId = (int)x.UserId,
-			FirstName = x.FirstName,
-			LastName = x.LastName,
-			RoleId = (int)x.RoleId,
-			DateCreated = x.DateCreated,
-			DateUpdated = x.DateUpdated
-		}) ?? Enumerable.Empty<UserAccount>();
-			
-		return users.ToList();
+			throw new UserCredentialNotDeletedException($"Failed to delete a user credential. UserId: {userId}.");
 	}
 }

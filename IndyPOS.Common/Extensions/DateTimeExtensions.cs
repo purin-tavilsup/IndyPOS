@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace IndyPOS.Common.Extensions;
+﻿namespace IndyPOS.Common.Extensions;
 
 public static class DateTimeExtensions
 {
@@ -15,18 +13,13 @@ public static class DateTimeExtensions
 		return dateTime.AddDays(-diff).Date;
 	}
 
-	public static DateTime LastDayOfWeek(this DateTime dateTime) =>
-		dateTime.FirstDayOfWeek().AddDays(6);
+	public static DateTime LastDayOfWeek(this DateTime dateTime) => dateTime.FirstDayOfWeek().AddDays(6);
 
-	public static DateTime FirstDayOfMonth(this DateTime dateTime) =>
-		new DateTime(dateTime.Year, dateTime.Month, 1);
+	public static DateTime FirstDayOfMonth(this DateTime dateTime) => new(dateTime.Year, dateTime.Month, 1);
 
-	public static DateTime LastDayOfMonth(this DateTime dateTime) =>
-		dateTime.FirstDayOfMonth().AddMonths(1).AddDays(-1);
+	public static DateTime LastDayOfMonth(this DateTime dateTime) => dateTime.FirstDayOfMonth().AddMonths(1).AddDays(-1);
 
-	public static DateTime FirstDayOfYear(this DateTime dateTime) =>
-		new DateTime(dateTime.Year, 1, 1);
+	public static DateTime FirstDayOfYear(this DateTime dateTime) => new(dateTime.Year, 1, 1);
 
-	public static DateTime LastDayOfYear(this DateTime dateTime) =>
-		new DateTime(dateTime.Year, 12, 31);
+	public static DateTime LastDayOfYear(this DateTime dateTime) => new(dateTime.Year, 12, 31);
 }

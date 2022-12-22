@@ -2,7 +2,5 @@
 
 public class InvoiceNotFoundException: Exception
 {
-	public InvoiceNotFoundException(string message) : base(message)
-	{
-	}
+	public InvoiceNotFoundException(string message) : base(message) { }
 }
