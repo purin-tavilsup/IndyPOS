@@ -2,7 +2,7 @@
 using IndyPOS.Facade.Interfaces;
 using IndyPOS.Facade.Models.Report;
 using Microsoft.Extensions.Configuration;
-using Serilog;
+using Microsoft.Extensions.Logging;
 using System.Text;
 
 namespace IndyPOS.Facade.Helpers;
@@ -11,14 +11,14 @@ public class DataFeedApiHelper : IDataFeedApiHelper
 {
 	private readonly HttpClient _httpClient;
 	private readonly IJsonUtility _jsonUtility;
-	private readonly ILogger _logger;
+	private readonly ILogger<DataFeedApiHelper> _logger;
 	private readonly string _baseUrl;
 	private readonly bool _isDataFeedEnabled;
 
 	public DataFeedApiHelper(HttpClient httpClient,
 							 IConfiguration configuration,
 							 IJsonUtility jsonUtility, 
-							 ILogger logger)
+							 ILogger<DataFeedApiHelper> logger)
 	{
 		_httpClient = httpClient;
 		_jsonUtility = jsonUtility;
@@ -48,7 +48,7 @@ public class DataFeedApiHelper : IDataFeedApiHelper
 		}
 		catch (Exception ex)
 		{
-			_logger.Error(ex, $"Failed to push Invoice ({invoice.Id}) to DataFeed.");
+			_logger.LogWarning(ex, $"Failed to push Invoice ({invoice.Id}) to DataFeed.");
 		}
 	}
 
@@ -69,7 +69,7 @@ public class DataFeedApiHelper : IDataFeedApiHelper
 		}
 		catch (Exception ex)
 		{
-			_logger.Error(ex, $"Failed to push SalesReport ({report.Id}) to DataFeed.");
+			_logger.LogWarning(ex, $"Failed to push SalesReport ({report.Id}) to DataFeed.");
 		}
 	}
 }

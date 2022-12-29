@@ -28,7 +28,7 @@ public class JsonUtility : IJsonUtility
 	{
 		await using var fileStream = File.Open(filePath, FileMode.Open);
 		var result = await JsonSerializer.DeserializeAsync<TValue>(fileStream, _options);
-
+		
 		if (result is null)
 			throw new FileNotFoundException($"File ({filePath}) is not found.");
 

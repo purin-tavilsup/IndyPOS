@@ -7,6 +7,9 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Prism.Events;
+using Serilog;
+using Serilog.Events;
+using Serilog.Formatting.Compact;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
@@ -20,6 +23,7 @@ namespace IndyPOS;
 internal static class Program
 {
 	private const string ProcessName = "IndyPOS";
+	private const string LogDirectory = @"C:\\ProgramData\\IndyPOS\\Logs";
 
 	[STAThread]
 	private static void Main()
@@ -29,22 +33,53 @@ internal static class Program
 		ApplicationConfiguration.Initialize();
 
 		ClosePreviousProcesses();
+		ConfigureLogger();
 
-		var host = CreateHost();
+		try
+		{
+			Log.Information("Starting application");
 
-		// Launch Application
-		host.Services.GetRequiredService<IMachine>().Launch();
+			var host = CreateHost();
+
+			// Launch Application
+			host.Services.GetRequiredService<IMachine>().Launch();
+		}
+		catch (Exception ex)
+		{
+			Log.Fatal(ex, "Application terminated unexpectedly");
+		}
+		finally
+		{
+			Log.CloseAndFlush();
+		}
+	}
+
+	private static void ConfigureLogger()
+	{
+		if (!Directory.Exists(LogDirectory))
+		{
+			Directory.CreateDirectory(LogDirectory);
+		}
+
+		const string logFilePath = $"{LogDirectory}\\log.json";
+
+		Log.Logger = new LoggerConfiguration().MinimumLevel.Debug()
+											  .MinimumLevel.Override("Microsoft", LogEventLevel.Information)
+											  .Enrich.FromLogContext()
+											  .WriteTo.File(new CompactJsonFormatter(), logFilePath, rollingInterval: RollingInterval.Day)
+											  .CreateLogger();
 	}
 
 	private static IHost CreateHost()
 	{
 		return Host.CreateDefaultBuilder()
-				   .ConfigureAppConfiguration(CreateAppConfiguration)
+				   .UseSerilog()
+				   .ConfigureAppConfiguration(BuildAppConfiguration)
 				   .ConfigureServices(AddServices)
 				   .Build();
 	}
 
-	private static void CreateAppConfiguration(HostBuilderContext context, IConfigurationBuilder configBuilder)
+	private static void BuildAppConfiguration(HostBuilderContext context, IConfigurationBuilder configBuilder)
 	{
 		configBuilder.SetBasePath(Directory.GetCurrentDirectory())
 					 .AddJsonFile("appsettings.json")
@@ -53,11 +88,10 @@ internal static class Program
 
 	private static void AddServices(HostBuilderContext context, IServiceCollection services)
 	{
-		services.AddLogger(context)
-				.AddHelpers()
+		services.AddHelpers()
 				.AddUserInterfaces()
 				.AddRepositories()
-				.AddControllers()
+				.AddIndyPosControllers()
 				.AddUtilities()
 				.AddSingleton<IEventAggregator, EventAggregator>()
 				.AddSingleton<IStoreConstants, StoreConstants>()

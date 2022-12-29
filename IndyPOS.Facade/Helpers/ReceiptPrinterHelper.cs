@@ -2,7 +2,7 @@
 using IndyPOS.Common.Extensions;
 using IndyPOS.Common.Interfaces;
 using IndyPOS.Facade.Interfaces;
-using Serilog;
+using Microsoft.Extensions.Logging;
 using System.Drawing;
 using System.Drawing.Printing;
 using System.Runtime.Versioning;
@@ -12,7 +12,7 @@ namespace IndyPOS.Facade.Helpers;
 [type:SupportedOSPlatform("windows")]
 public class ReceiptPrinterHelper : IReceiptPrinterHelper
 {
-	private readonly ILogger _logger;
+	private readonly ILogger<ReceiptPrinterHelper> _logger;
 	private readonly IReadOnlyDictionary<int, string> _paymentTypeDictionary;
 	private IInvoiceInfo? _invoiceInfo;
 	private IUserAccount? _loggedInUser;
@@ -38,7 +38,7 @@ public class ReceiptPrinterHelper : IReceiptPrinterHelper
 
 	public ReceiptPrinterHelper(IStoreConfigurationHelper storeConfigurationHelper,
 								IStoreConstants storeConstants,
-								ILogger logger)
+								ILogger<ReceiptPrinterHelper> logger)
 	{
 		_logger = logger;
 		_paymentTypeDictionary = storeConstants.PaymentTypes;
@@ -70,7 +70,7 @@ public class ReceiptPrinterHelper : IReceiptPrinterHelper
 		}
 		catch (Exception ex)
 		{
-			_logger.Error(ex, "Unable to get store configuration for a receipt printer!");
+			_logger.LogWarning(ex, "Unable to get store configuration for a receipt printer!");
 			throw;
 		}
 	}

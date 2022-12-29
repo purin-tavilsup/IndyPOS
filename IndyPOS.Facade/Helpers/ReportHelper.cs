@@ -5,8 +5,8 @@ using IndyPOS.Facade.Events;
 using IndyPOS.Facade.Interfaces;
 using IndyPOS.Facade.Models.Report;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using Prism.Events;
-using Serilog;
 
 namespace IndyPOS.Facade.Helpers;
 
@@ -14,7 +14,7 @@ public class ReportHelper : IReportHelper
 {
 	private readonly string _reportsDirectory;
 	private readonly IJsonUtility _jsonUtility;
-	private readonly ILogger _logger; 
+	private readonly ILogger<ReportHelper> _logger; 
 	private readonly ISaleInvoiceHelper _saleInvoiceHelper;
 	private readonly IAccountsReceivableHelper _accountsReceivableHelper;
 	private readonly IDataFeedApiHelper _dataFeedApiHelper;
@@ -28,7 +28,7 @@ public class ReportHelper : IReportHelper
 						IAccountsReceivableHelper accountsReceivableHelper,
 						IDataFeedApiHelper dataFeedApiHelper,
 						IEventAggregator eventAggregator,
-						ILogger logger, 
+						ILogger<ReportHelper> logger, 
 						IJsonUtility jsonUtility)
 	{
 		_logger = logger;
@@ -189,7 +189,7 @@ public class ReportHelper : IReportHelper
 		}
 		catch (Exception ex)
 		{
-			_logger.Error(ex, "Failed to save report to file.");
+			_logger.LogWarning(ex, "Failed to save report to file.");
 			throw;
 		}
 	}
@@ -212,7 +212,7 @@ public class ReportHelper : IReportHelper
 		}
 		catch (Exception ex)
 		{
-			_logger.Error(ex, "Failed to get report from file.");
+			_logger.LogWarning(ex, "Failed to get report from file.");
 			throw;
 		}
 	}
@@ -235,7 +235,7 @@ public class ReportHelper : IReportHelper
 		}
 		catch (Exception ex)
 		{
-			_logger.Error(ex, "Failed to get report from file.");
+			_logger.LogWarning(ex, "Failed to get report from file.");
 			throw;
 		}
 	}

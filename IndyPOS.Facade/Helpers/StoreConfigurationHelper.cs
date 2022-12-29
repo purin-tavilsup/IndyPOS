@@ -1,17 +1,17 @@
 ﻿using IndyPOS.Facade.Interfaces;
 using IndyPOS.Facade.Models;
 using Microsoft.Extensions.Configuration;
-using Serilog;
+using Microsoft.Extensions.Logging;
 
 namespace IndyPOS.Facade.Helpers;
 
 public class StoreConfigurationHelper : IStoreConfigurationHelper
 {
 	private readonly IJsonUtility _jsonUtility;
-	private readonly ILogger _logger;
+	private readonly ILogger<StoreConfigurationHelper> _logger;
 	private readonly string _storeConfigPath;
 
-	public StoreConfigurationHelper(IConfiguration configuration, IJsonUtility jsonUtility, ILogger logger)
+	public StoreConfigurationHelper(IConfiguration configuration, IJsonUtility jsonUtility, ILogger<StoreConfigurationHelper> logger)
 	{
 		_jsonUtility = jsonUtility;
 		_logger = logger;
@@ -48,7 +48,7 @@ public class StoreConfigurationHelper : IStoreConfigurationHelper
 		}
 		catch (Exception ex)
 		{
-			_logger.Error(ex, "Failed to save User Configuration to file.");
+			_logger.LogWarning(ex, "Failed to save User Configuration to file.");
 			throw;
 		}
 	}
@@ -61,7 +61,7 @@ public class StoreConfigurationHelper : IStoreConfigurationHelper
 		}
 		catch (Exception ex)
 		{
-			_logger.Error(ex, "Failed to save User Configuration to file.");
+			_logger.LogWarning(ex, "Failed to save User Configuration to file.");
 			throw;
 		}
 	}
@@ -82,7 +82,7 @@ public class StoreConfigurationHelper : IStoreConfigurationHelper
 		catch (Exception ex)
 		{
 			var errorMessage = $"Failed to get User Configuration from file. {ex.Message}";
-			_logger.Error(ex, errorMessage);
+			_logger.LogWarning(ex, errorMessage);
 			throw;
 		}
 	}
@@ -103,7 +103,7 @@ public class StoreConfigurationHelper : IStoreConfigurationHelper
 		catch (Exception ex)
 		{
 			var errorMessage = $"Failed to get User Configuration from file. {ex.Message}";
-			_logger.Error(ex, errorMessage);
+			_logger.LogWarning(ex, errorMessage);
 			throw;
 		}
 	}

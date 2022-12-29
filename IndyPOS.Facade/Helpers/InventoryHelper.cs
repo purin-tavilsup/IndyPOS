@@ -52,16 +52,9 @@ public class InventoryHelper : IInventoryHelper
 			IsTrackable = product.IsTrackable
 		};
 
-		try
-		{
-			var inventoryProductId = _inventoryProductsRepository.AddProduct(productModel);
+		var inventoryProductId = _inventoryProductsRepository.AddProduct(productModel);
 
-			_eventAggregator.GetEvent<InventoryProductAddedEvent>().Publish(inventoryProductId);
-		}
-		catch(Exception ex)
-		{
-			throw new Exception($"Error occurred while trying to add the inventory product. {ex.Message}", ex);
-		}
+		_eventAggregator.GetEvent<InventoryProductAddedEvent>().Publish(inventoryProductId);
 	}
 
 	public void UpdateProduct(IInventoryProduct product)
@@ -80,30 +73,16 @@ public class InventoryHelper : IInventoryHelper
 			GroupPriceQuantity = product.GroupPriceQuantity
 		};
 
-		try
-		{
-			_inventoryProductsRepository.UpdateProduct(productModel);
+		_inventoryProductsRepository.UpdateProduct(productModel);
 
-			_eventAggregator.GetEvent<InventoryProductUpdatedEvent>().Publish(productModel.InventoryProductId);
-		}
-		catch (Exception ex)
-		{
-			throw new Exception($"Error occurred while trying to update the inventory product. {ex.Message}", ex);
-		}
+		_eventAggregator.GetEvent<InventoryProductUpdatedEvent>().Publish(productModel.InventoryProductId);
 	}
 
 	public void RemoveProductById(int id)
 	{
-		try
-		{
-			_inventoryProductsRepository.RemoveProductById(id);
+		_inventoryProductsRepository.RemoveProductById(id);
 
-			_eventAggregator.GetEvent<InventoryProductDeletedEvent>().Publish();
-		}
-		catch (Exception ex)
-		{
-			throw new Exception($"Error occurred while trying to delete the inventory product. {ex.Message}", ex);
-		}
+		_eventAggregator.GetEvent<InventoryProductDeletedEvent>().Publish();
 	}
 
 	public int GetProductBarcodeCounter()

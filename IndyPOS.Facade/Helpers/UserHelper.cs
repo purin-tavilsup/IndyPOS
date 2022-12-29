@@ -105,17 +105,10 @@ public class UserHelper : IUserHelper
 
 	public void RemoveUserById(int id)
 	{
-		try
-		{
-			_userRepository.RemoveUserCredentialById(id);
-			_userRepository.RemoveUserById(id);
+		_userRepository.RemoveUserCredentialById(id);
+		_userRepository.RemoveUserById(id);
 
-			_eventAggregator.GetEvent<UserRemovedEvent>().Publish();
-		}
-		catch (Exception ex)
-		{
-			throw new Exception($"Error occurred while trying to delete the user. {ex.Message}", ex);
-		}
+		_eventAggregator.GetEvent<UserRemovedEvent>().Publish();
 	}
 
 	public void UpdateUserCredentialById(int userId, string password)

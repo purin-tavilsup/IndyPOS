@@ -7,6 +7,7 @@ using IndyPOS.Facade.Events;
 using IndyPOS.Facade.Interfaces;
 using IndyPOS.Facade.Models;
 using Prism.Events;
+using Throw;
 using AccountsReceivableModel = IndyPOS.DataAccess.Models.AccountsReceivable;
 using InvoiceModel = IndyPOS.DataAccess.Models.Invoice;
 using InvoiceProductModel = IndyPOS.DataAccess.Models.InvoiceProduct;
@@ -179,8 +180,8 @@ public class SaleInvoiceHelper : ISaleInvoiceHelper
 		var result = Products.FirstOrDefault(p => p.Barcode  == barcode && 
 												  p.Priority == priority);
 
-		if (result is null)
-			throw new ProductNotFoundException($"Sale Invoice Product is not found. Barcode: {barcode}. Priority: {priority}.");
+		result.ThrowIfNull(() =>
+			throw new ProductNotFoundException($"Sale Invoice Product is not found. Barcode: {barcode}. Priority: {priority}."));
 
 		return result;
 	}
@@ -314,9 +315,6 @@ public class SaleInvoiceHelper : ISaleInvoiceHelper
 	{ 
 		var product = GetInventoryProductById(inventoryProductId);
 
-		if (product == null)
-			throw new ProductNotFoundException($"Product with InventoryProductId {inventoryProductId} could not be found.");
-
 		var groupPrice = product.GroupPrice.GetValueOrDefault();
 		var groupPriceQuantity = product.GroupPriceQuantity.GetValueOrDefault();
 		var unitPrice = quantity == groupPriceQuantity ? groupPrice / groupPriceQuantity : product.UnitPrice;
@@ -332,9 +330,6 @@ public class SaleInvoiceHelper : ISaleInvoiceHelper
 		{
 			var inventoryProduct = GetInventoryProductById(product.InventoryProductId);
 
-			if (inventoryProduct is null)
-				throw new ProductNotFoundException($"Sale Invoice Product is not found. InventoryProductId: {product.InventoryProductId}.");
-
 			// Restore original unit price
 			product.UnitPrice = inventoryProduct.UnitPrice;
 		}
@@ -348,7 +343,7 @@ public class SaleInvoiceHelper : ISaleInvoiceHelper
 	{
 		var message = new List<string>();
 
-		if (_userHelper.LoggedInUser == null)
+		if (_userHelper.LoggedInUser is null)
 			message.Add("ไม่พบผู้ใช้งานในระบบ");
 
 		if (!Products.Any()) 
@@ -365,6 +360,9 @@ public class SaleInvoiceHelper : ISaleInvoiceHelper
 
 	public IInvoiceInfo CompleteSale()
 	{
+		_userHelper.LoggedInUser
+				   .ThrowIfNull(() => throw new UserNotLoggedInException("User has not logged in."));
+
 		var loggedInUserId = _userHelper.LoggedInUser.UserId;
 		var invoiceInfo = GetInvoiceInfo();
 
@@ -396,6 +394,9 @@ public class SaleInvoiceHelper : ISaleInvoiceHelper
 
 	public void PrintReceipt()
 	{
+		_userHelper.LoggedInUser
+				   .ThrowIfNull(() => throw new UserNotLoggedInException("User has not logged in."));
+
 		var loggedInUser = _userHelper.LoggedInUser;
 		var invoiceInfo = GetInvoiceInfo();
 			

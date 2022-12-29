@@ -1,8 +1,8 @@
 ﻿#nullable enable
 using IndyPOS.Facade.Events;
 using IndyPOS.Facade.Interfaces;
+using Microsoft.Extensions.Logging;
 using Prism.Events;
-using Serilog;
 using System.IO.Ports;
 
 namespace IndyPOS.Facade.Helpers;
@@ -11,12 +11,12 @@ public class BarcodeScannerHelper : IBarcodeScannerHelper
 {
 	private readonly IEventAggregator _eventAggregator;
 	private readonly IStoreConfigurationHelper _storeConfigurationHelper;
-	private readonly ILogger _logger;
+	private readonly ILogger<BarcodeScannerHelper> _logger;
 	private SerialPort? _serialPort;
-		
+	
 	public BarcodeScannerHelper(IEventAggregator eventAggregator, 
 								IStoreConfigurationHelper storeConfigurationHelper, 
-								ILogger logger)
+								ILogger<BarcodeScannerHelper> logger)
 	{
 		_eventAggregator = eventAggregator;
 		_storeConfigurationHelper = storeConfigurationHelper;
@@ -44,7 +44,7 @@ public class BarcodeScannerHelper : IBarcodeScannerHelper
 		}
 		catch (Exception ex)
 		{
-			_logger.Error(ex, $"Failed to connect to Barcode Scanner on port {_serialPort?.PortName}.");
+			_logger.LogWarning(ex, $"Failed to connect to Barcode Scanner on port {_serialPort?.PortName}.");
 		}
 	}
 
@@ -72,7 +72,7 @@ public class BarcodeScannerHelper : IBarcodeScannerHelper
 		}
 		catch (Exception ex)
 		{
-			_logger.Error(ex, $"Failed to disconnect Barcode Scanner on port {_serialPort.PortName}.");
+			_logger.LogWarning(ex, $"Failed to disconnect Barcode Scanner on port {_serialPort.PortName}.");
 		}
 	}
 

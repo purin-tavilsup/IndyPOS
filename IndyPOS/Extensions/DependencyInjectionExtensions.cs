@@ -8,39 +8,14 @@ using IndyPOS.Facade.Utilities;
 using IndyPOS.Interfaces;
 using IndyPOS.UI;
 using IndyPOS.UI.Reports;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
-using Serilog;
-using Serilog.Formatting.Json;
-using System.IO;
 using System.Runtime.Versioning;
 
 namespace IndyPOS.Extensions;
 
 [type:SupportedOSPlatform("windows")]
-internal static class DependencyInjectionExtensions
+internal static class DependencyInjectionExtensions 
 {
-    internal static IServiceCollection AddLogger(this IServiceCollection services, HostBuilderContext context)
-    {
-		const string defaultDirectory = @"C:\\ProgramData\\IndyPOS\\Logs";
-		var logDirectory = context.Configuration.GetValue<string>("LogDirectory") ?? defaultDirectory;
-
-		if (!Directory.Exists(logDirectory))
-		{
-			Directory.CreateDirectory(logDirectory);
-		}
-
-		var logFilePath = $"{logDirectory}\\log.json";
-		var logger = new LoggerConfiguration().MinimumLevel.Debug()
-											  .WriteTo.File(new JsonFormatter(), logFilePath, rollingInterval: RollingInterval.Day)
-											  .CreateLogger();
-
-		services.AddSingleton<ILogger>(logger);
-
-		return services;
-	}
-
 	internal static IServiceCollection AddUtilities(this IServiceCollection services)
 	{
 		services.AddSingleton<IJsonUtility, JsonUtility>()
@@ -104,7 +79,7 @@ internal static class DependencyInjectionExtensions
 		return services;
 	}
 
-	internal static IServiceCollection AddControllers(this IServiceCollection services)
+	internal static IServiceCollection AddIndyPosControllers(this IServiceCollection services)
 	{
 		services.AddSingleton<IAccountsReceivableController, AccountsReceivableController>()
 				.AddSingleton<IInventoryController, InventoryController>()
