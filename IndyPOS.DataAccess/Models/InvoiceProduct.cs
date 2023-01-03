@@ -13,13 +13,13 @@ public class InvoiceProduct
 
 	public int InventoryProductId { get; set; }
 
-	public string Barcode { get; set; }
+	public string Barcode { get; set; } = string.Empty;
 
-	public string Description { get; set; }
+	public string Description { get; set; } = string.Empty;
 
-	public string Manufacturer { get; set; }
+	public string Manufacturer { get; set; } = string.Empty;
 
-	public string Brand { get; set; }
+	public string Brand { get; set; } = string.Empty;
 
 	public int Category { get; set; }
 
@@ -29,7 +29,7 @@ public class InvoiceProduct
 
 	public bool IsTrackable { get; set; }
 
-	public string DateCreated { get; set; }
+	public string DateCreated { get; set; } = string.Empty;
 
-	public string Note { get; set; }
+	public string Note { get; set; } = string.Empty;
 }

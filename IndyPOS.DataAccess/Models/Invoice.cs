@@ -13,5 +13,5 @@ public class Invoice
 
 	public int UserId { get; set; }
 
-	public string DateCreated { get; set; }
+	public string DateCreated { get; set; } = string.Empty;
 }
