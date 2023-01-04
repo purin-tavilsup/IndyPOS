@@ -89,7 +89,6 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\IndyPOS.Common\IndyPOS.Common.csproj" />
     <ProjectReference Include="..\IndyPOS.DataAccess\IndyPOS.DataAccess.csproj" />
     <ProjectReference Include="..\IndyPOS.Application\IndyPOS.Application.csproj" />
   </ItemGroup>

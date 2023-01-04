@@ -15,7 +15,6 @@
     <OutputPath>bin\x64\Release\</OutputPath>
   </PropertyGroup>
   <ItemGroup>
-    <ProjectReference Include="..\IndyPOS.Common\IndyPOS.Common.csproj" />
     <ProjectReference Include="..\IndyPOS.DataAccess\IndyPOS.DataAccess.csproj" />
   </ItemGroup>
   <ItemGroup>
