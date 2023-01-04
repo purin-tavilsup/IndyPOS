@@ -1,35 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
-using IndyPOS.DataAccess.Models;
+﻿using IndyPOS.DataAccess.Models;
 
-namespace IndyPOS.DataAccess.Interfaces
+namespace IndyPOS.DataAccess.Interfaces;
+
+public interface IInvoiceRepository
 {
-	public interface IInvoiceRepository
-    {
-        int AddInvoice(Invoice invoice);
+	int AddInvoice(Invoice invoice);
 
-        Invoice GetInvoiceByInvoiceId(int id);
+	Invoice? GetInvoiceByInvoiceId(int id);
 
-        IList<Invoice> GetInvoicesByDateRange(DateTime start, DateTime end);
+	IEnumerable<Invoice> GetInvoicesByDateRange(DateTime start, DateTime end);
 
-        IList<Invoice> GetInvoicesByDate(DateTime date);
-
-        int AddInvoiceProduct(InvoiceProduct product);
-
-        IList<InvoiceProduct> GetInvoiceProductsByInvoiceId(int id);
-
-        IList<InvoiceProduct> GetInvoiceProductsByDateRange(DateTime start, DateTime end);
-
-        IList<InvoiceProduct> GetInvoiceProductsByDate(DateTime date);
-
-        int AddPayment(Payment payment);
-
-        IList<Payment> GetPaymentsByInvoiceId(int id);
-
-		IList<Payment> GetPaymentsByDateRange(DateTime start, DateTime end);
-
-		IList<Payment> GetPaymentsByDate(DateTime date);
-
-		IList<Payment> GetPaymentsByPaymentTypeId(int id);
-	}
+	IEnumerable<Invoice> GetInvoicesByDate(DateTime date);
 }

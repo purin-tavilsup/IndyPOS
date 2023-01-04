@@ -1,12 +1,11 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 
-namespace IndyPOS.DataAccess.Models
-{
-	[ExcludeFromCodeCoverage]
-    public class UserRole
-    {
-        public int Id { get; set; }
+namespace IndyPOS.DataAccess.Models;
 
-        public string Role { get; set; }
-    }
+[ExcludeFromCodeCoverage]
+public class UserRole
+{
+	public int Id { get; set; }
+
+	public string Role { get; set; } = string.Empty;
 }

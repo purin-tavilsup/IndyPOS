@@ -1,13 +1,12 @@
 ﻿using AutoFixture.Xunit2;
 using Xunit;
 
-namespace IndyPOS.Mock.Attributes
+namespace IndyPOS.Mock.Attributes;
+
+public class InlineAutoMoqDataAttribute : CompositeDataAttribute
 {
-	public class InlineAutoMoqDataAttribute : CompositeDataAttribute
+	public InlineAutoMoqDataAttribute(params object[] values)
+		: base(new InlineDataAttribute(values), new AutoMoqDataAttribute())
 	{
-		public InlineAutoMoqDataAttribute(params object[] values)
-			: base(new InlineDataAttribute(values), new AutoMoqDataAttribute())
-		{
-		}
 	}
 }

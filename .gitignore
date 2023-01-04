@@ -50,3 +50,20 @@ IndyPOS.Mock/obj/
 IndyPOS.Facade.Tests/bin/
 
 IndyPOS.Facade.Tests/obj/
+/IndyPOS.Mock.backup
+
+IndyPOS.Application/bin/
+
+IndyPOS.Application/obj/
+
+IndyPOS.Application.Tests/bin/
+
+IndyPOS.Application.Tests/obj/
+
+IndyPOS.Windows.Forms/bin/
+
+IndyPOS.Windows.Forms/obj/
+
+IndyPOS.Windows.Forms.Tests/bin/
+
+IndyPOS.Windows.Forms.Tests/obj/

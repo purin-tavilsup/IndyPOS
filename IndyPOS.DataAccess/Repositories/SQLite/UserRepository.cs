@@ -1,28 +1,24 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using Dapper;
+﻿using Dapper;
 using IndyPOS.DataAccess.Interfaces;
 using IndyPOS.DataAccess.Models;
 
-namespace IndyPOS.DataAccess.Repositories.SQLite
+namespace IndyPOS.DataAccess.Repositories.SQLite;
+
+public class UserRepository : IUserRepository
 {
-    public class UserRepository : IUserRepository
-    {
-        private readonly IDbConnectionProvider _dbConnectionProvider;
+	private readonly IDbConnectionProvider _dbConnectionProvider;
 
-        public UserRepository(IDbConnectionProvider dbConnectionProvider)
-        {
-            _dbConnectionProvider = dbConnectionProvider;
-        }
+	public UserRepository(IDbConnectionProvider dbConnectionProvider)
+	{
+		_dbConnectionProvider = dbConnectionProvider;
+	}
 
-		public IEnumerable<UserAccount> GetUsers()
-		{
-			using (var connection = _dbConnectionProvider.GetDbConnection())
-			{
-				connection.Open();
+	public IEnumerable<UserAccount> GetUsers()
+	{
+		using var connection = _dbConnectionProvider.GetDbConnection();
+		connection.Open();
 
-				const string sqlCommand = @"SELECT
+		const string sqlCommand = @"SELECT
                 UserId,
                 FirstName,
                 LastName,
@@ -31,19 +27,17 @@ namespace IndyPOS.DataAccess.Repositories.SQLite
 				DateUpdated
                 FROM Users";
 				
-				var results = connection.Query(sqlCommand);
+		var results = connection.Query<UserAccount>(sqlCommand);
 
-				return MapUsers(results);
-			}
-		}
+		return results ?? Enumerable.Empty<UserAccount>();
+	}
 
-		public UserAccount GetUserById(int id)
-		{
-			using (var connection = _dbConnectionProvider.GetDbConnection())
-			{
-				connection.Open();
+	public UserAccount? GetUserById(int id)
+	{
+		using var connection = _dbConnectionProvider.GetDbConnection();
+		connection.Open();
 
-				const string sqlCommand = @"SELECT
+		const string sqlCommand = @"SELECT
                 UserId,
                 FirstName,
                 LastName,
@@ -53,24 +47,23 @@ namespace IndyPOS.DataAccess.Repositories.SQLite
                 FROM Users
 				WHERE UserId = @userId";
 
-				var sqlParameters = new
-				{
-					userId = id
-				};
+		var sqlParameters = new
+		{
+			userId = id
+		};
 
-				var results = connection.Query(sqlCommand, sqlParameters);
+		var result = connection.Query<UserAccount>(sqlCommand, sqlParameters)
+							   .FirstOrDefault();
 
-				return MapUsers(results).FirstOrDefault();
-			}
-		}
+		return result;
+	}
 
-		public int CreateUser(UserAccount user)
-        {
-			using (var connection = _dbConnectionProvider.GetDbConnection())
-			{
-				connection.Open();
+	public int CreateUser(UserAccount user)
+	{
+		using var connection = _dbConnectionProvider.GetDbConnection();
+		connection.Open();
 
-				const string sqlCommand = @"INSERT INTO Users
+		const string sqlCommand = @"INSERT INTO Users
                 (
                     FirstName,
                     LastName,
@@ -86,76 +79,66 @@ namespace IndyPOS.DataAccess.Repositories.SQLite
                 );
                 SELECT last_insert_rowid()";
 
-				var sqlParameters = new
-				{
-					user.FirstName,
-					user.LastName,
-					user.RoleId
-				};
+		var sqlParameters = new
+		{
+			user.FirstName,
+			user.LastName,
+			user.RoleId
+		};
 
-				var userId = connection.Query<int>(sqlCommand, sqlParameters).FirstOrDefault();
+		var userId = connection.Query<int>(sqlCommand, sqlParameters).FirstOrDefault();
 
-				if (userId < 1) throw new Exception("Failed to get the last insert Row ID after adding a user.");
+		return userId;
+	}
 
-				return userId;
-			}
-		}
+	public bool UpdateUser(UserAccount user)
+	{
+		using var connection = _dbConnectionProvider.GetDbConnection();
+		connection.Open();
 
-		public void UpdateUser(UserAccount user)
-        {
-			using (var connection = _dbConnectionProvider.GetDbConnection())
-			{
-				connection.Open();
-
-				const string sqlCommand = @"UPDATE Users
+		const string sqlCommand = @"UPDATE Users
                 SET
                     FirstName = @FirstName,
                     LastName = @LastName,
                     DateUpdated = datetime('now','localtime')
                 WHERE UserId = @UserId";
 
-				var sqlParameters = new
-				{
-					user.UserId,
-					user.FirstName,
-					user.LastName
-				};
-
-				var affectedRowsCount = connection.Execute(sqlCommand, sqlParameters);
-
-				if (affectedRowsCount != 1)
-					throw new Exception("Failed to update the user.");
-			}
-		}
-
-		public void RemoveUserById(int id)
+		var sqlParameters = new
 		{
-			using (var connection = _dbConnectionProvider.GetDbConnection())
-			{
-				connection.Open();
+			user.UserId,
+			user.FirstName,
+			user.LastName
+		};
 
-				const string sqlCommand = @"DELETE FROM Users
+		var affectedRowsCount = connection.Execute(sqlCommand, sqlParameters);
+
+		return affectedRowsCount == 1;
+	}
+
+	public bool RemoveUserById(int id)
+	{
+		using var connection = _dbConnectionProvider.GetDbConnection();
+		connection.Open();
+
+		const string sqlCommand = @"DELETE FROM Users
                 WHERE UserId = @UserId";
 
-				var sqlParameters = new
-									{
-										UserId = id
-									};
-
-				var affectedRowsCount = connection.Execute(sqlCommand, sqlParameters);
-
-				if (affectedRowsCount != 1)
-					throw new Exception("Failed to delete the user.");
-			}
-		}
-
-		public UserCredential GetUserCredentialById(int id)
+		var sqlParameters = new
 		{
-			using (var connection = _dbConnectionProvider.GetDbConnection())
-			{
-				connection.Open();
+			UserId = id
+		};
 
-				const string sqlCommand = @"SELECT
+		var affectedRowsCount = connection.Execute(sqlCommand, sqlParameters);
+
+		return affectedRowsCount == 1;
+	}
+
+	public UserCredential? GetUserCredentialById(int id)
+	{
+		using var connection = _dbConnectionProvider.GetDbConnection();
+		connection.Open();
+
+		const string sqlCommand = @"SELECT
                 UserId,
 				Username,
                 Password,
@@ -164,24 +147,23 @@ namespace IndyPOS.DataAccess.Repositories.SQLite
                 FROM UserCredentials
 				WHERE UserId = @userId";
 
-				var sqlParameters = new
-									{
-										userId = id
-									};
-
-				var result = connection.Query(sqlCommand, sqlParameters).FirstOrDefault();
-
-				return result != null ? MapUserCredential(result) : null;
-			}
-		}
-
-		public void CreateUserCredential(int userId, string username, string password)
+		var sqlParameters = new
 		{
-			using (var connection = _dbConnectionProvider.GetDbConnection())
-			{
-				connection.Open();
+			userId = id
+		};
 
-				const string sqlCommand = @"INSERT INTO UserCredentials
+		var result = connection.Query<UserCredential>(sqlCommand, sqlParameters)
+							   .FirstOrDefault();
+
+		return result;
+	}
+
+	public bool CreateUserCredential(int userId, string username, string password)
+	{
+		using var connection = _dbConnectionProvider.GetDbConnection();
+		connection.Open();
+
+		const string sqlCommand = @"INSERT INTO UserCredentials
                 (
                     UserId,
 					Username,
@@ -196,27 +178,24 @@ namespace IndyPOS.DataAccess.Repositories.SQLite
                     datetime('now','localtime')
                 );";
 
-				var sqlParameters = new
-				{
-					UserId = userId,
-					Username = username,
-					Password = password
-				};
-
-				var affectedRowsCount = connection.Execute(sqlCommand, sqlParameters);
-
-				if (affectedRowsCount != 1)
-					throw new Exception("Failed to add user credential.");
-			}
-		}
-
-		public UserCredential GetUserCredentialByUsername(string username)
+		var sqlParameters = new
 		{
-			using (var connection = _dbConnectionProvider.GetDbConnection())
-			{
-				connection.Open();
+			UserId = userId,
+			Username = username,
+			Password = password
+		};
 
-				const string sqlCommand = @"SELECT
+		var affectedRowsCount = connection.Execute(sqlCommand, sqlParameters);
+
+		return affectedRowsCount == 1;
+	}
+
+	public UserCredential? GetUserCredentialByUsername(string username)
+	{
+		using var connection = _dbConnectionProvider.GetDbConnection();
+		connection.Open();
+
+		const string sqlCommand = @"SELECT
                 UserId,
 				Username,
                 Password,
@@ -225,90 +204,54 @@ namespace IndyPOS.DataAccess.Repositories.SQLite
                 FROM UserCredentials
 				WHERE Username = @Username";
 
-				var sqlParameters = new
-									{
-										Username = username
-									};
+		var sqlParameters = new
+		{
+			Username = username
+		};
 
-				var result = connection.Query(sqlCommand, sqlParameters).FirstOrDefault();
+		var result = connection.Query<UserCredential>(sqlCommand, sqlParameters)
+							   .FirstOrDefault();
 
-				return result != null ? MapUserCredential(result) : null;
-			}
-		}
+		return result;
+	}
 
-		public void UpdateUserCredentialById(int userId, string password)
-        {
-			using (var connection = _dbConnectionProvider.GetDbConnection())
-			{
-				connection.Open();
+	public bool UpdateUserCredentialById(int userId, string password)
+	{
+		using var connection = _dbConnectionProvider.GetDbConnection();
+		connection.Open();
 
-				const string sqlCommand = @"UPDATE UserCredentials
+		const string sqlCommand = @"UPDATE UserCredentials
                 SET
                     Password = @Password,
                     DateUpdated = datetime('now','localtime')
                 WHERE UserId = @UserId";
 
-				var sqlParameters = new
-				{
-					UserId = userId,
-					Password = password
-				};
-
-				var affectedRowsCount = connection.Execute(sqlCommand, sqlParameters);
-
-				if (affectedRowsCount != 1)
-					throw new Exception("Failed to update user credential.");
-			}
-		}
-
-		public void RemoveUserCredentialById(int userId)
+		var sqlParameters = new
 		{
-			using (var connection = _dbConnectionProvider.GetDbConnection())
-			{
-				connection.Open();
+			UserId = userId,
+			Password = password
+		};
 
-				const string sqlCommand = @"DELETE FROM UserCredentials
+		var affectedRowsCount = connection.Execute(sqlCommand, sqlParameters);
+
+		return affectedRowsCount == 1;
+	}
+
+	public bool RemoveUserCredentialById(int userId)
+	{
+		using var connection = _dbConnectionProvider.GetDbConnection();
+		connection.Open();
+
+		const string sqlCommand = @"DELETE FROM UserCredentials
                 WHERE UserId = @UserId";
 
-				var sqlParameters = new
-									{
-										UserId = userId
-									};
-
-				var affectedRowsCount = connection.Execute(sqlCommand, sqlParameters);
-
-				if (affectedRowsCount != 1)
-					throw new Exception("Failed to delete the user credential.");
-			}
-		}
-
-		private UserCredential MapUserCredential(dynamic result)
+		var sqlParameters = new
 		{
-			var credential = new UserCredential
-							 {
-								 UserId = (int) result.UserId,
-								 Username = result.Username,
-								 Password = result.Password,
-								 DateCreated = result.DateCreated,
-								 DateUpdated = result.DateUpdated
-							 };
+			UserId = userId
+		};
 
-			return credential;
-		}
+		var affectedRowsCount = connection.Execute(sqlCommand, sqlParameters);
 
-		private IEnumerable<UserAccount> MapUsers(IEnumerable<dynamic> results)
-		{
-			var users = results?.Select(x => new UserAccount
-												{
-													UserId = (int)x.UserId,
-													FirstName = x.FirstName,
-													LastName = x.LastName,
-													RoleId = (int)x.RoleId,
-													DateCreated = x.DateCreated,
-													DateUpdated = x.DateUpdated
-												}) ?? Enumerable.Empty<UserAccount>();
-			
-			return users.ToList();
-		}
-    }
+		return affectedRowsCount == 1;
+	}
 }

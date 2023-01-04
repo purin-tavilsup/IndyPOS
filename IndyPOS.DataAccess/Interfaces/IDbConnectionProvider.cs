@@ -1,11 +1,10 @@
 ﻿using System.Data;
 
-namespace IndyPOS.DataAccess.Interfaces
-{
-	public interface IDbConnectionProvider
-	{
-		IDbConnection GetDbConnection();
+namespace IndyPOS.DataAccess.Interfaces;
 
-		void BackupDatabase(string backupDatabaseDirectory);
-	}
+public interface IDbConnectionProvider
+{
+	IDbConnection GetDbConnection();
+
+	void BackupDatabase(string backupDatabaseDirectory);
 }

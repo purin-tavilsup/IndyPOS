@@ -1,14 +1,12 @@
-﻿using System.Collections.Generic;
-using IndyPOS.DataAccess.Models;
+﻿using IndyPOS.DataAccess.Models;
 
-namespace IndyPOS.DataAccess.Interfaces
+namespace IndyPOS.DataAccess.Interfaces;
+
+public interface IStoreConstantRepository
 {
-    public interface IStoreConstantRepository
-    {
-        IList<UserRole> GetUserRoles();
+	IEnumerable<UserRole> GetUserRoles();
 
-        IList<PaymentType> GetPaymentTypes();
+	IEnumerable<PaymentType> GetPaymentTypes();
 
-        IList<ProductCategory> GetProductCategories();
-    }
+	IEnumerable<ProductCategory> GetProductCategories();
 }
