@@ -2,10 +2,10 @@
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
+using IndyPOS.Application.Enums;
 using IndyPOS.Application.Events;
+using IndyPOS.Application.Extensions;
 using IndyPOS.Application.Interfaces;
-using IndyPOS.Common.Enums;
-using IndyPOS.Common.Extensions;
 using IndyPOS.DataAccess.Interfaces;
 using IndyPOS.Windows.Forms.Enums;
 using IndyPOS.Windows.Forms.Events;

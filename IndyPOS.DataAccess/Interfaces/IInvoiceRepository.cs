@@ -6,9 +6,9 @@ public interface IInvoiceRepository
 {
 	int AddInvoice(Invoice invoice);
 
-	Invoice GetInvoiceByInvoiceId(int id);
+	Invoice? GetInvoiceByInvoiceId(int id);
 
-	IList<Invoice> GetInvoicesByDateRange(DateTime start, DateTime end);
+	IEnumerable<Invoice> GetInvoicesByDateRange(DateTime start, DateTime end);
 
-	IList<Invoice> GetInvoicesByDate(DateTime date);
+	IEnumerable<Invoice> GetInvoicesByDate(DateTime date);
 }

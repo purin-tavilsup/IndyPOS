@@ -1,5 +1,5 @@
-﻿using IndyPOS.Application.Interfaces;
-using IndyPOS.Common.Enums;
+﻿using IndyPOS.Application.Enums;
+using IndyPOS.Application.Interfaces;
 
 namespace IndyPOS.Windows.Forms.Interfaces;
 

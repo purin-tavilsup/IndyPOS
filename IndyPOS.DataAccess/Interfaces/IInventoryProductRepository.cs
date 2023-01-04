@@ -4,23 +4,23 @@ namespace IndyPOS.DataAccess.Interfaces;
 
 public interface IInventoryProductRepository
 {
-	InventoryProduct GetProductByBarcode(string barcode);
+	InventoryProduct? GetProductByBarcode(string barcode);
 
 	IEnumerable<InventoryProduct> GetProductsByCategoryId(int id);
 
-	InventoryProduct GetProductById(int id);
+	InventoryProduct? GetProductById(int id);
 
 	int AddProduct(InventoryProduct product);
 
-	void UpdateProduct(InventoryProduct product);
+	bool UpdateProduct(InventoryProduct product);
 
-	void UpdateProductQuantityById(int id, int quantity);
+	bool UpdateProductQuantityById(int id, int quantity);
 
-	void RemoveProduct(InventoryProduct product);
+	bool RemoveProduct(InventoryProduct product);
 
-	void RemoveProductById(int id);
+	bool RemoveProductById(int id);
 
 	int GetProductBarcodeCounter();
 
-	void UpdateProductBarcodeCounter(int counter);
+	bool UpdateProductBarcodeCounter(int counter);
 }

@@ -1,6 +1,6 @@
-﻿using IndyPOS.Application.Interfaces;
+﻿using IndyPOS.Application.Enums;
+using IndyPOS.Application.Interfaces;
 using IndyPOS.Application.Models.Report;
-using IndyPOS.Common.Enums;
 
 namespace IndyPOS.Windows.Forms.Interfaces
 {

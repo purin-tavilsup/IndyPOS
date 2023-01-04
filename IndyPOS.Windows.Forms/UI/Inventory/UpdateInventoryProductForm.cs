@@ -1,6 +1,5 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 using IndyPOS.Application.Interfaces;
-using IndyPOS.Common.Interfaces;
 using IndyPOS.Windows.Forms.Interfaces;
 
 namespace IndyPOS.Windows.Forms.UI.Inventory;

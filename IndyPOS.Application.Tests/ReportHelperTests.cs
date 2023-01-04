@@ -1,9 +1,9 @@
 using AutoFixture;
 using AutoFixture.AutoMoq;
 using AutoFixture.Xunit2;
+using IndyPOS.Application.Enums;
 using IndyPOS.Application.Helpers;
 using IndyPOS.Application.Interfaces;
-using IndyPOS.Common.Enums;
 using IndyPOS.Mock.Attributes;
 using Moq;
 using Xunit;

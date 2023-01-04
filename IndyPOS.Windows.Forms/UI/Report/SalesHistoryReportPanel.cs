@@ -1,7 +1,6 @@
 ﻿using System.Diagnostics.CodeAnalysis;
+using IndyPOS.Application.Enums;
 using IndyPOS.Application.Interfaces;
-using IndyPOS.Common.Enums;
-using IndyPOS.Common.Interfaces;
 using IndyPOS.Windows.Forms.Interfaces;
 
 namespace IndyPOS.Windows.Forms.UI.Report

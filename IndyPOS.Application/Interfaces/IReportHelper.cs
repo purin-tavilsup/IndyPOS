@@ -1,5 +1,5 @@
-﻿using IndyPOS.Application.Models.Report;
-using IndyPOS.Common.Enums;
+﻿using IndyPOS.Application.Enums;
+using IndyPOS.Application.Models.Report;
 
 namespace IndyPOS.Application.Interfaces;
 

@@ -1,5 +1,4 @@
 ﻿using FluentAssertions;
-using IndyPOS.Common.Enums;
 using IndyPOS.Mock.Attributes;
 using System.Linq;
 using Xunit;

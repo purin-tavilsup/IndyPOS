@@ -1,6 +1,6 @@
 ﻿using System.Diagnostics.CodeAnalysis;
+using IndyPOS.Application.Exceptions;
 using IndyPOS.Application.Interfaces;
-using IndyPOS.Common.Exceptions;
 using IndyPOS.Windows.Forms.Interfaces;
 using IndyPOS.Windows.Forms.UI.Report;
 

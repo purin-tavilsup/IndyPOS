@@ -1,15 +1,14 @@
 ﻿using IndyPOS.DataAccess.Models;
 
-namespace IndyPOS.DataAccess.Interfaces
+namespace IndyPOS.DataAccess.Interfaces;
+
+public interface IInvoiceProductRepository
 {
-    public interface IInvoiceProductRepository
-    {
-		int AddInvoiceProduct(InvoiceProduct product);
+	int AddInvoiceProduct(InvoiceProduct product);
 
-		IList<InvoiceProduct> GetInvoiceProductsByInvoiceId(int id);
+	IEnumerable<InvoiceProduct> GetInvoiceProductsByInvoiceId(int id);
 
-		IList<InvoiceProduct> GetInvoiceProductsByDateRange(DateTime start, DateTime end);
+	IEnumerable<InvoiceProduct> GetInvoiceProductsByDateRange(DateTime start, DateTime end);
 
-		IList<InvoiceProduct> GetInvoiceProductsByDate(DateTime date);
-    }
+	IEnumerable<InvoiceProduct> GetInvoiceProductsByDate(DateTime date);
 }

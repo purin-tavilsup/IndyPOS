@@ -1,6 +1,5 @@
 ﻿#nullable enable
 using Dapper;
-using IndyPOS.Common.Exceptions;
 using IndyPOS.DataAccess.Extensions;
 using IndyPOS.DataAccess.Interfaces;
 using IndyPOS.DataAccess.Models;
@@ -16,13 +15,12 @@ public class InventoryProductRepository : IInventoryProductRepository
 		_dbConnectionProvider = dbConnectionProvider;
 	}
 
-	public InventoryProduct GetProductByBarcode(string barcode)
+	public InventoryProduct? GetProductByBarcode(string barcode)
 	{
 		using var connection = _dbConnectionProvider.GetDbConnection();
 		connection.Open();
 
-		const string sqlCommand = @"SELECT * FROM InventoryProducts 
-                WHERE Barcode = @productBarcode";
+		const string sqlCommand = @"SELECT * FROM InventoryProducts WHERE Barcode = @productBarcode";
 
 		var sqlParameters = new
 		{
@@ -32,10 +30,7 @@ public class InventoryProductRepository : IInventoryProductRepository
 		var result = connection.Query(sqlCommand, sqlParameters)
 							   .FirstOrDefault();
 
-		if (result is null)
-			throw new ProductNotFoundException($"Inventory Product is not found. Product barcode: {barcode}.");
-
-		return MapInventoryProduct(result);
+		return result is null ? null : MapInventoryProduct(result);
 	}
 
 	public IEnumerable<InventoryProduct> GetProductsByCategoryId(int id)
@@ -43,8 +38,7 @@ public class InventoryProductRepository : IInventoryProductRepository
 		using var connection = _dbConnectionProvider.GetDbConnection();
 		connection.Open();
 
-		const string sqlCommand = @"SELECT * FROM InventoryProducts 
-                WHERE Category = @category";
+		const string sqlCommand = @"SELECT * FROM InventoryProducts WHERE Category = @category";
 
 		var sqlParameters = new
 		{
@@ -56,13 +50,12 @@ public class InventoryProductRepository : IInventoryProductRepository
 		return results is null ? Enumerable.Empty<InventoryProduct>() : MapInventoryProducts(results);
 	}
 
-	public InventoryProduct GetProductById(int id)
+	public InventoryProduct? GetProductById(int id)
 	{
 		using var connection = _dbConnectionProvider.GetDbConnection();
 		connection.Open();
 
-		const string sqlCommand = @"SELECT * FROM InventoryProducts 
-                WHERE InventoryProductId = @inventoryProductId";
+		const string sqlCommand = @"SELECT * FROM InventoryProducts WHERE InventoryProductId = @inventoryProductId";
 
 		var sqlParameters = new
 		{
@@ -72,10 +65,7 @@ public class InventoryProductRepository : IInventoryProductRepository
 		var result = connection.Query(sqlCommand, sqlParameters)
 							   .FirstOrDefault();
 
-		if (result is null)
-			throw new ProductNotFoundException($"Inventory Product is not found. InventoryProductId: {id}.");
-
-		return MapInventoryProduct(result);
+		return result is null ? null : MapInventoryProduct(result);
 	}
 
 	public int AddProduct(InventoryProduct product)
@@ -127,16 +117,13 @@ public class InventoryProductRepository : IInventoryProductRepository
 			IsTrackable = product.IsTrackable ? 1 : 0
 		};
 
-		var inventoryProductId = connection.Query<int>(sqlCommand, sqlParameters)
-										   .FirstOrDefault();
+		var productId = connection.Query<int>(sqlCommand, sqlParameters)
+								  .FirstOrDefault();
 
-		if (inventoryProductId < 1) 
-			throw new ProductNotAddedException($"Failed to add an inventory product. Product barcode: {product.Barcode}.");
-
-		return inventoryProductId;
+		return productId;
 	}
 
-	public void UpdateProduct(InventoryProduct product)
+	public bool UpdateProduct(InventoryProduct product)
 	{
 		using var connection = _dbConnectionProvider.GetDbConnection();
 		connection.Open();
@@ -169,11 +156,10 @@ public class InventoryProductRepository : IInventoryProductRepository
 
 		var affectedRowsCount = connection.Execute(sqlCommand, sqlParameters);
 
-		if (affectedRowsCount != 1)
-			throw new ProductNotUpdatedException($"Failed to update inventory product. InventoryProductId: {product.InventoryProductId}.");
+		return affectedRowsCount == 1;
 	}
 
-	public void UpdateProductQuantityById(int id, int quantity)
+	public bool UpdateProductQuantityById(int id, int quantity)
 	{
 		using var connection = _dbConnectionProvider.GetDbConnection();
 		connection.Open();
@@ -191,22 +177,20 @@ public class InventoryProductRepository : IInventoryProductRepository
 
 		var affectedRowsCount = connection.Execute(sqlCommand, sqlParameters);
 
-		if (affectedRowsCount != 1)
-			throw new ProductNotUpdatedException($"Failed to update inventory product's quantity. InventoryProductId: {id}.");
+		return affectedRowsCount == 1;
 	}
 
-	public void RemoveProduct(InventoryProduct product)
+	public bool RemoveProduct(InventoryProduct product)
 	{
-		RemoveProductById(product.InventoryProductId);
+		return RemoveProductById(product.InventoryProductId);
 	}
 
-	public void RemoveProductById(int id)
+	public bool RemoveProductById(int id)
 	{
 		using var connection = _dbConnectionProvider.GetDbConnection();
 		connection.Open();
 
-		const string sqlCommand = @"DELETE FROM InventoryProducts
-                WHERE InventoryProductId = @InventoryProductId";
+		const string sqlCommand = @"DELETE FROM InventoryProducts WHERE InventoryProductId = @InventoryProductId";
 
 		var sqlParameters = new
 		{
@@ -215,8 +199,7 @@ public class InventoryProductRepository : IInventoryProductRepository
 
 		var affectedRowsCount = connection.Execute(sqlCommand, sqlParameters);
 
-		if (affectedRowsCount != 1)
-			throw new ProductNotDeletedException($"Failed to delete an inventory product. InventoryProductId: {id}.");
+		return affectedRowsCount == 1;
 	}
 
 	public int GetProductBarcodeCounter()
@@ -224,8 +207,7 @@ public class InventoryProductRepository : IInventoryProductRepository
 		using var connection = _dbConnectionProvider.GetDbConnection();
 		connection.Open();
 
-		const string sqlCommand = @"SELECT * FROM ProductBarcodeCounter 
-                WHERE Id = @Id";
+		const string sqlCommand = @"SELECT * FROM ProductBarcodeCounter WHERE Id = @Id";
 
 		var sqlParameters = new
 		{
@@ -239,7 +221,7 @@ public class InventoryProductRepository : IInventoryProductRepository
 		return result != null ?  (int) result.Counter : 1;
 	}
 
-	public void UpdateProductBarcodeCounter(int counter)
+	public bool UpdateProductBarcodeCounter(int counter)
 	{
 		using var connection = _dbConnectionProvider.GetDbConnection();
 		connection.Open();
@@ -257,8 +239,7 @@ public class InventoryProductRepository : IInventoryProductRepository
 
 		var affectedRowsCount = connection.Execute(sqlCommand, sqlParameters);
 
-		if (affectedRowsCount != 1)
-			throw new Exception("Failed to update product barcode counter.");
+		return affectedRowsCount == 1;
 	}
 
 	private static InventoryProduct MapInventoryProduct(dynamic result)

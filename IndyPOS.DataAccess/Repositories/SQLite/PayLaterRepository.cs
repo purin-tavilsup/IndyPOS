@@ -1,5 +1,4 @@
 ﻿using Dapper;
-using IndyPOS.Common.Exceptions;
 using IndyPOS.DataAccess.Extensions;
 using IndyPOS.DataAccess.Interfaces;
 using IndyPOS.DataAccess.Models;
@@ -49,13 +48,10 @@ public class PayLaterRepository : IPayLaterPaymentRepository
 		var rowId = connection.Query<int>(sqlCommand, sqlParameters)
 							  .FirstOrDefault();
 
-		if (rowId < 1) 
-			throw new PayLaterPaymentNotAddedException($"Failed to add a new account receivable. InvoiceId: {accountsReceivable.InvoiceId}.");
-
 		return rowId;
 	}
 
-	public void UpdatePayLaterPayment(PayLaterPayment accountsReceivable)
+	public bool UpdatePayLaterPayment(PayLaterPayment payLaterPayment)
 	{
 		using var connection = _dbConnectionProvider.GetDbConnection();
 		connection.Open();
@@ -69,15 +65,14 @@ public class PayLaterRepository : IPayLaterPaymentRepository
 
 		var sqlParameters = new
 		{
-			accountsReceivable.PaymentId,
-			PaidAmount = accountsReceivable.PaidAmount.ToMoneyString(),
-			IsCompleted = accountsReceivable.IsCompleted ? 1 : 0
+			payLaterPayment.PaymentId,
+			PaidAmount = payLaterPayment.PaidAmount.ToMoneyString(),
+			IsCompleted = payLaterPayment.IsCompleted ? 1 : 0
 		};
 
 		var affectedRowsCount = connection.Execute(sqlCommand, sqlParameters);
 
-		if (affectedRowsCount != 1)
-			throw new PayLaterPaymentNotUpdatedException($"Failed to update an account receivable. InvoiceId: {accountsReceivable.InvoiceId}.");
+		return affectedRowsCount == 1;
 	}
 
 	public IEnumerable<PayLaterPayment> GetPayLaterPayments()
@@ -98,7 +93,7 @@ public class PayLaterRepository : IPayLaterPaymentRepository
 
 		var results = connection.Query(sqlCommand);
 
-		return MapAccountsReceivables(results);
+		return MapPayLaterPayments(results);
 	}
 
 	public IEnumerable<PayLaterPayment> GetIncompletePayLaterPayments()
@@ -125,10 +120,10 @@ public class PayLaterRepository : IPayLaterPaymentRepository
 
 		var results = connection.Query(sqlCommand, sqlParameters);
 
-		return results is null ? Enumerable.Empty<PayLaterPayment>() : MapAccountsReceivables(results);
+		return results is null ? Enumerable.Empty<PayLaterPayment>() : MapPayLaterPayments(results);
 	}
 
-	public PayLaterPayment GetPayLaterPaymentByInvoiceId(int invoiceId)
+	public PayLaterPayment? GetPayLaterPaymentByInvoiceId(int invoiceId)
 	{
 		using var connection = _dbConnectionProvider.GetDbConnection();
 		connection.Open();
@@ -153,13 +148,10 @@ public class PayLaterRepository : IPayLaterPaymentRepository
 		var result = connection.Query(sqlCommand, sqlParameters)
 							   .FirstOrDefault();
 
-		if (result is null)
-			throw new PayLaterPaymentNotFoundException($"Account Receivable is not found. InvoiceId: {invoiceId}.");
-
-		return MapAccountsReceivable(result);
+		return result is null ? null : MapPayLaterPayment(result);
 	}
 
-	public PayLaterPayment GetPayLaterPaymentByPaymentId(int paymentId)
+	public PayLaterPayment? GetPayLaterPaymentByPaymentId(int paymentId)
 	{
 		using var connection = _dbConnectionProvider.GetDbConnection();
 		connection.Open();
@@ -184,10 +176,7 @@ public class PayLaterRepository : IPayLaterPaymentRepository
 		var result = connection.Query(sqlCommand, sqlParameters)
 							   .FirstOrDefault();
 
-		if (result is null)
-			throw new PayLaterPaymentNotFoundException($"Account Receivable is not found. PaymentId: {paymentId}.");
-
-		return MapAccountsReceivable(result);
+		return result is null ? null : MapPayLaterPayment(result);
 	}
 
 	public IEnumerable<PayLaterPayment> GetPayLaterPaymentsByDateRange(DateTime start, DateTime end)
@@ -215,12 +204,12 @@ public class PayLaterRepository : IPayLaterPaymentRepository
 
 		var results = connection.Query(sqlCommand, sqlParameters);
 
-		return results is null ? Enumerable.Empty<PayLaterPayment>() : MapAccountsReceivables(results);
+		return results is null ? Enumerable.Empty<PayLaterPayment>() : MapPayLaterPayments(results);
 	}
 
-	private static PayLaterPayment MapAccountsReceivable(dynamic result)
+	private static PayLaterPayment MapPayLaterPayment(dynamic result)
 	{
-		var accountsReceivables = new PayLaterPayment
+		var payment = new PayLaterPayment
 		{
 			PaymentId = (int)result.PaymentId,
 			Description = result.Description,
@@ -232,11 +221,11 @@ public class PayLaterRepository : IPayLaterPaymentRepository
 			DateUpdated = result.DateUpdated
 		};
 
-		return accountsReceivables;
+		return payment;
 	}
 
-	private static IEnumerable<PayLaterPayment> MapAccountsReceivables(IEnumerable<dynamic> results)
+	private static IEnumerable<PayLaterPayment> MapPayLaterPayments(IEnumerable<dynamic> results)
 	{
-		return results.Select(MapAccountsReceivable);
+		return results.Select(MapPayLaterPayment);
 	}
 }

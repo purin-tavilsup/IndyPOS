@@ -1,7 +1,6 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 using IndyPOS.Application.Events;
 using IndyPOS.Application.Interfaces;
-using IndyPOS.Common.Interfaces;
 using IndyPOS.Windows.Forms.Enums;
 using IndyPOS.Windows.Forms.Events;
 using IndyPOS.Windows.Forms.Extensions;

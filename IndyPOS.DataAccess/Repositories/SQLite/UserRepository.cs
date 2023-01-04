@@ -1,5 +1,4 @@
 ﻿using Dapper;
-using IndyPOS.Common.Exceptions;
 using IndyPOS.DataAccess.Interfaces;
 using IndyPOS.DataAccess.Models;
 
@@ -30,10 +29,10 @@ public class UserRepository : IUserRepository
 				
 		var results = connection.Query<UserAccount>(sqlCommand);
 
-		return results;
+		return results ?? Enumerable.Empty<UserAccount>();
 	}
 
-	public UserAccount GetUserById(int id)
+	public UserAccount? GetUserById(int id)
 	{
 		using var connection = _dbConnectionProvider.GetDbConnection();
 		connection.Open();
@@ -55,9 +54,6 @@ public class UserRepository : IUserRepository
 
 		var result = connection.Query<UserAccount>(sqlCommand, sqlParameters)
 							   .FirstOrDefault();
-
-		if (result == null)
-			throw new UserNotFoundException($"User is not found. UserId: {id}.");
 
 		return result;
 	}
@@ -92,13 +88,10 @@ public class UserRepository : IUserRepository
 
 		var userId = connection.Query<int>(sqlCommand, sqlParameters).FirstOrDefault();
 
-		if (userId < 1) 
-			throw new UserNotCreatedException("Failed to add a new user.");
-
 		return userId;
 	}
 
-	public void UpdateUser(UserAccount user)
+	public bool UpdateUser(UserAccount user)
 	{
 		using var connection = _dbConnectionProvider.GetDbConnection();
 		connection.Open();
@@ -119,11 +112,10 @@ public class UserRepository : IUserRepository
 
 		var affectedRowsCount = connection.Execute(sqlCommand, sqlParameters);
 
-		if (affectedRowsCount != 1)
-			throw new UserNotUpdatedException($"Failed to update a user. UserId: {user.UserId}.");
+		return affectedRowsCount == 1;
 	}
 
-	public void RemoveUserById(int id)
+	public bool RemoveUserById(int id)
 	{
 		using var connection = _dbConnectionProvider.GetDbConnection();
 		connection.Open();
@@ -138,11 +130,10 @@ public class UserRepository : IUserRepository
 
 		var affectedRowsCount = connection.Execute(sqlCommand, sqlParameters);
 
-		if (affectedRowsCount != 1)
-			throw new UserNotDeletedException($"Failed to delete a user. UserId: {id}.");
+		return affectedRowsCount == 1;
 	}
 
-	public UserCredential GetUserCredentialById(int id)
+	public UserCredential? GetUserCredentialById(int id)
 	{
 		using var connection = _dbConnectionProvider.GetDbConnection();
 		connection.Open();
@@ -164,13 +155,10 @@ public class UserRepository : IUserRepository
 		var result = connection.Query<UserCredential>(sqlCommand, sqlParameters)
 							   .FirstOrDefault();
 
-		if (result is null)
-			throw new UserCredentialNotFoundException($"User Credential is not found. UserId: {id}.");
-
 		return result;
 	}
 
-	public void CreateUserCredential(int userId, string username, string password)
+	public bool CreateUserCredential(int userId, string username, string password)
 	{
 		using var connection = _dbConnectionProvider.GetDbConnection();
 		connection.Open();
@@ -199,11 +187,10 @@ public class UserRepository : IUserRepository
 
 		var affectedRowsCount = connection.Execute(sqlCommand, sqlParameters);
 
-		if (affectedRowsCount != 1)
-			throw new UserCredentialNotCreatedException($"Failed to add a new user credential. UserId: {userId}.");
+		return affectedRowsCount == 1;
 	}
 
-	public UserCredential GetUserCredentialByUsername(string username)
+	public UserCredential? GetUserCredentialByUsername(string username)
 	{
 		using var connection = _dbConnectionProvider.GetDbConnection();
 		connection.Open();
@@ -225,13 +212,10 @@ public class UserRepository : IUserRepository
 		var result = connection.Query<UserCredential>(sqlCommand, sqlParameters)
 							   .FirstOrDefault();
 
-		if (result is null)
-			throw new UserCredentialNotFoundException($"User Credential is not found. Username: {username}.");
-
 		return result;
 	}
 
-	public void UpdateUserCredentialById(int userId, string password)
+	public bool UpdateUserCredentialById(int userId, string password)
 	{
 		using var connection = _dbConnectionProvider.GetDbConnection();
 		connection.Open();
@@ -250,11 +234,10 @@ public class UserRepository : IUserRepository
 
 		var affectedRowsCount = connection.Execute(sqlCommand, sqlParameters);
 
-		if (affectedRowsCount != 1)
-			throw new UserCredentialNotUpdatedException($"Failed to update a user credential. UserId: {userId}.");
+		return affectedRowsCount == 1;
 	}
 
-	public void RemoveUserCredentialById(int userId)
+	public bool RemoveUserCredentialById(int userId)
 	{
 		using var connection = _dbConnectionProvider.GetDbConnection();
 		connection.Open();
@@ -269,7 +252,6 @@ public class UserRepository : IUserRepository
 
 		var affectedRowsCount = connection.Execute(sqlCommand, sqlParameters);
 
-		if (affectedRowsCount != 1)
-			throw new UserCredentialNotDeletedException($"Failed to delete a user credential. UserId: {userId}.");
+		return affectedRowsCount == 1;
 	}
 }

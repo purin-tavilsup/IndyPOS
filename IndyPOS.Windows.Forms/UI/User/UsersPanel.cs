@@ -1,11 +1,10 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 using IndyPOS.Application.Events;
+using IndyPOS.Application.Extensions;
 using IndyPOS.Application.Interfaces;
-using IndyPOS.Common.Extensions;
-using IndyPOS.Common.Interfaces;
 using IndyPOS.Windows.Forms.Interfaces;
 using Prism.Events;
-using UserRoleEnum = IndyPOS.Common.Enums.UserRole;
+using UserRoleEnum = IndyPOS.Application.Enums.UserRole;
 
 namespace IndyPOS.Windows.Forms.UI.User
 {

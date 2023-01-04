@@ -1,16 +1,16 @@
 ﻿using IndyPOS.Application.Adapters;
+using IndyPOS.Application.Enums;
 using IndyPOS.Application.Events;
+using IndyPOS.Application.Exceptions;
+using IndyPOS.Application.Extensions;
 using IndyPOS.Application.Interfaces;
 using IndyPOS.Application.Models;
-using IndyPOS.Common.Enums;
-using IndyPOS.Common.Exceptions;
-using IndyPOS.Common.Extensions;
 using IndyPOS.DataAccess.Interfaces;
 using IndyPOS.DataAccess.Models;
 using Prism.Events;
 using Throw;
 using Payment = IndyPOS.Application.Models.Payment;
-using PaymentType = IndyPOS.Common.Enums.PaymentType;
+using PaymentType = IndyPOS.Application.Enums.PaymentType;
 
 namespace IndyPOS.Application.Helpers;
 

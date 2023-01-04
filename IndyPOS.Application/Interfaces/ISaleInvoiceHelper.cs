@@ -1,4 +1,4 @@
-﻿using IndyPOS.Common.Enums;
+﻿using IndyPOS.Application.Enums;
 
 namespace IndyPOS.Application.Interfaces;
 

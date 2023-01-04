@@ -1,7 +1,7 @@
 ﻿using System.Text;
+using IndyPOS.Application.Extensions;
 using IndyPOS.Application.Interfaces;
 using IndyPOS.Application.Models.Report;
-using IndyPOS.Common.Extensions;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 

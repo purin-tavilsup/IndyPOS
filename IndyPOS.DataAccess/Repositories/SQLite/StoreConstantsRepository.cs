@@ -13,39 +13,39 @@ public class StoreConstantRepository : IStoreConstantRepository
 		_dbConnectionProvider = dbConnectionProvider;
 	}
 
-	public IList<PaymentType> GetPaymentTypes()
+	public IEnumerable<PaymentType> GetPaymentTypes()
 	{
 		using var connection = _dbConnectionProvider.GetDbConnection();
 		connection.Open();
 
-		const string sqlCommand =   @"SELECT * FROM [PaymentTypes]";
+		const string sqlCommand = @"SELECT * FROM [PaymentTypes]";
 
 		var results = connection.Query<PaymentType>(sqlCommand, new DynamicParameters());
 
-		return results is null ? new List<PaymentType>() : results.ToList();
+		return results ?? Enumerable.Empty<PaymentType>();
 	}
 
-	public IList<UserRole> GetUserRoles()
+	public IEnumerable<UserRole> GetUserRoles()
 	{
 		using var connection = _dbConnectionProvider.GetDbConnection();
 		connection.Open();
 
-		const string sqlCommand =   @"SELECT * FROM [UserRoles]";
+		const string sqlCommand = @"SELECT * FROM [UserRoles]";
 
 		var results = connection.Query<UserRole>(sqlCommand, new DynamicParameters());
 
-		return results is null ? new List<UserRole>() : results.ToList();
+		return results ?? Enumerable.Empty<UserRole>();
 	}
 
-	public IList<ProductCategory> GetProductCategories()
+	public IEnumerable<ProductCategory> GetProductCategories()
 	{
 		using var connection = _dbConnectionProvider.GetDbConnection();
 		connection.Open();
 
-		const string sqlCommand =   @"SELECT * FROM [ProductCategories]";
+		const string sqlCommand = @"SELECT * FROM [ProductCategories]";
 
 		var results = connection.Query<ProductCategory>(sqlCommand, new DynamicParameters());
 
-		return results is null ? new List<ProductCategory>() : results.ToList();
+		return results ?? Enumerable.Empty<ProductCategory>();
 	}
 }

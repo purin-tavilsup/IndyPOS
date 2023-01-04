@@ -4,9 +4,9 @@ namespace IndyPOS.DataAccess.Interfaces;
 
 public interface IStoreConstantRepository
 {
-	IList<UserRole> GetUserRoles();
+	IEnumerable<UserRole> GetUserRoles();
 
-	IList<PaymentType> GetPaymentTypes();
+	IEnumerable<PaymentType> GetPaymentTypes();
 
-	IList<ProductCategory> GetProductCategories();
+	IEnumerable<ProductCategory> GetProductCategories();
 }

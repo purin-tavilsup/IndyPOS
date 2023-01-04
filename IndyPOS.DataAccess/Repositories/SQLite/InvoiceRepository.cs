@@ -1,5 +1,4 @@
 ﻿using Dapper;
-using IndyPOS.Common.Exceptions;
 using IndyPOS.DataAccess.Extensions;
 using IndyPOS.DataAccess.Interfaces;
 using IndyPOS.DataAccess.Models;
@@ -46,13 +45,10 @@ public class InvoiceRepository : IInvoiceRepository
 		var invoiceId = connection.Query<int>(sqlCommand, sqlParameters)
 								  .FirstOrDefault();
 
-		if (invoiceId < 1) 
-			throw new InvoiceNotAddedException("Failed to add a new invoice.");
-
 		return invoiceId;
 	}
 
-	public Invoice GetInvoiceByInvoiceId(int id)
+	public Invoice? GetInvoiceByInvoiceId(int id)
 	{
 		using var connection = _dbConnectionProvider.GetDbConnection();
 		connection.Open();
@@ -73,13 +69,11 @@ public class InvoiceRepository : IInvoiceRepository
 
 		var result = connection.Query(sqlCommand, sqlParameters)
 							   .FirstOrDefault();
-		if (result is null)
-			throw new InvoiceNotFoundException($"Invoice is not found. InvoiceId: {id}.");
 
-		return MapInvoice(result);
+		return result is null ? null : MapInvoice(result);
 	}
 
-	public IList<Invoice> GetInvoicesByDateRange(DateTime start, DateTime end)
+	public IEnumerable<Invoice> GetInvoicesByDateRange(DateTime start, DateTime end)
 	{
 		using var connection = _dbConnectionProvider.GetDbConnection();
 		connection.Open();
@@ -101,10 +95,10 @@ public class InvoiceRepository : IInvoiceRepository
 
 		var results = connection.Query(sqlCommand, sqlParameters);
 
-		return results is null ? new List<Invoice>() : MapInvoices(results);
+		return results is null ? Enumerable.Empty<Invoice>() : MapInvoices(results);
 	}
 
-	public IList<Invoice> GetInvoicesByDate(DateTime date)
+	public IEnumerable<Invoice> GetInvoicesByDate(DateTime date)
 	{
 		return GetInvoicesByDateRange(date, date);
 	}
@@ -123,10 +117,8 @@ public class InvoiceRepository : IInvoiceRepository
 		return invoice;
 	}
 
-	private static IList<Invoice> MapInvoices(IEnumerable<dynamic> results)
+	private static IEnumerable<Invoice> MapInvoices(IEnumerable<dynamic> results)
 	{
-		var invoices = results.Select(MapInvoice);
-
-		return invoices.ToList();
+		return results.Select(MapInvoice);
 	}
 }

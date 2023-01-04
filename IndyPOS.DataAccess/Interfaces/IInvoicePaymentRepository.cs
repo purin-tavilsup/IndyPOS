@@ -6,11 +6,11 @@ public interface IInvoicePaymentRepository
 {
 	int AddPayment(Payment payment);
 
-	IList<Payment> GetPaymentsByInvoiceId(int id);
+	IEnumerable<Payment> GetPaymentsByInvoiceId(int id);
 
-	IList<Payment> GetPaymentsByDateRange(DateTime start, DateTime end);
+	IEnumerable<Payment> GetPaymentsByDateRange(DateTime start, DateTime end);
 
-	IList<Payment> GetPaymentsByDate(DateTime date);
+	IEnumerable<Payment> GetPaymentsByDate(DateTime date);
 
-	IList<Payment> GetPaymentsByPaymentTypeId(int id);
+	IEnumerable<Payment> GetPaymentsByPaymentTypeId(int id);
 }

@@ -1,5 +1,4 @@
 ﻿using Dapper;
-using IndyPOS.Common.Exceptions;
 using IndyPOS.DataAccess.Extensions;
 using IndyPOS.DataAccess.Interfaces;
 using IndyPOS.DataAccess.Models;
@@ -49,13 +48,10 @@ public class InvoicePaymentRepository : IInvoicePaymentRepository
 		var paymentId = connection.Query<int>(sqlCommand, sqlParameters)
 								  .FirstOrDefault();
 
-		if (paymentId < 1) 
-			throw new PaymentNotAddedException($"Failed to add a new payment. InvoiceId: {payment.InvoiceId}.");
-
 		return paymentId;
 	}
 
-	public IList<Payment> GetPaymentsByInvoiceId(int id)
+	public IEnumerable<Payment> GetPaymentsByInvoiceId(int id)
 	{
 		using var connection = _dbConnectionProvider.GetDbConnection();
 		connection.Open();
@@ -77,15 +73,15 @@ public class InvoicePaymentRepository : IInvoicePaymentRepository
 
 		var results = connection.Query(sqlCommand, sqlParameters);
 
-		return results is null ? new List<Payment>() : MapPayments(results);
+		return results is null ? Enumerable.Empty<Payment>() : MapPayments(results);
 	}
 
-	public IList<Payment> GetPaymentsByDate(DateTime date)
+	public IEnumerable<Payment> GetPaymentsByDate(DateTime date)
 	{
 		return GetPaymentsByDateRange(date, date);
 	}
 
-	public IList<Payment> GetPaymentsByDateRange(DateTime start, DateTime end)
+	public IEnumerable<Payment> GetPaymentsByDateRange(DateTime start, DateTime end)
 	{
 		using var connection = _dbConnectionProvider.GetDbConnection();
 		connection.Open();
@@ -108,10 +104,10 @@ public class InvoicePaymentRepository : IInvoicePaymentRepository
 
 		var results = connection.Query(sqlCommand, sqlParameters);
 
-		return results is null ? new List<Payment>() : MapPayments(results);
+		return results is null ? Enumerable.Empty<Payment>() : MapPayments(results);
 	}
 
-	public IList<Payment> GetPaymentsByPaymentTypeId(int id)
+	public IEnumerable<Payment> GetPaymentsByPaymentTypeId(int id)
 	{
 		using var connection = _dbConnectionProvider.GetDbConnection();
 		connection.Open();
@@ -133,10 +129,10 @@ public class InvoicePaymentRepository : IInvoicePaymentRepository
 
 		var results = connection.Query(sqlCommand, sqlParameters);
 
-		return results is null ? new List<Payment>() : MapPayments(results);
+		return results is null ? Enumerable.Empty<Payment>() : MapPayments(results);
 	}
 
-	private static IList<Payment> MapPayments(IEnumerable<dynamic> results)
+	private static IEnumerable<Payment> MapPayments(IEnumerable<dynamic> results)
 	{
 		var payments = results.Select(x => new Payment
 		{
@@ -148,6 +144,6 @@ public class InvoicePaymentRepository : IInvoicePaymentRepository
 			Note = x.Note
 		});
 
-		return payments.ToList();
+		return payments;
 	}
 }

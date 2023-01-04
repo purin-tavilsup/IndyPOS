@@ -1,9 +1,8 @@
-﻿using IndyPOS.Application.Events;
+﻿using IndyPOS.Application.Enums;
+using IndyPOS.Application.Events;
+using IndyPOS.Application.Extensions;
 using IndyPOS.Application.Interfaces;
 using IndyPOS.Application.Models.Report;
-using IndyPOS.Common.Enums;
-using IndyPOS.Common.Extensions;
-using IndyPOS.Common.Interfaces;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Prism.Events;

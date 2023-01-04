@@ -1,7 +1,7 @@
 ﻿using System.Diagnostics.CodeAnalysis;
-using IndyPOS.Common.Enums;
-using IndyPOS.Common.Extensions;
-using IndyPOS.Common.Interfaces;
+using IndyPOS.Application.Enums;
+using IndyPOS.Application.Extensions;
+using IndyPOS.Application.Interfaces;
 using IndyPOS.Windows.Forms.Interfaces;
 
 namespace IndyPOS.Windows.Forms.UI.Payment

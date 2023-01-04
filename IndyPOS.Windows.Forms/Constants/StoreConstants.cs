@@ -1,4 +1,4 @@
-﻿using IndyPOS.Common.Interfaces;
+﻿using IndyPOS.Application.Interfaces;
 using IndyPOS.DataAccess.Interfaces;
 
 namespace IndyPOS.Windows.Forms.Constants

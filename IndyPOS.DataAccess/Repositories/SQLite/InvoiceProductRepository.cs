@@ -1,5 +1,4 @@
 ﻿using Dapper;
-using IndyPOS.Common.Exceptions;
 using IndyPOS.DataAccess.Extensions;
 using IndyPOS.DataAccess.Interfaces;
 using IndyPOS.DataAccess.Models;
@@ -67,16 +66,13 @@ public class InvoiceProductRepository : IInvoiceProductRepository
 			product.Note
 		};
 
-		var invoiceProductId = connection.Query<int>(sqlCommand, sqlParameters)
-										 .FirstOrDefault();
+		var productId = connection.Query<int>(sqlCommand, sqlParameters)
+								  .FirstOrDefault();
 
-		if (invoiceProductId < 1) 
-			throw new ProductNotAddedException($"Failed to add an invoice product. Product barcode: {product.Barcode}.");
-
-		return invoiceProductId;
+		return productId;
 	}
 
-	public IList<InvoiceProduct> GetInvoiceProductsByInvoiceId(int id)
+	public IEnumerable<InvoiceProduct> GetInvoiceProductsByInvoiceId(int id)
 	{
 		using var connection = _dbConnectionProvider.GetDbConnection();
 		connection.Open();
@@ -105,10 +101,10 @@ public class InvoiceProductRepository : IInvoiceProductRepository
 
 		var results = connection.Query(sqlCommand, sqlParameters);
 
-		return results is null ? new List<InvoiceProduct>() : MapInvoiceProducts(results);
+		return results is null ? Enumerable.Empty<InvoiceProduct>() : MapInvoiceProducts(results);
 	}
 
-	public IList<InvoiceProduct> GetInvoiceProductsByDateRange(DateTime start, DateTime end)
+	public IEnumerable<InvoiceProduct> GetInvoiceProductsByDateRange(DateTime start, DateTime end)
 	{
 		using var connection = _dbConnectionProvider.GetDbConnection();
 		connection.Open();
@@ -138,15 +134,15 @@ public class InvoiceProductRepository : IInvoiceProductRepository
 
 		var results = connection.Query(sqlCommand, sqlParameters);
 
-		return results is null ? new List<InvoiceProduct>() : MapInvoiceProducts(results);
+		return results is null ? Enumerable.Empty<InvoiceProduct>() : MapInvoiceProducts(results);
 	}
 
-	public IList<InvoiceProduct> GetInvoiceProductsByDate(DateTime date)
+	public IEnumerable<InvoiceProduct> GetInvoiceProductsByDate(DateTime date)
 	{
 		return GetInvoiceProductsByDateRange(date, date);
 	}
 
-	private static IList<InvoiceProduct> MapInvoiceProducts(IEnumerable<dynamic> results)
+	private static IEnumerable<InvoiceProduct> MapInvoiceProducts(IEnumerable<dynamic> results)
 	{
 		var products = results.Select(x => new InvoiceProduct
 		{
