@@ -1,10 +1,10 @@
 ﻿#nullable enable
-using IndyPOS.Application.Interfaces;
+using IndyPOS.Application.Common.Interfaces;
 using IndyPOS.Windows.Forms.Interfaces;
 
 namespace IndyPOS.Windows.Forms.Controllers
 {
-	public class UserController : IUserController
+    public class UserController : IUserController
 	{
 		private readonly IUserHelper _userHelper;
 

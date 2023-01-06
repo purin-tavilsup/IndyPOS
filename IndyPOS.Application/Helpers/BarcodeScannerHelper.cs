@@ -1,7 +1,7 @@
 ﻿#nullable enable
 using System.IO.Ports;
+using IndyPOS.Application.Common.Interfaces;
 using IndyPOS.Application.Events;
-using IndyPOS.Application.Interfaces;
 using Microsoft.Extensions.Logging;
 using Prism.Events;
 

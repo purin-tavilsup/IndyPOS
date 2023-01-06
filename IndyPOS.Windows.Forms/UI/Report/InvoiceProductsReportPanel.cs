@@ -1,11 +1,11 @@
 ﻿using System.Diagnostics.CodeAnalysis;
-using IndyPOS.Application.Enums;
-using IndyPOS.Application.Interfaces;
+using IndyPOS.Application.Common.Enums;
+using IndyPOS.Application.Common.Interfaces;
 using IndyPOS.Windows.Forms.Interfaces;
 
 namespace IndyPOS.Windows.Forms.UI.Report
 {
-	[ExcludeFromCodeCoverage]
+    [ExcludeFromCodeCoverage]
     public partial class InvoiceProductsReportPanel : UserControl
     {
 		private readonly IReportController _reportController;

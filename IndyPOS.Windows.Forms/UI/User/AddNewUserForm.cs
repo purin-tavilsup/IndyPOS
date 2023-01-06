@@ -1,8 +1,8 @@
-﻿using System.Diagnostics.CodeAnalysis;
-using IndyPOS.Application.Extensions;
-using IndyPOS.Application.Interfaces;
-using IndyPOS.Application.Models;
+﻿using IndyPOS.Application.Common.Extensions;
+using IndyPOS.Application.Common.Interfaces;
+using IndyPOS.Application.Common.Models;
 using IndyPOS.Windows.Forms.Interfaces;
+using System.Diagnostics.CodeAnalysis;
 
 namespace IndyPOS.Windows.Forms.UI.User;
 
@@ -11,12 +11,12 @@ public partial class AddNewUserForm : Form
 {
 	private readonly IUserController _userController;
 	private readonly IReadOnlyDictionary<int, string> _userRoleDictionary;
-	private readonly ICryptographyUtility _cryptographyUtility;
+	private readonly ICryptographyService _cryptographyUtility;
 	private readonly MessageForm _messageForm;
 
 	public AddNewUserForm(IUserController userController,
 						  IStoreConstants storeConstants,
-						  ICryptographyUtility cryptographyUtility,
+						  ICryptographyService cryptographyUtility,
 						  MessageForm messageForm)
 	{
 		_userController = userController;

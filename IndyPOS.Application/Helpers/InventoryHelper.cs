@@ -1,7 +1,6 @@
 ﻿using IndyPOS.Application.Adapters;
+using IndyPOS.Application.Common.Interfaces;
 using IndyPOS.Application.Events;
-using IndyPOS.Application.Interfaces;
-using IndyPOS.DataAccess.Interfaces;
 using Prism.Events;
 
 namespace IndyPOS.Application.Helpers;
@@ -40,7 +39,7 @@ public class InventoryHelper : IInventoryHelper
 
 	public void AddNewProduct(IInventoryProduct product)
 	{
-		var productModel = new DataAccess.Models.InventoryProduct
+		var productModel = new Domain.Entities.InventoryProduct
 		{
 			Barcode = product.Barcode,
 			Description = product.Description,
@@ -59,7 +58,7 @@ public class InventoryHelper : IInventoryHelper
 
 	public void UpdateProduct(IInventoryProduct product)
 	{
-		var productModel = new DataAccess.Models.InventoryProduct
+		var productModel = new Domain.Entities.InventoryProduct
 		{
 			InventoryProductId = product.InventoryProductId,
 			Barcode = product.Barcode,

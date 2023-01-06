@@ -1,11 +1,11 @@
-﻿using IndyPOS.Application.Enums;
-using IndyPOS.Application.Interfaces;
-using IndyPOS.Application.Models.Report;
+﻿using IndyPOS.Application.Common.Enums;
+using IndyPOS.Application.Common.Interfaces;
+using IndyPOS.Application.Common.Models.Report;
 using IndyPOS.Windows.Forms.Interfaces;
 
 namespace IndyPOS.Windows.Forms.Controllers
 {
-	public class ReportController : IReportController
+    public class ReportController : IReportController
 	{
 		private readonly IReportHelper _reportHelper;
 

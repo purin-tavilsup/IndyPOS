@@ -1,9 +1,9 @@
 ﻿#nullable enable
-using IndyPOS.Application.Interfaces;
+using IndyPOS.Application.Common.Interfaces;
 
 namespace IndyPOS.Windows.Forms.Interfaces
 {
-	public interface IUserController
+    public interface IUserController
 	{
 		IUserAccount? LoggedInUser { get; }
 

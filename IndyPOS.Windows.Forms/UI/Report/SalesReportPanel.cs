@@ -1,10 +1,10 @@
 ﻿using System.Diagnostics.CodeAnalysis;
-using IndyPOS.Application.Models.Report;
+using IndyPOS.Application.Common.Models.Report;
 using IndyPOS.Windows.Forms.Interfaces;
 
 namespace IndyPOS.Windows.Forms.UI.Report
 {
-	public partial class SalesReportPanel : UserControl
+    public partial class SalesReportPanel : UserControl
     {
 		private readonly IReportController _reportController;
 

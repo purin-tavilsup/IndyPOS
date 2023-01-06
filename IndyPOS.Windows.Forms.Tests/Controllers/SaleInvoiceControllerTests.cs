@@ -1,8 +1,8 @@
 ﻿using AutoFixture.Xunit2;
 using FluentAssertions;
-using IndyPOS.Application.Enums;
-using IndyPOS.Application.Exceptions;
-using IndyPOS.Application.Interfaces;
+using IndyPOS.Application.Common.Enums;
+using IndyPOS.Application.Common.Exceptions;
+using IndyPOS.Application.Common.Interfaces;
 using IndyPOS.Mock.Attributes;
 using IndyPOS.Windows.Forms.Controllers;
 using Moq;

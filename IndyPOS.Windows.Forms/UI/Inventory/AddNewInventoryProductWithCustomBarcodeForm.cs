@@ -1,19 +1,19 @@
-﻿using System.Diagnostics.CodeAnalysis;
-using IndyPOS.Application.Interfaces;
-using IndyPOS.Application.Models;
+﻿using IndyPOS.Application.Common.Interfaces;
+using IndyPOS.Application.Common.Models;
 using IndyPOS.Windows.Forms.Interfaces;
+using System.Diagnostics.CodeAnalysis;
 
 namespace IndyPOS.Windows.Forms.UI.Inventory
 {
     [ExcludeFromCodeCoverage]
 	public partial class AddNewInventoryProductWithCustomBarcodeForm : Form
     {
-        private readonly IBarcodeUtility _barcodeUtility;
+        private readonly IBarcodeService _barcodeUtility;
         private readonly IInventoryController _inventoryController;
         private readonly IReadOnlyDictionary<int, string> _productCategoryDictionary;
 		private readonly MessageForm _messageForm;
 
-        public AddNewInventoryProductWithCustomBarcodeForm(IBarcodeUtility barcodeUtility, 
+        public AddNewInventoryProductWithCustomBarcodeForm(IBarcodeService barcodeUtility, 
 														   IStoreConstants storeConstants, 
 														   IInventoryController inventoryController,
 														   MessageForm messageForm)

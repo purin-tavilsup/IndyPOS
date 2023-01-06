@@ -1,8 +1,8 @@
-﻿using IndyPOS.Application.Enums;
+﻿using IndyPOS.Application.Common.Enums;
+using IndyPOS.Application.Common.Extensions;
+using IndyPOS.Application.Common.Interfaces;
+using IndyPOS.Application.Common.Models.Report;
 using IndyPOS.Application.Events;
-using IndyPOS.Application.Extensions;
-using IndyPOS.Application.Interfaces;
-using IndyPOS.Application.Models.Report;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Prism.Events;
@@ -12,7 +12,7 @@ namespace IndyPOS.Application.Helpers;
 public class ReportHelper : IReportHelper
 {
 	private readonly string _reportsDirectory;
-	private readonly IJsonUtility _jsonUtility;
+	private readonly IJsonService _jsonUtility;
 	private readonly ILogger<ReportHelper> _logger; 
 	private readonly ISaleInvoiceHelper _saleInvoiceHelper;
 	private readonly IPayLaterPaymentHelper _accountsReceivableHelper;
@@ -28,7 +28,7 @@ public class ReportHelper : IReportHelper
 						IDataFeedApiHelper dataFeedApiHelper,
 						IEventAggregator eventAggregator,
 						ILogger<ReportHelper> logger, 
-						IJsonUtility jsonUtility)
+						IJsonService jsonUtility)
 	{
 		_logger = logger;
 		_reportsDirectory = GetReportDirectory(configuration);

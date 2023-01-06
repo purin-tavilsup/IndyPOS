@@ -1,6 +1,6 @@
-﻿using System.Diagnostics.CodeAnalysis;
-using IndyPOS.Application.Interfaces;
-using IndyPOS.Application.Models;
+﻿using IndyPOS.Application.Common.Interfaces;
+using IndyPOS.Application.Common.Models;
+using System.Diagnostics.CodeAnalysis;
 
 namespace IndyPOS.Windows.Forms.UI.Setting;
 

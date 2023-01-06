@@ -1,4 +1,4 @@
-﻿using IndyPOS.Application.Interfaces;
+﻿using IndyPOS.Application.Common.Interfaces;
 using Prism.Events;
 
 namespace IndyPOS.Application.Events;

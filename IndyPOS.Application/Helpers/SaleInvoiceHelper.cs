@@ -1,16 +1,15 @@
 ﻿using IndyPOS.Application.Adapters;
-using IndyPOS.Application.Enums;
+using IndyPOS.Application.Common.Enums;
+using IndyPOS.Application.Common.Exceptions;
+using IndyPOS.Application.Common.Extensions;
+using IndyPOS.Application.Common.Interfaces;
+using IndyPOS.Application.Common.Models;
 using IndyPOS.Application.Events;
-using IndyPOS.Application.Exceptions;
-using IndyPOS.Application.Extensions;
-using IndyPOS.Application.Interfaces;
-using IndyPOS.Application.Models;
-using IndyPOS.DataAccess.Interfaces;
-using IndyPOS.DataAccess.Models;
+using IndyPOS.Domain.Entities;
 using Prism.Events;
 using Throw;
-using Payment = IndyPOS.Application.Models.Payment;
-using PaymentType = IndyPOS.Application.Enums.PaymentType;
+using Payment = IndyPOS.Application.Common.Models.Payment;
+using PaymentType = IndyPOS.Application.Common.Enums.PaymentType;
 
 namespace IndyPOS.Application.Helpers;
 
@@ -478,7 +477,7 @@ public class SaleInvoiceHelper : ISaleInvoiceHelper
 
 	private int AddPaymentToDatabase(IPayment payment, int invoiceId)
 	{
-		return _invoicePaymentRepository.AddPayment(new DataAccess.Models.Payment
+		return _invoicePaymentRepository.AddPayment(new Domain.Entities.Payment
 		{
 			InvoiceId = invoiceId,
 			PaymentTypeId = payment.PaymentTypeId,

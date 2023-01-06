@@ -1,12 +1,8 @@
 ﻿#nullable enable
-using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
-using System.IO;
-using IndyPOS.Application.Enums;
+using IndyPOS.Application.Common.Enums;
+using IndyPOS.Application.Common.Extensions;
+using IndyPOS.Application.Common.Interfaces;
 using IndyPOS.Application.Events;
-using IndyPOS.Application.Extensions;
-using IndyPOS.Application.Interfaces;
-using IndyPOS.DataAccess.Interfaces;
 using IndyPOS.Windows.Forms.Enums;
 using IndyPOS.Windows.Forms.Events;
 using IndyPOS.Windows.Forms.UI.Inventory;
@@ -18,6 +14,9 @@ using IndyPOS.Windows.Forms.UI.Setting;
 using IndyPOS.Windows.Forms.UI.User;
 using Microsoft.Extensions.Configuration;
 using Prism.Events;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.IO;
 using Timer = System.Windows.Forms.Timer;
 
 namespace IndyPOS.Windows.Forms.UI

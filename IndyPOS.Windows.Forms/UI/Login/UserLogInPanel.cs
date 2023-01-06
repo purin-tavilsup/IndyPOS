@@ -1,5 +1,5 @@
 ﻿using System.Diagnostics.CodeAnalysis;
-using IndyPOS.Application.Interfaces;
+using IndyPOS.Application.Common.Interfaces;
 using IndyPOS.Windows.Forms.Interfaces;
 
 namespace IndyPOS.Windows.Forms.UI.Login;
@@ -8,11 +8,11 @@ namespace IndyPOS.Windows.Forms.UI.Login;
 public partial class UserLogInPanel : UserControl
 {
 	private readonly IUserController _userController;
-	private readonly ICryptographyUtility _cryptographyUtility;
+	private readonly ICryptographyService _cryptographyUtility;
 	private readonly MessageForm _messageForm;
 		
 	public UserLogInPanel(IUserController userController,
-						  ICryptographyUtility cryptographyUtility,
+						  ICryptographyService cryptographyUtility,
 						  MessageForm messageForm)
 	{
 		_userController = userController;

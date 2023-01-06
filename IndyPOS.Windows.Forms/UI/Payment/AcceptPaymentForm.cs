@@ -1,12 +1,12 @@
 ﻿using System.Diagnostics.CodeAnalysis;
-using IndyPOS.Application.Enums;
-using IndyPOS.Application.Extensions;
-using IndyPOS.Application.Interfaces;
+using IndyPOS.Application.Common.Enums;
+using IndyPOS.Application.Common.Extensions;
+using IndyPOS.Application.Common.Interfaces;
 using IndyPOS.Windows.Forms.Interfaces;
 
 namespace IndyPOS.Windows.Forms.UI.Payment
 {
-	[ExcludeFromCodeCoverage]
+    [ExcludeFromCodeCoverage]
 	public partial class AcceptPaymentForm : Form
     {
         private readonly ISaleInvoiceController _saleInvoiceController;

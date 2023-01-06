@@ -1,16 +1,16 @@
 using AutoFixture;
 using AutoFixture.AutoMoq;
 using AutoFixture.Xunit2;
-using IndyPOS.Application.Enums;
+using IndyPOS.Application.Common.Enums;
+using IndyPOS.Application.Common.Interfaces;
 using IndyPOS.Application.Helpers;
-using IndyPOS.Application.Interfaces;
 using IndyPOS.Mock.Attributes;
 using Moq;
 using Xunit;
 
 namespace IndyPOS.Facade.Tests
 {
-	public class ReportHelperTests
+    public class ReportHelperTests
     {
 		public class ArrangeAttribute : AutoDataAttribute
 		{

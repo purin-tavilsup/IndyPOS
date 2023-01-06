@@ -1,10 +1,10 @@
-﻿using IndyPOS.Application.Enums;
-using IndyPOS.Application.Interfaces;
-using IndyPOS.Application.Models.Report;
+﻿using IndyPOS.Application.Common.Enums;
+using IndyPOS.Application.Common.Interfaces;
+using IndyPOS.Application.Common.Models.Report;
 
 namespace IndyPOS.Windows.Forms.Interfaces
 {
-	public interface IReportController
+    public interface IReportController
 	{
 		IEnumerable<IFinalInvoice> GetInvoicesByPeriod(TimePeriod period);
 

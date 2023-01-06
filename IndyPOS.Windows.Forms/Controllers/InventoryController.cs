@@ -1,4 +1,4 @@
-﻿using IndyPOS.Application.Interfaces;
+﻿using IndyPOS.Application.Common.Interfaces;
 using IndyPOS.Windows.Forms.Interfaces;
 
 namespace IndyPOS.Windows.Forms.Controllers

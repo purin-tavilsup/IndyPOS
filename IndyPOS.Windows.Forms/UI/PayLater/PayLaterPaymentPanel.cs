@@ -1,12 +1,12 @@
 ﻿using System.Diagnostics.CodeAnalysis;
-using IndyPOS.Application.Exceptions;
-using IndyPOS.Application.Interfaces;
+using IndyPOS.Application.Common.Exceptions;
+using IndyPOS.Application.Common.Interfaces;
 using IndyPOS.Windows.Forms.Interfaces;
 using IndyPOS.Windows.Forms.UI.Report;
 
 namespace IndyPOS.Windows.Forms.UI.PayLater
 {
-	[ExcludeFromCodeCoverage]
+    [ExcludeFromCodeCoverage]
     public partial class PayLaterPaymentPanel : UserControl
     {
 		private readonly IPayLaterPaymentController _payLaterPaymentController;

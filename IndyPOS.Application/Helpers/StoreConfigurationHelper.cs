@@ -1,5 +1,5 @@
-﻿using IndyPOS.Application.Interfaces;
-using IndyPOS.Application.Models;
+﻿using IndyPOS.Application.Common.Interfaces;
+using IndyPOS.Application.Common.Models;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 
@@ -7,11 +7,11 @@ namespace IndyPOS.Application.Helpers;
 
 public class StoreConfigurationHelper : IStoreConfigurationHelper
 {
-	private readonly IJsonUtility _jsonUtility;
+	private readonly IJsonService _jsonUtility;
 	private readonly ILogger<StoreConfigurationHelper> _logger;
 	private readonly string _storeConfigPath;
 
-	public StoreConfigurationHelper(IConfiguration configuration, IJsonUtility jsonUtility, ILogger<StoreConfigurationHelper> logger)
+	public StoreConfigurationHelper(IConfiguration configuration, IJsonService jsonUtility, ILogger<StoreConfigurationHelper> logger)
 	{
 		_jsonUtility = jsonUtility;
 		_logger = logger;

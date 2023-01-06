@@ -1,7 +1,6 @@
 ﻿using IndyPOS.Application.Adapters;
+using IndyPOS.Application.Common.Interfaces;
 using IndyPOS.Application.Events;
-using IndyPOS.Application.Interfaces;
-using IndyPOS.DataAccess.Interfaces;
 using Prism.Events;
 
 namespace IndyPOS.Application.Helpers;
@@ -62,7 +61,7 @@ public class UserHelper : IUserHelper
 
 	private int AddNewUserInternal(IUserAccount user)
 	{
-		var userModel = new DataAccess.Models.UserAccount
+		var userModel = new Domain.Entities.UserAccount
 		{
 			FirstName = user.FirstName,
 			LastName = user.LastName,
@@ -93,7 +92,7 @@ public class UserHelper : IUserHelper
 
 	public void UpdateUser(IUserAccount user)
 	{
-		var userModel = new DataAccess.Models.UserAccount
+		var userModel = new Domain.Entities.UserAccount
 		{
 			UserId = user.UserId,
 			FirstName = user.FirstName,

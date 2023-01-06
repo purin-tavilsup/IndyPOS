@@ -2,8 +2,8 @@
 using System.Drawing;
 using System.Drawing.Printing;
 using System.Runtime.Versioning;
-using IndyPOS.Application.Extensions;
-using IndyPOS.Application.Interfaces;
+using IndyPOS.Application.Common.Extensions;
+using IndyPOS.Application.Common.Interfaces;
 using Microsoft.Extensions.Logging;
 
 namespace IndyPOS.Application.Helpers;

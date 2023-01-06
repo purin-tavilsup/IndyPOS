@@ -1,7 +1,7 @@
 ﻿using System.Text;
-using IndyPOS.Application.Extensions;
-using IndyPOS.Application.Interfaces;
-using IndyPOS.Application.Models.Report;
+using IndyPOS.Application.Common.Extensions;
+using IndyPOS.Application.Common.Interfaces;
+using IndyPOS.Application.Common.Models.Report;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 
@@ -10,14 +10,14 @@ namespace IndyPOS.Application.Helpers;
 public class DataFeedApiHelper : IDataFeedApiHelper
 {
 	private readonly HttpClient _httpClient;
-	private readonly IJsonUtility _jsonUtility;
+	private readonly IJsonService _jsonUtility;
 	private readonly ILogger<DataFeedApiHelper> _logger;
 	private readonly string _baseUrl;
 	private readonly bool _isDataFeedEnabled;
 
 	public DataFeedApiHelper(HttpClient httpClient,
 							 IConfiguration configuration,
-							 IJsonUtility jsonUtility, 
+							 IJsonService jsonUtility, 
 							 ILogger<DataFeedApiHelper> logger)
 	{
 		_httpClient = httpClient;

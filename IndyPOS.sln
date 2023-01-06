@@ -3,9 +3,11 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.0.32014.148
 MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IndyPOS.Domain", "IndyPOS.Domain\IndyPOS.Domain.csproj", "{24F75591-02BA-4E92-834A-F330A60AF06A}"
+EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IndyPOS.Windows.Forms", "IndyPOS.Windows.Forms\IndyPOS.Windows.Forms.csproj", "{2ED6DFC3-BF73-41B7-816C-D53312DA9C52}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IndyPOS.DataAccess", "IndyPOS.DataAccess\IndyPOS.DataAccess.csproj", "{6032F51E-E3DF-47D5-9E74-A360BDBFB180}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IndyPOS.Infrastructure", "IndyPOS.Infrastructure\IndyPOS.Infrastructure.csproj", "{6032F51E-E3DF-47D5-9E74-A360BDBFB180}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IndyPOS.Windows.Forms.Tests", "IndyPOS.Windows.Forms.Tests\IndyPOS.Windows.Forms.Tests.csproj", "{D60984B3-CE19-4B7E-BD76-834A11EE2DDA}"
 EndProject
@@ -25,6 +27,10 @@ Global
 		Release|x64 = Release|x64
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{24F75591-02BA-4E92-834A-F330A60AF06A}.Debug|x64.ActiveCfg = Debug|x64
+		{24F75591-02BA-4E92-834A-F330A60AF06A}.Debug|x64.Build.0 = Debug|x64
+		{24F75591-02BA-4E92-834A-F330A60AF06A}.Release|x64.ActiveCfg = Release|x64
+		{24F75591-02BA-4E92-834A-F330A60AF06A}.Release|x64.Build.0 = Release|x64
 		{2ED6DFC3-BF73-41B7-816C-D53312DA9C52}.Debug|x64.ActiveCfg = Debug|x64
 		{2ED6DFC3-BF73-41B7-816C-D53312DA9C52}.Debug|x64.Build.0 = Debug|x64
 		{2ED6DFC3-BF73-41B7-816C-D53312DA9C52}.Release|x64.ActiveCfg = Release|x64
@@ -54,6 +60,7 @@ Global
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
+		{24F75591-02BA-4E92-834A-F330A60AF06A} = {997D11A0-85EC-4363-90F7-52B709D4ED27}
 		{2ED6DFC3-BF73-41B7-816C-D53312DA9C52} = {997D11A0-85EC-4363-90F7-52B709D4ED27}
 		{6032F51E-E3DF-47D5-9E74-A360BDBFB180} = {997D11A0-85EC-4363-90F7-52B709D4ED27}
 		{D60984B3-CE19-4B7E-BD76-834A11EE2DDA} = {87305E60-CCF3-46E7-9CD2-E19BF10290B7}

@@ -1,20 +1,20 @@
 ﻿using System.Diagnostics.CodeAnalysis;
+using IndyPOS.Application.Common.Extensions;
+using IndyPOS.Application.Common.Interfaces;
 using IndyPOS.Application.Events;
-using IndyPOS.Application.Extensions;
-using IndyPOS.Application.Interfaces;
 using IndyPOS.Windows.Forms.Interfaces;
 using Prism.Events;
-using UserRoleEnum = IndyPOS.Application.Enums.UserRole;
+using UserRoleEnum = IndyPOS.Application.Common.Enums.UserRole;
 
 namespace IndyPOS.Windows.Forms.UI.User
 {
-	[ExcludeFromCodeCoverage]
+    [ExcludeFromCodeCoverage]
     public partial class UsersPanel : UserControl
     {
         private readonly IUserController _userController;
 		private readonly IEventAggregator _eventAggregator;
 		private readonly IReadOnlyDictionary<int, string> _userRoleDictionary;
-		private readonly ICryptographyUtility _cryptographyUtility;
+		private readonly ICryptographyService _cryptographyUtility;
 		private readonly AddNewUserForm _addNewUserForm;
 		private IUserAccount _selectedUser;
 
@@ -33,7 +33,7 @@ namespace IndyPOS.Windows.Forms.UI.User
         public UsersPanel(IEventAggregator eventAggregator,
 						  IUserController userController,
 						  IStoreConstants storeConstants,
-						  ICryptographyUtility cryptographyUtility,
+						  ICryptographyService cryptographyUtility,
 						  AddNewUserForm addNewUserForm)
 		{
 			_userController = userController;

@@ -1,7 +1,6 @@
 ﻿using IndyPOS.Application.Adapters;
-using IndyPOS.Application.Interfaces;
-using IndyPOS.DataAccess.Interfaces;
-using IndyPOS.DataAccess.Models;
+using IndyPOS.Application.Common.Interfaces;
+using IndyPOS.Domain.Entities;
 
 namespace IndyPOS.Application.Helpers;
 
