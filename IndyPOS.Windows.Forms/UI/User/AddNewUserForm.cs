@@ -11,17 +11,17 @@ public partial class AddNewUserForm : Form
 {
 	private readonly IUserController _userController;
 	private readonly IReadOnlyDictionary<int, string> _userRoleDictionary;
-	private readonly ICryptographyService _cryptographyUtility;
+	private readonly ICryptographyService _cryptographyService;
 	private readonly MessageForm _messageForm;
 
 	public AddNewUserForm(IUserController userController,
 						  IStoreConstants storeConstants,
-						  ICryptographyService cryptographyUtility,
+						  ICryptographyService cryptographyService,
 						  MessageForm messageForm)
 	{
 		_userController = userController;
 		_userRoleDictionary = storeConstants.UserRoles;
-		_cryptographyUtility = cryptographyUtility;
+		_cryptographyService = cryptographyService;
 		_messageForm = messageForm;
 
 		InitializeComponent();
@@ -82,7 +82,7 @@ public partial class AddNewUserForm : Form
 		var role = _userRoleDictionary.FirstOrDefault(x => x.Value == selectedRole);
 		var roleId = role.Key;
 		var username = UsernameLabel.Text;
-		var encryptedPassword = _cryptographyUtility.Encrypt(UserSecretTextBox.Texts.Trim());
+		var encryptedPassword = _cryptographyService.Encrypt(UserSecretTextBox.Texts.Trim());
 
 		var newUser = new UserAccount
 		{

@@ -21,7 +21,7 @@ public class SaleInvoiceHelper : ISaleInvoiceHelper
 	private readonly IInvoiceProductRepository _invoiceProductRepository;
 	private readonly IInventoryHelper _inventoryHelper;
 	private readonly IInventoryProductRepository _inventoryProductsRepository;
-	private readonly IReceiptPrinterHelper _receiptPrinter;
+	private readonly IReceiptPrinterService _receiptPrinterService;
 	private readonly IUserHelper _userHelper;
 	private readonly IPayLaterPaymentRepository _payLaterPaymentsRepository;
 
@@ -35,7 +35,7 @@ public class SaleInvoiceHelper : ISaleInvoiceHelper
 							 IInvoiceProductRepository invoiceProductRepository,
 							 IInvoicePaymentRepository invoicePaymentRepository,
 							 IInventoryProductRepository inventoryProductsRepository,
-							 IReceiptPrinterHelper receiptPrinter,
+							 IReceiptPrinterService receiptPrinterService,
 							 IUserHelper userHelper,
 							 IPayLaterPaymentRepository payLaterPaymentsRepository)
 	{
@@ -45,7 +45,7 @@ public class SaleInvoiceHelper : ISaleInvoiceHelper
 		_invoiceProductRepository = invoiceProductRepository;
 		_invoicePaymentRepository = invoicePaymentRepository;
 		_inventoryProductsRepository = inventoryProductsRepository;
-		_receiptPrinter = receiptPrinter;
+		_receiptPrinterService = receiptPrinterService;
 		_userHelper = userHelper;
 		_payLaterPaymentsRepository = payLaterPaymentsRepository;
 	}
@@ -403,7 +403,7 @@ public class SaleInvoiceHelper : ISaleInvoiceHelper
 		var loggedInUser = _userHelper.LoggedInUser;
 		var invoiceInfo = GetInvoiceInfo();
 			
-		_receiptPrinter.PrintReceipt(invoiceInfo, loggedInUser);
+		_receiptPrinterService.PrintReceipt(invoiceInfo, loggedInUser);
 	}
 
 	private void UpdateInventoryProductsSoldOnInvoice(IInvoiceInfo invoiceInfo)

@@ -1,6 +1,6 @@
 ﻿namespace IndyPOS.Application.Common.Interfaces;
 
-public interface IBarcodeScannerHelper : IDisposable
+public interface IBarcodeScannerService : IDisposable
 {
 	void Connect();
 

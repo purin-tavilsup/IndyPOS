@@ -3,17 +3,17 @@ using IndyPOS.Application.Common.Models;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 
-namespace IndyPOS.Application.Helpers;
+namespace IndyPOS.Infrastructure.Services;
 
-public class StoreConfigurationHelper : IStoreConfigurationHelper
+public class StoreConfigurationService : IStoreConfigurationService
 {
-	private readonly IJsonService _jsonUtility;
-	private readonly ILogger<StoreConfigurationHelper> _logger;
+	private readonly IJsonService _jsonService;
+	private readonly ILogger<StoreConfigurationService> _logger;
 	private readonly string _storeConfigPath;
 
-	public StoreConfigurationHelper(IConfiguration configuration, IJsonService jsonUtility, ILogger<StoreConfigurationHelper> logger)
+	public StoreConfigurationService(IConfiguration configuration, IJsonService jsonService, ILogger<StoreConfigurationService> logger)
 	{
-		_jsonUtility = jsonUtility;
+		_jsonService = jsonService;
 		_logger = logger;
 		_storeConfigPath = GetStoreConfigurationPath(configuration);
 	}
@@ -44,7 +44,7 @@ public class StoreConfigurationHelper : IStoreConfigurationHelper
 	{
 		try
 		{
-			await _jsonUtility.SaveToFileAsync(configuration, _storeConfigPath);
+			await _jsonService.SaveToFileAsync(configuration, _storeConfigPath);
 		}
 		catch (Exception ex)
 		{
@@ -57,7 +57,7 @@ public class StoreConfigurationHelper : IStoreConfigurationHelper
 	{
 		try
 		{
-			_jsonUtility.SaveToFile(configuration, _storeConfigPath);
+			_jsonService.SaveToFile(configuration, _storeConfigPath);
 		}
 		catch (Exception ex)
 		{
@@ -71,13 +71,13 @@ public class StoreConfigurationHelper : IStoreConfigurationHelper
 		try
 		{
 			if (File.Exists(_storeConfigPath))
-				return await _jsonUtility.ReadFromFileAsync<StoreConfiguration>(_storeConfigPath);
+				return await _jsonService.ReadFromFileAsync<StoreConfiguration>(_storeConfigPath);
 
 			var configuration = CreateNewUserConfiguration();
 
 			await SaveToFileAsync(configuration);
 
-			return await _jsonUtility.ReadFromFileAsync<StoreConfiguration>(_storeConfigPath);
+			return await _jsonService.ReadFromFileAsync<StoreConfiguration>(_storeConfigPath);
 		}
 		catch (Exception ex)
 		{
@@ -92,13 +92,13 @@ public class StoreConfigurationHelper : IStoreConfigurationHelper
 		try
 		{
 			if (File.Exists(_storeConfigPath))
-				return _jsonUtility.ReadFromFile<StoreConfiguration>(_storeConfigPath);
+				return _jsonService.ReadFromFile<StoreConfiguration>(_storeConfigPath);
 
 			var configuration = CreateNewUserConfiguration();
 
 			SaveToFile(configuration);
 
-			return _jsonUtility.ReadFromFile<StoreConfiguration>(_storeConfigPath);
+			return _jsonService.ReadFromFile<StoreConfiguration>(_storeConfigPath);
 		}
 		catch (Exception ex)
 		{

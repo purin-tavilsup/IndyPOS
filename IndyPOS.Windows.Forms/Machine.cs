@@ -10,16 +10,16 @@ namespace IndyPOS.Windows.Forms;
 public class Machine : IMachine
 {
 	private readonly MainForm _mainForm;
-	private readonly IStoreConfigurationHelper _storeConfigurationHelper;
-	private readonly IBarcodeScannerHelper _barcodeScanner;
+	private readonly IStoreConfigurationService _storeConfigurationService;
+	private readonly IBarcodeScannerService _barcodeScannerService;
 
 	public Machine(MainForm mainForm,
-				   IStoreConfigurationHelper storeConfigurationHelper,
-				   IBarcodeScannerHelper barcodeScanner)
+				   IStoreConfigurationService storeConfigurationService,
+				   IBarcodeScannerService barcodeScannerService)
 	{
 		_mainForm = mainForm;
-		_storeConfigurationHelper = storeConfigurationHelper;
-		_barcodeScanner = barcodeScanner;
+		_storeConfigurationService = storeConfigurationService;
+		_barcodeScannerService = barcodeScannerService;
 	}
 
 	public void Dispose()
@@ -59,19 +59,19 @@ public class Machine : IMachine
 	[Conditional("RELEASE")]
 	private void ConnectDevices()
 	{
-		_barcodeScanner.Connect();
+		_barcodeScannerService.Connect();
 	}
 
 	[Conditional("RELEASE")]
 	private void DisconnectDevices()
 	{
-		_barcodeScanner.Disconnect();
+		_barcodeScannerService.Disconnect();
 	}
 
 	private void StartUserInterface()
 	{
 		var version = GetVersion();
-		var storeConfig = _storeConfigurationHelper.Get();
+		var storeConfig = _storeConfigurationService.Get();
 
 		_mainForm.SetVersion(version);
 		_mainForm.SetStoreName(storeConfig.StoreFullName ?? string.Empty);

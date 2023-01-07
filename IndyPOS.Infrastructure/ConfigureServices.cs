@@ -14,6 +14,7 @@ public static class ConfigureServices
 {
 	public static IServiceCollection AddInfrastructureServices(this IServiceCollection services)
     {
+        // Persistence
         services.AddSingleton<IDbConnectionProvider, DbConnectionProvider>()
                 .AddSingleton<IInvoiceRepository, InvoiceRepository>()
                 .AddSingleton<IInvoiceProductRepository, InvoiceProductRepository>()
@@ -23,17 +24,21 @@ public static class ConfigureServices
                 .AddSingleton<IUserRepository, UserRepository>()
                 .AddSingleton<IPayLaterPaymentRepository, PayLaterRepository>();
 
-        services.AddSingleton<IEventAggregator, EventAggregator>()
+        services.AddSingleton<IStoreConstants, StoreConstants>()
+				.AddSingleton<IStoreConfigurationService, StoreConfigurationService>()
+				.AddSingleton<IUserLogInService, UserLogInService>()
+				.AddSingleton<IEventAggregator, EventAggregator>()
+				.AddSingleton<IBarcodeScannerService, BarcodeScannerService>()
+				.AddSingleton<IReceiptPrinterService, ReceiptPrinterService>()
 				.AddSingleton<IAppCache, CachingService>()
 				.AddSingleton<HttpClient, HttpClient>();
 
-		services.AddSingleton<ICryptographyService, CryptographyService>()
-				.AddSingleton<IJsonService, JsonService>()
-				.AddSingleton<IBarcodeService, BarcodeService>()
-				.AddSingleton<IDateTimeService, DateTimeService>();
+		services.AddTransient<ICryptographyService, CryptographyService>()
+				.AddTransient<IJsonService, JsonService>()
+				.AddTransient<IBarcodeService, BarcodeService>()
+				.AddTransient<IDateTimeService, DateTimeService>()
+				.AddTransient<IDataFeedApiService, DataFeedApiService>();
 
-		services.AddSingleton<IStoreConstants, StoreConstants>();
-
-        return services;
+		return services;
     }
 }

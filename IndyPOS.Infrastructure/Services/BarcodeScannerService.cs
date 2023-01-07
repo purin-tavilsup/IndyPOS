@@ -5,21 +5,21 @@ using IndyPOS.Application.Events;
 using Microsoft.Extensions.Logging;
 using Prism.Events;
 
-namespace IndyPOS.Application.Helpers;
+namespace IndyPOS.Infrastructure.Services;
 
-public class BarcodeScannerHelper : IBarcodeScannerHelper
+public class BarcodeScannerService : IBarcodeScannerService
 {
 	private readonly IEventAggregator _eventAggregator;
-	private readonly IStoreConfigurationHelper _storeConfigurationHelper;
-	private readonly ILogger<BarcodeScannerHelper> _logger;
+	private readonly IStoreConfigurationService _storeConfigurationService;
+	private readonly ILogger<BarcodeScannerService> _logger;
 	private SerialPort? _serialPort;
 	
-	public BarcodeScannerHelper(IEventAggregator eventAggregator, 
-								IStoreConfigurationHelper storeConfigurationHelper, 
-								ILogger<BarcodeScannerHelper> logger)
+	public BarcodeScannerService(IEventAggregator eventAggregator, 
+								IStoreConfigurationService storeConfigurationService, 
+								ILogger<BarcodeScannerService> logger)
 	{
 		_eventAggregator = eventAggregator;
-		_storeConfigurationHelper = storeConfigurationHelper;
+		_storeConfigurationService = storeConfigurationService;
 		_logger = logger;
 	}
 
@@ -27,7 +27,7 @@ public class BarcodeScannerHelper : IBarcodeScannerHelper
 	{
 		try
 		{
-			var config = _storeConfigurationHelper.Get();
+			var config = _storeConfigurationService.Get();
 			var portName = config.BarcodeScannerPortName ?? "COM4";
 
 			_serialPort = new SerialPort

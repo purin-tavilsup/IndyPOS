@@ -5,23 +5,23 @@ using IndyPOS.Application.Common.Models.Report;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 
-namespace IndyPOS.Application.Helpers;
+namespace IndyPOS.Infrastructure.Services;
 
-public class DataFeedApiHelper : IDataFeedApiHelper
+public class DataFeedApiService : IDataFeedApiService
 {
 	private readonly HttpClient _httpClient;
-	private readonly IJsonService _jsonUtility;
-	private readonly ILogger<DataFeedApiHelper> _logger;
+	private readonly IJsonService _jsonService;
+	private readonly ILogger<DataFeedApiService> _logger;
 	private readonly string _baseUrl;
 	private readonly bool _isDataFeedEnabled;
 
-	public DataFeedApiHelper(HttpClient httpClient,
+	public DataFeedApiService(HttpClient httpClient,
 							 IConfiguration configuration,
-							 IJsonService jsonUtility, 
-							 ILogger<DataFeedApiHelper> logger)
+							 IJsonService jsonService, 
+							 ILogger<DataFeedApiService> logger)
 	{
 		_httpClient = httpClient;
-		_jsonUtility = jsonUtility;
+		_jsonService = jsonService;
 		_logger = logger;
 
 		_baseUrl = configuration.GetValue<string>("DataFeed:BaseUrl") ?? string.Empty;
@@ -39,7 +39,7 @@ public class DataFeedApiHelper : IDataFeedApiHelper
 		{
 			var baseUri = new Uri(_baseUrl);
 			var uri = new Uri(baseUri, "invoices");
-			var jsonString = _jsonUtility.Serialize(invoice);
+			var jsonString = _jsonService.Serialize(invoice);
 			var content = new StringContent(jsonString, Encoding.UTF8, "application/json");
 
 			var response = await _httpClient.PostAsync(uri, content);
@@ -60,7 +60,7 @@ public class DataFeedApiHelper : IDataFeedApiHelper
 		{
 			var baseUri = new Uri(_baseUrl);
 			var uri = new Uri(baseUri, "salesreports");
-			var jsonString = _jsonUtility.Serialize(report);
+			var jsonString = _jsonService.Serialize(report);
 			var content = new StringContent(jsonString, Encoding.UTF8, "application/json");
 
 			var response = await _httpClient.PostAsync(uri, content);

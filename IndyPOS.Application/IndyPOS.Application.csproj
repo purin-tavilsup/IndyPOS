@@ -29,4 +29,12 @@
   <ItemGroup>
     <ProjectReference Include="..\IndyPOS.Domain\IndyPOS.Domain.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <Folder Include="InventoryProducts\" />
+    <Folder Include="Invoices\" />
+    <Folder Include="InvoiceProducts\" />
+    <Folder Include="InvoicePayments\" />
+    <Folder Include="PayLaterPayments\" />
+    <Folder Include="Users\" />
+  </ItemGroup>
 </Project>

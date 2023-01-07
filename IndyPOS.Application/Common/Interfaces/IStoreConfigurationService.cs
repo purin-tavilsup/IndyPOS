@@ -2,7 +2,7 @@
 
 namespace IndyPOS.Application.Common.Interfaces;
 
-public interface IStoreConfigurationHelper
+public interface IStoreConfigurationService
 {
 	Task<StoreConfiguration> GetAsync();
 

@@ -6,12 +6,12 @@ using IndyPOS.Application.Common.Extensions;
 using IndyPOS.Application.Common.Interfaces;
 using Microsoft.Extensions.Logging;
 
-namespace IndyPOS.Application.Helpers;
+namespace IndyPOS.Infrastructure.Services;
 
 [type:SupportedOSPlatform("windows")]
-public class ReceiptPrinterHelper : IReceiptPrinterHelper
+public class ReceiptPrinterService : IReceiptPrinterService
 {
-	private readonly ILogger<ReceiptPrinterHelper> _logger;
+	private readonly ILogger<ReceiptPrinterService> _logger;
 	private readonly IReadOnlyDictionary<int, string> _paymentTypeDictionary;
 	private IInvoiceInfo? _invoiceInfo;
 	private IUserAccount? _loggedInUser;
@@ -35,14 +35,14 @@ public class ReceiptPrinterHelper : IReceiptPrinterHelper
 	private const string FontFamilyName = "FC Subject [Non-commercial] Reg";
 	private const string LineString = "-------------------------------------------------------";
 
-	public ReceiptPrinterHelper(IStoreConfigurationHelper storeConfigurationHelper,
+	public ReceiptPrinterService(IStoreConfigurationService storeConfigurationService,
 								IStoreConstants storeConstants,
-								ILogger<ReceiptPrinterHelper> logger)
+								ILogger<ReceiptPrinterService> logger)
 	{
 		_logger = logger;
 		_paymentTypeDictionary = storeConstants.PaymentTypes;
 
-		GetStoreConfiguration(storeConfigurationHelper);
+		GetStoreConfiguration(storeConfigurationService);
 
 		_brush = new SolidBrush(Color.Black);
 
@@ -55,11 +55,11 @@ public class ReceiptPrinterHelper : IReceiptPrinterHelper
 		_printDocument.PrintPage += PrintPageHandler;
 	}
 
-	private void GetStoreConfiguration(IStoreConfigurationHelper storeConfigurationHelper)
+	private void GetStoreConfiguration(IStoreConfigurationService storeConfigurationService)
 	{
 		try
 		{
-			var config = storeConfigurationHelper.Get();
+			var config = storeConfigurationService.Get();
 
 			_printerName = config.PrinterName ?? "XP-58";
 			_storeName = config.StoreName ?? string.Empty;

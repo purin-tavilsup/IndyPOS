@@ -8,17 +8,17 @@ namespace IndyPOS.Windows.Forms.UI.Inventory
     [ExcludeFromCodeCoverage]
 	public partial class AddNewInventoryProductWithCustomBarcodeForm : Form
     {
-        private readonly IBarcodeService _barcodeUtility;
+        private readonly IBarcodeService _barcodeService;
         private readonly IInventoryController _inventoryController;
         private readonly IReadOnlyDictionary<int, string> _productCategoryDictionary;
 		private readonly MessageForm _messageForm;
 
-        public AddNewInventoryProductWithCustomBarcodeForm(IBarcodeService barcodeUtility, 
+        public AddNewInventoryProductWithCustomBarcodeForm(IBarcodeService barcodeService, 
 														   IStoreConstants storeConstants, 
 														   IInventoryController inventoryController,
 														   MessageForm messageForm)
 		{
-			_barcodeUtility = barcodeUtility;
+			_barcodeService = barcodeService;
             _inventoryController = inventoryController;
             _productCategoryDictionary = storeConstants.ProductCategories;
 			_messageForm = messageForm;
@@ -183,11 +183,11 @@ namespace IndyPOS.Windows.Forms.UI.Inventory
         private void GenerateProductBarcode(int categoryId)
 		{
 			var counter = _inventoryController.GetProductBarcodeCounter();
-			var barcode = _barcodeUtility.GenerateEan13Barcode(categoryId, counter + 1);
+			var barcode = _barcodeService.GenerateEan13Barcode(categoryId, counter + 1);
 
 			BarcodeTextBox.Texts = barcode;
 
-			var barcodeImage = _barcodeUtility.CreateEan13BarcodeImage(barcode, 200, 400, 10);
+			var barcodeImage = _barcodeService.CreateEan13BarcodeImage(barcode, 200, 400, 10);
 
             BarcodePictureBox.Image = barcodeImage;
 		}

@@ -2,7 +2,7 @@
 
 namespace IndyPOS.Application.Common.Interfaces;
 
-public interface IDataFeedApiHelper
+public interface IDataFeedApiService
 {
 	Task PushInvoice(Invoice invoice);
 

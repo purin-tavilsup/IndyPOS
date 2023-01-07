@@ -14,7 +14,7 @@ namespace IndyPOS.Windows.Forms.UI.User
         private readonly IUserController _userController;
 		private readonly IEventAggregator _eventAggregator;
 		private readonly IReadOnlyDictionary<int, string> _userRoleDictionary;
-		private readonly ICryptographyService _cryptographyUtility;
+		private readonly ICryptographyService _cryptographyService;
 		private readonly AddNewUserForm _addNewUserForm;
 		private IUserAccount _selectedUser;
 
@@ -33,13 +33,13 @@ namespace IndyPOS.Windows.Forms.UI.User
         public UsersPanel(IEventAggregator eventAggregator,
 						  IUserController userController,
 						  IStoreConstants storeConstants,
-						  ICryptographyService cryptographyUtility,
+						  ICryptographyService cryptographyService,
 						  AddNewUserForm addNewUserForm)
 		{
 			_userController = userController;
 			_eventAggregator = eventAggregator;
 			_userRoleDictionary = storeConstants.UserRoles;
-			_cryptographyUtility = cryptographyUtility;
+			_cryptographyService = cryptographyService;
 			_addNewUserForm = addNewUserForm;
 
             InitializeComponent();
@@ -215,7 +215,7 @@ namespace IndyPOS.Windows.Forms.UI.User
 			UsernameLabel.Text = userCredential.Username;
 
 			if (isVisibleToLoggedInUser) 
-				UserPasswordTextBox.Texts = _cryptographyUtility.Decrypt(userCredential.Password);
+				UserPasswordTextBox.Texts = _cryptographyService.Decrypt(userCredential.Password);
 		}
 
 		private void ResetUserDetails()
@@ -238,7 +238,7 @@ namespace IndyPOS.Windows.Forms.UI.User
 			if (!UserPasswordTextBox.Texts.HasValue())
 				return;
 
-			var encryptedPassword = _cryptographyUtility.Encrypt(UserPasswordTextBox.Texts.Trim());
+			var encryptedPassword = _cryptographyService.Encrypt(UserPasswordTextBox.Texts.Trim());
 
 			_userController.UpdateUserCredentialById(_selectedUser.UserId, encryptedPassword);
 		}

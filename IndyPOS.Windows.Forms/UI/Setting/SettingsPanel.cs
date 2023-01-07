@@ -7,11 +7,11 @@ namespace IndyPOS.Windows.Forms.UI.Setting;
 [ExcludeFromCodeCoverage]
 public partial class SettingsPanel : UserControl
 {
-	private readonly IStoreConfigurationHelper _storeConfigurationHelper;
+	private readonly IStoreConfigurationService _storeConfigurationService;
 
-	public SettingsPanel(IStoreConfigurationHelper storeConfigurationHelper)
+	public SettingsPanel(IStoreConfigurationService storeConfigurationService)
 	{
-		_storeConfigurationHelper = storeConfigurationHelper;
+		_storeConfigurationService = storeConfigurationService;
 
 		InitializeComponent();
 	}
@@ -20,7 +20,7 @@ public partial class SettingsPanel : UserControl
 	{
 		try
 		{
-			var config = await _storeConfigurationHelper.GetAsync();
+			var config = await _storeConfigurationService.GetAsync();
 
 			StoreFullNameTextBox.Texts = config.StoreFullName ?? string.Empty;
 			StoreNameTextBox.Texts = config.StoreName ?? string.Empty;
@@ -52,7 +52,7 @@ public partial class SettingsPanel : UserControl
 				BarcodeScannerPortName = BarcodeScannerPortNameTextBox.Texts.Trim()
 			};
 
-			await _storeConfigurationHelper.UpdateAsync(config);
+			await _storeConfigurationService.UpdateAsync(config);
 		}
 		catch (Exception ex)
 		{

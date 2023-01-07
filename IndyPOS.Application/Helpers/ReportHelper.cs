@@ -12,11 +12,11 @@ namespace IndyPOS.Application.Helpers;
 public class ReportHelper : IReportHelper
 {
 	private readonly string _reportsDirectory;
-	private readonly IJsonService _jsonUtility;
+	private readonly IJsonService _jsonService;
 	private readonly ILogger<ReportHelper> _logger; 
 	private readonly ISaleInvoiceHelper _saleInvoiceHelper;
-	private readonly IPayLaterPaymentHelper _accountsReceivableHelper;
-	private readonly IDataFeedApiHelper _dataFeedApiHelper;
+	private readonly IPayLaterPaymentHelper _payLaterPaymentHelper;
+	private readonly IDataFeedApiService _dataFeedApiService;
 	private readonly IEventAggregator _eventAggregator;
 	private readonly IReadOnlyDictionary<int, string> _productCategories;
 	private readonly IReadOnlyDictionary<int, string> _paymentTypes;
@@ -24,19 +24,19 @@ public class ReportHelper : IReportHelper
 	public ReportHelper(IConfiguration configuration,
 						IStoreConstants storeConstants,
 						ISaleInvoiceHelper saleInvoiceHelper,
-						IPayLaterPaymentHelper accountsReceivableHelper,
-						IDataFeedApiHelper dataFeedApiHelper,
+						IPayLaterPaymentHelper payLaterPaymentHelper,
+						IDataFeedApiService dataFeedApiService,
 						IEventAggregator eventAggregator,
 						ILogger<ReportHelper> logger, 
-						IJsonService jsonUtility)
+						IJsonService jsonService)
 	{
 		_logger = logger;
 		_reportsDirectory = GetReportDirectory(configuration);
 		_saleInvoiceHelper = saleInvoiceHelper;
-		_accountsReceivableHelper = accountsReceivableHelper;
-		_dataFeedApiHelper = dataFeedApiHelper;
+		_payLaterPaymentHelper = payLaterPaymentHelper;
+		_dataFeedApiService = dataFeedApiService;
 		_eventAggregator = eventAggregator;
-		_jsonUtility = jsonUtility;
+		_jsonService = jsonService;
 		_productCategories = storeConstants.ProductCategories;
 		_paymentTypes = storeConstants.PaymentTypes;
 	}
@@ -184,7 +184,7 @@ public class ReportHelper : IReportHelper
 	{
 		try
 		{
-			await _jsonUtility.SaveToFileAsync(report, filePath);
+			await _jsonService.SaveToFileAsync(report, filePath);
 		}
 		catch (Exception ex)
 		{
@@ -201,13 +201,13 @@ public class ReportHelper : IReportHelper
 				throw new ArgumentNullException(nameof(filePath));
 
 			if (File.Exists(filePath)) 
-				return await _jsonUtility.ReadFromFileAsync<SalesReport>(filePath);
+				return await _jsonService.ReadFromFileAsync<SalesReport>(filePath);
 
 			var report = CreateNewSalesReport(today);
 
 			await SaveReportToFile(report, filePath);
 
-			return await _jsonUtility.ReadFromFileAsync<SalesReport>(filePath);
+			return await _jsonService.ReadFromFileAsync<SalesReport>(filePath);
 		}
 		catch (Exception ex)
 		{
@@ -224,13 +224,13 @@ public class ReportHelper : IReportHelper
 				throw new ArgumentNullException(nameof(filePath));
 
 			if (File.Exists(filePath)) 
-				return await _jsonUtility.ReadFromFileAsync<PaymentsReport>(filePath);
+				return await _jsonService.ReadFromFileAsync<PaymentsReport>(filePath);
 
 			var report = CreateNewPaymentsReport(today);
 
 			await SaveReportToFile(report, filePath);
 
-			return await _jsonUtility.ReadFromFileAsync<PaymentsReport>(filePath);
+			return await _jsonService.ReadFromFileAsync<PaymentsReport>(filePath);
 		}
 		catch (Exception ex)
 		{
@@ -283,7 +283,7 @@ public class ReportHelper : IReportHelper
 			}
 		}
 
-		var hasArPayment = HasArPayment(invoiceInfo);
+		var hasArPayment = HasPayLaterPayment(invoiceInfo);
 		var arTotalForGeneralProducts = hasArPayment ? generalProductsTotal : 0m;
 		var arTotalForHardwareProducts = hasArPayment ? hardwareProductsTotal : 0m;
 		var arTotal = hasArPayment ? arTotalForGeneralProducts + arTotalForHardwareProducts : 0m;
@@ -362,7 +362,7 @@ public class ReportHelper : IReportHelper
 		return summary;
 	}
 
-	private static bool HasArPayment(IInvoiceInfo invoiceInfo)
+	private static bool HasPayLaterPayment(IInvoiceInfo invoiceInfo)
 	{
 		return invoiceInfo.Payments.Any(p => p.PaymentTypeId == (int) PaymentType.PayLater);
 	}
@@ -424,7 +424,7 @@ public class ReportHelper : IReportHelper
 		var startDate = DateTime.Today.FirstDayOfYear();
 		var endDate = DateTime.Today.LastDayOfYear();
 
-		var ar = _accountsReceivableHelper.GetPayLaterPaymentsByDateRange(startDate, endDate);
+		var ar = _payLaterPaymentHelper.GetPayLaterPaymentsByDateRange(startDate, endDate);
 
 		return CreateArSummary(ar);
 	}
@@ -434,7 +434,7 @@ public class ReportHelper : IReportHelper
 		var startDate = DateTime.Today.FirstDayOfMonth();
 		var endDate = DateTime.Today.LastDayOfMonth();
 
-		var ar = _accountsReceivableHelper.GetPayLaterPaymentsByDateRange(startDate, endDate);
+		var ar = _payLaterPaymentHelper.GetPayLaterPaymentsByDateRange(startDate, endDate);
 
 		return CreateArSummary(ar);
 	}
@@ -444,7 +444,7 @@ public class ReportHelper : IReportHelper
 		var startDate = DateTime.Today;
 		var endDate = DateTime.Today;
 
-		var ar = _accountsReceivableHelper.GetPayLaterPaymentsByDateRange(startDate, endDate);
+		var ar = _payLaterPaymentHelper.GetPayLaterPaymentsByDateRange(startDate, endDate);
 
 		return CreateArSummary(ar);
 	}
@@ -515,8 +515,8 @@ public class ReportHelper : IReportHelper
 		await UpdatePaymentsReport(paymentsSummary);
 
 		var invoiceToPush = CreateInvoiceForDataFeed(invoiceInfo);
-		await _dataFeedApiHelper.PushInvoice(invoiceToPush);
-		await _dataFeedApiHelper.PushReport(salesReportToPush);
+		await _dataFeedApiService.PushInvoice(invoiceToPush);
+		await _dataFeedApiService.PushReport(salesReportToPush);
 
 		var dataFeedStatus = "DataFeed Push : " + salesReportToPush.LastUpdateDateTime.ToString("O");
 

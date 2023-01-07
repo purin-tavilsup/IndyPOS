@@ -164,9 +164,6 @@ public partial class UpdateInventoryProductForm : Form
 
 	private void IncreaseQuantityButton_Click(object sender, EventArgs e)
 	{
-		if (!ValidateQuantity())
-			return;
-
 		var amount = int.Parse(QuantityTextBox.Texts.Trim());
 		var quantity = int.Parse(QuantityLabel.Text.Trim());
 
