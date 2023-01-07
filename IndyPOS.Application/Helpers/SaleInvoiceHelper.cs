@@ -16,14 +16,14 @@ namespace IndyPOS.Application.Helpers;
 public class SaleInvoiceHelper : ISaleInvoiceHelper
 {
 	private readonly IEventAggregator _eventAggregator;
-	private readonly IInvoiceRepository _invoicesRepository;
+	private readonly IInvoiceRepository _invoiceRepository;
 	private readonly IInvoicePaymentRepository _invoicePaymentRepository;
 	private readonly IInvoiceProductRepository _invoiceProductRepository;
 	private readonly IInventoryHelper _inventoryHelper;
 	private readonly IInventoryProductRepository _inventoryProductsRepository;
 	private readonly IReceiptPrinterService _receiptPrinterService;
 	private readonly IUserHelper _userHelper;
-	private readonly IPayLaterPaymentRepository _payLaterPaymentsRepository;
+	private readonly IPayLaterPaymentRepository _payLaterPaymentRepository;
 
 	public IList<ISaleInvoiceProduct> Products { get; private set; } = new List<ISaleInvoiceProduct>();
 
@@ -31,23 +31,23 @@ public class SaleInvoiceHelper : ISaleInvoiceHelper
 
 	public SaleInvoiceHelper(IInventoryHelper inventoryHelper,
 							 IEventAggregator eventAggregator, 
-							 IInvoiceRepository invoicesRepository,
+							 IInvoiceRepository invoiceRepository,
 							 IInvoiceProductRepository invoiceProductRepository,
 							 IInvoicePaymentRepository invoicePaymentRepository,
 							 IInventoryProductRepository inventoryProductsRepository,
 							 IReceiptPrinterService receiptPrinterService,
 							 IUserHelper userHelper,
-							 IPayLaterPaymentRepository payLaterPaymentsRepository)
+							 IPayLaterPaymentRepository payLaterPaymentRepository)
 	{
 		_inventoryHelper = inventoryHelper;
 		_eventAggregator = eventAggregator;
-		_invoicesRepository = invoicesRepository;
+		_invoiceRepository = invoiceRepository;
 		_invoiceProductRepository = invoiceProductRepository;
 		_invoicePaymentRepository = invoicePaymentRepository;
 		_inventoryProductsRepository = inventoryProductsRepository;
 		_receiptPrinterService = receiptPrinterService;
 		_userHelper = userHelper;
-		_payLaterPaymentsRepository = payLaterPaymentsRepository;
+		_payLaterPaymentRepository = payLaterPaymentRepository;
 	}
 		
 	public void StartNewSale()
@@ -425,7 +425,7 @@ public class SaleInvoiceHelper : ISaleInvoiceHelper
 
 	private void AddInvoiceToDatabase(IInvoiceInfo invoiceInfo, int userId)
 	{
-		var invoiceId = _invoicesRepository.AddInvoice(new Invoice
+		var invoiceId = _invoiceRepository.Add(new Invoice
 		{ 
 			Total = invoiceInfo.InvoiceTotal,
 			UserId = userId,
@@ -445,7 +445,7 @@ public class SaleInvoiceHelper : ISaleInvoiceHelper
 
 	private void AddProductToDatabase(ISaleInvoiceProduct product, int invoiceId)
 	{
-		_invoiceProductRepository.AddInvoiceProduct(new InvoiceProduct
+		_invoiceProductRepository.Add(new InvoiceProduct
 		{
 			InvoiceId = invoiceId,
 			InventoryProductId = product.InventoryProductId,
@@ -477,7 +477,7 @@ public class SaleInvoiceHelper : ISaleInvoiceHelper
 
 	private int AddPaymentToDatabase(IPayment payment, int invoiceId)
 	{
-		return _invoicePaymentRepository.AddPayment(new Domain.Entities.Payment
+		return _invoicePaymentRepository.Add(new Domain.Entities.Payment
 		{
 			InvoiceId = invoiceId,
 			PaymentTypeId = payment.PaymentTypeId,
@@ -488,7 +488,7 @@ public class SaleInvoiceHelper : ISaleInvoiceHelper
 
 	private void AddPayLaterPaymentToDatabase(IPayment payment, int paymentId, int invoiceId)
 	{
-		_payLaterPaymentsRepository.AddPayLaterPayment(new PayLaterPayment
+		_payLaterPaymentRepository.Add(new PayLaterPayment
 		{
 			PaymentId = paymentId,
 			Description = payment.Note,
@@ -527,35 +527,35 @@ public class SaleInvoiceHelper : ISaleInvoiceHelper
 
 	public IEnumerable<IFinalInvoice> GetInvoicesByDateRange(DateTime startDate, DateTime endDate)
 	{
-		var results = _invoicesRepository.GetInvoicesByDateRange(startDate, endDate);
+		var results = _invoiceRepository.GetByDateRange(startDate, endDate);
 
 		return results.Select(x => new FinalInvoiceAdapter(x) as IFinalInvoice);
 	}
 
 	public IEnumerable<IFinalInvoiceProduct> GetInvoiceProductsByDate(DateTime date)
 	{
-		var results = _invoiceProductRepository.GetInvoiceProductsByDate(date);
+		var results = _invoiceProductRepository.GetByDate(date);
 
 		return results.Select(x => new FinalInvoiceProductAdapter(x) as IFinalInvoiceProduct);
 	}
 
 	public IEnumerable<IFinalInvoiceProduct> GetInvoiceProductsByDateRange(DateTime startDate, DateTime endDate)
 	{
-		var results = _invoiceProductRepository.GetInvoiceProductsByDateRange(startDate, endDate);
+		var results = _invoiceProductRepository.GetByDateRange(startDate, endDate);
 
 		return results.Select(x => new FinalInvoiceProductAdapter(x) as IFinalInvoiceProduct);
 	}
 
 	public IEnumerable<IFinalInvoiceProduct> GetInvoiceProductsByInvoiceId(int invoiceId)
 	{
-		var results = _invoiceProductRepository.GetInvoiceProductsByInvoiceId(invoiceId);
+		var results = _invoiceProductRepository.GetByInvoiceId(invoiceId);
 
 		return results.Select(x => new FinalInvoiceProductAdapter(x) as IFinalInvoiceProduct);
 	}
 
 	public IEnumerable<IFinalInvoicePayment> GetPaymentsByInvoiceId(int invoiceId)
 	{
-		var results = _invoicePaymentRepository.GetPaymentsByInvoiceId(invoiceId);
+		var results = _invoicePaymentRepository.GetByInvoiceId(invoiceId);
 
 		return results.Select(x => new FinalInvoicePaymentAdapter(x) as IFinalInvoicePayment);
 	}

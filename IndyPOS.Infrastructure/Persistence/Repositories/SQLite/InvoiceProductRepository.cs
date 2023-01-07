@@ -14,7 +14,7 @@ public class InvoiceProductRepository : IInvoiceProductRepository
         _dbConnectionProvider = dbConnectionProvider;
     }
 
-    public int AddInvoiceProduct(InvoiceProduct product)
+    public int Add(InvoiceProduct product)
     {
         using var connection = _dbConnectionProvider.GetDbConnection();
         connection.Open();
@@ -72,7 +72,7 @@ public class InvoiceProductRepository : IInvoiceProductRepository
         return productId;
     }
 
-    public IEnumerable<InvoiceProduct> GetInvoiceProductsByInvoiceId(int id)
+    public IEnumerable<InvoiceProduct> GetByInvoiceId(int id)
     {
         using var connection = _dbConnectionProvider.GetDbConnection();
         connection.Open();
@@ -104,7 +104,7 @@ public class InvoiceProductRepository : IInvoiceProductRepository
         return results is null ? Enumerable.Empty<InvoiceProduct>() : MapInvoiceProducts(results);
     }
 
-    public IEnumerable<InvoiceProduct> GetInvoiceProductsByDateRange(DateTime start, DateTime end)
+    public IEnumerable<InvoiceProduct> GetByDateRange(DateTime start, DateTime end)
     {
         using var connection = _dbConnectionProvider.GetDbConnection();
         connection.Open();
@@ -137,9 +137,9 @@ public class InvoiceProductRepository : IInvoiceProductRepository
         return results is null ? Enumerable.Empty<InvoiceProduct>() : MapInvoiceProducts(results);
     }
 
-    public IEnumerable<InvoiceProduct> GetInvoiceProductsByDate(DateTime date)
+    public IEnumerable<InvoiceProduct> GetByDate(DateTime date)
     {
-        return GetInvoiceProductsByDateRange(date, date);
+        return GetByDateRange(date, date);
     }
 
     private static IEnumerable<InvoiceProduct> MapInvoiceProducts(IEnumerable<dynamic> results)

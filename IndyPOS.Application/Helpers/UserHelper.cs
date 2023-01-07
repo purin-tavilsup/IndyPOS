@@ -8,12 +8,16 @@ namespace IndyPOS.Application.Helpers;
 public class UserHelper : IUserHelper
 {
 	private readonly IUserRepository _userRepository;
+	private readonly IUserCredentialRepository _userCredentialRepository;
 	private readonly IEventAggregator _eventAggregator;
 
-	public UserHelper(IEventAggregator eventAggregator, IUserRepository userRepository)
+	public UserHelper(IEventAggregator eventAggregator,
+					  IUserRepository userRepository,
+					  IUserCredentialRepository userCredentialRepository)
 	{
 		_eventAggregator = eventAggregator;
 		_userRepository = userRepository;
+		_userCredentialRepository = userCredentialRepository;
 	}
 
 	public IUserAccount? LoggedInUser { get; private set; }
@@ -68,24 +72,24 @@ public class UserHelper : IUserHelper
 			RoleId = user.RoleId
 		};
 
-		return _userRepository.CreateUser(userModel);
+		return _userRepository.Add(userModel);
 	}
 
 	private void AddNewUserCredentialById(int id, string username, string password)
 	{
-		_userRepository.CreateUserCredential(id, username, password);
+		_userCredentialRepository.Add(id, username, password);
 	}
 
 	public IEnumerable<IUserAccount> GetUsers()
 	{
-		var results = _userRepository.GetUsers();
+		var results = _userRepository.GetAll();
 
 		return results.Select(p => new UserAccountAdapter(p) as IUserAccount).ToList();
 	}
 
 	public IUserAccount GetUserById(int id)
 	{
-		var result = _userRepository.GetUserById(id);
+		var result = _userRepository.GetById(id);
 
 		return new UserAccountAdapter(result);
 	}
@@ -99,32 +103,32 @@ public class UserHelper : IUserHelper
 			LastName = user.LastName
 		};
 
-		_userRepository.UpdateUser(userModel);
+		_userRepository.Update(userModel);
 	}
 
 	public void RemoveUserById(int id)
 	{
-		_userRepository.RemoveUserCredentialById(id);
-		_userRepository.RemoveUserById(id);
+		_userCredentialRepository.RemoveById(id);
+		_userRepository.RemoveById(id);
 
 		_eventAggregator.GetEvent<UserRemovedEvent>().Publish();
 	}
 
 	public void UpdateUserCredentialById(int userId, string password)
 	{
-		_userRepository.UpdateUserCredentialById(userId, password);
+		_userCredentialRepository.UpdatePasswordById(userId, password);
 	}
 
 	public IUserCredential GetUserCredentialById(int id)
 	{
-		var result = _userRepository.GetUserCredentialById(id);
+		var result = _userCredentialRepository.GetById(id);
 
 		return new UserCredentialAdapter(result);
 	}
 
 	private IUserCredential GetUserCredentialByUserName(string username)
 	{
-		var result = _userRepository.GetUserCredentialByUsername(username);
+		var result = _userCredentialRepository.GetByUsername(username);
 
 		return new UserCredentialAdapter(result);
 	}

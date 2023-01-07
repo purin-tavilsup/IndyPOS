@@ -14,7 +14,7 @@ public class InvoicePaymentRepository : IInvoicePaymentRepository
         _dbConnectionProvider = dbConnectionProvider;
     }
 
-    public int AddPayment(Payment payment)
+    public int Add(Payment payment)
     {
         using var connection = _dbConnectionProvider.GetDbConnection();
         connection.Open();
@@ -51,7 +51,7 @@ public class InvoicePaymentRepository : IInvoicePaymentRepository
         return paymentId;
     }
 
-    public IEnumerable<Payment> GetPaymentsByInvoiceId(int id)
+    public IEnumerable<Payment> GetByInvoiceId(int id)
     {
         using var connection = _dbConnectionProvider.GetDbConnection();
         connection.Open();
@@ -76,12 +76,12 @@ public class InvoicePaymentRepository : IInvoicePaymentRepository
         return results is null ? Enumerable.Empty<Payment>() : MapPayments(results);
     }
 
-    public IEnumerable<Payment> GetPaymentsByDate(DateTime date)
+    public IEnumerable<Payment> GetByDate(DateTime date)
     {
-        return GetPaymentsByDateRange(date, date);
+        return GetByDateRange(date, date);
     }
 
-    public IEnumerable<Payment> GetPaymentsByDateRange(DateTime start, DateTime end)
+    public IEnumerable<Payment> GetByDateRange(DateTime start, DateTime end)
     {
         using var connection = _dbConnectionProvider.GetDbConnection();
         connection.Open();
@@ -107,7 +107,7 @@ public class InvoicePaymentRepository : IInvoicePaymentRepository
         return results is null ? Enumerable.Empty<Payment>() : MapPayments(results);
     }
 
-    public IEnumerable<Payment> GetPaymentsByPaymentTypeId(int id)
+    public IEnumerable<Payment> GetByPaymentTypeId(int id)
     {
         using var connection = _dbConnectionProvider.GetDbConnection();
         connection.Open();

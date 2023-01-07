@@ -15,7 +15,7 @@ public class PayLaterPaymentHelper : IPayLaterPaymentHelper
 
 	public IList<IPayLaterPayment> GetPayLaterPayments()
 	{
-		var results = _payLaterPaymentRepository.GetPayLaterPayments();
+		var results = _payLaterPaymentRepository.GetAll();
 
 		return results.Select(x => new PayLaterPaymentAdapter(x) as IPayLaterPayment).ToList();
 	}
@@ -29,7 +29,7 @@ public class PayLaterPaymentHelper : IPayLaterPaymentHelper
 
 	public IPayLaterPayment GetPayLaterPaymentByPaymentId(int paymentId)
 	{
-		var result = _payLaterPaymentRepository.GetPayLaterPaymentByPaymentId(paymentId);
+		var result = _payLaterPaymentRepository.GetById(paymentId);
 
 		return new PayLaterPaymentAdapter(result);
 	}
@@ -45,7 +45,7 @@ public class PayLaterPaymentHelper : IPayLaterPaymentHelper
 	{
 		var isCompleted = payLaterPayment.Amount == payLaterPayment.PaidAmount;
 
-		_payLaterPaymentRepository.UpdatePayLaterPayment(new PayLaterPayment
+		_payLaterPaymentRepository.Update(new PayLaterPayment
 		{
 			PaymentId = payLaterPayment.PaymentId,
 			PaidAmount = payLaterPayment.PaidAmount,

@@ -22,6 +22,7 @@ public static class ConfigureServices
                 .AddSingleton<IInventoryProductRepository, InventoryProductRepository>()
                 .AddSingleton<IStoreConstantRepository, StoreConstantRepository>()
                 .AddSingleton<IUserRepository, UserRepository>()
+				.AddSingleton<IUserCredentialRepository, UserCredentialRepository>()
                 .AddSingleton<IPayLaterPaymentRepository, PayLaterRepository>();
 
         services.AddSingleton<IStoreConstants, StoreConstants>()

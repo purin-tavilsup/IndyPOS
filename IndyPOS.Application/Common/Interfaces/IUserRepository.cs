@@ -4,23 +4,13 @@ namespace IndyPOS.Application.Common.Interfaces;
 
 public interface IUserRepository
 {
-	int CreateUser(UserAccount user);
+	int Add(UserAccount user);
 
-	bool UpdateUser(UserAccount user);
+	bool Update(UserAccount user);
 
-	UserAccount? GetUserById(int id);
+	UserAccount? GetById(int id);
 
-	IEnumerable<UserAccount> GetUsers();
+	IEnumerable<UserAccount> GetAll();
 
-	bool RemoveUserById(int id);
-
-	bool CreateUserCredential(int userId, string username, string password);
-
-	UserCredential? GetUserCredentialById(int id);
-
-	UserCredential? GetUserCredentialByUsername(string username);
-
-	bool UpdateUserCredentialById(int userId, string password);
-
-	bool RemoveUserCredentialById(int userId);
+	bool RemoveById(int id);
 }

@@ -25,14 +25,14 @@ public class InventoryHelper : IInventoryHelper
 
 	public IInventoryProduct GetInventoryProductByBarcode(string barcode)
 	{
-		var result = _inventoryProductsRepository.GetProductByBarcode(barcode);
+		var result = _inventoryProductsRepository.GetByBarcode(barcode);
 
 		return new InventoryProductAdapter(result);
 	}
 
 	public IInventoryProduct GetProductById(int id)
 	{
-		var result = _inventoryProductsRepository.GetProductById(id);
+		var result = _inventoryProductsRepository.GetById(id);
 
 		return new InventoryProductAdapter(result);
 	}
@@ -51,7 +51,7 @@ public class InventoryHelper : IInventoryHelper
 			IsTrackable = product.IsTrackable
 		};
 
-		var inventoryProductId = _inventoryProductsRepository.AddProduct(productModel);
+		var inventoryProductId = _inventoryProductsRepository.Add(productModel);
 
 		_eventAggregator.GetEvent<InventoryProductAddedEvent>().Publish(inventoryProductId);
 	}
@@ -72,14 +72,14 @@ public class InventoryHelper : IInventoryHelper
 			GroupPriceQuantity = product.GroupPriceQuantity
 		};
 
-		_inventoryProductsRepository.UpdateProduct(productModel);
+		_inventoryProductsRepository.Update(productModel);
 
 		_eventAggregator.GetEvent<InventoryProductUpdatedEvent>().Publish(productModel.InventoryProductId);
 	}
 
 	public void RemoveProductById(int id)
 	{
-		_inventoryProductsRepository.RemoveProductById(id);
+		_inventoryProductsRepository.RemoveById(id);
 
 		_eventAggregator.GetEvent<InventoryProductDeletedEvent>().Publish();
 	}

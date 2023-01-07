@@ -15,7 +15,7 @@ public class InventoryProductRepository : IInventoryProductRepository
         _dbConnectionProvider = dbConnectionProvider;
     }
 
-    public InventoryProduct? GetProductByBarcode(string barcode)
+    public InventoryProduct? GetByBarcode(string barcode)
     {
         using var connection = _dbConnectionProvider.GetDbConnection();
         connection.Open();
@@ -50,7 +50,7 @@ public class InventoryProductRepository : IInventoryProductRepository
         return results is null ? Enumerable.Empty<InventoryProduct>() : MapInventoryProducts(results);
     }
 
-    public InventoryProduct? GetProductById(int id)
+    public InventoryProduct? GetById(int id)
     {
         using var connection = _dbConnectionProvider.GetDbConnection();
         connection.Open();
@@ -68,7 +68,7 @@ public class InventoryProductRepository : IInventoryProductRepository
         return result is null ? null : MapInventoryProduct(result);
     }
 
-    public int AddProduct(InventoryProduct product)
+    public int Add(InventoryProduct product)
     {
         using var connection = _dbConnectionProvider.GetDbConnection();
         connection.Open();
@@ -123,7 +123,7 @@ public class InventoryProductRepository : IInventoryProductRepository
         return productId;
     }
 
-    public bool UpdateProduct(InventoryProduct product)
+    public bool Update(InventoryProduct product)
     {
         using var connection = _dbConnectionProvider.GetDbConnection();
         connection.Open();
@@ -180,12 +180,12 @@ public class InventoryProductRepository : IInventoryProductRepository
         return affectedRowsCount == 1;
     }
 
-    public bool RemoveProduct(InventoryProduct product)
+    public bool Remove(InventoryProduct product)
     {
-        return RemoveProductById(product.InventoryProductId);
+        return RemoveById(product.InventoryProductId);
     }
 
-    public bool RemoveProductById(int id)
+    public bool RemoveById(int id)
     {
         using var connection = _dbConnectionProvider.GetDbConnection();
         connection.Open();

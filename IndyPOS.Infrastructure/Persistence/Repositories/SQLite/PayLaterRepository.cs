@@ -14,7 +14,7 @@ public class PayLaterRepository : IPayLaterPaymentRepository
         _dbConnectionProvider = dbConnectionProvider;
     }
 
-    public int AddPayLaterPayment(PayLaterPayment accountsReceivable)
+    public int Add(PayLaterPayment payment)
     {
         using var connection = _dbConnectionProvider.GetDbConnection();
         connection.Open();
@@ -39,10 +39,10 @@ public class PayLaterRepository : IPayLaterPaymentRepository
 
         var sqlParameters = new
         {
-            accountsReceivable.PaymentId,
-            accountsReceivable.Description,
-            accountsReceivable.InvoiceId,
-            ReceivableAmount = accountsReceivable.ReceivableAmount.ToMoneyString()
+            payment.PaymentId,
+            payment.Description,
+            payment.InvoiceId,
+            ReceivableAmount = payment.ReceivableAmount.ToMoneyString()
         };
 
         var rowId = connection.Query<int>(sqlCommand, sqlParameters)
@@ -51,7 +51,7 @@ public class PayLaterRepository : IPayLaterPaymentRepository
         return rowId;
     }
 
-    public bool UpdatePayLaterPayment(PayLaterPayment payLaterPayment)
+    public bool Update(PayLaterPayment payment)
     {
         using var connection = _dbConnectionProvider.GetDbConnection();
         connection.Open();
@@ -65,9 +65,9 @@ public class PayLaterRepository : IPayLaterPaymentRepository
 
         var sqlParameters = new
         {
-            payLaterPayment.PaymentId,
-            PaidAmount = payLaterPayment.PaidAmount.ToMoneyString(),
-            IsCompleted = payLaterPayment.IsCompleted ? 1 : 0
+            payment.PaymentId,
+            PaidAmount = payment.PaidAmount.ToMoneyString(),
+            IsCompleted = payment.IsCompleted ? 1 : 0
         };
 
         var affectedRowsCount = connection.Execute(sqlCommand, sqlParameters);
@@ -75,7 +75,7 @@ public class PayLaterRepository : IPayLaterPaymentRepository
         return affectedRowsCount == 1;
     }
 
-    public IEnumerable<PayLaterPayment> GetPayLaterPayments()
+    public IEnumerable<PayLaterPayment> GetAll()
     {
         using var connection = _dbConnectionProvider.GetDbConnection();
         connection.Open();
@@ -151,7 +151,7 @@ public class PayLaterRepository : IPayLaterPaymentRepository
         return result is null ? null : MapPayLaterPayment(result);
     }
 
-    public PayLaterPayment? GetPayLaterPaymentByPaymentId(int paymentId)
+    public PayLaterPayment? GetById(int id)
     {
         using var connection = _dbConnectionProvider.GetDbConnection();
         connection.Open();
@@ -170,7 +170,7 @@ public class PayLaterRepository : IPayLaterPaymentRepository
 
         var sqlParameters = new
         {
-            PaymentId = paymentId
+            PaymentId = id
         };
 
         var result = connection.Query(sqlCommand, sqlParameters)

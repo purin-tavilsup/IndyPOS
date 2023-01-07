@@ -4,11 +4,11 @@ namespace IndyPOS.Application.Common.Interfaces;
 
 public interface IInvoiceProductRepository
 {
-	int AddInvoiceProduct(InvoiceProduct product);
+	int Add(InvoiceProduct product);
 
-	IEnumerable<InvoiceProduct> GetInvoiceProductsByInvoiceId(int id);
+	IEnumerable<InvoiceProduct> GetByInvoiceId(int id);
 
-	IEnumerable<InvoiceProduct> GetInvoiceProductsByDateRange(DateTime start, DateTime end);
+	IEnumerable<InvoiceProduct> GetByDateRange(DateTime start, DateTime end);
 
-	IEnumerable<InvoiceProduct> GetInvoiceProductsByDate(DateTime date);
+	IEnumerable<InvoiceProduct> GetByDate(DateTime date);
 }

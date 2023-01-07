@@ -14,7 +14,7 @@ public class InvoiceRepository : IInvoiceRepository
         _dbConnectionProvider = dbConnectionProvider;
     }
 
-    public int AddInvoice(Invoice invoice)
+    public int Add(Invoice invoice)
     {
         using var connection = _dbConnectionProvider.GetDbConnection();
         connection.Open();
@@ -48,7 +48,7 @@ public class InvoiceRepository : IInvoiceRepository
         return invoiceId;
     }
 
-    public Invoice? GetInvoiceByInvoiceId(int id)
+    public Invoice? GetById(int id)
     {
         using var connection = _dbConnectionProvider.GetDbConnection();
         connection.Open();
@@ -73,7 +73,7 @@ public class InvoiceRepository : IInvoiceRepository
         return result is null ? null : MapInvoice(result);
     }
 
-    public IEnumerable<Invoice> GetInvoicesByDateRange(DateTime start, DateTime end)
+    public IEnumerable<Invoice> GetByDateRange(DateTime start, DateTime end)
     {
         using var connection = _dbConnectionProvider.GetDbConnection();
         connection.Open();
@@ -98,9 +98,9 @@ public class InvoiceRepository : IInvoiceRepository
         return results is null ? Enumerable.Empty<Invoice>() : MapInvoices(results);
     }
 
-    public IEnumerable<Invoice> GetInvoicesByDate(DateTime date)
+    public IEnumerable<Invoice> GetByDate(DateTime date)
     {
-        return GetInvoicesByDateRange(date, date);
+        return GetByDateRange(date, date);
     }
 
     private static Invoice MapInvoice(dynamic result)
