@@ -21,7 +21,10 @@
 
   <ItemGroup>
     <ProjectReference Include="..\IndyPOS.Application\IndyPOS.Application.csproj" />
-    <ProjectReference Include="..\IndyPOS.Mock\IndyPOS.Mock.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="InventoryProducts\Commands\" />
   </ItemGroup>
 
 </Project>

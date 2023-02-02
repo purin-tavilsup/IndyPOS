@@ -1,8 +1,10 @@
 ﻿using System.ComponentModel;
 using System.Drawing.Drawing2D;
+using System.Runtime.Versioning;
 
 namespace IndyPOS.Windows.Forms.UI.ModernUI;
 
+[type:SupportedOSPlatform("windows")]
 public class ModernComboBox : UserControl
 {
 	private Color _backColor = Color.FromArgb(38, 38, 38);

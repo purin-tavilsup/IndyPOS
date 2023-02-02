@@ -1,11 +1,12 @@
-﻿using System.Diagnostics.CodeAnalysis;
-using IndyPOS.Application.Common.Interfaces;
+﻿using IndyPOS.Application.Common.Interfaces;
 using IndyPOS.Application.Events;
+using IndyPOS.Domain.Events;
 using IndyPOS.Windows.Forms.Enums;
 using IndyPOS.Windows.Forms.Events;
 using IndyPOS.Windows.Forms.Extensions;
 using IndyPOS.Windows.Forms.Interfaces;
 using Prism.Events;
+using System.Diagnostics.CodeAnalysis;
 
 namespace IndyPOS.Windows.Forms.UI.Inventory;
 
@@ -138,9 +139,11 @@ public partial class InventoryPanel : UserControl
 		_activeSubPanel = activeSubPanel;
 	}
 
-	private void ShowProductsByCategoryId(int id)
+	private async void ShowProductsByCategoryId(int id)
 	{
 		var products = _inventoryController.GetInventoryProductsByCategoryId(id);
+
+		var productDtos = await _inventoryController.GetInventoryProductsByCategoryIdAsync(id);
 
 		ProductDataView.Rows.Clear();
 

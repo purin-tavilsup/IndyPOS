@@ -1,9 +1,4 @@
-﻿using FluentAssertions;
-using IndyPOS.Mock.Attributes;
-using System.Linq;
-using Xunit;
-
-namespace IndyPOS.Tests.Sales;
+﻿namespace IndyPOS.Windows.Forms.Tests.Sales;
 
 public class SaleInvoiceTests
 {

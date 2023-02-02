@@ -1,6 +1,4 @@
-﻿using IndyPOS.Application.Common.Interfaces;
-using IndyPOS.Infrastructure.Constants;
-using IndyPOS.Windows.Forms;
+﻿using IndyPOS.Windows.Forms;
 using IndyPOS.Windows.Forms.Controllers;
 using IndyPOS.Windows.Forms.Interfaces;
 using IndyPOS.Windows.Forms.UI;

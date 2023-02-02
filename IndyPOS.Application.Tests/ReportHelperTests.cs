@@ -4,11 +4,11 @@ using AutoFixture.Xunit2;
 using IndyPOS.Application.Common.Enums;
 using IndyPOS.Application.Common.Interfaces;
 using IndyPOS.Application.Helpers;
-using IndyPOS.Mock.Attributes;
+using IndyPOS.Application.Tests.Mocks.Attributes;
 using Moq;
 using Xunit;
 
-namespace IndyPOS.Facade.Tests
+namespace IndyPOS.Application.Tests
 {
     public class ReportHelperTests
     {

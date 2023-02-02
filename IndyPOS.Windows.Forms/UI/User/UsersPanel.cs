@@ -1,14 +1,14 @@
-﻿using System.Diagnostics.CodeAnalysis;
-using IndyPOS.Application.Common.Extensions;
+﻿using IndyPOS.Application.Common.Extensions;
 using IndyPOS.Application.Common.Interfaces;
-using IndyPOS.Application.Events;
+using IndyPOS.Domain.Events;
 using IndyPOS.Windows.Forms.Interfaces;
 using Prism.Events;
+using System.Diagnostics.CodeAnalysis;
 using UserRoleEnum = IndyPOS.Application.Common.Enums.UserRole;
 
 namespace IndyPOS.Windows.Forms.UI.User
 {
-    [ExcludeFromCodeCoverage]
+	[ExcludeFromCodeCoverage]
     public partial class UsersPanel : UserControl
     {
         private readonly IUserController _userController;

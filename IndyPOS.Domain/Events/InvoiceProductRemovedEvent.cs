@@ -1,10 +1,10 @@
 ﻿using Prism.Events;
 
-namespace IndyPOS.Application.Events;
+namespace IndyPOS.Domain.Events;
 
 /// <summary>
 /// Event for notifying a product has been removed from sale invoice.
 /// </summary>
-public class SaleInvoiceProductRemovedEvent : PubSubEvent
+public class InvoiceProductRemovedEvent : PubSubEvent
 {
 }

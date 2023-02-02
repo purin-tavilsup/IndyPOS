@@ -1,13 +1,14 @@
-﻿using System.Diagnostics.CodeAnalysis;
-using IndyPOS.Application.Common.Extensions;
+﻿using IndyPOS.Application.Common.Extensions;
 using IndyPOS.Application.Common.Interfaces;
 using IndyPOS.Application.Events;
+using IndyPOS.Domain.Events;
 using IndyPOS.Windows.Forms.Enums;
 using IndyPOS.Windows.Forms.Events;
 using IndyPOS.Windows.Forms.Extensions;
 using IndyPOS.Windows.Forms.Interfaces;
 using IndyPOS.Windows.Forms.UI.Payment;
 using Prism.Events;
+using System.Diagnostics.CodeAnalysis;
 
 namespace IndyPOS.Windows.Forms.UI.Sale;
 
@@ -73,10 +74,10 @@ public partial class SalePanel : UserControl
 
 	private void SubscribeEvents()
 	{
-		_eventAggregator.GetEvent<SaleInvoiceProductAddedEvent>().Subscribe(SaleInvoiceProductChanged);
-		_eventAggregator.GetEvent<SaleInvoiceProductRemovedEvent>().Subscribe(SaleInvoiceProductChanged);
-		_eventAggregator.GetEvent<SaleInvoiceProductUpdatedEvent>().Subscribe(SaleInvoiceProductChanged);
-		_eventAggregator.GetEvent<PaymentAddedEvent>().Subscribe(PaymentChanged);
+		_eventAggregator.GetEvent<InvoiceProductAddedEvent>().Subscribe(SaleInvoiceProductChanged);
+		_eventAggregator.GetEvent<InvoiceProductRemovedEvent>().Subscribe(SaleInvoiceProductChanged);
+		_eventAggregator.GetEvent<InvoiceProductUpdatedEvent>().Subscribe(SaleInvoiceProductChanged);
+		_eventAggregator.GetEvent<InvoicePaymentAddedEvent>().Subscribe(PaymentChanged);
 		_eventAggregator.GetEvent<AllPaymentsRemovedEvent>().Subscribe(PaymentChanged);
 		_eventAggregator.GetEvent<NewSaleStartedEvent>().Subscribe(ResetSaleInvoiceScreen);
 		_eventAggregator.GetEvent<BarcodeReceivedEvent>().Subscribe(BarcodeReceived);

@@ -1,7 +1,9 @@
 ﻿using System.ComponentModel;
+using System.Runtime.Versioning;
 
 namespace IndyPOS.Windows.Forms.UI.ModernUI;
 
+[type:SupportedOSPlatform("windows")]
 public partial class ModernTextBox: UserControl
 {
 	private Color _borderColor = Color.MidnightBlue;

@@ -1,6 +1,6 @@
 ﻿using Prism.Events;
 
-namespace IndyPOS.Application.Events;
+namespace IndyPOS.Domain.Events;
 
 /// <summary>
 /// Event for notifying an inventory product has been updated.

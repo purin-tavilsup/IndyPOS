@@ -1,8 +1,10 @@
 ﻿using System.ComponentModel;
 using System.Drawing.Drawing2D;
+using System.Runtime.Versioning;
 
 namespace IndyPOS.Windows.Forms.UI.ModernUI;
 
+[type:SupportedOSPlatform("windows")]
 public class ModernButton : Button
 {
 	private int _borderSize = 0;

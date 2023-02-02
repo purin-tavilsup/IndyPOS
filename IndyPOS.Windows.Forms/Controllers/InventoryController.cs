@@ -1,20 +1,32 @@
 ﻿using IndyPOS.Application.Common.Interfaces;
+using IndyPOS.Application.InventoryProducts.Queries;
+using IndyPOS.Application.InventoryProducts.Queries.GetInventoryProductsByCategoryId;
 using IndyPOS.Windows.Forms.Interfaces;
+using MediatR;
 
 namespace IndyPOS.Windows.Forms.Controllers
 {
     public class InventoryController : IInventoryController
     {
         private readonly IInventoryHelper _inventoryHelper;
+		private readonly IMediator _mediator;
 
-        public InventoryController(IInventoryHelper inventoryHelper)
+        public InventoryController(IInventoryHelper inventoryHelper, IMediator mediator)
         {
             _inventoryHelper = inventoryHelper;
+            _mediator = mediator;
         }
 
         public IList<IInventoryProduct> GetInventoryProductsByCategoryId(int id)
         {
             return _inventoryHelper.GetInventoryProductsByCategoryId(id);
+		}
+
+        public async Task<IEnumerable<InventoryProductDto>> GetInventoryProductsByCategoryIdAsync(int id)
+		{
+			var results = await _mediator.Send(new GetInventoryProductsByCategoryIdQuery(id));
+
+            return results;
 		}
 
         public IInventoryProduct GetInventoryProductByBarcode(string barcode)

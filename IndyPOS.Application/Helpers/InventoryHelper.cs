@@ -1,6 +1,7 @@
 ﻿using IndyPOS.Application.Adapters;
 using IndyPOS.Application.Common.Interfaces;
 using IndyPOS.Application.Events;
+using IndyPOS.Domain.Events;
 using Prism.Events;
 
 namespace IndyPOS.Application.Helpers;

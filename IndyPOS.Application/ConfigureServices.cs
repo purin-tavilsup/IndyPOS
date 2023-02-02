@@ -1,4 +1,5 @@
 ﻿using FluentValidation;
+using IndyPOS.Application.Common.Behaviors;
 using IndyPOS.Application.Common.Interfaces;
 using IndyPOS.Application.Helpers;
 using MediatR;
@@ -13,15 +14,17 @@ public static class ConfigureServices
 {
 	public static IServiceCollection AddApplicationServices(this IServiceCollection services)
 	{
-		services.AddAutoMapper(Assembly.GetExecutingAssembly())
-				.AddValidatorsFromAssembly(Assembly.GetExecutingAssembly())
-				.AddMediatR(Assembly.GetExecutingAssembly());
+		services.AddAutoMapper(Assembly.GetExecutingAssembly());
+		services.AddValidatorsFromAssembly(Assembly.GetExecutingAssembly());
+		services.AddMediatR(Assembly.GetExecutingAssembly());
 
-        services.AddSingleton<ISaleInvoiceHelper, SaleInvoiceHelper>()
-				.AddSingleton<IInventoryHelper, InventoryHelper>()
-				.AddSingleton<IUserHelper, UserHelper>()
-				.AddSingleton<IPayLaterPaymentHelper, PayLaterPaymentHelper>()
-				.AddSingleton<IReportHelper, ReportHelper>();
+		services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
+
+		services.AddSingleton<ISaleInvoiceHelper, SaleInvoiceHelper>();
+		services.AddSingleton<IInventoryHelper, InventoryHelper>();
+		services.AddSingleton<IUserHelper, UserHelper>();
+		services.AddSingleton<IPayLaterPaymentHelper, PayLaterPaymentHelper>();
+		services.AddSingleton<IReportHelper, ReportHelper>();
 
 		return services;
     }

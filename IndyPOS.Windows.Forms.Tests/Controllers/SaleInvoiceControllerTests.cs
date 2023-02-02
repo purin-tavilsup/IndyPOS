@@ -3,12 +3,12 @@ using FluentAssertions;
 using IndyPOS.Application.Common.Enums;
 using IndyPOS.Application.Common.Exceptions;
 using IndyPOS.Application.Common.Interfaces;
-using IndyPOS.Mock.Attributes;
 using IndyPOS.Windows.Forms.Controllers;
+using IndyPOS.Windows.Forms.Tests.Mocks.Attributes;
 using Moq;
 using Xunit;
 
-namespace IndyPOS.Tests.Controllers;
+namespace IndyPOS.Windows.Forms.Tests.Controllers;
 
 public class SaleInvoiceControllerTests
 {

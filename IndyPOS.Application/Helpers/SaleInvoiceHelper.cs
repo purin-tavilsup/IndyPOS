@@ -6,6 +6,7 @@ using IndyPOS.Application.Common.Interfaces;
 using IndyPOS.Application.Common.Models;
 using IndyPOS.Application.Events;
 using IndyPOS.Domain.Entities;
+using IndyPOS.Domain.Events;
 using Prism.Events;
 using Throw;
 using Payment = IndyPOS.Application.Common.Models.Payment;
@@ -168,14 +169,14 @@ public class SaleInvoiceHelper : ISaleInvoiceHelper
 	{
 		AddProductInternal(product);
 
-		_eventAggregator.GetEvent<SaleInvoiceProductAddedEvent>().Publish();
+		_eventAggregator.GetEvent<InvoiceProductAddedEvent>().Publish();
 	}
 
 	public void AddProduct(IInventoryProduct product, decimal unitPrice, int quantity, string note)
 	{
 		AddProductInternal(product, unitPrice, quantity, note);
 
-		_eventAggregator.GetEvent<SaleInvoiceProductAddedEvent>().Publish();
+		_eventAggregator.GetEvent<InvoiceProductAddedEvent>().Publish();
 	}
 
 	public ISaleInvoiceProduct GetSaleInvoiceProduct(string barcode, int priority)
@@ -193,7 +194,7 @@ public class SaleInvoiceHelper : ISaleInvoiceHelper
 	{
 		Products.Remove(product);
 
-		_eventAggregator.GetEvent<SaleInvoiceProductRemovedEvent>().Publish();
+		_eventAggregator.GetEvent<InvoiceProductRemovedEvent>().Publish();
 	}
 
 	public IInventoryProduct GetInventoryProductByBarcode(string barcode)
@@ -210,7 +211,7 @@ public class SaleInvoiceHelper : ISaleInvoiceHelper
 	{
 		AddPaymentInternal(paymentType, paymentAmount, note);
 
-		_eventAggregator.GetEvent<PaymentAddedEvent>().Publish();
+		_eventAggregator.GetEvent<InvoicePaymentAddedEvent>().Publish();
 	}
 
 	private void AddPaymentInternal(PaymentType paymentType, decimal paymentAmount, string note)
@@ -240,7 +241,7 @@ public class SaleInvoiceHelper : ISaleInvoiceHelper
 		productToUpdate.UnitPrice = unitPrice;
 		productToUpdate.Note = note;
 
-		_eventAggregator.GetEvent<SaleInvoiceProductUpdatedEvent>().Publish();
+		_eventAggregator.GetEvent<InvoiceProductUpdatedEvent>().Publish();
 	}
 
 	public void UpdateProductQuantity(int inventoryProductId, int priority, int newQuantity)
@@ -258,7 +259,7 @@ public class SaleInvoiceHelper : ISaleInvoiceHelper
 		{
 			productToUpdate.Quantity = newQuantity;
 
-			_eventAggregator.GetEvent<SaleInvoiceProductUpdatedEvent>().Publish();
+			_eventAggregator.GetEvent<InvoiceProductUpdatedEvent>().Publish();
 
 			return;
 		}
@@ -282,7 +283,7 @@ public class SaleInvoiceHelper : ISaleInvoiceHelper
 		{
 			product.Quantity = newQuantity;
 
-			_eventAggregator.GetEvent<SaleInvoiceProductUpdatedEvent>().Publish();
+			_eventAggregator.GetEvent<InvoiceProductUpdatedEvent>().Publish();
 
 			return;
 		}
@@ -290,7 +291,7 @@ public class SaleInvoiceHelper : ISaleInvoiceHelper
 		product.Quantity = groupPriceQuantity;
 		product.UnitPrice = groupPrice / groupPriceQuantity;
 
-		_eventAggregator.GetEvent<SaleInvoiceProductUpdatedEvent>().Publish();
+		_eventAggregator.GetEvent<InvoiceProductUpdatedEvent>().Publish();
 
 		var remainingQuantity = newQuantity - groupPriceQuantity;
 
@@ -324,7 +325,7 @@ public class SaleInvoiceHelper : ISaleInvoiceHelper
 
 		AddProductInternal(product, unitPrice, quantity);
 
-		_eventAggregator.GetEvent<SaleInvoiceProductAddedEvent>().Publish();
+		_eventAggregator.GetEvent<InvoiceProductAddedEvent>().Publish();
 	}
 
 	private void DecreaseQuantityWithGroupPriceSettings(ISaleInvoiceProduct product, int newQuantity)
@@ -339,7 +340,7 @@ public class SaleInvoiceHelper : ISaleInvoiceHelper
             
 		product.Quantity = newQuantity;
 
-		_eventAggregator.GetEvent<SaleInvoiceProductUpdatedEvent>().Publish();
+		_eventAggregator.GetEvent<InvoiceProductUpdatedEvent>().Publish();
 	}
 
 	public IList<string> ValidateSaleInvoice()

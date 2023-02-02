@@ -8,17 +8,17 @@ public interface IInventoryProductRepository
 
 	InventoryProduct? GetById(int id);
 
-	bool Update(InventoryProduct product);
-
-	bool RemoveById(int id);
-
-	bool Remove(InventoryProduct product);
-
 	InventoryProduct? GetByBarcode(string barcode);
 
 	IEnumerable<InventoryProduct> GetProductsByCategoryId(int id);
 
+	bool Update(InventoryProduct product);
+
 	bool UpdateProductQuantityById(int id, int quantity);
+
+	bool RemoveById(int id);
+
+	bool Remove(InventoryProduct product);
 
 	int GetProductBarcodeCounter();
 

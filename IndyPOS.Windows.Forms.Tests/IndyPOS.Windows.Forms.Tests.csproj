@@ -27,7 +27,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\IndyPOS.Mock\IndyPOS.Mock.csproj" />
     <ProjectReference Include="..\IndyPOS.Windows.Forms\IndyPOS.Windows.Forms.csproj" />
   </ItemGroup>
 
