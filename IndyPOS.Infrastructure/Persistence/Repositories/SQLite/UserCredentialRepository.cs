@@ -18,14 +18,7 @@ public class UserCredentialRepository : IUserCredentialRepository
         using var connection = _dbConnectionProvider.GetDbConnection();
         connection.Open();
 
-        const string sqlCommand = @"SELECT
-                UserId,
-				Username,
-                Password,
-                DateCreated,
-				DateUpdated
-                FROM UserCredentials
-				WHERE UserId = @userId";
+        const string sqlCommand = @"SELECT * FROM UserCredentials WHERE UserId = @userId";
 
         var sqlParameters = new
         {
@@ -38,7 +31,7 @@ public class UserCredentialRepository : IUserCredentialRepository
         return result;
     }
 
-    public bool Add(int userId, string username, string password)
+    public bool Add(UserCredential userCredential)
     {
         using var connection = _dbConnectionProvider.GetDbConnection();
         connection.Open();
@@ -60,9 +53,9 @@ public class UserCredentialRepository : IUserCredentialRepository
 
         var sqlParameters = new
         {
-            UserId = userId,
-            Username = username,
-            Password = password
+			userCredential.UserId,
+			userCredential.Username,
+			userCredential.Password
         };
 
         var affectedRowsCount = connection.Execute(sqlCommand, sqlParameters);
@@ -75,14 +68,7 @@ public class UserCredentialRepository : IUserCredentialRepository
         using var connection = _dbConnectionProvider.GetDbConnection();
         connection.Open();
 
-        const string sqlCommand = @"SELECT
-                UserId,
-				Username,
-                Password,
-                DateCreated,
-				DateUpdated
-                FROM UserCredentials
-				WHERE Username = @Username";
+        const string sqlCommand = @"SELECT * FROM UserCredentials WHERE Username = @Username";
 
         var sqlParameters = new
         {
@@ -95,7 +81,7 @@ public class UserCredentialRepository : IUserCredentialRepository
         return result;
     }
 
-    public bool UpdatePasswordById(int userId, string password)
+    public bool UpdatePassword(UserCredential userCredential)
     {
         using var connection = _dbConnectionProvider.GetDbConnection();
         connection.Open();
@@ -108,8 +94,8 @@ public class UserCredentialRepository : IUserCredentialRepository
 
         var sqlParameters = new
         {
-            UserId = userId,
-            Password = password
+            userCredential.UserId,
+            userCredential.Password
         };
 
         var affectedRowsCount = connection.Execute(sqlCommand, sqlParameters);
@@ -122,8 +108,7 @@ public class UserCredentialRepository : IUserCredentialRepository
         using var connection = _dbConnectionProvider.GetDbConnection();
         connection.Open();
 
-        const string sqlCommand = @"DELETE FROM UserCredentials
-                WHERE UserId = @UserId";
+        const string sqlCommand = @"DELETE FROM UserCredentials WHERE UserId = @UserId";
 
         var sqlParameters = new
         {

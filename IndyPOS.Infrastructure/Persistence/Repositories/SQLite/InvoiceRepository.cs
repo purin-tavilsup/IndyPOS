@@ -53,14 +53,7 @@ public class InvoiceRepository : IInvoiceRepository
         using var connection = _dbConnectionProvider.GetDbConnection();
         connection.Open();
 
-        const string sqlCommand = @"SELECT
-                InvoiceId,
-                Total,
-                CustomerId,
-                UserId,
-                DateCreated
-                FROM Invoices 
-                WHERE InvoiceId = @invoiceId";
+        const string sqlCommand = @"SELECT * FROM Invoices WHERE InvoiceId = @invoiceId";
 
         var sqlParameters = new
         {
@@ -78,14 +71,7 @@ public class InvoiceRepository : IInvoiceRepository
         using var connection = _dbConnectionProvider.GetDbConnection();
         connection.Open();
 
-        const string sqlCommand = @"SELECT
-                InvoiceId,
-                Total,
-                CustomerId,
-                UserId,
-                DateCreated
-                FROM Invoices 
-                WHERE DateCreated BETWEEN @startDate AND @endDate";
+        const string sqlCommand = @"SELECT * FROM Invoices WHERE DateCreated BETWEEN @startDate AND @endDate";
 
         var sqlParameters = new
         {
@@ -102,6 +88,28 @@ public class InvoiceRepository : IInvoiceRepository
     {
         return GetByDateRange(date, date);
     }
+
+	public bool RemoveById(int id)
+	{
+		return RemoveByIdInternal(id);
+	}
+
+	private bool RemoveByIdInternal(int id)
+	{
+		using var connection = _dbConnectionProvider.GetDbConnection();
+		connection.Open();
+
+		const string sqlCommand = @"DELETE FROM Invoices WHERE InvoiceId = @InvoiceId";
+
+		var sqlParameters = new
+		{
+			InvoiceId = id
+		};
+
+		var affectedRowsCount = connection.Execute(sqlCommand, sqlParameters);
+
+		return affectedRowsCount == 1;
+	}
 
     private static Invoice MapInvoice(dynamic result)
     {

@@ -4,13 +4,13 @@ namespace IndyPOS.Application.Common.Interfaces;
 
 public interface IUserCredentialRepository
 {
-	bool Add(int userId, string username, string password);
+	bool Add(UserCredential userCredential);
 
 	UserCredential? GetById(int id);
 
 	UserCredential? GetByUsername(string username);
 
-	bool UpdatePasswordById(int userId, string password);
+	bool UpdatePassword(UserCredential userCredential);
 
 	bool RemoveById(int userId);
 }

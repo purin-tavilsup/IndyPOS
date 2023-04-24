@@ -7,6 +7,6 @@ public class UpdateInventoryProductQuantityCommandValidator : AbstractValidator<
 	public UpdateInventoryProductQuantityCommandValidator()
 	{
 		RuleFor(x => x.Id)
-			.GreaterThan(0).WithMessage("Inventory Product Id is invalid.");
+			.GreaterThan(0).WithMessage("Inventory Product ID is invalid.");
 	}
 }

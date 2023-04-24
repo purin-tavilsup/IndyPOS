@@ -18,14 +18,7 @@ public class UserRepository : IUserRepository
         using var connection = _dbConnectionProvider.GetDbConnection();
         connection.Open();
 
-        const string sqlCommand = @"SELECT
-                UserId,
-                FirstName,
-                LastName,
-                RoleId,
-                DateCreated,
-				DateUpdated
-                FROM Users";
+        const string sqlCommand = @"SELECT * FROM Users";
 
         var results = connection.Query<UserAccount>(sqlCommand);
 
@@ -37,15 +30,7 @@ public class UserRepository : IUserRepository
         using var connection = _dbConnectionProvider.GetDbConnection();
         connection.Open();
 
-        const string sqlCommand = @"SELECT
-                UserId,
-                FirstName,
-                LastName,
-                RoleId,
-                DateCreated,
-				DateUpdated
-                FROM Users
-				WHERE UserId = @userId";
+        const string sqlCommand = @"SELECT * FROM Users WHERE UserId = @userId";
 
         var sqlParameters = new
         {
@@ -120,8 +105,7 @@ public class UserRepository : IUserRepository
         using var connection = _dbConnectionProvider.GetDbConnection();
         connection.Open();
 
-        const string sqlCommand = @"DELETE FROM Users
-                WHERE UserId = @UserId";
+        const string sqlCommand = @"DELETE FROM Users WHERE UserId = @UserId";
 
         var sqlParameters = new
         {

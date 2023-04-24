@@ -186,20 +186,25 @@ public class InventoryProductRepository : IInventoryProductRepository
     }
 
     public bool RemoveById(int id)
+	{
+		return RemoveByIdInternal(id);
+	}
+
+    private bool RemoveByIdInternal(int id)
     {
-        using var connection = _dbConnectionProvider.GetDbConnection();
-        connection.Open();
+		using var connection = _dbConnectionProvider.GetDbConnection();
+		connection.Open();
 
-        const string sqlCommand = @"DELETE FROM InventoryProducts WHERE InventoryProductId = @InventoryProductId";
+		const string sqlCommand = @"DELETE FROM InventoryProducts WHERE InventoryProductId = @InventoryProductId";
 
-        var sqlParameters = new
-        {
-            InventoryProductId = id
-        };
+		var sqlParameters = new
+		{
+			InventoryProductId = id
+		};
 
-        var affectedRowsCount = connection.Execute(sqlCommand, sqlParameters);
+		var affectedRowsCount = connection.Execute(sqlCommand, sqlParameters);
 
-        return affectedRowsCount == 1;
+		return affectedRowsCount == 1;
     }
 
     public int GetProductBarcodeCounter()

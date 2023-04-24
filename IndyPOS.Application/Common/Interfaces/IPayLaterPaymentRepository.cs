@@ -8,6 +8,8 @@ public interface IPayLaterPaymentRepository
 
 	bool Update(PayLaterPayment payment);
 
+	bool RemoveById(int id);
+
 	IEnumerable<PayLaterPayment> GetAll();
 
 	PayLaterPayment? GetById(int id);

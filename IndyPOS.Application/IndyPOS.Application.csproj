@@ -33,10 +33,22 @@
     <Folder Include="InventoryProducts\Commands\DeleteInventoryProduct\" />
     <Folder Include="InventoryProducts\Commands\UpdateInventoryProductQuantity\" />
     <Folder Include="InventoryProducts\Commands\UpdateInventoryProduct\" />
-    <Folder Include="Invoices\" />
-    <Folder Include="InvoiceProducts\" />
-    <Folder Include="InvoicePayments\" />
-    <Folder Include="PayLaterPayments\" />
-    <Folder Include="Users\" />
+    <Folder Include="InvoicePayments\Commands\DeleteInvoicePayment\" />
+    <Folder Include="InvoicePayments\Queries\" />
+    <Folder Include="InvoiceProducts\Commands\DeleteInvoiceProduct\" />
+    <Folder Include="InvoiceProducts\Queries\" />
+    <Folder Include="Invoices\Commands\DeleteInvoice\" />
+    <Folder Include="Invoices\Queries\" />
+    <Folder Include="PayLaterPayments\Commands\CreatePayLaterPayment\" />
+    <Folder Include="PayLaterPayments\Commands\DeletePayLaterPayment\" />
+    <Folder Include="PayLaterPayments\Commands\UpdatePayLaterPayment\" />
+    <Folder Include="PayLaterPayments\Queries\" />
+    <Folder Include="UserCredentials\Commands\CreateUserCredential\" />
+    <Folder Include="UserCredentials\Commands\UpdateUserCredential\" />
+    <Folder Include="UserCredentials\Queries\" />
+    <Folder Include="Users\Commands\CreateUser\" />
+    <Folder Include="Users\Commands\DeleteUser\" />
+    <Folder Include="Users\Commands\UpdateUser\" />
+    <Folder Include="Users\Queries\" />
   </ItemGroup>
 </Project>

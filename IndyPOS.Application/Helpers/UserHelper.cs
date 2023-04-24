@@ -1,6 +1,7 @@
 ﻿using IndyPOS.Application.Adapters;
 using IndyPOS.Application.Common.Interfaces;
 using IndyPOS.Application.Events;
+using IndyPOS.Domain.Entities;
 using IndyPOS.Domain.Events;
 using Prism.Events;
 
@@ -78,7 +79,14 @@ public class UserHelper : IUserHelper
 
 	private void AddNewUserCredentialById(int id, string username, string password)
 	{
-		_userCredentialRepository.Add(id, username, password);
+		var entity = new UserCredential
+		{
+			UserId = id,
+			Username = username,
+			Password = password
+		};
+
+		_userCredentialRepository.Add(entity);
 	}
 
 	public IEnumerable<IUserAccount> GetUsers()
@@ -117,7 +125,13 @@ public class UserHelper : IUserHelper
 
 	public void UpdateUserCredentialById(int userId, string password)
 	{
-		_userCredentialRepository.UpdatePasswordById(userId, password);
+		var entity = new UserCredential
+		{
+			UserId = userId,
+			Password = password
+		};
+
+		_userCredentialRepository.UpdatePassword(entity);
 	}
 
 	public IUserCredential GetUserCredentialById(int id)

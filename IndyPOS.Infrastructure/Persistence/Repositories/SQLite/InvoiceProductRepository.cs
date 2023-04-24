@@ -77,22 +77,7 @@ public class InvoiceProductRepository : IInvoiceProductRepository
         using var connection = _dbConnectionProvider.GetDbConnection();
         connection.Open();
 
-        const string sqlCommand = @"SELECT
-                InvoiceProductId,
-                Priority,
-                InvoiceId,
-                InventoryProductId,
-                Barcode,
-                Description,
-                Manufacturer,
-                Brand,
-                Category,
-                UnitPrice,
-                Quantity,
-                DateCreated,
-				Note
-                FROM InvoiceProducts 
-                WHERE InvoiceId = @invoiceId";
+        const string sqlCommand = @"SELECT * FROM InvoiceProducts WHERE InvoiceId = @invoiceId";
 
         var sqlParameters = new
         {
@@ -109,22 +94,7 @@ public class InvoiceProductRepository : IInvoiceProductRepository
         using var connection = _dbConnectionProvider.GetDbConnection();
         connection.Open();
 
-        const string sqlCommand = @"SELECT
-                InvoiceProductId,
-                Priority,
-                InvoiceId,
-                InventoryProductId,
-                Barcode,
-                Description,
-                Manufacturer,
-                Brand,
-                Category,
-                UnitPrice,
-                Quantity,
-                DateCreated,
-				Note
-                FROM InvoiceProducts 
-                WHERE DateCreated BETWEEN @startDate AND @endDate";
+        const string sqlCommand = @"SELECT * FROM InvoiceProducts WHERE DateCreated BETWEEN @startDate AND @endDate";
 
         var sqlParameters = new
         {
@@ -141,6 +111,50 @@ public class InvoiceProductRepository : IInvoiceProductRepository
     {
         return GetByDateRange(date, date);
     }
+
+	public bool RemoveById(int id)
+	{
+		return RemoveByIdInternal(id);
+	}
+
+	private bool RemoveByIdInternal(int id)
+	{
+		using var connection = _dbConnectionProvider.GetDbConnection();
+		connection.Open();
+
+		const string sqlCommand = @"DELETE FROM InvoiceProducts WHERE InvoiceProductId = @InvoiceProductId";
+
+		var sqlParameters = new
+		{
+			InvoiceProductId = id
+		};
+
+		var affectedRowsCount = connection.Execute(sqlCommand, sqlParameters);
+
+		return affectedRowsCount == 1;
+	}
+
+	public bool RemoveByInvoiceId(int id)
+	{
+		return RemoveByInvoiceIdInternal(id);
+	}
+
+	private bool RemoveByInvoiceIdInternal(int id)
+	{
+		using var connection = _dbConnectionProvider.GetDbConnection();
+		connection.Open();
+
+		const string sqlCommand = @"DELETE FROM InvoiceProducts WHERE InvoiceId = @InvoiceId";
+
+		var sqlParameters = new
+		{
+			InvoiceId = id
+		};
+
+		var affectedRowsCount = connection.Execute(sqlCommand, sqlParameters);
+
+		return affectedRowsCount >= 0;
+	}
 
     private static IEnumerable<InvoiceProduct> MapInvoiceProducts(IEnumerable<dynamic> results)
     {

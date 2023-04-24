@@ -2,7 +2,7 @@
 
 namespace IndyPOS.Application.InventoryProducts.Commands.UpdateInventoryProduct;
 
-public class UpdateInventoryProductCommand : ICommand
+public record UpdateInventoryProductCommand : ICommand
 {
 	public int Id { get; set; }
 
