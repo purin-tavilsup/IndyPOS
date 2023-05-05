@@ -1,6 +1,7 @@
 ﻿using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using IndyPOS.Application.Common.Interfaces;
+using IndyPOS.Infrastructure.Services;
 using IndyPOS.Windows.Forms.Interfaces;
 using IndyPOS.Windows.Forms.UI;
 
@@ -31,6 +32,8 @@ public class Machine : IMachine
 	{
 		try
 		{
+			_barcodeScannerService.Start(_mainForm.Handle);
+
 			ConnectDevices();
 			StartUserInterface();
 		}
@@ -52,6 +55,8 @@ public class Machine : IMachine
 	private void Shutdown()
 	{
 		Console.WriteLine("IndyPOS is shutting down...");
+
+		_barcodeScannerService.Stop();
 
 		DisconnectDevices();
 	}
