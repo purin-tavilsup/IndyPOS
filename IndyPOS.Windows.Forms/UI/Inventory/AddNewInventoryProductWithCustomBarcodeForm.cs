@@ -8,12 +8,12 @@ namespace IndyPOS.Windows.Forms.UI.Inventory
     [ExcludeFromCodeCoverage]
 	public partial class AddNewInventoryProductWithCustomBarcodeForm : Form
     {
-        private readonly IBarcodeService _barcodeService;
+        private readonly IBarcodeGeneratorService _barcodeService;
         private readonly IInventoryController _inventoryController;
         private readonly IReadOnlyDictionary<int, string> _productCategoryDictionary;
 		private readonly MessageForm _messageForm;
 
-        public AddNewInventoryProductWithCustomBarcodeForm(IBarcodeService barcodeService, 
+        public AddNewInventoryProductWithCustomBarcodeForm(IBarcodeGeneratorService barcodeService, 
 														   IStoreConstants storeConstants, 
 														   IInventoryController inventoryController,
 														   MessageForm messageForm)

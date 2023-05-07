@@ -4,8 +4,6 @@ using IndyPOS.Application.Events;
 using IndyPOS.Infrastructure.Services.RawDeviceInput;
 using Microsoft.Extensions.Logging;
 using Prism.Events;
-using System.Globalization;
-using System.IO.Ports;
 using System.Runtime.Versioning;
 using System.Text;
 
@@ -17,7 +15,6 @@ public class BarcodeScannerService : IBarcodeScannerService
 	private readonly IEventAggregator _eventAggregator;
 	private readonly IStoreConfigurationService _storeConfigurationService;
 	private readonly ILogger<BarcodeScannerService> _logger;
-	private SerialPort? _serialPort;
 	private RawInput? _rawInput;
 	private StringBuilder _buffer;
 	private byte[] _keyState;
@@ -48,7 +45,7 @@ public class BarcodeScannerService : IBarcodeScannerService
 		_buffer = new StringBuilder();
 		_keyState = new byte[256];
 
-        _rawInput.KeyPressed += OnKeyPressed;
+		_rawInput.KeyPressed += OnKeyPressed;
 	}
 
 	public void Stop()
@@ -65,108 +62,51 @@ public class BarcodeScannerService : IBarcodeScannerService
 		if (Win32.MapVirtualKeyToCharacter(virtualKey) == 0)
 		{
 			keyState[virtualKey] = 0x80;
+
+			return;
 		}
-		else
+
+		var buffer = new StringBuilder(2);
+		
+		var numberOfCharacters = Win32.TranslateVirtualKeyToAscii(virtualKey, keyState, buffer);
+
+		if (numberOfCharacters > 0)
 		{
-			var buffer = new StringBuilder(2);
+			var characters = buffer.ToString(0, numberOfCharacters);
 
-			var numberOfCharacters = Win32.TranslateVirtualKeyToAscii(virtualKey, keyState, buffer);
-
-			if (numberOfCharacters > 0)
-			{
-				var characters = buffer.ToString(0, numberOfCharacters);
-
-				_logger.LogInformation($"Character: {characters}");
-
-				output.Append(characters);
-			}
-
-			keyState = new byte[256];
+			output.Append(characters);
 		}
+
+		keyState = new byte[256];
 	}
 
     private void OnKeyPressed(object sender, RawInputEventArg e)
 	{
-		if (e.KeyPressEvent.DeviceName != ScannerName)
+		//TODO: Refactor to supports multiple scanners 
+
+		// Handle only key press events from a specific scanner
+		if (e.KeyPressEvent.DeviceName != ScannerName || 
+			e.KeyPressEvent.KeyPressState == "MAKE")
 		{
 			return;
 		}
 
-		if (e.KeyPressEvent.KeyPressState == "BREAK")
+		// All keys except "ENTER" will be translated to characters and stored in buffer 
+		if (e.KeyPressEvent.VKeyName != "ENTER")
 		{
+			AppendCharacter((ushort)e.KeyPressEvent.VKey, ref _buffer, ref _keyState );
+
 			return;
 		}
 
-		if (e.KeyPressEvent.VKeyName == "ENTER" && _buffer.Length > 0)
+		if (_buffer.Length > 0)
 		{
 			_logger.LogInformation($"Output: {_buffer}");
+
+			_eventAggregator.GetEvent<BarcodeReceivedEvent>().Publish(_buffer.ToString());
 
 			_buffer.Clear();
 			_keyState = new byte[256];
 		}
-		else
-		{
-			_logger.LogInformation($"Code: {e.KeyPressEvent.VKey.ToString(CultureInfo.InvariantCulture)}");
-
-			AppendCharacter((ushort)e.KeyPressEvent.VKey, ref _buffer, ref _keyState );
-		}
-	}
-
-    public void Connect()
-	{
-		try
-		{
-			var config = _storeConfigurationService.Get();
-			var portName = config.BarcodeScannerPortName ?? "COM4";
-
-			_serialPort = new SerialPort
-			{
-				PortName = portName,
-				BaudRate = 115200,
-				DataBits = 8,
-				StopBits = StopBits.One,
-				Parity = Parity.None
-			};
-
-			_serialPort.Open();
-			_serialPort.DataReceived += SerialPort_DataReceived;
-		}
-		catch (Exception ex)
-		{
-			_logger.LogWarning(ex, $"Failed to connect to Barcode Scanner on port {_serialPort?.PortName}.");
-		}
-	}
-
-	private void SerialPort_DataReceived(object sender, SerialDataReceivedEventArgs e)
-	{
-		if (_serialPort is null)
-			return;
-
-		var data = _serialPort.ReadTo("\r");
-
-		_eventAggregator.GetEvent<BarcodeReceivedEvent>().Publish(data);
-	}
-
-	public void Disconnect()
-	{
-		if (_serialPort is null)
-			return;
-
-		try
-		{
-			_serialPort.DataReceived -= SerialPort_DataReceived;
-
-			if (_serialPort.IsOpen)
-				_serialPort.Close();
-		}
-		catch (Exception ex)
-		{
-			_logger.LogWarning(ex, $"Failed to disconnect Barcode Scanner on port {_serialPort.PortName}.");
-		}
-	}
-
-	public void Dispose()
-	{
-		Disconnect();
 	}
 }

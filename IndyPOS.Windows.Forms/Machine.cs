@@ -1,9 +1,8 @@
-﻿using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
-using IndyPOS.Application.Common.Interfaces;
-using IndyPOS.Infrastructure.Services;
+﻿using IndyPOS.Application.Common.Interfaces;
 using IndyPOS.Windows.Forms.Interfaces;
 using IndyPOS.Windows.Forms.UI;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 
 namespace IndyPOS.Windows.Forms;
 
@@ -34,7 +33,6 @@ public class Machine : IMachine
 		{
 			_barcodeScannerService.Start(_mainForm.Handle);
 
-			ConnectDevices();
 			StartUserInterface();
 		}
 		catch (Exception ex)
@@ -57,20 +55,6 @@ public class Machine : IMachine
 		Console.WriteLine("IndyPOS is shutting down...");
 
 		_barcodeScannerService.Stop();
-
-		DisconnectDevices();
-	}
-
-	[Conditional("RELEASE")]
-	private void ConnectDevices()
-	{
-		_barcodeScannerService.Connect();
-	}
-
-	[Conditional("RELEASE")]
-	private void DisconnectDevices()
-	{
-		_barcodeScannerService.Disconnect();
 	}
 
 	private void StartUserInterface()

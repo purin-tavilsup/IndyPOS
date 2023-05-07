@@ -2,7 +2,7 @@
 
 namespace IndyPOS.Application.Common.Interfaces;
 
-public interface IBarcodeService
+public interface IBarcodeGeneratorService
 {
 	string GenerateEan13Barcode(int productCategoryId, int productNumber);
 

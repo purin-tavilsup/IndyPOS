@@ -36,7 +36,7 @@ public static class ConfigureServices
 
 		services.AddTransient<ICryptographyService, CryptographyService>()
 				.AddTransient<IJsonService, JsonService>()
-				.AddTransient<IBarcodeService, BarcodeService>()
+				.AddTransient<IBarcodeGeneratorService, BarcodeGeneratorService>()
 				.AddTransient<IDateTimeService, DateTimeService>()
 				.AddTransient<IDataFeedApiService, DataFeedApiService>();
 

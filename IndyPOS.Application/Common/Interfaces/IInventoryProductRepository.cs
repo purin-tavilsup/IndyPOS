@@ -8,7 +8,7 @@ public interface IInventoryProductRepository
 
 	InventoryProduct? GetById(int id);
 
-	InventoryProduct? GetByBarcode(string barcode);
+	InventoryProduct GetByBarcode(string barcode);
 
 	IEnumerable<InventoryProduct> GetProductsByCategoryId(int id);
 

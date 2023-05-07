@@ -1,5 +1,4 @@
 ﻿using IndyPOS.Application.Common.Interfaces;
-using System.Drawing;
 using System.Runtime.Versioning;
 using ZXing;
 using ZXing.Common;
@@ -8,7 +7,7 @@ using ZXing.Windows.Compatibility;
 namespace IndyPOS.Infrastructure.Services;
 
 [type: SupportedOSPlatform("windows")]
-public class BarcodeService : IBarcodeService
+public class BarcodeGeneratorService : IBarcodeGeneratorService
 {
     public string GenerateEan13Barcode(int productCategoryId, int productNumber)
     {

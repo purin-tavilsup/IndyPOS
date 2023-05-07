@@ -12,7 +12,7 @@ public partial class MessageForm : Form
 	{
 		InitializeComponent();
 	}
-		
+
 	public DialogResult Show(string message, 
 							 string? caption = null, 
 							 bool cancelButtonVisible = false, 
@@ -30,7 +30,7 @@ public partial class MessageForm : Form
 
 		MessageTextBox.Texts = message;
 		CancelButton.Visible = cancelButtonVisible;
-		AcceptButton.Select();
+		panel1.Select();
 
 		ShowDialog();
 

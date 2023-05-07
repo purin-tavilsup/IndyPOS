@@ -38,8 +38,6 @@ public partial class AddNewInventoryProductForm : Form
 			ProductCodeTextBox.ReadOnly = true;
 		}
 
-		CancelProductEntryButton.Select();
-
 		base.ShowDialog();
 	}
 

@@ -1,5 +1,6 @@
 ﻿#nullable enable
 using Dapper;
+using IndyPOS.Application.Common.Exceptions;
 using IndyPOS.Application.Common.Interfaces;
 using IndyPOS.Domain.Entities;
 using IndyPOS.Infrastructure.Extensions;
@@ -15,7 +16,7 @@ public class InventoryProductRepository : IInventoryProductRepository
         _dbConnectionProvider = dbConnectionProvider;
     }
 
-    public InventoryProduct? GetByBarcode(string barcode)
+    public InventoryProduct GetByBarcode(string barcode)
     {
         using var connection = _dbConnectionProvider.GetDbConnection();
         connection.Open();
@@ -30,7 +31,12 @@ public class InventoryProductRepository : IInventoryProductRepository
         var result = connection.Query(sqlCommand, sqlParameters)
                                .FirstOrDefault();
 
-        return result is null ? null : MapInventoryProduct(result);
+		if (result is null)
+		{
+			throw new ProductNotFoundException($"Could not find inventory product with Barcode: {barcode}");
+		}
+
+        return MapInventoryProduct(result);
     }
 
     public IEnumerable<InventoryProduct> GetProductsByCategoryId(int id)

@@ -45,6 +45,7 @@ internal static class Program
 		}
 		finally
 		{
+			Log.Information("Stopping application");
 			Log.CloseAndFlush();
 		}
 	}
