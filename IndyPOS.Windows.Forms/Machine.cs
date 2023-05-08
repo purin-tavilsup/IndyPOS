@@ -11,15 +11,15 @@ public class Machine : IMachine
 {
 	private readonly MainForm _mainForm;
 	private readonly IStoreConfigurationService _storeConfigurationService;
-	private readonly IBarcodeScannerService _barcodeScannerService;
+	private readonly IRawInputDeviceService _rawInputDeviceService;
 
 	public Machine(MainForm mainForm,
 				   IStoreConfigurationService storeConfigurationService,
-				   IBarcodeScannerService barcodeScannerService)
+				   IRawInputDeviceService rawInputDeviceService)
 	{
 		_mainForm = mainForm;
 		_storeConfigurationService = storeConfigurationService;
-		_barcodeScannerService = barcodeScannerService;
+		_rawInputDeviceService = rawInputDeviceService;
 	}
 
 	public void Dispose()
@@ -31,7 +31,7 @@ public class Machine : IMachine
 	{
 		try
 		{
-			_barcodeScannerService.Start(_mainForm.Handle);
+			_rawInputDeviceService.Start(_mainForm.Handle);
 
 			StartUserInterface();
 		}
@@ -54,7 +54,7 @@ public class Machine : IMachine
 	{
 		Console.WriteLine("IndyPOS is shutting down...");
 
-		_barcodeScannerService.Stop();
+		_rawInputDeviceService.Stop();
 	}
 
 	private void StartUserInterface()

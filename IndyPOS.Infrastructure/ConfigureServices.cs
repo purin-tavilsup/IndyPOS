@@ -29,7 +29,7 @@ public static class ConfigureServices
 				.AddSingleton<IStoreConfigurationService, StoreConfigurationService>()
 				.AddSingleton<IUserLogInService, UserLogInService>()
 				.AddSingleton<IEventAggregator, EventAggregator>()
-				.AddSingleton<IBarcodeScannerService, BarcodeScannerService>()
+				.AddSingleton<IRawInputDeviceService, RawInputDeviceService>()
 				.AddSingleton<IReceiptPrinterService, ReceiptPrinterService>()
 				.AddSingleton<IAppCache, CachingService>()
 				.AddSingleton<HttpClient, HttpClient>();

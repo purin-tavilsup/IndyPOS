@@ -12,5 +12,5 @@ public class StoreConfiguration
     public string? StoreAddressLine2 { get; init; }
     public string? StorePhoneNumber { get; init; }
     public string? PrinterName { get; init; }
-    public string? BarcodeScannerPortName { get; init; }
+    public string? BarcodeScannerDeviceName { get; init; }
 }

@@ -224,6 +224,7 @@ public static class Win32
 
 	/// <summary>
 	/// Maps a virtual-key code to a character value.
+	/// If there is no translation, the function returns 0.
 	/// </summary>
 	/// <param name="virtualKey"></param>
 	/// <returns></returns>
