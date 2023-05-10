@@ -1,5 +1,5 @@
 ﻿using AutoMapper;
-using IndyPOS.Application.InventoryProducts.Queries;
+using IndyPOS.Application.InventoryProducts;
 using IndyPOS.Domain.Entities;
 
 namespace IndyPOS.Application.Common.Mappings;

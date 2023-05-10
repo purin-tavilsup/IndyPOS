@@ -1,5 +1,5 @@
 ﻿using IndyPOS.Application.Common.Interfaces;
-using IndyPOS.Application.InventoryProducts.Queries;
+using IndyPOS.Application.InventoryProducts;
 using IndyPOS.Application.InventoryProducts.Queries.GetInventoryProductsByCategoryId;
 using IndyPOS.Windows.Forms.Interfaces;
 using MediatR;

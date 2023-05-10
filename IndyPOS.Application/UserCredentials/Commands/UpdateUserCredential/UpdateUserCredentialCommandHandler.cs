@@ -1,6 +1,5 @@
 ﻿using IndyPOS.Application.Abstractions.Messaging;
 using IndyPOS.Application.Common.Interfaces;
-using IndyPOS.Domain.Entities;
 using MediatR;
 
 namespace IndyPOS.Application.UserCredentials.Commands.UpdateUserCredential;
@@ -16,13 +15,7 @@ public class UpdateUserCredentialCommandHandler : ICommandHandler<UpdateUserCred
 
     public Task<Unit> Handle(UpdateUserCredentialCommand command, CancellationToken cancellationToken)
 	{
-		var entity = new UserCredential
-		{
-			UserId = command.UserId,
-			Password = command.Password
-		};
-
-		_userCredentialRepository.UpdatePassword(entity);
+		_userCredentialRepository.UpdatePassword(command.ToEntity());
 
 		return Task.FromResult(Unit.Value);
     }

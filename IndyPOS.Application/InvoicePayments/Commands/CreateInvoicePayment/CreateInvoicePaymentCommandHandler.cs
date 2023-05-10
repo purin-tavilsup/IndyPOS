@@ -1,6 +1,5 @@
 ﻿using IndyPOS.Application.Abstractions.Messaging;
 using IndyPOS.Application.Common.Interfaces;
-using IndyPOS.Domain.Entities;
 using IndyPOS.Domain.Events;
 using MediatR;
 using Prism.Events;
@@ -20,15 +19,7 @@ public class CreateInvoicePaymentCommandHandler : ICommandHandler<CreateInvoiceP
 
     public Task<Unit> Handle(CreateInvoicePaymentCommand command, CancellationToken cancellationToken)
 	{
-		var entity = new Payment
-		{
-			InvoiceId = command.InvoiceId,
-			PaymentTypeId = command.PaymentTypeId,
-			Amount = command.Amount,
-			Note = command.Note
-		};
-
-		_invoicePaymentRepository.Add(entity);
+		_invoicePaymentRepository.Add(command.ToEntity());
 
 		_eventAggregator.GetEvent<InvoicePaymentAddedEvent>().Publish();
 

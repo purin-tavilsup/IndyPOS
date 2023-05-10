@@ -56,7 +56,7 @@ public class InventoryProductRepository : IInventoryProductRepository
         return results is null ? Enumerable.Empty<InventoryProduct>() : MapInventoryProducts(results);
     }
 
-    public InventoryProduct? GetById(int id)
+    public InventoryProduct GetById(int id)
     {
         using var connection = _dbConnectionProvider.GetDbConnection();
         connection.Open();
@@ -71,7 +71,12 @@ public class InventoryProductRepository : IInventoryProductRepository
         var result = connection.Query(sqlCommand, sqlParameters)
                                .FirstOrDefault();
 
-        return result is null ? null : MapInventoryProduct(result);
+		if (result is null)
+		{
+			throw new ProductNotFoundException($"Could not find inventory product with ID: {id}");
+		}
+
+        return MapInventoryProduct(result);
     }
 
     public int Add(InventoryProduct product)

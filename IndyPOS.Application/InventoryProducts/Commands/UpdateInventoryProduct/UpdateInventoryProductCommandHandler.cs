@@ -1,6 +1,5 @@
 ﻿using IndyPOS.Application.Abstractions.Messaging;
 using IndyPOS.Application.Common.Interfaces;
-using IndyPOS.Domain.Entities;
 using IndyPOS.Domain.Events;
 using MediatR;
 using Prism.Events;
@@ -21,20 +20,7 @@ public class UpdateInventoryProductCommandHandler : ICommandHandler<UpdateInvent
 
 	public Task<Unit> Handle(UpdateInventoryProductCommand command, CancellationToken cancellationToken)
 	{
-		var entity = new InventoryProduct
-		{
-			InventoryProductId = command.Id,
-			Description = command.Description,
-			Manufacturer = command.Manufacturer,
-			Brand = command.Brand,
-			Category = command.Category,
-			UnitPrice = command.UnitPrice,
-			QuantityInStock = command.Quantity,
-			GroupPrice = command.GroupPrice,
-			GroupPriceQuantity = command.GroupPriceQuantity
-		};
-
-		_ = _productRepository.Update(entity);
+		_ = _productRepository.Update(command.ToEntity());
 
 		_eventAggregator.GetEvent<InventoryProductUpdatedEvent>().Publish(command.Id);
 

@@ -24,8 +24,6 @@ public interface IFinalInvoiceProduct
 
 	int Quantity { get; }
 
-	bool IsTrackable { get; }
-
 	string DateCreated { get; }
 
 	string Note { get;  }

@@ -1,7 +1,7 @@
 ﻿using AutoFixture.Xunit2;
 using FluentAssertions;
 using IndyPOS.Application.Common.Interfaces;
-using IndyPOS.Application.InventoryProducts.Queries;
+using IndyPOS.Application.InventoryProducts;
 using IndyPOS.Application.InventoryProducts.Queries.GetInventoryProductByBarcode;
 using IndyPOS.Application.Tests.Mocks.Attributes;
 using IndyPOS.Domain.Entities;

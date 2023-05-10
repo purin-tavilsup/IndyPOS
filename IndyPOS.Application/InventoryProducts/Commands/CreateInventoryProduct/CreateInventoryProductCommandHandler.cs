@@ -1,6 +1,5 @@
 ﻿using IndyPOS.Application.Abstractions.Messaging;
 using IndyPOS.Application.Common.Interfaces;
-using IndyPOS.Domain.Entities;
 using IndyPOS.Domain.Events;
 using MediatR;
 using Prism.Events;
@@ -21,19 +20,7 @@ public class CreateInventoryProductCommandHandler : ICommandHandler<CreateInvent
 
     public Task<Unit> Handle(CreateInventoryProductCommand command, CancellationToken cancellationToken)
     {
-		var entity = new InventoryProduct
-		{
-			Barcode = command.Barcode,
-			Description = command.Description,
-			Manufacturer = command.Manufacturer,
-			Brand = command.Brand,
-			Category = command.Category,
-			UnitPrice = command.UnitPrice,
-			QuantityInStock = command.Quantity,
-			IsTrackable = command.IsTrackable
-		};
-
-		var id = _productRepository.Add(entity);
+		var id = _productRepository.Add(command.ToEntity());
 
 		_eventAggregator.GetEvent<InventoryProductAddedEvent>().Publish(id);
 

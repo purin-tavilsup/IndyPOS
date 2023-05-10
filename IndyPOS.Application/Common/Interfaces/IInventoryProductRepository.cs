@@ -6,7 +6,7 @@ public interface IInventoryProductRepository
 {
 	int Add(InventoryProduct product);
 
-	InventoryProduct? GetById(int id);
+	InventoryProduct GetById(int id);
 
 	InventoryProduct GetByBarcode(string barcode);
 
