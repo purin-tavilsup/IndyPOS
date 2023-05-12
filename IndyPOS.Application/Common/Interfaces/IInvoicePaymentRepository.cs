@@ -12,9 +12,9 @@ public interface IInvoicePaymentRepository
 
 	IEnumerable<Payment> GetByInvoiceId(int id);
 
-	IEnumerable<Payment> GetByDateRange(DateTime start, DateTime end);
+	IEnumerable<Payment> GetByDateRange(DateOnly start, DateOnly end);
 
-	IEnumerable<Payment> GetByDate(DateTime date);
+	IEnumerable<Payment> GetByDate(DateOnly date);
 
 	IEnumerable<Payment> GetByPaymentTypeId(int id);
 }

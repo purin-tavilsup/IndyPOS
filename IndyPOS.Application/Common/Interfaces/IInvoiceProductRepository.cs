@@ -12,7 +12,7 @@ public interface IInvoiceProductRepository
 
 	IEnumerable<InvoiceProduct> GetByInvoiceId(int id);
 
-	IEnumerable<InvoiceProduct> GetByDateRange(DateTime start, DateTime end);
+	IEnumerable<InvoiceProduct> GetByDateRange(DateOnly start, DateOnly end);
 
-	IEnumerable<InvoiceProduct> GetByDate(DateTime date);
+	IEnumerable<InvoiceProduct> GetByDate(DateOnly date);
 }

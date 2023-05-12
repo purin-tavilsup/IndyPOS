@@ -523,24 +523,24 @@ public class SaleInvoiceHelper : ISaleInvoiceHelper
 				break;
 		}
 
-		return GetInvoicesByDateRange(startDate, endDate);
+		return GetInvoicesByDateRange(DateOnly.FromDateTime(startDate) , DateOnly.FromDateTime(endDate));
 	}
 
-	public IEnumerable<IFinalInvoice> GetInvoicesByDateRange(DateTime startDate, DateTime endDate)
+	public IEnumerable<IFinalInvoice> GetInvoicesByDateRange(DateOnly startDate, DateOnly endDate)
 	{
 		var results = _invoiceRepository.GetByDateRange(startDate, endDate);
 
 		return results.Select(x => new FinalInvoiceAdapter(x) as IFinalInvoice);
 	}
 
-	public IEnumerable<IFinalInvoiceProduct> GetInvoiceProductsByDate(DateTime date)
+	public IEnumerable<IFinalInvoiceProduct> GetInvoiceProductsByDate(DateOnly date)
 	{
 		var results = _invoiceProductRepository.GetByDate(date);
 
 		return results.Select(x => new FinalInvoiceProductAdapter(x) as IFinalInvoiceProduct);
 	}
 
-	public IEnumerable<IFinalInvoiceProduct> GetInvoiceProductsByDateRange(DateTime startDate, DateTime endDate)
+	public IEnumerable<IFinalInvoiceProduct> GetInvoiceProductsByDateRange(DateOnly startDate, DateOnly endDate)
 	{
 		var results = _invoiceProductRepository.GetByDateRange(startDate, endDate);
 

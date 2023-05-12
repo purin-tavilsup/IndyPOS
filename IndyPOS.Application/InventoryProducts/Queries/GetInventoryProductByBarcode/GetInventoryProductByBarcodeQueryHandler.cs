@@ -12,9 +12,9 @@ public class GetInventoryProductByBarcodeQueryHandler : IQueryHandler<GetInvento
 		_productRepository = productRepository;
 	}
 
-	public Task<InventoryProductDto> Handle(GetInventoryProductByBarcodeQuery request, CancellationToken cancellationToken)
+	public Task<InventoryProductDto> Handle(GetInventoryProductByBarcodeQuery query, CancellationToken cancellationToken)
 	{
-		var barcode = request.Barcode;
+		var barcode = query.Barcode;
 		var result = _productRepository.GetByBarcode(barcode);
 
 		return Task.FromResult(result.ToDto());

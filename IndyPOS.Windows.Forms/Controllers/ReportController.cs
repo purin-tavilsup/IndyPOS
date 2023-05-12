@@ -34,17 +34,17 @@ namespace IndyPOS.Windows.Forms.Controllers
 			return _reportHelper.GetInvoicesByPeriod(period);
 		}
 
-		public IEnumerable<IFinalInvoice> GetInvoicesByDateRange(DateTime startDate, DateTime endDate)
+		public IEnumerable<IFinalInvoice> GetInvoicesByDateRange(DateOnly startDate, DateOnly endDate)
 		{
 			return _reportHelper.GetInvoicesByDateRange(startDate, endDate);
 		}
 
-		public IEnumerable<IFinalInvoiceProduct> GetInvoiceProductsByDate(DateTime date)
+		public IEnumerable<IFinalInvoiceProduct> GetInvoiceProductsByDate(DateOnly date)
 		{
 			return _reportHelper.GetInvoiceProductsByDate(date);
 		}
 
-		public IEnumerable<IFinalInvoiceProduct> GetInvoiceProductsByDateRange(DateTime startDate, DateTime endDate)
+		public IEnumerable<IFinalInvoiceProduct> GetInvoiceProductsByDateRange(DateOnly startDate, DateOnly endDate)
 		{
 			return _reportHelper.GetInvoiceProductsByDateRange(startDate, endDate);
 		}

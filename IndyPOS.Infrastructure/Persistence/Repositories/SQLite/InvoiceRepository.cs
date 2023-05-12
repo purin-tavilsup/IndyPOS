@@ -1,4 +1,5 @@
 ﻿using Dapper;
+using IndyPOS.Application.Common.Exceptions;
 using IndyPOS.Application.Common.Interfaces;
 using IndyPOS.Domain.Entities;
 using IndyPOS.Infrastructure.Extensions;
@@ -48,7 +49,7 @@ public class InvoiceRepository : IInvoiceRepository
         return invoiceId;
     }
 
-    public Invoice? GetById(int id)
+    public Invoice GetById(int id)
     {
         using var connection = _dbConnectionProvider.GetDbConnection();
         connection.Open();
@@ -63,10 +64,15 @@ public class InvoiceRepository : IInvoiceRepository
         var result = connection.Query(sqlCommand, sqlParameters)
                                .FirstOrDefault();
 
-        return result is null ? null : MapInvoice(result);
+		if (result is null)
+		{
+			throw new InvoiceNotFoundException($"Could not find Invoice by ID: {id}");
+		}
+
+        return MapInvoice(result);
     }
 
-    public IEnumerable<Invoice> GetByDateRange(DateTime start, DateTime end)
+    public IEnumerable<Invoice> GetByDateRange(DateOnly start, DateOnly end)
     {
         using var connection = _dbConnectionProvider.GetDbConnection();
         connection.Open();
@@ -84,7 +90,7 @@ public class InvoiceRepository : IInvoiceRepository
         return results is null ? Enumerable.Empty<Invoice>() : MapInvoices(results);
     }
 
-    public IEnumerable<Invoice> GetByDate(DateTime date)
+    public IEnumerable<Invoice> GetByDate(DateOnly date)
     {
         return GetByDateRange(date, date);
     }

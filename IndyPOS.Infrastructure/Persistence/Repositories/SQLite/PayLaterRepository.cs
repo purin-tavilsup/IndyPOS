@@ -1,4 +1,5 @@
 ﻿using Dapper;
+using IndyPOS.Application.Common.Exceptions;
 using IndyPOS.Application.Common.Interfaces;
 using IndyPOS.Domain.Entities;
 using IndyPOS.Infrastructure.Extensions;
@@ -104,7 +105,7 @@ public class PayLaterRepository : IPayLaterPaymentRepository
         return results is null ? Enumerable.Empty<PayLaterPayment>() : MapPayLaterPayments(results);
     }
 
-    public PayLaterPayment? GetPayLaterPaymentByInvoiceId(int invoiceId)
+    public PayLaterPayment GetPayLaterPaymentByInvoiceId(int invoiceId)
     {
         using var connection = _dbConnectionProvider.GetDbConnection();
         connection.Open();
@@ -119,10 +120,15 @@ public class PayLaterRepository : IPayLaterPaymentRepository
         var result = connection.Query(sqlCommand, sqlParameters)
                                .FirstOrDefault();
 
-        return result is null ? null : MapPayLaterPayment(result);
+		if (result is null)
+		{
+			throw new PayLaterPaymentNotFoundException($"Could not find Pay Later Payment by Invoice ID: {invoiceId}");
+		}
+
+        return MapPayLaterPayment(result);
     }
 
-    public PayLaterPayment? GetById(int id)
+    public PayLaterPayment GetById(int id)
     {
         using var connection = _dbConnectionProvider.GetDbConnection();
         connection.Open();
@@ -137,10 +143,15 @@ public class PayLaterRepository : IPayLaterPaymentRepository
         var result = connection.Query(sqlCommand, sqlParameters)
                                .FirstOrDefault();
 
-        return result is null ? null : MapPayLaterPayment(result);
+		if (result is null)
+		{
+			throw new PayLaterPaymentNotFoundException($"Could not find Pay Later Payment by ID: {id}");
+		}
+
+        return MapPayLaterPayment(result);
     }
 
-    public IEnumerable<PayLaterPayment> GetPayLaterPaymentsByDateRange(DateTime start, DateTime end)
+    public IEnumerable<PayLaterPayment> GetPayLaterPaymentsByDateRange(DateOnly start, DateOnly end)
     {
         using var connection = _dbConnectionProvider.GetDbConnection();
         connection.Open();

@@ -12,9 +12,9 @@ public class GetInventoryProductByIdQueryHandler : IQueryHandler<GetInventoryPro
 		_productRepository = inventoryProductRepository;
 	}
 
-	public Task<InventoryProductDto> Handle(GetInventoryProductByIdQuery request, CancellationToken cancellationToken)
+	public Task<InventoryProductDto> Handle(GetInventoryProductByIdQuery query, CancellationToken cancellationToken)
 	{
-		var id = request.Id;
+		var id = query.Id;
 		var result = _productRepository.GetById(id);
 
 		return Task.FromResult(result.ToDto());

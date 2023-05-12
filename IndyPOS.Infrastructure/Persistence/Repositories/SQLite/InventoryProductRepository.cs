@@ -33,7 +33,7 @@ public class InventoryProductRepository : IInventoryProductRepository
 
 		if (result is null)
 		{
-			throw new ProductNotFoundException($"Could not find inventory product with Barcode: {barcode}");
+			throw new ProductNotFoundException($"Could not find Inventory Product by Barcode: {barcode}");
 		}
 
         return MapInventoryProduct(result);
@@ -73,7 +73,7 @@ public class InventoryProductRepository : IInventoryProductRepository
 
 		if (result is null)
 		{
-			throw new ProductNotFoundException($"Could not find inventory product with ID: {id}");
+			throw new ProductNotFoundException($"Could not find Inventory Product by ID: {id}");
 		}
 
         return MapInventoryProduct(result);

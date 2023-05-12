@@ -1,4 +1,5 @@
 ﻿using Dapper;
+using IndyPOS.Application.Common.Exceptions;
 using IndyPOS.Application.Common.Interfaces;
 using IndyPOS.Domain.Entities;
 
@@ -13,7 +14,7 @@ public class UserCredentialRepository : IUserCredentialRepository
 		_dbConnectionProvider = dbConnectionProvider;
 	}
 
-	public UserCredential? GetById(int id)
+	public UserCredential GetById(int id)
     {
         using var connection = _dbConnectionProvider.GetDbConnection();
         connection.Open();
@@ -27,6 +28,11 @@ public class UserCredentialRepository : IUserCredentialRepository
 
         var result = connection.Query<UserCredential>(sqlCommand, sqlParameters)
                                .FirstOrDefault();
+
+		if (result is null)
+		{
+			throw new UserCredentialNotFoundException($"Could not find User Credential by ID: {id}");
+		}
 
         return result;
     }
@@ -63,7 +69,7 @@ public class UserCredentialRepository : IUserCredentialRepository
         return affectedRowsCount == 1;
     }
 
-    public UserCredential? GetByUsername(string username)
+    public UserCredential GetByUsername(string username)
     {
         using var connection = _dbConnectionProvider.GetDbConnection();
         connection.Open();
@@ -77,6 +83,11 @@ public class UserCredentialRepository : IUserCredentialRepository
 
         var result = connection.Query<UserCredential>(sqlCommand, sqlParameters)
                                .FirstOrDefault();
+
+		if (result is null)
+		{
+			throw new UserCredentialNotFoundException($"Could not find User Credential by Username: {username}");
+		}
 
         return result;
     }

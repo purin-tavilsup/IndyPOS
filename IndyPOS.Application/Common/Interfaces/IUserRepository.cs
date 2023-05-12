@@ -8,7 +8,7 @@ public interface IUserRepository
 
 	bool Update(UserAccount user);
 
-	UserAccount? GetById(int id);
+	UserAccount GetById(int id);
 
 	IEnumerable<UserAccount> GetAll();
 

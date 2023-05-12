@@ -153,8 +153,8 @@ namespace IndyPOS.Windows.Forms.UI.Report
 
 		private void ShowReportByDateRangeButton_Click(object sender, EventArgs e)
 		{
-			var startDate = StartDatePicker.Value;
-			var endDate = EndDatePicker.Value;
+			var startDate = DateOnly.FromDateTime(StartDatePicker.Value);
+			var endDate = DateOnly.FromDateTime(EndDatePicker.Value);
 
 			PeriodLabel.Text = $"{startDate:yyyy MMMM dd} - {endDate:yyyy MMMM dd}";
 

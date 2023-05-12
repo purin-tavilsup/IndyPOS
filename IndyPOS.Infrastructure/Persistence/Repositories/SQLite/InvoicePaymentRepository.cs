@@ -68,12 +68,12 @@ public class InvoicePaymentRepository : IInvoicePaymentRepository
         return results is null ? Enumerable.Empty<Payment>() : MapPayments(results);
     }
 
-    public IEnumerable<Payment> GetByDate(DateTime date)
+    public IEnumerable<Payment> GetByDate(DateOnly date)
     {
         return GetByDateRange(date, date);
     }
 
-    public IEnumerable<Payment> GetByDateRange(DateTime start, DateTime end)
+    public IEnumerable<Payment> GetByDateRange(DateOnly start, DateOnly end)
     {
         using var connection = _dbConnectionProvider.GetDbConnection();
         connection.Open();

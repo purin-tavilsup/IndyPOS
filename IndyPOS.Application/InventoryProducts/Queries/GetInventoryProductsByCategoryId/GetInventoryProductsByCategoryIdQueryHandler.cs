@@ -12,9 +12,9 @@ public class GetInventoryProductsByCategoryIdQueryHandler : IQueryHandler<GetInv
 		_productRepository = inventoryProductRepository;
 	}
 
-    public Task<IEnumerable<InventoryProductDto>> Handle(GetInventoryProductsByCategoryIdQuery request, CancellationToken cancellationToken)
+    public Task<IEnumerable<InventoryProductDto>> Handle(GetInventoryProductsByCategoryIdQuery query, CancellationToken cancellationToken)
 	{
-		var categoryId = request.CategoryId;
+		var categoryId = query.CategoryId;
 		var results = _productRepository.GetProductsByCategoryId(categoryId);
 
 		return Task.FromResult(results.Select(x => x.ToDto()));

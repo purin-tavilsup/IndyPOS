@@ -6,6 +6,7 @@ using IndyPOS.Application.Common.Interfaces;
 using IndyPOS.Application.Helpers;
 using IndyPOS.Application.Tests.Mocks.Attributes;
 using Moq;
+using System;
 using Xunit;
 
 namespace IndyPOS.Application.Tests
@@ -45,11 +46,16 @@ namespace IndyPOS.Application.Tests
 			DateTime endDate,
 			ReportHelper sut)
 		{
+            // AutoFixture currently does not support DateOnly
+			// Have to work around with conversion from DateTime 
+			var start = DateOnly.FromDateTime(startDate);
+			var end = DateOnly.FromDateTime(endDate);
+
 			// Act
-			sut.GetInvoicesByDateRange(startDate, endDate);
+			sut.GetInvoicesByDateRange(start, end);
 
 			// Assert
-			saleInvoiceHelper.Verify(s => s.GetInvoicesByDateRange(startDate, endDate), Times.Once);
+			saleInvoiceHelper.Verify(s => s.GetInvoicesByDateRange(start, end), Times.Once);
 		}
 
 		[Theory]
@@ -59,11 +65,15 @@ namespace IndyPOS.Application.Tests
 			DateTime date,
 			ReportHelper sut)
 		{
+			// AutoFixture currently does not support DateOnly
+			// Have to work around with conversion from DateTime 
+			var dateOnly = DateOnly.FromDateTime(date);
+
 			// Act
-			sut.GetInvoiceProductsByDate(date);
+			sut.GetInvoiceProductsByDate(dateOnly);
 
 			// Assert
-			saleInvoiceHelper.Verify(s => s.GetInvoiceProductsByDate(date), Times.Once);
+			saleInvoiceHelper.Verify(s => s.GetInvoiceProductsByDate(dateOnly), Times.Once);
 		}
 
 		[Theory]
@@ -74,11 +84,16 @@ namespace IndyPOS.Application.Tests
 			DateTime endDate,
 			ReportHelper sut)
 		{
+			// AutoFixture currently does not support DateOnly
+			// Have to work around with conversion from DateTime 
+			var start = DateOnly.FromDateTime(startDate);
+			var end = DateOnly.FromDateTime(endDate);
+
 			// Act
-			sut.GetInvoiceProductsByDateRange(startDate, endDate);
+			sut.GetInvoiceProductsByDateRange(start, end);
 
 			// Assert
-			saleInvoiceHelper.Verify(s => s.GetInvoiceProductsByDateRange(startDate, endDate), Times.Once);
+			saleInvoiceHelper.Verify(s => s.GetInvoiceProductsByDateRange(start, end), Times.Once);
 		}
 
 		[Theory]

@@ -12,11 +12,11 @@ public interface IPayLaterPaymentRepository
 
 	IEnumerable<PayLaterPayment> GetAll();
 
-	PayLaterPayment? GetById(int id);
+	PayLaterPayment GetById(int id);
 
 	IEnumerable<PayLaterPayment> GetIncompletePayLaterPayments();
 
-	PayLaterPayment? GetPayLaterPaymentByInvoiceId(int invoiceId);
+	PayLaterPayment GetPayLaterPaymentByInvoiceId(int invoiceId);
 
-	IEnumerable<PayLaterPayment> GetPayLaterPaymentsByDateRange(DateTime start, DateTime end);
+	IEnumerable<PayLaterPayment> GetPayLaterPaymentsByDateRange(DateOnly start, DateOnly end);
 }

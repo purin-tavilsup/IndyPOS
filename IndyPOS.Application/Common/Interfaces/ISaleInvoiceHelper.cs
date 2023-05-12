@@ -50,11 +50,11 @@ public interface ISaleInvoiceHelper
 
 	IEnumerable<IFinalInvoice> GetInvoicesByPeriod(TimePeriod period);
 
-	IEnumerable<IFinalInvoice> GetInvoicesByDateRange(DateTime startDate, DateTime endDate);
+	IEnumerable<IFinalInvoice> GetInvoicesByDateRange(DateOnly startDate, DateOnly endDate);
 
-	IEnumerable<IFinalInvoiceProduct> GetInvoiceProductsByDate(DateTime date);
+	IEnumerable<IFinalInvoiceProduct> GetInvoiceProductsByDate(DateOnly date);
 
-	IEnumerable<IFinalInvoiceProduct> GetInvoiceProductsByDateRange(DateTime startDate, DateTime endDate);
+	IEnumerable<IFinalInvoiceProduct> GetInvoiceProductsByDateRange(DateOnly startDate, DateOnly endDate);
 
 	IEnumerable<IFinalInvoiceProduct> GetInvoiceProductsByInvoiceId(int invoiceId);
 

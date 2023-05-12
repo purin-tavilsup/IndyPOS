@@ -6,9 +6,9 @@ public interface IUserCredentialRepository
 {
 	bool Add(UserCredential userCredential);
 
-	UserCredential? GetById(int id);
+	UserCredential GetById(int id);
 
-	UserCredential? GetByUsername(string username);
+	UserCredential GetByUsername(string username);
 
 	bool UpdatePassword(UserCredential userCredential);
 

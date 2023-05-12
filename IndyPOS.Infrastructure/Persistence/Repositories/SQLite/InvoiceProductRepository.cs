@@ -89,7 +89,7 @@ public class InvoiceProductRepository : IInvoiceProductRepository
         return results is null ? Enumerable.Empty<InvoiceProduct>() : MapInvoiceProducts(results);
     }
 
-    public IEnumerable<InvoiceProduct> GetByDateRange(DateTime start, DateTime end)
+    public IEnumerable<InvoiceProduct> GetByDateRange(DateOnly start, DateOnly end)
     {
         using var connection = _dbConnectionProvider.GetDbConnection();
         connection.Open();
@@ -107,7 +107,7 @@ public class InvoiceProductRepository : IInvoiceProductRepository
         return results is null ? Enumerable.Empty<InvoiceProduct>() : MapInvoiceProducts(results);
     }
 
-    public IEnumerable<InvoiceProduct> GetByDate(DateTime date)
+    public IEnumerable<InvoiceProduct> GetByDate(DateOnly date)
     {
         return GetByDateRange(date, date);
     }

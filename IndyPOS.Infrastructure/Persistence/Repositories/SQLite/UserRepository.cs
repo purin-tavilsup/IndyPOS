@@ -1,4 +1,5 @@
 ﻿using Dapper;
+using IndyPOS.Application.Common.Exceptions;
 using IndyPOS.Application.Common.Interfaces;
 using IndyPOS.Domain.Entities;
 
@@ -25,7 +26,7 @@ public class UserRepository : IUserRepository
         return results ?? Enumerable.Empty<UserAccount>();
     }
 
-    public UserAccount? GetById(int id)
+    public UserAccount GetById(int id)
     {
         using var connection = _dbConnectionProvider.GetDbConnection();
         connection.Open();
@@ -39,6 +40,11 @@ public class UserRepository : IUserRepository
 
         var result = connection.Query<UserAccount>(sqlCommand, sqlParameters)
                                .FirstOrDefault();
+
+		if (result is null)
+		{
+			throw new UserNotFoundException($"Could not find User by ID: {id}");
+		}
 
         return result;
     }

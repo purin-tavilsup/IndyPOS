@@ -125,8 +125,8 @@ namespace IndyPOS.Windows.Forms.UI.Report
 
 		private IEnumerable<IFinalInvoiceProduct> GetInvoiceProducts()
 		{
-			var startDate = StartDatePicker.Value;
-			var endDate = EndDatePicker.Value;
+			var startDate = DateOnly.FromDateTime(StartDatePicker.Value);
+			var endDate = DateOnly.FromDateTime(EndDatePicker.Value);
 
 			return _reportController.GetInvoiceProductsByDateRange(startDate, endDate);
 		}

@@ -34,7 +34,7 @@ public class PayLaterPaymentHelper : IPayLaterPaymentHelper
 		return new PayLaterPaymentAdapter(result);
 	}
 
-	public IEnumerable<IPayLaterPayment> GetPayLaterPaymentsByDateRange(DateTime startDate, DateTime endDate)
+	public IEnumerable<IPayLaterPayment> GetPayLaterPaymentsByDateRange(DateOnly startDate, DateOnly endDate)
 	{
 		var results = _payLaterPaymentRepository.GetPayLaterPaymentsByDateRange(startDate, endDate);
 

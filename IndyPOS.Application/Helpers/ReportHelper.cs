@@ -421,8 +421,8 @@ public class ReportHelper : IReportHelper
 
 	private PayLaterPaymentsSummary GetYearArSummary()
 	{
-		var startDate = DateTime.Today.FirstDayOfYear();
-		var endDate = DateTime.Today.LastDayOfYear();
+		var startDate = DateOnly.FromDateTime(DateTime.Today.FirstDayOfYear());
+		var endDate = DateOnly.FromDateTime(DateTime.Today.LastDayOfYear());
 
 		var ar = _payLaterPaymentHelper.GetPayLaterPaymentsByDateRange(startDate, endDate);
 
@@ -431,8 +431,8 @@ public class ReportHelper : IReportHelper
 
 	private PayLaterPaymentsSummary GetMonthArSummary()
 	{
-		var startDate = DateTime.Today.FirstDayOfMonth();
-		var endDate = DateTime.Today.LastDayOfMonth();
+		var startDate = DateOnly.FromDateTime(DateTime.Today.FirstDayOfMonth());
+		var endDate = DateOnly.FromDateTime(DateTime.Today.LastDayOfMonth());
 
 		var ar = _payLaterPaymentHelper.GetPayLaterPaymentsByDateRange(startDate, endDate);
 
@@ -441,8 +441,8 @@ public class ReportHelper : IReportHelper
 
 	private PayLaterPaymentsSummary GetDayArSummary()
 	{
-		var startDate = DateTime.Today;
-		var endDate = DateTime.Today;
+		var startDate = DateOnly.FromDateTime(DateTime.Today);
+		var endDate = DateOnly.FromDateTime(DateTime.Today);
 
 		var ar = _payLaterPaymentHelper.GetPayLaterPaymentsByDateRange(startDate, endDate);
 
@@ -481,17 +481,17 @@ public class ReportHelper : IReportHelper
 		return _saleInvoiceHelper.GetInvoicesByPeriod(period);
 	}
 
-	public IEnumerable<IFinalInvoice> GetInvoicesByDateRange(DateTime startDate, DateTime endDate)
+	public IEnumerable<IFinalInvoice> GetInvoicesByDateRange(DateOnly startDate, DateOnly endDate)
 	{
 		return _saleInvoiceHelper.GetInvoicesByDateRange(startDate, endDate);
 	}
 
-	public IEnumerable<IFinalInvoiceProduct> GetInvoiceProductsByDate(DateTime date)
+	public IEnumerable<IFinalInvoiceProduct> GetInvoiceProductsByDate(DateOnly date)
 	{
 		return _saleInvoiceHelper.GetInvoiceProductsByDate(date);
 	}
 
-	public IEnumerable<IFinalInvoiceProduct> GetInvoiceProductsByDateRange(DateTime startDate, DateTime endDate)
+	public IEnumerable<IFinalInvoiceProduct> GetInvoiceProductsByDateRange(DateOnly startDate, DateOnly endDate)
 	{
 		return _saleInvoiceHelper.GetInvoiceProductsByDateRange(startDate, endDate);
 	}

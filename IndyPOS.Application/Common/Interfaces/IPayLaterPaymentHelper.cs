@@ -8,7 +8,7 @@ public interface IPayLaterPaymentHelper
 
     IPayLaterPayment GetPayLaterPaymentByPaymentId(int paymentId);
 
-    IEnumerable<IPayLaterPayment> GetPayLaterPaymentsByDateRange(DateTime startDate, DateTime endDate);
+    IEnumerable<IPayLaterPayment> GetPayLaterPaymentsByDateRange(DateOnly startDate, DateOnly endDate);
 
     void UpdatePayLaterPayment(IPayLaterPayment payLaterPayment);
 }

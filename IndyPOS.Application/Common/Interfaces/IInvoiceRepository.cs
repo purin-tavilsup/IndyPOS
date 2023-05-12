@@ -8,9 +8,9 @@ public interface IInvoiceRepository
 
 	bool RemoveById(int id);
 
-	Invoice? GetById(int id);
+	Invoice GetById(int id);
 
-	IEnumerable<Invoice> GetByDateRange(DateTime start, DateTime end);
+	IEnumerable<Invoice> GetByDateRange(DateOnly start, DateOnly end);
 
-	IEnumerable<Invoice> GetByDate(DateTime date);
+	IEnumerable<Invoice> GetByDate(DateOnly date);
 }
