@@ -1,25 +1,27 @@
-﻿using System.Diagnostics.CodeAnalysis;
-using IndyPOS.Application.Interfaces;
-using IndyPOS.Application.Models;
-using IndyPOS.Windows.Forms.Interfaces;
+﻿using IndyPOS.Application.Common.Interfaces;
+using IndyPOS.Application.InventoryProducts.Commands.CreateInventoryProduct;
+using IndyPOS.Application.InventoryProducts.Commands.UpdateInventoryProductBarcodeCounter;
+using IndyPOS.Application.InventoryProducts.Queries.GetInventoryProductBarcodeCounter;
+using MediatR;
+using System.Diagnostics.CodeAnalysis;
 
 namespace IndyPOS.Windows.Forms.UI.Inventory
 {
     [ExcludeFromCodeCoverage]
 	public partial class AddNewInventoryProductWithCustomBarcodeForm : Form
     {
-        private readonly IBarcodeUtility _barcodeUtility;
-        private readonly IInventoryController _inventoryController;
+		private readonly IMediator _mediator;
+        private readonly IBarcodeGeneratorService _barcodeService;
         private readonly IReadOnlyDictionary<int, string> _productCategoryDictionary;
 		private readonly MessageForm _messageForm;
 
-        public AddNewInventoryProductWithCustomBarcodeForm(IBarcodeUtility barcodeUtility, 
-														   IStoreConstants storeConstants, 
-														   IInventoryController inventoryController,
+        public AddNewInventoryProductWithCustomBarcodeForm(IBarcodeGeneratorService barcodeService, 
+														   IStoreConstants storeConstants,
+                                                           IMediator mediator,
 														   MessageForm messageForm)
 		{
-			_barcodeUtility = barcodeUtility;
-            _inventoryController = inventoryController;
+			_barcodeService = barcodeService;
+            _mediator = mediator;
             _productCategoryDictionary = storeConstants.ProductCategories;
 			_messageForm = messageForm;
 
@@ -112,17 +114,15 @@ namespace IndyPOS.Windows.Forms.UI.Inventory
             }
         }
 
-        private void SaveProductEntryButton_Click(object sender, EventArgs e)
+        private async void SaveProductEntryButton_Click(object sender, EventArgs e)
         {
             if (!ValidateProductEntry())
                 return;
 
 			try
 			{
-				var product = CreateNewProduct();
-
-				_inventoryController.AddNewProduct(product);
-				_inventoryController.IncrementProductBarcodeCounter();
+				await CreateNewProductAsync();
+				await IncrementProductBarcodeCounter();
 
 				Close();
 			}
@@ -132,7 +132,33 @@ namespace IndyPOS.Windows.Forms.UI.Inventory
 			}
 		}
 
-        private IInventoryProduct CreateNewProduct()
+        private async Task CreateNewProductAsync()
+        {
+			var command = CreateCommandForCreateProduct();
+
+			_ = await _mediator.Send(command);
+		}
+
+        private async Task IncrementProductBarcodeCounter()
+		{
+			var counter = await GetProductBarcodeCounter();
+
+			await UpdateProductBarcodeCounter(counter + 1);
+		}
+
+        private async Task UpdateProductBarcodeCounter(int newValue)
+		{
+			var command = new UpdateInventoryProductBarcodeCounterCommand(newValue);
+
+            _ = await _mediator.Send(command);
+		}
+
+		private async Task<int> GetProductBarcodeCounter()
+		{
+			return await _mediator.Send(new GetInventoryProductBarcodeCounterQuery());
+		}
+
+        private CreateInventoryProductCommand CreateCommandForCreateProduct()
         {
             // Required Attributes
             var quantity = int.Parse(QuantityTextBox.Texts.Trim());
@@ -140,30 +166,30 @@ namespace IndyPOS.Windows.Forms.UI.Inventory
             var category = _productCategoryDictionary.FirstOrDefault(x => x.Value == CategoryComboBox.Texts);
             var categoryId = category.Key;
 
-            var product = new InventoryProduct
+            var command = new CreateInventoryProductCommand
             {
-                Barcode = BarcodeTextBox.Texts,
-                Description = DescriptionTextBox.Texts.Trim(),
-                QuantityInStock = quantity,
-                UnitPrice = unitPrice,
-                Category = categoryId,
+				Barcode = BarcodeTextBox.Texts,
+				Description = DescriptionTextBox.Texts.Trim(),
+				QuantityInStock = quantity,
+				UnitPrice = unitPrice,
+				Category = categoryId,
 				IsTrackable = IsTrackableCheckBox.Checked
             };
 
             // Optional Attributes
             if (!string.IsNullOrWhiteSpace(ManufacturerTextBox.Texts))
-                product.Manufacturer = ManufacturerTextBox.Texts;
+                command.Manufacturer = ManufacturerTextBox.Texts;
 
             if (!string.IsNullOrWhiteSpace(BrandTextBox.Texts))
-                product.Brand = BrandTextBox.Texts;
+                command.Brand = BrandTextBox.Texts;
 
             if (decimal.TryParse(GroupPriceTextBox.Texts.Trim(), out var groupPrice))
-                product.GroupPrice = groupPrice;
+                command.GroupPrice = groupPrice;
 
             if (int.TryParse(GroupPriceQuantityTextBox.Texts.Trim(), out var groupPriceQuantity))
-                product.GroupPriceQuantity = groupPriceQuantity;
+                command.GroupPriceQuantity = groupPriceQuantity;
 
-            return product;
+            return command;
         }
 
         private void CancelProductEntryButton_Click(object sender, EventArgs e)
@@ -171,23 +197,23 @@ namespace IndyPOS.Windows.Forms.UI.Inventory
 			Close();
         }
 
-        private void CategoryComboBox_SelectedIndexChanged(object sender, EventArgs e)
+        private async void CategoryComboBox_SelectedIndexChanged(object sender, EventArgs e)
         {
 			var selectedCategoryValue = CategoryComboBox.SelectedItem.ToString(); 
 			var category = _productCategoryDictionary.FirstOrDefault(x => x.Value == selectedCategoryValue); 
 			var categoryId = category.Key;
 
-            GenerateProductBarcode(categoryId);
+            await GenerateProductBarcodeAsync(categoryId);
 		}
 
-        private void GenerateProductBarcode(int categoryId)
+        private async Task GenerateProductBarcodeAsync(int categoryId)
 		{
-			var counter = _inventoryController.GetProductBarcodeCounter();
-			var barcode = _barcodeUtility.GenerateEan13Barcode(categoryId, counter + 1);
+			var counter = await GetProductBarcodeCounter();
+			var barcode = _barcodeService.GenerateEan13Barcode(categoryId, counter + 1);
 
 			BarcodeTextBox.Texts = barcode;
 
-			var barcodeImage = _barcodeUtility.CreateEan13BarcodeImage(barcode, 200, 400, 10);
+			var barcodeImage = _barcodeService.CreateEan13BarcodeImage(barcode, 200, 400, 10);
 
             BarcodePictureBox.Image = barcodeImage;
 		}

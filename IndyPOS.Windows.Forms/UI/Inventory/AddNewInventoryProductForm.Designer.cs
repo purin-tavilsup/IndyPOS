@@ -1,4 +1,4 @@
-﻿namespace IndyPOS.Windows.Forms.UI
+﻿namespace IndyPOS.Windows.Forms.UI.Inventory
 {
     partial class AddNewInventoryProductForm
     {

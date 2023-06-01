@@ -1,13 +1,14 @@
-﻿using System.Diagnostics.CodeAnalysis;
+﻿using IndyPOS.Application.Common.Extensions;
+using IndyPOS.Application.Common.Interfaces;
+using IndyPOS.Application.Common.Models;
 using IndyPOS.Application.Events;
-using IndyPOS.Application.Extensions;
-using IndyPOS.Application.Interfaces;
+using IndyPOS.Domain.Events;
 using IndyPOS.Windows.Forms.Enums;
 using IndyPOS.Windows.Forms.Events;
 using IndyPOS.Windows.Forms.Extensions;
-using IndyPOS.Windows.Forms.Interfaces;
 using IndyPOS.Windows.Forms.UI.Payment;
 using Prism.Events;
+using System.Diagnostics.CodeAnalysis;
 
 namespace IndyPOS.Windows.Forms.UI.Sale;
 
@@ -16,7 +17,7 @@ public partial class SalePanel : UserControl
 {
 	private readonly IEventAggregator _eventAggregator;
 	private readonly AcceptPaymentForm _acceptPaymentForm;
-	private readonly ISaleInvoiceController _saleInvoiceController;
+	private readonly ISaleService _saleService;
 	private readonly AddInvoiceProductForm _addInvoiceProductForm;
 	private readonly UpdateInvoiceProductForm _updateProductForm;
 	private readonly IReadOnlyDictionary<int, string> _paymentTypeDictionary;
@@ -46,8 +47,8 @@ public partial class SalePanel : UserControl
 		Note
 	}
 
-	public SalePanel(IEventAggregator eventAggregator, 
-					 ISaleInvoiceController saleInvoiceController, 
+	public SalePanel(IEventAggregator eventAggregator,
+					 ISaleService saleService,
 					 IStoreConstants storeConstants,
 					 AcceptPaymentForm acceptPaymentForm, 
 					 AddInvoiceProductForm addInvoiceProductForm,
@@ -60,7 +61,7 @@ public partial class SalePanel : UserControl
 		InitializePaymentDataView();
 
 		_eventAggregator = eventAggregator;
-		_saleInvoiceController = saleInvoiceController;
+		_saleService = saleService;
 		_paymentTypeDictionary = storeConstants.PaymentTypes;
 		_acceptPaymentForm = acceptPaymentForm;
 		_addInvoiceProductForm = addInvoiceProductForm;
@@ -73,10 +74,10 @@ public partial class SalePanel : UserControl
 
 	private void SubscribeEvents()
 	{
-		_eventAggregator.GetEvent<SaleInvoiceProductAddedEvent>().Subscribe(SaleInvoiceProductChanged);
-		_eventAggregator.GetEvent<SaleInvoiceProductRemovedEvent>().Subscribe(SaleInvoiceProductChanged);
-		_eventAggregator.GetEvent<SaleInvoiceProductUpdatedEvent>().Subscribe(SaleInvoiceProductChanged);
-		_eventAggregator.GetEvent<PaymentAddedEvent>().Subscribe(PaymentChanged);
+		_eventAggregator.GetEvent<InvoiceProductAddedEvent>().Subscribe(SaleInvoiceProductChanged);
+		_eventAggregator.GetEvent<InvoiceProductRemovedEvent>().Subscribe(SaleInvoiceProductChanged);
+		_eventAggregator.GetEvent<InvoiceProductUpdatedEvent>().Subscribe(SaleInvoiceProductChanged);
+		_eventAggregator.GetEvent<InvoicePaymentAddedEvent>().Subscribe(PaymentChanged);
 		_eventAggregator.GetEvent<AllPaymentsRemovedEvent>().Subscribe(PaymentChanged);
 		_eventAggregator.GetEvent<NewSaleStartedEvent>().Subscribe(ResetSaleInvoiceScreen);
 		_eventAggregator.GetEvent<BarcodeReceivedEvent>().Subscribe(BarcodeReceived);
@@ -157,20 +158,22 @@ public partial class SalePanel : UserControl
 		this.UiThread(delegate
 		{
 			InvoiceDataView.Rows.Clear();
+			
+			var products = _saleService.Products;
+			var invoiceTotal = _saleService.CalculateInvoiceTotal();
+			var changes = _saleService.CalculateChanges();
 
-			var invoiceInfo = _saleInvoiceController.GetInvoiceInfo();
-
-			foreach (var product in invoiceInfo.Products)
+			foreach (var product in products)
 			{
 				AddProductToInvoiceDataView(product);
 			}
 
-			InvoiceTotalLabel.Text = $"{invoiceInfo.InvoiceTotal:N}";
-			ChangesLabel.Text = $"{invoiceInfo.Changes:N}";
+			InvoiceTotalLabel.Text = $"{invoiceTotal:N}";
+			ChangesLabel.Text = $"{changes:N}";
 		});
 	}
 
-	private void AddProductToInvoiceDataView(ISaleInvoiceProduct product)
+	private void AddProductToInvoiceDataView(Product product)
 	{
 		var columnCount = InvoiceDataView.ColumnCount;
 		var productRow = new object[columnCount];
@@ -190,7 +193,7 @@ public partial class SalePanel : UserControl
 		InvoiceDataView.Rows[rowIndex].DefaultCellStyle.BackColor = rowBackColor;
 	}
 
-	private void AddPaymentToPaymentDataView(IPayment payment)
+	private void AddPaymentToPaymentDataView(Application.Common.Models.Payment payment)
 	{
 		var columnCount = PaymentDataView.ColumnCount;
 		var paymentRow = new object[columnCount];
@@ -208,7 +211,7 @@ public partial class SalePanel : UserControl
 
 	private void GetPaymentButton_Click(object sender, EventArgs e)
 	{
-		if (!_saleInvoiceController.IsPendingPayment())
+		if (!_saleService.IsPendingPayment())
 		{
 			_messageForm.Show("รายการเงินที่รับมาสมบูรณ์แล้ว", "ไม่สามารถรับรายการเงินเพิ่มได้อีก");
 
@@ -223,7 +226,7 @@ public partial class SalePanel : UserControl
 
 	private async void SaveSaleInvoiceButton_Click(object sender, EventArgs e)
 	{
-		var errorMessages = _saleInvoiceController.ValidateSaleInvoice();
+		var errorMessages = _saleService.ValidateSaleInvoice();
 
 		if (errorMessages.Any())
 		{
@@ -238,26 +241,24 @@ public partial class SalePanel : UserControl
 
 			return;
 		}
-
+		
 		try
 		{
-			await _saleInvoiceController.CompleteSaleAsync();
+			var invoiceInfo = await _saleService.CompleteSaleAsync();
+
+			_printReceiptForm.ShowDialog(invoiceInfo);
+
+			_saleService.StartNewSale();
 		}
 		catch (Exception ex)
 		{
 			_messageForm.Show($"เกิดความผิดพลาดในขณะที่กำลังบันทึกข้อมูล Error: {ex.Message}", "เกิดความผิดพลาดในขณะที่กำลังบันทึกข้อมูล");
-
-			return;
 		}
-
-		_printReceiptForm.ShowDialog();
-
-		_saleInvoiceController.StartNewSale();
 	}
 
 	private void CancelSaleInvoiceButton_Click(object sender, EventArgs e)
 	{
-		_saleInvoiceController.StartNewSale();
+		_saleService.StartNewSale();
 	}
 
 	private void InvoiceDataView_DoubleClick(object sender, EventArgs e)
@@ -283,16 +284,18 @@ public partial class SalePanel : UserControl
 		this.UiThread(delegate
 		{
 			PaymentDataView.Rows.Clear();
+			
+			var payments = _saleService.Payments;
+			var paymentTotal = _saleService.CalculatePaymentTotal();
+			var changes = _saleService.CalculateChanges();
 
-			var invoiceInfo = _saleInvoiceController.GetInvoiceInfo();
-
-			foreach (var payment in invoiceInfo.Payments)
+			foreach (var payment in payments)
 			{
 				AddPaymentToPaymentDataView(payment);
 			}
 
-			PaymentsTotalLabel.Text = $"{invoiceInfo.PaymentTotal:N}";
-			ChangesLabel.Text = $"{invoiceInfo.Changes:N}";
+			PaymentsTotalLabel.Text = $"{paymentTotal:N}";
+			ChangesLabel.Text = $"{changes:N}";
 		});
 	}
 
@@ -302,31 +305,33 @@ public partial class SalePanel : UserControl
 		{
 			InvoiceDataView.Rows.Clear();
 
-			var invoiceInfo = _saleInvoiceController.GetInvoiceInfo();
+			var invoiceTotal = _saleService.CalculateInvoiceTotal();
+			var paymentTotal = _saleService.CalculatePaymentTotal();
+			var changes = _saleService.CalculateChanges();
 
-			InvoiceTotalLabel.Text = $"{invoiceInfo.InvoiceTotal:N}";
-			PaymentsTotalLabel.Text = $"{invoiceInfo.PaymentTotal:N}";
-			ChangesLabel.Text = $"{invoiceInfo.Changes:N}";
+			InvoiceTotalLabel.Text = $"{invoiceTotal:N}";
+			PaymentsTotalLabel.Text = $"{paymentTotal:N}";
+			ChangesLabel.Text = $"{changes:N}";
 
 			PaymentDataView.Rows.Clear();
 		});
 	}
 
-	private void BarcodeReceived(string barcode)
+	private async void BarcodeReceived(string barcode)
 	{
 		if (_activeSubPanel != SubPanel.Sales)
 			return;
 
-		AddProductToInvoice(barcode);
+		await AddProductToInvoiceAsync(barcode);
 	}
 
-	private void AddProductToInvoice(string barcode)
+	private async Task AddProductToInvoiceAsync(string barcode)
 	{
 		try
 		{
-			var product = _saleInvoiceController.GetInventoryProductByBarcode(barcode);
+			var product = await _saleService.GetInventoryProductByBarcodeAsync(barcode);
 
-			_saleInvoiceController.AddProduct(product);
+			_saleService.AddProduct(product);
 		}
 		catch (Exception ex)
 		{
@@ -336,17 +341,17 @@ public partial class SalePanel : UserControl
 
 	private void ClearAllPaymentsButton_Click(object sender, EventArgs e)
 	{
-		_saleInvoiceController.RemoveAllPayments();
+		_saleService.RemoveAllPayments();
 	}
 
-	private void AddGeneralGoodsProductButton_Click(object sender, EventArgs e)
+	private async void AddGeneralGoodsProductButton_Click(object sender, EventArgs e)
 	{
-		_addInvoiceProductForm.ShowDialog(GeneralGoodsBarcode);
+		await _addInvoiceProductForm.ShowDialog(GeneralGoodsBarcode);
 	}
 
-	private void AddHardwareProductButton_Click(object sender, EventArgs e)
+	private async void AddHardwareProductButton_Click(object sender, EventArgs e)
 	{
-		_addInvoiceProductForm.ShowDialog(HardwareBarcode);
+		await _addInvoiceProductForm.ShowDialog(HardwareBarcode);
 	}
 
 	private void LookUpProductButton_Click(object sender, EventArgs e)

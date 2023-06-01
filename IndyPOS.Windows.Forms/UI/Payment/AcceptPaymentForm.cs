@@ -1,15 +1,14 @@
-﻿using System.Diagnostics.CodeAnalysis;
-using IndyPOS.Application.Enums;
-using IndyPOS.Application.Extensions;
-using IndyPOS.Application.Interfaces;
-using IndyPOS.Windows.Forms.Interfaces;
+﻿using IndyPOS.Application.Common.Enums;
+using IndyPOS.Application.Common.Extensions;
+using IndyPOS.Application.Common.Interfaces;
+using System.Diagnostics.CodeAnalysis;
 
 namespace IndyPOS.Windows.Forms.UI.Payment
 {
-	[ExcludeFromCodeCoverage]
+    [ExcludeFromCodeCoverage]
 	public partial class AcceptPaymentForm : Form
     {
-        private readonly ISaleInvoiceController _saleInvoiceController;
+        private readonly ISaleService _saleService;
         private readonly IList<decimal> _values;
 		private readonly MessageForm _messageForm;
         private readonly IReadOnlyDictionary<int, string> _paymentTypeDictionary;
@@ -19,10 +18,10 @@ namespace IndyPOS.Windows.Forms.UI.Payment
         private string _pendingStringValue;
 		
         public AcceptPaymentForm(IStoreConstants storeConstants,
-								 ISaleInvoiceController saleInvoiceController,
+								 ISaleService saleService,
 								 MessageForm messageForm)
         {
-            _saleInvoiceController = saleInvoiceController;
+			_saleService = saleService;
             _paymentTypeDictionary = storeConstants.PaymentTypes;
 			_messageForm = messageForm;
 
@@ -49,11 +48,11 @@ namespace IndyPOS.Windows.Forms.UI.Payment
 
 			ResetPaymentTypeSelection();
 
-			var balanceRemaining = _saleInvoiceController.CalculateBalanceRemaining();
+			var balanceRemaining = _saleService.CalculateBalanceRemaining();
 
 			BalanceRemainingLabel.Text = $"{balanceRemaining:N}";
 
-			var isRefundInvoice = _saleInvoiceController.IsRefundInvoice();
+			var isRefundInvoice = _saleService.IsRefundInvoice();
 
 			_amount = isRefundInvoice ? balanceRemaining : 0m;
 			
@@ -101,7 +100,7 @@ namespace IndyPOS.Windows.Forms.UI.Payment
 
 			var note = NoteTextBox.Texts.Trim();
 
-            _saleInvoiceController.AddPayment(_selectedPaymentType, _amount, note);
+            _saleService.AddPayment(_selectedPaymentType, _amount, note);
 
             Hide();
         }
@@ -113,7 +112,7 @@ namespace IndyPOS.Windows.Forms.UI.Payment
 
 			var note = NoteTextBox.Texts.Trim();
 
-			_saleInvoiceController.AddPayment(_selectedPaymentType, _amount, note);
+			_saleService.AddPayment(_selectedPaymentType, _amount, note);
 
 			Hide();
 		}
@@ -157,7 +156,7 @@ namespace IndyPOS.Windows.Forms.UI.Payment
 		{
 			ChangePaymentType(PaymentType.PayLater);
 
-			DisplayValue(_saleInvoiceController.CalculateBalanceRemaining());
+			DisplayValue(_saleService.CalculateBalanceRemaining());
 		}
 
 		private void ChangePaymentType(PaymentType type)
@@ -167,7 +166,7 @@ namespace IndyPOS.Windows.Forms.UI.Payment
 
 			PaymentTypeLabel.Text = _paymentTypeDictionary[(int) type];
 
-			var isRefundInvoice = _saleInvoiceController.IsRefundInvoice();
+			var isRefundInvoice = _saleService.IsRefundInvoice();
 
 			AcceptPaymentButton.Visible = type != PaymentType.PayLater && !isRefundInvoice;
 			AcceptPayLaterPaymentButton.Visible = type == PaymentType.PayLater && !isRefundInvoice;
@@ -341,9 +340,9 @@ namespace IndyPOS.Windows.Forms.UI.Payment
 
 			var note = NoteTextBox.Texts.Trim();
 
-			_amount = _saleInvoiceController.CalculateBalanceRemaining();
+			_amount = _saleService.CalculateBalanceRemaining();
 
-			_saleInvoiceController.AddPayment(_selectedPaymentType, _amount, note);
+			_saleService.AddPayment(_selectedPaymentType, _amount, note);
 
 			Hide();
         }

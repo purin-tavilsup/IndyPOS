@@ -1,8 +1,8 @@
-﻿using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
-using IndyPOS.Application.Interfaces;
+﻿using IndyPOS.Application.Common.Interfaces;
 using IndyPOS.Windows.Forms.Interfaces;
 using IndyPOS.Windows.Forms.UI;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 
 namespace IndyPOS.Windows.Forms;
 
@@ -10,16 +10,16 @@ namespace IndyPOS.Windows.Forms;
 public class Machine : IMachine
 {
 	private readonly MainForm _mainForm;
-	private readonly IStoreConfigurationHelper _storeConfigurationHelper;
-	private readonly IBarcodeScannerHelper _barcodeScanner;
+	private readonly IStoreConfigurationService _storeConfigurationService;
+	private readonly IRawInputDeviceService _rawInputDeviceService;
 
 	public Machine(MainForm mainForm,
-				   IStoreConfigurationHelper storeConfigurationHelper,
-				   IBarcodeScannerHelper barcodeScanner)
+				   IStoreConfigurationService storeConfigurationService,
+				   IRawInputDeviceService rawInputDeviceService)
 	{
 		_mainForm = mainForm;
-		_storeConfigurationHelper = storeConfigurationHelper;
-		_barcodeScanner = barcodeScanner;
+		_storeConfigurationService = storeConfigurationService;
+		_rawInputDeviceService = rawInputDeviceService;
 	}
 
 	public void Dispose()
@@ -31,7 +31,8 @@ public class Machine : IMachine
 	{
 		try
 		{
-			ConnectDevices();
+			_rawInputDeviceService.Start(_mainForm.Handle);
+
 			StartUserInterface();
 		}
 		catch (Exception ex)
@@ -53,25 +54,13 @@ public class Machine : IMachine
 	{
 		Console.WriteLine("IndyPOS is shutting down...");
 
-		DisconnectDevices();
-	}
-
-	[Conditional("RELEASE")]
-	private void ConnectDevices()
-	{
-		_barcodeScanner.Connect();
-	}
-
-	[Conditional("RELEASE")]
-	private void DisconnectDevices()
-	{
-		_barcodeScanner.Disconnect();
+		_rawInputDeviceService.Stop();
 	}
 
 	private void StartUserInterface()
 	{
 		var version = GetVersion();
-		var storeConfig = _storeConfigurationHelper.Get();
+		var storeConfig = _storeConfigurationService.Get();
 
 		_mainForm.SetVersion(version);
 		_mainForm.SetStoreName(storeConfig.StoreFullName ?? string.Empty);

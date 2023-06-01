@@ -1,11 +1,16 @@
-﻿using System.Diagnostics.CodeAnalysis;
+﻿using IndyPOS.Application.Common.Interfaces;
 using IndyPOS.Application.Events;
-using IndyPOS.Application.Interfaces;
+using IndyPOS.Application.InventoryProducts;
+using IndyPOS.Application.InventoryProducts.Queries.GetInventoryProductByBarcode;
+using IndyPOS.Application.InventoryProducts.Queries.GetInventoryProductById;
+using IndyPOS.Application.InventoryProducts.Queries.GetInventoryProductsByCategoryId;
+using IndyPOS.Domain.Events;
 using IndyPOS.Windows.Forms.Enums;
 using IndyPOS.Windows.Forms.Events;
 using IndyPOS.Windows.Forms.Extensions;
-using IndyPOS.Windows.Forms.Interfaces;
+using MediatR;
 using Prism.Events;
+using System.Diagnostics.CodeAnalysis;
 
 namespace IndyPOS.Windows.Forms.UI.Inventory;
 
@@ -13,7 +18,6 @@ namespace IndyPOS.Windows.Forms.UI.Inventory;
 public partial class InventoryPanel : UserControl
 {
 	private readonly IEventAggregator _eventAggregator;
-	private readonly IInventoryController _inventoryController;
 	private readonly IReadOnlyDictionary<int, string> _productCategoryDictionary;
 	private readonly AddNewInventoryProductForm _addNewProductForm;
 	private readonly UpdateInventoryProductForm _updateProductForm;
@@ -21,6 +25,7 @@ public partial class InventoryPanel : UserControl
 	private readonly MessageForm _messageForm;
 	private int? _lastQueryCategoryId;
 	private SubPanel _activeSubPanel;
+	private readonly IMediator _mediator;
 
 	private enum ProductColumn
 	{
@@ -38,7 +43,7 @@ public partial class InventoryPanel : UserControl
 	}
 
 	public InventoryPanel(IEventAggregator eventAggregator,
-						  IInventoryController inventoryController,
+						  IMediator mediator,
 						  IStoreConstants storeConstants,
 						  AddNewInventoryProductForm addNewProductForm,
 						  UpdateInventoryProductForm updateProductForm,
@@ -46,7 +51,7 @@ public partial class InventoryPanel : UserControl
 						  MessageForm messageForm)
 	{
 		_eventAggregator = eventAggregator;
-		_inventoryController = inventoryController;
+		_mediator = mediator;
 		_productCategoryDictionary = storeConstants.ProductCategories;
 		_addNewProductForm = addNewProductForm;
 		_updateProductForm = updateProductForm;
@@ -138,9 +143,9 @@ public partial class InventoryPanel : UserControl
 		_activeSubPanel = activeSubPanel;
 	}
 
-	private void ShowProductsByCategoryId(int id)
+	private async Task ShowProductsByCategoryId(int id)
 	{
-		var products = _inventoryController.GetInventoryProductsByCategoryId(id);
+		var products = await GetInventoryProductsByCategoryIdAsync(id);
 
 		ProductDataView.Rows.Clear();
 
@@ -153,7 +158,7 @@ public partial class InventoryPanel : UserControl
 		}
 	}
 
-	private void AddProductToProductDataView(IInventoryProduct product)
+	private void AddProductToProductDataView(InventoryProductDto product)
 	{
 		var columnCount = ProductDataView.ColumnCount;
 		var productRow = new object[columnCount];
@@ -189,13 +194,13 @@ public partial class InventoryPanel : UserControl
 		_addNewProductWithCustomBarcodeForm.ShowDialog();
 	}
 
-	private void ProductDataView_DoubleClick(object sender, EventArgs e)
+	private async void ProductDataView_DoubleClick(object sender, EventArgs e)
 	{
 		var barcode = GetProductBarcodeFromSelectedProduct();
 
 		try
 		{
-			var product = SearchExistingProductByBarcode(barcode);
+			var product = await GetInventoryProductsByByBarcodeAsync(barcode);
 
 			_updateProductForm.ShowDialog(product);
 		}
@@ -218,14 +223,14 @@ public partial class InventoryPanel : UserControl
 		return barcode;
 	}
 
-	private void BarcodeReceived(string barcode)
+	private async void BarcodeReceived(string barcode)
 	{
 		if (_activeSubPanel != SubPanel.Inventory)
 			return;
 
         try
         {
-            var product = SearchExistingProductByBarcode(barcode);
+            var product = await GetInventoryProductsByByBarcodeAsync(barcode);
 
             ShowExistingProduct(product);
 			return;
@@ -238,12 +243,28 @@ public partial class InventoryPanel : UserControl
 		AddNewProduct(barcode);
 	}
 
-	private IInventoryProduct SearchExistingProductByBarcode(string barcode)
+	private async Task<IReadOnlyList<InventoryProductDto>> GetInventoryProductsByCategoryIdAsync(int id)
 	{
-		return _inventoryController.GetInventoryProductByBarcode(barcode);
+		var results = await _mediator.Send(new GetInventoryProductsByCategoryIdQuery(id));
+
+		return results.ToList();
 	}
 
-	private void ShowExistingProduct(IInventoryProduct product)
+	private async Task<InventoryProductDto> GetInventoryProductsByByBarcodeAsync(string barcode)
+	{
+		var result = await _mediator.Send(new GetInventoryProductByBarcodeQuery(barcode));
+
+		return result;
+	}
+
+	private async Task<InventoryProductDto> GetInventoryProductsByIdAsync(int id)
+	{
+		var result = await _mediator.Send(new GetInventoryProductByIdQuery(id));
+
+		return result;
+	}
+
+	private void ShowExistingProduct(InventoryProductDto product)
 	{
 		ClearLastQueryHistory();
 
@@ -267,11 +288,11 @@ public partial class InventoryPanel : UserControl
 		});
 	}
 
-	private void NewInventoryProductAdded(int inventoryProductId)
+	private async void NewInventoryProductAdded(int id)
 	{
 		try
 		{
-			var product = _inventoryController.GetProductById(inventoryProductId);
+			var product = await GetInventoryProductsByIdAsync(id);
 
 			ProductDataView.UiThread(delegate
 			{
@@ -286,20 +307,20 @@ public partial class InventoryPanel : UserControl
 		}
 	}
 
-	private void InventoryProductUpdated(int inventoryProductId)
+	private async void InventoryProductUpdated(int inventoryProductId)
 	{
 		if (!_lastQueryCategoryId.HasValue)
 			return;
 
-		ShowProductsByCategoryId(_lastQueryCategoryId.GetValueOrDefault());
+		await ShowProductsByCategoryId(_lastQueryCategoryId.GetValueOrDefault());
 	}
 
-	private void InventoryProductDeleted()
+	private async void InventoryProductDeleted()
 	{
 		if (!_lastQueryCategoryId.HasValue)
 			return;
 			
-		ShowProductsByCategoryId(_lastQueryCategoryId.GetValueOrDefault());
+		await ShowProductsByCategoryId(_lastQueryCategoryId.GetValueOrDefault());
 	}
 
 	private void ClearLastQueryHistory()
@@ -307,7 +328,7 @@ public partial class InventoryPanel : UserControl
 		_lastQueryCategoryId = null;
 	}
 
-	private void CategoryComboBox_SelectedIndexChanged(object sender, EventArgs e)
+	private async void CategoryComboBox_SelectedIndexChanged(object sender, EventArgs e)
 	{
 		var selectedCategoryValue = CategoryComboBox.SelectedItem.ToString(); 
 		var category = _productCategoryDictionary.FirstOrDefault(x => x.Value == selectedCategoryValue); 
@@ -315,7 +336,7 @@ public partial class InventoryPanel : UserControl
 			
 		_lastQueryCategoryId = categoryId;
 			
-		ShowProductsByCategoryId(categoryId);
+		await ShowProductsByCategoryId(categoryId);
 	}
 
 	private void AddProductWithBarcodeButton_Click(object sender, EventArgs e)

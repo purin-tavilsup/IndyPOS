@@ -1,33 +1,39 @@
-﻿using System.Diagnostics.CodeAnalysis;
-using IndyPOS.Application.Interfaces;
-using IndyPOS.Windows.Forms.Interfaces;
+﻿using IndyPOS.Application.Common.Interfaces;
+using IndyPOS.Application.Users;
+using IndyPOS.Application.Users.Queries.GetUsers;
+using MediatR;
+using System.Diagnostics.CodeAnalysis;
 
 namespace IndyPOS.Windows.Forms.UI.Login;
 
 [ExcludeFromCodeCoverage]
 public partial class UserLogInPanel : UserControl
 {
-	private readonly IUserController _userController;
-	private readonly ICryptographyUtility _cryptographyUtility;
+	private readonly IUserLogInService _userLogInService;
+	private readonly IMediator _mediator;
+	private readonly ICryptographyService _cryptographyService;
 	private readonly MessageForm _messageForm;
+	private bool _isLoggedIn;
 		
-	public UserLogInPanel(IUserController userController,
-						  ICryptographyUtility cryptographyUtility,
+	public UserLogInPanel(IUserLogInService userLogInService,
+						  IMediator mediator,
+						  ICryptographyService cryptographyService,
 						  MessageForm messageForm)
 	{
-		_userController = userController;
-		_cryptographyUtility = cryptographyUtility;
+		_userLogInService = userLogInService;
+		_mediator = mediator;
+		_cryptographyService = cryptographyService;
 		_messageForm = messageForm;
 
 		InitializeComponent();
-		InitializeProductCategories();
+		InitializeUsers();
 	}
 
-	private void InitializeProductCategories()
+	private void InitializeUsers()
 	{
 		UsersComboBox.Items.Clear();
 
-		var users = _userController.GetUsers();
+		var users = GetUsers();
 
 		foreach (var user in users)
 		{
@@ -37,21 +43,33 @@ public partial class UserLogInPanel : UserControl
 		}
 	}
 
-	private void LogInButton_Click(object sender, EventArgs e)
+	private IEnumerable<UserDto> GetUsers()
 	{
-		if (_userController.IsLoggedIn)
-		{
-			_userController.LogOut();
+		return _mediator.Send(new GetUsersQuery())
+						.GetAwaiter()
+						.GetResult();
+	}
 
-			ShowUserInput();
+	private async void LogInButton_Click(object sender, EventArgs e)
+	{
+		if (_isLoggedIn)
+		{
+			LogOut();
 
 			return;
 		}
-			
-		var username = UsersComboBox.SelectedItem?.ToString() ?? string.Empty;
-		var password = _cryptographyUtility.Encrypt(UserSecretTextBox.Texts.Trim());
 
-		if (_userController.LogIn(username, password))
+		await TryLogInAsync();
+	}
+
+	private async Task TryLogInAsync()
+	{
+		var username = UsersComboBox.SelectedItem?.ToString() ?? string.Empty;
+		var password = _cryptographyService.Encrypt(UserSecretTextBox.Texts.Trim());
+
+		_isLoggedIn = await _userLogInService.LogInAsync(username, password);
+
+		if (_isLoggedIn)
 		{
 			HideUserInput();
 		}
@@ -59,6 +77,15 @@ public partial class UserLogInPanel : UserControl
 		{
 			_messageForm.Show("กรุณาใส่ Username และ Password ที่ถูกต้อง", "LogIn เข้าระบบไม่สำเร็จ");
 		}
+	}
+
+	private void LogOut()
+	{
+		_userLogInService.LogOut();
+
+		_isLoggedIn = false;
+
+		ShowUserInput();
 	}
 
 	private void PasswordVisibilityButton_Click(object sender, EventArgs e)
@@ -75,7 +102,7 @@ public partial class UserLogInPanel : UserControl
 		if (!Visible)
 			return;
 
-		if (_userController.IsLoggedIn)
+		if (_isLoggedIn)
 		{
 			HideUserInput();
 		}

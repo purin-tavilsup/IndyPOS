@@ -67,3 +67,11 @@ IndyPOS.Windows.Forms/obj/
 IndyPOS.Windows.Forms.Tests/bin/
 
 IndyPOS.Windows.Forms.Tests/obj/
+
+IndyPOS.Domain/bin/
+
+IndyPOS.Domain/obj/
+
+IndyPOS.Infrastructure/bin/
+
+IndyPOS.Infrastructure/obj/

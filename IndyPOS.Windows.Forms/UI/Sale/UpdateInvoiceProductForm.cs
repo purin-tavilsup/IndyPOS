@@ -1,21 +1,21 @@
-﻿using System.Diagnostics.CodeAnalysis;
-using IndyPOS.Application.Interfaces;
-using IndyPOS.Windows.Forms.Interfaces;
+﻿using IndyPOS.Application.Common.Interfaces;
+using IndyPOS.Application.Common.Models;
+using System.Diagnostics.CodeAnalysis;
 
 namespace IndyPOS.Windows.Forms.UI.Sale;
 
 [ExcludeFromCodeCoverage]
 public partial class UpdateInvoiceProductForm : Form
 {
-	private readonly ISaleInvoiceController _saleInvoiceController;
+	private readonly ISaleService _saleService;
 	private readonly MessageForm _messageForm;
-	private ISaleInvoiceProduct _product;
+	private Product _product;
 
-	public UpdateInvoiceProductForm(ISaleInvoiceController saleInvoiceController,
-									MessageForm messageForm)
+	public UpdateInvoiceProductForm(ISaleService saleService, MessageForm messageForm)
 	{
-		_saleInvoiceController = saleInvoiceController;
+		_saleService = saleService;
 		_messageForm = messageForm;
+		_product = new Product();
 
 		InitializeComponent();
 	}
@@ -24,7 +24,7 @@ public partial class UpdateInvoiceProductForm : Form
 	{
 		try
 		{
-			_product = _saleInvoiceController.GetSaleInvoiceProduct(barcode, priority);
+			_product = _saleService.GetSaleInvoiceProduct(barcode, priority);
 
 			PopulateProductProperties(_product);
 
@@ -38,7 +38,7 @@ public partial class UpdateInvoiceProductForm : Form
 		}
 	}
 
-	private void PopulateProductProperties(ISaleInvoiceProduct product)
+	private void PopulateProductProperties(Product product)
 	{
 		ProductCodeLabel.Text = product.Barcode;
 		DescriptionLabel.Text = product.Description;
@@ -69,7 +69,7 @@ public partial class UpdateInvoiceProductForm : Form
 		return true;
 	}
 
-	private void UpdateProductButton_Click(object sender, EventArgs e)
+	private async void UpdateProductButton_Click(object sender, EventArgs e)
 	{
 		if (!ValidateUserInputs())
 			return;
@@ -80,19 +80,19 @@ public partial class UpdateInvoiceProductForm : Form
 
 			if (quantity == 0)
 			{
-				_saleInvoiceController.RemoveProduct(_product);
+				_saleService.RemoveProduct(_product);
 
 				Close();
 			}
 			
-			_saleInvoiceController.UpdateProductQuantity(_product.InventoryProductId, _product.Priority, quantity);
+			await _saleService.UpdateProductQuantityAsync(_product.InventoryProductId, _product.Priority, quantity);
 
 			if (!_product.IsTrackable)
 			{
 				var unitPrice = decimal.Parse(UnitPriceTextBox.Texts.Trim());
 				var note = NoteTextBox.Texts.Trim();
 
-				_saleInvoiceController.UpdateProductUnitPrice(_product.InventoryProductId, _product.Priority, unitPrice, note);
+				_saleService.UpdateProductUnitPrice(_product.InventoryProductId, _product.Priority, unitPrice, note);
 			}
             
 			Close();
@@ -110,7 +110,7 @@ public partial class UpdateInvoiceProductForm : Form
 
 	private void RemoveProductButton_Click(object sender, EventArgs e)
 	{
-		_saleInvoiceController.RemoveProduct(_product);
+		_saleService.RemoveProduct(_product);
 
 		Close();
 	}

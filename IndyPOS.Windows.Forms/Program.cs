@@ -1,20 +1,14 @@
-﻿using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
-using System.IO;
-using System.Net.Http;
-using System.Runtime.Versioning;
-using IndyPOS.Application.Interfaces;
-using IndyPOS.Windows.Forms.Constants;
-using IndyPOS.Windows.Forms.Extensions;
-using IndyPOS.Windows.Forms.Interfaces;
-using LazyCache;
+﻿using IndyPOS.Windows.Forms.Interfaces;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Prism.Events;
 using Serilog;
 using Serilog.Events;
 using Serilog.Formatting.Compact;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.IO;
+using System.Runtime.Versioning;
 
 namespace IndyPOS.Windows.Forms;
 
@@ -41,8 +35,9 @@ internal static class Program
 
 			var host = CreateHost();
 
-			// Launch Application
-			host.Services.GetRequiredService<IMachine>().Launch();
+			host.Services
+				.GetRequiredService<IMachine>()
+				.Launch();
 		}
 		catch (Exception ex)
 		{
@@ -50,6 +45,7 @@ internal static class Program
 		}
 		finally
 		{
+			Log.Information("Stopping application");
 			Log.CloseAndFlush();
 		}
 	}
@@ -88,16 +84,9 @@ internal static class Program
 
 	private static void AddServices(HostBuilderContext context, IServiceCollection services)
 	{
-		services.AddHelpers()
-				.AddUserInterfaces()
-				.AddRepositories()
-				.AddIndyPosControllers()
-				.AddUtilities()
-				.AddSingleton<IEventAggregator, EventAggregator>()
-				.AddSingleton<IStoreConstants, StoreConstants>()
-				.AddSingleton<IAppCache, CachingService>()
-				.AddSingleton<HttpClient, HttpClient>()
-				.AddSingleton<IMachine, Machine>();
+		services.AddApplicationServices()
+				.AddUIServices()
+				.AddInfrastructureServices();
 	}
 
 	private static void ClosePreviousProcesses()
