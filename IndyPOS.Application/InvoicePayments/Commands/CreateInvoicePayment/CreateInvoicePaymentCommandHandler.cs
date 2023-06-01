@@ -1,12 +1,11 @@
 ﻿using IndyPOS.Application.Abstractions.Messaging;
 using IndyPOS.Application.Common.Interfaces;
 using IndyPOS.Domain.Events;
-using MediatR;
 using Prism.Events;
 
 namespace IndyPOS.Application.InvoicePayments.Commands.CreateInvoicePayment;
 
-public class CreateInvoicePaymentCommandHandler : ICommandHandler<CreateInvoicePaymentCommand>
+public class CreateInvoicePaymentCommandHandler : ICommandHandler<CreateInvoicePaymentCommand, int>
 {
     private readonly IInvoicePaymentRepository _invoicePaymentRepository;
     private readonly IEventAggregator _eventAggregator;
@@ -17,12 +16,12 @@ public class CreateInvoicePaymentCommandHandler : ICommandHandler<CreateInvoiceP
         _eventAggregator = eventAggregator;
     }
 
-    public Task<Unit> Handle(CreateInvoicePaymentCommand command, CancellationToken cancellationToken)
+    public Task<int> Handle(CreateInvoicePaymentCommand command, CancellationToken cancellationToken)
 	{
-		_invoicePaymentRepository.Add(command.ToEntity());
+		var id = _invoicePaymentRepository.Add(command.ToEntity());
 
 		_eventAggregator.GetEvent<InvoicePaymentAddedEvent>().Publish();
 
-        return Task.FromResult(Unit.Value);
+        return Task.FromResult(id);
     }
 }

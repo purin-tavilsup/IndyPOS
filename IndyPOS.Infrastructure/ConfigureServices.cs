@@ -28,6 +28,8 @@ public static class ConfigureServices
         services.AddSingleton<IStoreConstants, StoreConstants>()
 				.AddSingleton<IStoreConfigurationService, StoreConfigurationService>()
 				.AddSingleton<IUserLogInService, UserLogInService>()
+				.AddSingleton<ISaleService, SaleService>()
+				.AddSingleton<IReportService, ReportService>()
 				.AddSingleton<IEventAggregator, EventAggregator>()
 				.AddSingleton<IRawInputDeviceService, RawInputDeviceService>()
 				.AddSingleton<IReceiptPrinterService, ReceiptPrinterService>()

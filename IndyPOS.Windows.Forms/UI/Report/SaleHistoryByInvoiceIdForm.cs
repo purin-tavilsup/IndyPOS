@@ -1,14 +1,15 @@
-﻿using System.Diagnostics.CodeAnalysis;
-using IndyPOS.Application.Common.Enums;
+﻿using IndyPOS.Application.Common.Enums;
 using IndyPOS.Application.Common.Interfaces;
-using IndyPOS.Windows.Forms.Interfaces;
+using IndyPOS.Application.InvoicePayments;
+using IndyPOS.Application.InvoiceProducts;
+using System.Diagnostics.CodeAnalysis;
 
 namespace IndyPOS.Windows.Forms.UI.Report;
 
 [ExcludeFromCodeCoverage]
 public partial class SaleHistoryByInvoiceIdForm : Form
 {
-	private readonly IReportController _reportController;
+	private readonly IReportService _reportService;
 	private readonly IReadOnlyDictionary<int, string> _paymentTypeDictionary;
 
 	private enum ProductColumn
@@ -29,10 +30,10 @@ public partial class SaleHistoryByInvoiceIdForm : Form
 		Note
 	}
 
-	public SaleHistoryByInvoiceIdForm(IReportController reportController,
+	public SaleHistoryByInvoiceIdForm(IReportService reportService,
 									  IStoreConstants storeConstants)
 	{
-		_reportController = reportController;
+		_reportService = reportService;
 		_paymentTypeDictionary = storeConstants.PaymentTypes;
 
 		InitializeComponent();
@@ -100,21 +101,21 @@ public partial class SaleHistoryByInvoiceIdForm : Form
 		#endregion
 	}
 
-	public void ShowDialog(int invoiceId)
+	public async Task ShowDialogAsync(int invoiceId)
 	{
 		InvoiceIdLabel.Text = $"Invoice ID: {invoiceId}";
 
-		ShowInvoiceProductsByInvoiceId(invoiceId);
-		ShowInvoicePaymentsByInvoiceId(invoiceId);
+		await ShowInvoiceProductsByInvoiceIdAsync(invoiceId);
+		await ShowInvoicePaymentsByInvoiceId(invoiceId);
 
 		ShowDialog();
 	}
 
-	private void ShowInvoiceProductsByInvoiceId(int invoiceId)
+	private async Task ShowInvoiceProductsByInvoiceIdAsync(int invoiceId)
 	{
 		var hardwareProductsTotal = 0m;
 		var generalProductsTotal = 0m;
-		var products = _reportController.GetInvoiceProductsByInvoiceId(invoiceId);
+		var products = await _reportService.GetInvoiceProductsByInvoiceIdAsync(invoiceId);
 
 		InvoiceProductsDataView.Rows.Clear();
 
@@ -138,9 +139,9 @@ public partial class SaleHistoryByInvoiceIdForm : Form
 		HardwareProductsTotalLabel.Text = $"{hardwareProductsTotal:N}";
 	}
 
-	private void ShowInvoicePaymentsByInvoiceId(int invoiceId)
+	private async Task ShowInvoicePaymentsByInvoiceId(int invoiceId)
 	{
-		var payments = _reportController.GetPaymentsByInvoiceId(invoiceId);
+		var payments = await _reportService.GetPaymentsByInvoiceIdAsync(invoiceId);
 
 		PaymentDataView.Rows.Clear();
 
@@ -150,7 +151,7 @@ public partial class SaleHistoryByInvoiceIdForm : Form
 		}
 	}
 
-	private void AddProductToInvoiceDataView(IFinalInvoiceProduct product)
+	private void AddProductToInvoiceDataView(InvoiceProductDto product)
 	{
 		var columnCount = InvoiceProductsDataView.ColumnCount;
 		var row = new object[columnCount];
@@ -170,7 +171,7 @@ public partial class SaleHistoryByInvoiceIdForm : Form
 		InvoiceProductsDataView.Rows[rowIndex].DefaultCellStyle.BackColor = rowBackColor;
 	}
 
-	private void AddPaymentToPaymentDataView(IFinalInvoicePayment payment)
+	private void AddPaymentToPaymentDataView(InvoicePaymentDto payment)
 	{
 		var columnCount = PaymentDataView.ColumnCount;
 		var row = new object[columnCount];
@@ -185,7 +186,7 @@ public partial class SaleHistoryByInvoiceIdForm : Form
 		PaymentDataView.Rows[rowIndex].DefaultCellStyle.BackColor = rowBackColor;
 	}
 
-	private static bool IsHardwareProduct(IFinalInvoiceProduct product)
+	private static bool IsHardwareProduct(InvoiceProductDto product)
 	{
 		return product.Category >= (int) ProductCategory.Hardware;
 	}

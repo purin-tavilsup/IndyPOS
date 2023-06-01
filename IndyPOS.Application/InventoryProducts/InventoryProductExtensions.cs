@@ -20,6 +20,7 @@ internal static class InventoryProductExtensions
             QuantityInStock = entity.QuantityInStock,
             GroupPrice = entity.GroupPrice,
             GroupPriceQuantity = entity.GroupPriceQuantity,
+			IsTrackable = entity.IsTrackable,
             DateCreated = entity.DateCreated,
             DateUpdated = entity.DateUpdated
         };
@@ -37,7 +38,9 @@ internal static class InventoryProductExtensions
 			Brand = command.Brand,
 			Category = command.Category,
 			UnitPrice = command.UnitPrice,
-			QuantityInStock = command.Quantity,
+			QuantityInStock = command.QuantityInStock,
+			GroupPrice = command.GroupPrice,
+			GroupPriceQuantity = command.GroupPriceQuantity,
 			IsTrackable = command.IsTrackable
 		};
 
@@ -54,7 +57,7 @@ internal static class InventoryProductExtensions
 			Brand = command.Brand,
 			Category = command.Category,
 			UnitPrice = command.UnitPrice,
-			QuantityInStock = command.Quantity,
+			QuantityInStock = command.QuantityInStock,
 			GroupPrice = command.GroupPrice,
 			GroupPriceQuantity = command.GroupPriceQuantity
 		};

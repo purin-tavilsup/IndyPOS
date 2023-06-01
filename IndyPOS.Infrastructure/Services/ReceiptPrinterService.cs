@@ -1,20 +1,23 @@
 ﻿#nullable enable
-using System.Drawing;
-using System.Drawing.Printing;
-using System.Runtime.Versioning;
 using IndyPOS.Application.Common.Extensions;
 using IndyPOS.Application.Common.Interfaces;
+using IndyPOS.Application.Common.Models;
+using IndyPOS.Application.Events;
 using Microsoft.Extensions.Logging;
+using Prism.Events;
+using System.Drawing.Printing;
+using System.Runtime.Versioning;
 
 namespace IndyPOS.Infrastructure.Services;
 
 [type:SupportedOSPlatform("windows")]
 public class ReceiptPrinterService : IReceiptPrinterService
 {
+	private readonly IEventAggregator _eventAggregator;
 	private readonly ILogger<ReceiptPrinterService> _logger;
 	private readonly IReadOnlyDictionary<int, string> _paymentTypeDictionary;
 	private IInvoiceInfo? _invoiceInfo;
-	private IUserAccount? _loggedInUser;
+	private ILoggedInUser? _loggedInUser;
 	private readonly PrintDocument _printDocument;
 	private readonly SolidBrush _brush;
 	private readonly Font _textFont;
@@ -35,11 +38,13 @@ public class ReceiptPrinterService : IReceiptPrinterService
 	private const string FontFamilyName = "FC Subject [Non-commercial] Reg";
 	private const string LineString = "-------------------------------------------------------";
 
-	public ReceiptPrinterService(IStoreConfigurationService storeConfigurationService,
-								IStoreConstants storeConstants,
-								ILogger<ReceiptPrinterService> logger)
+	public ReceiptPrinterService(IStoreConfigurationService storeConfigurationService, 
+								 IStoreConstants storeConstants,
+								 IEventAggregator eventAggregator,
+								 ILogger<ReceiptPrinterService> logger)
 	{
 		_logger = logger;
+		_eventAggregator = eventAggregator;
 		_paymentTypeDictionary = storeConstants.PaymentTypes;
 
 		GetStoreConfiguration(storeConfigurationService);
@@ -53,6 +58,24 @@ public class ReceiptPrinterService : IReceiptPrinterService
 		_printDocument = new PrintDocument();
 		_printDocument.PrinterSettings.PrinterName = _printerName;
 		_printDocument.PrintPage += PrintPageHandler;
+
+		SubscribeEvents();
+	}
+
+	private void SubscribeEvents()
+	{
+		_eventAggregator.GetEvent<UserLoggedInEvent>().Subscribe(OnUserLoggedIn);
+		_eventAggregator.GetEvent<UserLoggedOutEvent>().Subscribe(OnUserLoggedOut);
+	}
+
+	private void OnUserLoggedIn(ILoggedInUser loggedInUser)
+	{
+		_loggedInUser = loggedInUser;
+	}
+
+	private void OnUserLoggedOut()
+	{
+		_loggedInUser = null;
 	}
 
 	private void GetStoreConfiguration(IStoreConfigurationService storeConfigurationService)
@@ -74,10 +97,9 @@ public class ReceiptPrinterService : IReceiptPrinterService
 		}
 	}
 
-	public void PrintReceipt(IInvoiceInfo invoiceInfo, IUserAccount loggedInUser)
+	public void PrintReceipt(IInvoiceInfo invoiceInfo)
 	{
 		_invoiceInfo = invoiceInfo;
-		_loggedInUser = loggedInUser;
 
 		_printDocument.Print();
 	}
@@ -132,7 +154,7 @@ public class ReceiptPrinterService : IReceiptPrinterService
 		PrintLine(graphics, position.X, position.Y);
 	}
 
-	private void PrintInvoiceInfo(IInvoiceInfo invoiceInfo, IUserAccount userAccount, Graphics graphics, ref Point position)
+	private void PrintInvoiceInfo(IInvoiceInfo invoiceInfo, ILoggedInUser loggedInUser, Graphics graphics, ref Point position)
 	{
 		position.Y += SpaceOffset;
 
@@ -151,7 +173,7 @@ public class ReceiptPrinterService : IReceiptPrinterService
 
 		position.Y += SpaceOffset;
 
-		var cashierName = $"Cashier: {userAccount.FirstName} {userAccount.LastName}";
+		var cashierName = $"Cashier: {loggedInUser.FirstName} {loggedInUser.LastName}";
 		PrintText(graphics, cashierName, position.X, position.Y);
 
 		position.Y += SpaceOffset;
@@ -198,7 +220,7 @@ public class ReceiptPrinterService : IReceiptPrinterService
 		PrintLine(graphics, position.X, position.Y);
 	}
 
-	private static string GetProductDescription(IInvoiceInfo invoiceInfo, ISaleInvoiceProduct product)
+	private static string GetProductDescription(IInvoiceInfo invoiceInfo, Product product)
 	{
 		if (invoiceInfo.IsRefundInvoice && product.Note.HasValue())
 			return $"{product.Description} : {product.Note} (คืนสินค้า)"; 
@@ -249,7 +271,7 @@ public class ReceiptPrinterService : IReceiptPrinterService
 		PrintLine(graphics, position.X, position.Y);
 	}
 
-	private string GetPaymentDescription(IInvoiceInfo invoiceInfo, IPayment payment)
+	private string GetPaymentDescription(IInvoiceInfo invoiceInfo, Payment payment)
 	{
 		var paymentType = _paymentTypeDictionary[payment.PaymentTypeId];
 

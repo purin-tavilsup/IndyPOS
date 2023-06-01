@@ -15,7 +15,7 @@ public class CreateInventoryProductCommandValidator : AbstractValidator<CreateIn
 		RuleFor(x => x.Description)
 			.NotEmpty().WithMessage("Product description cannot be empty.");
 
-		RuleFor(x => x.Quantity)
+		RuleFor(x => x.QuantityInStock)
 			.GreaterThan(0).WithMessage("Product quantity is invalid.");
 	}
 }

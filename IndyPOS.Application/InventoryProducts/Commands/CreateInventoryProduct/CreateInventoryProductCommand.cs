@@ -16,7 +16,11 @@ public record CreateInventoryProductCommand : ICommand
 
 	public decimal UnitPrice { get; set; } = 0m;
 
-	public int Quantity { get; set; } = 0;
+	public int QuantityInStock { get; set; } = 0;
+
+	public int? GroupPriceQuantity { get; set; }
+
+	public decimal? GroupPrice { get; set; }
 
 	public bool IsTrackable { get; set; } = true;
 }

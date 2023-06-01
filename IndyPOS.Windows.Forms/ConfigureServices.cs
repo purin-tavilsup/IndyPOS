@@ -1,5 +1,4 @@
 ﻿using IndyPOS.Windows.Forms;
-using IndyPOS.Windows.Forms.Controllers;
 using IndyPOS.Windows.Forms.Interfaces;
 using IndyPOS.Windows.Forms.UI;
 using IndyPOS.Windows.Forms.UI.Inventory;
@@ -41,12 +40,6 @@ internal static class ConfigureServices
 				.AddSingleton<UpdateInvoiceProductForm>()
 				.AddSingleton<UserLogInPanel>()
 				.AddSingleton<UsersPanel>();
-
-		services.AddSingleton<IPayLaterPaymentController, PayLaterPaymentController>()
-				.AddSingleton<IInventoryController, InventoryController>()
-				.AddSingleton<IReportController, ReportController>()
-				.AddSingleton<ISaleInvoiceController, SaleInvoiceController>()
-				.AddSingleton<IUserController, UserController>();
 
 		services.AddSingleton<IMachine, Machine>();
 

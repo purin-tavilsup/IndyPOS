@@ -15,7 +15,6 @@
     <OutputPath>bin\x64\Release\</OutputPath>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="AutoMapper.Extensions.Microsoft.DependencyInjection" Version="12.0.0" />
     <PackageReference Include="FluentValidation.DependencyInjectionExtensions" Version="11.4.0" />
     <PackageReference Include="MediatR.Extensions.Microsoft.DependencyInjection" Version="11.0.0" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="7.0.1" />
@@ -31,6 +30,7 @@
   <ItemGroup>
     <Folder Include="InventoryProducts\Commands\CreateInventoryProduct\" />
     <Folder Include="InventoryProducts\Commands\DeleteInventoryProduct\" />
+    <Folder Include="InventoryProducts\Commands\UpdateInventoryProductBarcodeCounter\" />
     <Folder Include="InventoryProducts\Commands\UpdateInventoryProductQuantity\" />
     <Folder Include="InventoryProducts\Commands\UpdateInventoryProduct\" />
     <Folder Include="InvoicePayments\Commands\DeleteInvoicePayment\" />

@@ -2,7 +2,7 @@
 
 namespace IndyPOS.Application.Invoices.Commands.CreateInvoice;
 
-public record CreateInvoiceCommand : ICommand
+public record CreateInvoiceCommand : ICommand<int>
 {
 	public decimal Total { get; set; }
 

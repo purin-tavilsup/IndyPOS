@@ -22,11 +22,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Inventory\" />
-    <Folder Include="Users\" />
-  </ItemGroup>
-
-  <ItemGroup>
     <ProjectReference Include="..\IndyPOS.Windows.Forms\IndyPOS.Windows.Forms.csproj" />
   </ItemGroup>
 

@@ -1,30 +1,30 @@
-﻿using System.Diagnostics.CodeAnalysis;
-using IndyPOS.Application.Common.Interfaces;
-using IndyPOS.Windows.Forms.Interfaces;
+﻿using IndyPOS.Application.Common.Interfaces;
+using IndyPOS.Application.InventoryProducts;
+using System.Diagnostics.CodeAnalysis;
 
 namespace IndyPOS.Windows.Forms.UI.Sale;
 
 [ExcludeFromCodeCoverage]
 public partial class AddInvoiceProductForm : Form
 {
-	private readonly ISaleInvoiceController _saleInvoiceController;
+	private readonly ISaleService _saleService;
 	private readonly MessageForm _messageForm;
-	private IInventoryProduct _product;
+	private InventoryProductDto _product;
 
-	public AddInvoiceProductForm(ISaleInvoiceController saleInvoiceController,
-								 MessageForm messageForm)
+	public AddInvoiceProductForm(ISaleService saleService, MessageForm messageForm)
 	{
-		_saleInvoiceController = saleInvoiceController;
+		_saleService = saleService;
 		_messageForm = messageForm;
+		_product = new InventoryProductDto();
 
 		InitializeComponent();
 	}
 
-	public void ShowDialog(string barcode)
+	public async Task ShowDialog(string barcode)
 	{
 		try
 		{
-			_product = _saleInvoiceController.GetInventoryProductByBarcode(barcode);
+			_product = await _saleService.GetInventoryProductByBarcodeAsync(barcode);
 
 			PopulateProductProperties(_product);
 
@@ -38,7 +38,7 @@ public partial class AddInvoiceProductForm : Form
 		}
 	}
 
-	private void PopulateProductProperties(IInventoryProduct product)
+	private void PopulateProductProperties(InventoryProductDto product)
 	{
 		ProductCodeLabel.Text = product.Barcode;
 		DescriptionLabel.Text = product.Description;
@@ -75,7 +75,7 @@ public partial class AddInvoiceProductForm : Form
 		var unitPrice = decimal.Parse(UnitPriceTextBox.Texts.Trim());
 		var note = NoteTextBox.Texts.Trim();
 
-		_saleInvoiceController.AddProduct(_product, unitPrice, quantity, note);
+		_saleService.AddProduct(_product, unitPrice, quantity, note);
             
 		Close();
 	}

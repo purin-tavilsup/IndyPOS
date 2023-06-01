@@ -1,6 +1,6 @@
 ﻿using IndyPOS.Application.Common.Interfaces;
-using IndyPOS.Application.Common.Models;
-using IndyPOS.Windows.Forms.Interfaces;
+using IndyPOS.Application.InventoryProducts.Commands.CreateInventoryProduct;
+using MediatR;
 using System.Diagnostics.CodeAnalysis;
 
 namespace IndyPOS.Windows.Forms.UI.Inventory;
@@ -8,15 +8,15 @@ namespace IndyPOS.Windows.Forms.UI.Inventory;
 [ExcludeFromCodeCoverage]
 public partial class AddNewInventoryProductForm : Form
 {
-	private readonly IInventoryController _inventoryController;
+	private readonly IMediator _mediator;
 	private readonly IReadOnlyDictionary<int, string> _productCategoryDictionary;
 	private readonly MessageForm _messageForm;
 
-	public AddNewInventoryProductForm(IStoreConstants storeConstants, 
-									  IInventoryController inventoryController,
+	public AddNewInventoryProductForm(IStoreConstants storeConstants,
+									  IMediator mediator,
 									  MessageForm messageForm)
 	{
-		_inventoryController = inventoryController;
+		_mediator = mediator;
 		_productCategoryDictionary = storeConstants.ProductCategories;
 		_messageForm = messageForm;
 
@@ -123,16 +123,16 @@ public partial class AddNewInventoryProductForm : Form
 		}
 	}
 
-	private void SaveProductEntryButton_Click(object sender, EventArgs e)
+	private async void SaveProductEntryButton_Click(object sender, EventArgs e)
 	{
 		if (!ValidateProductEntry())
 			return;
 
 		try
 		{
-			var product = CreateNewProduct();
+			var command = CreateCommandForCreateProduct();
 
-			_inventoryController.AddNewProduct(product);
+			_ = await _mediator.Send(command);
 
 			Close();
 		}
@@ -142,7 +142,7 @@ public partial class AddNewInventoryProductForm : Form
 		}
 	}
 
-	private IInventoryProduct CreateNewProduct()
+	private CreateInventoryProductCommand CreateCommandForCreateProduct()
 	{
 		// Required Attributes
 		var quantity = int.Parse(QuantityTextBox.Texts.Trim());
@@ -150,7 +150,7 @@ public partial class AddNewInventoryProductForm : Form
 		var category = _productCategoryDictionary.FirstOrDefault(x => x.Value == CategoryComboBox.Texts);
 		var categoryId = category.Key;
 
-		var product = new InventoryProduct
+		var command = new CreateInventoryProductCommand()
 		{
 			Barcode = ProductCodeTextBox.Texts.Trim(),
 			Description = DescriptionTextBox.Texts.Trim(),
@@ -162,18 +162,18 @@ public partial class AddNewInventoryProductForm : Form
 
 		// Optional Attributes
 		if (!string.IsNullOrWhiteSpace(ManufacturerTextBox.Texts))
-			product.Manufacturer = ManufacturerTextBox.Texts;
+			command.Manufacturer = ManufacturerTextBox.Texts;
 
 		if (!string.IsNullOrWhiteSpace(BrandTextBox.Texts))
-			product.Brand = BrandTextBox.Texts;
+			command.Brand = BrandTextBox.Texts;
 
 		if (decimal.TryParse(GroupPriceTextBox.Texts.Trim(), out var groupPrice))
-			product.GroupPrice = groupPrice;
+			command.GroupPrice = groupPrice;
 
 		if (int.TryParse(GroupPriceQuantityTextBox.Texts.Trim(), out var groupPriceQuantity))
-			product.GroupPriceQuantity = groupPriceQuantity;
+			command.GroupPriceQuantity = groupPriceQuantity;
 
-		return product;
+		return command;
 	}
 
 	private void CancelProductEntryButton_Click(object sender, EventArgs e)

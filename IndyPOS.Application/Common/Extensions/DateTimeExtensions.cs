@@ -22,4 +22,6 @@ public static class DateTimeExtensions
     public static DateTime FirstDayOfYear(this DateTime dateTime) => new(dateTime.Year, 1, 1);
 
     public static DateTime LastDayOfYear(this DateTime dateTime) => new(dateTime.Year, 12, 31);
+
+	public static DateOnly ToDateOnly(this DateTime dateTime) => DateOnly.FromDateTime(dateTime);
 }

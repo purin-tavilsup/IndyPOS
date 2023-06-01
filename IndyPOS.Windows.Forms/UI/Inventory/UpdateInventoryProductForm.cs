@@ -1,22 +1,25 @@
-﻿using System.Diagnostics.CodeAnalysis;
-using IndyPOS.Application.Common.Interfaces;
-using IndyPOS.Windows.Forms.Interfaces;
+﻿using IndyPOS.Application.Common.Interfaces;
+using IndyPOS.Application.InventoryProducts;
+using IndyPOS.Application.InventoryProducts.Commands.DeleteInventoryProduct;
+using IndyPOS.Application.InventoryProducts.Commands.UpdateInventoryProduct;
+using MediatR;
+using System.Diagnostics.CodeAnalysis;
 
 namespace IndyPOS.Windows.Forms.UI.Inventory;
 
 [ExcludeFromCodeCoverage]
 public partial class UpdateInventoryProductForm : Form
 {
-	private readonly IInventoryController _inventoryController;
+	private readonly IMediator _mediator;
 	private readonly MessageForm _messageForm;
 	private readonly IReadOnlyDictionary<int, string> _productCategoryDictionary;
-	private IInventoryProduct _product;
+	private InventoryProductDto _product = new();
 
-	public UpdateInventoryProductForm(IStoreConstants storeConstants, 
-									  IInventoryController inventoryController,
+	public UpdateInventoryProductForm(IStoreConstants storeConstants,
+									  IMediator mediator,
 									  MessageForm messageForm)
 	{
-		_inventoryController = inventoryController;
+		_mediator = mediator;
 		_productCategoryDictionary = storeConstants.ProductCategories;
 		_messageForm = messageForm;
 
@@ -24,7 +27,7 @@ public partial class UpdateInventoryProductForm : Form
 		InitializeProductCategories();
 	}
 
-	public void ShowDialog(IInventoryProduct product)
+	public void ShowDialog(InventoryProductDto product)
 	{
 		_product = product;
 
@@ -92,16 +95,16 @@ public partial class UpdateInventoryProductForm : Form
 		}
 	}
 
-	private void UpdateProductButton_Click(object sender, EventArgs e)
+	private async void UpdateProductButton_Click(object sender, EventArgs e)
 	{
 		if (!ValidateProductEntry())
 			return;
 
 		try
 		{
-			var updatedProduct = UpdateProduct(_product);
+			var command = CreateCommandForUpdateProduct(_product);
 
-			_inventoryController.UpdateProduct(updatedProduct);
+			_ = await _mediator.Send(command);
 
 			Close();
 		}
@@ -111,43 +114,46 @@ public partial class UpdateInventoryProductForm : Form
 		}
 	}
 
-	private IInventoryProduct UpdateProduct(IInventoryProduct product)
+	private UpdateInventoryProductCommand CreateCommandForUpdateProduct(InventoryProductDto product)
 	{
 		var category = _productCategoryDictionary.FirstOrDefault(x => x.Value == CategoryComboBox.Texts);
 		var categoryId = category.Key;
 
-		// Required Attributes
-		product.Description = DescriptionTextBox.Texts.Trim();
-		product.QuantityInStock = int.Parse(QuantityLabel.Text.Trim());
-		product.UnitPrice = decimal.Parse(UnitPriceTextBox.Texts.Trim());
-		product.Category = categoryId;
+		var command = new UpdateInventoryProductCommand
+		{
+			Id = product.InventoryProductId,
+			Description = DescriptionTextBox.Texts.Trim(),
+			QuantityInStock = int.Parse(QuantityLabel.Text.Trim()),
+			UnitPrice = decimal.Parse(UnitPriceTextBox.Texts.Trim()),
+			Category = categoryId
+		};
 
 		// Optional Attributes
 		if (!string.IsNullOrWhiteSpace(ManufacturerTextBox.Texts))
-			product.Manufacturer = ManufacturerTextBox.Texts;
+			command.Manufacturer = ManufacturerTextBox.Texts;
 
 		if (!string.IsNullOrWhiteSpace(BrandTextBox.Texts))
-			product.Brand = BrandTextBox.Texts;
+			command.Brand = BrandTextBox.Texts;
 
 		if (decimal.TryParse(GroupPriceTextBox.Texts.Trim(), out var groupPrice))
 		{
-			product.GroupPrice = groupPrice;
+			command.GroupPrice = groupPrice;
 		}
 		else
 		{
-			product.GroupPrice = null;
+			command.GroupPrice = null;
 		}
 
 		if (int.TryParse(GroupPriceQuantityTextBox.Texts.Trim(), out var groupPriceQuantity))
 		{
-			product.GroupPriceQuantity = groupPriceQuantity;
+			command.GroupPriceQuantity = groupPriceQuantity;
 		}
 		else
 		{
-			product.GroupPriceQuantity = null;
+			command.GroupPriceQuantity = null;
 		}
 
-		return product;
+		return command;
 	}
 
 	private void CancelUpdateProductButton_Click(object sender, EventArgs e)
@@ -155,11 +161,21 @@ public partial class UpdateInventoryProductForm : Form
 		Close();
 	}
 
-	private void RemoveProductButton_Click(object sender, EventArgs e)
+	private async void RemoveProductButton_Click(object sender, EventArgs e)
 	{
-		_inventoryController.RemoveProductById(_product.InventoryProductId);
+		try
+		{
+			var command = new DeleteInventoryProductCommand(_product.InventoryProductId);
 
-		Close();
+			_ = await _mediator.Send(command);
+
+			Close();
+		}
+		catch (Exception ex)
+		{
+			_messageForm.Show($"เกิดความผิดพลาดในขณะที่กำลังลบสินค้า Error: {ex.Message}",
+							  "เกิดความผิดพลาดในขณะที่กำลังลบสินค้า");
+		}
 	}
 
 	private void IncreaseQuantityButton_Click(object sender, EventArgs e)

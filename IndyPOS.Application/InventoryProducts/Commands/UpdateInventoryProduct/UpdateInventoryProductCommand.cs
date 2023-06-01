@@ -16,7 +16,7 @@ public record UpdateInventoryProductCommand : ICommand
 
 	public decimal UnitPrice { get; set; } = 0m;
 
-	public int Quantity { get; set; } = 0;
+	public int QuantityInStock { get; set; } = 0;
 
 	public int? GroupPriceQuantity { get; set; }
 

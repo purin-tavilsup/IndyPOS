@@ -2,7 +2,7 @@
 
 namespace IndyPOS.Application.Users.Commands.CreateUser;
 
-public record CreateUserCommand : ICommand
+public record CreateUserCommand : ICommand<int>
 {
 	public string FirstName { get; set; } = string.Empty;
 

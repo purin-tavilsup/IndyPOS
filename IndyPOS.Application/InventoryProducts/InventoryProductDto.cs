@@ -22,6 +22,8 @@ public class InventoryProductDto
 
     public int? GroupPriceQuantity { get; set; }
 
+	public bool IsTrackable { get; set; }
+
     public string DateCreated { get; set; } = string.Empty;
 
     public string DateUpdated { get; set; } = string.Empty;

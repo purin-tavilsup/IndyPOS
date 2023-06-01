@@ -2,5 +2,5 @@
 
 public interface IReceiptPrinterService
 {
-    void PrintReceipt(IInvoiceInfo invoiceInfo, IUserAccount loggedInUser);
+    void PrintReceipt(IInvoiceInfo invoiceInfo);
 }

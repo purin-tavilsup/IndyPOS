@@ -1,12 +1,14 @@
-﻿namespace IndyPOS.Application.Common.Interfaces;
+﻿using IndyPOS.Application.Common.Models;
+
+namespace IndyPOS.Application.Common.Interfaces;
 
 public interface IInvoiceInfo
 {
-	int Id { get; set; }
+	int Id { get; }
 
-	IList<ISaleInvoiceProduct> Products { get; }
+	IList<Product> Products { get; }
 
-	IList<IPayment> Payments { get; }
+	IList<Payment> Payments { get; }
 
 	bool IsRefundInvoice { get; }
 

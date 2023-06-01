@@ -1,7 +1,8 @@
 ﻿using IndyPOS.Application.Common.Extensions;
 using IndyPOS.Application.Common.Interfaces;
-using IndyPOS.Application.Common.Models;
-using IndyPOS.Windows.Forms.Interfaces;
+using IndyPOS.Application.UserCredentials.Commands.CreateUserCredential;
+using IndyPOS.Application.Users.Commands.CreateUser;
+using MediatR;
 using System.Diagnostics.CodeAnalysis;
 
 namespace IndyPOS.Windows.Forms.UI.User;
@@ -9,17 +10,17 @@ namespace IndyPOS.Windows.Forms.UI.User;
 [ExcludeFromCodeCoverage]
 public partial class AddNewUserForm : Form
 {
-	private readonly IUserController _userController;
+	private readonly IMediator _mediator;
 	private readonly IReadOnlyDictionary<int, string> _userRoleDictionary;
 	private readonly ICryptographyService _cryptographyService;
 	private readonly MessageForm _messageForm;
 
-	public AddNewUserForm(IUserController userController,
+	public AddNewUserForm(IMediator mediator,
 						  IStoreConstants storeConstants,
 						  ICryptographyService cryptographyService,
 						  MessageForm messageForm)
 	{
-		_userController = userController;
+		_mediator = mediator;
 		_userRoleDictionary = storeConstants.UserRoles;
 		_cryptographyService = cryptographyService;
 		_messageForm = messageForm;
@@ -71,29 +72,16 @@ public partial class AddNewUserForm : Form
 		return true;
 	}
 
-	private void SaveUserEntryButton_Click(object sender, EventArgs e)
+	private async void SaveUserEntryButton_Click(object sender, EventArgs e)
 	{
 		if (!ValidateProductEntry())
 			return;
 
-		var firstName = FirstNameTextBox.Texts.Trim();
-		var lastName = LastNameTextBox.Texts.Trim();
-		var selectedRole = UserRoleComboBox.SelectedItem.ToString();
-		var role = _userRoleDictionary.FirstOrDefault(x => x.Value == selectedRole);
-		var roleId = role.Key;
-		var username = UsernameLabel.Text;
-		var encryptedPassword = _cryptographyService.Encrypt(UserSecretTextBox.Texts.Trim());
-
-		var newUser = new UserAccount
-		{
-			FirstName = firstName,
-			LastName = lastName,
-			RoleId = roleId
-		};
-
 		try
 		{
-			_userController.AddNewUser(newUser, username, encryptedPassword);
+			var userId = await CreateUserAsync();
+
+			await CreateUserCredentialAsync(userId);
 
 			ClearUserEntry();
 
@@ -103,6 +91,43 @@ public partial class AddNewUserForm : Form
 		{
 			_messageForm.Show($"เกิดความผิดพลาดในขณะที่กำลังบันทึกผู้ใช้ใหม่ Error: {ex.Message}", "เกิดความผิดพลาดในขณะที่กำลังบันทึกผู้ใช้ใหม่");
 		}
+	}
+
+	private CreateUserCommand CreateCommandForCreateUser()
+	{
+		var selectedRole = UserRoleComboBox.SelectedItem.ToString();
+		var role = _userRoleDictionary.FirstOrDefault(x => x.Value == selectedRole);
+
+		return new CreateUserCommand
+		{
+			FirstName = FirstNameTextBox.Texts.Trim(),
+			LastName = LastNameTextBox.Texts.Trim(),
+			RoleId = role.Key
+		};
+	}
+
+	private CreateUserCredentialCommand CreateCommandForCreateUserCredential(int userId)
+	{
+		return new CreateUserCredentialCommand
+		{
+			UserId = userId,
+			Username = UsernameLabel.Text,
+			Password = _cryptographyService.Encrypt(UserSecretTextBox.Texts.Trim())
+		};
+	}
+
+	private async Task<int> CreateUserAsync()
+	{
+		var command = CreateCommandForCreateUser();
+
+		return await _mediator.Send(command);
+	}
+
+	private async Task CreateUserCredentialAsync(int userId)
+	{
+		var command = CreateCommandForCreateUserCredential(userId);
+
+		_ = await _mediator.Send(command);
 	}
 
 	private void CancelUserEntryButton_Click(object sender, EventArgs e)

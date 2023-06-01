@@ -38,7 +38,7 @@ namespace IndyPOS.Windows.Forms.UI
 
         private UserControl _activePanel;
 		private bool _isUserLoggedIn;
-		private IUserAccount? _loggedInUser;
+		private ILoggedInUser? _loggedInUser;
 
 		public MainForm(SalePanel salesPanel, 
 						InventoryPanel inventoryPanel, 
@@ -305,7 +305,7 @@ namespace IndyPOS.Windows.Forms.UI
 			ResizeWindowsButton.Image = Properties.Resources.restore_window_24px;
         }
 
-        private void OnUserLoggedIn(IUserAccount loggedInUser)
+        private void OnUserLoggedIn(ILoggedInUser loggedInUser)
 		{
 			_loggedInUser = loggedInUser;
 

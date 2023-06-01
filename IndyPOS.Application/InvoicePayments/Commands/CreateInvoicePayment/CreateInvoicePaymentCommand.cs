@@ -2,7 +2,7 @@
 
 namespace IndyPOS.Application.InvoicePayments.Commands.CreateInvoicePayment;
 
-public record CreateInvoicePaymentCommand : ICommand
+public record CreateInvoicePaymentCommand : ICommand<int>
 {
 	public int InvoiceId { get; set; }
 
