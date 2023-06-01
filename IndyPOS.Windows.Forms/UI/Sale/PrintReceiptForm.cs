@@ -1,4 +1,5 @@
 ﻿using IndyPOS.Application.Common.Interfaces;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 
 namespace IndyPOS.Windows.Forms.UI.Sale;
@@ -29,7 +30,7 @@ public partial class PrintReceiptForm : Form
 		{
 			if (_invoiceInfo is null) { return; }
 
-			_receiptPrinterService.PrintReceipt(_invoiceInfo);
+			PrintReceipt(_invoiceInfo);
 
 			Close();
 		}
@@ -38,6 +39,12 @@ public partial class PrintReceiptForm : Form
 			var messageForm = new MessageForm();
 			messageForm.Show($"Error: {ex.Message}", "Unable To Print Receipt!");
 		}
+	}
+
+	[Conditional("RELEASE")]
+	private void PrintReceipt(IInvoiceInfo invoiceInfo)
+	{
+		_receiptPrinterService.PrintReceipt(invoiceInfo);
 	}
 
 	private void CloseFormButton_Click(object sender, EventArgs e)
