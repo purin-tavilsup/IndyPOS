@@ -1,7 +1,6 @@
 ﻿using IndyPOS.Application.Abstractions.Messaging;
 using IndyPOS.Application.Common.Interfaces;
 using IndyPOS.Domain.Events;
-using MediatR;
 using Prism.Events;
 
 namespace IndyPOS.Application.InvoiceProducts.Commands.CreateInvoiceProduct;
@@ -17,12 +16,12 @@ public class CreateInvoiceProductCommandHandler : ICommandHandler<CreateInvoiceP
         _eventAggregator = eventAggregator;
     }
 
-    public Task<Unit> Handle(CreateInvoiceProductCommand command, CancellationToken cancellationToken)
+    public Task Handle(CreateInvoiceProductCommand command, CancellationToken cancellationToken)
     {
 		_invoiceProductRepository.Add(command.ToEntity());
 
         _eventAggregator.GetEvent<InvoiceProductAddedEvent>().Publish();
 
-        return Task.FromResult(Unit.Value);
+		return Task.CompletedTask;
     }
 }

@@ -186,12 +186,12 @@ public partial class UsersPanel : UserControl
 			Password = encryptedPassword
 		};
 
-		_ = await _mediator.Send(command);
+		await _mediator.Send(command);
 	}
 
 	private async Task DeleteUserByIdAsync(int id)
 	{
-		_ = await _mediator.Send(new DeleteUserCommand(id));
+		await _mediator.Send(new DeleteUserCommand(id));
 	}
 
 	private async void UserRoleComboBox_SelectedIndexChanged(object sender, EventArgs e)

@@ -132,7 +132,7 @@ public partial class AddNewInventoryProductForm : Form
 		{
 			var command = CreateCommandForCreateProduct();
 
-			_ = await _mediator.Send(command);
+			await _mediator.Send(command);
 
 			Close();
 		}

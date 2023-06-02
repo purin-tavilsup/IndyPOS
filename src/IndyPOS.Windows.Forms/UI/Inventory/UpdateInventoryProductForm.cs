@@ -104,7 +104,7 @@ public partial class UpdateInventoryProductForm : Form
 		{
 			var command = CreateCommandForUpdateProduct(_product);
 
-			_ = await _mediator.Send(command);
+			await _mediator.Send(command);
 
 			Close();
 		}
@@ -167,7 +167,7 @@ public partial class UpdateInventoryProductForm : Form
 		{
 			var command = new DeleteInventoryProductCommand(_product.InventoryProductId);
 
-			_ = await _mediator.Send(command);
+			await _mediator.Send(command);
 
 			Close();
 		}

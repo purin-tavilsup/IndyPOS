@@ -1,7 +1,6 @@
 ﻿using IndyPOS.Application.Abstractions.Messaging;
 using IndyPOS.Application.Common.Interfaces;
 using IndyPOS.Domain.Events;
-using MediatR;
 using Prism.Events;
 
 namespace IndyPOS.Application.InventoryProducts.Commands.UpdateInventoryProductQuantity;
@@ -18,12 +17,12 @@ public class UpdateInventoryProductQuantityCommandHandler : ICommandHandler<Upda
         _eventAggregator = eventAggregator;
     }
 
-	public Task<Unit> Handle(UpdateInventoryProductQuantityCommand command, CancellationToken cancellationToken)
+	public Task Handle(UpdateInventoryProductQuantityCommand command, CancellationToken cancellationToken)
 	{
 		_ = _productRepository.UpdateProductQuantityById(command.Id, command.Quantity);
 
 		_eventAggregator.GetEvent<InventoryProductUpdatedEvent>().Publish(command.Id);
 
-		return Task.FromResult(Unit.Value);
+		return Task.CompletedTask;
 	}
 }

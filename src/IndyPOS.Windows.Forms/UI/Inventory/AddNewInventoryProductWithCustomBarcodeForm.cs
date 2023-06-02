@@ -136,7 +136,7 @@ namespace IndyPOS.Windows.Forms.UI.Inventory
         {
 			var command = CreateCommandForCreateProduct();
 
-			_ = await _mediator.Send(command);
+			await _mediator.Send(command);
 		}
 
         private async Task IncrementProductBarcodeCounter()
@@ -150,7 +150,7 @@ namespace IndyPOS.Windows.Forms.UI.Inventory
 		{
 			var command = new UpdateInventoryProductBarcodeCounterCommand(newValue);
 
-            _ = await _mediator.Send(command);
+            await _mediator.Send(command);
 		}
 
 		private async Task<int> GetProductBarcodeCounter()

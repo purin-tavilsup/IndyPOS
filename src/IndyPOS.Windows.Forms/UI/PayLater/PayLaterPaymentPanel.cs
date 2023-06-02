@@ -130,7 +130,7 @@ public partial class PayLaterPaymentPanel : UserControl
 	{
 		var command = CreateCommandForUpdatePayLaterPayment(payment, paidAmount);
 
-		_ = await _mediator.Send(command);
+		await _mediator.Send(command);
 	}
 
 	private static UpdatePayLaterPaymentCommand CreateCommandForUpdatePayLaterPayment(PayLaterPaymentDto payment, decimal paidAmount)

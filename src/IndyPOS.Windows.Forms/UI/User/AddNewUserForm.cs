@@ -127,7 +127,7 @@ public partial class AddNewUserForm : Form
 	{
 		var command = CreateCommandForCreateUserCredential(userId);
 
-		_ = await _mediator.Send(command);
+		await _mediator.Send(command);
 	}
 
 	private void CancelUserEntryButton_Click(object sender, EventArgs e)

@@ -1,7 +1,6 @@
 ﻿using IndyPOS.Application.Abstractions.Messaging;
 using IndyPOS.Application.Common.Interfaces;
 using IndyPOS.Domain.Events;
-using MediatR;
 using Prism.Events;
 
 namespace IndyPOS.Application.InventoryProducts.Commands.DeleteInventoryProduct;
@@ -18,12 +17,12 @@ public class DeleteInventoryProductCommandHandler : ICommandHandler<DeleteInvent
 		_eventAggregator = eventAggregator;
 	}
 
-	public Task<Unit> Handle(DeleteInventoryProductCommand command, CancellationToken cancellationToken)
+	public Task Handle(DeleteInventoryProductCommand command, CancellationToken cancellationToken)
 	{
 		_productRepository.RemoveById(command.Id);
 
 		_eventAggregator.GetEvent<InventoryProductDeletedEvent>().Publish();
 
-		return Task.FromResult(Unit.Value);
+		return Task.CompletedTask;
 	}
 }

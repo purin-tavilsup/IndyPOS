@@ -221,7 +221,7 @@ public class SaleService : ISaleService
 			Quantity = quantity
 		};
 
-		_ = await _mediator.Send(command);
+		await _mediator.Send(command);
 	}
 
 	public void AddPayment(PaymentType paymentType, decimal paymentAmount, string note)
@@ -475,7 +475,7 @@ public class SaleService : ISaleService
 			Note = product.Note
 		};
 
-		_ = await _mediator.Send(command);
+		await _mediator.Send(command);
 	}
 
 	private async Task AddPaymentsToDatabaseAsync(IInvoiceInfo invoiceInfo)
@@ -515,7 +515,7 @@ public class SaleService : ISaleService
 			ReceivableAmount = payment.Amount
 		};
 
-		_ = await _mediator.Send(command);
+		await _mediator.Send(command);
 	}
 
 	private class InvoiceInfo : IInvoiceInfo
