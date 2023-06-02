@@ -22,7 +22,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\IndyPOS.Windows.Forms\IndyPOS.Windows.Forms.csproj" />
+    <ProjectReference Include="..\..\src\IndyPOS.Windows.Forms\IndyPOS.Windows.Forms.csproj" />
   </ItemGroup>
 
 </Project>
