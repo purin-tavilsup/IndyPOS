@@ -1,4 +1,4 @@
-﻿#nullable enable
+#nullable enable
 using IndyPOS.Application.Common.Enums;
 using IndyPOS.Application.Common.Interfaces;
 using IndyPOS.Application.Events;
@@ -39,11 +39,13 @@ public class RawInputDeviceService : IRawInputDeviceService
 		Stop();
 		LoadConfiguration();
 
-		_rawInput = new RawInput(handle, captureOnlyInForeground: true);
+		_rawInput = new RawInput(handle, captureOnlyInForeground: true, _barcodeScannerDeviceName);
 		_buffer = new StringBuilder();
 		_keyState = new byte[256];
 
 		_rawInput.KeyPressed += OnKeyPressed;
+
+		_logger.LogInformation("Raw input device service started");
 	}
 
 	public void LoadConfiguration()
@@ -60,6 +62,8 @@ public class RawInputDeviceService : IRawInputDeviceService
 
 		_rawInput.KeyPressed -= OnKeyPressed;
 		_rawInput = null;
+
+		_logger.LogInformation("Raw input device service stopped");
 	}
 
 	public void SetMode(RawInputDeviceMode mode)
@@ -115,8 +119,8 @@ public class RawInputDeviceService : IRawInputDeviceService
 			}
 
 			var buffer = new StringBuilder(2);
-		
-			var numberOfCharacters = Win32.TranslateVirtualKeyToAscii(virtualKey, keyState, buffer);
+
+			var numberOfCharacters = Win32.TranslateVirtualKeyToUnicode(virtualKey, keyState, buffer);
 
 			if (numberOfCharacters > 0)
 			{
@@ -131,10 +135,8 @@ public class RawInputDeviceService : IRawInputDeviceService
 			return;
 		}
 
-		if (_buffer.Length > 0)
+		if (keyPressEvent.VKeyName == "ENTER" && _buffer.Length > 0)
 		{
-			//_logger.LogInformation($"Output: {_buffer}");
-
 			_eventAggregator.GetEvent<BarcodeReceivedEvent>().Publish(_buffer.ToString());
 
 			_buffer.Clear();
@@ -151,8 +153,6 @@ public class RawInputDeviceService : IRawInputDeviceService
 		}
 
 		var deviceName = keyPressEvent.DeviceName;
-
-		//_logger.LogInformation($"Device Name: {deviceName}");
 
 		_eventAggregator.GetEvent<RawInputDeviceNameReceivedEvent>().Publish(deviceName);
 

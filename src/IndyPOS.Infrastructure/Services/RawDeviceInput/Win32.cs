@@ -1,4 +1,4 @@
-﻿using System.ComponentModel;
+using System.ComponentModel;
 using System.Globalization;
 using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
@@ -100,8 +100,14 @@ public static class Win32
 	[DllImport("user32.dll")]
 	private static extern int MapVirtualKey(uint uCode, uint uMapType);
 
-	[DllImport("user32.dll", CharSet = CharSet.Ansi)]
-	private static extern int ToAsciiEx(uint uVirtKey, uint uScanCode, byte[] lpKeyState, [Out] StringBuilder lpChar, uint uFlags, [Out] IntPtr dwhkl);
+	[DllImport("user32.dll")]
+	private static extern int ToUnicodeEx(uint virtualKeyCode, 
+										  uint scanCode, 
+										  byte[] keyboardState, 
+										  [Out, MarshalAs(UnmanagedType.LPWStr, SizeConst = 64)] StringBuilder receivingBuffer, 
+										  int bufferSize, 
+										  uint flags,
+										  [Out] IntPtr inputLocaleId);
 
 	[DllImport("Kernel32.dll")]
 	private static extern uint GetCurrentThreadId();
@@ -234,16 +240,16 @@ public static class Win32
 	}
 
 	/// <summary>
-	/// Translates the specified virtual-key code and keyboard state to the corresponding character or characters.
-	/// The function translates the code using US keyboard layout.
+	/// Translates the specified virtual-key code and keyboard state to the corresponding Unicode character or characters.
+	///  The function translates the code using US keyboard layout.
 	/// </summary>
 	/// <param name="virtualKey"></param>
 	/// <param name="keyState"></param>
 	/// <param name="characters"></param>
 	/// <returns></returns>
-	public static int TranslateVirtualKeyToAscii(uint virtualKey, byte[] keyState, StringBuilder characters)
+	public static int TranslateVirtualKeyToUnicode(uint virtualKey, byte[] keyState, StringBuilder characters)
 	{
-		return ToAsciiEx(virtualKey, 0, keyState, characters, 0, US_KEYBOARD_ID);
+		return ToUnicodeEx(virtualKey, 0, keyState, characters, characters.Capacity, 0, US_KEYBOARD_ID);
 	}
 
 	public static IntPtr GetInputLanguageId()
