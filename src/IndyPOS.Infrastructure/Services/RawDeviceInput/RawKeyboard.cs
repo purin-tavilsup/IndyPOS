@@ -10,24 +10,26 @@ namespace IndyPOS.Infrastructure.Services.RawDeviceInput
 	public sealed class RawKeyboard
 	{
 		public delegate void DeviceEventHandler(object sender, RawInputEventArg e);
-		public event DeviceEventHandler KeyPressed;
+		public event DeviceEventHandler? KeyPressed;
 		private static InputData _rawBuffer;
 		private readonly object _padLock = new();
 		private readonly Dictionary<IntPtr,KeyPressEvent> _deviceList = new();
+		private readonly string _barcodeScannerDeviceName;
 
 		public int NumberOfKeyboards { get; private set; }
 		
-
-		public RawKeyboard(IntPtr hwnd, bool captureOnlyInForeground)
+		public RawKeyboard(IntPtr handle, bool captureOnlyInForeground, string barcodeScannerDeviceName)
 		{
-			var rid = new RawInputDevice[1];
+			var rawInputDevice = new RawInputDevice[1];
 
-			rid[0].UsagePage = HidUsagePage.GENERIC;       
-			rid[0].Usage = HidUsage.Keyboard;              
-            rid[0].Flags = (captureOnlyInForeground ? RawInputDeviceFlags.NONE : RawInputDeviceFlags.INPUTSINK) | RawInputDeviceFlags.DEVNOTIFY;
-			rid[0].Target = hwnd;
+			rawInputDevice[0].UsagePage = HidUsagePage.GENERIC;       
+			rawInputDevice[0].Usage = HidUsage.Keyboard;              
+            rawInputDevice[0].Flags = (captureOnlyInForeground ? RawInputDeviceFlags.NONE : RawInputDeviceFlags.INPUTSINK) | RawInputDeviceFlags.DEVNOTIFY;
+			rawInputDevice[0].Target = handle;
 
-			if(!Win32.RegisterRawInputDevices(rid, (uint)rid.Length, (uint)Marshal.SizeOf(rid[0])))
+			_barcodeScannerDeviceName = barcodeScannerDeviceName;
+
+			if(!Win32.RegisterRawInputDevices(rawInputDevice, (uint)rawInputDevice.Length, (uint)Marshal.SizeOf(rawInputDevice[0])))
 			{
 				throw new ApplicationException("Failed to register raw input device(s).");
 			}
@@ -58,13 +60,15 @@ namespace IndyPOS.Infrastructure.Services.RawDeviceInput
 
                         _ = Win32.GetRawInputDeviceInfo(rid.hDevice, RawInputDeviceInfo.RIDI_DEVICENAME, IntPtr.Zero, ref pcbSize);
 
-						if (pcbSize <= 0) continue;
+						if (pcbSize <= 0) { continue; }
 
 						var pData = Marshal.AllocHGlobal((int)pcbSize);
+
                         _ = Win32.GetRawInputDeviceInfo(rid.hDevice, RawInputDeviceInfo.RIDI_DEVICENAME, pData, ref pcbSize);
+
 						var deviceName = Marshal.PtrToStringAnsi(pData) ?? string.Empty;
 
-                        if (rid.dwType == DeviceType.RimTypekeyboard || rid.dwType == DeviceType.RimTypeHid)
+                        if (rid.dwType is DeviceType.RimTypekeyboard or DeviceType.RimTypeHid)
 						{
 							var deviceDesc = Win32.GetDeviceDescription(deviceName);
 
@@ -92,6 +96,7 @@ namespace IndyPOS.Infrastructure.Services.RawDeviceInput
 
 					NumberOfKeyboards = numberOfDevices;
 					Debug.WriteLine("EnumerateDevices() found {0} Keyboard(s)", NumberOfKeyboards);
+
 					return;
 				}
 			}
@@ -101,10 +106,6 @@ namespace IndyPOS.Infrastructure.Services.RawDeviceInput
 	   
 		public void ProcessRawInput(IntPtr hdevice)
 		{
-			//Debug.WriteLine(_rawBuffer.data.keyboard.ToString());
-			//Debug.WriteLine(_rawBuffer.data.hid.ToString());
-			//Debug.WriteLine(_rawBuffer.header.ToString());
-
 			if (_deviceList.Count == 0) return;
 
 			var dwSize = 0;
@@ -118,12 +119,9 @@ namespace IndyPOS.Infrastructure.Services.RawDeviceInput
 			}
 
 			int virtualKey = _rawBuffer.data.keyboard.VKey;
-			int makeCode = _rawBuffer.data.keyboard.Makecode;
 			int flags = _rawBuffer.data.keyboard.Flags;
 
-			if (virtualKey == Win32.KEYBOARD_OVERRUN_MAKE_CODE) return; 
-			
-			var isE0BitSet = ((flags & Win32.RI_KEY_E0) != 0);
+			if (virtualKey == Win32.KEYBOARD_OVERRUN_MAKE_CODE) return;
 
 			KeyPressEvent keyPressEvent;
 
@@ -145,48 +143,9 @@ namespace IndyPOS.Infrastructure.Services.RawDeviceInput
 			keyPressEvent.KeyPressState = isBreakBitSet ? "BREAK" : "MAKE"; 
 			keyPressEvent.Message = _rawBuffer.data.keyboard.Message;
 			keyPressEvent.VKeyName = KeyMapper.GetMicrosoftKeyName(virtualKey).ToUpper();
-			//keyPressEvent.VKeyName = KeyMapper.GetKeyName(VirtualKeyCorrection(virtualKey, isE0BitSet, makeCode)).ToUpper();
 			keyPressEvent.VKey = virtualKey;
-		   
-			if (KeyPressed != null)
-			{
-				KeyPressed(this, new RawInputEventArg(keyPressEvent));
-			}
-		}
 
-		private static int VirtualKeyCorrection(int virtualKey, bool isE0BitSet, int makeCode)
-		{
-			var correctedVKey = virtualKey;
-
-			if (_rawBuffer.header.hDevice == IntPtr.Zero)
-			{
-				// When hDevice is 0 and the vkey is VK_CONTROL indicates the ZOOM key
-				if (_rawBuffer.data.keyboard.VKey == Win32.VK_CONTROL)
-				{
-					correctedVKey = Win32.VK_ZOOM;
-				}
-			}
-			else
-			{
-				switch (virtualKey)
-				{
-					// Right-hand CTRL and ALT have their e0 bit set 
-					case Win32.VK_CONTROL:
-						correctedVKey = isE0BitSet ? Win32.VK_RCONTROL : Win32.VK_LCONTROL;
-						break;
-					case Win32.VK_MENU:
-						correctedVKey = isE0BitSet ? Win32.VK_RMENU : Win32.VK_LMENU;
-						break;
-					case Win32.VK_SHIFT:
-						correctedVKey = makeCode == Win32.SC_SHIFT_R ? Win32.VK_RSHIFT : Win32.VK_LSHIFT;
-						break;
-					default:
-						correctedVKey = virtualKey;
-						break;
-				}
-			}
-
-			return correctedVKey;
+			KeyPressed?.Invoke(this, new RawInputEventArg(keyPressEvent));
 		}
 	}
 }

@@ -35,11 +35,11 @@ public class RawInput : NativeWindow
 		System.Windows.Forms.Application.RemoveMessageFilter(_filter);
 	}
 
-	public RawInput(IntPtr parentHandle, bool captureOnlyInForeground)
+	public RawInput(IntPtr parentHandle, bool captureOnlyInForeground, string barcodeScannerDeviceName)
 	{
 		AssignHandle(parentHandle);
 
-		_keyboardDriver = new RawKeyboard(parentHandle, captureOnlyInForeground);
+		_keyboardDriver = new RawKeyboard(parentHandle, captureOnlyInForeground, barcodeScannerDeviceName);
 		_keyboardDriver.EnumerateDevices();
 
 		_devNotifyHandle = RegisterForDeviceNotifications(parentHandle);
