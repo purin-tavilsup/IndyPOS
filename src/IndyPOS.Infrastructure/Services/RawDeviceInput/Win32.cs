@@ -1,6 +1,4 @@
-using System.ComponentModel;
-using System.Globalization;
-using System.Runtime.InteropServices;
+﻿using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
 using System.Text;
 
@@ -11,44 +9,13 @@ namespace IndyPOS.Infrastructure.Services.RawDeviceInput;
 [type: SupportedOSPlatform("windows")]
 public static class Win32
 {
-	public static int LoWord(int dwValue)
-	{
-		return (dwValue & 0xFFFF);
-	}
-
-	public static int HiWord(Int64 dwValue)
-	{
-		return (int)(dwValue >> 16) & ~FAPPCOMMANDMASK;
-	}
-
-	public static ushort LowWord(uint val)
-	{
-		return (ushort)val;
-	}
-
-	public static ushort HighWord(uint val)
-	{
-		return (ushort)(val >> 16);
-	}
-
-	public static uint BuildWParam(ushort low, ushort high)
-	{
-		return ((uint)high << 16) | low;
-	}
-
 	// ReSharper disable InconsistentNaming
 	public const int KEYBOARD_OVERRUN_MAKE_CODE = 0xFF;
-	public const int WM_APPCOMMAND = 0x0319;
 	private const int FAPPCOMMANDMASK = 0xF000;
-	internal const int FAPPCOMMANDMOUSE = 0x8000;
-	internal const int FAPPCOMMANDOEM = 0x1000;
 
 	public const int WM_KEYDOWN = 0x0100;
-	public const int WM_KEYUP = 0x0101;
-	internal const int WM_SYSKEYDOWN = 0x0104;
 	internal const int WM_INPUT = 0x00FF;
 	internal const int WM_USB_DEVICECHANGE = 0x0219;
-
 	internal const int VK_SHIFT = 0x10;
 
 	internal const int RI_KEY_MAKE = 0x00;  // Key Down
@@ -82,9 +49,6 @@ public static class Win32
 	[DllImport("User32.dll", SetLastError = true)]
 	internal static extern uint GetRawInputDeviceInfo(IntPtr hDevice, RawInputDeviceInfo command, IntPtr pData, ref uint size);
 
-	[DllImport("user32.dll")]
-	private static extern uint GetRawInputDeviceInfo(IntPtr hDevice, uint command, ref DeviceInfo data, ref uint dataSize);
-
 	[DllImport("User32.dll", SetLastError = true)]
 	internal static extern uint GetRawInputDeviceList(IntPtr pRawInputDeviceList, ref uint numberDevices, uint size);
 
@@ -114,88 +78,6 @@ public static class Win32
 
 	[DllImport("user32.dll")]
 	private static extern IntPtr GetKeyboardLayout(uint idThread);
-
-	public static void DeviceAudit()
-	{
-		var file = new FileStream("DeviceAudit.txt", FileMode.Create, FileAccess.Write);
-		var sw = new StreamWriter(file);
-
-		var keyboardNumber = 0;
-		uint deviceCount = 0;
-		var dwSize = (Marshal.SizeOf(typeof(Rawinputdevicelist)));
-
-		if (GetRawInputDeviceList(IntPtr.Zero, ref deviceCount, (uint)dwSize) == 0)
-		{
-			var pRawInputDeviceList = Marshal.AllocHGlobal((int)(dwSize * deviceCount));
-
-			_ = GetRawInputDeviceList(pRawInputDeviceList, ref deviceCount, (uint)dwSize);
-
-			for (var i = 0; i < deviceCount; i++)
-			{
-				uint pcbSize = 0;
-
-				// On Window 8 64bit when compiling against .Net > 3.5 using .ToInt32 you will generate an arithmetic overflow. Leave as it is for 32bit/64bit applications
-				var rid = (Rawinputdevicelist)Marshal.PtrToStructure(new IntPtr(pRawInputDeviceList.ToInt64() + (dwSize * i)), typeof(Rawinputdevicelist));
-
-				_ = GetRawInputDeviceInfo(rid.hDevice, RawInputDeviceInfo.RIDI_DEVICENAME, IntPtr.Zero, ref pcbSize);
-
-				if (pcbSize <= 0)
-				{
-					sw.WriteLine("pcbSize: " + pcbSize);
-					sw.WriteLine(Marshal.GetLastWin32Error());
-					return;
-				}
-
-				var size = (uint)Marshal.SizeOf(typeof(DeviceInfo));
-				var di = new DeviceInfo {Size = Marshal.SizeOf(typeof (DeviceInfo))};
-                    
-				if (GetRawInputDeviceInfo(rid.hDevice, (uint) RawInputDeviceInfo.RIDI_DEVICEINFO, ref di, ref size) <= 0)
-				{
-					sw.WriteLine(Marshal.GetLastWin32Error());
-					return;
-				}
-                   
-				var pData = Marshal.AllocHGlobal((int)pcbSize);
-
-				_ = GetRawInputDeviceInfo(rid.hDevice, RawInputDeviceInfo.RIDI_DEVICENAME, pData, ref pcbSize);
-
-				var deviceName = Marshal.PtrToStringAnsi(pData) ?? string.Empty;
-
-				if (rid.dwType == DeviceType.RimTypekeyboard || rid.dwType == DeviceType.RimTypeHid)
-				{
-					var deviceDesc = GetDeviceDescription(deviceName);
-
-					var dInfo = new KeyPressEvent
-					{
-						DeviceName = Marshal.PtrToStringAnsi(pData) ?? string.Empty,
-						DeviceHandle = rid.hDevice,
-						DeviceType = GetDeviceType(rid.dwType),
-						Name = deviceDesc,
-						Source = keyboardNumber++.ToString(CultureInfo.InvariantCulture)
-					};
-
-					sw.WriteLine(dInfo.ToString());
-					sw.WriteLine(di.ToString());
-					sw.WriteLine(di.KeyboardInfo.ToString());
-					sw.WriteLine(di.HIDInfo.ToString());
-					//sw.WriteLine(di.MouseInfo.ToString());
-					sw.WriteLine("=========================================================================================================");
-				}
-
-				Marshal.FreeHGlobal(pData);
-			}
-
-			Marshal.FreeHGlobal(pRawInputDeviceList);
-
-			sw.Flush();
-			sw.Close();
-			file.Close();
-
-			return;
-		}
-
-		throw new Win32Exception(Marshal.GetLastWin32Error());
-	}
 
 	public static string GetDeviceType(uint device)
 	{
