@@ -31,13 +31,13 @@ public partial class PrintReceiptForm : Form
 			if (_invoiceInfo is null) { return; }
 
 			PrintReceipt(_invoiceInfo);
-
-			Close();
+			
+			Hide();
 		}
 		catch (Exception ex)
 		{
 			var messageForm = new MessageForm();
-			messageForm.Show($"Error: {ex.Message}", "Unable To Print Receipt!");
+			messageForm.ShowDialog($"Error: {ex.Message}", "Unable To Print Receipt!");
 		}
 	}
 
@@ -49,6 +49,6 @@ public partial class PrintReceiptForm : Form
 
 	private void CloseFormButton_Click(object sender, EventArgs e)
 	{
-		Close();
+		Hide();
 	}
 }

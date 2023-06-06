@@ -38,7 +38,7 @@ public class Machine : IMachine
 		catch (Exception ex)
 		{
 			var messageForm = new MessageForm();
-			messageForm.Show($"Error: {ex.Message}", "Unexpected error has occurred!");
+			messageForm.ShowDialog($"Error: {ex.Message}", "Unexpected error has occurred!");
 		}
 	}
 

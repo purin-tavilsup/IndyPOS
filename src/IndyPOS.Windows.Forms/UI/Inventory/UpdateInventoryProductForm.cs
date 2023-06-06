@@ -35,8 +35,6 @@ public partial class UpdateInventoryProductForm : Form
 
 		PopulateProductProperties();
 
-		CancelUpdateProductButton.Select();
-
 		RemoveProductButton.Enabled = product.IsTrackable;
 
 		ShowDialog();
@@ -58,7 +56,7 @@ public partial class UpdateInventoryProductForm : Form
 	{
 		if (string.IsNullOrWhiteSpace(DescriptionTextBox.Texts))
 		{
-			_messageForm.Show("กรุณาใส่คำอธิบายสินค้าให้ถูกต้อง", "คำอธิบายสินค้าไม่ถูกต้อง");
+			_messageForm.ShowDialog("กรุณาใส่คำอธิบายสินค้าให้ถูกต้อง", "คำอธิบายสินค้าไม่ถูกต้อง");
 			return false;
 		}
 
@@ -66,19 +64,19 @@ public partial class UpdateInventoryProductForm : Form
 		{
 			if (unitPrice < 0m)
 			{
-				_messageForm.Show("กรุณาใส่ราคาขายให้ถูกต้อง", "ราคาขายไม่ถูกต้อง");
+				_messageForm.ShowDialog("กรุณาใส่ราคาขายให้ถูกต้อง", "ราคาขายไม่ถูกต้อง");
 				return false;
 			}
 		}
 		else
 		{
-			_messageForm.Show("กรุณาใส่ราคาขายให้ถูกต้อง", "ราคาขายไม่ถูกต้อง");
+			_messageForm.ShowDialog("กรุณาใส่ราคาขายให้ถูกต้อง", "ราคาขายไม่ถูกต้อง");
 			return false;
 		}
 
 		if (!_productCategoryDictionary.Values.Contains(CategoryComboBox.Texts.Trim()))
 		{
-			_messageForm.Show("กรุณาเลือกประเภทสินค้าให้ถูกต้อง", "ประเภทสินค้าไม่ถูกต้อง");
+			_messageForm.ShowDialog("กรุณาเลือกประเภทสินค้าให้ถูกต้อง", "ประเภทสินค้าไม่ถูกต้อง");
 			return false;
 		}
 
@@ -110,7 +108,7 @@ public partial class UpdateInventoryProductForm : Form
 		}
 		catch (Exception ex)
 		{
-			_messageForm.Show($"เกิดความผิดพลาดในขณะที่กำลังอัพเดทสินค้า Error: {ex.Message}", "เกิดความผิดพลาดในขณะที่กำลังอัพเดทสินค้า");
+			_messageForm.ShowDialog($"เกิดความผิดพลาดในขณะที่กำลังอัพเดทสินค้า Error: {ex.Message}", "เกิดความผิดพลาดในขณะที่กำลังอัพเดทสินค้า");
 		}
 	}
 
@@ -173,8 +171,7 @@ public partial class UpdateInventoryProductForm : Form
 		}
 		catch (Exception ex)
 		{
-			_messageForm.Show($"เกิดความผิดพลาดในขณะที่กำลังลบสินค้า Error: {ex.Message}",
-							  "เกิดความผิดพลาดในขณะที่กำลังลบสินค้า");
+			_messageForm.ShowDialog($"เกิดความผิดพลาดในขณะที่กำลังลบสินค้า Error: {ex.Message}", "เกิดความผิดพลาดในขณะที่กำลังลบสินค้า");
 		}
 	}
 
@@ -207,13 +204,13 @@ public partial class UpdateInventoryProductForm : Form
 		{
 			if (quantity < 1)
 			{
-				_messageForm.Show("กรุณาใส่จำนวนสินค้าให้ถูกต้อง", "จำนวนสินค้าไม่ถูกต้อง");
+				_messageForm.ShowDialog("กรุณาใส่จำนวนสินค้าให้ถูกต้อง", "จำนวนสินค้าไม่ถูกต้อง");
 				return false;
 			}
 		}
 		else
 		{
-			_messageForm.Show("กรุณาใส่จำนวนสินค้าให้ถูกต้อง", "จำนวนสินค้าไม่ถูกต้อง");
+			_messageForm.ShowDialog("กรุณาใส่จำนวนสินค้าให้ถูกต้อง", "จำนวนสินค้าไม่ถูกต้อง");
 			return false;
 		}
 

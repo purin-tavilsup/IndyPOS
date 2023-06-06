@@ -206,7 +206,7 @@ public partial class InventoryPanel : UserControl
 		}
 		catch (Exception ex)
 		{
-			_messageForm.Show($"ไม่พบรหัสสินค้า {barcode} ในระบบ Error: {ex.Message}", "ไม่พบสินค้าในระบบ");
+			_messageForm.ShowDialog($"ไม่พบรหัสสินค้า {barcode} ในระบบ Error: {ex.Message}", "ไม่พบสินค้าในระบบ");
 		}
 	}
 

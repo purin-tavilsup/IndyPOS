@@ -33,8 +33,6 @@ namespace IndyPOS.Windows.Forms.UI.Inventory
         {
             ResetProductEntry();
 
-            CancelProductEntryButton.Select();
-
             base.ShowDialog();
         }
 
@@ -57,7 +55,7 @@ namespace IndyPOS.Windows.Forms.UI.Inventory
         {
 			if (string.IsNullOrWhiteSpace(DescriptionTextBox.Texts))
             {
-				_messageForm.Show("กรุณาใส่คำอธิบายสินค้าให้ถูกต้อง", "คำอธิบายสินค้าไม่ถูกต้อง");
+				_messageForm.ShowDialog("กรุณาใส่คำอธิบายสินค้าให้ถูกต้อง", "คำอธิบายสินค้าไม่ถูกต้อง");
                 
                 return false;
             }
@@ -66,14 +64,14 @@ namespace IndyPOS.Windows.Forms.UI.Inventory
             {
                 if (quantity < 1)
                 {
-					_messageForm.Show("กรุณาใส่จำนวนสินค้าให้ถูกต้อง", "จำนวนสินค้าไม่ถูกต้อง");
+					_messageForm.ShowDialog("กรุณาใส่จำนวนสินค้าให้ถูกต้อง", "จำนวนสินค้าไม่ถูกต้อง");
 
                     return false;
                 }
             }
             else
             {
-				_messageForm.Show("กรุณาใส่จำนวนสินค้าให้ถูกต้อง", "จำนวนสินค้าไม่ถูกต้อง");
+				_messageForm.ShowDialog("กรุณาใส่จำนวนสินค้าให้ถูกต้อง", "จำนวนสินค้าไม่ถูกต้อง");
 
                 return false;
             }
@@ -82,21 +80,21 @@ namespace IndyPOS.Windows.Forms.UI.Inventory
             {
                 if (unitPrice < 0m)
                 {
-					_messageForm.Show("กรุณาใส่ราคาขายให้ถูกต้อง", "ราคาขายไม่ถูกต้อง");
+					_messageForm.ShowDialog("กรุณาใส่ราคาขายให้ถูกต้อง", "ราคาขายไม่ถูกต้อง");
 
                     return false;
                 }
             }
             else
             {
-				_messageForm.Show("กรุณาใส่ราคาขายให้ถูกต้อง", "ราคาขายไม่ถูกต้อง");
+				_messageForm.ShowDialog("กรุณาใส่ราคาขายให้ถูกต้อง", "ราคาขายไม่ถูกต้อง");
                 
                 return false;
             }
 
             if (!_productCategoryDictionary.Values.Contains(CategoryComboBox.Texts.Trim()))
             {
-				_messageForm.Show("กรุณาเลือกประเภทสินค้าให้ถูกต้อง", "ประเภทสินค้าไม่ถูกต้อง");
+				_messageForm.ShowDialog("กรุณาเลือกประเภทสินค้าให้ถูกต้อง", "ประเภทสินค้าไม่ถูกต้อง");
                 
                 return false;
             }
@@ -128,7 +126,7 @@ namespace IndyPOS.Windows.Forms.UI.Inventory
 			}
 			catch (Exception ex)
 			{
-				_messageForm.Show($"เกิดความผิดพลาดในขณะที่กำลังบันทึกสินค้า Error: {ex.Message}", "เกิดความผิดพลาดในขณะที่กำลังบันทึกสินค้า");
+				_messageForm.ShowDialog($"เกิดความผิดพลาดในขณะที่กำลังบันทึกสินค้า Error: {ex.Message}", "เกิดความผิดพลาดในขณะที่กำลังบันทึกสินค้า");
 			}
 		}
 

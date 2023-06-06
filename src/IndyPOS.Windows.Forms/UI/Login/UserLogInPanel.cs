@@ -75,7 +75,7 @@ public partial class UserLogInPanel : UserControl
 		}
 		else
 		{
-			_messageForm.Show("กรุณาใส่ Username และ Password ที่ถูกต้อง", "LogIn เข้าระบบไม่สำเร็จ");
+			_messageForm.ShowDialog("กรุณาใส่ Username และ Password ที่ถูกต้อง", "LogIn เข้าระบบไม่สำเร็จ");
 		}
 	}
 

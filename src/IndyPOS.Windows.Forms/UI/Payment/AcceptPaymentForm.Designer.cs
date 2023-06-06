@@ -735,7 +735,7 @@
             this.AcceptPayLaterPaymentButton.Text = "ลงบัญชี";
             this.AcceptPayLaterPaymentButton.TextColor = System.Drawing.Color.White;
             this.AcceptPayLaterPaymentButton.UseVisualStyleBackColor = false;
-            this.AcceptPayLaterPaymentButton.Click += new System.EventHandler(this.AcceptArPaymentButton_Click);
+            this.AcceptPayLaterPaymentButton.Click += new System.EventHandler(this.AcceptPayLaterPaymentButton_Click);
             // 
             // panel2
             // 

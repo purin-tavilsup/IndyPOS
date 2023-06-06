@@ -213,15 +213,17 @@ public partial class SalePanel : UserControl
 	{
 		if (!_saleService.IsPendingPayment())
 		{
-			_messageForm.Show("รายการเงินที่รับมาสมบูรณ์แล้ว", "ไม่สามารถรับรายการเงินเพิ่มได้อีก");
+			_messageForm.ShowDialog("รายการเงินที่รับมาสมบูรณ์แล้ว", "ไม่สามารถรับรายการเงินเพิ่มได้อีก");
 
 			return;
 		}
 
 		if (_acceptPaymentForm.Visible)
+		{
 			_acceptPaymentForm.Hide();
+		}
 
-		_acceptPaymentForm.Show();
+		_acceptPaymentForm.ShowDialog();
 	}
 
 	private async void SaveSaleInvoiceButton_Click(object sender, EventArgs e)
@@ -237,7 +239,7 @@ public partial class SalePanel : UserControl
 				message += $"- {item}" + Environment.NewLine;
 			}
 
-			_messageForm.Show(message, "ไม่สามารถบันทึกการขายได้");
+			_messageForm.ShowDialog(message, "ไม่สามารถบันทึกการขายได้");
 
 			return;
 		}
@@ -252,7 +254,7 @@ public partial class SalePanel : UserControl
 		}
 		catch (Exception ex)
 		{
-			_messageForm.Show($"เกิดความผิดพลาดในขณะที่กำลังบันทึกข้อมูล Error: {ex.Message}", "เกิดความผิดพลาดในขณะที่กำลังบันทึกข้อมูล");
+			_messageForm.ShowDialog($"เกิดความผิดพลาดในขณะที่กำลังบันทึกข้อมูล Error: {ex.Message}", "เกิดความผิดพลาดในขณะที่กำลังบันทึกข้อมูล");
 		}
 	}
 
@@ -335,7 +337,7 @@ public partial class SalePanel : UserControl
 		}
 		catch (Exception ex)
 		{
-			_messageForm.Show($"ไม่พบรหัสสินค้า {barcode} ในระบบ กรุณาเพิ่มสินค้านี้เข้าในระบบก่อนเริ่มการขาย. Error: {ex.Message}", "ไม่สามารถเพิ่มสินค้าได้");
+			_messageForm.ShowDialog($"ไม่พบรหัสสินค้า {barcode} ในระบบ กรุณาเพิ่มสินค้านี้เข้าในระบบก่อนเริ่มการขาย. Error: {ex.Message}", "ไม่สามารถเพิ่มสินค้าได้");
 		}
 	}
 

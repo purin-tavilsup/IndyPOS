@@ -28,13 +28,11 @@ public partial class AddInvoiceProductForm : Form
 
 			PopulateProductProperties(_product);
 
-			CancelUpdateProductButton.Select();
-
 			ShowDialog();
 		}
 		catch (Exception ex)
 		{
-			_messageForm.Show($"ไม่พบรหัสสินค้า {barcode} ในระบบ Error: {ex.Message}", "ไม่พบสินค้าในระบบ");
+			_messageForm.ShowDialog($"ไม่พบรหัสสินค้า {barcode} ในระบบ Error: {ex.Message}", "ไม่พบสินค้าในระบบ");
 		}
 	}
 
@@ -53,13 +51,13 @@ public partial class AddInvoiceProductForm : Form
 
 		if (!isQuantityValid || quantity == 0)
 		{
-			_messageForm.Show("กรุณาใส่จำนวนสินค้าให้ถูกต้อง", "จำนวนสินค้าไม่ถูกต้อง");
+			_messageForm.ShowDialog("กรุณาใส่จำนวนสินค้าให้ถูกต้อง", "จำนวนสินค้าไม่ถูกต้อง");
 			return false;
 		}
 
 		if (UnitPriceTextBox.Visible && !decimal.TryParse(UnitPriceTextBox.Texts.Trim(), out _))
 		{
-			_messageForm.Show("กรุณาใส่ราคาสินค้าให้ถูกต้อง", "ราคาสินค้าไม่ถูกต้อง");
+			_messageForm.ShowDialog("กรุณาใส่ราคาสินค้าให้ถูกต้อง", "ราคาสินค้าไม่ถูกต้อง");
 			return false;
 		}
 
@@ -76,13 +74,13 @@ public partial class AddInvoiceProductForm : Form
 		var note = NoteTextBox.Texts.Trim();
 
 		_saleService.AddProduct(_product, unitPrice, quantity, note);
-            
-		Close();
+		
+		Hide();
 	}
 
 	private void CancelUpdateProductButton_Click(object sender, EventArgs e)
 	{
-		Close();
+		Hide();
 	}
 
 	private void IncreaseQuantityButton_Click(object sender, EventArgs e)

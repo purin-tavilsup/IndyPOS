@@ -48,7 +48,7 @@ public partial class SettingsPanel : UserControl
         catch (Exception ex)
         {
             var messageForm = new MessageForm();
-            messageForm.Show($"Error: {ex.Message}", "Unable To Get Store Configuration!");
+            messageForm.ShowDialog($"Error: {ex.Message}", "Unable To Get Store Configuration!");
         }
     }
 
@@ -72,7 +72,7 @@ public partial class SettingsPanel : UserControl
         catch (Exception ex)
         {
             var messageForm = new MessageForm();
-            messageForm.Show($"Error: {ex.Message}", "Unable To Update Store Configuration!");
+            messageForm.ShowDialog($"Error: {ex.Message}", "Unable To Update Store Configuration!");
         }
     }
 

@@ -219,7 +219,7 @@ public partial class PayLaterPaymentPanel : UserControl
 		}
 		catch (PayLaterPaymentNotFoundException ex)
 		{
-			_messageForm.Show($"ไม่พบรายการลงบัญชีสำหรับ Payment ID {paymentId}. Error: {ex.Message}", "ไม่พบรายการลงบัญชี");
+			_messageForm.ShowDialog($"ไม่พบรายการลงบัญชีสำหรับ Payment ID {paymentId}. Error: {ex.Message}", "ไม่พบรายการลงบัญชี");
 		}
 	}
 
@@ -230,7 +230,7 @@ public partial class PayLaterPaymentPanel : UserControl
 			return true;
 		}
 
-		_messageForm.Show("กรุณาใส่ยอดชำระให้ถูกต้อง", "ยอดชำระไม่ถูกต้อง");
+		_messageForm.ShowDialog("กรุณาใส่ยอดชำระให้ถูกต้อง", "ยอดชำระไม่ถูกต้อง");
 
 		return false;
 	}
@@ -253,15 +253,15 @@ public partial class PayLaterPaymentPanel : UserControl
 		}
 		catch (PayLaterPaymentNotFoundException ex)
 		{
-			_messageForm.Show($"ไม่พบรายการลงบัญชีสำหรับ Payment ID {paymentId}. Error: {ex.Message}", "ไม่พบรายการลงบัญชี");
+			_messageForm.ShowDialog($"ไม่พบรายการลงบัญชีสำหรับ Payment ID {paymentId}. Error: {ex.Message}", "ไม่พบรายการลงบัญชี");
 		}
 		catch (PayLaterPaymentNotUpdatedException ex)
 		{
-			_messageForm.Show($"ไม่สามารถอัพเดทรายการลงบัญชีสำหรับ Payment ID {paymentId}. Error: {ex.Message}", "ไม่สามารถอัพเดทรายการลงบัญชี");
+			_messageForm.ShowDialog($"ไม่สามารถอัพเดทรายการลงบัญชีสำหรับ Payment ID {paymentId}. Error: {ex.Message}", "ไม่สามารถอัพเดทรายการลงบัญชี");
 		}
 		catch (Exception ex)
 		{
-			_messageForm.Show($"เกิดข้อผิดพลาดระหว่างที่กำลังอัพเดทรายการลงบัญชีสำหรับ Payment ID {paymentId}. Error: {ex.Message}", "ไม่สามารถอัพเดทรายการลงบัญชี");
+			_messageForm.ShowDialog($"เกิดข้อผิดพลาดระหว่างที่กำลังอัพเดทรายการลงบัญชีสำหรับ Payment ID {paymentId}. Error: {ex.Message}", "ไม่สามารถอัพเดทรายการลงบัญชี");
 		}
 
 		await ShowPayLaterPaymentsAsync(ShowIncompleteOnlyCheckBox.Checked);
@@ -271,7 +271,7 @@ public partial class PayLaterPaymentPanel : UserControl
 	{
 		if (!int.TryParse(LookUpByInvoiceIdTextBox.Texts.Trim(), out var invoiceId))
 		{
-			_messageForm.Show("กรุณาใส่ Invoice ID ให้ถูกต้อง", "Invoice ID ไม่ถูกต้อง");
+			_messageForm.ShowDialog("กรุณาใส่ Invoice ID ให้ถูกต้อง", "Invoice ID ไม่ถูกต้อง");
 			return;
 		}
 			
@@ -285,11 +285,11 @@ public partial class PayLaterPaymentPanel : UserControl
 		}
 		catch (PayLaterPaymentNotFoundException ex)
 		{
-			_messageForm.Show($"ไม่พบรายการลงบัญชีสำหรับ Invoice ID {invoiceId}. Error: {ex.Message}", "ไม่พบรายการลงบัญชี");
+			_messageForm.ShowDialog($"ไม่พบรายการลงบัญชีสำหรับ Invoice ID {invoiceId}. Error: {ex.Message}", "ไม่พบรายการลงบัญชี");
 		}
 		catch (Exception ex)
 		{
-			_messageForm.Show($"เกิดข้อผิดพลาดระหว่างที่กำลังค้นหารายการลงบัญชีสำหรับ Invoice ID {invoiceId}. Error: {ex.Message}", "ไม่พบรายการลงบัญชี");
+			_messageForm.ShowDialog($"เกิดข้อผิดพลาดระหว่างที่กำลังค้นหารายการลงบัญชีสำหรับ Invoice ID {invoiceId}. Error: {ex.Message}", "ไม่พบรายการลงบัญชี");
 		}
 	}
 

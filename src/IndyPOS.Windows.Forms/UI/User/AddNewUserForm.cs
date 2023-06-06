@@ -43,28 +43,28 @@ public partial class AddNewUserForm : Form
 	{
 		if (!FirstNameTextBox.Texts.HasValue())
 		{
-			_messageForm.Show("กรุณาใส่ชื่อของผู้ใช้", "ชื่อของผู้ใช้ไม่ถูกต้อง");
+			_messageForm.ShowDialog("กรุณาใส่ชื่อของผู้ใช้", "ชื่อของผู้ใช้ไม่ถูกต้อง");
 
 			return false;
 		}
 
 		if (!LastNameTextBox.Texts.HasValue())
 		{
-			_messageForm.Show("กรุณาใส่นามสกุลของผู้ใช้", "นามสกุลของผู้ใช้ไม่ถูกต้อง");
+			_messageForm.ShowDialog("กรุณาใส่นามสกุลของผู้ใช้", "นามสกุลของผู้ใช้ไม่ถูกต้อง");
 
 			return false;
 		}
 
 		if (!_userRoleDictionary.Values.Contains(UserRoleComboBox.Texts.Trim()))
 		{
-			_messageForm.Show("กรุณาเลือกประเภทผู้ใช้ให้ถูกต้อง", "ประเภทผู้ใช้ไม่ถูกต้อง");
+			_messageForm.ShowDialog("กรุณาเลือกประเภทผู้ใช้ให้ถูกต้อง", "ประเภทผู้ใช้ไม่ถูกต้อง");
 
 			return false;
 		}
 
 		if (!UserSecretTextBox.Texts.HasValue())
 		{
-			_messageForm.Show("กรุณาสร้างรหัสผ่าน", "รหัสผ่านไม่ถูกต้อง");
+			_messageForm.ShowDialog("กรุณาสร้างรหัสผ่าน", "รหัสผ่านไม่ถูกต้อง");
 
 			return false;
 		}
@@ -89,7 +89,7 @@ public partial class AddNewUserForm : Form
 		}
 		catch (Exception ex)
 		{
-			_messageForm.Show($"เกิดความผิดพลาดในขณะที่กำลังบันทึกผู้ใช้ใหม่ Error: {ex.Message}", "เกิดความผิดพลาดในขณะที่กำลังบันทึกผู้ใช้ใหม่");
+			_messageForm.ShowDialog($"เกิดความผิดพลาดในขณะที่กำลังบันทึกผู้ใช้ใหม่ Error: {ex.Message}", "เกิดความผิดพลาดในขณะที่กำลังบันทึกผู้ใช้ใหม่");
 		}
 	}
 

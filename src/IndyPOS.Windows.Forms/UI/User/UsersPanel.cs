@@ -210,7 +210,7 @@ public partial class UsersPanel : UserControl
 		}
 		catch (Exception ex)
 		{
-			_messageForm.Show($"เกิดความผิดพลาดในขณะที่กำลังค้นหาบัญชีผู้ใช้ (Role ID: {roleId}) ในระบบ Error: {ex.Message}", "เกิดความผิดพลาดในขณะที่กำลังค้นหาบัญชีผู้ใช้ในระบบ");
+			_messageForm.ShowDialog($"เกิดความผิดพลาดในขณะที่กำลังค้นหาบัญชีผู้ใช้ (Role ID: {roleId}) ในระบบ Error: {ex.Message}", "เกิดความผิดพลาดในขณะที่กำลังค้นหาบัญชีผู้ใช้ในระบบ");
 		}
 	}
 
@@ -237,7 +237,7 @@ public partial class UsersPanel : UserControl
 		}
 		catch (Exception ex)
 		{
-			_messageForm.Show($"เกิดความผิดพลาดในขณะที่กำลังค้นหาบัญชีผู้ใช้ (User ID: {userId}) ในระบบ Error: {ex.Message}", "เกิดความผิดพลาดในขณะที่กำลังค้นหาบัญชีผู้ใช้ในระบบ");
+			_messageForm.ShowDialog($"เกิดความผิดพลาดในขณะที่กำลังค้นหาบัญชีผู้ใช้ (User ID: {userId}) ในระบบ Error: {ex.Message}", "เกิดความผิดพลาดในขณะที่กำลังค้นหาบัญชีผู้ใช้ในระบบ");
 		}
 	}
 
@@ -256,7 +256,7 @@ public partial class UsersPanel : UserControl
 		}
 		catch (Exception ex)
 		{
-			_messageForm.Show($"เกิดความผิดพลาดในขณะที่กำลังค้นหาบัญชีผู้ใช้ (Role ID: {roleId}) ในระบบ Error: {ex.Message}", "เกิดความผิดพลาดในขณะที่กำลังค้นหาบัญชีผู้ใช้ในระบบ");
+			_messageForm.ShowDialog($"เกิดความผิดพลาดในขณะที่กำลังค้นหาบัญชีผู้ใช้ (Role ID: {roleId}) ในระบบ Error: {ex.Message}", "เกิดความผิดพลาดในขณะที่กำลังค้นหาบัญชีผู้ใช้ในระบบ");
 		}
 	}
 
@@ -321,7 +321,7 @@ public partial class UsersPanel : UserControl
 		}
 		catch (Exception ex)
 		{
-			_messageForm.Show($"เกิดความผิดพลาดในขณะที่กำลังอัพเดทบัญชีผู้ใช้ (User ID: {userId}) ในระบบ Error: {ex.Message}", "เกิดความผิดพลาดในขณะที่กำลังอัพเดทบัญชีผู้ใช้");
+			_messageForm.ShowDialog($"เกิดความผิดพลาดในขณะที่กำลังอัพเดทบัญชีผู้ใช้ (User ID: {userId}) ในระบบ Error: {ex.Message}", "เกิดความผิดพลาดในขณะที่กำลังอัพเดทบัญชีผู้ใช้");
 		}
 	}
 
@@ -352,7 +352,7 @@ public partial class UsersPanel : UserControl
 		}
 		catch (Exception ex)
 		{
-			_messageForm.Show($"เกิดความผิดพลาดในขณะที่กำลังลบบัญชีผู้ใช้ (User ID: {userId}) ในระบบ Error: {ex.Message}", "เกิดความผิดพลาดในขณะที่กำลังลบบัญชีผู้ใช้");
+			_messageForm.ShowDialog($"เกิดความผิดพลาดในขณะที่กำลังลบบัญชีผู้ใช้ (User ID: {userId}) ในระบบ Error: {ex.Message}", "เกิดความผิดพลาดในขณะที่กำลังลบบัญชีผู้ใช้");
 		}
 	}
 

@@ -40,7 +40,7 @@ namespace IndyPOS.Windows.Forms.UI.Payment
             PaymentTypeLabel.Text = _paymentTypeDictionary[(int)_selectedPaymentType];
         }
 
-        public new void Show()
+        public new void ShowDialog()
         {
             _pendingStringValue = string.Empty;
             _values.Clear();
@@ -64,10 +64,8 @@ namespace IndyPOS.Windows.Forms.UI.Payment
 
 			PaymentTypePanel.Enabled = !isRefundInvoice;
 			KeypadPanel.Enabled = !isRefundInvoice;
-			
-			CancelAcceptPaymentButton.Select();
 
-            base.Show();
+			base.ShowDialog();
         }
 
         private bool ValidatePaymentType()
@@ -75,7 +73,7 @@ namespace IndyPOS.Windows.Forms.UI.Payment
 			if (!_isPaymentTypeSelected)
             {
 				_messageForm.BringToFront();
-				_messageForm.Show("กรุณาเลือกวิธีการชำระเงิน", "วิธีการชำระเงินยังไม่ถูกเลือก");
+				_messageForm.ShowDialog("กรุณาเลือกวิธีการชำระเงิน", "วิธีการชำระเงินยังไม่ถูกเลือก");
 
 				return false;
 			}
@@ -83,7 +81,7 @@ namespace IndyPOS.Windows.Forms.UI.Payment
 			if (_selectedPaymentType == PaymentType.PayLater && !NoteTextBox.Texts.HasValue())
 			{
 				_messageForm.BringToFront();
-				_messageForm.Show("กรุณาใส่ Note สำหรับการลงบัญชี", "Note ไม่ถูกต้อง");
+				_messageForm.ShowDialog("กรุณาใส่ Note สำหรับการลงบัญชี", "Note ไม่ถูกต้อง");
 
 				return false;
 			}
@@ -101,7 +99,7 @@ namespace IndyPOS.Windows.Forms.UI.Payment
 			var note = NoteTextBox.Texts.Trim();
 
             _saleService.AddPayment(_selectedPaymentType, _amount, note);
-
+			
             Hide();
         }
 
@@ -113,7 +111,7 @@ namespace IndyPOS.Windows.Forms.UI.Payment
 			var note = NoteTextBox.Texts.Trim();
 
 			_saleService.AddPayment(_selectedPaymentType, _amount, note);
-
+			
 			Hide();
 		}
 
@@ -333,7 +331,7 @@ namespace IndyPOS.Windows.Forms.UI.Payment
             PaymentAmountLabel.Text = value;
         }
 
-        private void AcceptArPaymentButton_Click(object sender, EventArgs e)
+        private void AcceptPayLaterPaymentButton_Click(object sender, EventArgs e)
         {
 			if (!ValidatePaymentType())
 				return;
@@ -343,7 +341,7 @@ namespace IndyPOS.Windows.Forms.UI.Payment
 			_amount = _saleService.CalculateBalanceRemaining();
 
 			_saleService.AddPayment(_selectedPaymentType, _amount, note);
-
+			
 			Hide();
         }
     }

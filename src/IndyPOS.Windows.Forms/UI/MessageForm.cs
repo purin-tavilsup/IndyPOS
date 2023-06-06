@@ -13,11 +13,11 @@ public partial class MessageForm : Form
 		InitializeComponent();
 	}
 
-	public DialogResult Show(string message, 
-							 string? caption = null, 
-							 bool cancelButtonVisible = false, 
-							 string? acceptButtonText = null, 
-							 string? cancelButtonText = null)
+	public DialogResult ShowDialog(string message, 
+								   string? caption = null, 
+								   bool cancelButtonVisible = false, 
+								   string? acceptButtonText = null, 
+								   string? cancelButtonText = null)
 	{
 		if (caption is not null)
 			CaptionLabel.Text = caption;
@@ -41,13 +41,13 @@ public partial class MessageForm : Form
 	{
 		_response = DialogResult.OK;
 
-		Close();
+		Hide();
 	}
 
 	private void CancelButton_Click(object sender, EventArgs e)
 	{
 		_response = DialogResult.Cancel;
 
-		Close();
+		Hide();
 	}
 }
