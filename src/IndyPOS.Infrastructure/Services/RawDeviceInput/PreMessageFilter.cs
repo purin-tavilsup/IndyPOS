@@ -6,13 +6,15 @@
 		// false to allow the message to continue to the next filter or control.
 		public bool PreFilterMessage(ref Message m)
 		{
-			if (m.Msg != Win32.WM_INPUT)
+			var keyCode = (Keys)(int)m.WParam & Keys.KeyCode;
+
+			if (m.Msg == Win32.WM_KEYDOWN && keyCode == Keys.Enter)
 			{
-				// Allow any non WM_INPUT message to pass through
-				return false;
+				// Ignore Enter key
+				return true;
 			}
 
-			return m.Msg == Win32.WM_KEYDOWN;
+			return false;
 		}
 	}
 }

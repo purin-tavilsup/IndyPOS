@@ -1,4 +1,4 @@
-#nullable enable
+﻿#nullable enable
 using IndyPOS.Application.Common.Enums;
 using IndyPOS.Application.Common.Interfaces;
 using IndyPOS.Application.Events;
@@ -43,6 +43,7 @@ public class RawInputDeviceService : IRawInputDeviceService
 		_buffer = new StringBuilder();
 		_keyState = new byte[256];
 
+		_rawInput.AddMessageFilter();
 		_rawInput.KeyPressed += OnKeyPressed;
 
 		_logger.LogInformation("Raw input device service started");
