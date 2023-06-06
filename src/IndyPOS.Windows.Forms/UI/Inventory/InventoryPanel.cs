@@ -106,10 +106,12 @@ public partial class InventoryPanel : UserControl
 		ProductDataView.Columns[(int)ProductColumn.UnitPrice].Name = "ราคาขาย";
 		ProductDataView.Columns[(int)ProductColumn.UnitPrice].Width = 150;
 		ProductDataView.Columns[(int)ProductColumn.UnitPrice].ReadOnly = true;
+		ProductDataView.Columns[(int)ProductColumn.UnitPrice].DefaultCellStyle.Format = "N2";
 
 		ProductDataView.Columns[(int)ProductColumn.GroupPrice].Name = "ราคาขายต่อกลุ่ม";
 		ProductDataView.Columns[(int)ProductColumn.GroupPrice].Width = 170;
 		ProductDataView.Columns[(int)ProductColumn.GroupPrice].ReadOnly = true;
+		ProductDataView.Columns[(int)ProductColumn.GroupPrice].DefaultCellStyle.Format = "N2";
 
 		ProductDataView.Columns[(int)ProductColumn.GroupPriceQuantity].Name = "จำนวนต่อกลุ่ม";
 		ProductDataView.Columns[(int)ProductColumn.GroupPriceQuantity].Width = 150;

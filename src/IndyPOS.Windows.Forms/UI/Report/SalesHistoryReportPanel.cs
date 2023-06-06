@@ -63,6 +63,7 @@ public partial class SalesHistoryReportPanel : UserControl
 		SaleInvoiceDataView.Columns[(int)SaleInvoiceColumn.InvoiceTotal].Name = "ยอดขาย";
 		SaleInvoiceDataView.Columns[(int)SaleInvoiceColumn.InvoiceTotal].Width = 150;
 		SaleInvoiceDataView.Columns[(int)SaleInvoiceColumn.InvoiceTotal].ReadOnly = true;
+		SaleInvoiceDataView.Columns[(int)SaleInvoiceColumn.InvoiceTotal].DefaultCellStyle.Format = "N2";
 
 		#endregion
 	}
@@ -89,10 +90,12 @@ public partial class SalesHistoryReportPanel : UserControl
 		InvoiceProductsDataView.Columns[(int)ProductColumn.UnitPrice].Name = "ราคาต่อหน่วย";
 		InvoiceProductsDataView.Columns[(int)ProductColumn.UnitPrice].Width = 150;
 		InvoiceProductsDataView.Columns[(int)ProductColumn.UnitPrice].ReadOnly = true;
+		InvoiceProductsDataView.Columns[(int)ProductColumn.UnitPrice].DefaultCellStyle.Format = "N2";
 
 		InvoiceProductsDataView.Columns[(int)ProductColumn.Total].Name = "ราคารวม";
 		InvoiceProductsDataView.Columns[(int)ProductColumn.Total].Width = 150;
 		InvoiceProductsDataView.Columns[(int)ProductColumn.Total].ReadOnly = true;
+		InvoiceProductsDataView.Columns[(int)ProductColumn.Total].DefaultCellStyle.Format = "N2";
 
 		InvoiceProductsDataView.Columns[(int)ProductColumn.Note].Name = "Note";
 		InvoiceProductsDataView.Columns[(int)ProductColumn.Note].Width = 200;
@@ -115,6 +118,7 @@ public partial class SalesHistoryReportPanel : UserControl
 		PaymentDataView.Columns[(int)PaymentColumn.PaymentAmount].Name = "จำนวนเงิน";
 		PaymentDataView.Columns[(int)PaymentColumn.PaymentAmount].Width = 250;
 		PaymentDataView.Columns[(int)PaymentColumn.PaymentAmount].ReadOnly = true;
+		PaymentDataView.Columns[(int)PaymentColumn.PaymentAmount].DefaultCellStyle.Format = "N2";
 
 		PaymentDataView.Columns[(int)PaymentColumn.Note].Name = "Note";
 		PaymentDataView.Columns[(int)PaymentColumn.Note].Width = 200;

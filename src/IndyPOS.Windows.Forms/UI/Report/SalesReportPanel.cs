@@ -18,39 +18,39 @@ public partial class SalesReportPanel : UserControl
 
 	private void ShowSummary(ISalesReport salesReport, IPaymentsReport paymentsReport)
 	{
-		OverallSaleLabel.Text = $"{salesReport.InvoiceTotal:N}";
+		OverallSaleLabel.Text = $"{salesReport.InvoiceTotal:N2}";
 
-		OverallSaleExcluedIncompleteArLabel.Text = $"{salesReport.InvoiceTotalWithoutPayLaterPayments:N}";
+		OverallSaleExcluedIncompleteArLabel.Text = $"{salesReport.InvoiceTotalWithoutPayLaterPayments:N2}";
 			
-		GeneralGoodsSaleLabel.Text = $"{salesReport.GeneralProductsTotal:N}";
+		GeneralGoodsSaleLabel.Text = $"{salesReport.GeneralProductsTotal:N2}";
 			
-		HardwareSaleLabel.Text = $"{salesReport.HardwareProductsTotal:N}";
+		HardwareSaleLabel.Text = $"{salesReport.HardwareProductsTotal:N2}";
 
-		ArTotalForGeneralProductsLabel.Text  = $"{salesReport.PayLaterPaymentsTotalForGeneralProducts:N}";
+		ArTotalForGeneralProductsLabel.Text  = $"{salesReport.PayLaterPaymentsTotalForGeneralProducts:N2}";
 
-		ArTotalForHardwareProductsLabel.Text = $"{salesReport.PayLaterPaymentsTotalForHardwareProducts:N}";
+		ArTotalForHardwareProductsLabel.Text = $"{salesReport.PayLaterPaymentsTotalForHardwareProducts:N2}";
 
-		GeneralProductsTotalWithoutArLabel.Text = $"{salesReport.GeneralProductsTotalWithoutPayLaterPayments:N}";
+		GeneralProductsTotalWithoutArLabel.Text = $"{salesReport.GeneralProductsTotalWithoutPayLaterPayments:N2}";
 
-		HardwareProductsTotalWithoutArLabel.Text = $"{salesReport.HardwareProductsTotalWithoutPayLaterPayments:N}";
+		HardwareProductsTotalWithoutArLabel.Text = $"{salesReport.HardwareProductsTotalWithoutPayLaterPayments:N2}";
 
-		ArTotalLabel.Text = $"{salesReport.PayLaterPaymentsTotal:N}";
+		ArTotalLabel.Text = $"{salesReport.PayLaterPaymentsTotal:N2}";
 
-		CompletedArLabel.Text = $"{salesReport.CompletedPayLaterPaymentsTotal:N}";
+		CompletedArLabel.Text = $"{salesReport.CompletedPayLaterPaymentsTotal:N2}";
 
-		IncompleteArLabel.Text = $"{salesReport.IncompletePayLaterPaymentsTotal:N}";
+		IncompleteArLabel.Text = $"{salesReport.IncompletePayLaterPaymentsTotal:N2}";
 
-		PaymentByTransferLabel.Text = $"{paymentsReport.MoneyTransferTotal:N}";
+		PaymentByTransferLabel.Text = $"{paymentsReport.MoneyTransferTotal:N2}";
 
-		PaymentByKlkLabel.Text = $"{paymentsReport.FiftyFiftyTotal:N}";
+		PaymentByKlkLabel.Text = $"{paymentsReport.FiftyFiftyTotal:N2}";
 
-		PaymentByM33Label.Text = $"{paymentsReport.M33WeLoveTotal:N}";
+		PaymentByM33Label.Text = $"{paymentsReport.M33WeLoveTotal:N2}";
 
-		PaymentByWeWinLabel.Text = $"{paymentsReport.WeWinTotal:N}";
+		PaymentByWeWinLabel.Text = $"{paymentsReport.WeWinTotal:N2}";
 
-		PaymentByWelfareCardLabel.Text = $"{paymentsReport.WelfareCardTotal:N}";
+		PaymentByWelfareCardLabel.Text = $"{paymentsReport.WelfareCardTotal:N2}";
 
-		PaymentByArLabel.Text = $"{paymentsReport.PayLaterTotal:N}";
+		PaymentByArLabel.Text = $"{paymentsReport.PayLaterTotal:N2}";
 	}
 
 	private async Task<ISalesReport> GetSalesReportByPeriodAsync(TimePeriod period)

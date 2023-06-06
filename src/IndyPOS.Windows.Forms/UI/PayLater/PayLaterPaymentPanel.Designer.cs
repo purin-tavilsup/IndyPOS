@@ -28,476 +28,468 @@
         /// </summary>
         private void InitializeComponent()
         {
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle3 = new System.Windows.Forms.DataGridViewCellStyle();
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle4 = new System.Windows.Forms.DataGridViewCellStyle();
-            this.panel1 = new System.Windows.Forms.Panel();
-            this.panel4 = new System.Windows.Forms.Panel();
-            this.LookUpByInvoiceIdTextBox = new ModernUI.ModernTextBox();
-            this.LookUpByInvoiceIdButton = new ModernUI.ModernButton();
-            this.ShowIncompleteOnlyCheckBox = new System.Windows.Forms.CheckBox();
-            this.ShowPayLaterPaymentsButton = new ModernUI.ModernButton();
-            this.panel2 = new System.Windows.Forms.Panel();
-            this.UpdateButton = new ModernUI.ModernButton();
-            this.AmountLabel = new System.Windows.Forms.Label();
-            this.label3 = new System.Windows.Forms.Label();
-            this.DescriptionLabel = new System.Windows.Forms.Label();
-            this.InvoiceIdLabel = new System.Windows.Forms.Label();
-            this.label11 = new System.Windows.Forms.Label();
-            this.label10 = new System.Windows.Forms.Label();
-            this.PaidAmountTextBox = new ModernUI.ModernTextBox();
-            this.PasswordLabel = new System.Windows.Forms.Label();
-            this.label2 = new System.Windows.Forms.Label();
-            this.panel3 = new System.Windows.Forms.Panel();
-            this.PayLaterPaymentsDataView = new System.Windows.Forms.DataGridView();
-            this.InvoiceId = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.Description = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.ReceivableAmount = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.PaidAmount = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.IsCompleted = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.DateCreated = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.DateUpdated = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.PaymentIdLabel = new System.Windows.Forms.Label();
-            this.label4 = new System.Windows.Forms.Label();
-            this.panel1.SuspendLayout();
-            this.panel4.SuspendLayout();
-            this.panel2.SuspendLayout();
-            this.panel3.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.PayLaterPaymentsDataView)).BeginInit();
-            this.SuspendLayout();
+            var dataGridViewCellStyle3 = new DataGridViewCellStyle();
+            var dataGridViewCellStyle4 = new DataGridViewCellStyle();
+            panel1 = new Panel();
+            panel4 = new Panel();
+            LookUpByInvoiceIdTextBox = new ModernUI.ModernTextBox();
+            LookUpByInvoiceIdButton = new ModernUI.ModernButton();
+            ShowIncompleteOnlyCheckBox = new CheckBox();
+            ShowPayLaterPaymentsButton = new ModernUI.ModernButton();
+            panel2 = new Panel();
+            PaymentIdLabel = new Label();
+            label4 = new Label();
+            UpdateButton = new ModernUI.ModernButton();
+            AmountLabel = new Label();
+            label3 = new Label();
+            DescriptionLabel = new Label();
+            InvoiceIdLabel = new Label();
+            label11 = new Label();
+            label10 = new Label();
+            PaidAmountTextBox = new ModernUI.ModernTextBox();
+            PasswordLabel = new Label();
+            label2 = new Label();
+            ActivePanel = new Panel();
+            PayLaterPaymentsDataView = new DataGridView();
+            InvoiceId = new DataGridViewTextBoxColumn();
+            Description = new DataGridViewTextBoxColumn();
+            ReceivableAmount = new DataGridViewTextBoxColumn();
+            PaidAmount = new DataGridViewTextBoxColumn();
+            IsCompleted = new DataGridViewTextBoxColumn();
+            DateCreated = new DataGridViewTextBoxColumn();
+            DateUpdated = new DataGridViewTextBoxColumn();
+            panel1.SuspendLayout();
+            panel4.SuspendLayout();
+            panel2.SuspendLayout();
+            ActivePanel.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)PayLaterPaymentsDataView).BeginInit();
+            SuspendLayout();
             // 
             // panel1
             // 
-            this.panel1.Controls.Add(this.panel4);
-            this.panel1.Controls.Add(this.ShowIncompleteOnlyCheckBox);
-            this.panel1.Controls.Add(this.ShowPayLaterPaymentsButton);
-            this.panel1.Dock = System.Windows.Forms.DockStyle.Top;
-            this.panel1.Location = new System.Drawing.Point(0, 0);
-            this.panel1.Name = "panel1";
-            this.panel1.Size = new System.Drawing.Size(1421, 60);
-            this.panel1.TabIndex = 0;
+            panel1.Controls.Add(panel4);
+            panel1.Controls.Add(ShowIncompleteOnlyCheckBox);
+            panel1.Controls.Add(ShowPayLaterPaymentsButton);
+            panel1.Dock = DockStyle.Top;
+            panel1.Location = new Point(0, 0);
+            panel1.Name = "panel1";
+            panel1.Size = new Size(1421, 60);
+            panel1.TabIndex = 0;
             // 
             // panel4
             // 
-            this.panel4.Controls.Add(this.LookUpByInvoiceIdTextBox);
-            this.panel4.Controls.Add(this.LookUpByInvoiceIdButton);
-            this.panel4.Dock = System.Windows.Forms.DockStyle.Right;
-            this.panel4.Location = new System.Drawing.Point(1001, 0);
-            this.panel4.Name = "panel4";
-            this.panel4.Size = new System.Drawing.Size(420, 60);
-            this.panel4.TabIndex = 55;
+            panel4.Controls.Add(LookUpByInvoiceIdTextBox);
+            panel4.Controls.Add(LookUpByInvoiceIdButton);
+            panel4.Dock = DockStyle.Right;
+            panel4.Location = new Point(1001, 0);
+            panel4.Name = "panel4";
+            panel4.Size = new Size(420, 60);
+            panel4.TabIndex = 55;
             // 
             // LookUpByInvoiceIdTextBox
             // 
-            this.LookUpByInvoiceIdTextBox.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
-            this.LookUpByInvoiceIdTextBox.BorderColor = System.Drawing.Color.DimGray;
-            this.LookUpByInvoiceIdTextBox.BorderSize = 1;
-            this.LookUpByInvoiceIdTextBox.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            this.LookUpByInvoiceIdTextBox.ForeColor = System.Drawing.Color.Gainsboro;
-            this.LookUpByInvoiceIdTextBox.Location = new System.Drawing.Point(3, 13);
-            this.LookUpByInvoiceIdTextBox.Multiline = false;
-            this.LookUpByInvoiceIdTextBox.Name = "LookUpByInvoiceIdTextBox";
-            this.LookUpByInvoiceIdTextBox.Padding = new System.Windows.Forms.Padding(7);
-            this.LookUpByInvoiceIdTextBox.PasswordChar = false;
-            this.LookUpByInvoiceIdTextBox.ReadOnly = false;
-            this.LookUpByInvoiceIdTextBox.Size = new System.Drawing.Size(160, 39);
-            this.LookUpByInvoiceIdTextBox.TabIndex = 52;
-            this.LookUpByInvoiceIdTextBox.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
-            this.LookUpByInvoiceIdTextBox.Texts = "";
-            this.LookUpByInvoiceIdTextBox.UnderlinedStyle = true;
+            LookUpByInvoiceIdTextBox.BackColor = Color.FromArgb(38, 38, 38);
+            LookUpByInvoiceIdTextBox.BorderColor = Color.DimGray;
+            LookUpByInvoiceIdTextBox.BorderSize = 1;
+            LookUpByInvoiceIdTextBox.Font = new Font("FC Subject [Non-commercial] Reg", 12F, FontStyle.Regular, GraphicsUnit.Point);
+            LookUpByInvoiceIdTextBox.ForeColor = Color.Gainsboro;
+            LookUpByInvoiceIdTextBox.Location = new Point(3, 13);
+            LookUpByInvoiceIdTextBox.Multiline = false;
+            LookUpByInvoiceIdTextBox.Name = "LookUpByInvoiceIdTextBox";
+            LookUpByInvoiceIdTextBox.Padding = new Padding(7);
+            LookUpByInvoiceIdTextBox.PasswordChar = false;
+            LookUpByInvoiceIdTextBox.ReadOnly = false;
+            LookUpByInvoiceIdTextBox.Size = new Size(160, 39);
+            LookUpByInvoiceIdTextBox.TabIndex = 52;
+            LookUpByInvoiceIdTextBox.TextAlign = HorizontalAlignment.Center;
+            LookUpByInvoiceIdTextBox.Texts = "";
+            LookUpByInvoiceIdTextBox.UnderlinedStyle = true;
             // 
             // LookUpByInvoiceIdButton
             // 
-            this.LookUpByInvoiceIdButton.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
-            this.LookUpByInvoiceIdButton.BackgroundColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
-            this.LookUpByInvoiceIdButton.BorderColor = System.Drawing.Color.FromArgb(((int)(((byte)(37)))), ((int)(((byte)(182)))), ((int)(((byte)(210)))));
-            this.LookUpByInvoiceIdButton.BorderRadius = 19;
-            this.LookUpByInvoiceIdButton.BorderSize = 1;
-            this.LookUpByInvoiceIdButton.FlatAppearance.BorderSize = 0;
-            this.LookUpByInvoiceIdButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.LookUpByInvoiceIdButton.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            this.LookUpByInvoiceIdButton.ForeColor = System.Drawing.Color.White;
-            this.LookUpByInvoiceIdButton.Location = new System.Drawing.Point(176, 4);
-            this.LookUpByInvoiceIdButton.Name = "LookUpByInvoiceIdButton";
-            this.LookUpByInvoiceIdButton.Size = new System.Drawing.Size(241, 50);
-            this.LookUpByInvoiceIdButton.TabIndex = 53;
-            this.LookUpByInvoiceIdButton.Text = "ค้นหารายการด้วย Invoice ID";
-            this.LookUpByInvoiceIdButton.TextColor = System.Drawing.Color.White;
-            this.LookUpByInvoiceIdButton.UseVisualStyleBackColor = false;
-            this.LookUpByInvoiceIdButton.Click += new System.EventHandler(this.LookUpByInvoiceIdButton_Click);
+            LookUpByInvoiceIdButton.BackColor = Color.FromArgb(38, 38, 38);
+            LookUpByInvoiceIdButton.BackgroundColor = Color.FromArgb(38, 38, 38);
+            LookUpByInvoiceIdButton.BorderColor = Color.FromArgb(37, 182, 210);
+            LookUpByInvoiceIdButton.BorderRadius = 19;
+            LookUpByInvoiceIdButton.BorderSize = 1;
+            LookUpByInvoiceIdButton.FlatAppearance.BorderSize = 0;
+            LookUpByInvoiceIdButton.FlatStyle = FlatStyle.Flat;
+            LookUpByInvoiceIdButton.Font = new Font("FC Subject [Non-commercial] Reg", 12F, FontStyle.Regular, GraphicsUnit.Point);
+            LookUpByInvoiceIdButton.ForeColor = Color.White;
+            LookUpByInvoiceIdButton.Location = new Point(176, 4);
+            LookUpByInvoiceIdButton.Name = "LookUpByInvoiceIdButton";
+            LookUpByInvoiceIdButton.Size = new Size(241, 50);
+            LookUpByInvoiceIdButton.TabIndex = 53;
+            LookUpByInvoiceIdButton.Text = "ค้นหารายการด้วย Invoice ID";
+            LookUpByInvoiceIdButton.TextColor = Color.White;
+            LookUpByInvoiceIdButton.UseVisualStyleBackColor = false;
+            LookUpByInvoiceIdButton.Click += LookUpByInvoiceIdButton_Click;
             // 
             // ShowIncompleteOnlyCheckBox
             // 
-            this.ShowIncompleteOnlyCheckBox.AutoSize = true;
-            this.ShowIncompleteOnlyCheckBox.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            this.ShowIncompleteOnlyCheckBox.ForeColor = System.Drawing.Color.White;
-            this.ShowIncompleteOnlyCheckBox.Location = new System.Drawing.Point(291, 16);
-            this.ShowIncompleteOnlyCheckBox.Name = "ShowIncompleteOnlyCheckBox";
-            this.ShowIncompleteOnlyCheckBox.Size = new System.Drawing.Size(247, 28);
-            this.ShowIncompleteOnlyCheckBox.TabIndex = 54;
-            this.ShowIncompleteOnlyCheckBox.Text = "แสดงเฉพาะรายการที่ยังค้างชำระ";
-            this.ShowIncompleteOnlyCheckBox.UseVisualStyleBackColor = true;
-            this.ShowIncompleteOnlyCheckBox.Click += new System.EventHandler(this.ShowIncompleteOnlyCheckBox_Click);
+            ShowIncompleteOnlyCheckBox.AutoSize = true;
+            ShowIncompleteOnlyCheckBox.Font = new Font("FC Subject [Non-commercial] Reg", 12F, FontStyle.Regular, GraphicsUnit.Point);
+            ShowIncompleteOnlyCheckBox.ForeColor = Color.White;
+            ShowIncompleteOnlyCheckBox.Location = new Point(291, 16);
+            ShowIncompleteOnlyCheckBox.Name = "ShowIncompleteOnlyCheckBox";
+            ShowIncompleteOnlyCheckBox.Size = new Size(247, 28);
+            ShowIncompleteOnlyCheckBox.TabIndex = 54;
+            ShowIncompleteOnlyCheckBox.Text = "แสดงเฉพาะรายการที่ยังค้างชำระ";
+            ShowIncompleteOnlyCheckBox.UseVisualStyleBackColor = true;
+            ShowIncompleteOnlyCheckBox.Click += ShowIncompleteOnlyCheckBox_Click;
             // 
             // ShowPayLaterPaymentsButton
             // 
-            this.ShowPayLaterPaymentsButton.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
-            this.ShowPayLaterPaymentsButton.BackgroundColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
-            this.ShowPayLaterPaymentsButton.BorderColor = System.Drawing.Color.FromArgb(((int)(((byte)(37)))), ((int)(((byte)(182)))), ((int)(((byte)(210)))));
-            this.ShowPayLaterPaymentsButton.BorderRadius = 19;
-            this.ShowPayLaterPaymentsButton.BorderSize = 1;
-            this.ShowPayLaterPaymentsButton.FlatAppearance.BorderSize = 0;
-            this.ShowPayLaterPaymentsButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.ShowPayLaterPaymentsButton.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            this.ShowPayLaterPaymentsButton.ForeColor = System.Drawing.Color.White;
-            this.ShowPayLaterPaymentsButton.Location = new System.Drawing.Point(3, 4);
-            this.ShowPayLaterPaymentsButton.Name = "ShowPayLaterPaymentsButton";
-            this.ShowPayLaterPaymentsButton.Size = new System.Drawing.Size(264, 50);
-            this.ShowPayLaterPaymentsButton.TabIndex = 10;
-            this.ShowPayLaterPaymentsButton.Text = "แสดงรายการลงบัญชี";
-            this.ShowPayLaterPaymentsButton.TextColor = System.Drawing.Color.White;
-            this.ShowPayLaterPaymentsButton.UseVisualStyleBackColor = false;
-            this.ShowPayLaterPaymentsButton.Click += new System.EventHandler(this.ShowPayLaterPaymentsButton_Click);
+            ShowPayLaterPaymentsButton.BackColor = Color.FromArgb(38, 38, 38);
+            ShowPayLaterPaymentsButton.BackgroundColor = Color.FromArgb(38, 38, 38);
+            ShowPayLaterPaymentsButton.BorderColor = Color.FromArgb(37, 182, 210);
+            ShowPayLaterPaymentsButton.BorderRadius = 19;
+            ShowPayLaterPaymentsButton.BorderSize = 1;
+            ShowPayLaterPaymentsButton.FlatAppearance.BorderSize = 0;
+            ShowPayLaterPaymentsButton.FlatStyle = FlatStyle.Flat;
+            ShowPayLaterPaymentsButton.Font = new Font("FC Subject [Non-commercial] Reg", 12F, FontStyle.Regular, GraphicsUnit.Point);
+            ShowPayLaterPaymentsButton.ForeColor = Color.White;
+            ShowPayLaterPaymentsButton.Location = new Point(3, 4);
+            ShowPayLaterPaymentsButton.Name = "ShowPayLaterPaymentsButton";
+            ShowPayLaterPaymentsButton.Size = new Size(264, 50);
+            ShowPayLaterPaymentsButton.TabIndex = 10;
+            ShowPayLaterPaymentsButton.Text = "แสดงรายการลงบัญชี";
+            ShowPayLaterPaymentsButton.TextColor = Color.White;
+            ShowPayLaterPaymentsButton.UseVisualStyleBackColor = false;
+            ShowPayLaterPaymentsButton.Click += ShowPayLaterPaymentsButton_Click;
             // 
             // panel2
             // 
-            this.panel2.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.panel2.Controls.Add(this.PaymentIdLabel);
-            this.panel2.Controls.Add(this.label4);
-            this.panel2.Controls.Add(this.UpdateButton);
-            this.panel2.Controls.Add(this.AmountLabel);
-            this.panel2.Controls.Add(this.label3);
-            this.panel2.Controls.Add(this.DescriptionLabel);
-            this.panel2.Controls.Add(this.InvoiceIdLabel);
-            this.panel2.Controls.Add(this.label11);
-            this.panel2.Controls.Add(this.label10);
-            this.panel2.Controls.Add(this.PaidAmountTextBox);
-            this.panel2.Controls.Add(this.PasswordLabel);
-            this.panel2.Controls.Add(this.label2);
-            this.panel2.Dock = System.Windows.Forms.DockStyle.Right;
-            this.panel2.Location = new System.Drawing.Point(1007, 60);
-            this.panel2.Name = "panel2";
-            this.panel2.Size = new System.Drawing.Size(414, 637);
-            this.panel2.TabIndex = 1;
-            // 
-            // UpdateButton
-            // 
-            this.UpdateButton.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
-            this.UpdateButton.BackgroundColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
-            this.UpdateButton.BorderColor = System.Drawing.Color.FromArgb(((int)(((byte)(50)))), ((int)(((byte)(190)))), ((int)(((byte)(166)))));
-            this.UpdateButton.BorderRadius = 19;
-            this.UpdateButton.BorderSize = 1;
-            this.UpdateButton.FlatAppearance.BorderSize = 0;
-            this.UpdateButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.UpdateButton.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            this.UpdateButton.ForeColor = System.Drawing.Color.White;
-            this.UpdateButton.Location = new System.Drawing.Point(72, 267);
-            this.UpdateButton.Name = "UpdateButton";
-            this.UpdateButton.Size = new System.Drawing.Size(272, 53);
-            this.UpdateButton.TabIndex = 84;
-            this.UpdateButton.Text = "Update";
-            this.UpdateButton.TextColor = System.Drawing.Color.White;
-            this.UpdateButton.UseVisualStyleBackColor = false;
-            this.UpdateButton.Click += new System.EventHandler(this.UpdateArButton_Click);
-            // 
-            // AmountLabel
-            // 
-            this.AmountLabel.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
-            this.AmountLabel.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            this.AmountLabel.ForeColor = System.Drawing.Color.Gainsboro;
-            this.AmountLabel.Location = new System.Drawing.Point(138, 167);
-            this.AmountLabel.Name = "AmountLabel";
-            this.AmountLabel.Size = new System.Drawing.Size(168, 28);
-            this.AmountLabel.TabIndex = 83;
-            this.AmountLabel.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
-            // 
-            // label3
-            // 
-            this.label3.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
-            this.label3.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            this.label3.ForeColor = System.Drawing.Color.Gainsboro;
-            this.label3.Location = new System.Drawing.Point(22, 167);
-            this.label3.Name = "label3";
-            this.label3.Size = new System.Drawing.Size(110, 28);
-            this.label3.TabIndex = 82;
-            this.label3.Text = "ยอดลงบัญชี";
-            this.label3.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
-            // 
-            // DescriptionLabel
-            // 
-            this.DescriptionLabel.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
-            this.DescriptionLabel.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            this.DescriptionLabel.ForeColor = System.Drawing.Color.Gainsboro;
-            this.DescriptionLabel.Location = new System.Drawing.Point(138, 133);
-            this.DescriptionLabel.Name = "DescriptionLabel";
-            this.DescriptionLabel.Size = new System.Drawing.Size(168, 28);
-            this.DescriptionLabel.TabIndex = 81;
-            this.DescriptionLabel.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
-            // 
-            // InvoiceIdLabel
-            // 
-            this.InvoiceIdLabel.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
-            this.InvoiceIdLabel.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            this.InvoiceIdLabel.ForeColor = System.Drawing.Color.Gainsboro;
-            this.InvoiceIdLabel.Location = new System.Drawing.Point(138, 99);
-            this.InvoiceIdLabel.Name = "InvoiceIdLabel";
-            this.InvoiceIdLabel.Size = new System.Drawing.Size(168, 28);
-            this.InvoiceIdLabel.TabIndex = 80;
-            this.InvoiceIdLabel.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
-            // 
-            // label11
-            // 
-            this.label11.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
-            this.label11.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            this.label11.ForeColor = System.Drawing.Color.Gainsboro;
-            this.label11.Location = new System.Drawing.Point(22, 133);
-            this.label11.Name = "label11";
-            this.label11.Size = new System.Drawing.Size(110, 28);
-            this.label11.TabIndex = 79;
-            this.label11.Text = "คำอธิบาย";
-            this.label11.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
-            // 
-            // label10
-            // 
-            this.label10.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
-            this.label10.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            this.label10.ForeColor = System.Drawing.Color.Gainsboro;
-            this.label10.Location = new System.Drawing.Point(22, 99);
-            this.label10.Name = "label10";
-            this.label10.Size = new System.Drawing.Size(110, 28);
-            this.label10.TabIndex = 78;
-            this.label10.Text = "Invoice ID";
-            this.label10.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
-            // 
-            // PaidAmountTextBox
-            // 
-            this.PaidAmountTextBox.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
-            this.PaidAmountTextBox.BorderColor = System.Drawing.Color.DimGray;
-            this.PaidAmountTextBox.BorderSize = 1;
-            this.PaidAmountTextBox.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            this.PaidAmountTextBox.ForeColor = System.Drawing.Color.Gainsboro;
-            this.PaidAmountTextBox.Location = new System.Drawing.Point(138, 195);
-            this.PaidAmountTextBox.Multiline = false;
-            this.PaidAmountTextBox.Name = "PaidAmountTextBox";
-            this.PaidAmountTextBox.Padding = new System.Windows.Forms.Padding(7);
-            this.PaidAmountTextBox.PasswordChar = false;
-            this.PaidAmountTextBox.ReadOnly = false;
-            this.PaidAmountTextBox.Size = new System.Drawing.Size(168, 39);
-            this.PaidAmountTextBox.TabIndex = 77;
-            this.PaidAmountTextBox.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
-            this.PaidAmountTextBox.Texts = "";
-            this.PaidAmountTextBox.UnderlinedStyle = true;
-            // 
-            // PasswordLabel
-            // 
-            this.PasswordLabel.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
-            this.PasswordLabel.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            this.PasswordLabel.ForeColor = System.Drawing.Color.Gainsboro;
-            this.PasswordLabel.Location = new System.Drawing.Point(22, 195);
-            this.PasswordLabel.Name = "PasswordLabel";
-            this.PasswordLabel.Size = new System.Drawing.Size(110, 39);
-            this.PasswordLabel.TabIndex = 76;
-            this.PasswordLabel.Text = "ยอดชำระ";
-            this.PasswordLabel.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
-            // 
-            // label2
-            // 
-            this.label2.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(48)))), ((int)(((byte)(48)))), ((int)(((byte)(48)))));
-            this.label2.Dock = System.Windows.Forms.DockStyle.Top;
-            this.label2.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 14.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            this.label2.ForeColor = System.Drawing.Color.Gainsboro;
-            this.label2.Location = new System.Drawing.Point(0, 0);
-            this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(412, 52);
-            this.label2.TabIndex = 69;
-            this.label2.Text = "รายละเอียดการลงบัญชี";
-            this.label2.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
-            // 
-            // panel3
-            // 
-            this.panel3.Controls.Add(this.PayLaterPaymentsDataView);
-            this.panel3.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.panel3.Location = new System.Drawing.Point(0, 60);
-            this.panel3.Name = "panel3";
-            this.panel3.Size = new System.Drawing.Size(1007, 637);
-            this.panel3.TabIndex = 2;
-            // 
-            // PayLaterPaymentsDataView
-            // 
-            this.PayLaterPaymentsDataView.AllowUserToAddRows = false;
-            this.PayLaterPaymentsDataView.AllowUserToDeleteRows = false;
-            this.PayLaterPaymentsDataView.AllowUserToResizeColumns = false;
-            this.PayLaterPaymentsDataView.AllowUserToResizeRows = false;
-            this.PayLaterPaymentsDataView.BackgroundColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
-            this.PayLaterPaymentsDataView.BorderStyle = System.Windows.Forms.BorderStyle.None;
-            this.PayLaterPaymentsDataView.CellBorderStyle = System.Windows.Forms.DataGridViewCellBorderStyle.SingleHorizontal;
-            this.PayLaterPaymentsDataView.ColumnHeadersBorderStyle = System.Windows.Forms.DataGridViewHeaderBorderStyle.None;
-            dataGridViewCellStyle3.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleCenter;
-            dataGridViewCellStyle3.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(48)))), ((int)(((byte)(48)))), ((int)(((byte)(48)))));
-            dataGridViewCellStyle3.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 14.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            dataGridViewCellStyle3.ForeColor = System.Drawing.Color.Gainsboro;
-            dataGridViewCellStyle3.Padding = new System.Windows.Forms.Padding(10, 0, 0, 0);
-            dataGridViewCellStyle3.SelectionBackColor = System.Drawing.Color.Gray;
-            dataGridViewCellStyle3.WrapMode = System.Windows.Forms.DataGridViewTriState.False;
-            this.PayLaterPaymentsDataView.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle3;
-            this.PayLaterPaymentsDataView.ColumnHeadersHeight = 50;
-            this.PayLaterPaymentsDataView.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.DisableResizing;
-            this.PayLaterPaymentsDataView.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
-            this.InvoiceId,
-            this.Description,
-            this.ReceivableAmount,
-            this.PaidAmount,
-            this.IsCompleted,
-            this.DateCreated,
-            this.DateUpdated});
-            dataGridViewCellStyle4.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
-            dataGridViewCellStyle4.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
-            dataGridViewCellStyle4.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            dataGridViewCellStyle4.ForeColor = System.Drawing.Color.Gainsboro;
-            dataGridViewCellStyle4.SelectionBackColor = System.Drawing.Color.FromArgb(((int)(((byte)(48)))), ((int)(((byte)(48)))), ((int)(((byte)(48)))));
-            dataGridViewCellStyle4.SelectionForeColor = System.Drawing.Color.Gainsboro;
-            dataGridViewCellStyle4.WrapMode = System.Windows.Forms.DataGridViewTriState.False;
-            this.PayLaterPaymentsDataView.DefaultCellStyle = dataGridViewCellStyle4;
-            this.PayLaterPaymentsDataView.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.PayLaterPaymentsDataView.EnableHeadersVisualStyles = false;
-            this.PayLaterPaymentsDataView.GridColor = System.Drawing.Color.DimGray;
-            this.PayLaterPaymentsDataView.Location = new System.Drawing.Point(0, 0);
-            this.PayLaterPaymentsDataView.MultiSelect = false;
-            this.PayLaterPaymentsDataView.Name = "PayLaterPaymentsDataView";
-            this.PayLaterPaymentsDataView.RowHeadersVisible = false;
-            this.PayLaterPaymentsDataView.RowHeadersWidth = 60;
-            this.PayLaterPaymentsDataView.RowHeadersWidthSizeMode = System.Windows.Forms.DataGridViewRowHeadersWidthSizeMode.DisableResizing;
-            this.PayLaterPaymentsDataView.RowTemplate.DefaultCellStyle.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleCenter;
-            this.PayLaterPaymentsDataView.RowTemplate.DefaultCellStyle.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
-            this.PayLaterPaymentsDataView.RowTemplate.DefaultCellStyle.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            this.PayLaterPaymentsDataView.RowTemplate.DefaultCellStyle.ForeColor = System.Drawing.Color.Gainsboro;
-            this.PayLaterPaymentsDataView.RowTemplate.DefaultCellStyle.SelectionBackColor = System.Drawing.Color.FromArgb(((int)(((byte)(70)))), ((int)(((byte)(70)))), ((int)(((byte)(70)))));
-            this.PayLaterPaymentsDataView.RowTemplate.DefaultCellStyle.SelectionForeColor = System.Drawing.Color.Gainsboro;
-            this.PayLaterPaymentsDataView.RowTemplate.DefaultCellStyle.WrapMode = System.Windows.Forms.DataGridViewTriState.True;
-            this.PayLaterPaymentsDataView.RowTemplate.Height = 35;
-            this.PayLaterPaymentsDataView.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.CellSelect;
-            this.PayLaterPaymentsDataView.Size = new System.Drawing.Size(1007, 637);
-            this.PayLaterPaymentsDataView.TabIndex = 3;
-            this.PayLaterPaymentsDataView.CellClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.PayLaterPaymentsDataView_CellClick);
-            this.PayLaterPaymentsDataView.DoubleClick += new System.EventHandler(this.PayLaterPaymentsDataView_DoubleClick);
-            // 
-            // InvoiceId
-            // 
-            this.InvoiceId.HeaderText = "Invoice ID";
-            this.InvoiceId.Name = "InvoiceId";
-            this.InvoiceId.ReadOnly = true;
-            this.InvoiceId.Width = 150;
-            // 
-            // Description
-            // 
-            this.Description.HeaderText = "คำอธิบาย";
-            this.Description.Name = "Description";
-            this.Description.ReadOnly = true;
-            this.Description.Width = 250;
-            // 
-            // ReceivableAmount
-            // 
-            this.ReceivableAmount.HeaderText = "ยอดลงบัญชี";
-            this.ReceivableAmount.Name = "ReceivableAmount";
-            this.ReceivableAmount.ReadOnly = true;
-            this.ReceivableAmount.Width = 150;
-            // 
-            // PaidAmount
-            // 
-            this.PaidAmount.HeaderText = "ยอดชำระ";
-            this.PaidAmount.Name = "PaidAmount";
-            this.PaidAmount.Width = 150;
-            // 
-            // IsCompleted
-            // 
-            this.IsCompleted.HeaderText = "สถานะ";
-            this.IsCompleted.Name = "IsCompleted";
-            this.IsCompleted.Width = 150;
-            // 
-            // DateCreated
-            // 
-            this.DateCreated.HeaderText = "วันที่สร้าง";
-            this.DateCreated.Name = "DateCreated";
-            this.DateCreated.ReadOnly = true;
-            this.DateCreated.Width = 200;
-            // 
-            // DateUpdated
-            // 
-            this.DateUpdated.HeaderText = "วันที่อัพเดท";
-            this.DateUpdated.Name = "DateUpdated";
-            this.DateUpdated.ReadOnly = true;
-            this.DateUpdated.Width = 200;
+            panel2.BorderStyle = BorderStyle.FixedSingle;
+            panel2.Controls.Add(PaymentIdLabel);
+            panel2.Controls.Add(label4);
+            panel2.Controls.Add(UpdateButton);
+            panel2.Controls.Add(AmountLabel);
+            panel2.Controls.Add(label3);
+            panel2.Controls.Add(DescriptionLabel);
+            panel2.Controls.Add(InvoiceIdLabel);
+            panel2.Controls.Add(label11);
+            panel2.Controls.Add(label10);
+            panel2.Controls.Add(PaidAmountTextBox);
+            panel2.Controls.Add(PasswordLabel);
+            panel2.Controls.Add(label2);
+            panel2.Dock = DockStyle.Right;
+            panel2.Location = new Point(1007, 60);
+            panel2.Name = "panel2";
+            panel2.Size = new Size(414, 637);
+            panel2.TabIndex = 1;
             // 
             // PaymentIdLabel
             // 
-            this.PaymentIdLabel.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
-            this.PaymentIdLabel.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            this.PaymentIdLabel.ForeColor = System.Drawing.Color.Gainsboro;
-            this.PaymentIdLabel.Location = new System.Drawing.Point(138, 71);
-            this.PaymentIdLabel.Name = "PaymentIdLabel";
-            this.PaymentIdLabel.Size = new System.Drawing.Size(168, 28);
-            this.PaymentIdLabel.TabIndex = 86;
-            this.PaymentIdLabel.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            PaymentIdLabel.BackColor = Color.FromArgb(38, 38, 38);
+            PaymentIdLabel.Font = new Font("FC Subject [Non-commercial] Reg", 12F, FontStyle.Regular, GraphicsUnit.Point);
+            PaymentIdLabel.ForeColor = Color.Gainsboro;
+            PaymentIdLabel.Location = new Point(138, 71);
+            PaymentIdLabel.Name = "PaymentIdLabel";
+            PaymentIdLabel.Size = new Size(168, 28);
+            PaymentIdLabel.TabIndex = 86;
+            PaymentIdLabel.TextAlign = ContentAlignment.MiddleCenter;
             // 
             // label4
             // 
-            this.label4.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
-            this.label4.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            this.label4.ForeColor = System.Drawing.Color.Gainsboro;
-            this.label4.Location = new System.Drawing.Point(22, 71);
-            this.label4.Name = "label4";
-            this.label4.Size = new System.Drawing.Size(110, 28);
-            this.label4.TabIndex = 85;
-            this.label4.Text = "Payment ID";
-            this.label4.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            label4.BackColor = Color.FromArgb(38, 38, 38);
+            label4.Font = new Font("FC Subject [Non-commercial] Reg", 12F, FontStyle.Regular, GraphicsUnit.Point);
+            label4.ForeColor = Color.Gainsboro;
+            label4.Location = new Point(22, 71);
+            label4.Name = "label4";
+            label4.Size = new Size(110, 28);
+            label4.TabIndex = 85;
+            label4.Text = "Payment ID";
+            label4.TextAlign = ContentAlignment.MiddleLeft;
+            // 
+            // UpdateButton
+            // 
+            UpdateButton.BackColor = Color.FromArgb(38, 38, 38);
+            UpdateButton.BackgroundColor = Color.FromArgb(38, 38, 38);
+            UpdateButton.BorderColor = Color.FromArgb(50, 190, 166);
+            UpdateButton.BorderRadius = 19;
+            UpdateButton.BorderSize = 1;
+            UpdateButton.FlatAppearance.BorderSize = 0;
+            UpdateButton.FlatStyle = FlatStyle.Flat;
+            UpdateButton.Font = new Font("FC Subject [Non-commercial] Reg", 12F, FontStyle.Regular, GraphicsUnit.Point);
+            UpdateButton.ForeColor = Color.White;
+            UpdateButton.Location = new Point(72, 267);
+            UpdateButton.Name = "UpdateButton";
+            UpdateButton.Size = new Size(272, 53);
+            UpdateButton.TabIndex = 84;
+            UpdateButton.Text = "Update";
+            UpdateButton.TextColor = Color.White;
+            UpdateButton.UseVisualStyleBackColor = false;
+            UpdateButton.Click += UpdateArButton_Click;
+            // 
+            // AmountLabel
+            // 
+            AmountLabel.BackColor = Color.FromArgb(38, 38, 38);
+            AmountLabel.Font = new Font("FC Subject [Non-commercial] Reg", 12F, FontStyle.Regular, GraphicsUnit.Point);
+            AmountLabel.ForeColor = Color.Gainsboro;
+            AmountLabel.Location = new Point(138, 167);
+            AmountLabel.Name = "AmountLabel";
+            AmountLabel.Size = new Size(168, 28);
+            AmountLabel.TabIndex = 83;
+            AmountLabel.TextAlign = ContentAlignment.MiddleCenter;
+            // 
+            // label3
+            // 
+            label3.BackColor = Color.FromArgb(38, 38, 38);
+            label3.Font = new Font("FC Subject [Non-commercial] Reg", 12F, FontStyle.Regular, GraphicsUnit.Point);
+            label3.ForeColor = Color.Gainsboro;
+            label3.Location = new Point(22, 167);
+            label3.Name = "label3";
+            label3.Size = new Size(110, 28);
+            label3.TabIndex = 82;
+            label3.Text = "ยอดลงบัญชี";
+            label3.TextAlign = ContentAlignment.MiddleLeft;
+            // 
+            // DescriptionLabel
+            // 
+            DescriptionLabel.BackColor = Color.FromArgb(38, 38, 38);
+            DescriptionLabel.Font = new Font("FC Subject [Non-commercial] Reg", 12F, FontStyle.Regular, GraphicsUnit.Point);
+            DescriptionLabel.ForeColor = Color.Gainsboro;
+            DescriptionLabel.Location = new Point(138, 133);
+            DescriptionLabel.Name = "DescriptionLabel";
+            DescriptionLabel.Size = new Size(168, 28);
+            DescriptionLabel.TabIndex = 81;
+            DescriptionLabel.TextAlign = ContentAlignment.MiddleCenter;
+            // 
+            // InvoiceIdLabel
+            // 
+            InvoiceIdLabel.BackColor = Color.FromArgb(38, 38, 38);
+            InvoiceIdLabel.Font = new Font("FC Subject [Non-commercial] Reg", 12F, FontStyle.Regular, GraphicsUnit.Point);
+            InvoiceIdLabel.ForeColor = Color.Gainsboro;
+            InvoiceIdLabel.Location = new Point(138, 99);
+            InvoiceIdLabel.Name = "InvoiceIdLabel";
+            InvoiceIdLabel.Size = new Size(168, 28);
+            InvoiceIdLabel.TabIndex = 80;
+            InvoiceIdLabel.TextAlign = ContentAlignment.MiddleCenter;
+            // 
+            // label11
+            // 
+            label11.BackColor = Color.FromArgb(38, 38, 38);
+            label11.Font = new Font("FC Subject [Non-commercial] Reg", 12F, FontStyle.Regular, GraphicsUnit.Point);
+            label11.ForeColor = Color.Gainsboro;
+            label11.Location = new Point(22, 133);
+            label11.Name = "label11";
+            label11.Size = new Size(110, 28);
+            label11.TabIndex = 79;
+            label11.Text = "คำอธิบาย";
+            label11.TextAlign = ContentAlignment.MiddleLeft;
+            // 
+            // label10
+            // 
+            label10.BackColor = Color.FromArgb(38, 38, 38);
+            label10.Font = new Font("FC Subject [Non-commercial] Reg", 12F, FontStyle.Regular, GraphicsUnit.Point);
+            label10.ForeColor = Color.Gainsboro;
+            label10.Location = new Point(22, 99);
+            label10.Name = "label10";
+            label10.Size = new Size(110, 28);
+            label10.TabIndex = 78;
+            label10.Text = "Invoice ID";
+            label10.TextAlign = ContentAlignment.MiddleLeft;
+            // 
+            // PaidAmountTextBox
+            // 
+            PaidAmountTextBox.BackColor = Color.FromArgb(38, 38, 38);
+            PaidAmountTextBox.BorderColor = Color.DimGray;
+            PaidAmountTextBox.BorderSize = 1;
+            PaidAmountTextBox.Font = new Font("FC Subject [Non-commercial] Reg", 12F, FontStyle.Regular, GraphicsUnit.Point);
+            PaidAmountTextBox.ForeColor = Color.Gainsboro;
+            PaidAmountTextBox.Location = new Point(138, 195);
+            PaidAmountTextBox.Multiline = false;
+            PaidAmountTextBox.Name = "PaidAmountTextBox";
+            PaidAmountTextBox.Padding = new Padding(7);
+            PaidAmountTextBox.PasswordChar = false;
+            PaidAmountTextBox.ReadOnly = false;
+            PaidAmountTextBox.Size = new Size(168, 39);
+            PaidAmountTextBox.TabIndex = 77;
+            PaidAmountTextBox.TextAlign = HorizontalAlignment.Center;
+            PaidAmountTextBox.Texts = "";
+            PaidAmountTextBox.UnderlinedStyle = true;
+            // 
+            // PasswordLabel
+            // 
+            PasswordLabel.BackColor = Color.FromArgb(38, 38, 38);
+            PasswordLabel.Font = new Font("FC Subject [Non-commercial] Reg", 12F, FontStyle.Regular, GraphicsUnit.Point);
+            PasswordLabel.ForeColor = Color.Gainsboro;
+            PasswordLabel.Location = new Point(22, 195);
+            PasswordLabel.Name = "PasswordLabel";
+            PasswordLabel.Size = new Size(110, 39);
+            PasswordLabel.TabIndex = 76;
+            PasswordLabel.Text = "ยอดชำระ";
+            PasswordLabel.TextAlign = ContentAlignment.MiddleLeft;
+            // 
+            // label2
+            // 
+            label2.BackColor = Color.FromArgb(48, 48, 48);
+            label2.Dock = DockStyle.Top;
+            label2.Font = new Font("FC Subject [Non-commercial] Reg", 14.25F, FontStyle.Regular, GraphicsUnit.Point);
+            label2.ForeColor = Color.Gainsboro;
+            label2.Location = new Point(0, 0);
+            label2.Name = "label2";
+            label2.Size = new Size(412, 52);
+            label2.TabIndex = 69;
+            label2.Text = "รายละเอียดการลงบัญชี";
+            label2.TextAlign = ContentAlignment.MiddleCenter;
+            // 
+            // ActivePanel
+            // 
+            ActivePanel.Controls.Add(PayLaterPaymentsDataView);
+            ActivePanel.Dock = DockStyle.Fill;
+            ActivePanel.Location = new Point(0, 60);
+            ActivePanel.Name = "ActivePanel";
+            ActivePanel.Size = new Size(1007, 637);
+            ActivePanel.TabIndex = 2;
+            // 
+            // PayLaterPaymentsDataView
+            // 
+            PayLaterPaymentsDataView.AllowUserToAddRows = false;
+            PayLaterPaymentsDataView.AllowUserToDeleteRows = false;
+            PayLaterPaymentsDataView.AllowUserToResizeColumns = false;
+            PayLaterPaymentsDataView.AllowUserToResizeRows = false;
+            PayLaterPaymentsDataView.BackgroundColor = Color.FromArgb(38, 38, 38);
+            PayLaterPaymentsDataView.BorderStyle = BorderStyle.None;
+            PayLaterPaymentsDataView.CellBorderStyle = DataGridViewCellBorderStyle.SingleHorizontal;
+            PayLaterPaymentsDataView.ColumnHeadersBorderStyle = DataGridViewHeaderBorderStyle.None;
+            dataGridViewCellStyle3.Alignment = DataGridViewContentAlignment.MiddleCenter;
+            dataGridViewCellStyle3.BackColor = Color.FromArgb(48, 48, 48);
+            dataGridViewCellStyle3.Font = new Font("FC Subject [Non-commercial] Reg", 14.25F, FontStyle.Regular, GraphicsUnit.Point);
+            dataGridViewCellStyle3.ForeColor = Color.Gainsboro;
+            dataGridViewCellStyle3.Padding = new Padding(10, 0, 0, 0);
+            dataGridViewCellStyle3.SelectionBackColor = Color.Gray;
+            dataGridViewCellStyle3.WrapMode = DataGridViewTriState.False;
+            PayLaterPaymentsDataView.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle3;
+            PayLaterPaymentsDataView.ColumnHeadersHeight = 50;
+            PayLaterPaymentsDataView.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.DisableResizing;
+            PayLaterPaymentsDataView.Columns.AddRange(new DataGridViewColumn[] { InvoiceId, Description, ReceivableAmount, PaidAmount, IsCompleted, DateCreated, DateUpdated });
+            dataGridViewCellStyle4.Alignment = DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle4.BackColor = Color.FromArgb(38, 38, 38);
+            dataGridViewCellStyle4.Font = new Font("FC Subject [Non-commercial] Reg", 12F, FontStyle.Regular, GraphicsUnit.Point);
+            dataGridViewCellStyle4.ForeColor = Color.Gainsboro;
+            dataGridViewCellStyle4.SelectionBackColor = Color.FromArgb(48, 48, 48);
+            dataGridViewCellStyle4.SelectionForeColor = Color.Gainsboro;
+            dataGridViewCellStyle4.WrapMode = DataGridViewTriState.False;
+            PayLaterPaymentsDataView.DefaultCellStyle = dataGridViewCellStyle4;
+            PayLaterPaymentsDataView.Dock = DockStyle.Fill;
+            PayLaterPaymentsDataView.EnableHeadersVisualStyles = false;
+            PayLaterPaymentsDataView.GridColor = Color.DimGray;
+            PayLaterPaymentsDataView.Location = new Point(0, 0);
+            PayLaterPaymentsDataView.MultiSelect = false;
+            PayLaterPaymentsDataView.Name = "PayLaterPaymentsDataView";
+            PayLaterPaymentsDataView.RowHeadersVisible = false;
+            PayLaterPaymentsDataView.RowHeadersWidth = 60;
+            PayLaterPaymentsDataView.RowHeadersWidthSizeMode = DataGridViewRowHeadersWidthSizeMode.DisableResizing;
+            PayLaterPaymentsDataView.RowTemplate.DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
+            PayLaterPaymentsDataView.RowTemplate.DefaultCellStyle.BackColor = Color.FromArgb(38, 38, 38);
+            PayLaterPaymentsDataView.RowTemplate.DefaultCellStyle.Font = new Font("FC Subject [Non-commercial] Reg", 12F, FontStyle.Regular, GraphicsUnit.Point);
+            PayLaterPaymentsDataView.RowTemplate.DefaultCellStyle.ForeColor = Color.Gainsboro;
+            PayLaterPaymentsDataView.RowTemplate.DefaultCellStyle.SelectionBackColor = Color.FromArgb(70, 70, 70);
+            PayLaterPaymentsDataView.RowTemplate.DefaultCellStyle.SelectionForeColor = Color.Gainsboro;
+            PayLaterPaymentsDataView.RowTemplate.DefaultCellStyle.WrapMode = DataGridViewTriState.True;
+            PayLaterPaymentsDataView.RowTemplate.Height = 35;
+            PayLaterPaymentsDataView.SelectionMode = DataGridViewSelectionMode.CellSelect;
+            PayLaterPaymentsDataView.Size = new Size(1007, 637);
+            PayLaterPaymentsDataView.TabIndex = 3;
+            PayLaterPaymentsDataView.CellClick += PayLaterPaymentsDataView_CellClick;
+            PayLaterPaymentsDataView.DoubleClick += PayLaterPaymentsDataView_DoubleClick;
+            // 
+            // InvoiceId
+            // 
+            InvoiceId.HeaderText = "Invoice ID";
+            InvoiceId.Name = "InvoiceId";
+            InvoiceId.ReadOnly = true;
+            InvoiceId.Width = 150;
+            // 
+            // Description
+            // 
+            Description.HeaderText = "คำอธิบาย";
+            Description.Name = "Description";
+            Description.ReadOnly = true;
+            Description.Width = 250;
+            // 
+            // ReceivableAmount
+            // 
+            ReceivableAmount.HeaderText = "ยอดลงบัญชี";
+            ReceivableAmount.Name = "ReceivableAmount";
+            ReceivableAmount.ReadOnly = true;
+            ReceivableAmount.Width = 150;
+            // 
+            // PaidAmount
+            // 
+            PaidAmount.HeaderText = "ยอดชำระ";
+            PaidAmount.Name = "PaidAmount";
+            PaidAmount.Width = 150;
+            // 
+            // IsCompleted
+            // 
+            IsCompleted.HeaderText = "สถานะ";
+            IsCompleted.Name = "IsCompleted";
+            IsCompleted.Width = 150;
+            // 
+            // DateCreated
+            // 
+            DateCreated.HeaderText = "วันที่สร้าง";
+            DateCreated.Name = "DateCreated";
+            DateCreated.ReadOnly = true;
+            DateCreated.Width = 200;
+            // 
+            // DateUpdated
+            // 
+            DateUpdated.HeaderText = "วันที่อัพเดท";
+            DateUpdated.Name = "DateUpdated";
+            DateUpdated.ReadOnly = true;
+            DateUpdated.Width = 200;
             // 
             // PayLaterPaymentPanel
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
-            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
-            this.Controls.Add(this.panel3);
-            this.Controls.Add(this.panel2);
-            this.Controls.Add(this.panel1);
-            this.Name = "PayLaterPaymentPanel";
-            this.Size = new System.Drawing.Size(1421, 697);
-            this.panel1.ResumeLayout(false);
-            this.panel1.PerformLayout();
-            this.panel4.ResumeLayout(false);
-            this.panel2.ResumeLayout(false);
-            this.panel3.ResumeLayout(false);
-            ((System.ComponentModel.ISupportInitialize)(this.PayLaterPaymentsDataView)).EndInit();
-            this.ResumeLayout(false);
-
+            AutoScaleDimensions = new SizeF(6F, 13F);
+            AutoScaleMode = AutoScaleMode.Font;
+            BackColor = Color.FromArgb(38, 38, 38);
+            Controls.Add(ActivePanel);
+            Controls.Add(panel2);
+            Controls.Add(panel1);
+            Name = "PayLaterPaymentPanel";
+            Size = new Size(1421, 697);
+            panel1.ResumeLayout(false);
+            panel1.PerformLayout();
+            panel4.ResumeLayout(false);
+            panel2.ResumeLayout(false);
+            ActivePanel.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)PayLaterPaymentsDataView).EndInit();
+            ResumeLayout(false);
         }
 
         #endregion
 
-        private System.Windows.Forms.Panel panel1;
-        private System.Windows.Forms.Panel panel2;
-        private System.Windows.Forms.Panel panel3;
-        private System.Windows.Forms.DataGridView PayLaterPaymentsDataView;
-        private System.Windows.Forms.Label label2;
-        private System.Windows.Forms.DataGridViewTextBoxColumn InvoiceId;
-        private System.Windows.Forms.DataGridViewTextBoxColumn Description;
-        private System.Windows.Forms.DataGridViewTextBoxColumn ReceivableAmount;
-        private System.Windows.Forms.DataGridViewTextBoxColumn PaidAmount;
-        private System.Windows.Forms.DataGridViewTextBoxColumn IsCompleted;
-        private System.Windows.Forms.DataGridViewTextBoxColumn DateCreated;
-        private System.Windows.Forms.DataGridViewTextBoxColumn DateUpdated;
+        private Panel panel1;
+        private Panel panel2;
+        private Panel ActivePanel;
+        private DataGridView PayLaterPaymentsDataView;
+        private Label label2;
+        private DataGridViewTextBoxColumn InvoiceId;
+        private DataGridViewTextBoxColumn Description;
+        private DataGridViewTextBoxColumn ReceivableAmount;
+        private DataGridViewTextBoxColumn PaidAmount;
+        private DataGridViewTextBoxColumn IsCompleted;
+        private DataGridViewTextBoxColumn DateCreated;
+        private DataGridViewTextBoxColumn DateUpdated;
         private ModernUI.ModernButton ShowPayLaterPaymentsButton;
-        private System.Windows.Forms.Label AmountLabel;
-        private System.Windows.Forms.Label label3;
-        private System.Windows.Forms.Label DescriptionLabel;
-        private System.Windows.Forms.Label InvoiceIdLabel;
-        private System.Windows.Forms.Label label11;
-        private System.Windows.Forms.Label label10;
+        private Label AmountLabel;
+        private Label label3;
+        private Label DescriptionLabel;
+        private Label InvoiceIdLabel;
+        private Label label11;
+        private Label label10;
         private ModernUI.ModernTextBox PaidAmountTextBox;
-        private System.Windows.Forms.Label PasswordLabel;
+        private Label PasswordLabel;
         private ModernUI.ModernButton UpdateButton;
         private ModernUI.ModernButton LookUpByInvoiceIdButton;
         private ModernUI.ModernTextBox LookUpByInvoiceIdTextBox;
-        private System.Windows.Forms.CheckBox ShowIncompleteOnlyCheckBox;
-        private System.Windows.Forms.Panel panel4;
+        private CheckBox ShowIncompleteOnlyCheckBox;
+        private Panel panel4;
         private Label PaymentIdLabel;
         private Label label4;
     }

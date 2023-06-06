@@ -12,6 +12,7 @@ using IndyPOS.Application.Invoices;
 using IndyPOS.Application.Invoices.Queries.GetInvoicesByDateRange;
 using IndyPOS.Application.PayLaterPayments;
 using IndyPOS.Application.PayLaterPayments.Queries.GetPayLaterPaymentByInvoiceId;
+using IndyPOS.Application.PayLaterPayments.Queries.GetPayLaterPayments;
 using IndyPOS.Application.PayLaterPayments.Queries.GetPayLaterPaymentsByDateRange;
 using MediatR;
 using Microsoft.Extensions.Configuration;
@@ -75,6 +76,13 @@ public class ReportService : IReportService
 		var dateRange = period.ToDateRange();
 
 		return await CreatePaymentsReportByDateRangeAsync(dateRange.StartDate, dateRange.EndDate);
+	}
+
+	public async Task<IEnumerable<PayLaterPaymentDto>> GetPayLaterPaymentsByPeriodAsync(TimePeriod period)
+	{
+		var dateRange = period.ToDateRange();
+
+		return await GetPayLaterPaymentsByDateRangeAsync(dateRange.StartDate, dateRange.EndDate);
 	}
 
 	private async Task<ISalesReport> CreateSalesReportByDateRangeAsync(DateOnly startDate, DateOnly endDate)
@@ -240,16 +248,16 @@ public class ReportService : IReportService
 		return await _mediator.Send(new GetInvoicePaymentsByInvoiceIdQuery(invoiceId));
 	}
 
-	public async Task<IReadOnlyList<PayLaterPaymentDto>> GetPayLaterPaymentsByDateRangeAsync(DateOnly startDate, DateOnly endDate)
+	private async Task<IReadOnlyList<PayLaterPaymentDto>> GetPayLaterPaymentsByDateRangeAsync(DateOnly startDate, DateOnly endDate)
 	{
 		var results = await _mediator.Send(new GetPayLaterPaymentsByDateRangeQuery(startDate, endDate));
 
 		return results.ToList();
 	}
 
-	public async Task<PayLaterPaymentDto> GetPayLaterPaymentsByInvoiceIdAsync(int invoiceId)
+	public async Task<IEnumerable<PayLaterPaymentDto>> GetPayLaterPaymentsAsync()
 	{
-		return await _mediator.Send(new GetPayLaterPaymentByInvoiceIdQuery(invoiceId));
+		return await _mediator.Send(new GetPayLaterPaymentsQuery());
 	}
 
 	private class SalesReport : ISalesReport

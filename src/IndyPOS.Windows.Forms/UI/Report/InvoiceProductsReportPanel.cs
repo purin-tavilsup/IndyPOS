@@ -63,10 +63,12 @@ public partial class InvoiceProductsReportPanel : UserControl
 		InvoiceProductsDataView.Columns[(int)ProductColumn.UnitPrice].Name = "ราคาต่อหน่วย";
 		InvoiceProductsDataView.Columns[(int)ProductColumn.UnitPrice].Width = 150;
 		InvoiceProductsDataView.Columns[(int)ProductColumn.UnitPrice].ReadOnly = true;
+		InvoiceProductsDataView.Columns[(int)ProductColumn.UnitPrice].DefaultCellStyle.Format = "N2";
 
 		InvoiceProductsDataView.Columns[(int)ProductColumn.Total].Name = "ราคารวม";
 		InvoiceProductsDataView.Columns[(int)ProductColumn.Total].Width = 150;
 		InvoiceProductsDataView.Columns[(int)ProductColumn.Total].ReadOnly = true;
+		InvoiceProductsDataView.Columns[(int)ProductColumn.Total].DefaultCellStyle.Format = "N2";
 
 		InvoiceProductsDataView.Columns[(int)ProductColumn.Category].Name = "กลุ่มสินค้า";
 		InvoiceProductsDataView.Columns[(int)ProductColumn.Category].Width = 200;
