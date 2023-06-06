@@ -71,7 +71,7 @@ public static class Win32
 	internal const int RIM_INPUT = 0x00;
 
 	private const int MAPVK_VK_TO_CHAR = 2;
-	private const int US_KEYBOARD_ID = 67702793;
+	private const nint US_KEYBOARD_ID = 67699721;
 	
 	[DllImport("User32.dll", SetLastError = true)]
 	internal static extern int GetRawInputData(IntPtr hRawInput, DataCommand command, [Out] out InputData buffer, [In, Out] ref int size, int cbSizeHeader);
@@ -252,6 +252,10 @@ public static class Win32
 		return ToUnicodeEx(virtualKey, 0, keyState, characters, characters.Capacity, 0, US_KEYBOARD_ID);
 	}
 
+	/// <summary>
+	/// Gets input locale identifier
+	/// </summary>
+	/// <returns></returns>
 	public static IntPtr GetInputLanguageId()
 	{
 		var threadId = GetCurrentThreadId();
