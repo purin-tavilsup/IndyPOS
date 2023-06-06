@@ -3,21 +3,23 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.0.32014.148
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IndyPOS.Domain", "IndyPOS.Domain\IndyPOS.Domain.csproj", "{24F75591-02BA-4E92-834A-F330A60AF06A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IndyPOS.Domain", "src\IndyPOS.Domain\IndyPOS.Domain.csproj", "{24F75591-02BA-4E92-834A-F330A60AF06A}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IndyPOS.Windows.Forms", "IndyPOS.Windows.Forms\IndyPOS.Windows.Forms.csproj", "{2ED6DFC3-BF73-41B7-816C-D53312DA9C52}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IndyPOS.Windows.Forms", "src\IndyPOS.Windows.Forms\IndyPOS.Windows.Forms.csproj", "{2ED6DFC3-BF73-41B7-816C-D53312DA9C52}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IndyPOS.Infrastructure", "IndyPOS.Infrastructure\IndyPOS.Infrastructure.csproj", "{6032F51E-E3DF-47D5-9E74-A360BDBFB180}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IndyPOS.Infrastructure", "src\IndyPOS.Infrastructure\IndyPOS.Infrastructure.csproj", "{6032F51E-E3DF-47D5-9E74-A360BDBFB180}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IndyPOS.Windows.Forms.Tests", "IndyPOS.Windows.Forms.Tests\IndyPOS.Windows.Forms.Tests.csproj", "{D60984B3-CE19-4B7E-BD76-834A11EE2DDA}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IndyPOS.Windows.Forms.Tests", "tests\IndyPOS.Windows.Forms.Tests\IndyPOS.Windows.Forms.Tests.csproj", "{D60984B3-CE19-4B7E-BD76-834A11EE2DDA}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IndyPOS.Application", "IndyPOS.Application\IndyPOS.Application.csproj", "{672B4BDC-93D2-4711-9CB2-1DB66D57591D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IndyPOS.Application", "src\IndyPOS.Application\IndyPOS.Application.csproj", "{672B4BDC-93D2-4711-9CB2-1DB66D57591D}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IndyPOS.Application.Tests", "IndyPOS.Application.Tests\IndyPOS.Application.Tests.csproj", "{BBA8F82E-BCA3-4C9E-A315-DA8B8F149D2B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IndyPOS.Application.Tests", "tests\IndyPOS.Application.Tests\IndyPOS.Application.Tests.csproj", "{BBA8F82E-BCA3-4C9E-A315-DA8B8F149D2B}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{997D11A0-85EC-4363-90F7-52B709D4ED27}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{87305E60-CCF3-46E7-9CD2-E19BF10290B7}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IndyPOS.Mock", "tests\IndyPOS.Mock\IndyPOS.Mock.csproj", "{B04659AF-3BBF-4A66-BE0A-E5C137F5C6BA}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -49,6 +51,10 @@ Global
 		{BBA8F82E-BCA3-4C9E-A315-DA8B8F149D2B}.Debug|x64.Build.0 = Debug|x64
 		{BBA8F82E-BCA3-4C9E-A315-DA8B8F149D2B}.Release|x64.ActiveCfg = Release|x64
 		{BBA8F82E-BCA3-4C9E-A315-DA8B8F149D2B}.Release|x64.Build.0 = Release|x64
+		{B04659AF-3BBF-4A66-BE0A-E5C137F5C6BA}.Debug|x64.ActiveCfg = Debug|x64
+		{B04659AF-3BBF-4A66-BE0A-E5C137F5C6BA}.Debug|x64.Build.0 = Debug|x64
+		{B04659AF-3BBF-4A66-BE0A-E5C137F5C6BA}.Release|x64.ActiveCfg = Release|x64
+		{B04659AF-3BBF-4A66-BE0A-E5C137F5C6BA}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -60,6 +66,7 @@ Global
 		{D60984B3-CE19-4B7E-BD76-834A11EE2DDA} = {87305E60-CCF3-46E7-9CD2-E19BF10290B7}
 		{672B4BDC-93D2-4711-9CB2-1DB66D57591D} = {997D11A0-85EC-4363-90F7-52B709D4ED27}
 		{BBA8F82E-BCA3-4C9E-A315-DA8B8F149D2B} = {87305E60-CCF3-46E7-9CD2-E19BF10290B7}
+		{B04659AF-3BBF-4A66-BE0A-E5C137F5C6BA} = {87305E60-CCF3-46E7-9CD2-E19BF10290B7}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {8DF2657F-A964-43CB-BD74-99381ADA31E6}
