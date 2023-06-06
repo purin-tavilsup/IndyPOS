@@ -2,6 +2,7 @@
 using IndyPOS.Application.InvoicePayments;
 using IndyPOS.Application.InvoiceProducts;
 using IndyPOS.Application.Invoices;
+using IndyPOS.Application.PayLaterPayments;
 
 namespace IndyPOS.Application.Common.Interfaces;
 
@@ -13,6 +14,8 @@ public interface IReportService
 
 	Task<IEnumerable<InvoiceDto>> GetInvoicesByPeriodAsync(TimePeriod period);
 
+	Task<IEnumerable<PayLaterPaymentDto>> GetPayLaterPaymentsByPeriodAsync(TimePeriod period);
+
 	Task<IEnumerable<InvoiceDto>> GetInvoicesByDateRangeAsync(DateOnly startDate, DateOnly endDate);
 
 	Task<IEnumerable<InvoiceProductDto>> GetInvoiceProductsByDateAsync(DateOnly date);
@@ -22,4 +25,6 @@ public interface IReportService
 	Task<IEnumerable<InvoiceProductDto>> GetInvoiceProductsByInvoiceIdAsync(int invoiceId);
 
 	Task<IEnumerable<InvoicePaymentDto>> GetPaymentsByInvoiceIdAsync(int invoiceId);
+
+	Task<IEnumerable<PayLaterPaymentDto>> GetPayLaterPaymentsAsync();
 }

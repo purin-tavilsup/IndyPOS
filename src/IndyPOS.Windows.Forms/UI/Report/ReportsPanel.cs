@@ -1,96 +1,91 @@
-﻿using System.Diagnostics.CodeAnalysis;
-using IndyPOS.Windows.Forms.Enums;
+﻿using IndyPOS.Windows.Forms.Enums;
+using System.Diagnostics.CodeAnalysis;
 
 namespace IndyPOS.Windows.Forms.UI.Report;
 
 [ExcludeFromCodeCoverage]
 public partial class ReportsPanel : UserControl
 {
-	private readonly SalesReportPanel _salesReportPanel;
-	private readonly InvoiceProductsReportPanel _invoiceProductsReportPanel;
-	private readonly SalesHistoryReportPanel _salesHistoryReportPanel;
-	private UserControl _activePanel;
+    private readonly SalesReportPanel _salesReportPanel;
+    private readonly InvoiceProductsReportPanel _invoiceProductsReportPanel;
+    private readonly SalesHistoryReportPanel _salesHistoryReportPanel;
+    private readonly PayLaterPaymentsReportPanel _payLaterPaymentsReportPanel;
+    private UserControl _activePanel;
 
-	public ReportsPanel(SalesReportPanel salesReportPanel,
-						InvoiceProductsReportPanel invoiceProductsReportPanel,
-						SalesHistoryReportPanel salesHistoryReportPanel)
-	{
-		_salesReportPanel = salesReportPanel;
-		_salesReportPanel.Visible = false;
-		_invoiceProductsReportPanel = invoiceProductsReportPanel;
-		_invoiceProductsReportPanel.Visible = false;
-		_salesHistoryReportPanel = salesHistoryReportPanel;
-		_salesHistoryReportPanel.Visible = false;
+    public ReportsPanel(SalesReportPanel salesReportPanel,
+                        InvoiceProductsReportPanel invoiceProductsReportPanel,
+                        SalesHistoryReportPanel salesHistoryReportPanel,
+                        PayLaterPaymentsReportPanel payLaterPaymentsReportPanel)
+    {
+        _salesReportPanel = salesReportPanel;
+        _salesReportPanel.Visible = false;
+        _invoiceProductsReportPanel = invoiceProductsReportPanel;
+        _invoiceProductsReportPanel.Visible = false;
+        _salesHistoryReportPanel = salesHistoryReportPanel;
+        _salesHistoryReportPanel.Visible = false;
+        _payLaterPaymentsReportPanel = payLaterPaymentsReportPanel;
+        _payLaterPaymentsReportPanel.Visible = false;
 
-		_activePanel = new UserControl(); 
+        _activePanel = new UserControl();
 
-		InitializeComponent();
-	}
+        InitializeComponent();
+    }
 
-	private void SwitchToPanel(ReportSubPanel subPanelToShow)
-	{
-		UserControl panelToShow = _salesReportPanel;
+    private void SwitchToPanel(ReportSubPanel subPanelToShow)
+    {
+        UserControl panelToShow = subPanelToShow switch
+        {
+            ReportSubPanel.SalesReport => _salesReportPanel,
+            ReportSubPanel.InvoiceProductsReport => _invoiceProductsReportPanel,
+            ReportSubPanel.SalesHistoryReport => _salesHistoryReportPanel,
+            ReportSubPanel.PayLaterPaymentsReport => _payLaterPaymentsReportPanel,
+            _ => _salesReportPanel
+        };
 
-		switch (subPanelToShow)
-		{
-			case ReportSubPanel.SalesReport:
+        if (_activePanel.Name == panelToShow.Name)
+        {
+            return;
+        }
 
-				panelToShow = _salesReportPanel;
+        _activePanel.Visible = false;
 
-				break;
+        ActivePanel.Controls.Clear();
 
-			case ReportSubPanel.InvoiceProductsReport:
+        panelToShow.Dock = DockStyle.Fill;
 
-				panelToShow = _invoiceProductsReportPanel;
+        ActivePanel.Controls.Add(panelToShow);
 
-				break;
+        panelToShow.BringToFront();
+        panelToShow.Visible = true;
 
-			case ReportSubPanel.SalesHistoryReport:
+        _activePanel = panelToShow;
+    }
 
-				panelToShow = _salesHistoryReportPanel;
+    private void ActivePanel_VisibleChanged(object sender, EventArgs e)
+    {
+        if (!Visible)
+            return;
 
-				break;
-		}
+        SwitchToPanel(ReportSubPanel.SalesReport);
+    }
 
-		if (_activePanel.Name == panelToShow.Name)
-		{
-			return;
-		}
+    private void ShowSalesOverviewReportButton_Click(object sender, EventArgs e)
+    {
+        SwitchToPanel(ReportSubPanel.SalesReport);
+    }
 
-		_activePanel.Visible = false;
+    private void ShowInvoiceProductsButton_Click(object sender, EventArgs e)
+    {
+        SwitchToPanel(ReportSubPanel.InvoiceProductsReport);
+    }
 
-		ActivePanel.Controls.Clear();
+    private void ShowSalesHistoryButton_Click(object sender, EventArgs e)
+    {
+        SwitchToPanel(ReportSubPanel.SalesHistoryReport);
+    }
 
-		panelToShow.Dock = DockStyle.Fill;
-
-		ActivePanel.Controls.Add(panelToShow);
-            
-		panelToShow.BringToFront();
-		panelToShow.Visible = true;
-            
-		_activePanel = panelToShow;
-	}
-
-	private void ActivePanel_VisibleChanged(object sender, EventArgs e)
-	{
-		if (!Visible)
-			return;
-
-		SwitchToPanel(ReportSubPanel.SalesReport);
-	}
-
-	private void ShowSalesOverviewReportButton_Click(object sender, EventArgs e)
-	{
-		SwitchToPanel(ReportSubPanel.SalesReport);
-	}
-
-	private void ShowInvoiceProductsButton_Click(object sender, EventArgs e)
-	{
-		SwitchToPanel(ReportSubPanel.InvoiceProductsReport);
-	}
-
-	private void ShowSalesHistoryButton_Click(object sender, EventArgs e)
-	{
-		SwitchToPanel(ReportSubPanel.SalesHistoryReport);
-	}
+    private void PayLaterPaymentsReportButton_Click(object sender, EventArgs e)
+    {
+        SwitchToPanel(ReportSubPanel.PayLaterPaymentsReport);
+    }
 }
