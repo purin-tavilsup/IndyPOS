@@ -258,6 +258,40 @@ public class InventoryProductRepository : IInventoryProductRepository
         return affectedRowsCount == 1;
     }
 
+	public IEnumerable<InventoryProduct> GetProductsByDescriptionKeyword(string keyword)
+	{
+		using var connection = _dbConnectionProvider.GetDbConnection();
+		connection.Open();
+
+		const string sqlCommand = @"SELECT * FROM InventoryProducts WHERE Description LIKE @Keyword";
+
+		var sqlParameters = new
+		{
+			Keyword = $"%{keyword}%"
+		};
+
+		var results = connection.Query(sqlCommand, sqlParameters);
+
+		return results is null ? Enumerable.Empty<InventoryProduct>() : MapInventoryProducts(results);
+	} 
+
+    public IEnumerable<InventoryProduct> GetProductsByBrandKeyword(string keyword)
+    {
+		using var connection = _dbConnectionProvider.GetDbConnection();
+		connection.Open();
+
+		const string sqlCommand = @"SELECT * FROM InventoryProducts WHERE Brand LIKE @Keyword";
+
+		var sqlParameters = new
+		{
+			Keyword = $"%{keyword}%"
+		};
+
+		var results = connection.Query(sqlCommand, sqlParameters);
+
+		return results is null ? Enumerable.Empty<InventoryProduct>() : MapInventoryProducts(results);
+    }
+
     private static InventoryProduct MapInventoryProduct(dynamic result)
     {
         var product = new InventoryProduct

@@ -1,10 +1,9 @@
-﻿using System.Diagnostics;
-using IndyPOS.Application.Common.Exceptions;
+﻿using IndyPOS.Application.Common.Exceptions;
 using IndyPOS.Application.PayLaterPayments;
 using IndyPOS.Application.PayLaterPayments.Commands.UpdatePayLaterPayment;
 using IndyPOS.Application.PayLaterPayments.Queries.GetPayLaterPaymentById;
-using IndyPOS.Application.PayLaterPayments.Queries.GetPayLaterPaymentByInvoiceId;
 using IndyPOS.Application.PayLaterPayments.Queries.GetPayLaterPayments;
+using IndyPOS.Application.PayLaterPayments.Queries.GetPayLaterPaymentsByDescriptionKeyword;
 using IndyPOS.Windows.Forms.UI.Report;
 using MediatR;
 using System.Diagnostics.CodeAnalysis;
@@ -17,7 +16,6 @@ public partial class PayLaterPaymentPanel : UserControl
     private readonly IMediator _mediator;
     private readonly SaleHistoryByInvoiceIdForm _saleHistoryByInvoiceIdForm;
     private readonly MessageForm _messageForm;
-    private IEnumerable<PayLaterPaymentDto> _payLaterPayments;
 
     private enum AccountColumn
     {
@@ -38,8 +36,6 @@ public partial class PayLaterPaymentPanel : UserControl
         _mediator = mediator;
         _saleHistoryByInvoiceIdForm = saleHistoryByInvoiceIdForm;
         _messageForm = messageForm;
-
-        _payLaterPayments = Enumerable.Empty<PayLaterPaymentDto>();
 
         InitializeComponent();
         InitializeUserDataView();
@@ -63,12 +59,12 @@ public partial class PayLaterPaymentPanel : UserControl
         PayLaterPaymentsDataView.Columns[(int)AccountColumn.Amount].Name = "ยอดลงบัญชี";
         PayLaterPaymentsDataView.Columns[(int)AccountColumn.Amount].Width = 150;
         PayLaterPaymentsDataView.Columns[(int)AccountColumn.Amount].ReadOnly = true;
-		PayLaterPaymentsDataView.Columns[(int)AccountColumn.Amount].DefaultCellStyle.Format = "N2";
+        PayLaterPaymentsDataView.Columns[(int)AccountColumn.Amount].DefaultCellStyle.Format = "N2";
 
         PayLaterPaymentsDataView.Columns[(int)AccountColumn.PaidAmount].Name = "ยอดชำระ";
         PayLaterPaymentsDataView.Columns[(int)AccountColumn.PaidAmount].Width = 150;
         PayLaterPaymentsDataView.Columns[(int)AccountColumn.PaidAmount].ReadOnly = true;
-		PayLaterPaymentsDataView.Columns[(int)AccountColumn.PaidAmount].DefaultCellStyle.Format = "N2";
+        PayLaterPaymentsDataView.Columns[(int)AccountColumn.PaidAmount].DefaultCellStyle.Format = "N2";
 
         PayLaterPaymentsDataView.Columns[(int)AccountColumn.IsCompleted].Name = "สถานะ";
         PayLaterPaymentsDataView.Columns[(int)AccountColumn.IsCompleted].Width = 150;
@@ -119,14 +115,14 @@ public partial class PayLaterPaymentPanel : UserControl
         return await _mediator.Send(new GetPayLaterPaymentsQuery());
     }
 
+	private async Task<IEnumerable<PayLaterPaymentDto>> GetPayLaterPaymentsByDescriptionKeywordAsync(string keyword)
+	{
+		return await _mediator.Send(new GetPayLaterPaymentsByDescriptionKeywordQuery(keyword));
+	}
+
     private async Task<PayLaterPaymentDto> GetPayLaterPaymentByPaymentIdAsync(int paymentId)
     {
         return await _mediator.Send(new GetPayLaterPaymentByIdQuery(paymentId));
-    }
-
-    private async Task<PayLaterPaymentDto> GetPayLaterPaymentByInvoiceIdAsync(int invoiceId)
-    {
-        return await _mediator.Send(new GetPayLaterPaymentByInvoiceIdQuery(invoiceId));
     }
 
     private async Task UpdatePayLaterPaymentAsync(PayLaterPaymentDto payment, decimal paidAmount)
@@ -152,11 +148,11 @@ public partial class PayLaterPaymentPanel : UserControl
     {
         ResetDetails();
 
-        _payLaterPayments = await GetPayLaterPaymentsAsync();
+        var payments = await GetPayLaterPaymentsAsync();
 
         PayLaterPaymentsDataView.Rows.Clear();
 
-        foreach (var payment in _payLaterPayments)
+        foreach (var payment in payments)
         {
             if (showIncompleteOnly && payment.IsCompleted)
                 continue;
@@ -270,30 +266,27 @@ public partial class PayLaterPaymentPanel : UserControl
         await ShowPayLaterPaymentsAsync(ShowIncompleteOnlyCheckBox.Checked);
     }
 
-    private async void LookUpByInvoiceIdButton_Click(object sender, EventArgs e)
-    {
-        if (!int.TryParse(LookUpByInvoiceIdTextBox.Texts.Trim(), out var invoiceId))
+    private async void SearchByKeywordButton_Click(object sender, EventArgs e)
+	{
+		ResetDetails();
+
+		var keyword = SearchByKeywordTextBox.Texts.Trim();
+
+        if (string.IsNullOrWhiteSpace(keyword))
         {
-            _messageForm.ShowDialog("กรุณาใส่ Invoice ID ให้ถูกต้อง", "Invoice ID ไม่ถูกต้อง");
             return;
         }
 
         PayLaterPaymentsDataView.Rows.Clear();
 
-        try
-        {
-            var payment = await GetPayLaterPaymentByInvoiceIdAsync(invoiceId);
+		var payments = await GetPayLaterPaymentsByDescriptionKeywordAsync(keyword);
 
-            AddToPayLaterPaymentsDataView(payment);
-        }
-        catch (PayLaterPaymentNotFoundException ex)
-        {
-            _messageForm.ShowDialog($"ไม่พบรายการลงบัญชีสำหรับ Invoice ID {invoiceId}. Error: {ex.Message}", "ไม่พบรายการลงบัญชี");
-        }
-        catch (Exception ex)
-        {
-            _messageForm.ShowDialog($"เกิดข้อผิดพลาดระหว่างที่กำลังค้นหารายการลงบัญชีสำหรับ Invoice ID {invoiceId}. Error: {ex.Message}", "ไม่พบรายการลงบัญชี");
-        }
+		PayLaterPaymentsDataView.Rows.Clear();
+
+		foreach (var payment in payments)
+		{
+			AddToPayLaterPaymentsDataView(payment);
+		}
     }
 
     private async void ShowIncompleteOnlyCheckBox_Click(object sender, EventArgs e)

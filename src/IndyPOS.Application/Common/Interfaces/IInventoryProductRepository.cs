@@ -12,6 +12,10 @@ public interface IInventoryProductRepository
 
 	IEnumerable<InventoryProduct> GetProductsByCategoryId(int id);
 
+	IEnumerable<InventoryProduct> GetProductsByDescriptionKeyword(string keyword);
+
+	IEnumerable<InventoryProduct> GetProductsByBrandKeyword(string keyword);
+
 	bool Update(InventoryProduct product);
 
 	bool UpdateProductQuantityById(int id, int quantity);

@@ -16,6 +16,8 @@ public interface IPayLaterPaymentRepository
 
 	IEnumerable<PayLaterPayment> GetIncompletePayLaterPayments();
 
+	IEnumerable<PayLaterPayment> GetPayLaterPaymentsByDescriptionKeyword(string keyword);
+
 	PayLaterPayment GetPayLaterPaymentByInvoiceId(int invoiceId);
 
 	IEnumerable<PayLaterPayment> GetPayLaterPaymentsByDateRange(DateOnly start, DateOnly end);
