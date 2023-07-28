@@ -105,6 +105,23 @@ public class PayLaterRepository : IPayLaterPaymentRepository
         return results is null ? Enumerable.Empty<PayLaterPayment>() : MapPayLaterPayments(results);
     }
 
+    public IEnumerable<PayLaterPayment> GetPayLaterPaymentsByDescriptionKeyword(string keyword)
+    {
+		using var connection = _dbConnectionProvider.GetDbConnection();
+		connection.Open();
+
+		const string sqlCommand = @"SELECT * FROM AccountsReceivables WHERE Description LIKE @Keyword";
+
+		var sqlParameters = new
+		{
+			Keyword = $"%{keyword}%"
+		};
+
+		var results = connection.Query(sqlCommand, sqlParameters);
+
+		return results is null ? Enumerable.Empty<PayLaterPayment>() : MapPayLaterPayments(results);
+    }
+
     public PayLaterPayment GetPayLaterPaymentByInvoiceId(int invoiceId)
     {
         using var connection = _dbConnectionProvider.GetDbConnection();

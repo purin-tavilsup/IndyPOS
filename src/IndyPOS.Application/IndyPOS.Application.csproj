@@ -33,6 +33,8 @@
     <Folder Include="InventoryProducts\Commands\UpdateInventoryProductBarcodeCounter\" />
     <Folder Include="InventoryProducts\Commands\UpdateInventoryProductQuantity\" />
     <Folder Include="InventoryProducts\Commands\UpdateInventoryProduct\" />
+    <Folder Include="InventoryProducts\Queries\GetInventoryProductsByDescriptionKeyword\" />
+    <Folder Include="InventoryProducts\Queries\GetInventoryProductsByBrandKeyword\" />
     <Folder Include="InvoicePayments\Commands\DeleteInvoicePayment\" />
     <Folder Include="InvoicePayments\Queries\GetInvoicePaymentsByInvoiceId\" />
     <Folder Include="InvoicePayments\Queries\GetInvoicePaymentsByDate\" />
@@ -53,6 +55,7 @@
     <Folder Include="PayLaterPayments\Queries\GetPayLaterPaymentByInvoiceId\" />
     <Folder Include="PayLaterPayments\Queries\GetPayLaterPaymentById\" />
     <Folder Include="PayLaterPayments\Queries\GetPayLaterPaymentsByDateRange\" />
+    <Folder Include="PayLaterPayments\Queries\GetPayLaterPaymentsByDescriptionKeyword\" />
     <Folder Include="UserCredentials\Commands\CreateUserCredential\" />
     <Folder Include="UserCredentials\Commands\UpdateUserCredential\" />
     <Folder Include="UserCredentials\Queries\GetUserCredentialById\" />

@@ -32,8 +32,8 @@
             var dataGridViewCellStyle4 = new DataGridViewCellStyle();
             panel1 = new Panel();
             panel4 = new Panel();
-            LookUpByInvoiceIdTextBox = new ModernUI.ModernTextBox();
-            LookUpByInvoiceIdButton = new ModernUI.ModernButton();
+            SearchByKeywordTextBox = new ModernUI.ModernTextBox();
+            SearchByKeywordButton = new ModernUI.ModernButton();
             ShowIncompleteOnlyCheckBox = new CheckBox();
             ShowPayLaterPaymentsButton = new ModernUI.ModernButton();
             panel2 = new Panel();
@@ -78,52 +78,52 @@
             // 
             // panel4
             // 
-            panel4.Controls.Add(LookUpByInvoiceIdTextBox);
-            panel4.Controls.Add(LookUpByInvoiceIdButton);
+            panel4.Controls.Add(SearchByKeywordTextBox);
+            panel4.Controls.Add(SearchByKeywordButton);
             panel4.Dock = DockStyle.Right;
             panel4.Location = new Point(1001, 0);
             panel4.Name = "panel4";
             panel4.Size = new Size(420, 60);
             panel4.TabIndex = 55;
             // 
-            // LookUpByInvoiceIdTextBox
+            // SearchByKeywordTextBox
             // 
-            LookUpByInvoiceIdTextBox.BackColor = Color.FromArgb(38, 38, 38);
-            LookUpByInvoiceIdTextBox.BorderColor = Color.DimGray;
-            LookUpByInvoiceIdTextBox.BorderSize = 1;
-            LookUpByInvoiceIdTextBox.Font = new Font("FC Subject [Non-commercial] Reg", 12F, FontStyle.Regular, GraphicsUnit.Point);
-            LookUpByInvoiceIdTextBox.ForeColor = Color.Gainsboro;
-            LookUpByInvoiceIdTextBox.Location = new Point(3, 13);
-            LookUpByInvoiceIdTextBox.Multiline = false;
-            LookUpByInvoiceIdTextBox.Name = "LookUpByInvoiceIdTextBox";
-            LookUpByInvoiceIdTextBox.Padding = new Padding(7);
-            LookUpByInvoiceIdTextBox.PasswordChar = false;
-            LookUpByInvoiceIdTextBox.ReadOnly = false;
-            LookUpByInvoiceIdTextBox.Size = new Size(160, 39);
-            LookUpByInvoiceIdTextBox.TabIndex = 52;
-            LookUpByInvoiceIdTextBox.TextAlign = HorizontalAlignment.Center;
-            LookUpByInvoiceIdTextBox.Texts = "";
-            LookUpByInvoiceIdTextBox.UnderlinedStyle = true;
+            SearchByKeywordTextBox.BackColor = Color.FromArgb(38, 38, 38);
+            SearchByKeywordTextBox.BorderColor = Color.DimGray;
+            SearchByKeywordTextBox.BorderSize = 1;
+            SearchByKeywordTextBox.Font = new Font("FC Subject [Non-commercial] Reg", 12F, FontStyle.Regular, GraphicsUnit.Point);
+            SearchByKeywordTextBox.ForeColor = Color.Gainsboro;
+            SearchByKeywordTextBox.Location = new Point(3, 13);
+            SearchByKeywordTextBox.Multiline = false;
+            SearchByKeywordTextBox.Name = "SearchByKeywordTextBox";
+            SearchByKeywordTextBox.Padding = new Padding(7);
+            SearchByKeywordTextBox.PasswordChar = false;
+            SearchByKeywordTextBox.ReadOnly = false;
+            SearchByKeywordTextBox.Size = new Size(160, 39);
+            SearchByKeywordTextBox.TabIndex = 52;
+            SearchByKeywordTextBox.TextAlign = HorizontalAlignment.Center;
+            SearchByKeywordTextBox.Texts = "";
+            SearchByKeywordTextBox.UnderlinedStyle = true;
             // 
-            // LookUpByInvoiceIdButton
+            // SearchByKeywordButton
             // 
-            LookUpByInvoiceIdButton.BackColor = Color.FromArgb(38, 38, 38);
-            LookUpByInvoiceIdButton.BackgroundColor = Color.FromArgb(38, 38, 38);
-            LookUpByInvoiceIdButton.BorderColor = Color.FromArgb(37, 182, 210);
-            LookUpByInvoiceIdButton.BorderRadius = 19;
-            LookUpByInvoiceIdButton.BorderSize = 1;
-            LookUpByInvoiceIdButton.FlatAppearance.BorderSize = 0;
-            LookUpByInvoiceIdButton.FlatStyle = FlatStyle.Flat;
-            LookUpByInvoiceIdButton.Font = new Font("FC Subject [Non-commercial] Reg", 12F, FontStyle.Regular, GraphicsUnit.Point);
-            LookUpByInvoiceIdButton.ForeColor = Color.White;
-            LookUpByInvoiceIdButton.Location = new Point(176, 4);
-            LookUpByInvoiceIdButton.Name = "LookUpByInvoiceIdButton";
-            LookUpByInvoiceIdButton.Size = new Size(241, 50);
-            LookUpByInvoiceIdButton.TabIndex = 53;
-            LookUpByInvoiceIdButton.Text = "ค้นหารายการด้วย Invoice ID";
-            LookUpByInvoiceIdButton.TextColor = Color.White;
-            LookUpByInvoiceIdButton.UseVisualStyleBackColor = false;
-            LookUpByInvoiceIdButton.Click += LookUpByInvoiceIdButton_Click;
+            SearchByKeywordButton.BackColor = Color.FromArgb(38, 38, 38);
+            SearchByKeywordButton.BackgroundColor = Color.FromArgb(38, 38, 38);
+            SearchByKeywordButton.BorderColor = Color.FromArgb(37, 182, 210);
+            SearchByKeywordButton.BorderRadius = 19;
+            SearchByKeywordButton.BorderSize = 1;
+            SearchByKeywordButton.FlatAppearance.BorderSize = 0;
+            SearchByKeywordButton.FlatStyle = FlatStyle.Flat;
+            SearchByKeywordButton.Font = new Font("FC Subject [Non-commercial] Reg", 12F, FontStyle.Regular, GraphicsUnit.Point);
+            SearchByKeywordButton.ForeColor = Color.White;
+            SearchByKeywordButton.Location = new Point(176, 4);
+            SearchByKeywordButton.Name = "SearchByKeywordButton";
+            SearchByKeywordButton.Size = new Size(241, 50);
+            SearchByKeywordButton.TabIndex = 53;
+            SearchByKeywordButton.Text = "ค้นหารายการด้วย คำอธิบาย";
+            SearchByKeywordButton.TextColor = Color.White;
+            SearchByKeywordButton.UseVisualStyleBackColor = false;
+            SearchByKeywordButton.Click += SearchByKeywordButton_Click;
             // 
             // ShowIncompleteOnlyCheckBox
             // 
@@ -486,8 +486,8 @@
         private ModernUI.ModernTextBox PaidAmountTextBox;
         private Label PasswordLabel;
         private ModernUI.ModernButton UpdateButton;
-        private ModernUI.ModernButton LookUpByInvoiceIdButton;
-        private ModernUI.ModernTextBox LookUpByInvoiceIdTextBox;
+        private ModernUI.ModernButton SearchByKeywordButton;
+        private ModernUI.ModernTextBox SearchByKeywordTextBox;
         private CheckBox ShowIncompleteOnlyCheckBox;
         private Panel panel4;
         private Label PaymentIdLabel;
