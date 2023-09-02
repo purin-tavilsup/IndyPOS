@@ -10,7 +10,11 @@ public interface IReportService
 {
 	Task<ISalesReport> CreateSalesReportByPeriodAsync(TimePeriod period);
 
+	Task<ISalesReport> CreateSalesReportByDateRangeAsync(DateOnly startDate, DateOnly endDate);
+
 	Task<IPaymentsReport> CreatePaymentsReportByPeriodAsync(TimePeriod period);
+
+	Task<IPaymentsReport> CreatePaymentsReportByDateRangeAsync(DateOnly startDate, DateOnly endDate);
 
 	Task<IEnumerable<InvoiceDto>> GetInvoicesByPeriodAsync(TimePeriod period);
 
