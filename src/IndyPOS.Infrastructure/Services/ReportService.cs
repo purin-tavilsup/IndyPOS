@@ -85,7 +85,7 @@ public class ReportService : IReportService
 		return await GetPayLaterPaymentsByDateRangeAsync(dateRange.StartDate, dateRange.EndDate);
 	}
 
-	private async Task<ISalesReport> CreateSalesReportByDateRangeAsync(DateOnly startDate, DateOnly endDate)
+	public async Task<ISalesReport> CreateSalesReportByDateRangeAsync(DateOnly startDate, DateOnly endDate)
 	{
 		var generalProductsTotal = 0m;
 		var hardwareProductsTotal = 0m;
@@ -159,7 +159,7 @@ public class ReportService : IReportService
 					   .Sum(x => x.PaidAmount);
 	}
 
-	private async Task<IPaymentsReport> CreatePaymentsReportByDateRangeAsync(DateOnly startDate, DateOnly endDate)
+	public async Task<IPaymentsReport> CreatePaymentsReportByDateRangeAsync(DateOnly startDate, DateOnly endDate)
 	{
 		var payLaterTotal = 0m;
 		var fiftyFiftyTotal = 0m;
@@ -238,7 +238,7 @@ public class ReportService : IReportService
 		return await _mediator.Send(new GetInvoiceProductsByInvoiceIdQuery(invoiceId));
 	}
 
-	public async Task<IEnumerable<InvoicePaymentDto>> GetPaymentsByDateRangeAsync(DateOnly startDate, DateOnly endDate)
+	private async Task<IEnumerable<InvoicePaymentDto>> GetPaymentsByDateRangeAsync(DateOnly startDate, DateOnly endDate)
 	{
 		return await _mediator.Send(new GetInvoicePaymentsByDateRangeQuery(startDate, endDate));
 	}
