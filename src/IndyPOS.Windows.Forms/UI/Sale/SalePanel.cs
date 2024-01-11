@@ -194,6 +194,7 @@ public partial class SalePanel : UserControl
 		var rowBackColor = rowIndex % 2 == 0 ? Color.FromArgb(38,38,38) : Color.FromArgb(48, 48, 48);
 
 		InvoiceDataView.Rows[rowIndex].DefaultCellStyle.BackColor = rowBackColor;
+		InvoiceDataView.CurrentCell = InvoiceDataView.Rows[rowIndex].Cells[0];
 	}
 
 	private void AddPaymentToPaymentDataView(Application.Common.Models.Payment payment)
@@ -210,6 +211,7 @@ public partial class SalePanel : UserControl
 		var rowBackColor = rowIndex % 2 == 0 ? Color.FromArgb(38,38,38) : Color.FromArgb(48, 48, 48);
 
 		PaymentDataView.Rows[rowIndex].DefaultCellStyle.BackColor = rowBackColor;
+		PaymentDataView.CurrentCell = PaymentDataView.Rows[rowIndex].Cells[0];
 	}
 
 	private void GetPaymentButton_Click(object sender, EventArgs e)
