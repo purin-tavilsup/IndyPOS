@@ -62,6 +62,7 @@ public class Machine : IMachine
 		var version = GetVersion();
 		var storeConfig = _storeConfigurationService.Get();
 
+		_mainForm.AutoScroll = true;
 		_mainForm.SetVersion(version);
 		_mainForm.SetStoreName(storeConfig.StoreFullName ?? string.Empty);
 
