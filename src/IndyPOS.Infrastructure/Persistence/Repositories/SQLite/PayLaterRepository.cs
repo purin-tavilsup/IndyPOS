@@ -20,12 +20,12 @@ public class PayLaterRepository : IPayLaterPaymentRepository
         using var connection = _dbConnectionProvider.GetDbConnection();
         connection.Open();
 
-        const string sqlCommand = @"INSERT INTO AccountsReceivables
+        const string sqlCommand = @"INSERT INTO PayLater
                 (
                     PaymentId,
                     Description,
                     InvoiceId,
-                    ReceivableAmount,
+                    PayLaterAmount,
 					DateCreated
                 )
                 VALUES
@@ -33,7 +33,7 @@ public class PayLaterRepository : IPayLaterPaymentRepository
                     @PaymentId,
                     @Description,
                     @InvoiceId,
-					@ReceivableAmount,
+					@PayLaterAmount,
                     datetime('now','localtime')
                 );
                 SELECT last_insert_rowid()";
@@ -43,7 +43,7 @@ public class PayLaterRepository : IPayLaterPaymentRepository
             payment.PaymentId,
             payment.Description,
             payment.InvoiceId,
-            ReceivableAmount = payment.ReceivableAmount.ToMoneyString()
+            PayLaterAmount = payment.PayLaterAmount.ToMoneyString()
         };
 
         var rowId = connection.Query<int>(sqlCommand, sqlParameters)
@@ -57,7 +57,7 @@ public class PayLaterRepository : IPayLaterPaymentRepository
         using var connection = _dbConnectionProvider.GetDbConnection();
         connection.Open();
 
-        const string sqlCommand = @"UPDATE AccountsReceivables
+        const string sqlCommand = @"UPDATE PayLater
                 SET
                     PaidAmount = @PaidAmount,
                     IsCompleted = @IsCompleted,
@@ -81,7 +81,7 @@ public class PayLaterRepository : IPayLaterPaymentRepository
         using var connection = _dbConnectionProvider.GetDbConnection();
         connection.Open();
 
-        const string sqlCommand = @"SELECT * FROM AccountsReceivables";
+        const string sqlCommand = @"SELECT * FROM PayLater";
 
         var results = connection.Query(sqlCommand);
 
@@ -93,7 +93,7 @@ public class PayLaterRepository : IPayLaterPaymentRepository
         using var connection = _dbConnectionProvider.GetDbConnection();
         connection.Open();
 
-        const string sqlCommand = @"SELECT * FROM AccountsReceivables WHERE IsCompleted = @IsCompleted";
+        const string sqlCommand = @"SELECT * FROM PayLater WHERE IsCompleted = @IsCompleted";
 
         var sqlParameters = new
         {
@@ -110,7 +110,7 @@ public class PayLaterRepository : IPayLaterPaymentRepository
 		using var connection = _dbConnectionProvider.GetDbConnection();
 		connection.Open();
 
-		const string sqlCommand = @"SELECT * FROM AccountsReceivables WHERE Description LIKE @Keyword";
+		const string sqlCommand = @"SELECT * FROM PayLater WHERE Description LIKE @Keyword";
 
 		var sqlParameters = new
 		{
@@ -127,7 +127,7 @@ public class PayLaterRepository : IPayLaterPaymentRepository
         using var connection = _dbConnectionProvider.GetDbConnection();
         connection.Open();
 
-        const string sqlCommand = @"SELECT * FROM AccountsReceivables WHERE InvoiceId = @InvoiceId";
+        const string sqlCommand = @"SELECT * FROM PayLater WHERE InvoiceId = @InvoiceId";
 
         var sqlParameters = new
         {
@@ -150,7 +150,7 @@ public class PayLaterRepository : IPayLaterPaymentRepository
         using var connection = _dbConnectionProvider.GetDbConnection();
         connection.Open();
 
-        const string sqlCommand = @"SELECT * FROM AccountsReceivables WHERE PaymentId = @PaymentId";
+        const string sqlCommand = @"SELECT * FROM PayLater WHERE PaymentId = @PaymentId";
 
         var sqlParameters = new
         {
@@ -173,7 +173,7 @@ public class PayLaterRepository : IPayLaterPaymentRepository
         using var connection = _dbConnectionProvider.GetDbConnection();
         connection.Open();
 
-        const string sqlCommand = @"SELECT * FROM AccountsReceivables WHERE DateCreated BETWEEN @startDate AND @endDate";
+        const string sqlCommand = @"SELECT * FROM PayLater WHERE DateCreated BETWEEN @startDate AND @endDate";
 
         var sqlParameters = new
         {
@@ -196,7 +196,7 @@ public class PayLaterRepository : IPayLaterPaymentRepository
 		using var connection = _dbConnectionProvider.GetDbConnection();
 		connection.Open();
 
-		const string sqlCommand = @"DELETE FROM AccountsReceivables WHERE PaymentId = @PaymentId";
+		const string sqlCommand = @"DELETE FROM PayLater WHERE PaymentId = @PaymentId";
 
 		var sqlParameters = new
 		{
@@ -215,8 +215,8 @@ public class PayLaterRepository : IPayLaterPaymentRepository
             PaymentId = (int)result.PaymentId,
             Description = result.Description,
             InvoiceId = (int)result.InvoiceId,
-            ReceivableAmount = ((string)result.ReceivableAmount).ToMoney(),
-            PaidAmount = ((string)result.PaidAmount).ToMoney(),
+            PayLaterAmount = (decimal)result.PayLaterAmount,
+            PaidAmount = (decimal)result.PaidAmount,
             IsCompleted = result.IsCompleted == 1,
             DateCreated = result.DateCreated,
             DateUpdated = result.DateUpdated

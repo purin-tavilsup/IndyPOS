@@ -1,9 +1,7 @@
-﻿#nullable enable
-using Dapper;
+﻿using Dapper;
 using IndyPOS.Application.Common.Exceptions;
 using IndyPOS.Application.Common.Interfaces;
 using IndyPOS.Domain.Entities;
-using IndyPOS.Infrastructure.Extensions;
 
 namespace IndyPOS.Infrastructure.Persistence.Repositories.SQLite;
 
@@ -21,7 +19,7 @@ public class InventoryProductRepository : IInventoryProductRepository
         using var connection = _dbConnectionProvider.GetDbConnection();
         connection.Open();
 
-        const string sqlCommand = @"SELECT * FROM InventoryProducts WHERE Barcode = @productBarcode";
+        const string sqlCommand = @"SELECT * FROM InventoryProduct WHERE Barcode = @productBarcode";
 
         var sqlParameters = new
         {
@@ -44,7 +42,7 @@ public class InventoryProductRepository : IInventoryProductRepository
         using var connection = _dbConnectionProvider.GetDbConnection();
         connection.Open();
 
-        const string sqlCommand = @"SELECT * FROM InventoryProducts WHERE Category = @category";
+        const string sqlCommand = @"SELECT * FROM InventoryProduct WHERE Category = @category";
 
         var sqlParameters = new
         {
@@ -61,7 +59,7 @@ public class InventoryProductRepository : IInventoryProductRepository
         using var connection = _dbConnectionProvider.GetDbConnection();
         connection.Open();
 
-        const string sqlCommand = @"SELECT * FROM InventoryProducts WHERE InventoryProductId = @inventoryProductId";
+        const string sqlCommand = @"SELECT * FROM InventoryProduct WHERE InventoryProductId = @inventoryProductId";
 
         var sqlParameters = new
         {
@@ -84,7 +82,7 @@ public class InventoryProductRepository : IInventoryProductRepository
         using var connection = _dbConnectionProvider.GetDbConnection();
         connection.Open();
 
-        const string sqlCommand = @"INSERT INTO InventoryProducts
+        const string sqlCommand = @"INSERT INTO InventoryProduct
                 (
                     Barcode,
                     Description,
@@ -121,9 +119,9 @@ public class InventoryProductRepository : IInventoryProductRepository
             product.Manufacturer,
             product.Brand,
             product.Category,
-            UnitPrice = product.UnitPrice.ToMoneyString(),
+            product.UnitPrice,
             product.QuantityInStock,
-            GroupPrice = product.GroupPrice.ToNullableMoneyString(),
+            product.GroupPrice,
             product.GroupPriceQuantity,
             IsTrackable = product.IsTrackable ? 1 : 0
         };
@@ -139,7 +137,7 @@ public class InventoryProductRepository : IInventoryProductRepository
         using var connection = _dbConnectionProvider.GetDbConnection();
         connection.Open();
 
-        const string sqlCommand = @"UPDATE InventoryProducts
+        const string sqlCommand = @"UPDATE InventoryProduct
                 SET
                     Description = @Description,
                     Manufacturer = @Manufacturer,
@@ -159,9 +157,9 @@ public class InventoryProductRepository : IInventoryProductRepository
             product.Manufacturer,
             product.Brand,
             product.Category,
-            UnitPrice = product.UnitPrice.ToMoneyString(),
+            product.UnitPrice,
             product.QuantityInStock,
-            GroupPrice = product.GroupPrice.ToNullableMoneyString(),
+            product.GroupPrice,
             product.GroupPriceQuantity
         };
 
@@ -175,7 +173,7 @@ public class InventoryProductRepository : IInventoryProductRepository
         using var connection = _dbConnectionProvider.GetDbConnection();
         connection.Open();
 
-        const string sqlCommand = @"UPDATE InventoryProducts
+        const string sqlCommand = @"UPDATE InventoryProduct
                 SET
                     QuantityInStock = @QuantityInStock
                 WHERE InventoryProductId = @InventoryProductId";
@@ -206,7 +204,7 @@ public class InventoryProductRepository : IInventoryProductRepository
 		using var connection = _dbConnectionProvider.GetDbConnection();
 		connection.Open();
 
-		const string sqlCommand = @"DELETE FROM InventoryProducts WHERE InventoryProductId = @InventoryProductId";
+		const string sqlCommand = @"DELETE FROM InventoryProduct WHERE InventoryProductId = @InventoryProductId";
 
 		var sqlParameters = new
 		{
@@ -263,7 +261,7 @@ public class InventoryProductRepository : IInventoryProductRepository
 		using var connection = _dbConnectionProvider.GetDbConnection();
 		connection.Open();
 
-		const string sqlCommand = @"SELECT * FROM InventoryProducts WHERE Description LIKE @Keyword";
+		const string sqlCommand = @"SELECT * FROM InventoryProduct WHERE Description LIKE @Keyword";
 
 		var sqlParameters = new
 		{
@@ -280,7 +278,7 @@ public class InventoryProductRepository : IInventoryProductRepository
 		using var connection = _dbConnectionProvider.GetDbConnection();
 		connection.Open();
 
-		const string sqlCommand = @"SELECT * FROM InventoryProducts WHERE Brand LIKE @Keyword";
+		const string sqlCommand = @"SELECT * FROM InventoryProduct WHERE Brand LIKE @Keyword";
 
 		var sqlParameters = new
 		{
@@ -302,9 +300,9 @@ public class InventoryProductRepository : IInventoryProductRepository
             Manufacturer = result.Manufacturer,
             Brand = result.Brand,
             Category = (int)result.Category,
-            UnitPrice = ((string)result.UnitPrice).ToMoney(),
+            UnitPrice = (decimal)result.UnitPrice,
             QuantityInStock = (int)result.QuantityInStock,
-            GroupPrice = ((string)result.GroupPrice).ToNullableMoney(),
+            GroupPrice = (decimal)result.GroupPrice,
             GroupPriceQuantity = (int?)result.GroupPriceQuantity,
             IsTrackable = result.IsTrackable == 1,
             DateCreated = result.DateCreated,

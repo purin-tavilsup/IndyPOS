@@ -20,17 +20,15 @@ public class InvoiceRepository : IInvoiceRepository
         using var connection = _dbConnectionProvider.GetDbConnection();
         connection.Open();
 
-        const string sqlCommand = @"INSERT INTO Invoices
+        const string sqlCommand = @"INSERT INTO Invoice
                 (
                     Total,
-                    CustomerId,
                     UserId,
                     DateCreated
                 )
                 VALUES
                 (
                     @Total,
-                    @CustomerId,
                     @UserId,
                     datetime('now','localtime')
                 );
@@ -39,7 +37,6 @@ public class InvoiceRepository : IInvoiceRepository
         var sqlParameters = new
         {
             Total = invoice.Total.ToMoneyString(),
-            invoice.CustomerId,
             invoice.UserId
         };
 
@@ -54,7 +51,7 @@ public class InvoiceRepository : IInvoiceRepository
         using var connection = _dbConnectionProvider.GetDbConnection();
         connection.Open();
 
-        const string sqlCommand = @"SELECT * FROM Invoices WHERE InvoiceId = @invoiceId";
+        const string sqlCommand = @"SELECT * FROM Invoice WHERE InvoiceId = @invoiceId";
 
         var sqlParameters = new
         {
@@ -77,7 +74,7 @@ public class InvoiceRepository : IInvoiceRepository
         using var connection = _dbConnectionProvider.GetDbConnection();
         connection.Open();
 
-        const string sqlCommand = @"SELECT * FROM Invoices WHERE DateCreated BETWEEN @startDate AND @endDate";
+        const string sqlCommand = @"SELECT * FROM Invoice WHERE DateCreated BETWEEN @startDate AND @endDate";
 
         var sqlParameters = new
         {
@@ -105,7 +102,7 @@ public class InvoiceRepository : IInvoiceRepository
 		using var connection = _dbConnectionProvider.GetDbConnection();
 		connection.Open();
 
-		const string sqlCommand = @"DELETE FROM Invoices WHERE InvoiceId = @InvoiceId";
+		const string sqlCommand = @"DELETE FROM Invoice WHERE InvoiceId = @InvoiceId";
 
 		var sqlParameters = new
 		{
@@ -122,8 +119,7 @@ public class InvoiceRepository : IInvoiceRepository
         var invoice = new Invoice
         {
             InvoiceId = (int)result.InvoiceId,
-            Total = ((string)result.Total).ToMoney(),
-            CustomerId = (int?)result.CustomerId,
+            Total = (decimal)result.Total,
             UserId = (int)result.UserId,
             DateCreated = result.DateCreated
         };

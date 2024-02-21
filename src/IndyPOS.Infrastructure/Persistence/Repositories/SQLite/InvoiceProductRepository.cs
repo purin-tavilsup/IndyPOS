@@ -19,7 +19,7 @@ public class InvoiceProductRepository : IInvoiceProductRepository
         using var connection = _dbConnectionProvider.GetDbConnection();
         connection.Open();
 
-        const string sqlCommand = @"INSERT INTO InvoiceProducts
+        const string sqlCommand = @"INSERT INTO InvoiceProduct
                 (
                     InvoiceId,
                     Priority,
@@ -77,7 +77,7 @@ public class InvoiceProductRepository : IInvoiceProductRepository
         using var connection = _dbConnectionProvider.GetDbConnection();
         connection.Open();
 
-        const string sqlCommand = @"SELECT * FROM InvoiceProducts WHERE InvoiceId = @invoiceId";
+        const string sqlCommand = @"SELECT * FROM InvoiceProduct WHERE InvoiceId = @invoiceId";
 
         var sqlParameters = new
         {
@@ -94,7 +94,7 @@ public class InvoiceProductRepository : IInvoiceProductRepository
         using var connection = _dbConnectionProvider.GetDbConnection();
         connection.Open();
 
-        const string sqlCommand = @"SELECT * FROM InvoiceProducts WHERE DateCreated BETWEEN @startDate AND @endDate";
+        const string sqlCommand = @"SELECT * FROM InvoiceProduct WHERE DateCreated BETWEEN @startDate AND @endDate";
 
         var sqlParameters = new
         {
@@ -122,7 +122,7 @@ public class InvoiceProductRepository : IInvoiceProductRepository
 		using var connection = _dbConnectionProvider.GetDbConnection();
 		connection.Open();
 
-		const string sqlCommand = @"DELETE FROM InvoiceProducts WHERE InvoiceProductId = @InvoiceProductId";
+		const string sqlCommand = @"DELETE FROM InvoiceProduct WHERE InvoiceProductId = @InvoiceProductId";
 
 		var sqlParameters = new
 		{
@@ -144,7 +144,7 @@ public class InvoiceProductRepository : IInvoiceProductRepository
 		using var connection = _dbConnectionProvider.GetDbConnection();
 		connection.Open();
 
-		const string sqlCommand = @"DELETE FROM InvoiceProducts WHERE InvoiceId = @InvoiceId";
+		const string sqlCommand = @"DELETE FROM InvoiceProduct WHERE InvoiceId = @InvoiceId";
 
 		var sqlParameters = new
 		{
@@ -169,7 +169,7 @@ public class InvoiceProductRepository : IInvoiceProductRepository
             Manufacturer = x.Manufacturer,
             Brand = x.Brand,
             Category = (int)x.Category,
-            UnitPrice = ((string)x.UnitPrice).ToMoney(),
+            UnitPrice = (decimal)x.UnitPrice,
             Quantity = (int)x.Quantity,
             DateCreated = x.DateCreated,
             Note = x.Note

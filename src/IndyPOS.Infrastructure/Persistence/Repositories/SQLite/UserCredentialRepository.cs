@@ -19,7 +19,7 @@ public class UserCredentialRepository : IUserCredentialRepository
         using var connection = _dbConnectionProvider.GetDbConnection();
         connection.Open();
 
-        const string sqlCommand = @"SELECT * FROM UserCredentials WHERE UserId = @userId";
+        const string sqlCommand = @"SELECT * FROM UserCredential WHERE UserId = @userId";
 
         var sqlParameters = new
         {
@@ -42,7 +42,7 @@ public class UserCredentialRepository : IUserCredentialRepository
         using var connection = _dbConnectionProvider.GetDbConnection();
         connection.Open();
 
-        const string sqlCommand = @"INSERT INTO UserCredentials
+        const string sqlCommand = @"INSERT INTO UserCredential
                 (
                     UserId,
 					Username,
@@ -74,7 +74,7 @@ public class UserCredentialRepository : IUserCredentialRepository
         using var connection = _dbConnectionProvider.GetDbConnection();
         connection.Open();
 
-        const string sqlCommand = @"SELECT * FROM UserCredentials WHERE Username = @Username";
+        const string sqlCommand = @"SELECT * FROM UserCredential WHERE Username = @Username";
 
         var sqlParameters = new
         {
@@ -97,7 +97,7 @@ public class UserCredentialRepository : IUserCredentialRepository
         using var connection = _dbConnectionProvider.GetDbConnection();
         connection.Open();
 
-        const string sqlCommand = @"UPDATE UserCredentials
+        const string sqlCommand = @"UPDATE UserCredential
                 SET
                     Password = @Password,
                     DateUpdated = datetime('now','localtime')
@@ -119,7 +119,7 @@ public class UserCredentialRepository : IUserCredentialRepository
         using var connection = _dbConnectionProvider.GetDbConnection();
         connection.Open();
 
-        const string sqlCommand = @"DELETE FROM UserCredentials WHERE UserId = @UserId";
+        const string sqlCommand = @"DELETE FROM UserCredential WHERE UserId = @UserId";
 
         var sqlParameters = new
         {

@@ -19,7 +19,7 @@ public class UserRepository : IUserRepository
         using var connection = _dbConnectionProvider.GetDbConnection();
         connection.Open();
 
-        const string sqlCommand = @"SELECT * FROM Users";
+        const string sqlCommand = @"SELECT * FROM User";
 
         var results = connection.Query<UserAccount>(sqlCommand);
 
@@ -31,7 +31,7 @@ public class UserRepository : IUserRepository
         using var connection = _dbConnectionProvider.GetDbConnection();
         connection.Open();
 
-        const string sqlCommand = @"SELECT * FROM Users WHERE UserId = @userId";
+        const string sqlCommand = @"SELECT * FROM User WHERE UserId = @userId";
 
         var sqlParameters = new
         {
@@ -54,7 +54,7 @@ public class UserRepository : IUserRepository
         using var connection = _dbConnectionProvider.GetDbConnection();
         connection.Open();
 
-        const string sqlCommand = @"INSERT INTO Users
+        const string sqlCommand = @"INSERT INTO User
                 (
                     FirstName,
                     LastName,
@@ -87,7 +87,7 @@ public class UserRepository : IUserRepository
         using var connection = _dbConnectionProvider.GetDbConnection();
         connection.Open();
 
-        const string sqlCommand = @"UPDATE Users
+        const string sqlCommand = @"UPDATE User
                 SET
                     FirstName = @FirstName,
                     LastName = @LastName,
@@ -111,7 +111,7 @@ public class UserRepository : IUserRepository
         using var connection = _dbConnectionProvider.GetDbConnection();
         connection.Open();
 
-        const string sqlCommand = @"DELETE FROM Users WHERE UserId = @UserId";
+        const string sqlCommand = @"DELETE FROM User WHERE UserId = @UserId";
 
         var sqlParameters = new
         {

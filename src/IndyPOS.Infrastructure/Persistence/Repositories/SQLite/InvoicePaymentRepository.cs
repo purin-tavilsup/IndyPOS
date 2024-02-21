@@ -19,7 +19,7 @@ public class InvoicePaymentRepository : IInvoicePaymentRepository
         using var connection = _dbConnectionProvider.GetDbConnection();
         connection.Open();
 
-        const string sqlCommand = @"INSERT INTO Payments
+        const string sqlCommand = @"INSERT INTO Payment
 				(
                     InvoiceId,
                     PaymentTypeId,
@@ -56,7 +56,7 @@ public class InvoicePaymentRepository : IInvoicePaymentRepository
         using var connection = _dbConnectionProvider.GetDbConnection();
         connection.Open();
 
-        const string sqlCommand = @"SELECT * FROM Payments WHERE InvoiceId = @invoiceId";
+        const string sqlCommand = @"SELECT * FROM Payment WHERE InvoiceId = @invoiceId";
 
         var sqlParameters = new
         {
@@ -78,7 +78,7 @@ public class InvoicePaymentRepository : IInvoicePaymentRepository
         using var connection = _dbConnectionProvider.GetDbConnection();
         connection.Open();
 
-        const string sqlCommand = @"SELECT * FROM Payments WHERE DateCreated BETWEEN @startDate AND @endDate";
+        const string sqlCommand = @"SELECT * FROM Payment WHERE DateCreated BETWEEN @startDate AND @endDate";
 
         var sqlParameters = new
         {
@@ -96,7 +96,7 @@ public class InvoicePaymentRepository : IInvoicePaymentRepository
         using var connection = _dbConnectionProvider.GetDbConnection();
         connection.Open();
 
-        const string sqlCommand = @"SELECT * FROM Payments PaymentTypeId = @PaymentTypeId";
+        const string sqlCommand = @"SELECT * FROM Payment WHERE PaymentTypeId = @PaymentTypeId";
 
         var sqlParameters = new
         {
@@ -118,7 +118,7 @@ public class InvoicePaymentRepository : IInvoicePaymentRepository
 		using var connection = _dbConnectionProvider.GetDbConnection();
 		connection.Open();
 
-		const string sqlCommand = @"DELETE FROM Payments WHERE PaymentId = @PaymentId";
+		const string sqlCommand = @"DELETE FROM Payment WHERE PaymentId = @PaymentId";
 
 		var sqlParameters = new
 		{
@@ -140,7 +140,7 @@ public class InvoicePaymentRepository : IInvoicePaymentRepository
 		using var connection = _dbConnectionProvider.GetDbConnection();
 		connection.Open();
 
-		const string sqlCommand = @"DELETE FROM InvoiceProducts WHERE InvoiceId = @InvoiceId";
+		const string sqlCommand = @"DELETE FROM InvoiceProduct WHERE InvoiceId = @InvoiceId";
 
 		var sqlParameters = new
 		{
@@ -159,7 +159,7 @@ public class InvoicePaymentRepository : IInvoicePaymentRepository
             PaymentId = (int)x.PaymentId,
             InvoiceId = (int)x.InvoiceId,
             PaymentTypeId = (int)x.PaymentTypeId,
-            Amount = ((string)x.Amount).ToMoney(),
+            Amount = (decimal)x.Amount,
             DateCreated = x.DateCreated,
             Note = x.Note
         });
