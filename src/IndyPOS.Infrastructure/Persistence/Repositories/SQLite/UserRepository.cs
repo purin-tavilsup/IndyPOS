@@ -19,7 +19,16 @@ public class UserRepository : IUserRepository
         using var connection = _dbConnectionProvider.GetDbConnection();
         connection.Open();
 
-        const string sqlCommand = @"SELECT * FROM User";
+        const string sqlCommand = """
+                                  SELECT
+                                      UserId, 
+                                      FirstName, 
+                                      LastName, 
+                                      RoleId, 
+                                      DateCreated, 
+                                      DateUpdated
+                                  FROM User
+                                  """;
 
         var results = connection.Query<UserAccount>(sqlCommand);
 
@@ -31,7 +40,17 @@ public class UserRepository : IUserRepository
         using var connection = _dbConnectionProvider.GetDbConnection();
         connection.Open();
 
-        const string sqlCommand = @"SELECT * FROM User WHERE UserId = @userId";
+        const string sqlCommand = """
+                                  SELECT
+                                      UserId, 
+                                      FirstName, 
+                                      LastName, 
+                                      RoleId, 
+                                      DateCreated, 
+                                      DateUpdated
+                                  FROM User 
+                                  WHERE UserId = @userId
+                                  """;
 
         var sqlParameters = new
         {
@@ -54,21 +73,23 @@ public class UserRepository : IUserRepository
         using var connection = _dbConnectionProvider.GetDbConnection();
         connection.Open();
 
-        const string sqlCommand = @"INSERT INTO User
-                (
-                    FirstName,
-                    LastName,
-					RoleId,
-                    DateCreated
-                )
-                VALUES
-                (
-                    @FirstName,
-                    @LastName,
-					@RoleId,
-                    datetime('now','localtime')
-                );
-                SELECT last_insert_rowid()";
+        const string sqlCommand = """
+                                  INSERT INTO User
+                                                  (
+                                                   FirstName,
+                                                   LastName,
+                                                   RoleId,
+                                                   DateCreated
+                                                  )
+                                                  VALUES
+                                                  (
+                                                   @FirstName,
+                                                   @LastName,
+                                                   @RoleId,
+                                                   datetime('now','localtime')
+                                                  );
+                                                  SELECT last_insert_rowid()
+                                  """;
 
         var sqlParameters = new
         {
@@ -87,12 +108,14 @@ public class UserRepository : IUserRepository
         using var connection = _dbConnectionProvider.GetDbConnection();
         connection.Open();
 
-        const string sqlCommand = @"UPDATE User
-                SET
-                    FirstName = @FirstName,
-                    LastName = @LastName,
-                    DateUpdated = datetime('now','localtime')
-                WHERE UserId = @UserId";
+        const string sqlCommand = """
+                                  UPDATE User
+                                  SET
+                                      FirstName = @FirstName,
+                                      LastName = @LastName,
+                                      DateUpdated = datetime('now','localtime')
+                                  WHERE UserId = @UserId
+                                  """;
 
         var sqlParameters = new
         {
@@ -111,7 +134,11 @@ public class UserRepository : IUserRepository
         using var connection = _dbConnectionProvider.GetDbConnection();
         connection.Open();
 
-        const string sqlCommand = @"DELETE FROM User WHERE UserId = @UserId";
+        const string sqlCommand = """
+                                  DELETE
+                                  FROM User 
+                                  WHERE UserId = @UserId
+                                  """;
 
         var sqlParameters = new
         {

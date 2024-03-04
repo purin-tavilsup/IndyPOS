@@ -19,7 +19,16 @@ public class UserCredentialRepository : IUserCredentialRepository
         using var connection = _dbConnectionProvider.GetDbConnection();
         connection.Open();
 
-        const string sqlCommand = @"SELECT * FROM UserCredential WHERE UserId = @userId";
+        const string sqlCommand = """
+                                  SELECT 
+                                      UserId, 
+                                      Username, 
+                                      Password, 
+                                      DateCreated, 
+                                      DateUpdated
+                                  FROM UserCredential 
+                                  WHERE UserId = @userId
+                                  """;
 
         var sqlParameters = new
         {
@@ -42,20 +51,22 @@ public class UserCredentialRepository : IUserCredentialRepository
         using var connection = _dbConnectionProvider.GetDbConnection();
         connection.Open();
 
-        const string sqlCommand = @"INSERT INTO UserCredential
-                (
-                    UserId,
-					Username,
-                    Password,
-                    DateCreated
-                )
-                VALUES
-                (
-                    @UserId,
-					@Username,
-                    @Password,
-                    datetime('now','localtime')
-                );";
+        const string sqlCommand = """
+                                  INSERT INTO UserCredential
+                                                  (
+                                                    UserId,
+                                  					Username,
+                                                    Password,
+                                                    DateCreated
+                                                  )
+                                                  VALUES
+                                                  (
+                                                    @UserId,
+                                  					@Username,
+                                                    @Password,
+                                                    datetime('now','localtime')
+                                                  );
+                                  """;
 
         var sqlParameters = new
         {
@@ -74,7 +85,16 @@ public class UserCredentialRepository : IUserCredentialRepository
         using var connection = _dbConnectionProvider.GetDbConnection();
         connection.Open();
 
-        const string sqlCommand = @"SELECT * FROM UserCredential WHERE Username = @Username";
+        const string sqlCommand = """
+                                  SELECT
+                                      UserId, 
+                                      Username, 
+                                      Password, 
+                                      DateCreated, 
+                                      DateUpdated
+                                  FROM UserCredential 
+                                  WHERE Username = @Username
+                                  """;
 
         var sqlParameters = new
         {
@@ -97,11 +117,13 @@ public class UserCredentialRepository : IUserCredentialRepository
         using var connection = _dbConnectionProvider.GetDbConnection();
         connection.Open();
 
-        const string sqlCommand = @"UPDATE UserCredential
-                SET
-                    Password = @Password,
-                    DateUpdated = datetime('now','localtime')
-                WHERE UserId = @UserId";
+        const string sqlCommand = """
+                                  UPDATE UserCredential
+                                  SET
+                                  Password = @Password,
+                                  DateUpdated = datetime('now','localtime')
+                                  WHERE UserId = @UserId
+                                  """;
 
         var sqlParameters = new
         {
@@ -119,7 +141,11 @@ public class UserCredentialRepository : IUserCredentialRepository
         using var connection = _dbConnectionProvider.GetDbConnection();
         connection.Open();
 
-        const string sqlCommand = @"DELETE FROM UserCredential WHERE UserId = @UserId";
+        const string sqlCommand = """
+                                  DELETE 
+                                  FROM UserCredential 
+                                  WHERE UserId = @UserId
+                                  """;
 
         var sqlParameters = new
         {

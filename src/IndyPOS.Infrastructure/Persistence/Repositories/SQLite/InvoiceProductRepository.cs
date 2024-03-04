@@ -19,37 +19,45 @@ public class InvoiceProductRepository : IInvoiceProductRepository
         using var connection = _dbConnectionProvider.GetDbConnection();
         connection.Open();
 
-        const string sqlCommand = @"INSERT INTO InvoiceProduct
-                (
-                    InvoiceId,
-                    Priority,
-                    InventoryProductId,
-                    Barcode,
-                    Description,
-                    Manufacturer,
-                    Brand,
-                    Category,
-                    UnitPrice,
-                    Quantity,
-                    DateCreated,
-					Note
-                )
-                VALUES
-                (
-                    @InvoiceId,
-                    @Priority,
-                    @InventoryProductId,
-                    @Barcode,
-					@Description,
-                    @Manufacturer,
-                    @Brand,
-                    @Category,
-                    @UnitPrice,
-                    @Quantity,
-                    datetime('now','localtime'),
-					@Note
-                );
-                SELECT last_insert_rowid()";
+        const string sqlCommand = """
+                                  INSERT INTO InvoiceProduct
+                                      (
+                                       InvoiceId,
+                                       Priority,
+                                       InventoryProductId,
+                                       Barcode,
+                                       Description,
+                                       Manufacturer,
+                                       Brand,
+                                       Category,
+                                       UnitPrice,
+                                       Quantity,
+                                       DateCreated,
+                                       Note,
+                                       GroupPrice,
+                                       IsGroupProduct,
+                                       OriginalUnitPrice
+                                       )
+                                  VALUES
+                                      (
+                                       @InvoiceId,
+                                       @Priority,
+                                       @InventoryProductId,
+                                       @Barcode,
+                                       @Description,
+                                       @Manufacturer,
+                                       @Brand,
+                                       @Category,
+                                       @UnitPrice,
+                                       @Quantity,
+                                       datetime('now','localtime'),
+                                       @Note,
+                                       @GroupPrice,
+                                       @IsGroupProduct,
+                                       @OriginalUnitPrice
+                                       );
+                                       SELECT last_insert_rowid()
+                                  """;
 
         var sqlParameters = new
         {
@@ -61,9 +69,12 @@ public class InvoiceProductRepository : IInvoiceProductRepository
             product.Manufacturer,
             product.Brand,
             product.Category,
-            UnitPrice = product.UnitPrice.ToMoneyString(),
+            product.UnitPrice,
             product.Quantity,
-            product.Note
+            product.Note,
+            product.GroupPrice,
+            product.IsGroupProduct,
+            product.OriginalUnitPrice
         };
 
         var productId = connection.Query<int>(sqlCommand, sqlParameters)
@@ -77,16 +88,37 @@ public class InvoiceProductRepository : IInvoiceProductRepository
         using var connection = _dbConnectionProvider.GetDbConnection();
         connection.Open();
 
-        const string sqlCommand = @"SELECT * FROM InvoiceProduct WHERE InvoiceId = @invoiceId";
+        const string sqlCommand = """
+                                  SELECT
+                                      InvoiceProductId,
+                                      Priority,
+                                      InvoiceId,
+                                      InventoryProductId,
+                                      Barcode,
+                                      Description,
+                                      Manufacturer,
+                                      Brand,
+                                      Category,
+                                      Quantity,
+                                      IsTrackable,
+                                      DateCreated,
+                                      Note,
+                                      UnitPrice,
+                                      GroupPrice,
+                                      IsGroupProduct,
+                                      OriginalUnitPrice
+                                  FROM InvoiceProduct 
+                                  WHERE InvoiceId = @invoiceId
+                                  """;
 
         var sqlParameters = new
         {
             invoiceId = id
         };
 
-        var results = connection.Query(sqlCommand, sqlParameters);
+        var results = connection.Query<InvoiceProduct>(sqlCommand, sqlParameters);
 
-        return results is null ? Enumerable.Empty<InvoiceProduct>() : MapInvoiceProducts(results);
+        return results ?? Enumerable.Empty<InvoiceProduct>();
     }
 
     public IEnumerable<InvoiceProduct> GetByDateRange(DateOnly start, DateOnly end)
@@ -94,7 +126,28 @@ public class InvoiceProductRepository : IInvoiceProductRepository
         using var connection = _dbConnectionProvider.GetDbConnection();
         connection.Open();
 
-        const string sqlCommand = @"SELECT * FROM InvoiceProduct WHERE DateCreated BETWEEN @startDate AND @endDate";
+        const string sqlCommand = """
+                                  SELECT
+                                      InvoiceProductId, 
+                                      Priority, 
+                                      InvoiceId, 
+                                      InventoryProductId, 
+                                      Barcode, 
+                                      Description, 
+                                      Manufacturer, 
+                                      Brand, 
+                                      Category, 
+                                      Quantity, 
+                                      IsTrackable, 
+                                      DateCreated, 
+                                      Note, 
+                                      UnitPrice, 
+                                      GroupPrice, 
+                                      IsGroupProduct, 
+                                      OriginalUnitPrice
+                                  FROM InvoiceProduct 
+                                  WHERE DateCreated BETWEEN @startDate AND @endDate
+                                  """;
 
         var sqlParameters = new
         {
@@ -102,9 +155,9 @@ public class InvoiceProductRepository : IInvoiceProductRepository
             endDate = end.ToEndDateString()
         };
 
-        var results = connection.Query(sqlCommand, sqlParameters);
+        var results = connection.Query<InvoiceProduct>(sqlCommand, sqlParameters);
 
-        return results is null ? Enumerable.Empty<InvoiceProduct>() : MapInvoiceProducts(results);
+        return results ?? Enumerable.Empty<InvoiceProduct>();
     }
 
     public IEnumerable<InvoiceProduct> GetByDate(DateOnly date)
@@ -122,7 +175,11 @@ public class InvoiceProductRepository : IInvoiceProductRepository
 		using var connection = _dbConnectionProvider.GetDbConnection();
 		connection.Open();
 
-		const string sqlCommand = @"DELETE FROM InvoiceProduct WHERE InvoiceProductId = @InvoiceProductId";
+		const string sqlCommand = """
+		                          DELETE 
+		                          FROM InvoiceProduct 
+		                          WHERE InvoiceProductId = @InvoiceProductId
+		                          """;
 
 		var sqlParameters = new
 		{
@@ -144,7 +201,11 @@ public class InvoiceProductRepository : IInvoiceProductRepository
 		using var connection = _dbConnectionProvider.GetDbConnection();
 		connection.Open();
 
-		const string sqlCommand = @"DELETE FROM InvoiceProduct WHERE InvoiceId = @InvoiceId";
+		const string sqlCommand = """
+		                          DELETE 
+		                          FROM InvoiceProduct 
+		                          WHERE InvoiceId = @InvoiceId
+		                          """;
 
 		var sqlParameters = new
 		{
@@ -155,26 +216,4 @@ public class InvoiceProductRepository : IInvoiceProductRepository
 
 		return affectedRowsCount >= 0;
 	}
-
-    private static IEnumerable<InvoiceProduct> MapInvoiceProducts(IEnumerable<dynamic> results)
-    {
-        var products = results.Select(x => new InvoiceProduct
-        {
-            InvoiceProductId = (int)x.InvoiceProductId,
-            Priority = (int)x.Priority,
-            InvoiceId = (int)x.InvoiceId,
-            InventoryProductId = (int)x.InventoryProductId,
-            Barcode = x.Barcode,
-            Description = x.Description,
-            Manufacturer = x.Manufacturer,
-            Brand = x.Brand,
-            Category = (int)x.Category,
-            UnitPrice = (decimal)x.UnitPrice,
-            Quantity = (int)x.Quantity,
-            DateCreated = x.DateCreated,
-            Note = x.Note
-        });
-
-        return products.ToList();
-    }
 }

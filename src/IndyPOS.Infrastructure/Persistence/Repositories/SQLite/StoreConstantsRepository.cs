@@ -18,7 +18,12 @@ public class StoreConstantRepository : IStoreConstantRepository
         using var connection = _dbConnectionProvider.GetDbConnection();
         connection.Open();
 
-        const string sqlCommand = @"SELECT * FROM [PaymentType]";
+        const string sqlCommand = """
+                                  SELECT
+                                      Id,
+                                      Type
+                                  FROM PaymentType
+                                  """;
 
         var results = connection.Query<PaymentType>(sqlCommand, new DynamicParameters());
 
@@ -30,7 +35,12 @@ public class StoreConstantRepository : IStoreConstantRepository
         using var connection = _dbConnectionProvider.GetDbConnection();
         connection.Open();
 
-        const string sqlCommand = @"SELECT * FROM [UserRole]";
+        const string sqlCommand = """
+                                  SELECT 
+                                      Id,
+                                      Role
+                                  FROM UserRole
+                                  """;
 
         var results = connection.Query<UserRole>(sqlCommand, new DynamicParameters());
 
@@ -42,7 +52,12 @@ public class StoreConstantRepository : IStoreConstantRepository
         using var connection = _dbConnectionProvider.GetDbConnection();
         connection.Open();
 
-        const string sqlCommand = @"SELECT * FROM [ProductCategory]";
+        const string sqlCommand = """
+                                  SELECT
+                                      Id,
+                                      Category
+                                  FROM ProductCategory
+                                  """;
 
         var results = connection.Query<ProductCategory>(sqlCommand, new DynamicParameters());
 
