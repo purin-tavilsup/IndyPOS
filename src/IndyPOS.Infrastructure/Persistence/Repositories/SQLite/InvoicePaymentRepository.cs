@@ -19,29 +19,31 @@ public class InvoicePaymentRepository : IInvoicePaymentRepository
         using var connection = _dbConnectionProvider.GetDbConnection();
         connection.Open();
 
-        const string sqlCommand = @"INSERT INTO Payments
-				(
-                    InvoiceId,
-                    PaymentTypeId,
-                    Amount,
-                    DateCreated,
-					Note
-                )
-                VALUES
-                (
-                    @InvoiceId,
-                    @PaymentTypeId,
-                    @Amount,
-                    datetime('now','localtime'),
-					@Note
-                );
-                SELECT last_insert_rowid()";
+        const string sqlCommand = """
+                                  INSERT INTO Payment
+                                      (
+                                       InvoiceId,
+                                       PaymentTypeId,
+                                       Amount,
+                                       DateCreated,
+                                       Note
+                                       )
+                                  VALUES
+                                      (
+                                       @InvoiceId,
+                                       @PaymentTypeId,
+                                       @Amount,
+                                       datetime('now','localtime'),
+                                       @Note
+                                       );
+                                       SELECT last_insert_rowid()
+                                  """;
 
         var sqlParameters = new
         {
             payment.InvoiceId,
             payment.PaymentTypeId,
-            Amount = payment.Amount.ToMoneyString(),
+            payment.Amount,
             payment.Note
         };
 
@@ -56,16 +58,26 @@ public class InvoicePaymentRepository : IInvoicePaymentRepository
         using var connection = _dbConnectionProvider.GetDbConnection();
         connection.Open();
 
-        const string sqlCommand = @"SELECT * FROM Payments WHERE InvoiceId = @invoiceId";
+        const string sqlCommand = """
+                                  SELECT
+                                      PaymentId, 
+                                      InvoiceId, 
+                                      PaymentTypeId, 
+                                      DateCreated, 
+                                      Note, 
+                                      Amount
+                                  FROM Payment 
+                                  WHERE InvoiceId = @invoiceId
+                                  """;
 
         var sqlParameters = new
         {
             invoiceId = id
         };
 
-        var results = connection.Query(sqlCommand, sqlParameters);
+        var results = connection.Query<Payment>(sqlCommand, sqlParameters);
 
-        return results is null ? Enumerable.Empty<Payment>() : MapPayments(results);
+        return results ?? Enumerable.Empty<Payment>();
     }
 
     public IEnumerable<Payment> GetByDate(DateOnly date)
@@ -78,7 +90,17 @@ public class InvoicePaymentRepository : IInvoicePaymentRepository
         using var connection = _dbConnectionProvider.GetDbConnection();
         connection.Open();
 
-        const string sqlCommand = @"SELECT * FROM Payments WHERE DateCreated BETWEEN @startDate AND @endDate";
+        const string sqlCommand = """
+                                  SELECT
+                                      PaymentId, 
+                                      InvoiceId, 
+                                      PaymentTypeId, 
+                                      DateCreated, 
+                                      Note, 
+                                      Amount
+                                  FROM Payment 
+                                  WHERE DateCreated BETWEEN @startDate AND @endDate
+                                  """;
 
         var sqlParameters = new
         {
@@ -86,9 +108,9 @@ public class InvoicePaymentRepository : IInvoicePaymentRepository
             endDate = end.ToEndDateString()
         };
 
-        var results = connection.Query(sqlCommand, sqlParameters);
+        var results = connection.Query<Payment>(sqlCommand, sqlParameters);
 
-        return results is null ? Enumerable.Empty<Payment>() : MapPayments(results);
+        return results ?? Enumerable.Empty<Payment>();
     }
 
     public IEnumerable<Payment> GetByPaymentTypeId(int id)
@@ -96,16 +118,26 @@ public class InvoicePaymentRepository : IInvoicePaymentRepository
         using var connection = _dbConnectionProvider.GetDbConnection();
         connection.Open();
 
-        const string sqlCommand = @"SELECT * FROM Payments PaymentTypeId = @PaymentTypeId";
+        const string sqlCommand = """
+                                  SELECT
+                                      PaymentId, 
+                                      InvoiceId, 
+                                      PaymentTypeId, 
+                                      DateCreated, 
+                                      Note, 
+                                      Amount
+                                  FROM Payment 
+                                  WHERE PaymentTypeId = @PaymentTypeId
+                                  """;
 
         var sqlParameters = new
         {
             PaymentTypeId = id
         };
 
-        var results = connection.Query(sqlCommand, sqlParameters);
+        var results = connection.Query<Payment>(sqlCommand, sqlParameters);
 
-        return results is null ? Enumerable.Empty<Payment>() : MapPayments(results);
+        return results ?? Enumerable.Empty<Payment>();
     }
 
 	public bool RemoveById(int id)
@@ -118,7 +150,11 @@ public class InvoicePaymentRepository : IInvoicePaymentRepository
 		using var connection = _dbConnectionProvider.GetDbConnection();
 		connection.Open();
 
-		const string sqlCommand = @"DELETE FROM Payments WHERE PaymentId = @PaymentId";
+		const string sqlCommand = """
+                                  DELETE 
+                                  FROM Payment 
+                                  WHERE PaymentId = @PaymentId
+                                  """;
 
 		var sqlParameters = new
 		{
@@ -140,7 +176,11 @@ public class InvoicePaymentRepository : IInvoicePaymentRepository
 		using var connection = _dbConnectionProvider.GetDbConnection();
 		connection.Open();
 
-		const string sqlCommand = @"DELETE FROM InvoiceProducts WHERE InvoiceId = @InvoiceId";
+		const string sqlCommand = """
+                                  DELETE 
+                                  FROM InvoiceProduct 
+                                  WHERE InvoiceId = @InvoiceId
+                                  """;
 
 		var sqlParameters = new
 		{
@@ -151,19 +191,4 @@ public class InvoicePaymentRepository : IInvoicePaymentRepository
 
 		return affectedRowsCount >= 0;
 	}
-
-    private static IEnumerable<Payment> MapPayments(IEnumerable<dynamic> results)
-    {
-        var payments = results.Select(x => new Payment
-        {
-            PaymentId = (int)x.PaymentId,
-            InvoiceId = (int)x.InvoiceId,
-            PaymentTypeId = (int)x.PaymentTypeId,
-            Amount = ((string)x.Amount).ToMoney(),
-            DateCreated = x.DateCreated,
-            Note = x.Note
-        });
-
-        return payments;
-    }
 }

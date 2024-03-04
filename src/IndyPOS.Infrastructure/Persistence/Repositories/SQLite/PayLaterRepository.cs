@@ -20,30 +20,32 @@ public class PayLaterRepository : IPayLaterPaymentRepository
         using var connection = _dbConnectionProvider.GetDbConnection();
         connection.Open();
 
-        const string sqlCommand = @"INSERT INTO AccountsReceivables
-                (
-                    PaymentId,
-                    Description,
-                    InvoiceId,
-                    ReceivableAmount,
-					DateCreated
-                )
-                VALUES
-                (
-                    @PaymentId,
-                    @Description,
-                    @InvoiceId,
-					@ReceivableAmount,
-                    datetime('now','localtime')
-                );
-                SELECT last_insert_rowid()";
+        const string sqlCommand = """
+                                  INSERT INTO PayLater
+                                                  (
+                                                   PaymentId,
+                                                   Description,
+                                                   InvoiceId,
+                                                   PayLaterAmount,
+                                                   DateCreated
+                                                  )
+                                                  VALUES
+                                                  (
+                                                   @PaymentId,
+                                                   @Description,
+                                                   @InvoiceId,
+                                                   @PayLaterAmount,
+                                                   datetime('now','localtime')
+                                                  );
+                                                  SELECT last_insert_rowid()
+                                  """;
 
         var sqlParameters = new
         {
             payment.PaymentId,
             payment.Description,
             payment.InvoiceId,
-            ReceivableAmount = payment.ReceivableAmount.ToMoneyString()
+            payment.PayLaterAmount
         };
 
         var rowId = connection.Query<int>(sqlCommand, sqlParameters)
@@ -57,17 +59,19 @@ public class PayLaterRepository : IPayLaterPaymentRepository
         using var connection = _dbConnectionProvider.GetDbConnection();
         connection.Open();
 
-        const string sqlCommand = @"UPDATE AccountsReceivables
-                SET
-                    PaidAmount = @PaidAmount,
-                    IsCompleted = @IsCompleted,
-                    DateUpdated = datetime('now','localtime')
-                WHERE PaymentId = @PaymentId";
+        const string sqlCommand = """
+                                  UPDATE PayLater
+                                  SET
+                                  PaidAmount = @PaidAmount,
+                                  IsCompleted = @IsCompleted,
+                                  DateUpdated = datetime('now','localtime')
+                                  WHERE PaymentId = @PaymentId
+                                  """;
 
         var sqlParameters = new
         {
             payment.PaymentId,
-            PaidAmount = payment.PaidAmount.ToMoneyString(),
+            payment.PaidAmount,
             IsCompleted = payment.IsCompleted ? 1 : 0
         };
 
@@ -81,11 +85,22 @@ public class PayLaterRepository : IPayLaterPaymentRepository
         using var connection = _dbConnectionProvider.GetDbConnection();
         connection.Open();
 
-        const string sqlCommand = @"SELECT * FROM AccountsReceivables";
+        const string sqlCommand = """
+                                  SELECT 
+                                      PaymentId, 
+                                      Description, 
+                                      InvoiceId, 
+                                      IsCompleted, 
+                                      DateCreated, 
+                                      DateUpdated, 
+                                      PayLaterAmount, 
+                                      PaidAmount
+                                  FROM PayLater
+                                  """;
 
-        var results = connection.Query(sqlCommand);
+        var results = connection.Query<PayLaterPayment>(sqlCommand);
 
-        return MapPayLaterPayments(results);
+        return results ?? Enumerable.Empty<PayLaterPayment>();
     }
 
     public IEnumerable<PayLaterPayment> GetIncompletePayLaterPayments()
@@ -93,16 +108,28 @@ public class PayLaterRepository : IPayLaterPaymentRepository
         using var connection = _dbConnectionProvider.GetDbConnection();
         connection.Open();
 
-        const string sqlCommand = @"SELECT * FROM AccountsReceivables WHERE IsCompleted = @IsCompleted";
+        const string sqlCommand = """
+                                  SELECT 
+                                      PaymentId,
+                                      Description,
+                                      InvoiceId,
+                                      IsCompleted,
+                                      DateCreated,
+                                      DateUpdated,
+                                      PayLaterAmount,
+                                      PaidAmount
+                                  FROM PayLater
+                                  WHERE IsCompleted = @IsCompleted
+                                  """;
 
         var sqlParameters = new
         {
             IsCompleted = 0
         };
 
-        var results = connection.Query(sqlCommand, sqlParameters);
+        var results = connection.Query<PayLaterPayment>(sqlCommand, sqlParameters);
 
-        return results is null ? Enumerable.Empty<PayLaterPayment>() : MapPayLaterPayments(results);
+        return results ?? Enumerable.Empty<PayLaterPayment>();
     }
 
     public IEnumerable<PayLaterPayment> GetPayLaterPaymentsByDescriptionKeyword(string keyword)
@@ -110,16 +137,28 @@ public class PayLaterRepository : IPayLaterPaymentRepository
 		using var connection = _dbConnectionProvider.GetDbConnection();
 		connection.Open();
 
-		const string sqlCommand = @"SELECT * FROM AccountsReceivables WHERE Description LIKE @Keyword";
+		const string sqlCommand = """
+                                  SELECT
+                                      PaymentId,
+                                      Description,
+                                      InvoiceId,
+                                      IsCompleted,
+                                      DateCreated,
+                                      DateUpdated,
+                                      PayLaterAmount,
+                                      PaidAmount
+                                  FROM PayLater 
+                                  WHERE Description LIKE @Keyword
+                                  """;
 
 		var sqlParameters = new
 		{
 			Keyword = $"%{keyword}%"
 		};
 
-		var results = connection.Query(sqlCommand, sqlParameters);
+		var results = connection.Query<PayLaterPayment>(sqlCommand, sqlParameters);
 
-		return results is null ? Enumerable.Empty<PayLaterPayment>() : MapPayLaterPayments(results);
+        return results ?? Enumerable.Empty<PayLaterPayment>();
     }
 
     public PayLaterPayment GetPayLaterPaymentByInvoiceId(int invoiceId)
@@ -127,14 +166,26 @@ public class PayLaterRepository : IPayLaterPaymentRepository
         using var connection = _dbConnectionProvider.GetDbConnection();
         connection.Open();
 
-        const string sqlCommand = @"SELECT * FROM AccountsReceivables WHERE InvoiceId = @InvoiceId";
+        const string sqlCommand = """
+                                  SELECT 
+                                      PaymentId,
+                                      Description,
+                                      InvoiceId,
+                                      IsCompleted,
+                                      DateCreated,
+                                      DateUpdated,
+                                      PayLaterAmount,
+                                      PaidAmount
+                                  FROM PayLater 
+                                  WHERE InvoiceId = @InvoiceId
+                                  """;
 
         var sqlParameters = new
         {
             InvoiceId = invoiceId
         };
 
-        var result = connection.Query(sqlCommand, sqlParameters)
+        var result = connection.Query<PayLaterPayment>(sqlCommand, sqlParameters)
                                .FirstOrDefault();
 
 		if (result is null)
@@ -142,7 +193,7 @@ public class PayLaterRepository : IPayLaterPaymentRepository
 			throw new PayLaterPaymentNotFoundException($"Could not find Pay Later Payment by Invoice ID: {invoiceId}");
 		}
 
-        return MapPayLaterPayment(result);
+        return result;
     }
 
     public PayLaterPayment GetById(int id)
@@ -150,14 +201,26 @@ public class PayLaterRepository : IPayLaterPaymentRepository
         using var connection = _dbConnectionProvider.GetDbConnection();
         connection.Open();
 
-        const string sqlCommand = @"SELECT * FROM AccountsReceivables WHERE PaymentId = @PaymentId";
+        const string sqlCommand = """
+                                  SELECT 
+                                      PaymentId,
+                                      Description,
+                                      InvoiceId,
+                                      IsCompleted,
+                                      DateCreated,
+                                      DateUpdated,
+                                      PayLaterAmount,
+                                      PaidAmount
+                                  FROM PayLater 
+                                  WHERE PaymentId = @PaymentId
+                                  """;
 
         var sqlParameters = new
         {
             PaymentId = id
         };
 
-        var result = connection.Query(sqlCommand, sqlParameters)
+        var result = connection.Query<PayLaterPayment>(sqlCommand, sqlParameters)
                                .FirstOrDefault();
 
 		if (result is null)
@@ -165,7 +228,7 @@ public class PayLaterRepository : IPayLaterPaymentRepository
 			throw new PayLaterPaymentNotFoundException($"Could not find Pay Later Payment by ID: {id}");
 		}
 
-        return MapPayLaterPayment(result);
+        return result;
     }
 
     public IEnumerable<PayLaterPayment> GetPayLaterPaymentsByDateRange(DateOnly start, DateOnly end)
@@ -173,7 +236,19 @@ public class PayLaterRepository : IPayLaterPaymentRepository
         using var connection = _dbConnectionProvider.GetDbConnection();
         connection.Open();
 
-        const string sqlCommand = @"SELECT * FROM AccountsReceivables WHERE DateCreated BETWEEN @startDate AND @endDate";
+        const string sqlCommand = """
+                                  SELECT
+                                      PaymentId,
+                                      Description,
+                                      InvoiceId,
+                                      IsCompleted,
+                                      DateCreated,
+                                      DateUpdated,
+                                      PayLaterAmount,
+                                      PaidAmount
+                                  FROM PayLater 
+                                  WHERE DateCreated BETWEEN @startDate AND @endDate
+                                  """;
 
         var sqlParameters = new
         {
@@ -181,9 +256,9 @@ public class PayLaterRepository : IPayLaterPaymentRepository
             endDate = end.ToEndDateString()
         };
 
-        var results = connection.Query(sqlCommand, sqlParameters);
+        var results = connection.Query<PayLaterPayment>(sqlCommand, sqlParameters);
 
-        return results is null ? Enumerable.Empty<PayLaterPayment>() : MapPayLaterPayments(results);
+        return results ?? Enumerable.Empty<PayLaterPayment>();
     }
 
 	public bool RemoveById(int id)
@@ -196,7 +271,11 @@ public class PayLaterRepository : IPayLaterPaymentRepository
 		using var connection = _dbConnectionProvider.GetDbConnection();
 		connection.Open();
 
-		const string sqlCommand = @"DELETE FROM AccountsReceivables WHERE PaymentId = @PaymentId";
+		const string sqlCommand = """
+                                  DELETE 
+                                  FROM PayLater 
+                                  WHERE PaymentId = @PaymentId
+                                  """;
 
 		var sqlParameters = new
 		{
@@ -207,26 +286,4 @@ public class PayLaterRepository : IPayLaterPaymentRepository
 
 		return affectedRowsCount == 1;
 	}
-
-    private static PayLaterPayment MapPayLaterPayment(dynamic result)
-    {
-        var payment = new PayLaterPayment
-        {
-            PaymentId = (int)result.PaymentId,
-            Description = result.Description,
-            InvoiceId = (int)result.InvoiceId,
-            ReceivableAmount = ((string)result.ReceivableAmount).ToMoney(),
-            PaidAmount = ((string)result.PaidAmount).ToMoney(),
-            IsCompleted = result.IsCompleted == 1,
-            DateCreated = result.DateCreated,
-            DateUpdated = result.DateUpdated
-        };
-
-        return payment;
-    }
-
-    private static IEnumerable<PayLaterPayment> MapPayLaterPayments(IEnumerable<dynamic> results)
-    {
-        return results.Select(MapPayLaterPayment);
-    }
 }

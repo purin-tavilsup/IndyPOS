@@ -20,26 +20,25 @@ public class InvoiceRepository : IInvoiceRepository
         using var connection = _dbConnectionProvider.GetDbConnection();
         connection.Open();
 
-        const string sqlCommand = @"INSERT INTO Invoices
-                (
-                    Total,
-                    CustomerId,
-                    UserId,
-                    DateCreated
-                )
-                VALUES
-                (
-                    @Total,
-                    @CustomerId,
-                    @UserId,
-                    datetime('now','localtime')
-                );
-                SELECT last_insert_rowid()";
+        const string sqlCommand = """
+                                  INSERT INTO Invoice
+                                                  (
+                                                      Total,
+                                                      UserId,
+                                                      DateCreated
+                                                  )
+                                                  VALUES
+                                                  (
+                                                      @Total,
+                                                      @UserId,
+                                                      datetime('now','localtime')
+                                                  );
+                                                  SELECT last_insert_rowid()
+                                  """;
 
         var sqlParameters = new
         {
-            Total = invoice.Total.ToMoneyString(),
-            invoice.CustomerId,
+            invoice.Total,
             invoice.UserId
         };
 
@@ -54,14 +53,22 @@ public class InvoiceRepository : IInvoiceRepository
         using var connection = _dbConnectionProvider.GetDbConnection();
         connection.Open();
 
-        const string sqlCommand = @"SELECT * FROM Invoices WHERE InvoiceId = @invoiceId";
+        const string sqlCommand = """
+                                  SELECT 
+                                      InvoiceId,
+                                      UserId,
+                                      Total,
+                                      DateCreated
+                                  FROM Invoice 
+                                  WHERE InvoiceId = @invoiceId
+                                  """;
 
         var sqlParameters = new
         {
             invoiceId = id
         };
 
-        var result = connection.Query(sqlCommand, sqlParameters)
+        var result = connection.Query<Invoice>(sqlCommand, sqlParameters)
                                .FirstOrDefault();
 
 		if (result is null)
@@ -69,7 +76,7 @@ public class InvoiceRepository : IInvoiceRepository
 			throw new InvoiceNotFoundException($"Could not find Invoice by ID: {id}");
 		}
 
-        return MapInvoice(result);
+        return result;
     }
 
     public IEnumerable<Invoice> GetByDateRange(DateOnly start, DateOnly end)
@@ -77,7 +84,15 @@ public class InvoiceRepository : IInvoiceRepository
         using var connection = _dbConnectionProvider.GetDbConnection();
         connection.Open();
 
-        const string sqlCommand = @"SELECT * FROM Invoices WHERE DateCreated BETWEEN @startDate AND @endDate";
+        const string sqlCommand = """
+                                  SELECT
+                                      InvoiceId,
+                                      UserId,
+                                      Total,
+                                      DateCreated
+                                  FROM Invoice 
+                                  WHERE DateCreated BETWEEN @startDate AND @endDate
+                                  """;
 
         var sqlParameters = new
         {
@@ -85,9 +100,9 @@ public class InvoiceRepository : IInvoiceRepository
             endDate = end.ToEndDateString()
         };
 
-        var results = connection.Query(sqlCommand, sqlParameters);
+        var results = connection.Query<Invoice>(sqlCommand, sqlParameters);
 
-        return results is null ? Enumerable.Empty<Invoice>() : MapInvoices(results);
+        return results ?? Enumerable.Empty<Invoice>();
     }
 
     public IEnumerable<Invoice> GetByDate(DateOnly date)
@@ -105,7 +120,11 @@ public class InvoiceRepository : IInvoiceRepository
 		using var connection = _dbConnectionProvider.GetDbConnection();
 		connection.Open();
 
-		const string sqlCommand = @"DELETE FROM Invoices WHERE InvoiceId = @InvoiceId";
+		const string sqlCommand = """
+                                  DELETE 
+                                  FROM Invoice 
+                                  WHERE InvoiceId = @InvoiceId
+                                  """;
 
 		var sqlParameters = new
 		{
@@ -116,23 +135,4 @@ public class InvoiceRepository : IInvoiceRepository
 
 		return affectedRowsCount == 1;
 	}
-
-    private static Invoice MapInvoice(dynamic result)
-    {
-        var invoice = new Invoice
-        {
-            InvoiceId = (int)result.InvoiceId,
-            Total = ((string)result.Total).ToMoney(),
-            CustomerId = (int?)result.CustomerId,
-            UserId = (int)result.UserId,
-            DateCreated = result.DateCreated
-        };
-
-        return invoice;
-    }
-
-    private static IEnumerable<Invoice> MapInvoices(IEnumerable<dynamic> results)
-    {
-        return results.Select(MapInvoice);
-    }
 }

@@ -11,7 +11,7 @@ public class PayLaterPayment
 
 	public int InvoiceId { get; set; }
 
-	public decimal ReceivableAmount { get; set; }
+	public decimal PayLaterAmount { get; set; }
 
 	public decimal PaidAmount { get; set; }
 

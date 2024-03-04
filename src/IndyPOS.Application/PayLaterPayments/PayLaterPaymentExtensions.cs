@@ -13,7 +13,7 @@ internal static class PayLaterPaymentExtensions
 			PaymentId = entity.PaymentId,
 			Description = entity.Description,
 			InvoiceId = entity.InvoiceId,
-			ReceivableAmount = entity.ReceivableAmount,
+			ReceivableAmount = entity.PayLaterAmount,
 			PaidAmount = entity.PaidAmount,
 			IsCompleted = entity.IsCompleted,
 			DateCreated = entity.DateCreated,
@@ -30,7 +30,7 @@ internal static class PayLaterPaymentExtensions
 			PaymentId = command.PaymentId,
 			Description = command.Description,
 			InvoiceId = command.InvoiceId,
-			ReceivableAmount = command.ReceivableAmount
+			PayLaterAmount = command.ReceivableAmount
 		};
 
 		return entity;

@@ -1,9 +1,7 @@
-﻿#nullable enable
-using Dapper;
+﻿using Dapper;
 using IndyPOS.Application.Common.Exceptions;
 using IndyPOS.Application.Common.Interfaces;
 using IndyPOS.Domain.Entities;
-using IndyPOS.Infrastructure.Extensions;
 
 namespace IndyPOS.Infrastructure.Persistence.Repositories.SQLite;
 
@@ -21,14 +19,31 @@ public class InventoryProductRepository : IInventoryProductRepository
         using var connection = _dbConnectionProvider.GetDbConnection();
         connection.Open();
 
-        const string sqlCommand = @"SELECT * FROM InventoryProducts WHERE Barcode = @productBarcode";
+        const string sqlCommand = """
+                                  SELECT 
+                                      InventoryProductId, 
+                                      Barcode, 
+                                      Description, 
+                                      Manufacturer, 
+                                      Brand, 
+                                      Category, 
+                                      QuantityInStock, 
+                                      GroupPriceQuantity, 
+                                      IsTrackable, 
+                                      DateCreated, 
+                                      DateUpdated, 
+                                      UnitPrice, 
+                                      GroupPrice
+                                  FROM InventoryProduct 
+                                  WHERE Barcode = @productBarcode
+                                  """;
 
         var sqlParameters = new
         {
             productBarcode = barcode
         };
 
-        var result = connection.Query(sqlCommand, sqlParameters)
+        var result = connection.Query<InventoryProduct>(sqlCommand, sqlParameters)
                                .FirstOrDefault();
 
 		if (result is null)
@@ -36,7 +51,7 @@ public class InventoryProductRepository : IInventoryProductRepository
 			throw new ProductNotFoundException($"Could not find Inventory Product by Barcode: {barcode}");
 		}
 
-        return MapInventoryProduct(result);
+        return result;
     }
 
     public IEnumerable<InventoryProduct> GetProductsByCategoryId(int id)
@@ -44,16 +59,33 @@ public class InventoryProductRepository : IInventoryProductRepository
         using var connection = _dbConnectionProvider.GetDbConnection();
         connection.Open();
 
-        const string sqlCommand = @"SELECT * FROM InventoryProducts WHERE Category = @category";
+        const string sqlCommand = """
+                                  SELECT 
+                                      InventoryProductId, 
+                                      Barcode, 
+                                      Description, 
+                                      Manufacturer, 
+                                      Brand, 
+                                      Category, 
+                                      QuantityInStock, 
+                                      GroupPriceQuantity, 
+                                      IsTrackable, 
+                                      DateCreated, 
+                                      DateUpdated, 
+                                      UnitPrice, 
+                                      GroupPrice
+                                  FROM InventoryProduct 
+                                  WHERE Category = @category
+                                  """;
 
         var sqlParameters = new
         {
             category = id
         };
 
-        var results = connection.Query(sqlCommand, sqlParameters);
+        var results = connection.Query<InventoryProduct>(sqlCommand, sqlParameters);
 
-        return results is null ? Enumerable.Empty<InventoryProduct>() : MapInventoryProducts(results);
+        return results ?? Enumerable.Empty<InventoryProduct>();
     }
 
     public InventoryProduct GetById(int id)
@@ -61,14 +93,31 @@ public class InventoryProductRepository : IInventoryProductRepository
         using var connection = _dbConnectionProvider.GetDbConnection();
         connection.Open();
 
-        const string sqlCommand = @"SELECT * FROM InventoryProducts WHERE InventoryProductId = @inventoryProductId";
+        const string sqlCommand = """
+                                  SELECT 
+                                      InventoryProductId, 
+                                      Barcode, 
+                                      Description, 
+                                      Manufacturer, 
+                                      Brand, 
+                                      Category, 
+                                      QuantityInStock, 
+                                      GroupPriceQuantity, 
+                                      IsTrackable, 
+                                      DateCreated, 
+                                      DateUpdated, 
+                                      UnitPrice, 
+                                      GroupPrice
+                                  FROM InventoryProduct 
+                                  WHERE InventoryProductId = @inventoryProductId
+                                  """;
 
         var sqlParameters = new
         {
             inventoryProductId = id
         };
 
-        var result = connection.Query(sqlCommand, sqlParameters)
+        var result = connection.Query<InventoryProduct>(sqlCommand, sqlParameters)
                                .FirstOrDefault();
 
 		if (result is null)
@@ -76,7 +125,7 @@ public class InventoryProductRepository : IInventoryProductRepository
 			throw new ProductNotFoundException($"Could not find Inventory Product by ID: {id}");
 		}
 
-        return MapInventoryProduct(result);
+        return result;
     }
 
     public int Add(InventoryProduct product)
@@ -84,35 +133,33 @@ public class InventoryProductRepository : IInventoryProductRepository
         using var connection = _dbConnectionProvider.GetDbConnection();
         connection.Open();
 
-        const string sqlCommand = @"INSERT INTO InventoryProducts
-                (
-                    Barcode,
-                    Description,
-                    Manufacturer,
-                    Brand,
-                    Category,
-                    UnitPrice,
-                    QuantityInStock,
-                    GroupPrice,
-                    GroupPriceQuantity,
-					IsTrackable,
-                    DateCreated
-                )
-                VALUES
-                (
-                    @Barcode,
-                    @Description,
-                    @Manufacturer,
-                    @Brand,
-                    @Category,
-                    @UnitPrice,
-                    @QuantityInStock,
-                    @GroupPrice,
-                    @GroupPriceQuantity,
-					@IsTrackable,
-                    datetime('now','localtime')
-                );
-                SELECT last_insert_rowid()";
+        const string sqlCommand = """
+                                  INSERT INTO InventoryProduct
+                                      (Barcode,
+                                       Description,
+                                       Manufacturer,
+                                       Brand,
+                                       Category,
+                                       UnitPrice,
+                                       QuantityInStock,
+                                       GroupPrice,
+                                       GroupPriceQuantity,
+                                       IsTrackable,
+                                       DateCreated)
+                                  VALUES
+                                      (@Barcode,
+                                       @Description,
+                                       @Manufacturer,
+                                       @Brand,
+                                       @Category,
+                                       @UnitPrice,
+                                       @QuantityInStock,
+                                       @GroupPrice,
+                                       @GroupPriceQuantity,
+                                       @IsTrackable,
+                                       datetime('now','localtime'));
+                                  SELECT last_insert_rowid()
+                                  """;
 
         var sqlParameters = new
         {
@@ -121,9 +168,9 @@ public class InventoryProductRepository : IInventoryProductRepository
             product.Manufacturer,
             product.Brand,
             product.Category,
-            UnitPrice = product.UnitPrice.ToMoneyString(),
+            product.UnitPrice,
             product.QuantityInStock,
-            GroupPrice = product.GroupPrice.ToNullableMoneyString(),
+            product.GroupPrice,
             product.GroupPriceQuantity,
             IsTrackable = product.IsTrackable ? 1 : 0
         };
@@ -139,18 +186,20 @@ public class InventoryProductRepository : IInventoryProductRepository
         using var connection = _dbConnectionProvider.GetDbConnection();
         connection.Open();
 
-        const string sqlCommand = @"UPDATE InventoryProducts
-                SET
-                    Description = @Description,
-                    Manufacturer = @Manufacturer,
-                    Brand = @Brand,
-                    Category = @Category,
-                    UnitPrice = @UnitPrice,
-                    QuantityInStock = @QuantityInStock,
-                    GroupPrice = @GroupPrice,
-                    GroupPriceQuantity = @GroupPriceQuantity,
-                    DateUpdated = datetime('now','localtime')
-                WHERE InventoryProductId = @InventoryProductId";
+        const string sqlCommand = """
+                                  UPDATE InventoryProduct
+                                  SET
+                                      Description = @Description,
+                                      Manufacturer = @Manufacturer,
+                                      Brand = @Brand,
+                                      Category = @Category,
+                                      UnitPrice = @UnitPrice,
+                                      QuantityInStock = @QuantityInStock,
+                                      GroupPrice = @GroupPrice,
+                                      GroupPriceQuantity = @GroupPriceQuantity,
+                                      DateUpdated = datetime('now','localtime')
+                                  WHERE InventoryProductId = @InventoryProductId
+                                  """;
 
         var sqlParameters = new
         {
@@ -159,9 +208,9 @@ public class InventoryProductRepository : IInventoryProductRepository
             product.Manufacturer,
             product.Brand,
             product.Category,
-            UnitPrice = product.UnitPrice.ToMoneyString(),
+            product.UnitPrice,
             product.QuantityInStock,
-            GroupPrice = product.GroupPrice.ToNullableMoneyString(),
+            product.GroupPrice,
             product.GroupPriceQuantity
         };
 
@@ -175,10 +224,12 @@ public class InventoryProductRepository : IInventoryProductRepository
         using var connection = _dbConnectionProvider.GetDbConnection();
         connection.Open();
 
-        const string sqlCommand = @"UPDATE InventoryProducts
-                SET
-                    QuantityInStock = @QuantityInStock
-                WHERE InventoryProductId = @InventoryProductId";
+        const string sqlCommand = """
+                                  UPDATE InventoryProduct
+                                  SET
+                                      QuantityInStock = @QuantityInStock
+                                  WHERE InventoryProductId = @InventoryProductId
+                                  """;
 
         var sqlParameters = new
         {
@@ -206,7 +257,11 @@ public class InventoryProductRepository : IInventoryProductRepository
 		using var connection = _dbConnectionProvider.GetDbConnection();
 		connection.Open();
 
-		const string sqlCommand = @"DELETE FROM InventoryProducts WHERE InventoryProductId = @InventoryProductId";
+		const string sqlCommand = """
+                                  DELETE 
+                                  FROM InventoryProduct 
+                                  WHERE InventoryProductId = @InventoryProductId
+                                  """;
 
 		var sqlParameters = new
 		{
@@ -223,7 +278,13 @@ public class InventoryProductRepository : IInventoryProductRepository
         using var connection = _dbConnectionProvider.GetDbConnection();
         connection.Open();
 
-        const string sqlCommand = @"SELECT * FROM ProductBarcodeCounter WHERE Id = @Id";
+        const string sqlCommand = """
+                                  SELECT 
+                                      Id,
+                                      Counter
+                                  FROM ProductBarcodeCounter 
+                                  WHERE Id = @Id
+                                  """;
 
         var sqlParameters = new
         {
@@ -242,10 +303,12 @@ public class InventoryProductRepository : IInventoryProductRepository
         using var connection = _dbConnectionProvider.GetDbConnection();
         connection.Open();
 
-        const string sqlCommand = @"UPDATE ProductBarcodeCounter
-                SET
-                    Counter = @Counter
-                WHERE Id = @Id";
+        const string sqlCommand = """
+                                  UPDATE ProductBarcodeCounter
+                                  SET
+                                      Counter = @Counter
+                                  WHERE Id = @Id
+                                  """;
 
         var sqlParameters = new
         {
@@ -263,16 +326,33 @@ public class InventoryProductRepository : IInventoryProductRepository
 		using var connection = _dbConnectionProvider.GetDbConnection();
 		connection.Open();
 
-		const string sqlCommand = @"SELECT * FROM InventoryProducts WHERE Description LIKE @Keyword";
+		const string sqlCommand = """
+                                  SELECT
+                                      InventoryProductId, 
+                                      Barcode, 
+                                      Description, 
+                                      Manufacturer, 
+                                      Brand, 
+                                      Category, 
+                                      QuantityInStock, 
+                                      GroupPriceQuantity, 
+                                      IsTrackable, 
+                                      DateCreated, 
+                                      DateUpdated, 
+                                      UnitPrice, 
+                                      GroupPrice
+                                  FROM InventoryProduct 
+                                  WHERE Description LIKE @Keyword
+                                  """;
 
 		var sqlParameters = new
 		{
 			Keyword = $"%{keyword}%"
 		};
 
-		var results = connection.Query(sqlCommand, sqlParameters);
+		var results = connection.Query<InventoryProduct>(sqlCommand, sqlParameters);
 
-		return results is null ? Enumerable.Empty<InventoryProduct>() : MapInventoryProducts(results);
+		return results ?? Enumerable.Empty<InventoryProduct>();
 	} 
 
     public IEnumerable<InventoryProduct> GetProductsByBrandKeyword(string keyword)
@@ -280,42 +360,32 @@ public class InventoryProductRepository : IInventoryProductRepository
 		using var connection = _dbConnectionProvider.GetDbConnection();
 		connection.Open();
 
-		const string sqlCommand = @"SELECT * FROM InventoryProducts WHERE Brand LIKE @Keyword";
+		const string sqlCommand = """
+                                  SELECT
+                                      InventoryProductId, 
+                                      Barcode, 
+                                      Description, 
+                                      Manufacturer, 
+                                      Brand, 
+                                      Category, 
+                                      QuantityInStock, 
+                                      GroupPriceQuantity, 
+                                      IsTrackable, 
+                                      DateCreated, 
+                                      DateUpdated, 
+                                      UnitPrice, 
+                                      GroupPrice
+                                  FROM InventoryProduct 
+                                  WHERE Brand LIKE @Keyword
+                                  """;
 
 		var sqlParameters = new
 		{
 			Keyword = $"%{keyword}%"
 		};
 
-		var results = connection.Query(sqlCommand, sqlParameters);
+		var results = connection.Query<InventoryProduct>(sqlCommand, sqlParameters);
 
-		return results is null ? Enumerable.Empty<InventoryProduct>() : MapInventoryProducts(results);
-    }
-
-    private static InventoryProduct MapInventoryProduct(dynamic result)
-    {
-        var product = new InventoryProduct
-        {
-            InventoryProductId = (int)result.InventoryProductId,
-            Barcode = result.Barcode,
-            Description = result.Description,
-            Manufacturer = result.Manufacturer,
-            Brand = result.Brand,
-            Category = (int)result.Category,
-            UnitPrice = ((string)result.UnitPrice).ToMoney(),
-            QuantityInStock = (int)result.QuantityInStock,
-            GroupPrice = ((string)result.GroupPrice).ToNullableMoney(),
-            GroupPriceQuantity = (int?)result.GroupPriceQuantity,
-            IsTrackable = result.IsTrackable == 1,
-            DateCreated = result.DateCreated,
-            DateUpdated = result.DateUpdated
-        };
-
-        return product;
-    }
-
-    private static IEnumerable<InventoryProduct> MapInventoryProducts(IEnumerable<dynamic> results)
-    {
-        return results.Select(MapInventoryProduct);
+		return results ?? Enumerable.Empty<InventoryProduct>();
     }
 }
