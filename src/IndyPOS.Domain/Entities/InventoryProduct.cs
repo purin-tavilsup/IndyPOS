@@ -21,7 +21,7 @@ public class InventoryProduct
 
 	public int QuantityInStock { get; set; }
 
-	public decimal? GroupPrice { get; set; }
+	public decimal GroupPrice { get; set; }
 
 	public int? GroupPriceQuantity { get; set; }
 

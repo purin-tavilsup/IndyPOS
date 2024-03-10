@@ -299,7 +299,7 @@ public class SaleService : ISaleService
 
 	private async Task IncreaseQuantityWithGroupPriceSettingsAsync(Product product, int newQuantity)
 	{
-		var groupPrice = product.GroupPrice.GetValueOrDefault();
+		var groupPrice = product.GroupPrice;
 		var groupPriceQuantity = product.GroupPriceQuantity.GetValueOrDefault();
 
 		if (newQuantity < groupPriceQuantity)
@@ -341,7 +341,7 @@ public class SaleService : ISaleService
 	{ 
 		var product = await GetInventoryProductByIdAsync(inventoryProductId);
 
-		var groupPrice = product.GroupPrice.GetValueOrDefault();
+		var groupPrice = product.GroupPrice;
 		var groupPriceQuantity = product.GroupPriceQuantity.GetValueOrDefault();
 		var unitPrice = quantity == groupPriceQuantity ? groupPrice / groupPriceQuantity : product.UnitPrice;
 

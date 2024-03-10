@@ -20,7 +20,7 @@ public record CreateInventoryProductCommand : ICommand
 
 	public int? GroupPriceQuantity { get; set; }
 
-	public decimal? GroupPrice { get; set; }
+	public decimal GroupPrice { get; set; }
 
 	public bool IsTrackable { get; set; } = true;
 }

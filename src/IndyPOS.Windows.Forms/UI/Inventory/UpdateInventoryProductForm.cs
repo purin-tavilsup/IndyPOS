@@ -46,7 +46,7 @@ public partial class UpdateInventoryProductForm : Form
 		QuantityLabel.Text = $"{_product.QuantityInStock}";
 		UnitPriceTextBox.Texts = $"{_product.UnitPrice:N}";
 		CategoryComboBox.Texts = _productCategoryDictionary[_product.Category];
-		GroupPriceTextBox.Texts = _product.GroupPrice.HasValue ? $"{_product.GroupPrice.Value:N}" : string.Empty;
+		GroupPriceTextBox.Texts = $"{_product.GroupPrice:N}";
 		GroupPriceQuantityTextBox.Texts = _product.GroupPriceQuantity.HasValue ? $"{_product.GroupPriceQuantity.Value}" : string.Empty;
 		ManufacturerTextBox.Texts = _product.Manufacturer;
 		BrandTextBox.Texts = _product.Brand;
@@ -123,6 +123,7 @@ public partial class UpdateInventoryProductForm : Form
 			Description = DescriptionTextBox.Texts.Trim(),
 			QuantityInStock = int.Parse(QuantityLabel.Text.Trim()),
 			UnitPrice = decimal.Parse(UnitPriceTextBox.Texts.Trim()),
+			GroupPrice = decimal.Parse(GroupPriceTextBox.Texts.Trim()),
 			Category = categoryId
 		};
 
@@ -132,15 +133,6 @@ public partial class UpdateInventoryProductForm : Form
 
 		if (!string.IsNullOrWhiteSpace(BrandTextBox.Texts))
 			command.Brand = BrandTextBox.Texts;
-
-		if (decimal.TryParse(GroupPriceTextBox.Texts.Trim(), out var groupPrice))
-		{
-			command.GroupPrice = groupPrice;
-		}
-		else
-		{
-			command.GroupPrice = null;
-		}
 
 		if (int.TryParse(GroupPriceQuantityTextBox.Texts.Trim(), out var groupPriceQuantity))
 		{

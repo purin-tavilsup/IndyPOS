@@ -17,11 +17,7 @@ public class Product
 
     public int Category { get; init; }
 
-    public decimal UnitPrice { get; set; }
-
     public int Quantity { get; set; }
-
-    public decimal? GroupPrice { get; init; }
 
     public int? GroupPriceQuantity { get; init; }
 
@@ -30,4 +26,12 @@ public class Product
     public bool IsTrackable { get; init; }
 
     public string Note { get; set; } = string.Empty;
+    
+    public decimal UnitPrice { get; set; }
+    
+    public decimal GroupPrice { get; set; }
+    
+    public bool IsGroupProduct { get; set; }
+    
+    public decimal OriginalUnitPrice { get; set; }
 }
