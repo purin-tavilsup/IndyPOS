@@ -11,7 +11,6 @@ using IndyPOS.Application.InvoiceProducts.Queries.GetInvoiceProductsByInvoiceId;
 using IndyPOS.Application.Invoices;
 using IndyPOS.Application.Invoices.Queries.GetInvoicesByDateRange;
 using IndyPOS.Application.PayLaterPayments;
-using IndyPOS.Application.PayLaterPayments.Queries.GetPayLaterPaymentByInvoiceId;
 using IndyPOS.Application.PayLaterPayments.Queries.GetPayLaterPayments;
 using IndyPOS.Application.PayLaterPayments.Queries.GetPayLaterPaymentsByDateRange;
 using MediatR;

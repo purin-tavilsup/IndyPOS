@@ -9,13 +9,13 @@ public partial class AddInvoiceProductForm : Form
 {
 	private readonly ISaleService _saleService;
 	private readonly MessageForm _messageForm;
-	private InventoryProductDto _product;
+	private InventoryProductDto? _product;
 
 	public AddInvoiceProductForm(ISaleService saleService, MessageForm messageForm)
 	{
 		_saleService = saleService;
 		_messageForm = messageForm;
-		_product = new InventoryProductDto();
+		_product = null;
 
 		InitializeComponent();
 	}
@@ -66,7 +66,7 @@ public partial class AddInvoiceProductForm : Form
 
 	private void AddProductButton_Click(object sender, EventArgs e)
 	{
-		if (!ValidateQuantityEntry())
+		if (_product is null || !ValidateQuantityEntry())
 			return;
 
 		var quantity = int.Parse(QuantityTextBox.Texts.Trim());

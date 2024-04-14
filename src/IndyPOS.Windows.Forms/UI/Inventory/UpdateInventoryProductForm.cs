@@ -13,7 +13,7 @@ public partial class UpdateInventoryProductForm : Form
 	private readonly IMediator _mediator;
 	private readonly MessageForm _messageForm;
 	private readonly IReadOnlyDictionary<int, string> _productCategoryDictionary;
-	private InventoryProductDto _product = new();
+	private InventoryProductDto? _product;
 
 	public UpdateInventoryProductForm(IStoreConstants storeConstants,
 									  IMediator mediator,
@@ -22,6 +22,7 @@ public partial class UpdateInventoryProductForm : Form
 		_mediator = mediator;
 		_productCategoryDictionary = storeConstants.ProductCategories;
 		_messageForm = messageForm;
+		_product = null;
 
 		InitializeComponent();
 		InitializeProductCategories();
@@ -42,6 +43,11 @@ public partial class UpdateInventoryProductForm : Form
 
 	private void PopulateProductProperties()
 	{
+		if (_product is null)
+		{
+			return;
+		}
+		
 		DescriptionTextBox.Texts = _product.Description;
 		QuantityLabel.Text = $"{_product.QuantityInStock}";
 		UnitPriceTextBox.Texts = $"{_product.UnitPrice:N}";
@@ -95,7 +101,7 @@ public partial class UpdateInventoryProductForm : Form
 
 	private async void UpdateProductButton_Click(object sender, EventArgs e)
 	{
-		if (!ValidateProductEntry())
+		if (_product is null || !ValidateProductEntry())
 			return;
 
 		try
@@ -153,6 +159,11 @@ public partial class UpdateInventoryProductForm : Form
 
 	private async void RemoveProductButton_Click(object sender, EventArgs e)
 	{
+		if (_product is null)
+		{
+			return;
+		}
+		
 		try
 		{
 			var command = new DeleteInventoryProductCommand(_product.InventoryProductId);
