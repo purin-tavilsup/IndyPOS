@@ -100,7 +100,7 @@ public class ReportService : IReportService
 		foreach (var product in products)
 		{
 			var invoiceId = product.InvoiceId;
-			var productTotal = product.UnitPrice * product.Quantity;
+			var productTotal = !product.IsGroupProduct ? product.UnitPrice * product.Quantity : product.GroupPrice;
 
 			if (IsGeneralProduct(product))
 			{

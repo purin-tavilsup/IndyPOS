@@ -1,5 +1,6 @@
 ﻿using IndyPOS.Application.Common.Enums;
 using IndyPOS.Application.Common.Exceptions;
+using IndyPOS.Application.Common.Extensions;
 using IndyPOS.Application.Common.Interfaces;
 using IndyPOS.Application.Common.Models;
 using IndyPOS.Application.Events;
@@ -80,11 +81,6 @@ public class SaleService : ISaleService
 		Products.Add(productToAdd);
 	}
 
-	private void AddProductInternal(InventoryProductDto product, decimal unitPrice, int quantity)
-	{
-		AddProductInternal(product, unitPrice, quantity, string.Empty);
-	}
-
 	private void AddProductInternal(InventoryProductDto product)
 	{
 		AddProductInternal(product, product.UnitPrice, 1, string.Empty);
@@ -101,9 +97,11 @@ public class SaleService : ISaleService
 			Brand = product.Brand,
 			Category = product.Category,
 			UnitPrice = product.UnitPrice,
+			OriginalUnitPrice = product.UnitPrice,
 			Quantity = 1,
 			GroupPrice = product.GroupPrice,
 			GroupPriceQuantity = product.GroupPriceQuantity,
+			IsGroupProduct = false,
 			IsTrackable = product.IsTrackable
 		};
 	}
@@ -128,7 +126,7 @@ public class SaleService : ISaleService
 
 	public decimal CalculateInvoiceTotal()
 	{
-		return Products.Sum(p => p.Quantity * p.UnitPrice);
+		return Products.Sum(p => !p.IsGroupProduct ? p.UnitPrice * p.Quantity : p.GroupPrice);
 	}
 
 	public decimal CalculatePaymentTotal()
@@ -267,100 +265,89 @@ public class SaleService : ISaleService
 	public async Task UpdateProductQuantityAsync(int inventoryProductId, int priority, int newQuantity)
 	{
 		var productToUpdate = Products.FirstOrDefault(p => p.InventoryProductId == inventoryProductId &&
-														   p.Priority           == priority);
+														   p.Priority == priority);
 
 		if (productToUpdate == null)
 		{
 			var message = $"Sale Invoice Product is not found. InventoryProductId: {inventoryProductId}. Priority: {priority}.";
-
 			throw new ProductNotFoundException(message);
 		}
 
-		if (productToUpdate.Quantity == newQuantity) { return; }
-
-		if ((productToUpdate.GroupPriceQuantity ?? 0) == 0)
+		if (productToUpdate.Quantity == newQuantity)
+		{
+			return;
+		}
+		
+		if (!productToUpdate.HasGroupPrice())
 		{
 			productToUpdate.Quantity = newQuantity;
-
 			_eventAggregator.GetEvent<InvoiceProductUpdatedEvent>().Publish();
-
 			return;
 		}
 
-		if (productToUpdate.Quantity < newQuantity)
+		if (newQuantity > productToUpdate.Quantity)
 		{
-			await IncreaseQuantityWithGroupPriceSettingsAsync(productToUpdate, newQuantity);
+			await IncreaseQuantityOfGroupProductAsync(productToUpdate, newQuantity);
 		}
 		else
 		{
-			await DecreaseQuantityWithGroupPriceSettingsAsync(productToUpdate, newQuantity);
+			DecreaseQuantityOfGroupProduct(productToUpdate, newQuantity);
 		}
 	}
 
-	private async Task IncreaseQuantityWithGroupPriceSettingsAsync(Product product, int newQuantity)
+	private static bool IsEligibleForGroupPrice(Product product, int newQuantity)
 	{
-		var groupPrice = product.GroupPrice;
-		var groupPriceQuantity = product.GroupPriceQuantity.GetValueOrDefault();
-
-		if (newQuantity < groupPriceQuantity)
+		if (product.GroupPriceQuantity is null)
 		{
-			product.Quantity = newQuantity;
-
-			_eventAggregator.GetEvent<InvoiceProductUpdatedEvent>().Publish();
-
-			return;
+			return false;
 		}
 
-		product.Quantity = groupPriceQuantity;
-		product.UnitPrice = groupPrice / groupPriceQuantity;
-
-		_eventAggregator.GetEvent<InvoiceProductUpdatedEvent>().Publish();
-
-		var remainingQuantity = newQuantity - groupPriceQuantity;
-
-		if (remainingQuantity == 0) { return; }
-
-		await AutoAddProductsWithGroupPriceSettingsAsync(product.InventoryProductId, remainingQuantity, groupPriceQuantity);
+		return newQuantity >= product.GroupPriceQuantity;
 	}
-
-	private async Task AutoAddProductsWithGroupPriceSettingsAsync(int inventoryProductId, int quantity, int groupPriceQuantity)
+	
+	private async Task IncreaseQuantityOfGroupProductAsync(Product product, int newQuantity)
 	{
-		var remainingQuantity = quantity;
+		var quantityToAdd = newQuantity;
+		var groupPriceQuantity = product.GroupPriceQuantity.GetValueOrDefault();
+		var inventoryProduct = await GetInventoryProductByIdAsync(product.InventoryProductId);
+
+		while (IsEligibleForGroupPrice(product, quantityToAdd))
+		{
+			AddProductWithGroupPrice(inventoryProduct);
 			
-		while (remainingQuantity > 0)
-		{
-			var quantityToAdd = remainingQuantity > groupPriceQuantity ? groupPriceQuantity : remainingQuantity;
-
-			await AutoAddProductWithGroupPriceSettingsAsync(inventoryProductId, quantityToAdd);
-
-			remainingQuantity -= groupPriceQuantity;
+			quantityToAdd -= groupPriceQuantity;
 		}
+		
+		if (quantityToAdd > 0)
+		{
+			product.Quantity = quantityToAdd;
+		}
+		else
+		{
+			Products.Remove(product);
+		}
+		
+		_eventAggregator.GetEvent<InvoiceProductUpdatedEvent>().Publish();
 	}
 
-	private async Task AutoAddProductWithGroupPriceSettingsAsync(int inventoryProductId, int quantity)
-	{ 
-		var product = await GetInventoryProductByIdAsync(inventoryProductId);
-
-		var groupPrice = product.GroupPrice;
-		var groupPriceQuantity = product.GroupPriceQuantity.GetValueOrDefault();
-		var unitPrice = quantity == groupPriceQuantity ? groupPrice / groupPriceQuantity : product.UnitPrice;
-
-		AddProductInternal(product, unitPrice, quantity);
-
-		_eventAggregator.GetEvent<InvoiceProductAddedEvent>().Publish();
-	}
-
-	private async Task DecreaseQuantityWithGroupPriceSettingsAsync(Product product, int newQuantity)
+	private void AddProductWithGroupPrice(InventoryProductDto inventoryProduct)
 	{
-		if (product.Quantity == product.GroupPriceQuantity)
-		{
-			var inventoryProduct = await GetInventoryProductByIdAsync(product.InventoryProductId);
+		var productToAdd = ConvertToInvoiceProduct(inventoryProduct);
+		var groupPriceQuantity = inventoryProduct.GroupPriceQuantity.GetValueOrDefault();
 
-			// Restore original unit price
-			product.UnitPrice = inventoryProduct.UnitPrice;
-		}
-            
+		productToAdd.Priority = GetNextProductPriority();
+		productToAdd.Quantity = groupPriceQuantity;
+		productToAdd.IsGroupProduct = true;
+		productToAdd.Note = "ราคากลุ่ม";
+
+		Products.Add(productToAdd);
+	}
+
+	private void DecreaseQuantityOfGroupProduct(Product product, int newQuantity)
+	{
 		product.Quantity = newQuantity;
+		product.IsGroupProduct = false;
+		product.Note = string.Empty;
 
 		_eventAggregator.GetEvent<InvoiceProductUpdatedEvent>().Publish();
 	}
@@ -472,7 +459,9 @@ public class SaleService : ISaleService
 			Category = product.Category,
 			UnitPrice = product.UnitPrice,
 			Quantity = product.Quantity,
-			Note = product.Note
+			Note = product.Note,
+			GroupPrice = product.GroupPrice,
+			IsGroupProduct = product.IsGroupProduct
 		};
 
 		await _mediator.Send(command);

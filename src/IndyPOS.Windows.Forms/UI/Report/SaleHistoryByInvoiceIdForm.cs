@@ -121,7 +121,7 @@ public partial class SaleHistoryByInvoiceIdForm : Form
 
 		foreach (var product in products)
 		{
-			var total = product.UnitPrice * product.Quantity;
+			var total = !product.IsGroupProduct ? product.UnitPrice * product.Quantity : product.GroupPrice;;
 
 			if (IsHardwareProduct(product))
 			{
@@ -155,7 +155,7 @@ public partial class SaleHistoryByInvoiceIdForm : Form
 	{
 		var columnCount = InvoiceProductsDataView.ColumnCount;
 		var row = new object[columnCount];
-		var total = product.UnitPrice * product.Quantity;
+		var total = !product.IsGroupProduct ? product.UnitPrice * product.Quantity : product.GroupPrice;
 
 		row[(int) ProductColumn.ProductCode] = product.Barcode;
 		row[(int) ProductColumn.Description] = product.Description;

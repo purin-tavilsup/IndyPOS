@@ -1,6 +1,6 @@
 ﻿namespace IndyPOS.Application.InvoiceProducts;
 
-public class InvoiceProductDto
+public record InvoiceProductDto
 {
 	public int InvoiceProductId { get; set; }
 
@@ -27,4 +27,8 @@ public class InvoiceProductDto
 	public string DateCreated { get; set; } = string.Empty;
 
 	public string Note { get; set; } = string.Empty;
+	
+	public decimal GroupPrice { get; set; }
+	
+	public bool IsGroupProduct { get; set; }
 }

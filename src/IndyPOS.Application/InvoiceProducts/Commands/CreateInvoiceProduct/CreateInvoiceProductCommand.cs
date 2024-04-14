@@ -25,4 +25,8 @@ public record CreateInvoiceProductCommand : ICommand
 	public int Quantity { get; set; }
 
 	public string Note { get; set; } = string.Empty;
+	
+	public decimal GroupPrice { get; set; }
+	
+	public bool IsGroupProduct { get; set; }
 }

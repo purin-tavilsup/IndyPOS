@@ -21,7 +21,9 @@ internal static class InvoiceProductExtensions
 			UnitPrice = entity.UnitPrice,
 			Quantity = entity.Quantity,
 			DateCreated = entity.DateCreated,
-			Note = entity.Note
+			Note = entity.Note,
+			GroupPrice = entity.GroupPrice,
+			IsGroupProduct = entity.IsGroupProduct
 		};
 
 		return dto;
@@ -41,7 +43,9 @@ internal static class InvoiceProductExtensions
 			Category = command.Category,
 			UnitPrice = command.UnitPrice,
 			Quantity = command.Quantity,
-			Note = command.Note
+			Note = command.Note,
+			GroupPrice = command.GroupPrice,
+			IsGroupProduct = command.IsGroupProduct
 		};
 
 		return entity;
