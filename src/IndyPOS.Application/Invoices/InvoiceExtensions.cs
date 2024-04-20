@@ -7,15 +7,11 @@ internal static class InvoiceExtensions
 {
 	internal static InvoiceDto ToDto(this Invoice entity)
 	{
-		var dto = new InvoiceDto
-		{
-			InvoiceId = entity.InvoiceId,
-			Total = entity.Total,
-			CustomerId = entity.CustomerId,
-			UserId = entity.UserId,
-			DateCreated = entity.DateCreated
-		};
-
+		var dto = new InvoiceDto(entity.InvoiceId,
+								 entity.Total,
+								 entity.CustomerId,
+								 entity.UserId,
+								 entity.DateCreated);
 		return dto;
 	}
 

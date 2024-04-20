@@ -20,5 +20,5 @@ public record UpdateInventoryProductCommand : ICommand
 
 	public int? GroupPriceQuantity { get; set; }
 
-	public decimal? GroupPrice { get; set; }
+	public decimal GroupPrice { get; set; }
 }

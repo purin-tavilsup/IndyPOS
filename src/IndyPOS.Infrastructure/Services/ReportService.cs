@@ -11,7 +11,6 @@ using IndyPOS.Application.InvoiceProducts.Queries.GetInvoiceProductsByInvoiceId;
 using IndyPOS.Application.Invoices;
 using IndyPOS.Application.Invoices.Queries.GetInvoicesByDateRange;
 using IndyPOS.Application.PayLaterPayments;
-using IndyPOS.Application.PayLaterPayments.Queries.GetPayLaterPaymentByInvoiceId;
 using IndyPOS.Application.PayLaterPayments.Queries.GetPayLaterPayments;
 using IndyPOS.Application.PayLaterPayments.Queries.GetPayLaterPaymentsByDateRange;
 using MediatR;
@@ -100,7 +99,7 @@ public class ReportService : IReportService
 		foreach (var product in products)
 		{
 			var invoiceId = product.InvoiceId;
-			var productTotal = product.UnitPrice * product.Quantity;
+			var productTotal = !product.IsGroupProduct ? product.UnitPrice * product.Quantity : product.GroupPrice;
 
 			if (IsGeneralProduct(product))
 			{

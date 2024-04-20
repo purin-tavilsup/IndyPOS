@@ -180,10 +180,8 @@ public partial class InventoryPanel : UserControl
         productRow[(int)ProductColumn.Brand] = product.Brand;
         productRow[(int)ProductColumn.DateCreated] = product.DateCreated;
         productRow[(int)ProductColumn.DateUpdated] = product.DateUpdated;
-
-        if (product.GroupPrice.HasValue)
-            productRow[(int)ProductColumn.GroupPrice] = product.GroupPrice.Value;
-
+        productRow[(int)ProductColumn.GroupPrice] = product.GroupPrice;
+        
         if (product.GroupPriceQuantity.HasValue)
             productRow[(int)ProductColumn.GroupPriceQuantity] = product.GroupPriceQuantity.Value;
 

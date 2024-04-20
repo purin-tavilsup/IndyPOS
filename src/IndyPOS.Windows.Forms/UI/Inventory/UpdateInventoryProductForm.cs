@@ -13,7 +13,7 @@ public partial class UpdateInventoryProductForm : Form
 	private readonly IMediator _mediator;
 	private readonly MessageForm _messageForm;
 	private readonly IReadOnlyDictionary<int, string> _productCategoryDictionary;
-	private InventoryProductDto _product = new();
+	private InventoryProductDto? _product;
 
 	public UpdateInventoryProductForm(IStoreConstants storeConstants,
 									  IMediator mediator,
@@ -22,6 +22,7 @@ public partial class UpdateInventoryProductForm : Form
 		_mediator = mediator;
 		_productCategoryDictionary = storeConstants.ProductCategories;
 		_messageForm = messageForm;
+		_product = null;
 
 		InitializeComponent();
 		InitializeProductCategories();
@@ -42,11 +43,16 @@ public partial class UpdateInventoryProductForm : Form
 
 	private void PopulateProductProperties()
 	{
+		if (_product is null)
+		{
+			return;
+		}
+		
 		DescriptionTextBox.Texts = _product.Description;
 		QuantityLabel.Text = $"{_product.QuantityInStock}";
 		UnitPriceTextBox.Texts = $"{_product.UnitPrice:N}";
 		CategoryComboBox.Texts = _productCategoryDictionary[_product.Category];
-		GroupPriceTextBox.Texts = _product.GroupPrice.HasValue ? $"{_product.GroupPrice.Value:N}" : string.Empty;
+		GroupPriceTextBox.Texts = $"{_product.GroupPrice:N}";
 		GroupPriceQuantityTextBox.Texts = _product.GroupPriceQuantity.HasValue ? $"{_product.GroupPriceQuantity.Value}" : string.Empty;
 		ManufacturerTextBox.Texts = _product.Manufacturer;
 		BrandTextBox.Texts = _product.Brand;
@@ -95,7 +101,7 @@ public partial class UpdateInventoryProductForm : Form
 
 	private async void UpdateProductButton_Click(object sender, EventArgs e)
 	{
-		if (!ValidateProductEntry())
+		if (_product is null || !ValidateProductEntry())
 			return;
 
 		try
@@ -123,6 +129,7 @@ public partial class UpdateInventoryProductForm : Form
 			Description = DescriptionTextBox.Texts.Trim(),
 			QuantityInStock = int.Parse(QuantityLabel.Text.Trim()),
 			UnitPrice = decimal.Parse(UnitPriceTextBox.Texts.Trim()),
+			GroupPrice = decimal.Parse(GroupPriceTextBox.Texts.Trim()),
 			Category = categoryId
 		};
 
@@ -132,15 +139,6 @@ public partial class UpdateInventoryProductForm : Form
 
 		if (!string.IsNullOrWhiteSpace(BrandTextBox.Texts))
 			command.Brand = BrandTextBox.Texts;
-
-		if (decimal.TryParse(GroupPriceTextBox.Texts.Trim(), out var groupPrice))
-		{
-			command.GroupPrice = groupPrice;
-		}
-		else
-		{
-			command.GroupPrice = null;
-		}
 
 		if (int.TryParse(GroupPriceQuantityTextBox.Texts.Trim(), out var groupPriceQuantity))
 		{
@@ -161,6 +159,11 @@ public partial class UpdateInventoryProductForm : Form
 
 	private async void RemoveProductButton_Click(object sender, EventArgs e)
 	{
+		if (_product is null)
+		{
+			return;
+		}
+		
 		try
 		{
 			var command = new DeleteInventoryProductCommand(_product.InventoryProductId);
