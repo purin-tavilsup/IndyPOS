@@ -54,19 +54,64 @@ namespace IndyPOS.Windows.Forms.UI.Payment
 
 			var isRefundInvoice = _saleService.IsRefundInvoice();
 
-			_amount = isRefundInvoice ? balanceRemaining : 0m;
+			if (!isRefundInvoice)
+			{
+				ConfigureFormForRegularPayment();
+			}
+			else
+			{
+				ConfigureFormForRefund(balanceRemaining);
+			}
+			
+			base.ShowDialog();
+        }
+
+		private void ConfigureFormForRegularPayment()
+		{
+			_amount = 0m;
 			
 			DisplayValue(_amount);
 
+			AcceptPaymentButton.Visible = true;
+			RefundButton.Visible = false;
 			AcceptPayLaterPaymentButton.Visible = false;
-			RefundButton.Visible = isRefundInvoice;
-			AcceptPaymentButton.Visible = !isRefundInvoice;
+			KeypadPanel.Enabled = true;
 
-			PaymentTypePanel.Enabled = !isRefundInvoice;
-			KeypadPanel.Enabled = !isRefundInvoice;
+			EnableAcceptablePaymentTypesForRegularPayment();
+		}
 
-			base.ShowDialog();
-        }
+		private void ConfigureFormForRefund(decimal refundAmount)
+		{
+			_amount = refundAmount;
+			
+			DisplayValue(_amount);
+
+			NoteTextBox.Texts = "Refund";
+			RefundButton.Visible = true;
+			AcceptPaymentButton.Visible = false;
+			AcceptPayLaterPaymentButton.Visible = false;
+			KeypadPanel.Enabled = false;
+
+			DisableNonAcceptablePaymentTypeSForRefund();
+		}
+
+		private void DisableNonAcceptablePaymentTypeSForRefund()
+		{
+			PayBy5050Button.Enabled = false;
+			PayByWeLoveButton.Enabled = false;
+			PayByWeWinButton.Enabled = false;
+			PayByWelfareCardButton.Enabled = false;
+			PayByPayLaterButton.Enabled = false;
+		}
+
+		private void EnableAcceptablePaymentTypesForRegularPayment()
+		{
+			PayBy5050Button.Enabled = true;
+			PayByWeLoveButton.Enabled = true;
+			PayByWeWinButton.Enabled = true;
+			PayByWelfareCardButton.Enabled = true;
+			PayByPayLaterButton.Enabled = true;
+		}
 
         private bool ValidatePaymentType()
 		{

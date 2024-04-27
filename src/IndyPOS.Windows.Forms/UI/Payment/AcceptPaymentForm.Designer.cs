@@ -28,879 +28,878 @@
         /// </summary>
         private void InitializeComponent()
         {
-            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(AcceptPaymentForm));
-            this.label1 = new System.Windows.Forms.Label();
-            this.panel20 = new System.Windows.Forms.Panel();
-            this.PayByMoneyTransferButton = new System.Windows.Forms.Button();
-            this.panel21 = new System.Windows.Forms.Panel();
-            this.PayBy5050Button = new System.Windows.Forms.Button();
-            this.panel22 = new System.Windows.Forms.Panel();
-            this.PayByWelfareCardButton = new System.Windows.Forms.Button();
-            this.panel24 = new System.Windows.Forms.Panel();
-            this.PayByWeLoveButton = new System.Windows.Forms.Button();
-            this.panel25 = new System.Windows.Forms.Panel();
-            this.PayByWeWinButton = new System.Windows.Forms.Button();
-            this.panel26 = new System.Windows.Forms.Panel();
-            this.PayByCashButton = new System.Windows.Forms.Button();
-            this.panel27 = new System.Windows.Forms.Panel();
-            this.label2 = new System.Windows.Forms.Label();
-            this.PaymentAmountLabel = new System.Windows.Forms.Label();
-            this.label3 = new System.Windows.Forms.Label();
-            this.PaymentTypePanel = new System.Windows.Forms.Panel();
-            this.PayByPayLaterButton = new ModernUI.ModernButton();
-            this.PaymentTypeLabel = new System.Windows.Forms.Label();
-            this.label4 = new System.Windows.Forms.Label();
-            this.KeypadPanel = new System.Windows.Forms.Panel();
-            this.Add500Button = new System.Windows.Forms.Button();
-            this.Digit9Button = new System.Windows.Forms.Button();
-            this.Add100Button = new System.Windows.Forms.Button();
-            this.Digit6Button = new System.Windows.Forms.Button();
-            this.Add50Button = new System.Windows.Forms.Button();
-            this.Digit8Button = new System.Windows.Forms.Button();
-            this.Add20Button = new System.Windows.Forms.Button();
-            this.Digit3Button = new System.Windows.Forms.Button();
-            this.Digit7Button = new System.Windows.Forms.Button();
-            this.Digit5Button = new System.Windows.Forms.Button();
-            this.PlusButton = new System.Windows.Forms.Button();
-            this.Digit4Button = new System.Windows.Forms.Button();
-            this.Digit2Button = new System.Windows.Forms.Button();
-            this.Add1000Button = new System.Windows.Forms.Button();
-            this.Digit1Button = new System.Windows.Forms.Button();
-            this.Digit0Button = new System.Windows.Forms.Button();
-            this.EqualButton = new System.Windows.Forms.Button();
-            this.DecimalPointButton = new System.Windows.Forms.Button();
-            this.ClearButton = new System.Windows.Forms.Button();
-            this.panel30 = new System.Windows.Forms.Panel();
-            this.panel1 = new System.Windows.Forms.Panel();
-            this.AcceptPayLaterPaymentButton = new ModernUI.ModernButton();
-            this.panel2 = new System.Windows.Forms.Panel();
-            this.BalanceRemainingLabel = new System.Windows.Forms.Label();
-            this.label6 = new System.Windows.Forms.Label();
-            this.NotePanel = new System.Windows.Forms.Panel();
-            this.NoteTextBox = new ModernUI.ModernTextBox();
-            this.label10 = new System.Windows.Forms.Label();
-            this.RefundButton = new ModernUI.ModernButton();
-            this.CancelAcceptPaymentButton = new ModernUI.ModernButton();
-            this.AcceptPaymentButton = new ModernUI.ModernButton();
-            this.panel20.SuspendLayout();
-            this.panel21.SuspendLayout();
-            this.panel22.SuspendLayout();
-            this.panel24.SuspendLayout();
-            this.panel25.SuspendLayout();
-            this.panel26.SuspendLayout();
-            this.panel27.SuspendLayout();
-            this.PaymentTypePanel.SuspendLayout();
-            this.KeypadPanel.SuspendLayout();
-            this.panel30.SuspendLayout();
-            this.panel1.SuspendLayout();
-            this.panel2.SuspendLayout();
-            this.NotePanel.SuspendLayout();
-            this.SuspendLayout();
+            var resources = new System.ComponentModel.ComponentResourceManager(typeof(AcceptPaymentForm));
+            label1 = new Label();
+            panel20 = new Panel();
+            PayByMoneyTransferButton = new Button();
+            panel21 = new Panel();
+            PayBy5050Button = new Button();
+            panel22 = new Panel();
+            PayByWelfareCardButton = new Button();
+            panel24 = new Panel();
+            PayByWeLoveButton = new Button();
+            panel25 = new Panel();
+            PayByWeWinButton = new Button();
+            panel26 = new Panel();
+            PayByCashButton = new Button();
+            panel27 = new Panel();
+            label2 = new Label();
+            PaymentAmountLabel = new Label();
+            label3 = new Label();
+            PaymentTypePanel = new Panel();
+            PayByPayLaterButton = new ModernUI.ModernButton();
+            PaymentTypeLabel = new Label();
+            label4 = new Label();
+            KeypadPanel = new Panel();
+            Add500Button = new Button();
+            Digit9Button = new Button();
+            Add100Button = new Button();
+            Digit6Button = new Button();
+            Add50Button = new Button();
+            Digit8Button = new Button();
+            Add20Button = new Button();
+            Digit3Button = new Button();
+            Digit7Button = new Button();
+            Digit5Button = new Button();
+            PlusButton = new Button();
+            Digit4Button = new Button();
+            Digit2Button = new Button();
+            Add1000Button = new Button();
+            Digit1Button = new Button();
+            Digit0Button = new Button();
+            EqualButton = new Button();
+            DecimalPointButton = new Button();
+            ClearButton = new Button();
+            panel30 = new Panel();
+            panel1 = new Panel();
+            AcceptPayLaterPaymentButton = new ModernUI.ModernButton();
+            panel2 = new Panel();
+            BalanceRemainingLabel = new Label();
+            label6 = new Label();
+            NotePanel = new Panel();
+            NoteTextBox = new ModernUI.ModernTextBox();
+            label10 = new Label();
+            RefundButton = new ModernUI.ModernButton();
+            CancelAcceptPaymentButton = new ModernUI.ModernButton();
+            AcceptPaymentButton = new ModernUI.ModernButton();
+            panel20.SuspendLayout();
+            panel21.SuspendLayout();
+            panel22.SuspendLayout();
+            panel24.SuspendLayout();
+            panel25.SuspendLayout();
+            panel26.SuspendLayout();
+            panel27.SuspendLayout();
+            PaymentTypePanel.SuspendLayout();
+            KeypadPanel.SuspendLayout();
+            panel30.SuspendLayout();
+            panel1.SuspendLayout();
+            panel2.SuspendLayout();
+            NotePanel.SuspendLayout();
+            SuspendLayout();
             // 
             // label1
             // 
-            this.label1.BackColor = System.Drawing.Color.DarkSlateGray;
-            this.label1.Dock = System.Windows.Forms.DockStyle.Top;
-            this.label1.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 18F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            this.label1.ForeColor = System.Drawing.Color.WhiteSmoke;
-            this.label1.Location = new System.Drawing.Point(0, 0);
-            this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(1425, 39);
-            this.label1.TabIndex = 4;
-            this.label1.Text = "รับเงิน";
-            this.label1.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            label1.BackColor = Color.DarkSlateGray;
+            label1.Dock = DockStyle.Top;
+            label1.Font = new Font("FC Subject [Non-commercial] Reg", 18F, FontStyle.Regular, GraphicsUnit.Point);
+            label1.ForeColor = Color.WhiteSmoke;
+            label1.Location = new Point(0, 0);
+            label1.Name = "label1";
+            label1.Size = new Size(1425, 39);
+            label1.TabIndex = 4;
+            label1.Text = "รับเงิน";
+            label1.TextAlign = ContentAlignment.MiddleCenter;
             // 
             // panel20
             // 
-            this.panel20.BackColor = System.Drawing.Color.Silver;
-            this.panel20.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.panel20.Controls.Add(this.PayByMoneyTransferButton);
-            this.panel20.Location = new System.Drawing.Point(211, 16);
-            this.panel20.Name = "panel20";
-            this.panel20.Size = new System.Drawing.Size(195, 129);
-            this.panel20.TabIndex = 40;
+            panel20.BackColor = Color.Silver;
+            panel20.BorderStyle = BorderStyle.FixedSingle;
+            panel20.Controls.Add(PayByMoneyTransferButton);
+            panel20.Location = new Point(211, 16);
+            panel20.Name = "panel20";
+            panel20.Size = new Size(195, 129);
+            panel20.TabIndex = 40;
             // 
             // PayByMoneyTransferButton
             // 
-            this.PayByMoneyTransferButton.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(80)))), ((int)(((byte)(80)))), ((int)(((byte)(80)))));
-            this.PayByMoneyTransferButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.PayByMoneyTransferButton.Font = new System.Drawing.Font("Leelawadee UI", 15.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            this.PayByMoneyTransferButton.Image = global::IndyPOS.Windows.Forms.Properties.Resources.Payment_MoneyTransfer_100;
-            this.PayByMoneyTransferButton.Location = new System.Drawing.Point(3, 3);
-            this.PayByMoneyTransferButton.Name = "PayByMoneyTransferButton";
-            this.PayByMoneyTransferButton.Size = new System.Drawing.Size(187, 121);
-            this.PayByMoneyTransferButton.TabIndex = 7;
-            this.PayByMoneyTransferButton.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
-            this.PayByMoneyTransferButton.TextImageRelation = System.Windows.Forms.TextImageRelation.ImageBeforeText;
-            this.PayByMoneyTransferButton.UseVisualStyleBackColor = false;
-            this.PayByMoneyTransferButton.Click += new System.EventHandler(this.PayByMoneyTransferButton_Click);
+            PayByMoneyTransferButton.BackColor = Color.FromArgb(80, 80, 80);
+            PayByMoneyTransferButton.FlatStyle = FlatStyle.Flat;
+            PayByMoneyTransferButton.Font = new Font("Leelawadee UI", 15.75F, FontStyle.Regular, GraphicsUnit.Point);
+            PayByMoneyTransferButton.Image = Properties.Resources.Payment_MoneyTransfer_100;
+            PayByMoneyTransferButton.Location = new Point(3, 3);
+            PayByMoneyTransferButton.Name = "PayByMoneyTransferButton";
+            PayByMoneyTransferButton.Size = new Size(187, 121);
+            PayByMoneyTransferButton.TabIndex = 7;
+            PayByMoneyTransferButton.TextAlign = ContentAlignment.MiddleRight;
+            PayByMoneyTransferButton.TextImageRelation = TextImageRelation.ImageBeforeText;
+            PayByMoneyTransferButton.UseVisualStyleBackColor = false;
+            PayByMoneyTransferButton.Click += PayByMoneyTransferButton_Click;
             // 
             // panel21
             // 
-            this.panel21.BackColor = System.Drawing.Color.Silver;
-            this.panel21.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.panel21.Controls.Add(this.PayBy5050Button);
-            this.panel21.Location = new System.Drawing.Point(10, 151);
-            this.panel21.Name = "panel21";
-            this.panel21.Size = new System.Drawing.Size(195, 129);
-            this.panel21.TabIndex = 41;
+            panel21.BackColor = Color.Silver;
+            panel21.BorderStyle = BorderStyle.FixedSingle;
+            panel21.Controls.Add(PayBy5050Button);
+            panel21.Location = new Point(10, 151);
+            panel21.Name = "panel21";
+            panel21.Size = new Size(195, 129);
+            panel21.TabIndex = 41;
             // 
             // PayBy5050Button
             // 
-            this.PayBy5050Button.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(80)))), ((int)(((byte)(80)))), ((int)(((byte)(80)))));
-            this.PayBy5050Button.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.PayBy5050Button.Font = new System.Drawing.Font("Leelawadee UI", 15.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            this.PayBy5050Button.Image = global::IndyPOS.Windows.Forms.Properties.Resources.Payment_KLK_100;
-            this.PayBy5050Button.Location = new System.Drawing.Point(3, 3);
-            this.PayBy5050Button.Name = "PayBy5050Button";
-            this.PayBy5050Button.Size = new System.Drawing.Size(187, 121);
-            this.PayBy5050Button.TabIndex = 7;
-            this.PayBy5050Button.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
-            this.PayBy5050Button.TextImageRelation = System.Windows.Forms.TextImageRelation.ImageBeforeText;
-            this.PayBy5050Button.UseVisualStyleBackColor = false;
-            this.PayBy5050Button.Click += new System.EventHandler(this.PayBy5050Button_Click);
+            PayBy5050Button.BackColor = Color.FromArgb(80, 80, 80);
+            PayBy5050Button.FlatStyle = FlatStyle.Flat;
+            PayBy5050Button.Font = new Font("Leelawadee UI", 15.75F, FontStyle.Regular, GraphicsUnit.Point);
+            PayBy5050Button.Image = Properties.Resources.Payment_KLK_100;
+            PayBy5050Button.Location = new Point(3, 3);
+            PayBy5050Button.Name = "PayBy5050Button";
+            PayBy5050Button.Size = new Size(187, 121);
+            PayBy5050Button.TabIndex = 7;
+            PayBy5050Button.TextAlign = ContentAlignment.MiddleRight;
+            PayBy5050Button.TextImageRelation = TextImageRelation.ImageBeforeText;
+            PayBy5050Button.UseVisualStyleBackColor = false;
+            PayBy5050Button.Click += PayBy5050Button_Click;
             // 
             // panel22
             // 
-            this.panel22.BackColor = System.Drawing.Color.Silver;
-            this.panel22.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.panel22.Controls.Add(this.PayByWelfareCardButton);
-            this.panel22.Location = new System.Drawing.Point(10, 286);
-            this.panel22.Name = "panel22";
-            this.panel22.Size = new System.Drawing.Size(195, 129);
-            this.panel22.TabIndex = 42;
+            panel22.BackColor = Color.Silver;
+            panel22.BorderStyle = BorderStyle.FixedSingle;
+            panel22.Controls.Add(PayByWelfareCardButton);
+            panel22.Location = new Point(10, 286);
+            panel22.Name = "panel22";
+            panel22.Size = new Size(195, 129);
+            panel22.TabIndex = 42;
             // 
             // PayByWelfareCardButton
             // 
-            this.PayByWelfareCardButton.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(80)))), ((int)(((byte)(80)))), ((int)(((byte)(80)))));
-            this.PayByWelfareCardButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.PayByWelfareCardButton.Font = new System.Drawing.Font("Leelawadee UI", 15.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            this.PayByWelfareCardButton.Image = global::IndyPOS.Windows.Forms.Properties.Resources.Payment_PracharatCard_100;
-            this.PayByWelfareCardButton.Location = new System.Drawing.Point(3, 3);
-            this.PayByWelfareCardButton.Name = "PayByWelfareCardButton";
-            this.PayByWelfareCardButton.Size = new System.Drawing.Size(187, 121);
-            this.PayByWelfareCardButton.TabIndex = 7;
-            this.PayByWelfareCardButton.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
-            this.PayByWelfareCardButton.TextImageRelation = System.Windows.Forms.TextImageRelation.ImageBeforeText;
-            this.PayByWelfareCardButton.UseVisualStyleBackColor = false;
-            this.PayByWelfareCardButton.Click += new System.EventHandler(this.PayByWelfareCardButton_Click);
+            PayByWelfareCardButton.BackColor = Color.FromArgb(80, 80, 80);
+            PayByWelfareCardButton.FlatStyle = FlatStyle.Flat;
+            PayByWelfareCardButton.Font = new Font("Leelawadee UI", 15.75F, FontStyle.Regular, GraphicsUnit.Point);
+            PayByWelfareCardButton.Image = Properties.Resources.Payment_PracharatCard_100;
+            PayByWelfareCardButton.Location = new Point(3, 3);
+            PayByWelfareCardButton.Name = "PayByWelfareCardButton";
+            PayByWelfareCardButton.Size = new Size(187, 121);
+            PayByWelfareCardButton.TabIndex = 7;
+            PayByWelfareCardButton.TextAlign = ContentAlignment.MiddleRight;
+            PayByWelfareCardButton.TextImageRelation = TextImageRelation.ImageBeforeText;
+            PayByWelfareCardButton.UseVisualStyleBackColor = false;
+            PayByWelfareCardButton.Click += PayByWelfareCardButton_Click;
             // 
             // panel24
             // 
-            this.panel24.BackColor = System.Drawing.Color.Silver;
-            this.panel24.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.panel24.Controls.Add(this.PayByWeLoveButton);
-            this.panel24.Location = new System.Drawing.Point(211, 286);
-            this.panel24.Name = "panel24";
-            this.panel24.Size = new System.Drawing.Size(195, 129);
-            this.panel24.TabIndex = 44;
+            panel24.BackColor = Color.Silver;
+            panel24.BorderStyle = BorderStyle.FixedSingle;
+            panel24.Controls.Add(PayByWeLoveButton);
+            panel24.Location = new Point(211, 286);
+            panel24.Name = "panel24";
+            panel24.Size = new Size(195, 129);
+            panel24.TabIndex = 44;
             // 
             // PayByWeLoveButton
             // 
-            this.PayByWeLoveButton.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(80)))), ((int)(((byte)(80)))), ((int)(((byte)(80)))));
-            this.PayByWeLoveButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.PayByWeLoveButton.Font = new System.Drawing.Font("Leelawadee UI", 15.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            this.PayByWeLoveButton.Image = global::IndyPOS.Windows.Forms.Properties.Resources.Payment_WeLove_100;
-            this.PayByWeLoveButton.Location = new System.Drawing.Point(3, 3);
-            this.PayByWeLoveButton.Name = "PayByWeLoveButton";
-            this.PayByWeLoveButton.Size = new System.Drawing.Size(187, 121);
-            this.PayByWeLoveButton.TabIndex = 7;
-            this.PayByWeLoveButton.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
-            this.PayByWeLoveButton.TextImageRelation = System.Windows.Forms.TextImageRelation.ImageBeforeText;
-            this.PayByWeLoveButton.UseVisualStyleBackColor = false;
-            this.PayByWeLoveButton.Click += new System.EventHandler(this.PayByWeLoveButton_Click);
+            PayByWeLoveButton.BackColor = Color.FromArgb(80, 80, 80);
+            PayByWeLoveButton.FlatStyle = FlatStyle.Flat;
+            PayByWeLoveButton.Font = new Font("Leelawadee UI", 15.75F, FontStyle.Regular, GraphicsUnit.Point);
+            PayByWeLoveButton.Image = Properties.Resources.Payment_WeLove_100;
+            PayByWeLoveButton.Location = new Point(3, 3);
+            PayByWeLoveButton.Name = "PayByWeLoveButton";
+            PayByWeLoveButton.Size = new Size(187, 121);
+            PayByWeLoveButton.TabIndex = 7;
+            PayByWeLoveButton.TextAlign = ContentAlignment.MiddleRight;
+            PayByWeLoveButton.TextImageRelation = TextImageRelation.ImageBeforeText;
+            PayByWeLoveButton.UseVisualStyleBackColor = false;
+            PayByWeLoveButton.Click += PayByWeLoveButton_Click;
             // 
             // panel25
             // 
-            this.panel25.BackColor = System.Drawing.Color.Silver;
-            this.panel25.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.panel25.Controls.Add(this.PayByWeWinButton);
-            this.panel25.Location = new System.Drawing.Point(211, 151);
-            this.panel25.Name = "panel25";
-            this.panel25.Size = new System.Drawing.Size(195, 129);
-            this.panel25.TabIndex = 45;
+            panel25.BackColor = Color.Silver;
+            panel25.BorderStyle = BorderStyle.FixedSingle;
+            panel25.Controls.Add(PayByWeWinButton);
+            panel25.Location = new Point(211, 151);
+            panel25.Name = "panel25";
+            panel25.Size = new Size(195, 129);
+            panel25.TabIndex = 45;
             // 
             // PayByWeWinButton
             // 
-            this.PayByWeWinButton.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(80)))), ((int)(((byte)(80)))), ((int)(((byte)(80)))));
-            this.PayByWeWinButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.PayByWeWinButton.Font = new System.Drawing.Font("Leelawadee UI", 15.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            this.PayByWeWinButton.Image = global::IndyPOS.Windows.Forms.Properties.Resources.Payment_WeWin_100;
-            this.PayByWeWinButton.Location = new System.Drawing.Point(3, 3);
-            this.PayByWeWinButton.Name = "PayByWeWinButton";
-            this.PayByWeWinButton.Size = new System.Drawing.Size(187, 121);
-            this.PayByWeWinButton.TabIndex = 7;
-            this.PayByWeWinButton.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
-            this.PayByWeWinButton.TextImageRelation = System.Windows.Forms.TextImageRelation.ImageBeforeText;
-            this.PayByWeWinButton.UseVisualStyleBackColor = false;
-            this.PayByWeWinButton.Click += new System.EventHandler(this.PayByWeWinButton_Click);
+            PayByWeWinButton.BackColor = Color.FromArgb(80, 80, 80);
+            PayByWeWinButton.FlatStyle = FlatStyle.Flat;
+            PayByWeWinButton.Font = new Font("Leelawadee UI", 15.75F, FontStyle.Regular, GraphicsUnit.Point);
+            PayByWeWinButton.Image = Properties.Resources.Payment_WeWin_100;
+            PayByWeWinButton.Location = new Point(3, 3);
+            PayByWeWinButton.Name = "PayByWeWinButton";
+            PayByWeWinButton.Size = new Size(187, 121);
+            PayByWeWinButton.TabIndex = 7;
+            PayByWeWinButton.TextAlign = ContentAlignment.MiddleRight;
+            PayByWeWinButton.TextImageRelation = TextImageRelation.ImageBeforeText;
+            PayByWeWinButton.UseVisualStyleBackColor = false;
+            PayByWeWinButton.Click += PayByWeWinButton_Click;
             // 
             // panel26
             // 
-            this.panel26.BackColor = System.Drawing.Color.Silver;
-            this.panel26.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.panel26.Controls.Add(this.PayByCashButton);
-            this.panel26.Location = new System.Drawing.Point(10, 16);
-            this.panel26.Name = "panel26";
-            this.panel26.Size = new System.Drawing.Size(195, 129);
-            this.panel26.TabIndex = 46;
+            panel26.BackColor = Color.Silver;
+            panel26.BorderStyle = BorderStyle.FixedSingle;
+            panel26.Controls.Add(PayByCashButton);
+            panel26.Location = new Point(10, 16);
+            panel26.Name = "panel26";
+            panel26.Size = new Size(195, 129);
+            panel26.TabIndex = 46;
             // 
             // PayByCashButton
             // 
-            this.PayByCashButton.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(80)))), ((int)(((byte)(80)))), ((int)(((byte)(80)))));
-            this.PayByCashButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.PayByCashButton.Font = new System.Drawing.Font("Leelawadee UI", 15.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            this.PayByCashButton.Image = global::IndyPOS.Windows.Forms.Properties.Resources.Money_80;
-            this.PayByCashButton.Location = new System.Drawing.Point(3, 3);
-            this.PayByCashButton.Name = "PayByCashButton";
-            this.PayByCashButton.Size = new System.Drawing.Size(187, 121);
-            this.PayByCashButton.TabIndex = 7;
-            this.PayByCashButton.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
-            this.PayByCashButton.TextImageRelation = System.Windows.Forms.TextImageRelation.ImageBeforeText;
-            this.PayByCashButton.UseVisualStyleBackColor = false;
-            this.PayByCashButton.Click += new System.EventHandler(this.PayByCashButton_Click);
+            PayByCashButton.BackColor = Color.FromArgb(80, 80, 80);
+            PayByCashButton.FlatStyle = FlatStyle.Flat;
+            PayByCashButton.Font = new Font("Leelawadee UI", 15.75F, FontStyle.Regular, GraphicsUnit.Point);
+            PayByCashButton.Image = Properties.Resources.Money_80;
+            PayByCashButton.Location = new Point(3, 3);
+            PayByCashButton.Name = "PayByCashButton";
+            PayByCashButton.Size = new Size(187, 121);
+            PayByCashButton.TabIndex = 7;
+            PayByCashButton.TextAlign = ContentAlignment.MiddleRight;
+            PayByCashButton.TextImageRelation = TextImageRelation.ImageBeforeText;
+            PayByCashButton.UseVisualStyleBackColor = false;
+            PayByCashButton.Click += PayByCashButton_Click;
             // 
             // panel27
             // 
-            this.panel27.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(30)))), ((int)(((byte)(30)))), ((int)(((byte)(30)))));
-            this.panel27.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.panel27.Controls.Add(this.label2);
-            this.panel27.Controls.Add(this.PaymentAmountLabel);
-            this.panel27.Controls.Add(this.label3);
-            this.panel27.Location = new System.Drawing.Point(558, 114);
-            this.panel27.Name = "panel27";
-            this.panel27.Size = new System.Drawing.Size(530, 58);
-            this.panel27.TabIndex = 47;
+            panel27.BackColor = Color.FromArgb(30, 30, 30);
+            panel27.BorderStyle = BorderStyle.FixedSingle;
+            panel27.Controls.Add(label2);
+            panel27.Controls.Add(PaymentAmountLabel);
+            panel27.Controls.Add(label3);
+            panel27.Location = new Point(558, 114);
+            panel27.Name = "panel27";
+            panel27.Size = new Size(530, 58);
+            panel27.TabIndex = 47;
             // 
             // label2
             // 
-            this.label2.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(30)))), ((int)(((byte)(30)))), ((int)(((byte)(30)))));
-            this.label2.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 15.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            this.label2.ForeColor = System.Drawing.Color.Gainsboro;
-            this.label2.Location = new System.Drawing.Point(3, 3);
-            this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(126, 50);
-            this.label2.TabIndex = 1;
-            this.label2.Text = "จำนวนเงิน";
-            this.label2.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
+            label2.BackColor = Color.FromArgb(30, 30, 30);
+            label2.Font = new Font("FC Subject [Non-commercial] Reg", 15.75F, FontStyle.Regular, GraphicsUnit.Point);
+            label2.ForeColor = Color.Gainsboro;
+            label2.Location = new Point(3, 3);
+            label2.Name = "label2";
+            label2.Size = new Size(126, 50);
+            label2.TabIndex = 1;
+            label2.Text = "จำนวนเงิน";
+            label2.TextAlign = ContentAlignment.MiddleRight;
             // 
             // PaymentAmountLabel
             // 
-            this.PaymentAmountLabel.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(30)))), ((int)(((byte)(30)))), ((int)(((byte)(30)))));
-            this.PaymentAmountLabel.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 20.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            this.PaymentAmountLabel.ForeColor = System.Drawing.Color.PaleGreen;
-            this.PaymentAmountLabel.Location = new System.Drawing.Point(135, 3);
-            this.PaymentAmountLabel.Name = "PaymentAmountLabel";
-            this.PaymentAmountLabel.Size = new System.Drawing.Size(300, 50);
-            this.PaymentAmountLabel.TabIndex = 0;
-            this.PaymentAmountLabel.Text = "0.00";
-            this.PaymentAmountLabel.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            PaymentAmountLabel.BackColor = Color.FromArgb(30, 30, 30);
+            PaymentAmountLabel.Font = new Font("FC Subject [Non-commercial] Reg", 20.25F, FontStyle.Regular, GraphicsUnit.Point);
+            PaymentAmountLabel.ForeColor = Color.PaleGreen;
+            PaymentAmountLabel.Location = new Point(135, 3);
+            PaymentAmountLabel.Name = "PaymentAmountLabel";
+            PaymentAmountLabel.Size = new Size(300, 50);
+            PaymentAmountLabel.TabIndex = 0;
+            PaymentAmountLabel.Text = "0.00";
+            PaymentAmountLabel.TextAlign = ContentAlignment.MiddleCenter;
             // 
             // label3
             // 
-            this.label3.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(30)))), ((int)(((byte)(30)))), ((int)(((byte)(30)))));
-            this.label3.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 15.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            this.label3.ForeColor = System.Drawing.Color.Gainsboro;
-            this.label3.Location = new System.Drawing.Point(433, 3);
-            this.label3.Name = "label3";
-            this.label3.Size = new System.Drawing.Size(92, 50);
-            this.label3.TabIndex = 8;
-            this.label3.Text = "บาท";
-            this.label3.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            label3.BackColor = Color.FromArgb(30, 30, 30);
+            label3.Font = new Font("FC Subject [Non-commercial] Reg", 15.75F, FontStyle.Regular, GraphicsUnit.Point);
+            label3.ForeColor = Color.Gainsboro;
+            label3.Location = new Point(433, 3);
+            label3.Name = "label3";
+            label3.Size = new Size(92, 50);
+            label3.TabIndex = 8;
+            label3.Text = "บาท";
+            label3.TextAlign = ContentAlignment.MiddleLeft;
             // 
             // PaymentTypePanel
             // 
-            this.PaymentTypePanel.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(30)))), ((int)(((byte)(30)))), ((int)(((byte)(30)))));
-            this.PaymentTypePanel.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.PaymentTypePanel.Controls.Add(this.PayByPayLaterButton);
-            this.PaymentTypePanel.Controls.Add(this.panel20);
-            this.PaymentTypePanel.Controls.Add(this.panel21);
-            this.PaymentTypePanel.Controls.Add(this.panel26);
-            this.PaymentTypePanel.Controls.Add(this.panel24);
-            this.PaymentTypePanel.Controls.Add(this.panel22);
-            this.PaymentTypePanel.Controls.Add(this.panel25);
-            this.PaymentTypePanel.ForeColor = System.Drawing.Color.Black;
-            this.PaymentTypePanel.Location = new System.Drawing.Point(116, 178);
-            this.PaymentTypePanel.Name = "PaymentTypePanel";
-            this.PaymentTypePanel.Size = new System.Drawing.Size(419, 556);
-            this.PaymentTypePanel.TabIndex = 48;
+            PaymentTypePanel.BackColor = Color.FromArgb(30, 30, 30);
+            PaymentTypePanel.BorderStyle = BorderStyle.FixedSingle;
+            PaymentTypePanel.Controls.Add(PayByPayLaterButton);
+            PaymentTypePanel.Controls.Add(panel20);
+            PaymentTypePanel.Controls.Add(panel21);
+            PaymentTypePanel.Controls.Add(panel26);
+            PaymentTypePanel.Controls.Add(panel24);
+            PaymentTypePanel.Controls.Add(panel22);
+            PaymentTypePanel.Controls.Add(panel25);
+            PaymentTypePanel.ForeColor = Color.Black;
+            PaymentTypePanel.Location = new Point(116, 178);
+            PaymentTypePanel.Name = "PaymentTypePanel";
+            PaymentTypePanel.Size = new Size(419, 556);
+            PaymentTypePanel.TabIndex = 48;
             // 
             // PayByPayLaterButton
             // 
-            this.PayByPayLaterButton.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
-            this.PayByPayLaterButton.BackgroundColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
-            this.PayByPayLaterButton.BorderColor = System.Drawing.Color.PeachPuff;
-            this.PayByPayLaterButton.BorderRadius = 5;
-            this.PayByPayLaterButton.BorderSize = 1;
-            this.PayByPayLaterButton.FlatAppearance.BorderSize = 0;
-            this.PayByPayLaterButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.PayByPayLaterButton.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            this.PayByPayLaterButton.ForeColor = System.Drawing.Color.White;
-            this.PayByPayLaterButton.Image = global::IndyPOS.Windows.Forms.Properties.Resources.Customer_Acounts_50;
-            this.PayByPayLaterButton.Location = new System.Drawing.Point(10, 421);
-            this.PayByPayLaterButton.Name = "PayByPayLaterButton";
-            this.PayByPayLaterButton.Size = new System.Drawing.Size(195, 118);
-            this.PayByPayLaterButton.TabIndex = 52;
-            this.PayByPayLaterButton.Text = "ลงบัญชี";
-            this.PayByPayLaterButton.TextAlign = System.Drawing.ContentAlignment.BottomCenter;
-            this.PayByPayLaterButton.TextColor = System.Drawing.Color.White;
-            this.PayByPayLaterButton.TextImageRelation = System.Windows.Forms.TextImageRelation.ImageAboveText;
-            this.PayByPayLaterButton.UseVisualStyleBackColor = false;
-            this.PayByPayLaterButton.Click += new System.EventHandler(this.PayByPayLaterButton_Click);
+            PayByPayLaterButton.BackColor = Color.FromArgb(38, 38, 38);
+            PayByPayLaterButton.BackgroundColor = Color.FromArgb(38, 38, 38);
+            PayByPayLaterButton.BorderColor = Color.PeachPuff;
+            PayByPayLaterButton.BorderRadius = 5;
+            PayByPayLaterButton.BorderSize = 1;
+            PayByPayLaterButton.FlatAppearance.BorderSize = 0;
+            PayByPayLaterButton.FlatStyle = FlatStyle.Flat;
+            PayByPayLaterButton.Font = new Font("FC Subject [Non-commercial] Reg", 12F, FontStyle.Regular, GraphicsUnit.Point);
+            PayByPayLaterButton.ForeColor = Color.White;
+            PayByPayLaterButton.Image = Properties.Resources.Customer_Acounts_50;
+            PayByPayLaterButton.Location = new Point(10, 421);
+            PayByPayLaterButton.Name = "PayByPayLaterButton";
+            PayByPayLaterButton.Size = new Size(195, 118);
+            PayByPayLaterButton.TabIndex = 52;
+            PayByPayLaterButton.Text = "ลงบัญชี";
+            PayByPayLaterButton.TextAlign = ContentAlignment.BottomCenter;
+            PayByPayLaterButton.TextColor = Color.White;
+            PayByPayLaterButton.TextImageRelation = TextImageRelation.ImageAboveText;
+            PayByPayLaterButton.UseVisualStyleBackColor = false;
+            PayByPayLaterButton.Click += PayByPayLaterButton_Click;
             // 
             // PaymentTypeLabel
             // 
-            this.PaymentTypeLabel.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(30)))), ((int)(((byte)(30)))), ((int)(((byte)(30)))));
-            this.PaymentTypeLabel.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 15.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            this.PaymentTypeLabel.ForeColor = System.Drawing.Color.PaleGreen;
-            this.PaymentTypeLabel.Location = new System.Drawing.Point(255, 3);
-            this.PaymentTypeLabel.Name = "PaymentTypeLabel";
-            this.PaymentTypeLabel.Size = new System.Drawing.Size(159, 50);
-            this.PaymentTypeLabel.TabIndex = 48;
-            this.PaymentTypeLabel.Text = "เงินสด";
-            this.PaymentTypeLabel.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            PaymentTypeLabel.BackColor = Color.FromArgb(30, 30, 30);
+            PaymentTypeLabel.Font = new Font("FC Subject [Non-commercial] Reg", 15.75F, FontStyle.Regular, GraphicsUnit.Point);
+            PaymentTypeLabel.ForeColor = Color.PaleGreen;
+            PaymentTypeLabel.Location = new Point(255, 3);
+            PaymentTypeLabel.Name = "PaymentTypeLabel";
+            PaymentTypeLabel.Size = new Size(159, 50);
+            PaymentTypeLabel.TabIndex = 48;
+            PaymentTypeLabel.Text = "เงินสด";
+            PaymentTypeLabel.TextAlign = ContentAlignment.MiddleCenter;
             // 
             // label4
             // 
-            this.label4.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(30)))), ((int)(((byte)(30)))), ((int)(((byte)(30)))));
-            this.label4.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 15.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            this.label4.ForeColor = System.Drawing.Color.Gainsboro;
-            this.label4.Location = new System.Drawing.Point(4, 2);
-            this.label4.Name = "label4";
-            this.label4.Size = new System.Drawing.Size(239, 51);
-            this.label4.TabIndex = 47;
-            this.label4.Text = "วิธีการชำระเงิน:";
-            this.label4.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
+            label4.BackColor = Color.FromArgb(30, 30, 30);
+            label4.Font = new Font("FC Subject [Non-commercial] Reg", 15.75F, FontStyle.Regular, GraphicsUnit.Point);
+            label4.ForeColor = Color.Gainsboro;
+            label4.Location = new Point(4, 2);
+            label4.Name = "label4";
+            label4.Size = new Size(239, 51);
+            label4.TabIndex = 47;
+            label4.Text = "วิธีการชำระเงิน:";
+            label4.TextAlign = ContentAlignment.MiddleRight;
             // 
             // KeypadPanel
             // 
-            this.KeypadPanel.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(30)))), ((int)(((byte)(30)))), ((int)(((byte)(30)))));
-            this.KeypadPanel.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.KeypadPanel.Controls.Add(this.Add500Button);
-            this.KeypadPanel.Controls.Add(this.Digit9Button);
-            this.KeypadPanel.Controls.Add(this.Add100Button);
-            this.KeypadPanel.Controls.Add(this.Digit6Button);
-            this.KeypadPanel.Controls.Add(this.Add50Button);
-            this.KeypadPanel.Controls.Add(this.Digit8Button);
-            this.KeypadPanel.Controls.Add(this.Add20Button);
-            this.KeypadPanel.Controls.Add(this.Digit3Button);
-            this.KeypadPanel.Controls.Add(this.Digit7Button);
-            this.KeypadPanel.Controls.Add(this.Digit5Button);
-            this.KeypadPanel.Controls.Add(this.PlusButton);
-            this.KeypadPanel.Controls.Add(this.Digit4Button);
-            this.KeypadPanel.Controls.Add(this.Digit2Button);
-            this.KeypadPanel.Controls.Add(this.Add1000Button);
-            this.KeypadPanel.Controls.Add(this.Digit1Button);
-            this.KeypadPanel.Controls.Add(this.Digit0Button);
-            this.KeypadPanel.Controls.Add(this.EqualButton);
-            this.KeypadPanel.Controls.Add(this.DecimalPointButton);
-            this.KeypadPanel.Controls.Add(this.ClearButton);
-            this.KeypadPanel.Location = new System.Drawing.Point(558, 178);
-            this.KeypadPanel.Name = "KeypadPanel";
-            this.KeypadPanel.Size = new System.Drawing.Size(530, 433);
-            this.KeypadPanel.TabIndex = 49;
+            KeypadPanel.BackColor = Color.FromArgb(30, 30, 30);
+            KeypadPanel.BorderStyle = BorderStyle.FixedSingle;
+            KeypadPanel.Controls.Add(Add500Button);
+            KeypadPanel.Controls.Add(Digit9Button);
+            KeypadPanel.Controls.Add(Add100Button);
+            KeypadPanel.Controls.Add(Digit6Button);
+            KeypadPanel.Controls.Add(Add50Button);
+            KeypadPanel.Controls.Add(Digit8Button);
+            KeypadPanel.Controls.Add(Add20Button);
+            KeypadPanel.Controls.Add(Digit3Button);
+            KeypadPanel.Controls.Add(Digit7Button);
+            KeypadPanel.Controls.Add(Digit5Button);
+            KeypadPanel.Controls.Add(PlusButton);
+            KeypadPanel.Controls.Add(Digit4Button);
+            KeypadPanel.Controls.Add(Digit2Button);
+            KeypadPanel.Controls.Add(Add1000Button);
+            KeypadPanel.Controls.Add(Digit1Button);
+            KeypadPanel.Controls.Add(Digit0Button);
+            KeypadPanel.Controls.Add(EqualButton);
+            KeypadPanel.Controls.Add(DecimalPointButton);
+            KeypadPanel.Controls.Add(ClearButton);
+            KeypadPanel.Location = new Point(558, 178);
+            KeypadPanel.Name = "KeypadPanel";
+            KeypadPanel.Size = new Size(530, 433);
+            KeypadPanel.TabIndex = 49;
             // 
             // Add500Button
             // 
-            this.Add500Button.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
-            this.Add500Button.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.Add500Button.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 20.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            this.Add500Button.ForeColor = System.Drawing.Color.LightSkyBlue;
-            this.Add500Button.Location = new System.Drawing.Point(386, 257);
-            this.Add500Button.Name = "Add500Button";
-            this.Add500Button.Size = new System.Drawing.Size(115, 70);
-            this.Add500Button.TabIndex = 7;
-            this.Add500Button.Text = "500";
-            this.Add500Button.TextImageRelation = System.Windows.Forms.TextImageRelation.ImageAboveText;
-            this.Add500Button.UseVisualStyleBackColor = false;
-            this.Add500Button.Click += new System.EventHandler(this.Add500Button_Click);
+            Add500Button.BackColor = Color.FromArgb(38, 38, 38);
+            Add500Button.FlatStyle = FlatStyle.Flat;
+            Add500Button.Font = new Font("FC Subject [Non-commercial] Reg", 20.25F, FontStyle.Regular, GraphicsUnit.Point);
+            Add500Button.ForeColor = Color.LightSkyBlue;
+            Add500Button.Location = new Point(386, 257);
+            Add500Button.Name = "Add500Button";
+            Add500Button.Size = new Size(115, 70);
+            Add500Button.TabIndex = 7;
+            Add500Button.Text = "500";
+            Add500Button.TextImageRelation = TextImageRelation.ImageAboveText;
+            Add500Button.UseVisualStyleBackColor = false;
+            Add500Button.Click += Add500Button_Click;
             // 
             // Digit9Button
             // 
-            this.Digit9Button.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
-            this.Digit9Button.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.Digit9Button.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 20.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            this.Digit9Button.ForeColor = System.Drawing.Color.Gainsboro;
-            this.Digit9Button.Location = new System.Drawing.Point(265, 29);
-            this.Digit9Button.Name = "Digit9Button";
-            this.Digit9Button.Size = new System.Drawing.Size(115, 70);
-            this.Digit9Button.TabIndex = 7;
-            this.Digit9Button.Text = "9";
-            this.Digit9Button.TextImageRelation = System.Windows.Forms.TextImageRelation.ImageAboveText;
-            this.Digit9Button.UseVisualStyleBackColor = false;
-            this.Digit9Button.Click += new System.EventHandler(this.Digit9Button_Click);
+            Digit9Button.BackColor = Color.FromArgb(38, 38, 38);
+            Digit9Button.FlatStyle = FlatStyle.Flat;
+            Digit9Button.Font = new Font("FC Subject [Non-commercial] Reg", 20.25F, FontStyle.Regular, GraphicsUnit.Point);
+            Digit9Button.ForeColor = Color.Gainsboro;
+            Digit9Button.Location = new Point(265, 29);
+            Digit9Button.Name = "Digit9Button";
+            Digit9Button.Size = new Size(115, 70);
+            Digit9Button.TabIndex = 7;
+            Digit9Button.Text = "9";
+            Digit9Button.TextImageRelation = TextImageRelation.ImageAboveText;
+            Digit9Button.UseVisualStyleBackColor = false;
+            Digit9Button.Click += Digit9Button_Click;
             // 
             // Add100Button
             // 
-            this.Add100Button.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
-            this.Add100Button.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.Add100Button.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 20.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            this.Add100Button.ForeColor = System.Drawing.Color.LightSkyBlue;
-            this.Add100Button.Location = new System.Drawing.Point(386, 181);
-            this.Add100Button.Name = "Add100Button";
-            this.Add100Button.Size = new System.Drawing.Size(115, 70);
-            this.Add100Button.TabIndex = 7;
-            this.Add100Button.Text = "100";
-            this.Add100Button.TextImageRelation = System.Windows.Forms.TextImageRelation.ImageAboveText;
-            this.Add100Button.UseVisualStyleBackColor = false;
-            this.Add100Button.Click += new System.EventHandler(this.Add100Button_Click);
+            Add100Button.BackColor = Color.FromArgb(38, 38, 38);
+            Add100Button.FlatStyle = FlatStyle.Flat;
+            Add100Button.Font = new Font("FC Subject [Non-commercial] Reg", 20.25F, FontStyle.Regular, GraphicsUnit.Point);
+            Add100Button.ForeColor = Color.LightSkyBlue;
+            Add100Button.Location = new Point(386, 181);
+            Add100Button.Name = "Add100Button";
+            Add100Button.Size = new Size(115, 70);
+            Add100Button.TabIndex = 7;
+            Add100Button.Text = "100";
+            Add100Button.TextImageRelation = TextImageRelation.ImageAboveText;
+            Add100Button.UseVisualStyleBackColor = false;
+            Add100Button.Click += Add100Button_Click;
             // 
             // Digit6Button
             // 
-            this.Digit6Button.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
-            this.Digit6Button.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.Digit6Button.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 20.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            this.Digit6Button.ForeColor = System.Drawing.Color.Gainsboro;
-            this.Digit6Button.Location = new System.Drawing.Point(265, 105);
-            this.Digit6Button.Name = "Digit6Button";
-            this.Digit6Button.Size = new System.Drawing.Size(115, 70);
-            this.Digit6Button.TabIndex = 7;
-            this.Digit6Button.Text = "6";
-            this.Digit6Button.TextImageRelation = System.Windows.Forms.TextImageRelation.ImageAboveText;
-            this.Digit6Button.UseVisualStyleBackColor = false;
-            this.Digit6Button.Click += new System.EventHandler(this.Digit6Button_Click);
+            Digit6Button.BackColor = Color.FromArgb(38, 38, 38);
+            Digit6Button.FlatStyle = FlatStyle.Flat;
+            Digit6Button.Font = new Font("FC Subject [Non-commercial] Reg", 20.25F, FontStyle.Regular, GraphicsUnit.Point);
+            Digit6Button.ForeColor = Color.Gainsboro;
+            Digit6Button.Location = new Point(265, 105);
+            Digit6Button.Name = "Digit6Button";
+            Digit6Button.Size = new Size(115, 70);
+            Digit6Button.TabIndex = 7;
+            Digit6Button.Text = "6";
+            Digit6Button.TextImageRelation = TextImageRelation.ImageAboveText;
+            Digit6Button.UseVisualStyleBackColor = false;
+            Digit6Button.Click += Digit6Button_Click;
             // 
             // Add50Button
             // 
-            this.Add50Button.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
-            this.Add50Button.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.Add50Button.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 20.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            this.Add50Button.ForeColor = System.Drawing.Color.LightSkyBlue;
-            this.Add50Button.Location = new System.Drawing.Point(386, 105);
-            this.Add50Button.Name = "Add50Button";
-            this.Add50Button.Size = new System.Drawing.Size(115, 70);
-            this.Add50Button.TabIndex = 7;
-            this.Add50Button.Text = "50";
-            this.Add50Button.TextImageRelation = System.Windows.Forms.TextImageRelation.ImageAboveText;
-            this.Add50Button.UseVisualStyleBackColor = false;
-            this.Add50Button.Click += new System.EventHandler(this.Add50Button_Click);
+            Add50Button.BackColor = Color.FromArgb(38, 38, 38);
+            Add50Button.FlatStyle = FlatStyle.Flat;
+            Add50Button.Font = new Font("FC Subject [Non-commercial] Reg", 20.25F, FontStyle.Regular, GraphicsUnit.Point);
+            Add50Button.ForeColor = Color.LightSkyBlue;
+            Add50Button.Location = new Point(386, 105);
+            Add50Button.Name = "Add50Button";
+            Add50Button.Size = new Size(115, 70);
+            Add50Button.TabIndex = 7;
+            Add50Button.Text = "50";
+            Add50Button.TextImageRelation = TextImageRelation.ImageAboveText;
+            Add50Button.UseVisualStyleBackColor = false;
+            Add50Button.Click += Add50Button_Click;
             // 
             // Digit8Button
             // 
-            this.Digit8Button.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
-            this.Digit8Button.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.Digit8Button.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 20.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            this.Digit8Button.ForeColor = System.Drawing.Color.Gainsboro;
-            this.Digit8Button.Location = new System.Drawing.Point(144, 29);
-            this.Digit8Button.Name = "Digit8Button";
-            this.Digit8Button.Size = new System.Drawing.Size(115, 70);
-            this.Digit8Button.TabIndex = 7;
-            this.Digit8Button.Text = "8";
-            this.Digit8Button.TextImageRelation = System.Windows.Forms.TextImageRelation.ImageAboveText;
-            this.Digit8Button.UseVisualStyleBackColor = false;
-            this.Digit8Button.Click += new System.EventHandler(this.Digit8Button_Click);
+            Digit8Button.BackColor = Color.FromArgb(38, 38, 38);
+            Digit8Button.FlatStyle = FlatStyle.Flat;
+            Digit8Button.Font = new Font("FC Subject [Non-commercial] Reg", 20.25F, FontStyle.Regular, GraphicsUnit.Point);
+            Digit8Button.ForeColor = Color.Gainsboro;
+            Digit8Button.Location = new Point(144, 29);
+            Digit8Button.Name = "Digit8Button";
+            Digit8Button.Size = new Size(115, 70);
+            Digit8Button.TabIndex = 7;
+            Digit8Button.Text = "8";
+            Digit8Button.TextImageRelation = TextImageRelation.ImageAboveText;
+            Digit8Button.UseVisualStyleBackColor = false;
+            Digit8Button.Click += Digit8Button_Click;
             // 
             // Add20Button
             // 
-            this.Add20Button.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
-            this.Add20Button.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.Add20Button.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 20.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            this.Add20Button.ForeColor = System.Drawing.Color.LightSkyBlue;
-            this.Add20Button.Location = new System.Drawing.Point(386, 29);
-            this.Add20Button.Name = "Add20Button";
-            this.Add20Button.Size = new System.Drawing.Size(115, 70);
-            this.Add20Button.TabIndex = 7;
-            this.Add20Button.Text = "20";
-            this.Add20Button.TextImageRelation = System.Windows.Forms.TextImageRelation.ImageAboveText;
-            this.Add20Button.UseVisualStyleBackColor = false;
-            this.Add20Button.Click += new System.EventHandler(this.Add20Button_Click);
+            Add20Button.BackColor = Color.FromArgb(38, 38, 38);
+            Add20Button.FlatStyle = FlatStyle.Flat;
+            Add20Button.Font = new Font("FC Subject [Non-commercial] Reg", 20.25F, FontStyle.Regular, GraphicsUnit.Point);
+            Add20Button.ForeColor = Color.LightSkyBlue;
+            Add20Button.Location = new Point(386, 29);
+            Add20Button.Name = "Add20Button";
+            Add20Button.Size = new Size(115, 70);
+            Add20Button.TabIndex = 7;
+            Add20Button.Text = "20";
+            Add20Button.TextImageRelation = TextImageRelation.ImageAboveText;
+            Add20Button.UseVisualStyleBackColor = false;
+            Add20Button.Click += Add20Button_Click;
             // 
             // Digit3Button
             // 
-            this.Digit3Button.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
-            this.Digit3Button.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.Digit3Button.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 20.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            this.Digit3Button.ForeColor = System.Drawing.Color.Gainsboro;
-            this.Digit3Button.Location = new System.Drawing.Point(265, 181);
-            this.Digit3Button.Name = "Digit3Button";
-            this.Digit3Button.Size = new System.Drawing.Size(115, 70);
-            this.Digit3Button.TabIndex = 7;
-            this.Digit3Button.Text = "3";
-            this.Digit3Button.TextImageRelation = System.Windows.Forms.TextImageRelation.ImageAboveText;
-            this.Digit3Button.UseVisualStyleBackColor = false;
-            this.Digit3Button.Click += new System.EventHandler(this.Digit3Button_Click);
+            Digit3Button.BackColor = Color.FromArgb(38, 38, 38);
+            Digit3Button.FlatStyle = FlatStyle.Flat;
+            Digit3Button.Font = new Font("FC Subject [Non-commercial] Reg", 20.25F, FontStyle.Regular, GraphicsUnit.Point);
+            Digit3Button.ForeColor = Color.Gainsboro;
+            Digit3Button.Location = new Point(265, 181);
+            Digit3Button.Name = "Digit3Button";
+            Digit3Button.Size = new Size(115, 70);
+            Digit3Button.TabIndex = 7;
+            Digit3Button.Text = "3";
+            Digit3Button.TextImageRelation = TextImageRelation.ImageAboveText;
+            Digit3Button.UseVisualStyleBackColor = false;
+            Digit3Button.Click += Digit3Button_Click;
             // 
             // Digit7Button
             // 
-            this.Digit7Button.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
-            this.Digit7Button.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.Digit7Button.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 20.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            this.Digit7Button.ForeColor = System.Drawing.Color.Gainsboro;
-            this.Digit7Button.Location = new System.Drawing.Point(23, 29);
-            this.Digit7Button.Name = "Digit7Button";
-            this.Digit7Button.Size = new System.Drawing.Size(115, 70);
-            this.Digit7Button.TabIndex = 7;
-            this.Digit7Button.Text = "7";
-            this.Digit7Button.TextImageRelation = System.Windows.Forms.TextImageRelation.ImageAboveText;
-            this.Digit7Button.UseVisualStyleBackColor = false;
-            this.Digit7Button.Click += new System.EventHandler(this.Digit7Button_Click);
+            Digit7Button.BackColor = Color.FromArgb(38, 38, 38);
+            Digit7Button.FlatStyle = FlatStyle.Flat;
+            Digit7Button.Font = new Font("FC Subject [Non-commercial] Reg", 20.25F, FontStyle.Regular, GraphicsUnit.Point);
+            Digit7Button.ForeColor = Color.Gainsboro;
+            Digit7Button.Location = new Point(23, 29);
+            Digit7Button.Name = "Digit7Button";
+            Digit7Button.Size = new Size(115, 70);
+            Digit7Button.TabIndex = 7;
+            Digit7Button.Text = "7";
+            Digit7Button.TextImageRelation = TextImageRelation.ImageAboveText;
+            Digit7Button.UseVisualStyleBackColor = false;
+            Digit7Button.Click += Digit7Button_Click;
             // 
             // Digit5Button
             // 
-            this.Digit5Button.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
-            this.Digit5Button.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.Digit5Button.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 20.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            this.Digit5Button.ForeColor = System.Drawing.Color.Gainsboro;
-            this.Digit5Button.Location = new System.Drawing.Point(144, 105);
-            this.Digit5Button.Name = "Digit5Button";
-            this.Digit5Button.Size = new System.Drawing.Size(115, 70);
-            this.Digit5Button.TabIndex = 7;
-            this.Digit5Button.Text = "5";
-            this.Digit5Button.TextImageRelation = System.Windows.Forms.TextImageRelation.ImageAboveText;
-            this.Digit5Button.UseVisualStyleBackColor = false;
-            this.Digit5Button.Click += new System.EventHandler(this.Digit5Button_Click);
+            Digit5Button.BackColor = Color.FromArgb(38, 38, 38);
+            Digit5Button.FlatStyle = FlatStyle.Flat;
+            Digit5Button.Font = new Font("FC Subject [Non-commercial] Reg", 20.25F, FontStyle.Regular, GraphicsUnit.Point);
+            Digit5Button.ForeColor = Color.Gainsboro;
+            Digit5Button.Location = new Point(144, 105);
+            Digit5Button.Name = "Digit5Button";
+            Digit5Button.Size = new Size(115, 70);
+            Digit5Button.TabIndex = 7;
+            Digit5Button.Text = "5";
+            Digit5Button.TextImageRelation = TextImageRelation.ImageAboveText;
+            Digit5Button.UseVisualStyleBackColor = false;
+            Digit5Button.Click += Digit5Button_Click;
             // 
             // PlusButton
             // 
-            this.PlusButton.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
-            this.PlusButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.PlusButton.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 20.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            this.PlusButton.ForeColor = System.Drawing.Color.Gainsboro;
-            this.PlusButton.Location = new System.Drawing.Point(265, 257);
-            this.PlusButton.Name = "PlusButton";
-            this.PlusButton.Size = new System.Drawing.Size(115, 70);
-            this.PlusButton.TabIndex = 7;
-            this.PlusButton.Text = "+";
-            this.PlusButton.TextImageRelation = System.Windows.Forms.TextImageRelation.ImageAboveText;
-            this.PlusButton.UseVisualStyleBackColor = false;
-            this.PlusButton.Click += new System.EventHandler(this.PlusButton_Click);
+            PlusButton.BackColor = Color.FromArgb(38, 38, 38);
+            PlusButton.FlatStyle = FlatStyle.Flat;
+            PlusButton.Font = new Font("FC Subject [Non-commercial] Reg", 20.25F, FontStyle.Regular, GraphicsUnit.Point);
+            PlusButton.ForeColor = Color.Gainsboro;
+            PlusButton.Location = new Point(265, 257);
+            PlusButton.Name = "PlusButton";
+            PlusButton.Size = new Size(115, 70);
+            PlusButton.TabIndex = 7;
+            PlusButton.Text = "+";
+            PlusButton.TextImageRelation = TextImageRelation.ImageAboveText;
+            PlusButton.UseVisualStyleBackColor = false;
+            PlusButton.Click += PlusButton_Click;
             // 
             // Digit4Button
             // 
-            this.Digit4Button.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
-            this.Digit4Button.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.Digit4Button.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 20.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            this.Digit4Button.ForeColor = System.Drawing.Color.Gainsboro;
-            this.Digit4Button.Location = new System.Drawing.Point(23, 105);
-            this.Digit4Button.Name = "Digit4Button";
-            this.Digit4Button.Size = new System.Drawing.Size(115, 70);
-            this.Digit4Button.TabIndex = 7;
-            this.Digit4Button.Text = "4";
-            this.Digit4Button.TextImageRelation = System.Windows.Forms.TextImageRelation.ImageAboveText;
-            this.Digit4Button.UseVisualStyleBackColor = false;
-            this.Digit4Button.Click += new System.EventHandler(this.Digit4Button_Click);
+            Digit4Button.BackColor = Color.FromArgb(38, 38, 38);
+            Digit4Button.FlatStyle = FlatStyle.Flat;
+            Digit4Button.Font = new Font("FC Subject [Non-commercial] Reg", 20.25F, FontStyle.Regular, GraphicsUnit.Point);
+            Digit4Button.ForeColor = Color.Gainsboro;
+            Digit4Button.Location = new Point(23, 105);
+            Digit4Button.Name = "Digit4Button";
+            Digit4Button.Size = new Size(115, 70);
+            Digit4Button.TabIndex = 7;
+            Digit4Button.Text = "4";
+            Digit4Button.TextImageRelation = TextImageRelation.ImageAboveText;
+            Digit4Button.UseVisualStyleBackColor = false;
+            Digit4Button.Click += Digit4Button_Click;
             // 
             // Digit2Button
             // 
-            this.Digit2Button.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
-            this.Digit2Button.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.Digit2Button.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 20.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            this.Digit2Button.ForeColor = System.Drawing.Color.Gainsboro;
-            this.Digit2Button.Location = new System.Drawing.Point(144, 181);
-            this.Digit2Button.Name = "Digit2Button";
-            this.Digit2Button.Size = new System.Drawing.Size(115, 70);
-            this.Digit2Button.TabIndex = 7;
-            this.Digit2Button.Text = "2";
-            this.Digit2Button.TextImageRelation = System.Windows.Forms.TextImageRelation.ImageAboveText;
-            this.Digit2Button.UseVisualStyleBackColor = false;
-            this.Digit2Button.Click += new System.EventHandler(this.Digit2Button_Click);
+            Digit2Button.BackColor = Color.FromArgb(38, 38, 38);
+            Digit2Button.FlatStyle = FlatStyle.Flat;
+            Digit2Button.Font = new Font("FC Subject [Non-commercial] Reg", 20.25F, FontStyle.Regular, GraphicsUnit.Point);
+            Digit2Button.ForeColor = Color.Gainsboro;
+            Digit2Button.Location = new Point(144, 181);
+            Digit2Button.Name = "Digit2Button";
+            Digit2Button.Size = new Size(115, 70);
+            Digit2Button.TabIndex = 7;
+            Digit2Button.Text = "2";
+            Digit2Button.TextImageRelation = TextImageRelation.ImageAboveText;
+            Digit2Button.UseVisualStyleBackColor = false;
+            Digit2Button.Click += Digit2Button_Click;
             // 
             // Add1000Button
             // 
-            this.Add1000Button.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
-            this.Add1000Button.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.Add1000Button.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 20.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            this.Add1000Button.ForeColor = System.Drawing.Color.LightSkyBlue;
-            this.Add1000Button.Location = new System.Drawing.Point(386, 333);
-            this.Add1000Button.Name = "Add1000Button";
-            this.Add1000Button.Size = new System.Drawing.Size(115, 70);
-            this.Add1000Button.TabIndex = 7;
-            this.Add1000Button.Text = "1000";
-            this.Add1000Button.TextImageRelation = System.Windows.Forms.TextImageRelation.ImageAboveText;
-            this.Add1000Button.UseVisualStyleBackColor = false;
-            this.Add1000Button.Click += new System.EventHandler(this.Add1000Button_Click);
+            Add1000Button.BackColor = Color.FromArgb(38, 38, 38);
+            Add1000Button.FlatStyle = FlatStyle.Flat;
+            Add1000Button.Font = new Font("FC Subject [Non-commercial] Reg", 20.25F, FontStyle.Regular, GraphicsUnit.Point);
+            Add1000Button.ForeColor = Color.LightSkyBlue;
+            Add1000Button.Location = new Point(386, 333);
+            Add1000Button.Name = "Add1000Button";
+            Add1000Button.Size = new Size(115, 70);
+            Add1000Button.TabIndex = 7;
+            Add1000Button.Text = "1000";
+            Add1000Button.TextImageRelation = TextImageRelation.ImageAboveText;
+            Add1000Button.UseVisualStyleBackColor = false;
+            Add1000Button.Click += Add1000Button_Click;
             // 
             // Digit1Button
             // 
-            this.Digit1Button.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
-            this.Digit1Button.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.Digit1Button.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 20.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            this.Digit1Button.ForeColor = System.Drawing.Color.Gainsboro;
-            this.Digit1Button.Location = new System.Drawing.Point(23, 181);
-            this.Digit1Button.Name = "Digit1Button";
-            this.Digit1Button.Size = new System.Drawing.Size(115, 70);
-            this.Digit1Button.TabIndex = 7;
-            this.Digit1Button.Text = "1";
-            this.Digit1Button.TextImageRelation = System.Windows.Forms.TextImageRelation.ImageAboveText;
-            this.Digit1Button.UseVisualStyleBackColor = false;
-            this.Digit1Button.Click += new System.EventHandler(this.Digit1Button_Click);
+            Digit1Button.BackColor = Color.FromArgb(38, 38, 38);
+            Digit1Button.FlatStyle = FlatStyle.Flat;
+            Digit1Button.Font = new Font("FC Subject [Non-commercial] Reg", 20.25F, FontStyle.Regular, GraphicsUnit.Point);
+            Digit1Button.ForeColor = Color.Gainsboro;
+            Digit1Button.Location = new Point(23, 181);
+            Digit1Button.Name = "Digit1Button";
+            Digit1Button.Size = new Size(115, 70);
+            Digit1Button.TabIndex = 7;
+            Digit1Button.Text = "1";
+            Digit1Button.TextImageRelation = TextImageRelation.ImageAboveText;
+            Digit1Button.UseVisualStyleBackColor = false;
+            Digit1Button.Click += Digit1Button_Click;
             // 
             // Digit0Button
             // 
-            this.Digit0Button.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
-            this.Digit0Button.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.Digit0Button.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 20.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            this.Digit0Button.ForeColor = System.Drawing.Color.Gainsboro;
-            this.Digit0Button.Location = new System.Drawing.Point(144, 257);
-            this.Digit0Button.Name = "Digit0Button";
-            this.Digit0Button.Size = new System.Drawing.Size(115, 70);
-            this.Digit0Button.TabIndex = 7;
-            this.Digit0Button.Text = "0";
-            this.Digit0Button.TextImageRelation = System.Windows.Forms.TextImageRelation.ImageAboveText;
-            this.Digit0Button.UseVisualStyleBackColor = false;
-            this.Digit0Button.Click += new System.EventHandler(this.Digit0Button_Click);
+            Digit0Button.BackColor = Color.FromArgb(38, 38, 38);
+            Digit0Button.FlatStyle = FlatStyle.Flat;
+            Digit0Button.Font = new Font("FC Subject [Non-commercial] Reg", 20.25F, FontStyle.Regular, GraphicsUnit.Point);
+            Digit0Button.ForeColor = Color.Gainsboro;
+            Digit0Button.Location = new Point(144, 257);
+            Digit0Button.Name = "Digit0Button";
+            Digit0Button.Size = new Size(115, 70);
+            Digit0Button.TabIndex = 7;
+            Digit0Button.Text = "0";
+            Digit0Button.TextImageRelation = TextImageRelation.ImageAboveText;
+            Digit0Button.UseVisualStyleBackColor = false;
+            Digit0Button.Click += Digit0Button_Click;
             // 
             // EqualButton
             // 
-            this.EqualButton.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
-            this.EqualButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.EqualButton.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 20.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            this.EqualButton.ForeColor = System.Drawing.Color.Gainsboro;
-            this.EqualButton.Location = new System.Drawing.Point(144, 333);
-            this.EqualButton.Name = "EqualButton";
-            this.EqualButton.Size = new System.Drawing.Size(236, 70);
-            this.EqualButton.TabIndex = 7;
-            this.EqualButton.Text = "=";
-            this.EqualButton.TextImageRelation = System.Windows.Forms.TextImageRelation.ImageAboveText;
-            this.EqualButton.UseVisualStyleBackColor = false;
-            this.EqualButton.Click += new System.EventHandler(this.EqualButton_Click);
+            EqualButton.BackColor = Color.FromArgb(38, 38, 38);
+            EqualButton.FlatStyle = FlatStyle.Flat;
+            EqualButton.Font = new Font("FC Subject [Non-commercial] Reg", 20.25F, FontStyle.Regular, GraphicsUnit.Point);
+            EqualButton.ForeColor = Color.Gainsboro;
+            EqualButton.Location = new Point(144, 333);
+            EqualButton.Name = "EqualButton";
+            EqualButton.Size = new Size(236, 70);
+            EqualButton.TabIndex = 7;
+            EqualButton.Text = "=";
+            EqualButton.TextImageRelation = TextImageRelation.ImageAboveText;
+            EqualButton.UseVisualStyleBackColor = false;
+            EqualButton.Click += EqualButton_Click;
             // 
             // DecimalPointButton
             // 
-            this.DecimalPointButton.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
-            this.DecimalPointButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.DecimalPointButton.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 20.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            this.DecimalPointButton.ForeColor = System.Drawing.Color.Gainsboro;
-            this.DecimalPointButton.Location = new System.Drawing.Point(23, 257);
-            this.DecimalPointButton.Name = "DecimalPointButton";
-            this.DecimalPointButton.Size = new System.Drawing.Size(115, 70);
-            this.DecimalPointButton.TabIndex = 7;
-            this.DecimalPointButton.Text = ".";
-            this.DecimalPointButton.TextImageRelation = System.Windows.Forms.TextImageRelation.ImageAboveText;
-            this.DecimalPointButton.UseVisualStyleBackColor = false;
-            this.DecimalPointButton.Click += new System.EventHandler(this.DecimalPointButton_Click);
+            DecimalPointButton.BackColor = Color.FromArgb(38, 38, 38);
+            DecimalPointButton.FlatStyle = FlatStyle.Flat;
+            DecimalPointButton.Font = new Font("FC Subject [Non-commercial] Reg", 20.25F, FontStyle.Regular, GraphicsUnit.Point);
+            DecimalPointButton.ForeColor = Color.Gainsboro;
+            DecimalPointButton.Location = new Point(23, 257);
+            DecimalPointButton.Name = "DecimalPointButton";
+            DecimalPointButton.Size = new Size(115, 70);
+            DecimalPointButton.TabIndex = 7;
+            DecimalPointButton.Text = ".";
+            DecimalPointButton.TextImageRelation = TextImageRelation.ImageAboveText;
+            DecimalPointButton.UseVisualStyleBackColor = false;
+            DecimalPointButton.Click += DecimalPointButton_Click;
             // 
             // ClearButton
             // 
-            this.ClearButton.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
-            this.ClearButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.ClearButton.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 20.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            this.ClearButton.ForeColor = System.Drawing.Color.Gainsboro;
-            this.ClearButton.Location = new System.Drawing.Point(23, 333);
-            this.ClearButton.Name = "ClearButton";
-            this.ClearButton.Size = new System.Drawing.Size(115, 70);
-            this.ClearButton.TabIndex = 7;
-            this.ClearButton.Text = "Clear";
-            this.ClearButton.TextImageRelation = System.Windows.Forms.TextImageRelation.ImageAboveText;
-            this.ClearButton.UseVisualStyleBackColor = false;
-            this.ClearButton.Click += new System.EventHandler(this.ClearButton_Click);
+            ClearButton.BackColor = Color.FromArgb(38, 38, 38);
+            ClearButton.FlatStyle = FlatStyle.Flat;
+            ClearButton.Font = new Font("FC Subject [Non-commercial] Reg", 20.25F, FontStyle.Regular, GraphicsUnit.Point);
+            ClearButton.ForeColor = Color.Gainsboro;
+            ClearButton.Location = new Point(23, 333);
+            ClearButton.Name = "ClearButton";
+            ClearButton.Size = new Size(115, 70);
+            ClearButton.TabIndex = 7;
+            ClearButton.Text = "Clear";
+            ClearButton.TextImageRelation = TextImageRelation.ImageAboveText;
+            ClearButton.UseVisualStyleBackColor = false;
+            ClearButton.Click += ClearButton_Click;
             // 
             // panel30
             // 
-            this.panel30.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(30)))), ((int)(((byte)(30)))), ((int)(((byte)(30)))));
-            this.panel30.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.panel30.Controls.Add(this.PaymentTypeLabel);
-            this.panel30.Controls.Add(this.label4);
-            this.panel30.Location = new System.Drawing.Point(116, 114);
-            this.panel30.Name = "panel30";
-            this.panel30.Size = new System.Drawing.Size(419, 58);
-            this.panel30.TabIndex = 50;
+            panel30.BackColor = Color.FromArgb(30, 30, 30);
+            panel30.BorderStyle = BorderStyle.FixedSingle;
+            panel30.Controls.Add(PaymentTypeLabel);
+            panel30.Controls.Add(label4);
+            panel30.Location = new Point(116, 114);
+            panel30.Name = "panel30";
+            panel30.Size = new Size(419, 58);
+            panel30.TabIndex = 50;
             // 
             // panel1
             // 
-            this.panel1.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(30)))), ((int)(((byte)(30)))), ((int)(((byte)(30)))));
-            this.panel1.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.panel1.Controls.Add(this.AcceptPayLaterPaymentButton);
-            this.panel1.Controls.Add(this.panel2);
-            this.panel1.Controls.Add(this.NotePanel);
-            this.panel1.Controls.Add(this.RefundButton);
-            this.panel1.Controls.Add(this.CancelAcceptPaymentButton);
-            this.panel1.Controls.Add(this.AcceptPaymentButton);
-            this.panel1.Controls.Add(this.label1);
-            this.panel1.Controls.Add(this.panel30);
-            this.panel1.Controls.Add(this.panel27);
-            this.panel1.Controls.Add(this.PaymentTypePanel);
-            this.panel1.Controls.Add(this.KeypadPanel);
-            this.panel1.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.panel1.Location = new System.Drawing.Point(1, 1);
-            this.panel1.Name = "panel1";
-            this.panel1.Size = new System.Drawing.Size(1427, 812);
-            this.panel1.TabIndex = 51;
+            panel1.BackColor = Color.FromArgb(30, 30, 30);
+            panel1.BorderStyle = BorderStyle.FixedSingle;
+            panel1.Controls.Add(AcceptPayLaterPaymentButton);
+            panel1.Controls.Add(panel2);
+            panel1.Controls.Add(NotePanel);
+            panel1.Controls.Add(RefundButton);
+            panel1.Controls.Add(CancelAcceptPaymentButton);
+            panel1.Controls.Add(AcceptPaymentButton);
+            panel1.Controls.Add(label1);
+            panel1.Controls.Add(panel30);
+            panel1.Controls.Add(panel27);
+            panel1.Controls.Add(PaymentTypePanel);
+            panel1.Controls.Add(KeypadPanel);
+            panel1.Dock = DockStyle.Fill;
+            panel1.Location = new Point(1, 1);
+            panel1.Name = "panel1";
+            panel1.Size = new Size(1427, 812);
+            panel1.TabIndex = 51;
             // 
             // AcceptPayLaterPaymentButton
             // 
-            this.AcceptPayLaterPaymentButton.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
-            this.AcceptPayLaterPaymentButton.BackgroundColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
-            this.AcceptPayLaterPaymentButton.BorderColor = System.Drawing.Color.CornflowerBlue;
-            this.AcceptPayLaterPaymentButton.BorderRadius = 19;
-            this.AcceptPayLaterPaymentButton.BorderSize = 1;
-            this.AcceptPayLaterPaymentButton.FlatAppearance.BorderSize = 0;
-            this.AcceptPayLaterPaymentButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.AcceptPayLaterPaymentButton.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 14.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            this.AcceptPayLaterPaymentButton.ForeColor = System.Drawing.Color.White;
-            this.AcceptPayLaterPaymentButton.Location = new System.Drawing.Point(1110, 190);
-            this.AcceptPayLaterPaymentButton.Name = "AcceptPayLaterPaymentButton";
-            this.AcceptPayLaterPaymentButton.Size = new System.Drawing.Size(220, 70);
-            this.AcceptPayLaterPaymentButton.TabIndex = 56;
-            this.AcceptPayLaterPaymentButton.Text = "ลงบัญชี";
-            this.AcceptPayLaterPaymentButton.TextColor = System.Drawing.Color.White;
-            this.AcceptPayLaterPaymentButton.UseVisualStyleBackColor = false;
-            this.AcceptPayLaterPaymentButton.Click += new System.EventHandler(this.AcceptPayLaterPaymentButton_Click);
+            AcceptPayLaterPaymentButton.BackColor = Color.FromArgb(38, 38, 38);
+            AcceptPayLaterPaymentButton.BackgroundColor = Color.FromArgb(38, 38, 38);
+            AcceptPayLaterPaymentButton.BorderColor = Color.CornflowerBlue;
+            AcceptPayLaterPaymentButton.BorderRadius = 19;
+            AcceptPayLaterPaymentButton.BorderSize = 1;
+            AcceptPayLaterPaymentButton.FlatAppearance.BorderSize = 0;
+            AcceptPayLaterPaymentButton.FlatStyle = FlatStyle.Flat;
+            AcceptPayLaterPaymentButton.Font = new Font("FC Subject [Non-commercial] Reg", 14.25F, FontStyle.Regular, GraphicsUnit.Point);
+            AcceptPayLaterPaymentButton.ForeColor = Color.White;
+            AcceptPayLaterPaymentButton.Location = new Point(1110, 190);
+            AcceptPayLaterPaymentButton.Name = "AcceptPayLaterPaymentButton";
+            AcceptPayLaterPaymentButton.Size = new Size(220, 70);
+            AcceptPayLaterPaymentButton.TabIndex = 56;
+            AcceptPayLaterPaymentButton.Text = "ลงบัญชี";
+            AcceptPayLaterPaymentButton.TextColor = Color.White;
+            AcceptPayLaterPaymentButton.UseVisualStyleBackColor = false;
+            AcceptPayLaterPaymentButton.Click += AcceptPayLaterPaymentButton_Click;
             // 
             // panel2
             // 
-            this.panel2.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(30)))), ((int)(((byte)(30)))), ((int)(((byte)(30)))));
-            this.panel2.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.panel2.Controls.Add(this.BalanceRemainingLabel);
-            this.panel2.Controls.Add(this.label6);
-            this.panel2.Location = new System.Drawing.Point(116, 50);
-            this.panel2.Name = "panel2";
-            this.panel2.Size = new System.Drawing.Size(419, 58);
-            this.panel2.TabIndex = 55;
+            panel2.BackColor = Color.FromArgb(30, 30, 30);
+            panel2.BorderStyle = BorderStyle.FixedSingle;
+            panel2.Controls.Add(BalanceRemainingLabel);
+            panel2.Controls.Add(label6);
+            panel2.Location = new Point(116, 50);
+            panel2.Name = "panel2";
+            panel2.Size = new Size(419, 58);
+            panel2.TabIndex = 55;
             // 
             // BalanceRemainingLabel
             // 
-            this.BalanceRemainingLabel.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(30)))), ((int)(((byte)(30)))), ((int)(((byte)(30)))));
-            this.BalanceRemainingLabel.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 15.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            this.BalanceRemainingLabel.ForeColor = System.Drawing.Color.PaleGreen;
-            this.BalanceRemainingLabel.Location = new System.Drawing.Point(249, 3);
-            this.BalanceRemainingLabel.Name = "BalanceRemainingLabel";
-            this.BalanceRemainingLabel.Size = new System.Drawing.Size(165, 50);
-            this.BalanceRemainingLabel.TabIndex = 48;
-            this.BalanceRemainingLabel.Text = "0.00";
-            this.BalanceRemainingLabel.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            BalanceRemainingLabel.BackColor = Color.FromArgb(30, 30, 30);
+            BalanceRemainingLabel.Font = new Font("FC Subject [Non-commercial] Reg", 15.75F, FontStyle.Regular, GraphicsUnit.Point);
+            BalanceRemainingLabel.ForeColor = Color.PaleGreen;
+            BalanceRemainingLabel.Location = new Point(249, 3);
+            BalanceRemainingLabel.Name = "BalanceRemainingLabel";
+            BalanceRemainingLabel.Size = new Size(165, 50);
+            BalanceRemainingLabel.TabIndex = 48;
+            BalanceRemainingLabel.Text = "0.00";
+            BalanceRemainingLabel.TextAlign = ContentAlignment.MiddleCenter;
             // 
             // label6
             // 
-            this.label6.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(30)))), ((int)(((byte)(30)))), ((int)(((byte)(30)))));
-            this.label6.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 15.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            this.label6.ForeColor = System.Drawing.Color.Gainsboro;
-            this.label6.Location = new System.Drawing.Point(4, 2);
-            this.label6.Name = "label6";
-            this.label6.Size = new System.Drawing.Size(239, 51);
-            this.label6.TabIndex = 47;
-            this.label6.Text = "ยอดคงเหลือที่ต้องชำระ:";
-            this.label6.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
+            label6.BackColor = Color.FromArgb(30, 30, 30);
+            label6.Font = new Font("FC Subject [Non-commercial] Reg", 15.75F, FontStyle.Regular, GraphicsUnit.Point);
+            label6.ForeColor = Color.Gainsboro;
+            label6.Location = new Point(4, 2);
+            label6.Name = "label6";
+            label6.Size = new Size(239, 51);
+            label6.TabIndex = 47;
+            label6.Text = "ยอดคงเหลือที่ต้องชำระ:";
+            label6.TextAlign = ContentAlignment.MiddleRight;
             // 
             // NotePanel
             // 
-            this.NotePanel.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.NotePanel.Controls.Add(this.NoteTextBox);
-            this.NotePanel.Controls.Add(this.label10);
-            this.NotePanel.Location = new System.Drawing.Point(558, 618);
-            this.NotePanel.Name = "NotePanel";
-            this.NotePanel.Size = new System.Drawing.Size(530, 116);
-            this.NotePanel.TabIndex = 54;
+            NotePanel.BorderStyle = BorderStyle.FixedSingle;
+            NotePanel.Controls.Add(NoteTextBox);
+            NotePanel.Controls.Add(label10);
+            NotePanel.Location = new Point(558, 618);
+            NotePanel.Name = "NotePanel";
+            NotePanel.Size = new Size(530, 116);
+            NotePanel.TabIndex = 54;
             // 
             // NoteTextBox
             // 
-            this.NoteTextBox.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(30)))), ((int)(((byte)(30)))), ((int)(((byte)(30)))));
-            this.NoteTextBox.BorderColor = System.Drawing.Color.DimGray;
-            this.NoteTextBox.BorderSize = 1;
-            this.NoteTextBox.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 15.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            this.NoteTextBox.ForeColor = System.Drawing.Color.Gainsboro;
-            this.NoteTextBox.Location = new System.Drawing.Point(111, 36);
-            this.NoteTextBox.Multiline = false;
-            this.NoteTextBox.Name = "NoteTextBox";
-            this.NoteTextBox.Padding = new System.Windows.Forms.Padding(7);
-            this.NoteTextBox.PasswordChar = false;
-            this.NoteTextBox.ReadOnly = false;
-            this.NoteTextBox.Size = new System.Drawing.Size(390, 46);
-            this.NoteTextBox.TabIndex = 72;
-            this.NoteTextBox.TextAlign = System.Windows.Forms.HorizontalAlignment.Left;
-            this.NoteTextBox.Texts = "";
-            this.NoteTextBox.UnderlinedStyle = true;
+            NoteTextBox.BackColor = Color.FromArgb(30, 30, 30);
+            NoteTextBox.BorderColor = Color.DimGray;
+            NoteTextBox.BorderSize = 1;
+            NoteTextBox.Font = new Font("FC Subject [Non-commercial] Reg", 15.75F, FontStyle.Regular, GraphicsUnit.Point);
+            NoteTextBox.ForeColor = Color.Gainsboro;
+            NoteTextBox.Location = new Point(111, 36);
+            NoteTextBox.Multiline = false;
+            NoteTextBox.Name = "NoteTextBox";
+            NoteTextBox.Padding = new Padding(7);
+            NoteTextBox.PasswordChar = false;
+            NoteTextBox.ReadOnly = false;
+            NoteTextBox.Size = new Size(390, 46);
+            NoteTextBox.TabIndex = 72;
+            NoteTextBox.TextAlign = HorizontalAlignment.Left;
+            NoteTextBox.Texts = "";
+            NoteTextBox.UnderlinedStyle = true;
             // 
             // label10
             // 
-            this.label10.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(30)))), ((int)(((byte)(30)))), ((int)(((byte)(30)))));
-            this.label10.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 15.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            this.label10.ForeColor = System.Drawing.Color.Gainsboro;
-            this.label10.Location = new System.Drawing.Point(19, 36);
-            this.label10.Name = "label10";
-            this.label10.Size = new System.Drawing.Size(86, 46);
-            this.label10.TabIndex = 71;
-            this.label10.Text = "Note:";
-            this.label10.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            label10.BackColor = Color.FromArgb(30, 30, 30);
+            label10.Font = new Font("FC Subject [Non-commercial] Reg", 15.75F, FontStyle.Regular, GraphicsUnit.Point);
+            label10.ForeColor = Color.Gainsboro;
+            label10.Location = new Point(19, 36);
+            label10.Name = "label10";
+            label10.Size = new Size(86, 46);
+            label10.TabIndex = 71;
+            label10.Text = "Note:";
+            label10.TextAlign = ContentAlignment.MiddleCenter;
             // 
             // RefundButton
             // 
-            this.RefundButton.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
-            this.RefundButton.BackgroundColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
-            this.RefundButton.BorderColor = System.Drawing.Color.Khaki;
-            this.RefundButton.BorderRadius = 19;
-            this.RefundButton.BorderSize = 1;
-            this.RefundButton.FlatAppearance.BorderSize = 0;
-            this.RefundButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.RefundButton.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 14.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            this.RefundButton.ForeColor = System.Drawing.Color.White;
-            this.RefundButton.Location = new System.Drawing.Point(1110, 266);
-            this.RefundButton.Name = "RefundButton";
-            this.RefundButton.Size = new System.Drawing.Size(220, 70);
-            this.RefundButton.TabIndex = 53;
-            this.RefundButton.Text = "คืนเงิน";
-            this.RefundButton.TextColor = System.Drawing.Color.White;
-            this.RefundButton.UseVisualStyleBackColor = false;
-            this.RefundButton.Click += new System.EventHandler(this.RefundButton_Click);
+            RefundButton.BackColor = Color.FromArgb(38, 38, 38);
+            RefundButton.BackgroundColor = Color.FromArgb(38, 38, 38);
+            RefundButton.BorderColor = Color.Khaki;
+            RefundButton.BorderRadius = 19;
+            RefundButton.BorderSize = 1;
+            RefundButton.FlatAppearance.BorderSize = 0;
+            RefundButton.FlatStyle = FlatStyle.Flat;
+            RefundButton.Font = new Font("FC Subject [Non-commercial] Reg", 14.25F, FontStyle.Regular, GraphicsUnit.Point);
+            RefundButton.ForeColor = Color.White;
+            RefundButton.Location = new Point(1110, 266);
+            RefundButton.Name = "RefundButton";
+            RefundButton.Size = new Size(220, 70);
+            RefundButton.TabIndex = 53;
+            RefundButton.Text = "คืนเงิน";
+            RefundButton.TextColor = Color.White;
+            RefundButton.UseVisualStyleBackColor = false;
+            RefundButton.Click += RefundButton_Click;
             // 
             // CancelAcceptPaymentButton
             // 
-            this.CancelAcceptPaymentButton.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
-            this.CancelAcceptPaymentButton.BackgroundColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
-            this.CancelAcceptPaymentButton.BorderColor = System.Drawing.Color.FromArgb(((int)(((byte)(224)))), ((int)(((byte)(79)))), ((int)(((byte)(95)))));
-            this.CancelAcceptPaymentButton.BorderRadius = 18;
-            this.CancelAcceptPaymentButton.BorderSize = 1;
-            this.CancelAcceptPaymentButton.FlatAppearance.BorderSize = 0;
-            this.CancelAcceptPaymentButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.CancelAcceptPaymentButton.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 14.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            this.CancelAcceptPaymentButton.ForeColor = System.Drawing.Color.White;
-            this.CancelAcceptPaymentButton.Location = new System.Drawing.Point(1110, 516);
-            this.CancelAcceptPaymentButton.Name = "CancelAcceptPaymentButton";
-            this.CancelAcceptPaymentButton.Size = new System.Drawing.Size(220, 70);
-            this.CancelAcceptPaymentButton.TabIndex = 52;
-            this.CancelAcceptPaymentButton.Text = "ยกเลิก";
-            this.CancelAcceptPaymentButton.TextColor = System.Drawing.Color.White;
-            this.CancelAcceptPaymentButton.UseVisualStyleBackColor = false;
-            this.CancelAcceptPaymentButton.Click += new System.EventHandler(this.CancelAcceptPaymentButton_Click);
+            CancelAcceptPaymentButton.BackColor = Color.FromArgb(38, 38, 38);
+            CancelAcceptPaymentButton.BackgroundColor = Color.FromArgb(38, 38, 38);
+            CancelAcceptPaymentButton.BorderColor = Color.FromArgb(224, 79, 95);
+            CancelAcceptPaymentButton.BorderRadius = 18;
+            CancelAcceptPaymentButton.BorderSize = 1;
+            CancelAcceptPaymentButton.FlatAppearance.BorderSize = 0;
+            CancelAcceptPaymentButton.FlatStyle = FlatStyle.Flat;
+            CancelAcceptPaymentButton.Font = new Font("FC Subject [Non-commercial] Reg", 14.25F, FontStyle.Regular, GraphicsUnit.Point);
+            CancelAcceptPaymentButton.ForeColor = Color.White;
+            CancelAcceptPaymentButton.Location = new Point(1110, 516);
+            CancelAcceptPaymentButton.Name = "CancelAcceptPaymentButton";
+            CancelAcceptPaymentButton.Size = new Size(220, 70);
+            CancelAcceptPaymentButton.TabIndex = 52;
+            CancelAcceptPaymentButton.Text = "ยกเลิก";
+            CancelAcceptPaymentButton.TextColor = Color.White;
+            CancelAcceptPaymentButton.UseVisualStyleBackColor = false;
+            CancelAcceptPaymentButton.Click += CancelAcceptPaymentButton_Click;
             // 
             // AcceptPaymentButton
             // 
-            this.AcceptPaymentButton.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
-            this.AcceptPaymentButton.BackgroundColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
-            this.AcceptPaymentButton.BorderColor = System.Drawing.Color.FromArgb(((int)(((byte)(50)))), ((int)(((byte)(190)))), ((int)(((byte)(166)))));
-            this.AcceptPaymentButton.BorderRadius = 19;
-            this.AcceptPaymentButton.BorderSize = 1;
-            this.AcceptPaymentButton.FlatAppearance.BorderSize = 0;
-            this.AcceptPaymentButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.AcceptPaymentButton.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 14.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            this.AcceptPaymentButton.ForeColor = System.Drawing.Color.White;
-            this.AcceptPaymentButton.Location = new System.Drawing.Point(1110, 114);
-            this.AcceptPaymentButton.Name = "AcceptPaymentButton";
-            this.AcceptPaymentButton.Size = new System.Drawing.Size(220, 70);
-            this.AcceptPaymentButton.TabIndex = 51;
-            this.AcceptPaymentButton.Text = "รับเงิน";
-            this.AcceptPaymentButton.TextColor = System.Drawing.Color.White;
-            this.AcceptPaymentButton.UseVisualStyleBackColor = false;
-            this.AcceptPaymentButton.Click += new System.EventHandler(this.AcceptPaymentButton_Click);
+            AcceptPaymentButton.BackColor = Color.FromArgb(38, 38, 38);
+            AcceptPaymentButton.BackgroundColor = Color.FromArgb(38, 38, 38);
+            AcceptPaymentButton.BorderColor = Color.FromArgb(50, 190, 166);
+            AcceptPaymentButton.BorderRadius = 19;
+            AcceptPaymentButton.BorderSize = 1;
+            AcceptPaymentButton.FlatAppearance.BorderSize = 0;
+            AcceptPaymentButton.FlatStyle = FlatStyle.Flat;
+            AcceptPaymentButton.Font = new Font("FC Subject [Non-commercial] Reg", 14.25F, FontStyle.Regular, GraphicsUnit.Point);
+            AcceptPaymentButton.ForeColor = Color.White;
+            AcceptPaymentButton.Location = new Point(1110, 114);
+            AcceptPaymentButton.Name = "AcceptPaymentButton";
+            AcceptPaymentButton.Size = new Size(220, 70);
+            AcceptPaymentButton.TabIndex = 51;
+            AcceptPaymentButton.Text = "รับเงิน";
+            AcceptPaymentButton.TextColor = Color.White;
+            AcceptPaymentButton.UseVisualStyleBackColor = false;
+            AcceptPaymentButton.Click += AcceptPaymentButton_Click;
             // 
             // AcceptPaymentForm
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
-            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.BackColor = System.Drawing.Color.SlateGray;
-            this.ClientSize = new System.Drawing.Size(1429, 814);
-            this.Controls.Add(this.panel1);
-            this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.None;
-            this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
-            this.Name = "AcceptPaymentForm";
-            this.Padding = new System.Windows.Forms.Padding(1);
-            this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
-            this.WindowState = System.Windows.Forms.FormWindowState.Maximized;
-            this.panel20.ResumeLayout(false);
-            this.panel21.ResumeLayout(false);
-            this.panel22.ResumeLayout(false);
-            this.panel24.ResumeLayout(false);
-            this.panel25.ResumeLayout(false);
-            this.panel26.ResumeLayout(false);
-            this.panel27.ResumeLayout(false);
-            this.PaymentTypePanel.ResumeLayout(false);
-            this.KeypadPanel.ResumeLayout(false);
-            this.panel30.ResumeLayout(false);
-            this.panel1.ResumeLayout(false);
-            this.panel2.ResumeLayout(false);
-            this.NotePanel.ResumeLayout(false);
-            this.ResumeLayout(false);
-
+            AutoScaleDimensions = new SizeF(6F, 13F);
+            AutoScaleMode = AutoScaleMode.Font;
+            BackColor = Color.SlateGray;
+            ClientSize = new Size(1429, 814);
+            Controls.Add(panel1);
+            FormBorderStyle = FormBorderStyle.None;
+            Icon = (Icon)resources.GetObject("$this.Icon");
+            Name = "AcceptPaymentForm";
+            Padding = new Padding(1);
+            StartPosition = FormStartPosition.CenterScreen;
+            WindowState = FormWindowState.Maximized;
+            panel20.ResumeLayout(false);
+            panel21.ResumeLayout(false);
+            panel22.ResumeLayout(false);
+            panel24.ResumeLayout(false);
+            panel25.ResumeLayout(false);
+            panel26.ResumeLayout(false);
+            panel27.ResumeLayout(false);
+            PaymentTypePanel.ResumeLayout(false);
+            KeypadPanel.ResumeLayout(false);
+            panel30.ResumeLayout(false);
+            panel1.ResumeLayout(false);
+            panel2.ResumeLayout(false);
+            NotePanel.ResumeLayout(false);
+            ResumeLayout(false);
         }
 
         #endregion
