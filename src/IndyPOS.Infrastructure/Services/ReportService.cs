@@ -64,11 +64,11 @@ public class ReportService : IReportService
 		return CreateSalesSummary(products.ToList(), payLaterPayments.ToList());
 	}
 
-	public async Task<SalesReport> CreateSalesReportByInvoiceIdAsync(int invoiceId)
+	public async Task<SalesReport> CreateSalesReportByInvoiceIdAsync(int invoiceId, bool hasPayLaterPayment)
 	{
 		var id = Guid.NewGuid();
 		var created = DateTime.Now;
-		var summary = await CreateSalesSummaryByInvoiceIdAsync(invoiceId);
+		var summary = await CreateSalesSummaryByInvoiceIdAsync(invoiceId, hasPayLaterPayment);
 
 		return summary.ToReport(id, created, invoiceId);
 	}
@@ -82,11 +82,21 @@ public class ReportService : IReportService
 		return summary.ToReport(id, created, invoiceId);
 	}
 	
-	private async Task<SalesSummary> CreateSalesSummaryByInvoiceIdAsync(int invoiceId)
+	private async Task<SalesSummary> CreateSalesSummaryByInvoiceIdAsync(int invoiceId, bool hasPayLaterPayment)
 	{
 		var products = await GetInvoiceProductsByInvoiceIdAsync(invoiceId);
-		var payLaterPayment = await GetPayLaterPaymentByInvoiceId(invoiceId);
-		var payLaterPayments = payLaterPayment is not null ? new List<PayLaterPaymentDto> { payLaterPayment } : [];
+		
+		List<PayLaterPaymentDto> payLaterPayments;
+
+		if (hasPayLaterPayment)
+		{
+			var payLaterPayment = await GetPayLaterPaymentByInvoiceId(invoiceId);
+			payLaterPayments = payLaterPayment is not null ? [payLaterPayment] : [];
+		}
+		else
+		{
+			payLaterPayments = [];
+		}
 
 		return CreateSalesSummary(products.ToList(), payLaterPayments);
 	}

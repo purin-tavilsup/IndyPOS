@@ -1,6 +1,5 @@
 ﻿using FluentValidation;
 using IndyPOS.Application.Common.Behaviors;
-using MediatR;
 using System.Reflection;
 using System.Runtime.Versioning;
 
@@ -12,9 +11,13 @@ public static class ConfigureServices
 {
 	public static IServiceCollection AddApplicationServices(this IServiceCollection services)
 	{
-		services.AddValidatorsFromAssembly(Assembly.GetExecutingAssembly());
-		services.AddMediatR(config => config.RegisterServicesFromAssembly(Assembly.GetExecutingAssembly()));
-		services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
+		var assembly = Assembly.GetExecutingAssembly();
+		services.AddValidatorsFromAssembly(assembly);
+		services.AddMediatR(config =>
+		{
+			config.RegisterServicesFromAssembly(assembly);
+			config.AddOpenBehavior(typeof(ValidationBehavior<,>));
+		});
 
 		return services;
     }

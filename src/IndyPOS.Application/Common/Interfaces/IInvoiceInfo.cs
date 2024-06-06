@@ -17,4 +17,6 @@ public interface IInvoiceInfo
 	decimal PaymentTotal { get; }
 
 	decimal Changes { get; }
+	
+	bool HasPayLaterPayment { get; }
 }

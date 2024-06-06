@@ -2,4 +2,4 @@
 
 namespace IndyPOS.Application.Notifications;
 
-public record SalesCompletedEvent(int InvoiceId) : INotification;
+public record SalesCompletedEvent(int InvoiceId, bool HasPayLaterPayment) : INotification;

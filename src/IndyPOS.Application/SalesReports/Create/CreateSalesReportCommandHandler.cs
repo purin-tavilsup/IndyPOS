@@ -1,6 +1,7 @@
 ﻿using IndyPOS.Application.Abstractions.Messaging;
 using IndyPOS.Application.Abstractions.Reports.Repositories;
 using IndyPOS.Application.Common.Interfaces;
+using IndyPOS.Application.Common.Models;
 using Microsoft.Extensions.Logging;
 
 namespace IndyPOS.Application.SalesReports.Create;
@@ -22,15 +23,19 @@ public class CreateSalesReportCommandHandler : ICommandHandler<CreateSalesReport
 	
 	public async Task Handle(CreateSalesReportCommand command, CancellationToken cancellationToken)
 	{
+		SalesReport? report = null;
+		
 		try
 		{
-			var report = await _reportService.CreateSalesReportByInvoiceIdAsync(command.InvoiceId);
+			report = await _reportService.CreateSalesReportByInvoiceIdAsync(command.InvoiceId, 
+																			command.HasPayLaterPayment);
 			await _repository.AddSalesReportAsync(report);
 		}
 		catch (Exception ex)
 		{
 			_logger.LogWarning(ex, 
-							   "Error occurred while creating sales report for invoice ID {InvoiceId}",
+							   "Error occurred while creating sales report {@Report} for invoice ID {InvoiceId}",
+							   report,
 							   command.InvoiceId);
 			throw;
 		}

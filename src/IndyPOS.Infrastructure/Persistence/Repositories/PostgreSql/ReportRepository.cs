@@ -32,9 +32,7 @@ public class ReportRepository : IReportRepository
 				 hardware_paylater_total,
 				 invoice_total_without_paylater,
 				 general_total_without_paylater,
-				 hardware_total_without_paylater,
-				 completed_paylater_total,
-				 incomplete_paylater_total)
+				 hardware_total_without_paylater)
 			VALUES
 				(@id,
 				 @created,
@@ -47,9 +45,7 @@ public class ReportRepository : IReportRepository
 				 @hardwarePayLaterTotal,
 				 @invoiceTotalWithoutPayLater,
 				 @generalTotalWithoutPayLater,
-				 @hardwareTotalWithoutPayLater,
-				 @completedPayLaterTotal,
-				 @incompletePayLaterTotal);
+				 @hardwareTotalWithoutPayLater);
 			""";
 		
 		var sqlParameters = new
@@ -65,9 +61,7 @@ public class ReportRepository : IReportRepository
 			hardwarePayLaterTotal = report.PayLaterPaymentsTotalForHardwareProducts,
 			invoiceTotalWithoutPayLater = report.InvoiceTotalWithoutPayLaterPayments,
 			generalTotalWithoutPayLater = report.GeneralProductsTotalWithoutPayLaterPayments,
-			hardwareTotalWithoutPayLater = report.HardwareProductsTotalWithoutPayLaterPayments,
-			completedPayLaterTotal = report.CompletedPayLaterPaymentsTotal,
-			incompletePayLaterTotal = report.IncompletePayLaterPaymentsTotal
+			hardwareTotalWithoutPayLater = report.HardwareProductsTotalWithoutPayLaterPayments
 		};
 
 		await connection.ExecuteAsync(sqlCommand, sqlParameters);

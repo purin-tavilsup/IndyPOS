@@ -389,7 +389,7 @@ public class SaleService : ISaleService
 		await UpdateInventoryProductsSoldOnInvoice(invoiceInfo);
 		//---------------------------------------------------------
 		
-		await PublishSalesCompletedEventAsync(invoiceId);
+		await PublishSalesCompletedEventAsync(invoiceId, invoiceInfo.HasPayLaterPayment);
 
 		return invoiceInfo;
 	}
@@ -407,7 +407,8 @@ public class SaleService : ISaleService
 			InvoiceTotal = invoiceTotal,
 			PaymentTotal = paymentTotal,
 			Changes = CalculateChanges(),
-			IsRefundInvoice = isRefundInvoice
+			IsRefundInvoice = isRefundInvoice,
+			HasPayLaterPayment = Payments.HasPayLayerPayment()
 		};
 	}
 
@@ -512,9 +513,9 @@ public class SaleService : ISaleService
 		await _mediator.Send(command);
 	}
 	
-	private async Task PublishSalesCompletedEventAsync(int invoiceId)
+	private async Task PublishSalesCompletedEventAsync(int invoiceId, bool hasPayLaterPayment)
 	{
-		await _mediator.Publish(new SalesCompletedEvent(invoiceId));
+		await _mediator.Publish(new SalesCompletedEvent(invoiceId, hasPayLaterPayment));
 	}
 
 	private class InvoiceInfo : IInvoiceInfo
@@ -526,5 +527,6 @@ public class SaleService : ISaleService
 		public decimal InvoiceTotal { get; init; }
 		public decimal PaymentTotal { get; init; }
 		public decimal Changes { get; init; }
+		public bool HasPayLaterPayment { get; init; }
 	}
 }
