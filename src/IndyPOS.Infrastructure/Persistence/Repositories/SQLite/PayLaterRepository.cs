@@ -1,6 +1,6 @@
 ﻿using Dapper;
+using IndyPOS.Application.Abstractions.Pos.Repositories;
 using IndyPOS.Application.Common.Exceptions;
-using IndyPOS.Application.Common.Interfaces;
 using IndyPOS.Domain.Entities;
 using IndyPOS.Infrastructure.Extensions;
 
@@ -161,7 +161,7 @@ public class PayLaterRepository : IPayLaterPaymentRepository
         return results ?? Enumerable.Empty<PayLaterPayment>();
     }
 
-    public PayLaterPayment GetPayLaterPaymentByInvoiceId(int invoiceId)
+    public PayLaterPayment? GetPayLaterPaymentByInvoiceId(int invoiceId)
     {
         using var connection = _dbConnectionProvider.GetDbConnection();
         connection.Open();
@@ -187,11 +187,6 @@ public class PayLaterRepository : IPayLaterPaymentRepository
 
         var result = connection.Query<PayLaterPayment>(sqlCommand, sqlParameters)
                                .FirstOrDefault();
-
-		if (result is null)
-		{
-			throw new PayLaterPaymentNotFoundException($"Could not find Pay Later Payment by Invoice ID: {invoiceId}");
-		}
 
         return result;
     }

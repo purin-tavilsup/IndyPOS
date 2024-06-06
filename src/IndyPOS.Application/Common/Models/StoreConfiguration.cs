@@ -13,4 +13,5 @@ public class StoreConfiguration
     public string? StorePhoneNumber { get; init; }
     public string? PrinterName { get; init; }
     public string? BarcodeScannerDeviceName { get; init; }
+    public bool? CloudDatabaseEnabled { get; init; }
 }

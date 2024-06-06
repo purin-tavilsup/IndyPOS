@@ -5,12 +5,13 @@ using IndyPOS.Application.Common.Interfaces;
 using IndyPOS.Application.Common.Models;
 using IndyPOS.Application.Events;
 using IndyPOS.Application.InventoryProducts;
-using IndyPOS.Application.InventoryProducts.Commands.UpdateInventoryProductQuantity;
-using IndyPOS.Application.InventoryProducts.Queries.GetInventoryProductByBarcode;
-using IndyPOS.Application.InventoryProducts.Queries.GetInventoryProductById;
+using IndyPOS.Application.InventoryProducts.Commands.UpdateQuantity;
+using IndyPOS.Application.InventoryProducts.Queries.GetByBarcode;
+using IndyPOS.Application.InventoryProducts.Queries.GetById;
 using IndyPOS.Application.InvoicePayments.Commands.CreateInvoicePayment;
 using IndyPOS.Application.InvoiceProducts.Commands.CreateInvoiceProduct;
 using IndyPOS.Application.Invoices.Commands.CreateInvoice;
+using IndyPOS.Application.Notifications;
 using IndyPOS.Application.PayLaterPayments.Commands.CreatePayLaterPayment;
 using IndyPOS.Domain.Events;
 using MediatR;
@@ -382,9 +383,13 @@ public class SaleService : ISaleService
 
 		var invoiceInfo = CreateInvoiceInfo(invoiceId, invoiceTotal);
 
+		// Refactor: Moved these to event (notification) handlers 
 		await AddInvoiceProductsToDatabaseAsync(invoiceInfo);
 		await AddPaymentsToDatabaseAsync(invoiceInfo);
 		await UpdateInventoryProductsSoldOnInvoice(invoiceInfo);
+		//---------------------------------------------------------
+		
+		await PublishSalesCompletedEventAsync(invoiceId);
 
 		return invoiceInfo;
 	}
@@ -505,6 +510,11 @@ public class SaleService : ISaleService
 		};
 
 		await _mediator.Send(command);
+	}
+	
+	private async Task PublishSalesCompletedEventAsync(int invoiceId)
+	{
+		await _mediator.Publish(new SalesCompletedEvent(invoiceId));
 	}
 
 	private class InvoiceInfo : IInvoiceInfo

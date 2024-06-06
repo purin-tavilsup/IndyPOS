@@ -1,5 +1,5 @@
 ﻿using Dapper;
-using IndyPOS.Application.Common.Interfaces;
+using IndyPOS.Application.Abstractions.Pos.Repositories;
 using IndyPOS.Domain.Entities;
 using IndyPOS.Infrastructure.Extensions;
 

@@ -1,4 +1,5 @@
 ﻿using IndyPOS.Application.Common.Enums;
+using IndyPOS.Application.Common.Models;
 using IndyPOS.Application.InvoicePayments;
 using IndyPOS.Application.InvoiceProducts;
 using IndyPOS.Application.Invoices;
@@ -8,13 +9,13 @@ namespace IndyPOS.Application.Common.Interfaces;
 
 public interface IReportService
 {
-	Task<ISalesReport> CreateSalesReportByPeriodAsync(TimePeriod period);
+	Task<SalesSummary> CreateSalesSummaryByPeriodAsync(TimePeriod period);
 
-	Task<ISalesReport> CreateSalesReportByDateRangeAsync(DateOnly startDate, DateOnly endDate);
+	Task<SalesSummary> CreateSalesSummaryByDateRangeAsync(DateOnly startDate, DateOnly endDate);
 
-	Task<IPaymentsReport> CreatePaymentsReportByPeriodAsync(TimePeriod period);
+	Task<PaymentsSummary> CreatePaymentsSummaryByPeriodAsync(TimePeriod period);
 
-	Task<IPaymentsReport> CreatePaymentsReportByDateRangeAsync(DateOnly startDate, DateOnly endDate);
+	Task<PaymentsSummary> CreatePaymentsSummaryByDateRangeAsync(DateOnly startDate, DateOnly endDate);
 
 	Task<IEnumerable<InvoiceDto>> GetInvoicesByPeriodAsync(TimePeriod period);
 
@@ -31,4 +32,8 @@ public interface IReportService
 	Task<IEnumerable<InvoicePaymentDto>> GetPaymentsByInvoiceIdAsync(int invoiceId);
 
 	Task<IEnumerable<PayLaterPaymentDto>> GetPayLaterPaymentsAsync();
+
+	Task<SalesReport> CreateSalesReportByInvoiceIdAsync(int invoiceId);
+
+	Task<PaymentsReport> CreatePaymentsReportByInvoiceIdAsync(int invoiceId);
 }

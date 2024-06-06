@@ -1,5 +1,4 @@
-﻿#nullable enable
-using IndyPOS.Application.Common.Interfaces;
+﻿using IndyPOS.Application.Common.Interfaces;
 using System.Diagnostics.CodeAnalysis;
 using System.Text.Encodings.Web;
 using System.Text.Json;
@@ -17,7 +16,8 @@ public class JsonService : IJsonService
         _options = new JsonSerializerOptions
         {
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-			Encoder = JavaScriptEncoder.Create(UnicodeRanges.All)
+			Encoder = JavaScriptEncoder.Create(UnicodeRanges.All),
+            WriteIndented = true
         };
     }
 

@@ -1,6 +1,7 @@
 ﻿using IndyPOS.Application.Common.Enums;
 using IndyPOS.Application.Common.Extensions;
 using IndyPOS.Application.Common.Interfaces;
+using IndyPOS.Application.Common.Models;
 using IndyPOS.Application.InvoicePayments;
 using IndyPOS.Application.InvoicePayments.Queries.GetInvoicePaymentsByDateRange;
 using IndyPOS.Application.InvoicePayments.Queries.GetInvoicePaymentsByInvoiceId;
@@ -11,49 +12,20 @@ using IndyPOS.Application.InvoiceProducts.Queries.GetInvoiceProductsByInvoiceId;
 using IndyPOS.Application.Invoices;
 using IndyPOS.Application.Invoices.Queries.GetInvoicesByDateRange;
 using IndyPOS.Application.PayLaterPayments;
+using IndyPOS.Application.PayLaterPayments.Queries.GetPayLaterPaymentByInvoiceId;
 using IndyPOS.Application.PayLaterPayments.Queries.GetPayLaterPayments;
 using IndyPOS.Application.PayLaterPayments.Queries.GetPayLaterPaymentsByDateRange;
 using MediatR;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Logging;
-using Prism.Events;
 
 namespace IndyPOS.Infrastructure.Services;
 
 public class ReportService : IReportService
 {
 	private readonly IMediator _mediator;
-	private readonly string _reportsDirectory;
-	private readonly IJsonService _jsonService;
-	private readonly ILogger<ReportService> _logger;
-	private readonly IDataFeedApiService _dataFeedApiService;
-	private readonly IEventAggregator _eventAggregator;
-	private readonly IReadOnlyDictionary<int, string> _productCategories;
-	private readonly IReadOnlyDictionary<int, string> _paymentTypes;
 
-	public ReportService(IConfiguration configuration,
-						 IStoreConstants storeConstants,
-						 IMediator mediator,
-						 IDataFeedApiService dataFeedApiService,
-						 IEventAggregator eventAggregator,
-						 ILogger<ReportService> logger, 
-						 IJsonService jsonService)
+	public ReportService(IMediator mediator)
 	{
-		_logger = logger;
 		_mediator = mediator;
-		_reportsDirectory = GetReportDirectory(configuration);
-		_dataFeedApiService = dataFeedApiService;
-		_eventAggregator = eventAggregator;
-		_jsonService = jsonService;
-		_productCategories = storeConstants.ProductCategories;
-		_paymentTypes = storeConstants.PaymentTypes;
-	}
-
-	private static string GetReportDirectory(IConfiguration configuration)
-	{
-		var path = configuration.GetValue<string>("Report:Directory");
-
-		return path ?? "C:\\ProgramData\\IndyPOS\\Reports";
 	}
 
 	public async Task<IEnumerable<InvoiceDto>> GetInvoicesByPeriodAsync(TimePeriod period)
@@ -63,18 +35,18 @@ public class ReportService : IReportService
 		return await GetInvoicesByDateRangeAsync(dateRange.StartDate, dateRange.EndDate);
 	}
 
-	public async Task<ISalesReport> CreateSalesReportByPeriodAsync(TimePeriod period)
+	public async Task<SalesSummary> CreateSalesSummaryByPeriodAsync(TimePeriod period)
 	{
 		var dateRange = period.ToDateRange();
 
-		return await CreateSalesReportByDateRangeAsync(dateRange.StartDate, dateRange.EndDate);
+		return await CreateSalesSummaryByDateRangeAsync(dateRange.StartDate, dateRange.EndDate);
 	}
 
-	public async Task<IPaymentsReport> CreatePaymentsReportByPeriodAsync(TimePeriod period)
+	public async Task<PaymentsSummary> CreatePaymentsSummaryByPeriodAsync(TimePeriod period)
 	{
 		var dateRange = period.ToDateRange();
 
-		return await CreatePaymentsReportByDateRangeAsync(dateRange.StartDate, dateRange.EndDate);
+		return await CreatePaymentsSummaryByDateRangeAsync(dateRange.StartDate, dateRange.EndDate);
 	}
 
 	public async Task<IEnumerable<PayLaterPaymentDto>> GetPayLaterPaymentsByPeriodAsync(TimePeriod period)
@@ -84,16 +56,56 @@ public class ReportService : IReportService
 		return await GetPayLaterPaymentsByDateRangeAsync(dateRange.StartDate, dateRange.EndDate);
 	}
 
-	public async Task<ISalesReport> CreateSalesReportByDateRangeAsync(DateOnly startDate, DateOnly endDate)
+	public async Task<SalesSummary> CreateSalesSummaryByDateRangeAsync(DateOnly startDate, DateOnly endDate)
+	{
+		var products = await GetInvoiceProductsByDateRangeAsync(startDate, endDate);
+		var payLaterPayments = await GetPayLaterPaymentsByDateRangeAsync(startDate, endDate);
+
+		return CreateSalesSummary(products.ToList(), payLaterPayments.ToList());
+	}
+
+	public async Task<SalesReport> CreateSalesReportByInvoiceIdAsync(int invoiceId)
+	{
+		var id = Guid.NewGuid();
+		var created = DateTime.Now;
+		var summary = await CreateSalesSummaryByInvoiceIdAsync(invoiceId);
+
+		return summary.ToReport(id, created, invoiceId);
+	}
+
+	public async Task<PaymentsReport> CreatePaymentsReportByInvoiceIdAsync(int invoiceId)
+	{
+		var id = Guid.NewGuid();
+		var created = DateTime.Now;
+		var summary = await CreatePaymentsSummaryByInvoiceIdAsync(invoiceId);
+		
+		return summary.ToReport(id, created, invoiceId);
+	}
+	
+	private async Task<SalesSummary> CreateSalesSummaryByInvoiceIdAsync(int invoiceId)
+	{
+		var products = await GetInvoiceProductsByInvoiceIdAsync(invoiceId);
+		var payLaterPayment = await GetPayLaterPaymentByInvoiceId(invoiceId);
+		var payLaterPayments = payLaterPayment is not null ? new List<PayLaterPaymentDto> { payLaterPayment } : [];
+
+		return CreateSalesSummary(products.ToList(), payLaterPayments);
+	}
+
+	private async Task<PaymentsSummary> CreatePaymentsSummaryByInvoiceIdAsync(int invoiceId)
+	{
+		var payments = await GetPaymentsByInvoiceIdAsync(invoiceId);
+
+		return CreatePaymentsSummary(payments);
+	}
+
+	private static SalesSummary CreateSalesSummary(IReadOnlyList<InvoiceProductDto> products, 
+												   IReadOnlyList<PayLaterPaymentDto> payLaterPayments)
 	{
 		var generalProductsTotal = 0m;
 		var hardwareProductsTotal = 0m;
 		var payLaterTotalForGeneralProducts = 0m;
 		var payLaterTotalForHardwareProducts = 0m;
 		
-		var products = await GetInvoiceProductsByDateRangeAsync(startDate, endDate);
-		var payLaterPayments = await GetPayLaterPaymentsByDateRangeAsync(startDate, endDate);
-
 		var payLaterInvoiceIds = GetInvoiceIdsWithPayLaterPayment(payLaterPayments);
 
 		foreach (var product in products)
@@ -130,7 +142,7 @@ public class ReportService : IReportService
 		var completedPayLaterPaymentsTotal = CalculateCompletedPayLaterPaymentsTotal(payLaterPayments);
 		var incompletedPayLaterPaymentsTotal = payLaterPaymentsTotal - completedPayLaterPaymentsTotal;
 
-		return new SalesReport
+		return new SalesSummary
 		{
 			InvoiceTotal = invoicesTotal,
 			GeneralProductsTotal = generalProductsTotal,
@@ -158,7 +170,14 @@ public class ReportService : IReportService
 					   .Sum(x => x.PaidAmount);
 	}
 
-	public async Task<IPaymentsReport> CreatePaymentsReportByDateRangeAsync(DateOnly startDate, DateOnly endDate)
+	public async Task<PaymentsSummary> CreatePaymentsSummaryByDateRangeAsync(DateOnly startDate, DateOnly endDate)
+	{
+		var payments = await GetPaymentsByDateRangeAsync(startDate, endDate);
+
+		return CreatePaymentsSummary(payments);
+	}
+
+	private static PaymentsSummary CreatePaymentsSummary(IEnumerable<InvoicePaymentDto> payments)
 	{
 		var payLaterTotal = 0m;
 		var fiftyFiftyTotal = 0m;
@@ -166,9 +185,7 @@ public class ReportService : IReportService
 		var moneyTransferTotal = 0m;
 		var welfareCardTotal = 0m;
 		var weWinTotal = 0m;
-
-		var payments = await GetPaymentsByDateRangeAsync(startDate, endDate);
-
+		
 		foreach (var payment in payments)
 		{
 			var amount = payment.Amount;
@@ -201,7 +218,7 @@ public class ReportService : IReportService
 			}
 		}
 
-		return new PaymentsReport
+		return new PaymentsSummary
 		{
 			MoneyTransferTotal = moneyTransferTotal,
 			FiftyFiftyTotal = fiftyFiftyTotal,
@@ -247,40 +264,18 @@ public class ReportService : IReportService
 		return await _mediator.Send(new GetInvoicePaymentsByInvoiceIdQuery(invoiceId));
 	}
 
-	private async Task<IReadOnlyList<PayLaterPaymentDto>> GetPayLaterPaymentsByDateRangeAsync(DateOnly startDate, DateOnly endDate)
+	private async Task<IEnumerable<PayLaterPaymentDto>> GetPayLaterPaymentsByDateRangeAsync(DateOnly startDate, DateOnly endDate)
 	{
-		var results = await _mediator.Send(new GetPayLaterPaymentsByDateRangeQuery(startDate, endDate));
+		return await _mediator.Send(new GetPayLaterPaymentsByDateRangeQuery(startDate, endDate));
+	}
 
-		return results.ToList();
+	private async Task<PayLaterPaymentDto?> GetPayLaterPaymentByInvoiceId(int invoiceId)
+	{
+		return await _mediator.Send(new GetPayLaterPaymentByInvoiceIdQuery(invoiceId));
 	}
 
 	public async Task<IEnumerable<PayLaterPaymentDto>> GetPayLaterPaymentsAsync()
 	{
 		return await _mediator.Send(new GetPayLaterPaymentsQuery());
-	}
-
-	private class SalesReport : ISalesReport
-	{
-		public decimal InvoiceTotal { get; init; }
-		public decimal GeneralProductsTotal { get; init; }
-		public decimal HardwareProductsTotal { get; init; }
-		public decimal PayLaterPaymentsTotal { get; init; }
-		public decimal PayLaterPaymentsTotalForGeneralProducts { get; init; }
-		public decimal PayLaterPaymentsTotalForHardwareProducts { get; init; }
-		public decimal InvoiceTotalWithoutPayLaterPayments { get; init; }
-		public decimal GeneralProductsTotalWithoutPayLaterPayments { get; init; }
-		public decimal HardwareProductsTotalWithoutPayLaterPayments { get; init; }
-		public decimal CompletedPayLaterPaymentsTotal { get; init; }
-		public decimal IncompletePayLaterPaymentsTotal { get; init; }
-	}
-
-	private class PaymentsReport : IPaymentsReport
-	{
-		public decimal MoneyTransferTotal { get; set; }
-		public decimal FiftyFiftyTotal { get; set; }
-		public decimal M33WeLoveTotal { get; set; }
-		public decimal WeWinTotal { get; set; }
-		public decimal WelfareCardTotal { get; set; }
-		public decimal PayLaterTotal { get; set; }
 	}
 }

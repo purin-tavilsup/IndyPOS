@@ -1,11 +1,6 @@
 ﻿using IndyPOS.Application.Common.Interfaces;
 using IndyPOS.Application.Events;
 using IndyPOS.Application.InventoryProducts;
-using IndyPOS.Application.InventoryProducts.Queries.GetInventoryProductByBarcode;
-using IndyPOS.Application.InventoryProducts.Queries.GetInventoryProductById;
-using IndyPOS.Application.InventoryProducts.Queries.GetInventoryProductsByBrandKeyword;
-using IndyPOS.Application.InventoryProducts.Queries.GetInventoryProductsByCategoryId;
-using IndyPOS.Application.InventoryProducts.Queries.GetInventoryProductsByDescriptionKeyword;
 using IndyPOS.Domain.Events;
 using IndyPOS.Windows.Forms.Enums;
 using IndyPOS.Windows.Forms.Events;
@@ -13,6 +8,11 @@ using IndyPOS.Windows.Forms.Extensions;
 using MediatR;
 using Prism.Events;
 using System.Diagnostics.CodeAnalysis;
+using IndyPOS.Application.InventoryProducts.Queries.GetByBarcode;
+using IndyPOS.Application.InventoryProducts.Queries.GetByBrandKeyword;
+using IndyPOS.Application.InventoryProducts.Queries.GetByCategoryId;
+using IndyPOS.Application.InventoryProducts.Queries.GetByDescriptionKeyword;
+using IndyPOS.Application.InventoryProducts.Queries.GetById;
 
 namespace IndyPOS.Windows.Forms.UI.Inventory;
 

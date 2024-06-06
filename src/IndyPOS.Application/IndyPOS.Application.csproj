@@ -28,13 +28,13 @@
     <ProjectReference Include="..\IndyPOS.Domain\IndyPOS.Domain.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="InventoryProducts\Commands\CreateInventoryProduct\" />
-    <Folder Include="InventoryProducts\Commands\DeleteInventoryProduct\" />
+    <Folder Include="InventoryProducts\Commands\Create\" />
+    <Folder Include="InventoryProducts\Commands\Delete\" />
     <Folder Include="InventoryProducts\Commands\UpdateInventoryProductBarcodeCounter\" />
-    <Folder Include="InventoryProducts\Commands\UpdateInventoryProductQuantity\" />
-    <Folder Include="InventoryProducts\Commands\UpdateInventoryProduct\" />
-    <Folder Include="InventoryProducts\Queries\GetInventoryProductsByDescriptionKeyword\" />
-    <Folder Include="InventoryProducts\Queries\GetInventoryProductsByBrandKeyword\" />
+    <Folder Include="InventoryProducts\Commands\UpdateQuantity\" />
+    <Folder Include="InventoryProducts\Commands\Update\" />
+    <Folder Include="InventoryProducts\Queries\GetByDescriptionKeyword\" />
+    <Folder Include="InventoryProducts\Queries\GetByBrandKeyword\" />
     <Folder Include="InvoicePayments\Commands\DeleteInvoicePayment\" />
     <Folder Include="InvoicePayments\Queries\GetInvoicePaymentsByInvoiceId\" />
     <Folder Include="InvoicePayments\Queries\GetInvoicePaymentsByDate\" />
