@@ -26,6 +26,7 @@
 	<ApplicationUseCompatibleTextRendering>false</ApplicationUseCompatibleTextRendering>
 	<ApplicationHighDpiMode>SystemAware</ApplicationHighDpiMode>
 	<ApplicationDefaultFont>Microsoft Sans Serif, 8.25pt</ApplicationDefaultFont>
+	<UserSecretsId>effe0f52-309f-4b79-8ec3-7072fc94a4db</UserSecretsId>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x64' ">
     <PlatformTarget>x64</PlatformTarget>
