@@ -1,9 +1,9 @@
 ﻿using IndyPOS.Application.Common.Interfaces;
-using IndyPOS.Application.InventoryProducts.Commands.CreateInventoryProduct;
 using IndyPOS.Application.InventoryProducts.Commands.UpdateInventoryProductBarcodeCounter;
-using IndyPOS.Application.InventoryProducts.Queries.GetInventoryProductBarcodeCounter;
 using MediatR;
 using System.Diagnostics.CodeAnalysis;
+using IndyPOS.Application.InventoryProducts.Commands.Create;
+using IndyPOS.Application.InventoryProducts.Queries.GetBarcodeCounter;
 
 namespace IndyPOS.Windows.Forms.UI.Inventory
 {

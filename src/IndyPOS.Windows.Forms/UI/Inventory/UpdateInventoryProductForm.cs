@@ -1,9 +1,9 @@
 ﻿using IndyPOS.Application.Common.Interfaces;
 using IndyPOS.Application.InventoryProducts;
-using IndyPOS.Application.InventoryProducts.Commands.DeleteInventoryProduct;
-using IndyPOS.Application.InventoryProducts.Commands.UpdateInventoryProduct;
 using MediatR;
 using System.Diagnostics.CodeAnalysis;
+using IndyPOS.Application.InventoryProducts.Commands.Delete;
+using IndyPOS.Application.InventoryProducts.Commands.Update;
 
 namespace IndyPOS.Windows.Forms.UI.Inventory;
 

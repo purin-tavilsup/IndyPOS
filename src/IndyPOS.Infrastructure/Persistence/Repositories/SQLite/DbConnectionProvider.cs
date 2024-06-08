@@ -1,7 +1,7 @@
-﻿using IndyPOS.Application.Common.Interfaces;
-using Microsoft.Extensions.Configuration;
+﻿using Microsoft.Extensions.Configuration;
 using System.Data;
 using System.Data.SQLite;
+using IndyPOS.Application.Abstractions.Pos.Repositories;
 
 namespace IndyPOS.Infrastructure.Persistence.Repositories.SQLite;
 

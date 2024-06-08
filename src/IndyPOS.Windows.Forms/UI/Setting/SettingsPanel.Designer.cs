@@ -51,9 +51,13 @@
             label7 = new Label();
             label8 = new Label();
             BarcodeScannerDeviceNameTextBox = new ModernUI.ModernTextBox();
+            panel4 = new Panel();
+            label11 = new Label();
+            EnableCloudDatabaseCheckBox = new CheckBox();
             panel1.SuspendLayout();
             panel2.SuspendLayout();
             panel3.SuspendLayout();
+            panel4.SuspendLayout();
             SuspendLayout();
             // 
             // StoreNameTextBox
@@ -61,7 +65,7 @@
             StoreNameTextBox.BackColor = Color.FromArgb(38, 38, 38);
             StoreNameTextBox.BorderColor = Color.DimGray;
             StoreNameTextBox.BorderSize = 1;
-            StoreNameTextBox.Font = new Font("FC Subject [Non-commercial] Reg", 12F, FontStyle.Regular, GraphicsUnit.Point);
+            StoreNameTextBox.Font = new Font("FC Subject [Non-commercial] Reg", 12F);
             StoreNameTextBox.ForeColor = Color.Gainsboro;
             StoreNameTextBox.Location = new Point(195, 106);
             StoreNameTextBox.Multiline = false;
@@ -78,7 +82,7 @@
             // label10
             // 
             label10.BackColor = Color.FromArgb(38, 38, 38);
-            label10.Font = new Font("FC Subject [Non-commercial] Reg", 12F, FontStyle.Regular, GraphicsUnit.Point);
+            label10.Font = new Font("FC Subject [Non-commercial] Reg", 12F);
             label10.ForeColor = Color.Gainsboro;
             label10.Location = new Point(17, 106);
             label10.Name = "label10";
@@ -92,7 +96,7 @@
             StoreAddressLine1TextBox.BackColor = Color.FromArgb(38, 38, 38);
             StoreAddressLine1TextBox.BorderColor = Color.DimGray;
             StoreAddressLine1TextBox.BorderSize = 1;
-            StoreAddressLine1TextBox.Font = new Font("FC Subject [Non-commercial] Reg", 12F, FontStyle.Regular, GraphicsUnit.Point);
+            StoreAddressLine1TextBox.Font = new Font("FC Subject [Non-commercial] Reg", 12F);
             StoreAddressLine1TextBox.ForeColor = Color.Gainsboro;
             StoreAddressLine1TextBox.Location = new Point(195, 151);
             StoreAddressLine1TextBox.Multiline = false;
@@ -109,7 +113,7 @@
             // label1
             // 
             label1.BackColor = Color.FromArgb(38, 38, 38);
-            label1.Font = new Font("FC Subject [Non-commercial] Reg", 12F, FontStyle.Regular, GraphicsUnit.Point);
+            label1.Font = new Font("FC Subject [Non-commercial] Reg", 12F);
             label1.ForeColor = Color.Gainsboro;
             label1.Location = new Point(17, 151);
             label1.Name = "label1";
@@ -123,7 +127,7 @@
             StoreAddressLine2TextBox.BackColor = Color.FromArgb(38, 38, 38);
             StoreAddressLine2TextBox.BorderColor = Color.DimGray;
             StoreAddressLine2TextBox.BorderSize = 1;
-            StoreAddressLine2TextBox.Font = new Font("FC Subject [Non-commercial] Reg", 12F, FontStyle.Regular, GraphicsUnit.Point);
+            StoreAddressLine2TextBox.Font = new Font("FC Subject [Non-commercial] Reg", 12F);
             StoreAddressLine2TextBox.ForeColor = Color.Gainsboro;
             StoreAddressLine2TextBox.Location = new Point(195, 196);
             StoreAddressLine2TextBox.Multiline = false;
@@ -140,7 +144,7 @@
             // label2
             // 
             label2.BackColor = Color.FromArgb(38, 38, 38);
-            label2.Font = new Font("FC Subject [Non-commercial] Reg", 12F, FontStyle.Regular, GraphicsUnit.Point);
+            label2.Font = new Font("FC Subject [Non-commercial] Reg", 12F);
             label2.ForeColor = Color.Gainsboro;
             label2.Location = new Point(17, 196);
             label2.Name = "label2";
@@ -154,7 +158,7 @@
             StorePhoneTextBox.BackColor = Color.FromArgb(38, 38, 38);
             StorePhoneTextBox.BorderColor = Color.DimGray;
             StorePhoneTextBox.BorderSize = 1;
-            StorePhoneTextBox.Font = new Font("FC Subject [Non-commercial] Reg", 12F, FontStyle.Regular, GraphicsUnit.Point);
+            StorePhoneTextBox.Font = new Font("FC Subject [Non-commercial] Reg", 12F);
             StorePhoneTextBox.ForeColor = Color.Gainsboro;
             StorePhoneTextBox.Location = new Point(195, 241);
             StorePhoneTextBox.Multiline = false;
@@ -171,7 +175,7 @@
             // label3
             // 
             label3.BackColor = Color.FromArgb(38, 38, 38);
-            label3.Font = new Font("FC Subject [Non-commercial] Reg", 12F, FontStyle.Regular, GraphicsUnit.Point);
+            label3.Font = new Font("FC Subject [Non-commercial] Reg", 12F);
             label3.ForeColor = Color.Gainsboro;
             label3.Location = new Point(17, 241);
             label3.Name = "label3";
@@ -185,7 +189,7 @@
             ReceiptPrinterNameTextBox.BackColor = Color.FromArgb(38, 38, 38);
             ReceiptPrinterNameTextBox.BorderColor = Color.DimGray;
             ReceiptPrinterNameTextBox.BorderSize = 1;
-            ReceiptPrinterNameTextBox.Font = new Font("FC Subject [Non-commercial] Reg", 12F, FontStyle.Regular, GraphicsUnit.Point);
+            ReceiptPrinterNameTextBox.Font = new Font("FC Subject [Non-commercial] Reg", 12F);
             ReceiptPrinterNameTextBox.ForeColor = Color.Gainsboro;
             ReceiptPrinterNameTextBox.Location = new Point(131, 51);
             ReceiptPrinterNameTextBox.Multiline = false;
@@ -202,7 +206,7 @@
             // label4
             // 
             label4.BackColor = Color.FromArgb(38, 38, 38);
-            label4.Font = new Font("FC Subject [Non-commercial] Reg", 12F, FontStyle.Regular, GraphicsUnit.Point);
+            label4.Font = new Font("FC Subject [Non-commercial] Reg", 12F);
             label4.ForeColor = Color.Gainsboro;
             label4.Location = new Point(17, 51);
             label4.Name = "label4";
@@ -233,7 +237,7 @@
             // label9
             // 
             label9.BackColor = Color.FromArgb(38, 38, 38);
-            label9.Font = new Font("FC Subject [Non-commercial] Reg", 12F, FontStyle.Regular, GraphicsUnit.Point);
+            label9.Font = new Font("FC Subject [Non-commercial] Reg", 12F);
             label9.ForeColor = Color.Gainsboro;
             label9.Location = new Point(17, 61);
             label9.Name = "label9";
@@ -247,7 +251,7 @@
             StoreFullNameTextBox.BackColor = Color.FromArgb(38, 38, 38);
             StoreFullNameTextBox.BorderColor = Color.DimGray;
             StoreFullNameTextBox.BorderSize = 1;
-            StoreFullNameTextBox.Font = new Font("FC Subject [Non-commercial] Reg", 12F, FontStyle.Regular, GraphicsUnit.Point);
+            StoreFullNameTextBox.Font = new Font("FC Subject [Non-commercial] Reg", 12F);
             StoreFullNameTextBox.ForeColor = Color.Gainsboro;
             StoreFullNameTextBox.Location = new Point(195, 61);
             StoreFullNameTextBox.Multiline = false;
@@ -265,7 +269,7 @@
             // 
             label5.BackColor = Color.FromArgb(38, 38, 38);
             label5.Dock = DockStyle.Top;
-            label5.Font = new Font("FC Subject [Non-commercial] Reg", 12F, FontStyle.Regular, GraphicsUnit.Point);
+            label5.Font = new Font("FC Subject [Non-commercial] Reg", 12F);
             label5.ForeColor = Color.Gainsboro;
             label5.Location = new Point(0, 0);
             label5.Name = "label5";
@@ -289,7 +293,7 @@
             // 
             label6.BackColor = Color.FromArgb(38, 38, 38);
             label6.Dock = DockStyle.Top;
-            label6.Font = new Font("FC Subject [Non-commercial] Reg", 12F, FontStyle.Regular, GraphicsUnit.Point);
+            label6.Font = new Font("FC Subject [Non-commercial] Reg", 12F);
             label6.ForeColor = Color.Gainsboro;
             label6.Location = new Point(0, 0);
             label6.Name = "label6";
@@ -307,7 +311,7 @@
             SaveSettingsButton.BorderSize = 1;
             SaveSettingsButton.FlatAppearance.BorderSize = 0;
             SaveSettingsButton.FlatStyle = FlatStyle.Flat;
-            SaveSettingsButton.Font = new Font("FC Subject [Non-commercial] Reg", 12F, FontStyle.Regular, GraphicsUnit.Point);
+            SaveSettingsButton.Font = new Font("FC Subject [Non-commercial] Reg", 12F);
             SaveSettingsButton.ForeColor = Color.White;
             SaveSettingsButton.Location = new Point(12, 607);
             SaveSettingsButton.Name = "SaveSettingsButton";
@@ -334,7 +338,7 @@
             // AddNewScannerHintLabel
             // 
             AddNewScannerHintLabel.BackColor = Color.FromArgb(38, 38, 38);
-            AddNewScannerHintLabel.Font = new Font("FC Subject [Non-commercial] Reg", 12F, FontStyle.Regular, GraphicsUnit.Point);
+            AddNewScannerHintLabel.Font = new Font("FC Subject [Non-commercial] Reg", 12F);
             AddNewScannerHintLabel.ForeColor = Color.LightSeaGreen;
             AddNewScannerHintLabel.Location = new Point(17, 87);
             AddNewScannerHintLabel.Name = "AddNewScannerHintLabel";
@@ -352,7 +356,7 @@
             AddBarcodeScannerButton.BorderSize = 1;
             AddBarcodeScannerButton.FlatAppearance.BorderSize = 0;
             AddBarcodeScannerButton.FlatStyle = FlatStyle.Flat;
-            AddBarcodeScannerButton.Font = new Font("FC Subject [Non-commercial] Reg", 12F, FontStyle.Regular, GraphicsUnit.Point);
+            AddBarcodeScannerButton.Font = new Font("FC Subject [Non-commercial] Reg", 12F);
             AddBarcodeScannerButton.ForeColor = Color.White;
             AddBarcodeScannerButton.Image = Properties.Resources.Plus_35;
             AddBarcodeScannerButton.Location = new Point(546, 45);
@@ -367,7 +371,7 @@
             // 
             label7.BackColor = Color.FromArgb(38, 38, 38);
             label7.Dock = DockStyle.Top;
-            label7.Font = new Font("FC Subject [Non-commercial] Reg", 12F, FontStyle.Regular, GraphicsUnit.Point);
+            label7.Font = new Font("FC Subject [Non-commercial] Reg", 12F);
             label7.ForeColor = Color.Gainsboro;
             label7.Location = new Point(0, 0);
             label7.Name = "label7";
@@ -379,7 +383,7 @@
             // label8
             // 
             label8.BackColor = Color.FromArgb(38, 38, 38);
-            label8.Font = new Font("FC Subject [Non-commercial] Reg", 12F, FontStyle.Regular, GraphicsUnit.Point);
+            label8.Font = new Font("FC Subject [Non-commercial] Reg", 12F);
             label8.ForeColor = Color.Gainsboro;
             label8.Location = new Point(17, 51);
             label8.Name = "label8";
@@ -393,7 +397,7 @@
             BarcodeScannerDeviceNameTextBox.BackColor = Color.FromArgb(38, 38, 38);
             BarcodeScannerDeviceNameTextBox.BorderColor = Color.DimGray;
             BarcodeScannerDeviceNameTextBox.BorderSize = 1;
-            BarcodeScannerDeviceNameTextBox.Font = new Font("FC Subject [Non-commercial] Reg", 8.25F, FontStyle.Regular, GraphicsUnit.Point);
+            BarcodeScannerDeviceNameTextBox.Font = new Font("FC Subject [Non-commercial] Reg", 8.25F);
             BarcodeScannerDeviceNameTextBox.ForeColor = Color.Gainsboro;
             BarcodeScannerDeviceNameTextBox.Location = new Point(131, 51);
             BarcodeScannerDeviceNameTextBox.Multiline = false;
@@ -407,11 +411,47 @@
             BarcodeScannerDeviceNameTextBox.Texts = "";
             BarcodeScannerDeviceNameTextBox.UnderlinedStyle = true;
             // 
+            // panel4
+            // 
+            panel4.BackColor = Color.FromArgb(38, 38, 38);
+            panel4.Controls.Add(EnableCloudDatabaseCheckBox);
+            panel4.Controls.Add(label11);
+            panel4.Location = new Point(405, 480);
+            panel4.Name = "panel4";
+            panel4.Size = new Size(207, 121);
+            panel4.TabIndex = 85;
+            // 
+            // label11
+            // 
+            label11.BackColor = Color.FromArgb(38, 38, 38);
+            label11.Dock = DockStyle.Top;
+            label11.Font = new Font("FC Subject [Non-commercial] Reg", 12F);
+            label11.ForeColor = Color.Gainsboro;
+            label11.Location = new Point(0, 0);
+            label11.Name = "label11";
+            label11.Size = new Size(207, 39);
+            label11.TabIndex = 84;
+            label11.Text = "Cloud Database";
+            label11.TextAlign = ContentAlignment.MiddleCenter;
+            // 
+            // EnableCloudDatabaseCheckBox
+            // 
+            EnableCloudDatabaseCheckBox.AutoSize = true;
+            EnableCloudDatabaseCheckBox.Font = new Font("FC Subject [Non-commercial] Reg", 11.9999981F, FontStyle.Regular, GraphicsUnit.Point, 0);
+            EnableCloudDatabaseCheckBox.ForeColor = Color.Gainsboro;
+            EnableCloudDatabaseCheckBox.Location = new Point(63, 59);
+            EnableCloudDatabaseCheckBox.Name = "EnableCloudDatabaseCheckBox";
+            EnableCloudDatabaseCheckBox.Size = new Size(88, 28);
+            EnableCloudDatabaseCheckBox.TabIndex = 85;
+            EnableCloudDatabaseCheckBox.Text = "Enabled";
+            EnableCloudDatabaseCheckBox.UseVisualStyleBackColor = true;
+            // 
             // SettingsPanel
             // 
             AutoScaleDimensions = new SizeF(6F, 13F);
             AutoScaleMode = AutoScaleMode.Font;
             BackColor = Color.FromArgb(30, 30, 30);
+            Controls.Add(panel4);
             Controls.Add(panel3);
             Controls.Add(SaveSettingsButton);
             Controls.Add(panel2);
@@ -422,6 +462,8 @@
             panel1.ResumeLayout(false);
             panel2.ResumeLayout(false);
             panel3.ResumeLayout(false);
+            panel4.ResumeLayout(false);
+            panel4.PerformLayout();
             ResumeLayout(false);
         }
 
@@ -450,5 +492,8 @@
         private ModernUI.ModernTextBox StoreFullNameTextBox;
         private ModernUI.ModernButton AddBarcodeScannerButton;
         private Label AddNewScannerHintLabel;
+        private Panel panel4;
+        private CheckBox EnableCloudDatabaseCheckBox;
+        private Label label11;
     }
 }

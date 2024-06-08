@@ -1,6 +1,6 @@
 ﻿using Dapper;
+using IndyPOS.Application.Abstractions.Pos.Repositories;
 using IndyPOS.Application.Common.Exceptions;
-using IndyPOS.Application.Common.Interfaces;
 using IndyPOS.Domain.Entities;
 
 namespace IndyPOS.Infrastructure.Persistence.Repositories.SQLite;

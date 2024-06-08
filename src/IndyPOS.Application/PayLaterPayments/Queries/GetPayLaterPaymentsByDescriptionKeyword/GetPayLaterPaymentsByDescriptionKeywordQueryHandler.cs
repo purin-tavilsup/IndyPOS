@@ -1,5 +1,5 @@
 ﻿using IndyPOS.Application.Abstractions.Messaging;
-using IndyPOS.Application.Common.Interfaces;
+using IndyPOS.Application.Abstractions.Pos.Repositories;
 
 namespace IndyPOS.Application.PayLaterPayments.Queries.GetPayLaterPaymentsByDescriptionKeyword;
 

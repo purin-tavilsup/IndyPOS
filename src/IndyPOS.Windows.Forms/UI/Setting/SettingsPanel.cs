@@ -44,7 +44,8 @@ public partial class SettingsPanel : UserControl
             StorePhoneTextBox.Texts = config.StorePhoneNumber ?? string.Empty;
             ReceiptPrinterNameTextBox.Texts = config.PrinterName ?? string.Empty;
             BarcodeScannerDeviceNameTextBox.Texts = config.BarcodeScannerDeviceName ?? string.Empty;
-        }
+			EnableCloudDatabaseCheckBox.Checked = config.CloudDatabaseEnabled ?? false;
+		}
         catch (Exception ex)
         {
             var messageForm = new MessageForm();
@@ -64,7 +65,8 @@ public partial class SettingsPanel : UserControl
                 StoreAddressLine2 = StoreAddressLine2TextBox.Texts.Trim(),
                 StorePhoneNumber = StorePhoneTextBox.Texts.Trim(),
                 PrinterName = ReceiptPrinterNameTextBox.Texts.Trim(),
-                BarcodeScannerDeviceName = BarcodeScannerDeviceNameTextBox.Texts.Trim()
+                BarcodeScannerDeviceName = BarcodeScannerDeviceNameTextBox.Texts.Trim(),
+                CloudDatabaseEnabled = EnableCloudDatabaseCheckBox.Checked
             };
 
             await _storeConfigurationService.UpdateAsync(config);

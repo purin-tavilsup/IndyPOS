@@ -1,4 +1,5 @@
-﻿using IndyPOS.Application.Common.Interfaces;
+﻿using IndyPOS.Application.Abstractions.Pos.Repositories;
+using IndyPOS.Application.Common.Interfaces;
 
 namespace IndyPOS.Infrastructure.Constants;
 

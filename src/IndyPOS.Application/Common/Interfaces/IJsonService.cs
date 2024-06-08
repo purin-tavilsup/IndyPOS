@@ -1,7 +1,4 @@
-﻿#nullable enable
-using IndyPOS;
-
-namespace IndyPOS.Application.Common.Interfaces;
+﻿namespace IndyPOS.Application.Common.Interfaces;
 
 public interface IJsonService
 {

@@ -5,6 +5,9 @@ using IndyPOS.Infrastructure.Services;
 using LazyCache;
 using Prism.Events;
 using System.Runtime.Versioning;
+using IndyPOS.Application.Abstractions.Pos.Repositories;
+using IndyPOS.Application.Abstractions.Reports.Repositories;
+using IndyPOS.Infrastructure.Persistence.Repositories.PostgreSql;
 
 // ReSharper disable CheckNamespace
 namespace Microsoft.Extensions.DependencyInjection;
@@ -13,9 +16,12 @@ namespace Microsoft.Extensions.DependencyInjection;
 public static class ConfigureServices
 {
 	public static IServiceCollection AddInfrastructureServices(this IServiceCollection services)
-    {
-        // Persistence
-        services.AddSingleton<IDbConnectionProvider, DbConnectionProvider>()
+	{
+		// Persistence
+		services.AddSingleton<IReportDbConnectionProvider, ReportDbConnectionProvider>();
+		services.AddScoped<IReportRepository, ReportRepository>();
+        
+		services.AddSingleton<IDbConnectionProvider, DbConnectionProvider>()
                 .AddSingleton<IInvoiceRepository, InvoiceRepository>()
                 .AddSingleton<IInvoiceProductRepository, InvoiceProductRepository>()
                 .AddSingleton<IInvoicePaymentRepository, InvoicePaymentRepository>()
@@ -39,8 +45,7 @@ public static class ConfigureServices
 		services.AddTransient<ICryptographyService, CryptographyService>()
 				.AddTransient<IJsonService, JsonService>()
 				.AddTransient<IBarcodeGeneratorService, BarcodeGeneratorService>()
-				.AddTransient<IDateTimeService, DateTimeService>()
-				.AddTransient<IDataFeedApiService, DataFeedApiService>();
+				.AddTransient<IDateTimeService, DateTimeService>();
 
 		return services;
     }

@@ -1,5 +1,5 @@
-﻿using IndyPOS.Application.InventoryProducts.Commands.CreateInventoryProduct;
-using IndyPOS.Application.InventoryProducts.Commands.UpdateInventoryProduct;
+﻿using IndyPOS.Application.InventoryProducts.Commands.Create;
+using IndyPOS.Application.InventoryProducts.Commands.Update;
 using IndyPOS.Domain.Entities;
 
 namespace IndyPOS.Application.InventoryProducts;

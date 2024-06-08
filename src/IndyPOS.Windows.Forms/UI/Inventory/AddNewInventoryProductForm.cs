@@ -1,7 +1,7 @@
 ﻿using IndyPOS.Application.Common.Interfaces;
-using IndyPOS.Application.InventoryProducts.Commands.CreateInventoryProduct;
 using MediatR;
 using System.Diagnostics.CodeAnalysis;
+using IndyPOS.Application.InventoryProducts.Commands.Create;
 
 namespace IndyPOS.Windows.Forms.UI.Inventory;
 

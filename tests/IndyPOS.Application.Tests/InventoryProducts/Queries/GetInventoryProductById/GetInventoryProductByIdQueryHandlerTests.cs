@@ -1,8 +1,8 @@
 ﻿using AutoFixture.Xunit2;
 using FluentAssertions;
-using IndyPOS.Application.Common.Interfaces;
+using IndyPOS.Application.Abstractions.Pos.Repositories;
 using IndyPOS.Application.InventoryProducts;
-using IndyPOS.Application.InventoryProducts.Queries.GetInventoryProductById;
+using IndyPOS.Application.InventoryProducts.Queries.GetById;
 using IndyPOS.Application.Tests.Mocks.Attributes;
 using IndyPOS.Domain.Entities;
 using Moq;
