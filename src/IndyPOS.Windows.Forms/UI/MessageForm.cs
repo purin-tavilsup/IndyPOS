@@ -1,5 +1,6 @@
 ﻿#nullable enable
 using System.Diagnostics.CodeAnalysis;
+using DialogResult = System.Windows.Forms.DialogResult;
 
 namespace IndyPOS.Windows.Forms.UI;
 
