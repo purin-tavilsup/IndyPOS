@@ -31,6 +31,7 @@
             panel2 = new Panel();
             label4 = new Label();
             panel1 = new Panel();
+            CashFlowCalculatorButton = new ModernUI.ModernButton();
             PayLaterPaymentsReportButton = new ModernUI.ModernButton();
             ShowSalesOverviewReportButton = new ModernUI.ModernButton();
             ShowInvoiceProductsButton = new ModernUI.ModernButton();
@@ -54,26 +55,47 @@
             // 
             label4.BackColor = Color.FromArgb(38, 38, 38);
             label4.Dock = DockStyle.Fill;
-            label4.Font = new Font("FC Subject [Non-commercial] Reg", 20.25F, FontStyle.Regular, GraphicsUnit.Point);
+            label4.Font = new Font("FC Subject [Non-commercial] Reg", 20.25F);
             label4.ForeColor = Color.Gainsboro;
             label4.Location = new Point(0, 0);
             label4.Name = "label4";
-            label4.Size = new Size(606, 44);
+            label4.Size = new Size(364, 44);
             label4.TabIndex = 84;
             label4.Text = " รายงานผลประกอบการ";
             label4.TextAlign = ContentAlignment.MiddleLeft;
             // 
             // panel1
             // 
+            panel1.Controls.Add(CashFlowCalculatorButton);
             panel1.Controls.Add(PayLaterPaymentsReportButton);
             panel1.Controls.Add(ShowSalesOverviewReportButton);
             panel1.Controls.Add(ShowInvoiceProductsButton);
             panel1.Controls.Add(ShowSalesHistoryButton);
             panel1.Dock = DockStyle.Right;
-            panel1.Location = new Point(606, 0);
+            panel1.Location = new Point(364, 0);
             panel1.Name = "panel1";
-            panel1.Size = new Size(1007, 44);
+            panel1.Size = new Size(1249, 44);
             panel1.TabIndex = 85;
+            // 
+            // CashFlowCalculatorButton
+            // 
+            CashFlowCalculatorButton.BackColor = Color.FromArgb(38, 38, 38);
+            CashFlowCalculatorButton.BackgroundColor = Color.FromArgb(38, 38, 38);
+            CashFlowCalculatorButton.BorderColor = Color.Gray;
+            CashFlowCalculatorButton.BorderRadius = 5;
+            CashFlowCalculatorButton.BorderSize = 1;
+            CashFlowCalculatorButton.FlatAppearance.BorderSize = 0;
+            CashFlowCalculatorButton.FlatStyle = FlatStyle.Flat;
+            CashFlowCalculatorButton.Font = new Font("FC Subject [Non-commercial] Reg", 12F);
+            CashFlowCalculatorButton.ForeColor = Color.White;
+            CashFlowCalculatorButton.Location = new Point(999, 3);
+            CashFlowCalculatorButton.Name = "CashFlowCalculatorButton";
+            CashFlowCalculatorButton.Size = new Size(238, 37);
+            CashFlowCalculatorButton.TabIndex = 15;
+            CashFlowCalculatorButton.Text = "นับเงินสด รายรับ-รายจ่าย";
+            CashFlowCalculatorButton.TextColor = Color.White;
+            CashFlowCalculatorButton.UseVisualStyleBackColor = false;
+            CashFlowCalculatorButton.Click += CashFlowCalculatorButton_Click;
             // 
             // PayLaterPaymentsReportButton
             // 
@@ -84,7 +106,7 @@
             PayLaterPaymentsReportButton.BorderSize = 1;
             PayLaterPaymentsReportButton.FlatAppearance.BorderSize = 0;
             PayLaterPaymentsReportButton.FlatStyle = FlatStyle.Flat;
-            PayLaterPaymentsReportButton.Font = new Font("FC Subject [Non-commercial] Reg", 12F, FontStyle.Regular, GraphicsUnit.Point);
+            PayLaterPaymentsReportButton.Font = new Font("FC Subject [Non-commercial] Reg", 12F);
             PayLaterPaymentsReportButton.ForeColor = Color.White;
             PayLaterPaymentsReportButton.Location = new Point(755, 3);
             PayLaterPaymentsReportButton.Name = "PayLaterPaymentsReportButton";
@@ -104,7 +126,7 @@
             ShowSalesOverviewReportButton.BorderSize = 1;
             ShowSalesOverviewReportButton.FlatAppearance.BorderSize = 0;
             ShowSalesOverviewReportButton.FlatStyle = FlatStyle.Flat;
-            ShowSalesOverviewReportButton.Font = new Font("FC Subject [Non-commercial] Reg", 12F, FontStyle.Regular, GraphicsUnit.Point);
+            ShowSalesOverviewReportButton.Font = new Font("FC Subject [Non-commercial] Reg", 12F);
             ShowSalesOverviewReportButton.ForeColor = Color.White;
             ShowSalesOverviewReportButton.Location = new Point(13, 3);
             ShowSalesOverviewReportButton.Name = "ShowSalesOverviewReportButton";
@@ -124,7 +146,7 @@
             ShowInvoiceProductsButton.BorderSize = 1;
             ShowInvoiceProductsButton.FlatAppearance.BorderSize = 0;
             ShowInvoiceProductsButton.FlatStyle = FlatStyle.Flat;
-            ShowInvoiceProductsButton.Font = new Font("FC Subject [Non-commercial] Reg", 12F, FontStyle.Regular, GraphicsUnit.Point);
+            ShowInvoiceProductsButton.Font = new Font("FC Subject [Non-commercial] Reg", 12F);
             ShowInvoiceProductsButton.ForeColor = Color.White;
             ShowInvoiceProductsButton.Location = new Point(262, 3);
             ShowInvoiceProductsButton.Name = "ShowInvoiceProductsButton";
@@ -144,7 +166,7 @@
             ShowSalesHistoryButton.BorderSize = 1;
             ShowSalesHistoryButton.FlatAppearance.BorderSize = 0;
             ShowSalesHistoryButton.FlatStyle = FlatStyle.Flat;
-            ShowSalesHistoryButton.Font = new Font("FC Subject [Non-commercial] Reg", 12F, FontStyle.Regular, GraphicsUnit.Point);
+            ShowSalesHistoryButton.Font = new Font("FC Subject [Non-commercial] Reg", 12F);
             ShowSalesHistoryButton.ForeColor = Color.White;
             ShowSalesHistoryButton.Location = new Point(511, 3);
             ShowSalesHistoryButton.Name = "ShowSalesHistoryButton";
@@ -187,5 +209,6 @@
         private ModernUI.ModernButton ShowInvoiceProductsButton;
         private ModernUI.ModernButton ShowSalesHistoryButton;
         private ModernUI.ModernButton PayLaterPaymentsReportButton;
+        private ModernUI.ModernButton CashFlowCalculatorButton;
     }
 }
