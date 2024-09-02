@@ -16,5 +16,6 @@ public enum ReportSubPanel
 	SalesReport = 0,
 	InvoiceProductsReport,
 	SalesHistoryReport,
-	PayLaterPaymentsReport
+	PayLaterPaymentsReport,
+	CashFlowCalculator
 }

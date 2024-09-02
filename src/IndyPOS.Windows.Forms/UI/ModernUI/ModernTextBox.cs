@@ -4,15 +4,51 @@ using System.Runtime.Versioning;
 namespace IndyPOS.Windows.Forms.UI.ModernUI;
 
 [type:SupportedOSPlatform("windows")]
+[DefaultEvent("ModernTextChanged")]
 public partial class ModernTextBox: UserControl
 {
 	private Color _borderColor = Color.MidnightBlue;
 	private int _borderSize = 2;
 	private bool _underlinedStyle = false;
+	private Color _borderFocusColor = Color.HotPink;
+	private bool _isFocused = false;
+
+	private int _borderRadius = 0;
+	private Color _placeholderColor = Color.DarkGray;
+	private string _placeholderText = "";
+	private bool _isPlaceholder = false;
+	private bool _isPasswordChar = false;
+
+	//Events
+	public event EventHandler ModernTextChanged;
 
 	public ModernTextBox()
 	{
 		InitializeComponent();
+	}
+
+	[Category("Modern UI")]
+	public Color PlaceholderColor
+	{
+		get { return _placeholderColor; }
+		set
+		{
+			_placeholderColor = value;
+			if (_isPlaceholder)
+				textBox1.ForeColor = value;
+		}
+	}
+
+	[Category("Modern UI")]
+	public string PlaceholderText
+	{
+		get { return _placeholderText; }
+		set
+		{
+			_placeholderText = value;
+			textBox1.Text = "";
+			SetPlaceholder();
+		}
 	}
 
 	[Category("Modern UI")]
@@ -107,8 +143,21 @@ public partial class ModernTextBox: UserControl
 	[Category("Modern UI")]
 	public string Texts
 	{
-		get => textBox1.Text;
-		set => textBox1.Text = value;
+		get
+		{
+			if (_isPlaceholder)
+			{
+				return "";
+			}
+
+			return textBox1.Text;
+		}
+		set
+		{
+			textBox1.Text = value;
+
+			SetPlaceholder();
+		}
 	}
 
 	[Category("Modern UI")]
@@ -160,6 +209,29 @@ public partial class ModernTextBox: UserControl
 		UpdateControlHeight();
 	}
 
+	private void SetPlaceholder()
+	{
+		if (string.IsNullOrWhiteSpace(textBox1.Text) && _placeholderText != "")
+		{
+			_isPlaceholder = true;
+			textBox1.Text = _placeholderText;
+			textBox1.ForeColor = _placeholderColor;
+			if (_isPasswordChar)
+				textBox1.UseSystemPasswordChar = false;
+		}
+	}
+	private void RemovePlaceholder()
+	{
+		if (_isPlaceholder && _placeholderText != "")
+		{
+			_isPlaceholder = false;
+			textBox1.Text = "";
+			textBox1.ForeColor = this.ForeColor;
+			if (_isPasswordChar)
+				textBox1.UseSystemPasswordChar = true;
+		}
+	}      
+
 	private void UpdateControlHeight()
 	{
 		if (textBox1.Multiline == false)
@@ -172,5 +244,42 @@ public partial class ModernTextBox: UserControl
 
 			Height = textBox1.Height + Padding.Top + Padding.Bottom;
 		}
+	}
+
+	private void textBox1_TextChanged(object sender, EventArgs e)
+	{
+		if (ModernTextChanged is not null)
+		{
+			ModernTextChanged.Invoke(sender, e);
+		}
+	}
+	private void textBox1_Click(object sender, EventArgs e)
+	{
+		OnClick(e);
+	}
+	private void textBox1_MouseEnter(object sender, EventArgs e)
+	{
+		OnMouseEnter(e);
+	}
+	private void textBox1_MouseLeave(object sender, EventArgs e)
+	{
+		OnMouseLeave(e);
+	}
+	private void textBox1_KeyPress(object sender, KeyPressEventArgs e)
+	{
+		OnKeyPress(e);
+	}
+
+	private void textBox1_Enter(object sender, EventArgs e)
+	{
+		_isFocused = true;
+		Invalidate();
+		RemovePlaceholder();
+	}
+	private void textBox1_Leave(object sender, EventArgs e)
+	{
+		_isFocused = false;
+		Invalidate();
+		SetPlaceholder();
 	}
 }

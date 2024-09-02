@@ -10,12 +10,14 @@ public partial class ReportsPanel : UserControl
     private readonly InvoiceProductsReportPanel _invoiceProductsReportPanel;
     private readonly SalesHistoryReportPanel _salesHistoryReportPanel;
     private readonly PayLaterPaymentsReportPanel _payLaterPaymentsReportPanel;
+    private readonly CashFlowCalculatorPanel _cashFlowCalculatorPanel;
     private UserControl _activePanel;
 
     public ReportsPanel(SalesReportPanel salesReportPanel,
                         InvoiceProductsReportPanel invoiceProductsReportPanel,
                         SalesHistoryReportPanel salesHistoryReportPanel,
-                        PayLaterPaymentsReportPanel payLaterPaymentsReportPanel)
+                        PayLaterPaymentsReportPanel payLaterPaymentsReportPanel,
+                        CashFlowCalculatorPanel cashFlowCalculatorPanel)
     {
         _salesReportPanel = salesReportPanel;
         _salesReportPanel.Visible = false;
@@ -24,6 +26,7 @@ public partial class ReportsPanel : UserControl
         _salesHistoryReportPanel = salesHistoryReportPanel;
         _salesHistoryReportPanel.Visible = false;
         _payLaterPaymentsReportPanel = payLaterPaymentsReportPanel;
+        _cashFlowCalculatorPanel = cashFlowCalculatorPanel;
         _payLaterPaymentsReportPanel.Visible = false;
 
         _activePanel = new UserControl();
@@ -39,6 +42,7 @@ public partial class ReportsPanel : UserControl
             ReportSubPanel.InvoiceProductsReport => _invoiceProductsReportPanel,
             ReportSubPanel.SalesHistoryReport => _salesHistoryReportPanel,
             ReportSubPanel.PayLaterPaymentsReport => _payLaterPaymentsReportPanel,
+            ReportSubPanel.CashFlowCalculator => _cashFlowCalculatorPanel,
             _ => _salesReportPanel
         };
 
@@ -87,5 +91,10 @@ public partial class ReportsPanel : UserControl
     private void PayLaterPaymentsReportButton_Click(object sender, EventArgs e)
     {
         SwitchToPanel(ReportSubPanel.PayLaterPaymentsReport);
+    }
+
+    private void CashFlowCalculatorButton_Click(object sender, EventArgs e)
+    {
+		SwitchToPanel(ReportSubPanel.CashFlowCalculator);
     }
 }

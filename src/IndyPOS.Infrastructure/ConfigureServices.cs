@@ -45,7 +45,8 @@ public static class ConfigureServices
 		services.AddTransient<ICryptographyService, CryptographyService>()
 				.AddTransient<IJsonService, JsonService>()
 				.AddTransient<IBarcodeGeneratorService, BarcodeGeneratorService>()
-				.AddTransient<IDateTimeService, DateTimeService>();
+				.AddTransient<IDateTimeService, DateTimeService>()
+				.AddTransient<ICsvService, CsvService>();
 
 		return services;
     }
