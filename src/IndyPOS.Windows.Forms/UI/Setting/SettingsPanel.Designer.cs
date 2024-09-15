@@ -479,7 +479,7 @@
             panel5.Controls.Add(CashDrawerPortTextBox);
             panel5.Location = new Point(618, 12);
             panel5.Name = "panel5";
-            panel5.Size = new Size(269, 235);
+            panel5.Size = new Size(269, 320);
             panel5.TabIndex = 86;
             // 
             // CashDrawerButton
@@ -493,7 +493,7 @@
             CashDrawerButton.FlatStyle = FlatStyle.Flat;
             CashDrawerButton.Font = new Font("FC Subject [Non-commercial] Reg", 12F, FontStyle.Regular, GraphicsUnit.Point, 0);
             CashDrawerButton.ForeColor = Color.White;
-            CashDrawerButton.Location = new Point(17, 168);
+            CashDrawerButton.Location = new Point(17, 235);
             CashDrawerButton.Name = "CashDrawerButton";
             CashDrawerButton.Size = new Size(233, 51);
             CashDrawerButton.TabIndex = 87;

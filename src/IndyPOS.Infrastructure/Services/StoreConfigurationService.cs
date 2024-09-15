@@ -118,7 +118,9 @@ public class StoreConfigurationService : IStoreConfigurationService
 			StoreAddressLine2 = "จ.มุกดาหาร 49110",
 			StorePhoneNumber = "084-602-9150",
 			PrinterName = "XP-58",
-			BarcodeScannerDeviceName = string.Empty
+			BarcodeScannerDeviceName = string.Empty,
+			SerialPortName = "COM1",
+			Code = 1
 		};
 	}
 }
