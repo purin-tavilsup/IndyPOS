@@ -39,6 +39,7 @@ public static class ConfigureServices
 				.AddSingleton<IEventAggregator, EventAggregator>()
 				.AddSingleton<IRawInputDeviceService, RawInputDeviceService>()
 				.AddSingleton<IReceiptPrinterService, ReceiptPrinterService>()
+				.AddSingleton<ICashDrawerService, CashDrawerService>()
 				.AddSingleton<IAppCache, CachingService>()
 				.AddSingleton<HttpClient, HttpClient>();
 

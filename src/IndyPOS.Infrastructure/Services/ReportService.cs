@@ -10,6 +10,7 @@ using IndyPOS.Application.InvoiceProducts.Queries.GetInvoiceProductsByDate;
 using IndyPOS.Application.InvoiceProducts.Queries.GetInvoiceProductsByDateRange;
 using IndyPOS.Application.InvoiceProducts.Queries.GetInvoiceProductsByInvoiceId;
 using IndyPOS.Application.Invoices;
+using IndyPOS.Application.Invoices.Get;
 using IndyPOS.Application.Invoices.Queries.GetInvoicesByDateRange;
 using IndyPOS.Application.PayLaterPayments;
 using IndyPOS.Application.PayLaterPayments.Queries.GetPayLaterPaymentByInvoiceId;
@@ -287,5 +288,10 @@ public class ReportService : IReportService
 	public async Task<IEnumerable<PayLaterPaymentDto>> GetPayLaterPaymentsAsync()
 	{
 		return await _mediator.Send(new GetPayLaterPaymentsQuery());
+	}
+
+	public async Task<IInvoiceInfo> GetInvoiceInfoAsync(int invoiceId)
+	{
+		return await _mediator.Send(new GetInvoiceInfoQuery(invoiceId));
 	}
 }

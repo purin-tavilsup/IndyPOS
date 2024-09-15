@@ -1,7 +1,6 @@
 ﻿using IndyPOS.Application.Common.Interfaces;
 using IndyPOS.Application.Common.Models;
 using IndyPOS.Application.Events;
-using Prism.Events;
 using System.Diagnostics.CodeAnalysis;
 using IndyPOS.Application.Common.Enums;
 
@@ -13,16 +12,19 @@ public partial class SettingsPanel : UserControl
     private readonly IStoreConfigurationService _storeConfigurationService;
     private readonly IEventAggregator _eventAggregator;
     private readonly IRawInputDeviceService _rawInputDeviceService;
+	private readonly ICashDrawerService _cashDrawerService;
 
     public SettingsPanel(IStoreConfigurationService storeConfigurationService,
                          IEventAggregator eventAggregator,
-                         IRawInputDeviceService rawInputDeviceService)
+                         IRawInputDeviceService rawInputDeviceService, 
+						 ICashDrawerService cashDrawerService)
     {
         _storeConfigurationService = storeConfigurationService;
         _eventAggregator = eventAggregator;
         _rawInputDeviceService = rawInputDeviceService;
+		_cashDrawerService = cashDrawerService;
 
-        InitializeComponent();
+		InitializeComponent();
         SubscribeEvents();
     }
 
@@ -44,8 +46,10 @@ public partial class SettingsPanel : UserControl
             StorePhoneTextBox.Texts = config.StorePhoneNumber ?? string.Empty;
             ReceiptPrinterNameTextBox.Texts = config.PrinterName ?? string.Empty;
             BarcodeScannerDeviceNameTextBox.Texts = config.BarcodeScannerDeviceName ?? string.Empty;
-			EnableCloudDatabaseCheckBox.Checked = config.CloudDatabaseEnabled ?? false;
-		}
+            EnableCloudDatabaseCheckBox.Checked = config.CloudDatabaseEnabled ?? false;
+            CashDrawerPortTextBox.Texts = config.SerialPortName ?? string.Empty;
+            CashDrawerCodeTextBox.Texts = config.Code is not null ? $"{config.Code}" : string.Empty;
+        }
         catch (Exception ex)
         {
             var messageForm = new MessageForm();
@@ -66,7 +70,9 @@ public partial class SettingsPanel : UserControl
                 StorePhoneNumber = StorePhoneTextBox.Texts.Trim(),
                 PrinterName = ReceiptPrinterNameTextBox.Texts.Trim(),
                 BarcodeScannerDeviceName = BarcodeScannerDeviceNameTextBox.Texts.Trim(),
-                CloudDatabaseEnabled = EnableCloudDatabaseCheckBox.Checked
+                CloudDatabaseEnabled = EnableCloudDatabaseCheckBox.Checked,
+                SerialPortName = CashDrawerPortTextBox.Texts.Trim(),
+                Code = int.Parse(CashDrawerCodeTextBox.Texts.Trim())
             };
 
             await _storeConfigurationService.UpdateAsync(config);
@@ -106,5 +112,19 @@ public partial class SettingsPanel : UserControl
         BarcodeScannerDeviceNameTextBox.Texts = string.Empty;
 
         _rawInputDeviceService.SetMode(RawInputDeviceMode.GetDeviceName);
+    }
+
+    private void CashDrawerButton_Click(object sender, EventArgs e)
+	{
+		var serialPortName = CashDrawerPortTextBox.Texts.Trim();
+
+		if (!int.TryParse(CashDrawerCodeTextBox.Texts.Trim(), out var code))
+		{
+            var messageForm = new MessageForm();
+            messageForm.ShowDialog("Error: Invalid Code", "Unable To Open Cash Drawer!");
+		}
+
+        _cashDrawerService.Configure(serialPortName, code);
+        _cashDrawerService.OpenCashDrawer();
     }
 }
