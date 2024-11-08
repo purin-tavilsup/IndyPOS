@@ -130,6 +130,12 @@ namespace IndyPOS.Windows.Forms.UI.Report
             panel13 = new Panel();
             WelfareCardPaymentLabel = new Label();
             label46 = new Label();
+            panel14 = new Panel();
+            PayLaterForGeneralProductsLabel = new Label();
+            label2 = new Label();
+            panel15 = new Panel();
+            PayLaterForHardwareProductsLabel = new Label();
+            label21 = new Label();
             DiffCashPanel.SuspendLayout();
             panel10.SuspendLayout();
             panel9.SuspendLayout();
@@ -144,6 +150,8 @@ namespace IndyPOS.Windows.Forms.UI.Report
             panel11.SuspendLayout();
             panel12.SuspendLayout();
             panel13.SuspendLayout();
+            panel14.SuspendLayout();
+            panel15.SuspendLayout();
             SuspendLayout();
             // 
             // ChangesListView
@@ -155,7 +163,7 @@ namespace IndyPOS.Windows.Forms.UI.Report
             ChangesListView.Location = new Point(26, 139);
             ChangesListView.MultiSelect = false;
             ChangesListView.Name = "ChangesListView";
-            ChangesListView.Size = new Size(232, 157);
+            ChangesListView.Size = new Size(275, 157);
             ChangesListView.TabIndex = 3;
             ChangesListView.UseCompatibleStateImageBehavior = false;
             ChangesListView.View = View.Details;
@@ -169,7 +177,7 @@ namespace IndyPOS.Windows.Forms.UI.Report
             PayoutsListView.Location = new Point(26, 198);
             PayoutsListView.MultiSelect = false;
             PayoutsListView.Name = "PayoutsListView";
-            PayoutsListView.Size = new Size(299, 522);
+            PayoutsListView.Size = new Size(299, 533);
             PayoutsListView.TabIndex = 3;
             PayoutsListView.UseCompatibleStateImageBehavior = false;
             PayoutsListView.Click += PayOutListView_Click;
@@ -182,7 +190,7 @@ namespace IndyPOS.Windows.Forms.UI.Report
             ReceivedPayLaterPaymentsListView.Location = new Point(26, 200);
             ReceivedPayLaterPaymentsListView.MultiSelect = false;
             ReceivedPayLaterPaymentsListView.Name = "ReceivedPayLaterPaymentsListView";
-            ReceivedPayLaterPaymentsListView.Size = new Size(275, 531);
+            ReceivedPayLaterPaymentsListView.Size = new Size(275, 177);
             ReceivedPayLaterPaymentsListView.TabIndex = 3;
             ReceivedPayLaterPaymentsListView.UseCompatibleStateImageBehavior = false;
             ReceivedPayLaterPaymentsListView.Click += ReceivedPayLaterPaymentsListView_Click;
@@ -1002,7 +1010,7 @@ namespace IndyPOS.Windows.Forms.UI.Report
             panel3.Controls.Add(ReceivedPayLaterPaymentsListView);
             panel3.Location = new Point(665, 117);
             panel3.Name = "panel3";
-            panel3.Size = new Size(329, 789);
+            panel3.Size = new Size(329, 429);
             panel3.TabIndex = 145;
             // 
             // RemoveReceivedPayLaterPaymentButton
@@ -1016,7 +1024,7 @@ namespace IndyPOS.Windows.Forms.UI.Report
             RemoveReceivedPayLaterPaymentButton.FlatStyle = FlatStyle.Flat;
             RemoveReceivedPayLaterPaymentButton.Font = new Font("FC Subject [Non-commercial] Reg", 12F);
             RemoveReceivedPayLaterPaymentButton.ForeColor = Color.White;
-            RemoveReceivedPayLaterPaymentButton.Location = new Point(221, 737);
+            RemoveReceivedPayLaterPaymentButton.Location = new Point(221, 383);
             RemoveReceivedPayLaterPaymentButton.Name = "RemoveReceivedPayLaterPaymentButton";
             RemoveReceivedPayLaterPaymentButton.Size = new Size(80, 36);
             RemoveReceivedPayLaterPaymentButton.TabIndex = 144;
@@ -1333,9 +1341,9 @@ namespace IndyPOS.Windows.Forms.UI.Report
             panel5.Controls.Add(label45);
             panel5.Controls.Add(ChangesTotalLabel);
             panel5.Controls.Add(label47);
-            panel5.Location = new Point(15, 552);
+            panel5.Location = new Point(665, 552);
             panel5.Name = "panel5";
-            panel5.Size = new Size(286, 354);
+            panel5.Size = new Size(329, 354);
             panel5.TabIndex = 148;
             // 
             // RemoveChangeButton
@@ -1349,7 +1357,7 @@ namespace IndyPOS.Windows.Forms.UI.Report
             RemoveChangeButton.FlatStyle = FlatStyle.Flat;
             RemoveChangeButton.Font = new Font("FC Subject [Non-commercial] Reg", 12F);
             RemoveChangeButton.ForeColor = Color.White;
-            RemoveChangeButton.Location = new Point(181, 302);
+            RemoveChangeButton.Location = new Point(224, 302);
             RemoveChangeButton.Name = "RemoveChangeButton";
             RemoveChangeButton.Size = new Size(77, 36);
             RemoveChangeButton.TabIndex = 144;
@@ -1369,7 +1377,7 @@ namespace IndyPOS.Windows.Forms.UI.Report
             AddChangeButton.FlatStyle = FlatStyle.Flat;
             AddChangeButton.Font = new Font("FC Subject [Non-commercial] Reg", 12F);
             AddChangeButton.ForeColor = Color.White;
-            AddChangeButton.Location = new Point(181, 86);
+            AddChangeButton.Location = new Point(224, 86);
             AddChangeButton.Name = "AddChangeButton";
             AddChangeButton.Size = new Size(77, 36);
             AddChangeButton.TabIndex = 143;
@@ -1393,7 +1401,7 @@ namespace IndyPOS.Windows.Forms.UI.Report
             ChangeAmountTextBox.PlaceholderColor = Color.DarkGray;
             ChangeAmountTextBox.PlaceholderText = "";
             ChangeAmountTextBox.ReadOnly = false;
-            ChangeAmountTextBox.Size = new Size(86, 37);
+            ChangeAmountTextBox.Size = new Size(129, 37);
             ChangeAmountTextBox.TabIndex = 141;
             ChangeAmountTextBox.TextAlign = HorizontalAlignment.Center;
             ChangeAmountTextBox.Texts = "";
@@ -1430,7 +1438,7 @@ namespace IndyPOS.Windows.Forms.UI.Report
             ChangesTotalLabel.ForeColor = Color.Aquamarine;
             ChangesTotalLabel.Location = new Point(102, 45);
             ChangesTotalLabel.Name = "ChangesTotalLabel";
-            ChangesTotalLabel.Size = new Size(156, 37);
+            ChangesTotalLabel.Size = new Size(199, 37);
             ChangesTotalLabel.TabIndex = 136;
             ChangesTotalLabel.Text = "0.00";
             ChangesTotalLabel.TextAlign = ContentAlignment.MiddleCenter;
@@ -1443,7 +1451,7 @@ namespace IndyPOS.Windows.Forms.UI.Report
             label47.ForeColor = Color.Gainsboro;
             label47.Location = new Point(0, 0);
             label47.Name = "label47";
-            label47.Size = new Size(286, 39);
+            label47.Size = new Size(329, 39);
             label47.TabIndex = 87;
             label47.Text = "รายการ [ เงินทอน ]";
             label47.TextAlign = ContentAlignment.MiddleCenter;
@@ -1628,11 +1636,85 @@ namespace IndyPOS.Windows.Forms.UI.Report
             label46.Text = "[ รายรับ ] บัตรสวัสดิการ";
             label46.TextAlign = ContentAlignment.MiddleLeft;
             // 
+            // panel14
+            // 
+            panel14.BackColor = Color.FromArgb(38, 38, 38);
+            panel14.Controls.Add(PayLaterForGeneralProductsLabel);
+            panel14.Controls.Add(label2);
+            panel14.Location = new Point(15, 552);
+            panel14.Name = "panel14";
+            panel14.Size = new Size(286, 81);
+            panel14.TabIndex = 154;
+            // 
+            // PayLaterForGeneralProductsLabel
+            // 
+            PayLaterForGeneralProductsLabel.BackColor = Color.FromArgb(38, 38, 38);
+            PayLaterForGeneralProductsLabel.Dock = DockStyle.Fill;
+            PayLaterForGeneralProductsLabel.Font = new Font("FC Subject [Non-commercial] Reg", 20.2499981F);
+            PayLaterForGeneralProductsLabel.ForeColor = Color.MediumOrchid;
+            PayLaterForGeneralProductsLabel.Location = new Point(0, 29);
+            PayLaterForGeneralProductsLabel.Name = "PayLaterForGeneralProductsLabel";
+            PayLaterForGeneralProductsLabel.Size = new Size(286, 52);
+            PayLaterForGeneralProductsLabel.TabIndex = 87;
+            PayLaterForGeneralProductsLabel.Text = "0.00";
+            PayLaterForGeneralProductsLabel.TextAlign = ContentAlignment.TopCenter;
+            // 
+            // label2
+            // 
+            label2.BackColor = Color.FromArgb(38, 38, 38);
+            label2.Dock = DockStyle.Top;
+            label2.Font = new Font("FC Subject [Non-commercial] Reg", 12F);
+            label2.ForeColor = Color.Gainsboro;
+            label2.Location = new Point(0, 0);
+            label2.Name = "label2";
+            label2.Size = new Size(286, 29);
+            label2.TabIndex = 83;
+            label2.Text = "[ รายรับ ] ยอดลงบัญชี (สินค้าเบ็ดเตล็ด)";
+            label2.TextAlign = ContentAlignment.MiddleLeft;
+            // 
+            // panel15
+            // 
+            panel15.BackColor = Color.FromArgb(38, 38, 38);
+            panel15.Controls.Add(PayLaterForHardwareProductsLabel);
+            panel15.Controls.Add(label21);
+            panel15.Location = new Point(15, 639);
+            panel15.Name = "panel15";
+            panel15.Size = new Size(286, 81);
+            panel15.TabIndex = 155;
+            // 
+            // PayLaterForHardwareProductsLabel
+            // 
+            PayLaterForHardwareProductsLabel.BackColor = Color.FromArgb(38, 38, 38);
+            PayLaterForHardwareProductsLabel.Dock = DockStyle.Fill;
+            PayLaterForHardwareProductsLabel.Font = new Font("FC Subject [Non-commercial] Reg", 20.2499981F);
+            PayLaterForHardwareProductsLabel.ForeColor = Color.RoyalBlue;
+            PayLaterForHardwareProductsLabel.Location = new Point(0, 29);
+            PayLaterForHardwareProductsLabel.Name = "PayLaterForHardwareProductsLabel";
+            PayLaterForHardwareProductsLabel.Size = new Size(286, 52);
+            PayLaterForHardwareProductsLabel.TabIndex = 87;
+            PayLaterForHardwareProductsLabel.Text = "0.00";
+            PayLaterForHardwareProductsLabel.TextAlign = ContentAlignment.TopCenter;
+            // 
+            // label21
+            // 
+            label21.BackColor = Color.FromArgb(38, 38, 38);
+            label21.Dock = DockStyle.Top;
+            label21.Font = new Font("FC Subject [Non-commercial] Reg", 12F);
+            label21.ForeColor = Color.Gainsboro;
+            label21.Location = new Point(0, 0);
+            label21.Name = "label21";
+            label21.Size = new Size(286, 29);
+            label21.TabIndex = 83;
+            label21.Text = "[ รายรับ ] ยอดลงบัญชี (สินค้าฮาร์ดแวร์)";
+            label21.TextAlign = ContentAlignment.MiddleLeft;
+            // 
             // CashFlowCalculatorPanel
             // 
             AutoScaleDimensions = new SizeF(11F, 29F);
             AutoScaleMode = AutoScaleMode.Font;
             BackColor = Color.FromArgb(30, 30, 30);
+            Controls.Add(panel15);
+            Controls.Add(panel14);
             Controls.Add(panel13);
             Controls.Add(panel12);
             Controls.Add(panel11);
@@ -1667,6 +1749,8 @@ namespace IndyPOS.Windows.Forms.UI.Report
             panel11.ResumeLayout(false);
             panel12.ResumeLayout(false);
             panel13.ResumeLayout(false);
+            panel14.ResumeLayout(false);
+            panel15.ResumeLayout(false);
             ResumeLayout(false);
         }
 
@@ -1779,5 +1863,11 @@ namespace IndyPOS.Windows.Forms.UI.Report
         private Panel panel13;
         private Label WelfareCardPaymentLabel;
         private Label label46;
+        private Panel panel14;
+        private Label PayLaterForGeneralProductsLabel;
+        private Label label2;
+        private Panel panel15;
+        private Label PayLaterForHardwareProductsLabel;
+        private Label label21;
     }
 }

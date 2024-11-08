@@ -102,6 +102,8 @@ public partial class CashFlowCalculatorPanel : UserControl
         CashPaymentLabel.Text = $"{data.SalesTotalWithoutPayLaterPayments:N2}";
         MoneyTransferPaymentLabel.Text = $"{data.MoneyTransferTotal:N2}";
         WelfareCardPaymentLabel.Text = $"{data.WelfareCardTotal:N2}";
+        PayLaterForGeneralProductsLabel.Text = $"{data.PayLaterTotalForGeneralProducts:N2}";
+        PayLaterForHardwareProductsLabel.Text = $"{data.PayLaterTotalForHardwareProducts:N2}";
 
         AddChangesToListView(data.Changes);
         AddPayoutsToListView(data.Payouts);
@@ -198,6 +200,8 @@ public partial class CashFlowCalculatorPanel : UserControl
             SalesTotalWithoutPayLaterPayments = _salesReport?.InvoiceTotalWithoutPayLaterPayments ?? 0m,
             MoneyTransferTotal = _paymentsReport?.MoneyTransferTotal ?? 0m,
             WelfareCardTotal = _paymentsReport?.WelfareCardTotal ?? 0m,
+            PayLaterTotalForGeneralProducts = _salesReport?.PayLaterPaymentsTotalForGeneralProducts ?? 0m,
+            PayLaterTotalForHardwareProducts = _salesReport?.PayLaterPaymentsTotalForHardwareProducts ?? 0m,
 
             Changes = GetChangesFromListView(),
             Payouts = GetPayoutsFromListView(),
@@ -257,6 +261,8 @@ public partial class CashFlowCalculatorPanel : UserControl
         CashPaymentLabel.Text = $"{data.SalesTotalWithoutPayLaterPayments:N2}";
         MoneyTransferPaymentLabel.Text = $"{data.MoneyTransferTotal:N2}";
         WelfareCardPaymentLabel.Text = $"{data.WelfareCardTotal:N2}";
+        PayLaterForGeneralProductsLabel.Text = $"{data.PayLaterTotalForGeneralProducts:N2}";
+        PayLaterForHardwareProductsLabel.Text = $"{data.PayLaterTotalForHardwareProducts:N2}";
 
         ChangesTotalLabel.Text = $"{data.ChangesTotal:N2}";
         PayoutsTotalLabel.Text = $"{data.PayoutsTotal:N2}";

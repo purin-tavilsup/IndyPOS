@@ -26,6 +26,12 @@ public class CashFlowData
 	[Name("ยอดรวม บัตรสวัสดิการ")]
 	public decimal WelfareCardTotal { get; init; }
 
+	[Name("ยอดรวม ลงบัญชี สินค้าเบ็ดเตล็ด")]
+	public decimal PayLaterTotalForGeneralProducts {get; init; }
+
+	[Name("ยอดรวม ลงบัญชี สินค้าฮาร์ดแวร์")]
+	public decimal PayLaterTotalForHardwareProducts {get; init; }
+
 	[Ignore]
 	public IEnumerable<Change> Changes { get; init; } = Enumerable.Empty<Change>();
 
