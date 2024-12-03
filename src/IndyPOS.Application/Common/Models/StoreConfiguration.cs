@@ -14,4 +14,8 @@ public class StoreConfiguration
     public string? PrinterName { get; init; }
     public string? BarcodeScannerDeviceName { get; init; }
     public bool? CloudDatabaseEnabled { get; init; }
+
+    public string? SerialPortName { get; init; } = "COM1";
+
+    public int? Code { get; init; } = 1;
 }

@@ -10,12 +10,12 @@ using IndyPOS.Application.InventoryProducts.Queries.GetByBarcode;
 using IndyPOS.Application.InventoryProducts.Queries.GetById;
 using IndyPOS.Application.InvoicePayments.Commands.CreateInvoicePayment;
 using IndyPOS.Application.InvoiceProducts.Commands.CreateInvoiceProduct;
+using IndyPOS.Application.Invoices;
 using IndyPOS.Application.Invoices.Commands.CreateInvoice;
 using IndyPOS.Application.Notifications;
 using IndyPOS.Application.PayLaterPayments.Commands.CreatePayLaterPayment;
 using IndyPOS.Domain.Events;
 using MediatR;
-using Prism.Events;
 using Throw;
 
 namespace IndyPOS.Infrastructure.Services;
@@ -516,17 +516,5 @@ public class SaleService : ISaleService
 	private async Task PublishSalesCompletedEventAsync(int invoiceId, bool hasPayLaterPayment)
 	{
 		await _mediator.Publish(new SalesCompletedEvent(invoiceId, hasPayLaterPayment));
-	}
-
-	private class InvoiceInfo : IInvoiceInfo
-	{
-		public int Id { get; init; }
-		public IList<Product> Products { get; init; } = new List<Product>();
-		public IList<Payment> Payments { get; init; } = new List<Payment>();
-		public bool IsRefundInvoice { get; init; }
-		public decimal InvoiceTotal { get; init; }
-		public decimal PaymentTotal { get; init; }
-		public decimal Changes { get; init; }
-		public bool HasPayLaterPayment { get; init; }
 	}
 }

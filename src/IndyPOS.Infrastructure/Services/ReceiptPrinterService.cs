@@ -1,10 +1,8 @@
-﻿#nullable enable
-using IndyPOS.Application.Common.Extensions;
+﻿using IndyPOS.Application.Common.Extensions;
 using IndyPOS.Application.Common.Interfaces;
 using IndyPOS.Application.Common.Models;
 using IndyPOS.Application.Events;
 using Microsoft.Extensions.Logging;
-using Prism.Events;
 using System.Drawing.Printing;
 using System.Runtime.Versioning;
 

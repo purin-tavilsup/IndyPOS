@@ -52,12 +52,20 @@
             label8 = new Label();
             BarcodeScannerDeviceNameTextBox = new ModernUI.ModernTextBox();
             panel4 = new Panel();
-            label11 = new Label();
             EnableCloudDatabaseCheckBox = new CheckBox();
+            label11 = new Label();
+            panel5 = new Panel();
+            CashDrawerButton = new ModernUI.ModernButton();
+            label14 = new Label();
+            CashDrawerCodeTextBox = new ModernUI.ModernTextBox();
+            label12 = new Label();
+            label13 = new Label();
+            CashDrawerPortTextBox = new ModernUI.ModernTextBox();
             panel1.SuspendLayout();
             panel2.SuspendLayout();
             panel3.SuspendLayout();
             panel4.SuspendLayout();
+            panel5.SuspendLayout();
             SuspendLayout();
             // 
             // StoreNameTextBox
@@ -72,6 +80,8 @@
             StoreNameTextBox.Name = "StoreNameTextBox";
             StoreNameTextBox.Padding = new Padding(7);
             StoreNameTextBox.PasswordChar = false;
+            StoreNameTextBox.PlaceholderColor = Color.DarkGray;
+            StoreNameTextBox.PlaceholderText = "";
             StoreNameTextBox.ReadOnly = false;
             StoreNameTextBox.Size = new Size(372, 39);
             StoreNameTextBox.TabIndex = 72;
@@ -103,6 +113,8 @@
             StoreAddressLine1TextBox.Name = "StoreAddressLine1TextBox";
             StoreAddressLine1TextBox.Padding = new Padding(7);
             StoreAddressLine1TextBox.PasswordChar = false;
+            StoreAddressLine1TextBox.PlaceholderColor = Color.DarkGray;
+            StoreAddressLine1TextBox.PlaceholderText = "";
             StoreAddressLine1TextBox.ReadOnly = false;
             StoreAddressLine1TextBox.Size = new Size(372, 39);
             StoreAddressLine1TextBox.TabIndex = 74;
@@ -134,6 +146,8 @@
             StoreAddressLine2TextBox.Name = "StoreAddressLine2TextBox";
             StoreAddressLine2TextBox.Padding = new Padding(7);
             StoreAddressLine2TextBox.PasswordChar = false;
+            StoreAddressLine2TextBox.PlaceholderColor = Color.DarkGray;
+            StoreAddressLine2TextBox.PlaceholderText = "";
             StoreAddressLine2TextBox.ReadOnly = false;
             StoreAddressLine2TextBox.Size = new Size(372, 39);
             StoreAddressLine2TextBox.TabIndex = 76;
@@ -165,6 +179,8 @@
             StorePhoneTextBox.Name = "StorePhoneTextBox";
             StorePhoneTextBox.Padding = new Padding(7);
             StorePhoneTextBox.PasswordChar = false;
+            StorePhoneTextBox.PlaceholderColor = Color.DarkGray;
+            StorePhoneTextBox.PlaceholderText = "";
             StorePhoneTextBox.ReadOnly = false;
             StorePhoneTextBox.Size = new Size(372, 39);
             StorePhoneTextBox.TabIndex = 78;
@@ -196,6 +212,8 @@
             ReceiptPrinterNameTextBox.Name = "ReceiptPrinterNameTextBox";
             ReceiptPrinterNameTextBox.Padding = new Padding(7);
             ReceiptPrinterNameTextBox.PasswordChar = false;
+            ReceiptPrinterNameTextBox.PlaceholderColor = Color.DarkGray;
+            ReceiptPrinterNameTextBox.PlaceholderText = "";
             ReceiptPrinterNameTextBox.ReadOnly = false;
             ReceiptPrinterNameTextBox.Size = new Size(222, 39);
             ReceiptPrinterNameTextBox.TabIndex = 80;
@@ -258,6 +276,8 @@
             StoreFullNameTextBox.Name = "StoreFullNameTextBox";
             StoreFullNameTextBox.Padding = new Padding(7);
             StoreFullNameTextBox.PasswordChar = false;
+            StoreFullNameTextBox.PlaceholderColor = Color.DarkGray;
+            StoreFullNameTextBox.PlaceholderText = "";
             StoreFullNameTextBox.ReadOnly = false;
             StoreFullNameTextBox.Size = new Size(372, 39);
             StoreFullNameTextBox.TabIndex = 85;
@@ -404,6 +424,8 @@
             BarcodeScannerDeviceNameTextBox.Name = "BarcodeScannerDeviceNameTextBox";
             BarcodeScannerDeviceNameTextBox.Padding = new Padding(7);
             BarcodeScannerDeviceNameTextBox.PasswordChar = false;
+            BarcodeScannerDeviceNameTextBox.PlaceholderColor = Color.DarkGray;
+            BarcodeScannerDeviceNameTextBox.PlaceholderText = "";
             BarcodeScannerDeviceNameTextBox.ReadOnly = false;
             BarcodeScannerDeviceNameTextBox.Size = new Size(409, 31);
             BarcodeScannerDeviceNameTextBox.TabIndex = 80;
@@ -421,6 +443,18 @@
             panel4.Size = new Size(207, 121);
             panel4.TabIndex = 85;
             // 
+            // EnableCloudDatabaseCheckBox
+            // 
+            EnableCloudDatabaseCheckBox.AutoSize = true;
+            EnableCloudDatabaseCheckBox.Font = new Font("FC Subject [Non-commercial] Reg", 11.9999981F, FontStyle.Regular, GraphicsUnit.Point, 0);
+            EnableCloudDatabaseCheckBox.ForeColor = Color.Gainsboro;
+            EnableCloudDatabaseCheckBox.Location = new Point(63, 59);
+            EnableCloudDatabaseCheckBox.Name = "EnableCloudDatabaseCheckBox";
+            EnableCloudDatabaseCheckBox.Size = new Size(88, 28);
+            EnableCloudDatabaseCheckBox.TabIndex = 85;
+            EnableCloudDatabaseCheckBox.Text = "Enabled";
+            EnableCloudDatabaseCheckBox.UseVisualStyleBackColor = true;
+            // 
             // label11
             // 
             label11.BackColor = Color.FromArgb(38, 38, 38);
@@ -434,23 +468,125 @@
             label11.Text = "Cloud Database";
             label11.TextAlign = ContentAlignment.MiddleCenter;
             // 
-            // EnableCloudDatabaseCheckBox
+            // panel5
             // 
-            EnableCloudDatabaseCheckBox.AutoSize = true;
-            EnableCloudDatabaseCheckBox.Font = new Font("FC Subject [Non-commercial] Reg", 11.9999981F, FontStyle.Regular, GraphicsUnit.Point, 0);
-            EnableCloudDatabaseCheckBox.ForeColor = Color.Gainsboro;
-            EnableCloudDatabaseCheckBox.Location = new Point(63, 59);
-            EnableCloudDatabaseCheckBox.Name = "EnableCloudDatabaseCheckBox";
-            EnableCloudDatabaseCheckBox.Size = new Size(88, 28);
-            EnableCloudDatabaseCheckBox.TabIndex = 85;
-            EnableCloudDatabaseCheckBox.Text = "Enabled";
-            EnableCloudDatabaseCheckBox.UseVisualStyleBackColor = true;
+            panel5.BackColor = Color.FromArgb(38, 38, 38);
+            panel5.Controls.Add(CashDrawerButton);
+            panel5.Controls.Add(label14);
+            panel5.Controls.Add(CashDrawerCodeTextBox);
+            panel5.Controls.Add(label12);
+            panel5.Controls.Add(label13);
+            panel5.Controls.Add(CashDrawerPortTextBox);
+            panel5.Location = new Point(618, 12);
+            panel5.Name = "panel5";
+            panel5.Size = new Size(269, 320);
+            panel5.TabIndex = 86;
+            // 
+            // CashDrawerButton
+            // 
+            CashDrawerButton.BackColor = Color.FromArgb(38, 38, 38);
+            CashDrawerButton.BackgroundColor = Color.FromArgb(38, 38, 38);
+            CashDrawerButton.BorderColor = Color.SteelBlue;
+            CashDrawerButton.BorderRadius = 18;
+            CashDrawerButton.BorderSize = 1;
+            CashDrawerButton.FlatAppearance.BorderSize = 0;
+            CashDrawerButton.FlatStyle = FlatStyle.Flat;
+            CashDrawerButton.Font = new Font("FC Subject [Non-commercial] Reg", 12F, FontStyle.Regular, GraphicsUnit.Point, 0);
+            CashDrawerButton.ForeColor = Color.White;
+            CashDrawerButton.Location = new Point(17, 235);
+            CashDrawerButton.Name = "CashDrawerButton";
+            CashDrawerButton.Size = new Size(233, 51);
+            CashDrawerButton.TabIndex = 87;
+            CashDrawerButton.Text = "เปิดลิ้นชัก";
+            CashDrawerButton.TextColor = Color.White;
+            CashDrawerButton.UseVisualStyleBackColor = false;
+            CashDrawerButton.Click += CashDrawerButton_Click;
+            // 
+            // label14
+            // 
+            label14.BackColor = Color.FromArgb(38, 38, 38);
+            label14.Font = new Font("FC Subject [Non-commercial] Reg", 12F);
+            label14.ForeColor = Color.Gainsboro;
+            label14.Location = new Point(17, 90);
+            label14.Name = "label14";
+            label14.Size = new Size(120, 39);
+            label14.TabIndex = 85;
+            label14.Text = "Code [1, 10]";
+            label14.TextAlign = ContentAlignment.MiddleLeft;
+            // 
+            // CashDrawerCodeTextBox
+            // 
+            CashDrawerCodeTextBox.BackColor = Color.FromArgb(38, 38, 38);
+            CashDrawerCodeTextBox.BorderColor = Color.DimGray;
+            CashDrawerCodeTextBox.BorderSize = 1;
+            CashDrawerCodeTextBox.Font = new Font("FC Subject [Non-commercial] Reg", 12F);
+            CashDrawerCodeTextBox.ForeColor = Color.Gainsboro;
+            CashDrawerCodeTextBox.Location = new Point(143, 90);
+            CashDrawerCodeTextBox.Multiline = false;
+            CashDrawerCodeTextBox.Name = "CashDrawerCodeTextBox";
+            CashDrawerCodeTextBox.Padding = new Padding(7);
+            CashDrawerCodeTextBox.PasswordChar = false;
+            CashDrawerCodeTextBox.PlaceholderColor = Color.DarkGray;
+            CashDrawerCodeTextBox.PlaceholderText = "";
+            CashDrawerCodeTextBox.ReadOnly = false;
+            CashDrawerCodeTextBox.Size = new Size(107, 39);
+            CashDrawerCodeTextBox.TabIndex = 86;
+            CashDrawerCodeTextBox.TextAlign = HorizontalAlignment.Center;
+            CashDrawerCodeTextBox.Texts = "1";
+            CashDrawerCodeTextBox.UnderlinedStyle = true;
+            // 
+            // label12
+            // 
+            label12.BackColor = Color.FromArgb(38, 38, 38);
+            label12.Dock = DockStyle.Top;
+            label12.Font = new Font("FC Subject [Non-commercial] Reg", 12F);
+            label12.ForeColor = Color.Gainsboro;
+            label12.Location = new Point(0, 0);
+            label12.Name = "label12";
+            label12.Size = new Size(269, 39);
+            label12.TabIndex = 84;
+            label12.Text = "Cash Drawer";
+            label12.TextAlign = ContentAlignment.MiddleCenter;
+            // 
+            // label13
+            // 
+            label13.BackColor = Color.FromArgb(38, 38, 38);
+            label13.Font = new Font("FC Subject [Non-commercial] Reg", 12F);
+            label13.ForeColor = Color.Gainsboro;
+            label13.Location = new Point(17, 51);
+            label13.Name = "label13";
+            label13.Size = new Size(120, 39);
+            label13.TabIndex = 79;
+            label13.Text = "Port";
+            label13.TextAlign = ContentAlignment.MiddleLeft;
+            // 
+            // CashDrawerPortTextBox
+            // 
+            CashDrawerPortTextBox.BackColor = Color.FromArgb(38, 38, 38);
+            CashDrawerPortTextBox.BorderColor = Color.DimGray;
+            CashDrawerPortTextBox.BorderSize = 1;
+            CashDrawerPortTextBox.Font = new Font("FC Subject [Non-commercial] Reg", 12F);
+            CashDrawerPortTextBox.ForeColor = Color.Gainsboro;
+            CashDrawerPortTextBox.Location = new Point(143, 51);
+            CashDrawerPortTextBox.Multiline = false;
+            CashDrawerPortTextBox.Name = "CashDrawerPortTextBox";
+            CashDrawerPortTextBox.Padding = new Padding(7);
+            CashDrawerPortTextBox.PasswordChar = false;
+            CashDrawerPortTextBox.PlaceholderColor = Color.DarkGray;
+            CashDrawerPortTextBox.PlaceholderText = "";
+            CashDrawerPortTextBox.ReadOnly = false;
+            CashDrawerPortTextBox.Size = new Size(107, 39);
+            CashDrawerPortTextBox.TabIndex = 80;
+            CashDrawerPortTextBox.TextAlign = HorizontalAlignment.Center;
+            CashDrawerPortTextBox.Texts = "COM1";
+            CashDrawerPortTextBox.UnderlinedStyle = true;
             // 
             // SettingsPanel
             // 
             AutoScaleDimensions = new SizeF(6F, 13F);
             AutoScaleMode = AutoScaleMode.Font;
             BackColor = Color.FromArgb(30, 30, 30);
+            Controls.Add(panel5);
             Controls.Add(panel4);
             Controls.Add(panel3);
             Controls.Add(SaveSettingsButton);
@@ -464,6 +600,7 @@
             panel3.ResumeLayout(false);
             panel4.ResumeLayout(false);
             panel4.PerformLayout();
+            panel5.ResumeLayout(false);
             ResumeLayout(false);
         }
 
@@ -495,5 +632,12 @@
         private Panel panel4;
         private CheckBox EnableCloudDatabaseCheckBox;
         private Label label11;
+        private Panel panel5;
+        private Label label14;
+        private ModernUI.ModernTextBox CashDrawerCodeTextBox;
+        private Label label12;
+        private Label label13;
+        private ModernUI.ModernTextBox CashDrawerPortTextBox;
+        private ModernUI.ModernButton CashDrawerButton;
     }
 }
