@@ -1,6 +1,6 @@
 ﻿using IndyPOS.Application.Common.Models;
 using IndyPOS.Application.Common.Enums;
-using IndyPOS.Application.InvoicePayments;
+using IndyPOS.Application.UseCases.InvoicePayments;
 
 namespace IndyPOS.Application.Common.Extensions;
 

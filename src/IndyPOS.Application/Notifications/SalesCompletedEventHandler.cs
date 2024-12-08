@@ -1,7 +1,7 @@
 ﻿using IndyPOS.Application.Common.Interfaces;
 using IndyPOS.Application.Common.Models;
-using IndyPOS.Application.PaymentsReports.Create;
-using IndyPOS.Application.SalesReports.Create;
+using IndyPOS.Application.UseCases.PaymentsReports.Create;
+using IndyPOS.Application.UseCases.SalesReports.Create;
 using MediatR;
 
 namespace IndyPOS.Application.Notifications;

@@ -1,17 +1,15 @@
 ﻿using IndyPOS.Application.Common.Extensions;
 using IndyPOS.Application.Common.Interfaces;
 using IndyPOS.Application.Events;
-using IndyPOS.Application.UserCredentials;
-using IndyPOS.Application.UserCredentials.Queries.GetUserCredentialById;
-using IndyPOS.Application.Users;
-using IndyPOS.Application.Users.Queries.GetUserById;
-using IndyPOS.Application.Users.Queries.GetUsers;
 using IndyPOS.Domain.Events;
 using MediatR;
-using Prism.Events;
 using System.Diagnostics.CodeAnalysis;
-using IndyPOS.Application.UserCredentials.Commands.UpdateUserCredential;
-using IndyPOS.Application.Users.Commands.DeleteUser;
+using IndyPOS.Application.UseCases.UserCredentials;
+using IndyPOS.Application.UseCases.UserCredentials.Get;
+using IndyPOS.Application.UseCases.UserCredentials.Update;
+using IndyPOS.Application.UseCases.Users;
+using IndyPOS.Application.UseCases.Users.Delete;
+using IndyPOS.Application.UseCases.Users.Get;
 using UserRoleEnum = IndyPOS.Application.Common.Enums.UserRole;
 
 namespace IndyPOS.Windows.Forms.UI.User;

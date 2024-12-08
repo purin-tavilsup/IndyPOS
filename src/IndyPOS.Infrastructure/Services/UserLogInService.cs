@@ -1,9 +1,9 @@
 ﻿using IndyPOS.Application.Common.Interfaces;
 using IndyPOS.Application.Events;
-using IndyPOS.Application.UserCredentials;
-using IndyPOS.Application.UserCredentials.Queries.GetUserCredentialByUsername;
-using IndyPOS.Application.Users;
-using IndyPOS.Application.Users.Queries.GetUserById;
+using IndyPOS.Application.UseCases.UserCredentials;
+using IndyPOS.Application.UseCases.UserCredentials.Get;
+using IndyPOS.Application.UseCases.Users;
+using IndyPOS.Application.UseCases.Users.Get;
 using MediatR;
 using Prism.Events;
 

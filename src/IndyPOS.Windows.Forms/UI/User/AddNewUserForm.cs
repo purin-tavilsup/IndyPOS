@@ -1,9 +1,9 @@
 ﻿using IndyPOS.Application.Common.Extensions;
 using IndyPOS.Application.Common.Interfaces;
-using IndyPOS.Application.UserCredentials.Commands.CreateUserCredential;
-using IndyPOS.Application.Users.Commands.CreateUser;
 using MediatR;
 using System.Diagnostics.CodeAnalysis;
+using IndyPOS.Application.UseCases.UserCredentials.Create;
+using IndyPOS.Application.UseCases.Users.Create;
 
 namespace IndyPOS.Windows.Forms.UI.User;
 
