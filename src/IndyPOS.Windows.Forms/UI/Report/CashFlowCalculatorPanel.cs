@@ -14,6 +14,7 @@ public partial class CashFlowCalculatorPanel : UserControl
 	private readonly ICsvService _csvService;
 	private SalesSummary? _salesReport;
 	private PaymentsSummary? _paymentsReport;
+    private IList<PayLaterPayment> _payLaterPayments = [];
 	private readonly ILogger<MainForm> _logger;
 
 	private const string DataDirectory = @"C:\\ProgramData\\IndyPOSCashFlow\\Data";
@@ -38,6 +39,7 @@ public partial class CashFlowCalculatorPanel : UserControl
 		InitializeChangesListView();
 		InitializePayOutListView();
 		InitializeReceivedPayLaterPaymentsListView();
+        InitializePayLaterPaymentsListView();
 		LoadSavedData();
 
 		RemovePayOutButton.Enabled = false;
@@ -55,6 +57,18 @@ public partial class CashFlowCalculatorPanel : UserControl
     private async Task<PaymentsSummary> GetPaymentsReportAsync()
     {
         return await _reportService.CreatePaymentsSummaryByPeriodAsync(TimePeriod.Today);
+    }
+
+    private async Task<IList<PayLaterPayment>> GetPayLaterPaymentsTodayAsync()
+    {
+        var results = await _reportService.GetPayLaterPaymentsByPeriodAsync(TimePeriod.Today);
+
+        return results.Select(x => new PayLaterPayment
+        {
+            Date = x.DateCreated,
+            AccountName = x.Description,
+            Amount = x.ReceivableAmount
+        }).ToList();
     }
 
     private void InitializeChangesListView()
@@ -92,6 +106,18 @@ public partial class CashFlowCalculatorPanel : UserControl
         ReceivedPayLaterPaymentsListView.Columns.Add("จำนวน", 100, HorizontalAlignment.Right);
     }
 
+    private void InitializePayLaterPaymentsListView()
+    {
+        PayLaterPaymentsListView.View = View.Details;
+        PayLaterPaymentsListView.GridLines = false;
+        PayLaterPaymentsListView.FullRowSelect = true;
+		PayLaterPaymentsListView.HeaderStyle = ColumnHeaderStyle.Nonclickable;
+
+        PayLaterPaymentsListView.Columns.Add("เวลา", 70, HorizontalAlignment.Center);
+        PayLaterPaymentsListView.Columns.Add("ชื่อ", 110, HorizontalAlignment.Center);
+        PayLaterPaymentsListView.Columns.Add("จำนวน", 90, HorizontalAlignment.Right);
+    }
+
     private void LoadSavedData()
     {
         var data = LoadDataFromFile();
@@ -107,7 +133,7 @@ public partial class CashFlowCalculatorPanel : UserControl
 
         AddChangesToListView(data.Changes);
         AddPayoutsToListView(data.Payouts);
-        AddReceivedPayLaterPaymentsToListView(data.PayLaterPayments);
+        AddReceivedPayLaterPaymentsToListView(data.PaidPayLaterPayments);
 
         ChangesTotalLabel.Text = $"{data.ChangesTotal:N2}";
         PayoutsTotalLabel.Text = $"{data.PayoutsTotal:N2}";
@@ -205,7 +231,8 @@ public partial class CashFlowCalculatorPanel : UserControl
 
             Changes = GetChangesFromListView(),
             Payouts = GetPayoutsFromListView(),
-            PayLaterPayments = GetReceivedPayLaterPaymentsFromListView(),
+            PaidPayLaterPayments = GetReceivedPayLaterPaymentsFromListView(),
+            PayLaterPayments = _payLaterPayments,
 
             BankNote1000Count = GetBankNote1000Count(),
             BankNote500Count = GetBankNote500Count(),
@@ -226,6 +253,7 @@ public partial class CashFlowCalculatorPanel : UserControl
     {
         _salesReport = await GetSalesReportAsync();
         _paymentsReport = await GetPaymentsReportAsync();
+        _payLaterPayments = await GetPayLaterPaymentsTodayAsync();
 
         UpdateResults();
     }
@@ -278,6 +306,8 @@ public partial class CashFlowCalculatorPanel : UserControl
         DisplayCoin5Total(data);
         DisplayCoin2Total(data);
         DisplayCoin1Total(data);
+
+        AddPayLaterPaymentsToListView(data.PayLaterPayments);
 
         CalculatedCashTotalLabel.Text = $"{expectedCash:N2}";
         ActualCashTotalLabel.Text = $"{actualCash:N2}";
@@ -380,6 +410,29 @@ public partial class CashFlowCalculatorPanel : UserControl
 
             ReceivedPayLaterPaymentsListView.Items.Add(item);
         }
+    }
+
+    private void AddPayLaterPaymentsToListView(IList<PayLaterPayment> payments)
+    {
+        PayLaterPaymentsListView.Items.Clear();
+        var total = payments.Sum(x => x.Amount);
+        TotalPayLaterLabel.Text = $"{total:N2}";
+        
+        foreach (var payment in payments)
+        {
+            var time = GetTime(payment.Date);
+            var rowItem = new[] { time, payment.AccountName, $"{payment.Amount:N2}" };
+            var item = new ListViewItem(rowItem);
+
+            PayLaterPaymentsListView.Items.Add(item);
+        }
+    }
+    
+    private static string GetTime(string dateTimeString)
+    {
+        var dateTime = DateTime.TryParse(dateTimeString, out var result) ? result : DateTime.Now;
+
+        return $"{dateTime:t}";
     }
 
     private void AddChangeButton_Click(object sender, EventArgs e)

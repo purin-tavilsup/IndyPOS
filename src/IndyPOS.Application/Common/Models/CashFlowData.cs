@@ -1,5 +1,4 @@
 ﻿using CsvHelper.Configuration.Attributes;
-using IndyPOS.Domain.Entities;
 
 namespace IndyPOS.Application.Common.Models;
 
@@ -33,13 +32,16 @@ public class CashFlowData
 	public decimal PayLaterTotalForHardwareProducts {get; init; }
 
 	[Ignore]
-	public IEnumerable<Change> Changes { get; init; } = Enumerable.Empty<Change>();
+	public IEnumerable<Change> Changes { get; init; } = [];
 
 	[Ignore]
-	public IEnumerable<PayLaterPayment> PayLaterPayments { get; init; } = Enumerable.Empty<PayLaterPayment>();
+	public IEnumerable<PayLaterPayment> PaidPayLaterPayments { get; init; } = [];
 
 	[Ignore]
-	public IEnumerable<Payout> Payouts { get; init; } = Enumerable.Empty<Payout>();
+	public IList<PayLaterPayment> PayLaterPayments { get; init; } = [];
+
+	[Ignore]
+	public IEnumerable<Payout> Payouts { get; init; } = [];
 
 	[Name("ยอดรวม เงินทอน")]
 	public decimal ChangesTotal => Changes.Sum(x => x.Amount);
@@ -48,7 +50,7 @@ public class CashFlowData
 	public decimal PayoutsTotal => Payouts.Sum(x => x.Amount);
 
 	[Name("ยอดรวม ลูกค้าชำระหนี้")]
-	public decimal ReceivedPayLaterPaymentsTotal => PayLaterPayments.Sum(x => x.Amount);
+	public decimal ReceivedPayLaterPaymentsTotal => PaidPayLaterPayments.Sum(x => x.Amount);
 
 	[Name("จำนวนนับ ธนบัตร 1000")]
 	public int BankNote1000Count { get; init; }
