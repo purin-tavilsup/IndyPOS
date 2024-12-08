@@ -29,42 +29,6 @@
     <ProjectReference Include="..\IndyPOS.Domain\IndyPOS.Domain.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="InventoryProducts\Commands\Create\" />
-    <Folder Include="InventoryProducts\Commands\Delete\" />
-    <Folder Include="InventoryProducts\Commands\UpdateInventoryProductBarcodeCounter\" />
-    <Folder Include="InventoryProducts\Commands\UpdateQuantity\" />
-    <Folder Include="InventoryProducts\Commands\Update\" />
-    <Folder Include="InventoryProducts\Queries\GetByDescriptionKeyword\" />
-    <Folder Include="InventoryProducts\Queries\GetByBrandKeyword\" />
-    <Folder Include="InvoicePayments\Commands\DeleteInvoicePayment\" />
-    <Folder Include="InvoicePayments\Queries\GetInvoicePaymentsByInvoiceId\" />
-    <Folder Include="InvoicePayments\Queries\GetInvoicePaymentsByDate\" />
-    <Folder Include="InvoicePayments\Queries\GetInvoicePaymentsByDateRange\" />
-    <Folder Include="InvoicePayments\Queries\GetInvoicePaymentsByPaymentTypeId\" />
-    <Folder Include="InvoiceProducts\Commands\DeleteInvoiceProduct\" />
-    <Folder Include="InvoiceProducts\Queries\GetInvoiceProductsByInvoiceId\" />
-    <Folder Include="InvoiceProducts\Queries\GetInvoiceProductsByDate\" />
-    <Folder Include="InvoiceProducts\Queries\GetInvoiceProductsByDateRange\" />
-    <Folder Include="Invoices\Commands\DeleteInvoice\" />
-    <Folder Include="Invoices\Queries\GetInvoiceById\" />
-    <Folder Include="Invoices\Queries\GetInvoicesByDate\" />
-    <Folder Include="Invoices\Queries\GetInvoicesByDateRange\" />
-    <Folder Include="PayLaterPayments\Commands\CreatePayLaterPayment\" />
-    <Folder Include="PayLaterPayments\Commands\DeletePayLaterPayment\" />
-    <Folder Include="PayLaterPayments\Commands\UpdatePayLaterPayment\" />
-    <Folder Include="PayLaterPayments\Queries\GetPayLaterPayments\" />
-    <Folder Include="PayLaterPayments\Queries\GetPayLaterPaymentByInvoiceId\" />
-    <Folder Include="PayLaterPayments\Queries\GetPayLaterPaymentById\" />
-    <Folder Include="PayLaterPayments\Queries\GetPayLaterPaymentsByDateRange\" />
-    <Folder Include="PayLaterPayments\Queries\GetPayLaterPaymentsByDescriptionKeyword\" />
-    <Folder Include="UserCredentials\Commands\CreateUserCredential\" />
-    <Folder Include="UserCredentials\Commands\UpdateUserCredential\" />
-    <Folder Include="UserCredentials\Queries\GetUserCredentialById\" />
-    <Folder Include="UserCredentials\Queries\GetUserCredentialByUsername\" />
-    <Folder Include="Users\Commands\CreateUser\" />
-    <Folder Include="Users\Commands\DeleteUser\" />
-    <Folder Include="Users\Commands\UpdateUser\" />
-    <Folder Include="Users\Queries\GetUsers\" />
-    <Folder Include="Users\Queries\GetUserById\" />
+    <Folder Include="UseCases\" />
   </ItemGroup>
 </Project>

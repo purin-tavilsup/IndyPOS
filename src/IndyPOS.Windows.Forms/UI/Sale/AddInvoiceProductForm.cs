@@ -1,6 +1,6 @@
 ﻿using IndyPOS.Application.Common.Interfaces;
-using IndyPOS.Application.InventoryProducts;
 using System.Diagnostics.CodeAnalysis;
+using IndyPOS.Application.UseCases.InventoryProducts;
 
 namespace IndyPOS.Windows.Forms.UI.Sale;
 

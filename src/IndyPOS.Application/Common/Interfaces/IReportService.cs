@@ -1,9 +1,9 @@
 ﻿using IndyPOS.Application.Common.Enums;
 using IndyPOS.Application.Common.Models;
-using IndyPOS.Application.InvoicePayments;
-using IndyPOS.Application.InvoiceProducts;
-using IndyPOS.Application.Invoices;
-using IndyPOS.Application.PayLaterPayments;
+using IndyPOS.Application.UseCases.InvoicePayments;
+using IndyPOS.Application.UseCases.InvoiceProducts;
+using IndyPOS.Application.UseCases.Invoices;
+using IndyPOS.Application.UseCases.PayLaterPayments;
 
 namespace IndyPOS.Application.Common.Interfaces;
 

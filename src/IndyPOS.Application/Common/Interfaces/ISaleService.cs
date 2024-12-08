@@ -1,6 +1,6 @@
 ﻿using IndyPOS.Application.Common.Enums;
 using IndyPOS.Application.Common.Models;
-using IndyPOS.Application.InventoryProducts;
+using IndyPOS.Application.UseCases.InventoryProducts;
 
 namespace IndyPOS.Application.Common.Interfaces;
 

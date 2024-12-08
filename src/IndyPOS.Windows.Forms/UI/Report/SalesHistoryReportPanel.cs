@@ -2,10 +2,10 @@
 using IndyPOS.Application.Common.Enums;
 using IndyPOS.Application.Common.Extensions;
 using IndyPOS.Application.Common.Interfaces;
-using IndyPOS.Application.InvoicePayments;
-using IndyPOS.Application.InvoiceProducts;
-using IndyPOS.Application.Invoices;
 using System.Diagnostics.CodeAnalysis;
+using IndyPOS.Application.UseCases.InvoicePayments;
+using IndyPOS.Application.UseCases.InvoiceProducts;
+using IndyPOS.Application.UseCases.Invoices;
 
 namespace IndyPOS.Windows.Forms.UI.Report;
 

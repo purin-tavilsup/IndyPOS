@@ -1,12 +1,10 @@
 ﻿using IndyPOS.Application.Common.Exceptions;
-using IndyPOS.Application.PayLaterPayments;
-using IndyPOS.Application.PayLaterPayments.Commands.UpdatePayLaterPayment;
-using IndyPOS.Application.PayLaterPayments.Queries.GetPayLaterPaymentById;
-using IndyPOS.Application.PayLaterPayments.Queries.GetPayLaterPayments;
-using IndyPOS.Application.PayLaterPayments.Queries.GetPayLaterPaymentsByDescriptionKeyword;
 using IndyPOS.Windows.Forms.UI.Report;
 using MediatR;
 using System.Diagnostics.CodeAnalysis;
+using IndyPOS.Application.UseCases.PayLaterPayments;
+using IndyPOS.Application.UseCases.PayLaterPayments.Get;
+using IndyPOS.Application.UseCases.PayLaterPayments.Update;
 
 namespace IndyPOS.Windows.Forms.UI.PayLater;
 

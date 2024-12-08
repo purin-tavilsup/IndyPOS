@@ -1,8 +1,8 @@
 ﻿using IndyPOS.Application.Common.Interfaces;
-using IndyPOS.Application.Users;
-using IndyPOS.Application.Users.Queries.GetUsers;
 using MediatR;
 using System.Diagnostics.CodeAnalysis;
+using IndyPOS.Application.UseCases.Users;
+using IndyPOS.Application.UseCases.Users.Get;
 
 namespace IndyPOS.Windows.Forms.UI.Login;
 

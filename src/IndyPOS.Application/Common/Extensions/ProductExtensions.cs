@@ -1,6 +1,5 @@
 ﻿using IndyPOS.Application.Common.Models;
-using IndyPOS.Application.InventoryProducts;
-using IndyPOS.Application.InvoiceProducts;
+using IndyPOS.Application.UseCases.InvoiceProducts;
 
 namespace IndyPOS.Application.Common.Extensions;
 
