@@ -166,10 +166,10 @@ namespace IndyPOS.Windows.Forms.UI.Report
             ChangesListView.Font = new Font("FC Subject [Non-commercial] Reg", 9.749999F);
             ChangesListView.ForeColor = Color.Gainsboro;
             ChangesListView.LabelEdit = true;
-            ChangesListView.Location = new Point(26, 122);
+            ChangesListView.Location = new Point(3, 122);
             ChangesListView.MultiSelect = false;
             ChangesListView.Name = "ChangesListView";
-            ChangesListView.Size = new Size(275, 178);
+            ChangesListView.Size = new Size(207, 197);
             ChangesListView.TabIndex = 3;
             ChangesListView.UseCompatibleStateImageBehavior = false;
             ChangesListView.View = View.Details;
@@ -183,7 +183,7 @@ namespace IndyPOS.Windows.Forms.UI.Report
             PayoutsListView.Location = new Point(26, 156);
             PayoutsListView.MultiSelect = false;
             PayoutsListView.Name = "PayoutsListView";
-            PayoutsListView.Size = new Size(299, 279);
+            PayoutsListView.Size = new Size(299, 509);
             PayoutsListView.TabIndex = 3;
             PayoutsListView.UseCompatibleStateImageBehavior = false;
             PayoutsListView.Click += PayOutListView_Click;
@@ -1177,7 +1177,7 @@ namespace IndyPOS.Windows.Forms.UI.Report
             panel4.Controls.Add(label13);
             panel4.Location = new Point(307, 117);
             panel4.Name = "panel4";
-            panel4.Size = new Size(352, 494);
+            panel4.Size = new Size(352, 724);
             panel4.TabIndex = 146;
             // 
             // RemovePayOutButton
@@ -1191,7 +1191,7 @@ namespace IndyPOS.Windows.Forms.UI.Report
             RemovePayOutButton.FlatStyle = FlatStyle.Flat;
             RemovePayOutButton.Font = new Font("FC Subject [Non-commercial] Reg", 12F);
             RemovePayOutButton.ForeColor = Color.White;
-            RemovePayOutButton.Location = new Point(245, 441);
+            RemovePayOutButton.Location = new Point(245, 671);
             RemovePayOutButton.Name = "RemovePayOutButton";
             RemovePayOutButton.Size = new Size(80, 36);
             RemovePayOutButton.TabIndex = 144;
@@ -1347,9 +1347,9 @@ namespace IndyPOS.Windows.Forms.UI.Report
             panel5.Controls.Add(label45);
             panel5.Controls.Add(ChangesTotalLabel);
             panel5.Controls.Add(label47);
-            panel5.Location = new Point(665, 552);
+            panel5.Location = new Point(1383, 463);
             panel5.Name = "panel5";
-            panel5.Size = new Size(329, 354);
+            panel5.Size = new Size(213, 378);
             panel5.TabIndex = 148;
             // 
             // RemoveChangeButton
@@ -1363,7 +1363,7 @@ namespace IndyPOS.Windows.Forms.UI.Report
             RemoveChangeButton.FlatStyle = FlatStyle.Flat;
             RemoveChangeButton.Font = new Font("FC Subject [Non-commercial] Reg", 12F);
             RemoveChangeButton.ForeColor = Color.White;
-            RemoveChangeButton.Location = new Point(224, 306);
+            RemoveChangeButton.Location = new Point(133, 325);
             RemoveChangeButton.Name = "RemoveChangeButton";
             RemoveChangeButton.Size = new Size(77, 36);
             RemoveChangeButton.TabIndex = 144;
@@ -1383,7 +1383,7 @@ namespace IndyPOS.Windows.Forms.UI.Report
             AddChangeButton.FlatStyle = FlatStyle.Flat;
             AddChangeButton.Font = new Font("FC Subject [Non-commercial] Reg", 12F);
             AddChangeButton.ForeColor = Color.White;
-            AddChangeButton.Location = new Point(224, 80);
+            AddChangeButton.Location = new Point(3, 325);
             AddChangeButton.Name = "AddChangeButton";
             AddChangeButton.Size = new Size(77, 36);
             AddChangeButton.TabIndex = 143;
@@ -1399,7 +1399,7 @@ namespace IndyPOS.Windows.Forms.UI.Report
             ChangeAmountTextBox.BorderSize = 1;
             ChangeAmountTextBox.Font = new Font("FC Subject [Non-commercial] Reg", 11.2499981F, FontStyle.Regular, GraphicsUnit.Point, 0);
             ChangeAmountTextBox.ForeColor = Color.Gainsboro;
-            ChangeAmountTextBox.Location = new Point(89, 79);
+            ChangeAmountTextBox.Location = new Point(66, 79);
             ChangeAmountTextBox.Multiline = false;
             ChangeAmountTextBox.Name = "ChangeAmountTextBox";
             ChangeAmountTextBox.Padding = new Padding(7);
@@ -1407,7 +1407,7 @@ namespace IndyPOS.Windows.Forms.UI.Report
             ChangeAmountTextBox.PlaceholderColor = Color.DarkGray;
             ChangeAmountTextBox.PlaceholderText = "";
             ChangeAmountTextBox.ReadOnly = false;
-            ChangeAmountTextBox.Size = new Size(129, 37);
+            ChangeAmountTextBox.Size = new Size(134, 37);
             ChangeAmountTextBox.TabIndex = 141;
             ChangeAmountTextBox.TextAlign = HorizontalAlignment.Center;
             ChangeAmountTextBox.Texts = "";
@@ -1418,7 +1418,7 @@ namespace IndyPOS.Windows.Forms.UI.Report
             label4.BackColor = Color.FromArgb(38, 38, 38);
             label4.Font = new Font("FC Subject [Non-commercial] Reg", 12F);
             label4.ForeColor = Color.Gainsboro;
-            label4.Location = new Point(26, 91);
+            label4.Location = new Point(3, 91);
             label4.Name = "label4";
             label4.Size = new Size(57, 25);
             label4.TabIndex = 139;
@@ -1430,7 +1430,7 @@ namespace IndyPOS.Windows.Forms.UI.Report
             label45.BackColor = Color.FromArgb(38, 38, 38);
             label45.Font = new Font("FC Subject [Non-commercial] Reg", 12F);
             label45.ForeColor = Color.Gainsboro;
-            label45.Location = new Point(26, 44);
+            label45.Location = new Point(3, 43);
             label45.Name = "label45";
             label45.Size = new Size(70, 25);
             label45.TabIndex = 137;
@@ -1442,9 +1442,9 @@ namespace IndyPOS.Windows.Forms.UI.Report
             ChangesTotalLabel.BackColor = Color.FromArgb(38, 38, 38);
             ChangesTotalLabel.Font = new Font("FC Subject [Non-commercial] Reg", 18F);
             ChangesTotalLabel.ForeColor = Color.Aquamarine;
-            ChangesTotalLabel.Location = new Point(102, 39);
+            ChangesTotalLabel.Location = new Point(79, 39);
             ChangesTotalLabel.Name = "ChangesTotalLabel";
-            ChangesTotalLabel.Size = new Size(199, 30);
+            ChangesTotalLabel.Size = new Size(121, 30);
             ChangesTotalLabel.TabIndex = 136;
             ChangesTotalLabel.Text = "0.00";
             ChangesTotalLabel.TextAlign = ContentAlignment.MiddleCenter;
@@ -1457,7 +1457,7 @@ namespace IndyPOS.Windows.Forms.UI.Report
             label47.ForeColor = Color.Gainsboro;
             label47.Location = new Point(0, 0);
             label47.Name = "label47";
-            label47.Size = new Size(329, 39);
+            label47.Size = new Size(213, 39);
             label47.TabIndex = 87;
             label47.Text = "รายการ [ เงินทอน ]";
             label47.TextAlign = ContentAlignment.MiddleCenter;
@@ -1721,9 +1721,9 @@ namespace IndyPOS.Windows.Forms.UI.Report
             panel16.Controls.Add(TotalPayLaterLabel);
             panel16.Controls.Add(label29);
             panel16.Controls.Add(PayLaterPaymentsListView);
-            panel16.Location = new Point(307, 617);
+            panel16.Location = new Point(665, 552);
             panel16.Name = "panel16";
-            panel16.Size = new Size(352, 289);
+            panel16.Size = new Size(329, 289);
             panel16.TabIndex = 156;
             // 
             // label22
@@ -1758,7 +1758,7 @@ namespace IndyPOS.Windows.Forms.UI.Report
             label29.ForeColor = Color.Gainsboro;
             label29.Location = new Point(0, 0);
             label29.Name = "label29";
-            label29.Size = new Size(352, 39);
+            label29.Size = new Size(329, 39);
             label29.TabIndex = 87;
             label29.Text = "รายการ [ ลงบัญชี ]";
             label29.TextAlign = ContentAlignment.MiddleCenter;
@@ -1771,7 +1771,7 @@ namespace IndyPOS.Windows.Forms.UI.Report
             PayLaterPaymentsListView.Location = new Point(26, 85);
             PayLaterPaymentsListView.MultiSelect = false;
             PayLaterPaymentsListView.Name = "PayLaterPaymentsListView";
-            PayLaterPaymentsListView.Size = new Size(299, 187);
+            PayLaterPaymentsListView.Size = new Size(275, 187);
             PayLaterPaymentsListView.TabIndex = 3;
             PayLaterPaymentsListView.UseCompatibleStateImageBehavior = false;
             // 
