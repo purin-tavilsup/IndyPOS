@@ -10,17 +10,17 @@ using IndyPOS.Application.UseCases.Invoices;
 using IndyPOS.Application.UseCases.Invoices.Get;
 using IndyPOS.Application.UseCases.PayLaterPayments;
 using IndyPOS.Application.UseCases.PayLaterPayments.Get;
-using MediatR;
+using Nokpirab;
 
 namespace IndyPOS.Infrastructure.Services;
 
 public class ReportService : IReportService
 {
-	private readonly IMediator _mediator;
+	private readonly INokpirab _nokpirab;
 
-	public ReportService(IMediator mediator)
+	public ReportService(INokpirab nokpirab)
 	{
-		_mediator = mediator;
+		_nokpirab = nokpirab;
 	}
 
 	public async Task<IEnumerable<InvoiceDto>> GetInvoicesByPeriodAsync(TimePeriod period)
@@ -241,51 +241,51 @@ public class ReportService : IReportService
 
 	public async Task<IEnumerable<InvoiceDto>> GetInvoicesByDateRangeAsync(DateOnly startDate, DateOnly endDate)
 	{
-		return await _mediator.Send(new GetInvoicesByDateRangeQuery(startDate, endDate));
+		return await _nokpirab.SendAsync(new GetInvoicesByDateRangeQuery(startDate, endDate));
     }
 
 	public async Task<IEnumerable<InvoiceProductDto>> GetInvoiceProductsByDateAsync(DateOnly date)
 	{
-		return await _mediator.Send(new GetInvoiceProductsByDateQuery(date));
+		return await _nokpirab.SendAsync(new GetInvoiceProductsByDateQuery(date));
 	}
 
 	public async Task<IEnumerable<InvoiceProductDto>> GetInvoiceProductsByDateRangeAsync(DateOnly startDate, DateOnly endDate)
 	{
-		return await _mediator.Send(new GetInvoiceProductsByDateRangeQuery(startDate, endDate));
+		return await _nokpirab.SendAsync(new GetInvoiceProductsByDateRangeQuery(startDate, endDate));
 	}
 
 	public async Task<IEnumerable<InvoiceProductDto>> GetInvoiceProductsByInvoiceIdAsync(int invoiceId)
 	{
-		return await _mediator.Send(new GetInvoiceProductsByInvoiceIdQuery(invoiceId));
+		return await _nokpirab.SendAsync(new GetInvoiceProductsByInvoiceIdQuery(invoiceId));
 	}
 
 	private async Task<IEnumerable<InvoicePaymentDto>> GetPaymentsByDateRangeAsync(DateOnly startDate, DateOnly endDate)
 	{
-		return await _mediator.Send(new GetInvoicePaymentsByDateRangeQuery(startDate, endDate));
+		return await _nokpirab.SendAsync(new GetInvoicePaymentsByDateRangeQuery(startDate, endDate));
 	}
 
 	public async Task<IEnumerable<InvoicePaymentDto>> GetPaymentsByInvoiceIdAsync(int invoiceId)
 	{
-		return await _mediator.Send(new GetInvoicePaymentsByInvoiceIdQuery(invoiceId));
+		return await _nokpirab.SendAsync(new GetInvoicePaymentsByInvoiceIdQuery(invoiceId));
 	}
 
 	private async Task<IEnumerable<PayLaterPaymentDto>> GetPayLaterPaymentsByDateRangeAsync(DateOnly startDate, DateOnly endDate)
 	{
-		return await _mediator.Send(new GetPayLaterPaymentsByDateRangeQuery(startDate, endDate));
+		return await _nokpirab.SendAsync(new GetPayLaterPaymentsByDateRangeQuery(startDate, endDate));
 	}
 
 	private async Task<PayLaterPaymentDto?> GetPayLaterPaymentByInvoiceId(int invoiceId)
 	{
-		return await _mediator.Send(new GetPayLaterPaymentByInvoiceIdQuery(invoiceId));
+		return await _nokpirab.SendAsync(new GetPayLaterPaymentByInvoiceIdQuery(invoiceId));
 	}
 
 	public async Task<IEnumerable<PayLaterPaymentDto>> GetPayLaterPaymentsAsync()
 	{
-		return await _mediator.Send(new GetPayLaterPaymentsQuery());
+		return await _nokpirab.SendAsync(new GetPayLaterPaymentsQuery());
 	}
 
 	public async Task<IInvoiceInfo> GetInvoiceInfoAsync(int invoiceId)
 	{
-		return await _mediator.Send(new GetInvoiceInfoQuery(invoiceId));
+		return await _nokpirab.SendAsync(new GetInvoiceInfoQuery(invoiceId));
 	}
 }

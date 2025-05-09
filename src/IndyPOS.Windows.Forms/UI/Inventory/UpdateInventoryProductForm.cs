@@ -1,27 +1,27 @@
 ﻿using IndyPOS.Application.Common.Interfaces;
-using MediatR;
 using System.Diagnostics.CodeAnalysis;
 using IndyPOS.Application.UseCases.InventoryProducts;
 using IndyPOS.Application.UseCases.InventoryProducts.Delete;
 using IndyPOS.Application.UseCases.InventoryProducts.Update;
+using Nokpirab;
 
 namespace IndyPOS.Windows.Forms.UI.Inventory;
 
 [ExcludeFromCodeCoverage]
 public partial class UpdateInventoryProductForm : Form
 {
-	private readonly IMediator _mediator;
+	private readonly INokpirab _nokpirab;
 	private readonly MessageForm _messageForm;
 	private readonly IReadOnlyDictionary<int, string> _productCategoryDictionary;
 	private InventoryProductDto? _product;
 
 	public UpdateInventoryProductForm(IStoreConstants storeConstants,
-									  IMediator mediator,
-									  MessageForm messageForm)
+									  MessageForm messageForm, 
+									  INokpirab nokpirab)
 	{
-		_mediator = mediator;
 		_productCategoryDictionary = storeConstants.ProductCategories;
 		_messageForm = messageForm;
+		_nokpirab = nokpirab;
 		_product = null;
 
 		InitializeComponent();
@@ -108,7 +108,7 @@ public partial class UpdateInventoryProductForm : Form
 		{
 			var command = CreateCommandForUpdateProduct(_product);
 
-			await _mediator.Send(command);
+			await _nokpirab.SendAsync(command);
 
 			Close();
 		}
@@ -168,7 +168,7 @@ public partial class UpdateInventoryProductForm : Form
 		{
 			var command = new DeleteInventoryProductCommand(_product.InventoryProductId);
 
-			await _mediator.Send(command);
+			await _nokpirab.SendAsync(command);
 
 			Close();
 		}

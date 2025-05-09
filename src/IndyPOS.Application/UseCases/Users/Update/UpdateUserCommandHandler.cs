@@ -1,5 +1,5 @@
-﻿using IndyPOS.Application.Abstractions.Messaging;
-using IndyPOS.Application.Abstractions.Pos.Repositories;
+﻿using IndyPOS.Application.Abstractions.Pos.Repositories;
+using Nokpirab;
 
 namespace IndyPOS.Application.UseCases.Users.Update;
 
@@ -12,10 +12,10 @@ public class UpdateUserCommandHandler : ICommandHandler<UpdateUserCommand>
         _userRepository = userRepository;
     }
 
-	public Task Handle(UpdateUserCommand command, CancellationToken cancellationToken)
+	public Task HandleAsync(UpdateUserCommand command, CancellationToken cancellationToken = default)
 	{
 		_userRepository.Update(command.ToEntity());
 
 		return Task.CompletedTask;
-    }
+	}
 }

@@ -1,9 +1,9 @@
-﻿using IndyPOS.Application.Abstractions.Messaging;
-using IndyPOS.Application.Abstractions.Pos.Repositories;
+﻿using IndyPOS.Application.Abstractions.Pos.Repositories;
 using IndyPOS.Application.Common.Extensions;
 using IndyPOS.Application.Common.Interfaces;
 using IndyPOS.Application.UseCases.InvoicePayments;
 using IndyPOS.Application.UseCases.InvoiceProducts;
+using Nokpirab;
 
 namespace IndyPOS.Application.UseCases.Invoices.Get;
 
@@ -17,7 +17,7 @@ public class GetInvoiceInfoQueryHandler : IQueryHandler<GetInvoiceInfoQuery, IIn
 		_invoicePaymentRepository = invoicePaymentRepository;
 	}
 
-	public Task<IInvoiceInfo> Handle(GetInvoiceInfoQuery query, CancellationToken cancellationToken)
+	public Task<IInvoiceInfo> HandleAsync(GetInvoiceInfoQuery query, CancellationToken cancellationToken = default)
 	{
 		var invoiceInfo = CreateInvoiceInfo(query.InvoiceId);
 

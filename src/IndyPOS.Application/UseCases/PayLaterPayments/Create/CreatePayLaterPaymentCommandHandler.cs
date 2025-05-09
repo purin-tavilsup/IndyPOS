@@ -1,5 +1,5 @@
-﻿using IndyPOS.Application.Abstractions.Messaging;
-using IndyPOS.Application.Abstractions.Pos.Repositories;
+﻿using IndyPOS.Application.Abstractions.Pos.Repositories;
+using Nokpirab;
 
 namespace IndyPOS.Application.UseCases.PayLaterPayments.Create;
 
@@ -12,10 +12,10 @@ public class CreatePayLaterPaymentCommandHandler : ICommandHandler<CreatePayLate
         _payLaterPaymentRepository = payLaterPaymentRepository;
     }
 
-    public Task Handle(CreatePayLaterPaymentCommand command, CancellationToken cancellationToken)
-    {
+	public Task HandleAsync(CreatePayLaterPaymentCommand command, CancellationToken cancellationToken = default)
+	{
 		_payLaterPaymentRepository.Add(command.ToEntity());
 
 		return Task.CompletedTask;
-    }
+	}
 }

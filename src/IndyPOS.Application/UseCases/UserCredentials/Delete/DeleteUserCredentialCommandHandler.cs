@@ -1,5 +1,5 @@
-﻿using IndyPOS.Application.Abstractions.Messaging;
-using IndyPOS.Application.Abstractions.Pos.Repositories;
+﻿using IndyPOS.Application.Abstractions.Pos.Repositories;
+using Nokpirab;
 
 namespace IndyPOS.Application.UseCases.UserCredentials.Delete;
 
@@ -12,7 +12,7 @@ public class DeleteUserCredentialCommandHandler : ICommandHandler<DeleteUserCred
 		_userCredentialRepository = userCredentialRepository;
 	}
 
-	public Task Handle(DeleteUserCredentialCommand command, CancellationToken cancellationToken)
+	public Task HandleAsync(DeleteUserCredentialCommand command, CancellationToken cancellationToken = default)
 	{
 		_userCredentialRepository.RemoveById(command.Id);
 

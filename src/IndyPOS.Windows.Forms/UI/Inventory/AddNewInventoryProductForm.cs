@@ -1,24 +1,24 @@
 ﻿using IndyPOS.Application.Common.Interfaces;
-using MediatR;
 using System.Diagnostics.CodeAnalysis;
 using IndyPOS.Application.UseCases.InventoryProducts.Create;
+using Nokpirab;
 
 namespace IndyPOS.Windows.Forms.UI.Inventory;
 
 [ExcludeFromCodeCoverage]
 public partial class AddNewInventoryProductForm : Form
 {
-	private readonly IMediator _mediator;
+	private readonly INokpirab _nokpirab;
 	private readonly IReadOnlyDictionary<int, string> _productCategoryDictionary;
 	private readonly MessageForm _messageForm;
 
 	public AddNewInventoryProductForm(IStoreConstants storeConstants,
-									  IMediator mediator,
-									  MessageForm messageForm)
+									  MessageForm messageForm, 
+									  INokpirab nokpirab)
 	{
-		_mediator = mediator;
 		_productCategoryDictionary = storeConstants.ProductCategories;
 		_messageForm = messageForm;
+		_nokpirab = nokpirab;
 
 		InitializeComponent();
 		InitializeProductCategories();
@@ -132,7 +132,7 @@ public partial class AddNewInventoryProductForm : Form
 		{
 			var command = CreateCommandForCreateProduct();
 
-			await _mediator.Send(command);
+			await _nokpirab.SendAsync(command);
 
 			Close();
 		}
@@ -150,7 +150,7 @@ public partial class AddNewInventoryProductForm : Form
 		var category = _productCategoryDictionary.FirstOrDefault(x => x.Value == CategoryComboBox.Texts);
 		var categoryId = category.Key;
 
-		var command = new CreateInventoryProductCommand()
+		var command = new CreateInventoryProductCommand
 		{
 			Barcode = ProductCodeTextBox.Texts.Trim(),
 			Description = DescriptionTextBox.Texts.Trim(),

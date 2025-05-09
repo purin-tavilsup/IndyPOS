@@ -1,17 +1,17 @@
 ﻿using IndyPOS.Application.Common.Exceptions;
 using IndyPOS.Windows.Forms.UI.Report;
-using MediatR;
 using System.Diagnostics.CodeAnalysis;
 using IndyPOS.Application.UseCases.PayLaterPayments;
 using IndyPOS.Application.UseCases.PayLaterPayments.Get;
 using IndyPOS.Application.UseCases.PayLaterPayments.Update;
+using Nokpirab;
 
 namespace IndyPOS.Windows.Forms.UI.PayLater;
 
 [ExcludeFromCodeCoverage]
 public partial class PayLaterPaymentPanel : UserControl
 {
-    private readonly IMediator _mediator;
+    private readonly INokpirab _nokpirab;
     private readonly SaleHistoryByInvoiceIdForm _saleHistoryByInvoiceIdForm;
     private readonly MessageForm _messageForm;
 
@@ -27,13 +27,13 @@ public partial class PayLaterPaymentPanel : UserControl
         DateUpdated
     }
 
-    public PayLaterPaymentPanel(IMediator mediator,
-                                SaleHistoryByInvoiceIdForm saleHistoryByInvoiceIdForm,
-                                MessageForm messageForm)
+    public PayLaterPaymentPanel(SaleHistoryByInvoiceIdForm saleHistoryByInvoiceIdForm,
+                                MessageForm messageForm, 
+                                INokpirab nokpirab)
     {
-        _mediator = mediator;
         _saleHistoryByInvoiceIdForm = saleHistoryByInvoiceIdForm;
         _messageForm = messageForm;
+        _nokpirab = nokpirab;
 
         InitializeComponent();
         InitializeUserDataView();
@@ -110,24 +110,24 @@ public partial class PayLaterPaymentPanel : UserControl
 
     private async Task<IEnumerable<PayLaterPaymentDto>> GetPayLaterPaymentsAsync()
     {
-        return await _mediator.Send(new GetPayLaterPaymentsQuery());
+        return await _nokpirab.SendAsync(new GetPayLaterPaymentsQuery());
     }
 
 	private async Task<IEnumerable<PayLaterPaymentDto>> GetPayLaterPaymentsByDescriptionKeywordAsync(string keyword)
 	{
-		return await _mediator.Send(new GetPayLaterPaymentsByDescriptionKeywordQuery(keyword));
+		return await _nokpirab.SendAsync(new GetPayLaterPaymentsByDescriptionKeywordQuery(keyword));
 	}
 
     private async Task<PayLaterPaymentDto> GetPayLaterPaymentByPaymentIdAsync(int paymentId)
     {
-        return await _mediator.Send(new GetPayLaterPaymentByIdQuery(paymentId));
+        return await _nokpirab.SendAsync(new GetPayLaterPaymentByIdQuery(paymentId));
     }
 
     private async Task UpdatePayLaterPaymentAsync(PayLaterPaymentDto payment, decimal paidAmount)
     {
         var command = CreateCommandForUpdatePayLaterPayment(payment, paidAmount);
 
-        await _mediator.Send(command);
+        await _nokpirab.SendAsync(command);
     }
 
     private static UpdatePayLaterPaymentCommand CreateCommandForUpdatePayLaterPayment(PayLaterPaymentDto payment, decimal paidAmount)

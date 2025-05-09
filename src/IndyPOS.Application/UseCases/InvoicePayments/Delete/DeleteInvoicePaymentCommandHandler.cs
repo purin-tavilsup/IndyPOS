@@ -1,5 +1,5 @@
-﻿using IndyPOS.Application.Abstractions.Messaging;
-using IndyPOS.Application.Abstractions.Pos.Repositories;
+﻿using IndyPOS.Application.Abstractions.Pos.Repositories;
+using Nokpirab;
 
 namespace IndyPOS.Application.UseCases.InvoicePayments.Delete;
 
@@ -12,7 +12,7 @@ public class DeleteInvoicePaymentCommandHandler  : ICommandHandler<DeleteInvoice
 		_invoicePaymentRepository = invoicePaymentRepository;
 	}
 
-	public Task Handle(DeleteInvoicePaymentCommand command, CancellationToken cancellationToken)
+	public Task HandleAsync(DeleteInvoicePaymentCommand command, CancellationToken cancellationToken = default)
 	{
 		_invoicePaymentRepository.RemoveById(command.Id);
 

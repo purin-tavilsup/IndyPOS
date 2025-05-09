@@ -1,5 +1,5 @@
-﻿using IndyPOS.Application.Abstractions.Messaging;
-using IndyPOS.Application.Abstractions.Pos.Repositories;
+﻿using IndyPOS.Application.Abstractions.Pos.Repositories;
+using Nokpirab;
 
 namespace IndyPOS.Application.UseCases.UserCredentials.Get;
 
@@ -12,7 +12,7 @@ public class GetUserCredentialByIdQueryHandler : IQueryHandler<GetUserCredential
 		_userCredentialRepository = userCredentialRepository;
 	}
 
-	public Task<UserCredentialDto> Handle(GetUserCredentialByIdQuery query, CancellationToken cancellationToken)
+	public Task<UserCredentialDto> HandleAsync(GetUserCredentialByIdQuery query, CancellationToken cancellationToken = default)
 	{
 		var result = _userCredentialRepository.GetById(query.Id);
 

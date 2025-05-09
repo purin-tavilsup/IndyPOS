@@ -1,7 +1,7 @@
 ﻿using FluentValidation;
-using IndyPOS.Application.Common.Behaviors;
 using System.Reflection;
 using System.Runtime.Versioning;
+using Nokpirab;
 
 // ReSharper disable CheckNamespace
 namespace Microsoft.Extensions.DependencyInjection;
@@ -13,11 +13,7 @@ public static class ConfigureServices
 	{
 		var assembly = Assembly.GetExecutingAssembly();
 		services.AddValidatorsFromAssembly(assembly);
-		services.AddMediatR(config =>
-		{
-			config.RegisterServicesFromAssembly(assembly);
-			config.AddOpenBehavior(typeof(ValidationBehavior<,>));
-		});
+		services.AddNokpirab(assembly);
 
 		return services;
     }

@@ -1,5 +1,5 @@
-﻿using IndyPOS.Application.Abstractions.Messaging;
-using IndyPOS.Application.Abstractions.Pos.Repositories;
+﻿using IndyPOS.Application.Abstractions.Pos.Repositories;
+using Nokpirab;
 
 namespace IndyPOS.Application.UseCases.InvoicePayments.Get;
 
@@ -12,10 +12,10 @@ public class GetInvoicePaymentsByDateQueryHandler : IQueryHandler<GetInvoicePaym
         _invoicePaymentRepository = invoicePaymentRepository;
     }
 
-    public Task<IEnumerable<InvoicePaymentDto>> Handle(GetInvoicePaymentsByDateQuery query, CancellationToken cancellationToken)
+	public Task<IEnumerable<InvoicePaymentDto>> HandleAsync(GetInvoicePaymentsByDateQuery query, CancellationToken cancellationToken = default)
 	{
 		var results = _invoicePaymentRepository.GetByDate(query.Date);
 
-        return Task.FromResult(results.Select(x => x.ToDto()));
+		return Task.FromResult(results.Select(x => x.ToDto()));
 	}
 }

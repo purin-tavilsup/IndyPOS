@@ -1,6 +1,6 @@
-﻿using IndyPOS.Application.Abstractions.Messaging;
-using IndyPOS.Application.Abstractions.Pos.Repositories;
+﻿using IndyPOS.Application.Abstractions.Pos.Repositories;
 using IndyPOS.Domain.Events;
+using Nokpirab;
 
 namespace IndyPOS.Application.UseCases.InventoryProducts.Delete;
 
@@ -16,7 +16,7 @@ public class DeleteInventoryProductCommandHandler : ICommandHandler<DeleteInvent
 		_eventAggregator = eventAggregator;
 	}
 
-	public Task Handle(DeleteInventoryProductCommand command, CancellationToken cancellationToken)
+	public Task HandleAsync(DeleteInventoryProductCommand command, CancellationToken cancellationToken = default)
 	{
 		_productRepository.RemoveById(command.Id);
 

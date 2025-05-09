@@ -1,5 +1,5 @@
-﻿using IndyPOS.Application.Abstractions.Messaging;
-using IndyPOS.Application.Abstractions.Pos.Repositories;
+﻿using IndyPOS.Application.Abstractions.Pos.Repositories;
+using Nokpirab;
 
 namespace IndyPOS.Application.UseCases.InventoryProducts.Get;
 
@@ -12,7 +12,7 @@ public class GetInventoryProductsByCategoryIdQueryHandler : IQueryHandler<GetInv
 		_productRepository = inventoryProductRepository;
 	}
 
-    public Task<IEnumerable<InventoryProductDto>> Handle(GetInventoryProductsByCategoryIdQuery query, CancellationToken cancellationToken)
+	public Task<IEnumerable<InventoryProductDto>> HandleAsync(GetInventoryProductsByCategoryIdQuery query, CancellationToken cancellationToken = default)
 	{
 		var categoryId = query.CategoryId;
 		var results = _productRepository.GetProductsByCategoryId(categoryId);

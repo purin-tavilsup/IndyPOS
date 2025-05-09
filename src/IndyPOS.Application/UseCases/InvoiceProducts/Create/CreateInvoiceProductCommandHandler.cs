@@ -1,6 +1,6 @@
-﻿using IndyPOS.Application.Abstractions.Messaging;
-using IndyPOS.Application.Abstractions.Pos.Repositories;
+﻿using IndyPOS.Application.Abstractions.Pos.Repositories;
 using IndyPOS.Domain.Events;
+using Nokpirab;
 
 namespace IndyPOS.Application.UseCases.InvoiceProducts.Create;
 
@@ -15,12 +15,12 @@ public class CreateInvoiceProductCommandHandler : ICommandHandler<CreateInvoiceP
         _eventAggregator = eventAggregator;
     }
 
-    public Task Handle(CreateInvoiceProductCommand command, CancellationToken cancellationToken)
-    {
+	public Task HandleAsync(CreateInvoiceProductCommand command, CancellationToken cancellationToken = default)
+	{
 		_invoiceProductRepository.Add(command.ToEntity());
 
-        _eventAggregator.GetEvent<InvoiceProductAddedEvent>().Publish();
+		_eventAggregator.GetEvent<InvoiceProductAddedEvent>().Publish();
 
 		return Task.CompletedTask;
-    }
+	}
 }

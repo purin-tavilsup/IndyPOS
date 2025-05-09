@@ -1,5 +1,5 @@
-﻿using IndyPOS.Application.Abstractions.Messaging;
+﻿using Nokpirab;
 
 namespace IndyPOS.Application.UseCases.PayLaterPayments.Get;
 
-public record GetPayLaterPaymentsQuery() : IQuery<IEnumerable<PayLaterPaymentDto>>;
+public record GetPayLaterPaymentsQuery : IQuery<IEnumerable<PayLaterPaymentDto>>;

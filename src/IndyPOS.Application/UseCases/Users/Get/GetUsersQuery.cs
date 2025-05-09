@@ -1,5 +1,5 @@
-﻿using IndyPOS.Application.Abstractions.Messaging;
+﻿using Nokpirab;
 
 namespace IndyPOS.Application.UseCases.Users.Get;
 
-public record GetUsersQuery() : IQuery<IEnumerable<UserDto>>;
+public record GetUsersQuery : IQuery<IEnumerable<UserDto>>;

@@ -1,31 +1,31 @@
 ﻿using IndyPOS.Application.Common.Interfaces;
-using MediatR;
 using System.Diagnostics.CodeAnalysis;
 using IndyPOS.Application.UseCases.InventoryProducts.Create;
 using IndyPOS.Application.UseCases.InventoryProducts.Get;
 using IndyPOS.Application.UseCases.InventoryProducts.Update;
+using Nokpirab;
 
 namespace IndyPOS.Windows.Forms.UI.Inventory
 {
     [ExcludeFromCodeCoverage]
 	public partial class AddNewInventoryProductWithCustomBarcodeForm : Form
     {
-		private readonly IMediator _mediator;
+		private readonly INokpirab _nokpirab;
         private readonly IBarcodeGeneratorService _barcodeService;
         private readonly IReadOnlyDictionary<int, string> _productCategoryDictionary;
 		private readonly MessageForm _messageForm;
 
         public AddNewInventoryProductWithCustomBarcodeForm(IBarcodeGeneratorService barcodeService, 
 														   IStoreConstants storeConstants,
-                                                           IMediator mediator,
-														   MessageForm messageForm)
+														   MessageForm messageForm,
+														   INokpirab nokpirab)
 		{
 			_barcodeService = barcodeService;
-            _mediator = mediator;
             _productCategoryDictionary = storeConstants.ProductCategories;
 			_messageForm = messageForm;
+			_nokpirab = nokpirab;
 
-            InitializeComponent();
+			InitializeComponent();
             InitializeProductCategories();
         }
 
@@ -134,7 +134,7 @@ namespace IndyPOS.Windows.Forms.UI.Inventory
         {
 			var command = CreateCommandForCreateProduct();
 
-			await _mediator.Send(command);
+			await _nokpirab.SendAsync(command);
 		}
 
         private async Task IncrementProductBarcodeCounter()
@@ -148,12 +148,12 @@ namespace IndyPOS.Windows.Forms.UI.Inventory
 		{
 			var command = new UpdateInventoryProductBarcodeCounterCommand(newValue);
 
-            await _mediator.Send(command);
+            await _nokpirab.SendAsync(command);
 		}
 
 		private async Task<int> GetProductBarcodeCounter()
 		{
-			return await _mediator.Send(new GetInventoryProductBarcodeCounterQuery());
+			return await _nokpirab.SendAsync(new GetInventoryProductBarcodeCounterQuery());
 		}
 
         private CreateInventoryProductCommand CreateCommandForCreateProduct()

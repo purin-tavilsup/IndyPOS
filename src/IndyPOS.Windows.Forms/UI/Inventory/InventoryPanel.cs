@@ -4,10 +4,10 @@ using IndyPOS.Domain.Events;
 using IndyPOS.Windows.Forms.Enums;
 using IndyPOS.Windows.Forms.Events;
 using IndyPOS.Windows.Forms.Extensions;
-using MediatR;
 using System.Diagnostics.CodeAnalysis;
 using IndyPOS.Application.UseCases.InventoryProducts;
 using IndyPOS.Application.UseCases.InventoryProducts.Get;
+using Nokpirab;
 
 namespace IndyPOS.Windows.Forms.UI.Inventory;
 
@@ -22,7 +22,7 @@ public partial class InventoryPanel : UserControl
     private readonly MessageForm _messageForm;
     private int? _lastQueryCategoryId;
     private SubPanel _activeSubPanel;
-    private readonly IMediator _mediator;
+    private readonly INokpirab _nokpirab;
 
     private enum ProductColumn
     {
@@ -40,20 +40,20 @@ public partial class InventoryPanel : UserControl
     }
 
     public InventoryPanel(IEventAggregator eventAggregator,
-                          IMediator mediator,
                           IStoreConstants storeConstants,
                           AddNewInventoryProductForm addNewProductForm,
                           UpdateInventoryProductForm updateProductForm,
                           AddNewInventoryProductWithCustomBarcodeForm addNewProductWithCustomBarcodeForm,
-                          MessageForm messageForm)
+                          MessageForm messageForm, 
+                          INokpirab nokpirab)
     {
         _eventAggregator = eventAggregator;
-        _mediator = mediator;
         _productCategoryDictionary = storeConstants.ProductCategories;
         _addNewProductForm = addNewProductForm;
         _updateProductForm = updateProductForm;
         _addNewProductWithCustomBarcodeForm = addNewProductWithCustomBarcodeForm;
         _messageForm = messageForm;
+        _nokpirab = nokpirab;
 
         InitializeComponent();
         InitializeProductCategories();
@@ -242,35 +242,35 @@ public partial class InventoryPanel : UserControl
 
     private async Task<IReadOnlyList<InventoryProductDto>> GetInventoryProductsByCategoryIdAsync(int id)
     {
-        var results = await _mediator.Send(new GetInventoryProductsByCategoryIdQuery(id));
+        var results = await _nokpirab.SendAsync(new GetInventoryProductsByCategoryIdQuery(id));
 
         return results.ToList();
     }
 
     private async Task<InventoryProductDto> GetInventoryProductsByByBarcodeAsync(string barcode)
     {
-        var result = await _mediator.Send(new GetInventoryProductByBarcodeQuery(barcode));
+        var result = await _nokpirab.SendAsync(new GetInventoryProductByBarcodeQuery(barcode));
 
         return result;
     }
 
     private async Task<InventoryProductDto> GetInventoryProductsByIdAsync(int id)
     {
-        var result = await _mediator.Send(new GetInventoryProductByIdQuery(id));
+        var result = await _nokpirab.SendAsync(new GetInventoryProductByIdQuery(id));
 
         return result;
     }
 
     private async Task<IReadOnlyList<InventoryProductDto>> GetProductsByDescriptionKeywordAsync(string keyword)
 	{
-		var result = await _mediator.Send(new GetInventoryProductsByDescriptionKeywordQuery(keyword));
+		var result = await _nokpirab.SendAsync(new GetInventoryProductsByDescriptionKeywordQuery(keyword));
 
 		return result.ToList();
 	}
 
 	private async Task<IReadOnlyList<InventoryProductDto>> GetProductsByBrandKeywordAsync(string keyword)
 	{
-		var result = await _mediator.Send(new GetInventoryProductsByBrandKeywordQuery(keyword));
+		var result = await _nokpirab.SendAsync(new GetInventoryProductsByBrandKeywordQuery(keyword));
 
 		return result.ToList();
 	}

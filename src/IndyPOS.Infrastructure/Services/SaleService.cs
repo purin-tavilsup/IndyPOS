@@ -4,7 +4,6 @@ using IndyPOS.Application.Common.Extensions;
 using IndyPOS.Application.Common.Interfaces;
 using IndyPOS.Application.Common.Models;
 using IndyPOS.Application.Events;
-using IndyPOS.Application.Notifications;
 using IndyPOS.Application.UseCases.InventoryProducts;
 using IndyPOS.Application.UseCases.InventoryProducts.Get;
 using IndyPOS.Application.UseCases.InventoryProducts.Update;
@@ -14,14 +13,14 @@ using IndyPOS.Application.UseCases.Invoices;
 using IndyPOS.Application.UseCases.Invoices.Create;
 using IndyPOS.Application.UseCases.PayLaterPayments.Create;
 using IndyPOS.Domain.Events;
-using MediatR;
+using Nokpirab;
 using Throw;
 
 namespace IndyPOS.Infrastructure.Services;
 
 public class SaleService : ISaleService
 {
-	private readonly IMediator _mediator;
+	private readonly INokpirab _nokpirab;
 	private readonly IEventAggregator _eventAggregator;
 	private ILoggedInUser? _loggedInUser;
 
@@ -29,11 +28,11 @@ public class SaleService : ISaleService
 
 	public IList<Payment> Payments { get; private set; } = new List<Payment>();
 
-	public SaleService(IMediator mediator,
+	public SaleService(INokpirab nokpirab,
 					   IEventAggregator eventAggregator)
 	{
-		_mediator = mediator;
 		_eventAggregator = eventAggregator;
+		_nokpirab = nokpirab;
 
 		SubscribeEvents();
 	}
@@ -199,14 +198,14 @@ public class SaleService : ISaleService
 
 	public async Task<InventoryProductDto> GetInventoryProductByBarcodeAsync(string barcode)
 	{
-		var result = await _mediator.Send(new GetInventoryProductByBarcodeQuery(barcode));
+		var result = await _nokpirab.SendAsync(new GetInventoryProductByBarcodeQuery(barcode));
 
 		return result;
 	}
 
 	private async Task<InventoryProductDto> GetInventoryProductByIdAsync(int id)
 	{
-		var result = await _mediator.Send(new GetInventoryProductByIdQuery(id));
+		var result = await _nokpirab.SendAsync(new GetInventoryProductByIdQuery(id));
 
 		return result;
 	}
@@ -219,7 +218,7 @@ public class SaleService : ISaleService
 			Quantity = quantity
 		};
 
-		await _mediator.Send(command);
+		await _nokpirab.SendAsync(command);
 	}
 
 	public void AddPayment(PaymentType paymentType, decimal paymentAmount, string note)
@@ -387,8 +386,6 @@ public class SaleService : ISaleService
 		await AddPaymentsToDatabaseAsync(invoiceInfo);
 		await UpdateInventoryProductsSoldOnInvoice(invoiceInfo);
 		//---------------------------------------------------------
-		
-		await PublishSalesCompletedEventAsync(invoiceId, invoiceInfo.HasPayLaterPayment);
 
 		return invoiceInfo;
 	}
@@ -437,7 +434,7 @@ public class SaleService : ISaleService
 			CustomerId = null
 		};
 
-		var invoiceId = await _mediator.Send(command);
+		var invoiceId = await _nokpirab.SendAsync(command);
 
 		return invoiceId;
 	}
@@ -469,7 +466,7 @@ public class SaleService : ISaleService
 			IsGroupProduct = product.IsGroupProduct
 		};
 
-		await _mediator.Send(command);
+		await _nokpirab.SendAsync(command);
 	}
 
 	private async Task AddPaymentsToDatabaseAsync(IInvoiceInfo invoiceInfo)
@@ -496,7 +493,7 @@ public class SaleService : ISaleService
 			Note = payment.Note
 		};
 
-		return await _mediator.Send(command);
+		return await _nokpirab.SendAsync(command);
 	}
 
 	private async Task AddPayLaterPaymentToDatabaseAsync(Payment payment, int paymentId, int invoiceId)
@@ -509,11 +506,6 @@ public class SaleService : ISaleService
 			ReceivableAmount = payment.Amount
 		};
 
-		await _mediator.Send(command);
-	}
-	
-	private async Task PublishSalesCompletedEventAsync(int invoiceId, bool hasPayLaterPayment)
-	{
-		await _mediator.Publish(new SalesCompletedEvent(invoiceId, hasPayLaterPayment));
+		await _nokpirab.SendAsync(command);
 	}
 }

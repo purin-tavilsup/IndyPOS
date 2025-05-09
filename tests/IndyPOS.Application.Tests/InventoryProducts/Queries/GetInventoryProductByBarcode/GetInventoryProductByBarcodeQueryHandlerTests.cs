@@ -27,7 +27,7 @@ public class GetInventoryProductByBarcodeQueryHandlerTests
 		var query = new GetInventoryProductByBarcodeQuery(barcode);
 
 		// Act
-		var result = await sut.Handle(query, default);
+		var result = await sut.HandleAsync(query);
 
 		// Assert
 		result.Should().BeOfType<InventoryProductDto>()

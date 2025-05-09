@@ -1,6 +1,6 @@
-﻿using IndyPOS.Application.Abstractions.Messaging;
-using IndyPOS.Application.Abstractions.Pos.Repositories;
+﻿using IndyPOS.Application.Abstractions.Pos.Repositories;
 using IndyPOS.Domain.Events;
+using Nokpirab;
 
 namespace IndyPOS.Application.UseCases.Users.Delete;
 
@@ -15,12 +15,12 @@ public class DeleteUserCommandHandler : ICommandHandler<DeleteUserCommand>
         _eventAggregator = eventAggregator;
     }
 
-    public Task Handle(DeleteUserCommand command, CancellationToken cancellationToken)
+	public Task HandleAsync(DeleteUserCommand command, CancellationToken cancellationToken = default)
 	{
 		_userRepository.RemoveById(command.Id);
 
-        _eventAggregator.GetEvent<UserRemovedEvent>().Publish();
+		_eventAggregator.GetEvent<UserRemovedEvent>().Publish();
 
 		return Task.CompletedTask;
-    }
+	}
 }

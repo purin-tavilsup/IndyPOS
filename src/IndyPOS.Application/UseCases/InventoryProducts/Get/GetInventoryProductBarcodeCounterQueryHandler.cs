@@ -1,5 +1,5 @@
-﻿using IndyPOS.Application.Abstractions.Messaging;
-using IndyPOS.Application.Abstractions.Pos.Repositories;
+﻿using IndyPOS.Application.Abstractions.Pos.Repositories;
+using Nokpirab;
 
 namespace IndyPOS.Application.UseCases.InventoryProducts.Get;
 
@@ -12,7 +12,7 @@ public class GetInventoryProductBarcodeCounterQueryHandler : IQueryHandler<GetIn
 		_productRepository = productRepository;
 	}
 
-	public Task<int> Handle(GetInventoryProductBarcodeCounterQuery query, CancellationToken cancellationToken)
+	public Task<int> HandleAsync(GetInventoryProductBarcodeCounterQuery query, CancellationToken cancellationToken = default)
 	{
 		var result = _productRepository.GetProductBarcodeCounter();
 

@@ -1,4 +1,4 @@
-﻿using IndyPOS.Application.Abstractions.Messaging;
+﻿using Nokpirab;
 
 namespace IndyPOS.Application.UseCases.Invoices.Get;
 
