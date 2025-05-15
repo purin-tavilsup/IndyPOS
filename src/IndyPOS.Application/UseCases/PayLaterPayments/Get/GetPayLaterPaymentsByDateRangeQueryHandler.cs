@@ -1,5 +1,5 @@
-﻿using IndyPOS.Application.Abstractions.Messaging;
-using IndyPOS.Application.Abstractions.Pos.Repositories;
+﻿using IndyPOS.Application.Abstractions.Pos.Repositories;
+using Nokpirab;
 
 namespace IndyPOS.Application.UseCases.PayLaterPayments.Get;
 
@@ -11,8 +11,7 @@ public class GetPayLaterPaymentsByDateRangeQueryHandler : IQueryHandler<GetPayLa
 	{
 		_paymentRepository = paymentRepository;
 	}
-
-	public Task<IEnumerable<PayLaterPaymentDto>> Handle(GetPayLaterPaymentsByDateRangeQuery query, CancellationToken cancellationToken)
+	public Task<IEnumerable<PayLaterPaymentDto>> HandleAsync(GetPayLaterPaymentsByDateRangeQuery query, CancellationToken cancellationToken = default)
 	{
 		var results = _paymentRepository.GetPayLaterPaymentsByDateRange(query.StartDate, query.EndDate);
 

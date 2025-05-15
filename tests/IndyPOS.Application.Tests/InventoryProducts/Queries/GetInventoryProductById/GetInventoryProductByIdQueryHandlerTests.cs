@@ -27,7 +27,7 @@ public class GetInventoryProductByIdQueryHandlerTests
 		var query = new GetInventoryProductByIdQuery(id);
 
 		// Act
-		var result = await sut.Handle(query, default);
+		var result = await sut.HandleAsync(query);
 
 		// Assert
 		result.Should().BeOfType<InventoryProductDto>()

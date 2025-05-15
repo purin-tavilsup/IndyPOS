@@ -1,8 +1,8 @@
 ﻿using IndyPOS.Application.Common.Interfaces;
-using MediatR;
 using System.Diagnostics.CodeAnalysis;
 using IndyPOS.Application.UseCases.Users;
 using IndyPOS.Application.UseCases.Users.Get;
+using Nokpirab;
 
 namespace IndyPOS.Windows.Forms.UI.Login;
 
@@ -10,20 +10,20 @@ namespace IndyPOS.Windows.Forms.UI.Login;
 public partial class UserLogInPanel : UserControl
 {
 	private readonly IUserLogInService _userLogInService;
-	private readonly IMediator _mediator;
+	private readonly INokpirab _nokpirab;
 	private readonly ICryptographyService _cryptographyService;
 	private readonly MessageForm _messageForm;
 	private bool _isLoggedIn;
 		
 	public UserLogInPanel(IUserLogInService userLogInService,
-						  IMediator mediator,
 						  ICryptographyService cryptographyService,
-						  MessageForm messageForm)
+						  MessageForm messageForm,
+						  INokpirab nokpirab)
 	{
 		_userLogInService = userLogInService;
-		_mediator = mediator;
 		_cryptographyService = cryptographyService;
 		_messageForm = messageForm;
+		_nokpirab = nokpirab;
 
 		InitializeComponent();
 		InitializeUsers();
@@ -45,7 +45,7 @@ public partial class UserLogInPanel : UserControl
 
 	private IEnumerable<UserDto> GetUsers()
 	{
-		return _mediator.Send(new GetUsersQuery())
+		return _nokpirab.SendAsync(new GetUsersQuery())
 						.GetAwaiter()
 						.GetResult();
 	}

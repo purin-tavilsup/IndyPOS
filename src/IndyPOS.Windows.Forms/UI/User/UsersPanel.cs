@@ -2,7 +2,6 @@
 using IndyPOS.Application.Common.Interfaces;
 using IndyPOS.Application.Events;
 using IndyPOS.Domain.Events;
-using MediatR;
 using System.Diagnostics.CodeAnalysis;
 using IndyPOS.Application.UseCases.UserCredentials;
 using IndyPOS.Application.UseCases.UserCredentials.Get;
@@ -10,6 +9,7 @@ using IndyPOS.Application.UseCases.UserCredentials.Update;
 using IndyPOS.Application.UseCases.Users;
 using IndyPOS.Application.UseCases.Users.Delete;
 using IndyPOS.Application.UseCases.Users.Get;
+using Nokpirab;
 using UserRoleEnum = IndyPOS.Application.Common.Enums.UserRole;
 
 namespace IndyPOS.Windows.Forms.UI.User;
@@ -17,7 +17,7 @@ namespace IndyPOS.Windows.Forms.UI.User;
 [ExcludeFromCodeCoverage]
 public partial class UsersPanel : UserControl
 {
-	private readonly IMediator _mediator;
+	private readonly INokpirab _nokpirab;
 	private readonly IEventAggregator _eventAggregator;
 	private readonly IReadOnlyDictionary<int, string> _userRoleDictionary;
 	private readonly ICryptographyService _cryptographyService;
@@ -38,19 +38,19 @@ public partial class UsersPanel : UserControl
 		DateUpdated
 	}
 
-	public UsersPanel(IMediator mediator,
-					  IEventAggregator eventAggregator,
+	public UsersPanel(IEventAggregator eventAggregator,
 					  IStoreConstants storeConstants,
 					  ICryptographyService cryptographyService,
 					  AddNewUserForm addNewUserForm,
-					  MessageForm messageForm)
+					  MessageForm messageForm, 
+					  INokpirab nokpirab)
 	{
-		_mediator = mediator;
 		_eventAggregator = eventAggregator;
 		_userRoleDictionary = storeConstants.UserRoles;
 		_cryptographyService = cryptographyService;
 		_addNewUserForm = addNewUserForm;
 		_messageForm = messageForm;
+		_nokpirab = nokpirab;
 
 		InitializeComponent();
 		InitializeUserRoles();
@@ -163,17 +163,17 @@ public partial class UsersPanel : UserControl
 
 	private async Task<IEnumerable<UserDto>> GetUsersAsync()
 	{
-		return await _mediator.Send(new GetUsersQuery());
+		return await _nokpirab.SendAsync(new GetUsersQuery());
 	}
 
 	private async Task<UserCredentialDto> GetUserCredentialByIdAsync(int id)
 	{
-		return await _mediator.Send(new GetUserCredentialByIdQuery(id));
+		return await _nokpirab.SendAsync(new GetUserCredentialByIdQuery(id));
 	}
 
 	private async Task<UserDto> GetUserByIdAsync(int id)
 	{
-		return await _mediator.Send(new GetUserByIdQuery(id));
+		return await _nokpirab.SendAsync(new GetUserByIdQuery(id));
 	}
 
 	private async Task UpdateUserCredential(int userId, string encryptedPassword)
@@ -184,12 +184,12 @@ public partial class UsersPanel : UserControl
 			Password = encryptedPassword
 		};
 
-		await _mediator.Send(command);
+		await _nokpirab.SendAsync(command);
 	}
 
 	private async Task DeleteUserByIdAsync(int id)
 	{
-		await _mediator.Send(new DeleteUserCommand(id));
+		await _nokpirab.SendAsync(new DeleteUserCommand(id));
 	}
 
 	private async void UserRoleComboBox_SelectedIndexChanged(object sender, EventArgs e)

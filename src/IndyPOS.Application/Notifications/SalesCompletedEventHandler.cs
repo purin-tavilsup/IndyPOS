@@ -1,4 +1,4 @@
-﻿using IndyPOS.Application.Common.Interfaces;
+﻿/*using IndyPOS.Application.Common.Interfaces;
 using IndyPOS.Application.Common.Models;
 using IndyPOS.Application.UseCases.PaymentsReports.Create;
 using IndyPOS.Application.UseCases.SalesReports.Create;
@@ -37,4 +37,4 @@ public class SalesCompletedEventHandler : INotificationHandler<SalesCompletedEve
 	{
 		return config.CloudDatabaseEnabled ?? false;
 	}
-}
+}*/

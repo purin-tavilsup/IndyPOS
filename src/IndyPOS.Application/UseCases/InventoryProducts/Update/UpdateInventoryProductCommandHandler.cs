@@ -1,6 +1,6 @@
-﻿using IndyPOS.Application.Abstractions.Messaging;
-using IndyPOS.Application.Abstractions.Pos.Repositories;
+﻿using IndyPOS.Application.Abstractions.Pos.Repositories;
 using IndyPOS.Domain.Events;
+using Nokpirab;
 
 namespace IndyPOS.Application.UseCases.InventoryProducts.Update;
 
@@ -16,7 +16,7 @@ public class UpdateInventoryProductCommandHandler : ICommandHandler<UpdateInvent
 		_eventAggregator = eventAggregator;
 	}
 
-	public Task Handle(UpdateInventoryProductCommand command, CancellationToken cancellationToken)
+	public Task HandleAsync(UpdateInventoryProductCommand command, CancellationToken cancellationToken = default)
 	{
 		_ = _productRepository.Update(command.ToEntity());
 

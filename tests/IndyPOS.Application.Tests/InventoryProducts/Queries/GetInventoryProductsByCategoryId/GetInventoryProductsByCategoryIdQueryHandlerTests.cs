@@ -27,7 +27,7 @@ public class GetInventoryProductsByCategoryIdQueryHandlerTests
 		var query = new GetInventoryProductsByCategoryIdQuery(categoryId);
 
 		// Act
-		var results = await sut.Handle(query, default);
+		var results = await sut.HandleAsync(query);
 
 		// Assert
 		results.Should().HaveSameCount(products)

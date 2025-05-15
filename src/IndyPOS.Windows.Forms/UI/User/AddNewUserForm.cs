@@ -1,29 +1,29 @@
 ﻿using IndyPOS.Application.Common.Extensions;
 using IndyPOS.Application.Common.Interfaces;
-using MediatR;
 using System.Diagnostics.CodeAnalysis;
 using IndyPOS.Application.UseCases.UserCredentials.Create;
 using IndyPOS.Application.UseCases.Users.Create;
+using Nokpirab;
 
 namespace IndyPOS.Windows.Forms.UI.User;
 
 [ExcludeFromCodeCoverage]
 public partial class AddNewUserForm : Form
 {
-	private readonly IMediator _mediator;
+	private readonly INokpirab _nokpirab;
 	private readonly IReadOnlyDictionary<int, string> _userRoleDictionary;
 	private readonly ICryptographyService _cryptographyService;
 	private readonly MessageForm _messageForm;
 
-	public AddNewUserForm(IMediator mediator,
-						  IStoreConstants storeConstants,
+	public AddNewUserForm(IStoreConstants storeConstants,
 						  ICryptographyService cryptographyService,
-						  MessageForm messageForm)
+						  MessageForm messageForm, 
+						  INokpirab nokpirab)
 	{
-		_mediator = mediator;
 		_userRoleDictionary = storeConstants.UserRoles;
 		_cryptographyService = cryptographyService;
 		_messageForm = messageForm;
+		_nokpirab = nokpirab;
 
 		InitializeComponent();
 		InitializeUserRoles();
@@ -120,14 +120,14 @@ public partial class AddNewUserForm : Form
 	{
 		var command = CreateCommandForCreateUser();
 
-		return await _mediator.Send(command);
+		return await _nokpirab.SendAsync(command);
 	}
 
 	private async Task CreateUserCredentialAsync(int userId)
 	{
 		var command = CreateCommandForCreateUserCredential(userId);
 
-		await _mediator.Send(command);
+		await _nokpirab.SendAsync(command);
 	}
 
 	private void CancelUserEntryButton_Click(object sender, EventArgs e)

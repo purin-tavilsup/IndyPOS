@@ -1,9 +1,9 @@
-﻿using IndyPOS.Application.Abstractions.Messaging;
-using IndyPOS.Application.Abstractions.Reports.Repositories;
+﻿using IndyPOS.Application.Abstractions.Reports.Repositories;
 using IndyPOS.Application.Common.Interfaces;
 using IndyPOS.Application.Common.Models;
 using IndyPOS.Application.Constants;
 using Microsoft.Extensions.Logging;
+using Nokpirab;
 
 namespace IndyPOS.Application.UseCases.SalesReports.Create;
 
@@ -25,7 +25,7 @@ public class CreateSalesReportCommandHandler : ICommandHandler<CreateSalesReport
 		_jsonService = jsonService;
 	}
 	
-	public async Task Handle(CreateSalesReportCommand command, CancellationToken cancellationToken)
+	public async Task HandleAsync(CreateSalesReportCommand command, CancellationToken cancellationToken = default)
 	{
 		SalesReport? report = null;
 		

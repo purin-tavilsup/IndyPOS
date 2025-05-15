@@ -1,5 +1,5 @@
-﻿using IndyPOS.Application.Abstractions.Messaging;
-using IndyPOS.Application.Abstractions.Pos.Repositories;
+﻿using IndyPOS.Application.Abstractions.Pos.Repositories;
+using Nokpirab;
 
 namespace IndyPOS.Application.UseCases.InvoiceProducts.Get;
 
@@ -12,7 +12,7 @@ public class GetInvoiceProductsByDateRangeQueryHandler : IQueryHandler<GetInvoic
 		_invoiceProductRepository = invoiceProductRepository;
 	}
 
-	public Task<IEnumerable<InvoiceProductDto>> Handle(GetInvoiceProductsByDateRangeQuery query, CancellationToken cancellationToken)
+	public Task<IEnumerable<InvoiceProductDto>> HandleAsync(GetInvoiceProductsByDateRangeQuery query, CancellationToken cancellationToken = default)
 	{
 		var results = _invoiceProductRepository.GetByDateRange(query.StartDate, query.EndDate);
 

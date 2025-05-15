@@ -1,5 +1,5 @@
-﻿using IndyPOS.Application.Abstractions.Messaging;
-using IndyPOS.Application.Abstractions.Pos.Repositories;
+﻿using IndyPOS.Application.Abstractions.Pos.Repositories;
+using Nokpirab;
 
 namespace IndyPOS.Application.UseCases.InvoiceProducts.Get;
 
@@ -12,7 +12,7 @@ public class GetInvoiceProductsByInvoiceIdQueryHandler : IQueryHandler<GetInvoic
 		_invoiceProductRepository = invoiceProductRepository;
 	}
 
-	public Task<IEnumerable<InvoiceProductDto>> Handle(GetInvoiceProductsByInvoiceIdQuery query, CancellationToken cancellationToken)
+	public Task<IEnumerable<InvoiceProductDto>> HandleAsync(GetInvoiceProductsByInvoiceIdQuery query, CancellationToken cancellationToken = default)
 	{
 		var results = _invoiceProductRepository.GetByInvoiceId(query.InvoiceId);
 

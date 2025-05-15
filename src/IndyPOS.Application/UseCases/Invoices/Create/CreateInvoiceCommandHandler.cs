@@ -1,5 +1,5 @@
-﻿using IndyPOS.Application.Abstractions.Messaging;
-using IndyPOS.Application.Common.Interfaces;
+﻿using IndyPOS.Application.Common.Interfaces;
+using Nokpirab;
 
 namespace IndyPOS.Application.UseCases.Invoices.Create;
 
@@ -12,9 +12,9 @@ public class CreateInvoiceCommandHandler : ICommandHandler<CreateInvoiceCommand,
         _invoiceRepository = invoiceRepository;
     }
 
-    public Task<int> Handle(CreateInvoiceCommand command, CancellationToken cancellationToken)
+    public Task<int> HandleAsync(CreateInvoiceCommand command, CancellationToken cancellationToken = default)
     {
-		var id = _invoiceRepository.Add(command.ToEntity());
+        var id = _invoiceRepository.Add(command.ToEntity());
 
         return Task.FromResult(id);
     }

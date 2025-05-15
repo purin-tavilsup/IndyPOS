@@ -1,5 +1,5 @@
-﻿using IndyPOS.Application.Abstractions.Messaging;
-using IndyPOS.Application.Abstractions.Pos.Repositories;
+﻿using IndyPOS.Application.Abstractions.Pos.Repositories;
+using Nokpirab;
 
 namespace IndyPOS.Application.UseCases.InventoryProducts.Update;
 
@@ -12,7 +12,7 @@ public class UpdateInventoryProductBarcodeCounterCommandHandler : ICommandHandle
 		_productRepository = productRepository;
 	}
 
-	public Task Handle(UpdateInventoryProductBarcodeCounterCommand command, CancellationToken cancellationToken)
+	public Task HandleAsync(UpdateInventoryProductBarcodeCounterCommand command, CancellationToken cancellationToken = default)
 	{
 		_ = _productRepository.UpdateProductBarcodeCounter(command.Counter);
 

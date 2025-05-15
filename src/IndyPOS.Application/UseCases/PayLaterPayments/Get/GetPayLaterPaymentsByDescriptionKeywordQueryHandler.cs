@@ -1,5 +1,5 @@
-﻿using IndyPOS.Application.Abstractions.Messaging;
-using IndyPOS.Application.Abstractions.Pos.Repositories;
+﻿using IndyPOS.Application.Abstractions.Pos.Repositories;
+using Nokpirab;
 
 namespace IndyPOS.Application.UseCases.PayLaterPayments.Get;
 
@@ -12,7 +12,7 @@ public class GetPayLaterPaymentsByDescriptionKeywordQueryHandler : IQueryHandler
 		_paymentRepository = paymentRepository;
 	}
 
-	public Task<IEnumerable<PayLaterPaymentDto>> Handle(GetPayLaterPaymentsByDescriptionKeywordQuery query, CancellationToken cancellationToken)
+	public Task<IEnumerable<PayLaterPaymentDto>> HandleAsync(GetPayLaterPaymentsByDescriptionKeywordQuery query, CancellationToken cancellationToken = default)
 	{
 		var keyword = query.Keyword;
 		var results = _paymentRepository.GetPayLaterPaymentsByDescriptionKeyword(keyword);

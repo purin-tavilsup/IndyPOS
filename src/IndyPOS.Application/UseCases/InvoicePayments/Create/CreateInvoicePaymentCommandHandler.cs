@@ -1,6 +1,6 @@
-﻿using IndyPOS.Application.Abstractions.Messaging;
-using IndyPOS.Application.Abstractions.Pos.Repositories;
+﻿using IndyPOS.Application.Abstractions.Pos.Repositories;
 using IndyPOS.Domain.Events;
+using Nokpirab;
 
 namespace IndyPOS.Application.UseCases.InvoicePayments.Create;
 
@@ -15,12 +15,12 @@ public class CreateInvoicePaymentCommandHandler : ICommandHandler<CreateInvoiceP
         _eventAggregator = eventAggregator;
     }
 
-    public Task<int> Handle(CreateInvoicePaymentCommand command, CancellationToken cancellationToken)
+	public Task<int> HandleAsync(CreateInvoicePaymentCommand command, CancellationToken cancellationToken = default)
 	{
 		var id = _invoicePaymentRepository.Add(command.ToEntity());
 
 		_eventAggregator.GetEvent<InvoicePaymentAddedEvent>().Publish();
 
-        return Task.FromResult(id);
-    }
+		return Task.FromResult(id);
+	}
 }

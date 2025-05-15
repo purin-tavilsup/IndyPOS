@@ -4,22 +4,20 @@ using IndyPOS.Application.UseCases.UserCredentials;
 using IndyPOS.Application.UseCases.UserCredentials.Get;
 using IndyPOS.Application.UseCases.Users;
 using IndyPOS.Application.UseCases.Users.Get;
-using MediatR;
-using Prism.Events;
+using Nokpirab;
 
 namespace IndyPOS.Infrastructure.Services;
 
 public class UserLogInService : IUserLogInService
 {
-	private readonly IMediator _mediator;
+	private readonly INokpirab _nokpirab;
 	private readonly IEventAggregator _eventAggregator;
 
-	public UserLogInService(IMediator mediator,
-							IEventAggregator eventAggregator)
-    {
-        _mediator = mediator;
-        _eventAggregator = eventAggregator;
-    }
+	public UserLogInService(IEventAggregator eventAggregator, INokpirab nokpirab)
+	{
+		_eventAggregator = eventAggregator;
+		_nokpirab = nokpirab;
+	}
 
 	public async Task<bool> LogInAsync(string username, string password)
 	{
@@ -49,12 +47,12 @@ public class UserLogInService : IUserLogInService
 
 	private async Task<UserCredentialDto> GetUserCredentialByUserNameAsync(string username)
 	{
-		return await _mediator.Send(new GetUserCredentialByUsernameQuery(username));
+		return await _nokpirab.SendAsync(new GetUserCredentialByUsernameQuery(username));
 	}
 
 	private async Task<UserDto> GetUserByIdAsync(int id)
 	{
-		return await _mediator.Send(new GetUserByIdQuery(id));
+		return await _nokpirab.SendAsync(new GetUserByIdQuery(id));
 	}
 
 	private class LoggedInUser : ILoggedInUser

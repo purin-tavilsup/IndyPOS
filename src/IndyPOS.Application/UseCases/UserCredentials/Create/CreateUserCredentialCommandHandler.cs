@@ -1,5 +1,5 @@
-﻿using IndyPOS.Application.Abstractions.Messaging;
-using IndyPOS.Application.Abstractions.Pos.Repositories;
+﻿using IndyPOS.Application.Abstractions.Pos.Repositories;
+using Nokpirab;
 
 namespace IndyPOS.Application.UseCases.UserCredentials.Create;
 
@@ -12,7 +12,7 @@ public class CreateUserCredentialCommandHandler : ICommandHandler<CreateUserCred
 		_userCredentialRepository = userCredentialRepository;
 	}
 
-	public Task Handle(CreateUserCredentialCommand command, CancellationToken cancellationToken)
+	public Task HandleAsync(CreateUserCredentialCommand command, CancellationToken cancellationToken = default)
 	{
 		_userCredentialRepository.Add(command.ToEntity());
 

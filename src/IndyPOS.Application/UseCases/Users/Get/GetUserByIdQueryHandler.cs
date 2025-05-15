@@ -1,5 +1,5 @@
-﻿using IndyPOS.Application.Abstractions.Messaging;
-using IndyPOS.Application.Abstractions.Pos.Repositories;
+﻿using IndyPOS.Application.Abstractions.Pos.Repositories;
+using Nokpirab;
 
 namespace IndyPOS.Application.UseCases.Users.Get;
 
@@ -12,7 +12,7 @@ public class GetUserByIdQueryHandler : IQueryHandler<GetUserByIdQuery, UserDto>
 		_userRepository = userRepository;
 	}
 
-	public Task<UserDto> Handle(GetUserByIdQuery query, CancellationToken cancellationToken)
+	public Task<UserDto> HandleAsync(GetUserByIdQuery query, CancellationToken cancellationToken = default)
 	{
 		var result = _userRepository.GetById(query.Id);
 

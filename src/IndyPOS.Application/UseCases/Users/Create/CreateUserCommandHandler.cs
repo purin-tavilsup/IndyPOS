@@ -1,6 +1,6 @@
-﻿using IndyPOS.Application.Abstractions.Messaging;
-using IndyPOS.Application.Abstractions.Pos.Repositories;
+﻿using IndyPOS.Application.Abstractions.Pos.Repositories;
 using IndyPOS.Domain.Events;
+using Nokpirab;
 
 namespace IndyPOS.Application.UseCases.Users.Create;
 
@@ -15,9 +15,9 @@ public class CreateUserCommandHandler : ICommandHandler<CreateUserCommand, int>
         _eventAggregator = eventAggregator;
     }
 
-    public Task<int> Handle(CreateUserCommand command, CancellationToken cancellationToken)
+    public Task<int> HandleAsync(CreateUserCommand command, CancellationToken cancellationToken = default)
     {
-		var userId = _userRepository.Add(command.ToEntity());
+        var userId = _userRepository.Add(command.ToEntity());
 
         _eventAggregator.GetEvent<UserAddedEvent>().Publish();
 
