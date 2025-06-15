@@ -19,7 +19,7 @@ UI is a desktop application using Winforms
 
 - SQLite is used as database stored locally in C:\ProgramData\IndyPOS\db
 - Dapper is used as ORM
-- MediatR (CQRS) is used for interacting with database (handling commands and queries)
+- Nokpirab is used for handling commands and queries (CQRS) 
 - Prism is used as Event Aggregator for handling notifications (Pub/Sub) between frontend and backend
 
 ## Installation Guide
