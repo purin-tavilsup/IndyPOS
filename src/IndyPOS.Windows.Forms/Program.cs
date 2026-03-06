@@ -86,7 +86,7 @@ internal static class Program
 	{
 		services.AddApplicationServices()
 				.AddUIServices()
-				.AddInfrastructureServices();
+				.AddInfrastructureServices(context.Configuration);
 	}
 
 	private static void ClosePreviousProcesses()

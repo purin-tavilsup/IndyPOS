@@ -1,8 +1,10 @@
 ﻿using IndyPOS.Application.Common.Interfaces;
+using IndyPOS.Application.Common.Models;
 using IndyPOS.Infrastructure.Constants;
 using IndyPOS.Infrastructure.Persistence.Repositories.SQLite;
 using IndyPOS.Infrastructure.Services;
 using LazyCache;
+using Microsoft.Extensions.Configuration;
 using Prism.Events;
 using System.Runtime.Versioning;
 using IndyPOS.Application.Abstractions.Pos.Repositories;
@@ -13,8 +15,12 @@ namespace Microsoft.Extensions.DependencyInjection;
 [type: SupportedOSPlatform("windows")]
 public static class ConfigureServices
 {
-	public static IServiceCollection AddInfrastructureServices(this IServiceCollection services)
+	public static IServiceCollection AddInfrastructureServices(this IServiceCollection services, IConfiguration configuration)
 	{
+		// Store Identity
+		services.Configure<StoreIdentityOptions>(configuration.GetSection(StoreIdentityOptions.SectionName));
+		services.AddSingleton<IStoreIdentityService, StoreIdentityService>();
+
 		// Persistence
 		services.AddSingleton<IDbConnectionProvider, DbConnectionProvider>()
                 .AddSingleton<IInvoiceRepository, InvoiceRepository>()
