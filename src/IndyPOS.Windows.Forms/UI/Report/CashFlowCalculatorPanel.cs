@@ -279,9 +279,9 @@ public partial class CashFlowCalculatorPanel : UserControl
 
     private void DisplayResults(CashFlowData data)
     {
-        var expectedCash = CalculateExpectedCash(data);
-        var actualCash = CalculateActualCash(data);
-        var diffCash = actualCash - expectedCash;
+        var expectedCash = data.CalculateExpectedCash();
+        var actualCash = data.CalculateActualCash();
+        var diffCash = data.CalculateCashDifference();
 
         GeneralGoodsSaleLabel.Text = $"{data.GeneralProductsTotal:N2}";
         HardwareSaleLabel.Text = $"{data.HardwareProductsTotal:N2}";
@@ -321,33 +321,6 @@ public partial class CashFlowCalculatorPanel : UserControl
         {
             DiffCashDescriptionLabel.Text = diffCash > 0 ? "เกิน" : "ขาด";
         }
-    }
-
-    private static decimal CalculateExpectedCash(CashFlowData data)
-    {
-        var expectedCash = data.SalesTotalWithoutPayLaterPayments
-                         + data.ReceivedPayLaterPaymentsTotal
-                         + data.ChangesTotal
-                         - data.MoneyTransferTotal
-                         - data.WelfareCardTotal
-                         - data.PayoutsTotal;
-
-        return expectedCash;
-    }
-
-    private static decimal CalculateActualCash(CashFlowData data)
-    {
-		var actualCash = data.BankNote1000Total
-					   + data.BankNote500Total
-					   + data.BankNote100Total
-					   + data.BankNote50Total
-					   + data.BankNote20Total
-					   + data.Coin10Total
-					   + data.Coin5Total
-					   + data.Coin2Total
-					   + data.Coin1Total;
-
-        return actualCash;
     }
 
     private IEnumerable<Change> GetChangesFromListView()

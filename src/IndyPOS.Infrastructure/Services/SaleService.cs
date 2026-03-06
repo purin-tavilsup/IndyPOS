@@ -125,7 +125,7 @@ public class SaleService : ISaleService
 
 	public decimal CalculateInvoiceTotal()
 	{
-		return Products.Sum(p => !p.IsGroupProduct ? p.UnitPrice * p.Quantity : p.GroupPrice);
+		return Products.Sum(p => p.GetTotal());
 	}
 
 	public decimal CalculatePaymentTotal()

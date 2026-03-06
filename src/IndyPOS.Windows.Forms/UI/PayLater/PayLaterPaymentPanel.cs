@@ -132,13 +132,11 @@ public partial class PayLaterPaymentPanel : UserControl
 
     private static UpdatePayLaterPaymentCommand CreateCommandForUpdatePayLaterPayment(PayLaterPaymentDto payment, decimal paidAmount)
     {
-        var isCompleted = paidAmount == payment.ReceivableAmount;
-
         return new UpdatePayLaterPaymentCommand
         {
             PaymentId = payment.PaymentId,
             PaidAmount = paidAmount,
-            IsCompleted = isCompleted
+            IsCompleted = payment.WouldBeCompletedWith(paidAmount)
         };
     }
 

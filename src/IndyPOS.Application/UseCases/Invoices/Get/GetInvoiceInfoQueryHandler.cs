@@ -58,7 +58,7 @@ public class GetInvoiceInfoQueryHandler : IQueryHandler<GetInvoiceInfoQuery, IIn
 
 	private static decimal CalculateInvoiceTotal(IEnumerable<InvoiceProductDto> products)
     {
-		return products.Sum(p => !p.IsGroupProduct ? p.UnitPrice * p.Quantity : p.GroupPrice);
+		return products.Sum(p => p.GetTotal());
 	}
 
 	private static decimal CalculatePaymentTotal(IEnumerable<InvoicePaymentDto> payments)

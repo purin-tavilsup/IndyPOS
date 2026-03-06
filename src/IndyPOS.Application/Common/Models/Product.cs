@@ -34,4 +34,10 @@ public class Product
     public bool IsGroupProduct { get; set; }
     
     public decimal OriginalUnitPrice { get; set; }
+
+    /// <summary>
+    /// Calculates the total price for this product line.
+    /// Uses GroupPrice if IsGroupProduct, otherwise UnitPrice * Quantity.
+    /// </summary>
+    public decimal GetTotal() => IsGroupProduct ? GroupPrice : UnitPrice * Quantity;
 }

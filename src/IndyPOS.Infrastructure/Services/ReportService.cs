@@ -116,7 +116,7 @@ public class ReportService : IReportService
 		foreach (var product in products)
 		{
 			var invoiceId = product.InvoiceId;
-			var productTotal = !product.IsGroupProduct ? product.UnitPrice * product.Quantity : product.GroupPrice;
+			var productTotal = product.GetTotal();
 
 			if (IsGeneralProduct(product))
 			{

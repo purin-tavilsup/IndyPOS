@@ -89,7 +89,7 @@ public partial class InvoiceProductsReportPanel : UserControl
 	{
 		var columnCount = InvoiceProductsDataView.ColumnCount;
 		var productRow = new object[columnCount];
-		var total = !product.IsGroupProduct ? product.UnitPrice * product.Quantity : product.GroupPrice;
+		var total = product.GetTotal();
 
 		productRow[(int) ProductColumn.InvoiceId] = product.InvoiceId;
 		productRow[(int) ProductColumn.ProductCode] = product.Barcode;
