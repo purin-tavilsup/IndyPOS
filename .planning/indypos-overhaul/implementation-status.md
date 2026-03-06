@@ -2,7 +2,7 @@
 
 **Last Updated:** 2026-03-06
 **Current Sprint:** Sprint 1
-**Current Epic:** Epic 0, A, B Complete - Ready for Epic D
+**Current Epic:** Epic 0, A, B, D Complete - Ready for Epic C
 
 ---
 
@@ -10,7 +10,7 @@
 
 | Sprint | Focus | Status |
 |--------|-------|--------|
-| Sprint 1 | **Epic 0** ✅ + **Epic A** ✅ + **Epic B** ✅ + Epic D | 🟡 In Progress |
+| Sprint 1 | **Epic 0** ✅ + **Epic A** ✅ + **Epic B** ✅ + **Epic D** ✅ | 🟢 Complete |
 | Sprint 2 | Epic C (StoreHub Service) | Not Started |
 | Sprint 3 | Epic E (Outbox + Sync) | Not Started |
 | Sprint 4 | Epic F (Cloud API) | Not Started |
@@ -129,23 +129,39 @@ Added foundational infrastructure for multi-store support and development enviro
 
 ---
 
-## Epic D: Schema Design (moved before Epic C)
+## Epic D: Schema Design ✅ COMPLETE
 
 **Goal:** Define PostgreSQL schema with PublicId + StoreId
-**Status:** 🔴 Not Started
-**Target:** Sprint 1-2
-**Priority:** HIGH
+**Status:** 🟢 Complete
+**Completed:** 2026-03-06
+
+### Summary
+
+Created new Core domain entities with UUID-based IDs and EF Core configurations for PostgreSQL.
 
 ### Tasks
 
-| Task | Description | Status | PR | Notes |
-|------|-------------|--------|-----|-------|
-| D1 | Add PublicId to core entities | 🔴 Not Started | - | Invoice, InvoiceProduct, Payment, Product, etc. |
-| D2 | Design Outbox table schema | 🔴 Not Started | - | Reference: examples/outbox-and-syncworker.md |
-| D3 | Design InventoryMovement table | 🔴 Not Started | - | Movement-based, not snapshot |
-| D4 | Create initial EF Core migration templates | 🔴 Not Started | - | For StoreHub DB |
+| Task | Description | Status | Notes |
+|------|-------------|--------|-------|
+| D1 | Create Core entities with UUID Id | 🟢 Complete | Invoice, InvoiceLine, Payment, Product, PayLater |
+| D2 | Create OutboxEvent entity | 🟢 Complete | For reliable cloud sync |
+| D3 | Create InventoryMovement entity | 🟢 Complete | Movement-based tracking |
+| D4 | Create EF Core configurations | 🟢 Complete | StoreHubDbContext + all entity configs |
 
-**Deliverable:** Schema defined; migration templates ready; tests prove upgrade path
+### Files Created:
+**Domain (Entities/Core/):**
+- `Invoice.cs`, `InvoiceLine.cs`, `Payment.cs`, `Product.cs`, `PayLater.cs`
+- `OutboxEvent.cs`, `InventoryMovement.cs`
+
+**Infrastructure (Persistence/StoreHub/):**
+- `StoreHubDbContext.cs`
+- `Configurations/` - 7 entity configuration files
+
+### Architecture Decision:
+- See `ADR-002-entity-organization.md` for entity organization strategy
+- Core entities coexist with legacy entities until Epic G cleanup
+
+**Deliverable:** Schema defined; EF Core ready for StoreHub ✅
 
 ---
 
@@ -251,26 +267,26 @@ Added foundational infrastructure for multi-store support and development enviro
 
 ## Current Focus
 
-**Now:** Epic 0, A, B Complete ✅
-**Next:** Epic D (Schema Design)
+**Now:** Sprint 1 Complete ✅ (Epic 0, A, B, D)
+**Next:** Epic C (Create StoreHub Service)
 
 ### Next Actions
-1. Add PublicId to core entities (Invoice, InvoiceProduct, Payment, etc.)
-2. Design Outbox table schema
-3. Design InventoryMovement table
-4. Create initial EF Core migration templates
+1. Create IndyPOS.StoreHub ASP.NET Core project
+2. Add PostgreSQL persistence with EF Core
+3. Expose minimal API endpoints
+4. Move selling logic to hub
 
 ---
 
 ## Statistics
 
 - **Total Epics:** 7
-- **Completed Epics:** 3 (Epic 0, A, B)
+- **Completed Epics:** 4 (Epic 0, A, B, D)
 - **Total Tasks:** 37
-- **Completed:** 13
+- **Completed:** 17
 - **In Progress:** 0
-- **Not Started:** 24
-- **Overall Progress:** ~35%
+- **Not Started:** 20
+- **Overall Progress:** ~46%
 
 ---
 
