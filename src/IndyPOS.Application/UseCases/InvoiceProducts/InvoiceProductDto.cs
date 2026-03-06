@@ -15,4 +15,11 @@ public record InvoiceProductDto(
 	string DateCreated,
 	string Note,
 	decimal GroupPrice,
-	bool IsGroupProduct);
+	bool IsGroupProduct)
+{
+	/// <summary>
+	/// Calculates the total price for this product line.
+	/// Uses GroupPrice if IsGroupProduct, otherwise UnitPrice * Quantity.
+	/// </summary>
+	public decimal GetTotal() => IsGroupProduct ? GroupPrice : UnitPrice * Quantity;
+}

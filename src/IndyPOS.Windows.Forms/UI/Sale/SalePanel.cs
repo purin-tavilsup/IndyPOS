@@ -182,7 +182,7 @@ public partial class SalePanel : UserControl
     {
         var columnCount = InvoiceDataView.ColumnCount;
         var productRow = new object[columnCount];
-        var total = !product.IsGroupProduct ? product.UnitPrice * product.Quantity : product.GroupPrice;
+        var total = product.GetTotal();
 
         productRow[(int)SaleInvoiceColumn.Priority] = product.Priority;
         productRow[(int)SaleInvoiceColumn.ProductCode] = product.Barcode;

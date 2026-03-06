@@ -234,7 +234,7 @@ public partial class SalesHistoryReportPanel : UserControl
     {
         var columnCount = InvoiceProductsDataView.ColumnCount;
         var row = new object[columnCount];
-        var total = !product.IsGroupProduct ? product.UnitPrice * product.Quantity : product.GroupPrice;
+        var total = product.GetTotal();
 
         row[(int)ProductColumn.ProductCode] = product.Barcode;
         row[(int)ProductColumn.Description] = product.Description;
