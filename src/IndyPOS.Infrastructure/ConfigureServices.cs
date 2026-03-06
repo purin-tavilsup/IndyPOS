@@ -6,8 +6,6 @@ using LazyCache;
 using Prism.Events;
 using System.Runtime.Versioning;
 using IndyPOS.Application.Abstractions.Pos.Repositories;
-using IndyPOS.Application.Abstractions.Reports.Repositories;
-using IndyPOS.Infrastructure.Persistence.Repositories.PostgreSql;
 
 // ReSharper disable CheckNamespace
 namespace Microsoft.Extensions.DependencyInjection;
@@ -18,9 +16,6 @@ public static class ConfigureServices
 	public static IServiceCollection AddInfrastructureServices(this IServiceCollection services)
 	{
 		// Persistence
-		services.AddSingleton<IReportDbConnectionProvider, ReportDbConnectionProvider>();
-		services.AddScoped<IReportRepository, ReportRepository>();
-        
 		services.AddSingleton<IDbConnectionProvider, DbConnectionProvider>()
                 .AddSingleton<IInvoiceRepository, InvoiceRepository>()
                 .AddSingleton<IInvoiceProductRepository, InvoiceProductRepository>()

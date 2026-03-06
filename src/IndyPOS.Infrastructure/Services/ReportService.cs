@@ -59,50 +59,6 @@ public class ReportService : IReportService
 		return CreateSalesSummary(products.ToList(), payLaterPayments.ToList());
 	}
 
-	public async Task<SalesReport> CreateSalesReportByInvoiceIdAsync(int invoiceId, bool hasPayLaterPayment)
-	{
-		var id = Guid.NewGuid();
-		var created = DateTime.Now;
-		var summary = await CreateSalesSummaryByInvoiceIdAsync(invoiceId, hasPayLaterPayment);
-
-		return summary.ToReport(id, created, invoiceId);
-	}
-
-	public async Task<PaymentsReport> CreatePaymentsReportByInvoiceIdAsync(int invoiceId)
-	{
-		var id = Guid.NewGuid();
-		var created = DateTime.Now;
-		var summary = await CreatePaymentsSummaryByInvoiceIdAsync(invoiceId);
-		
-		return summary.ToReport(id, created, invoiceId);
-	}
-	
-	private async Task<SalesSummary> CreateSalesSummaryByInvoiceIdAsync(int invoiceId, bool hasPayLaterPayment)
-	{
-		var products = await GetInvoiceProductsByInvoiceIdAsync(invoiceId);
-		
-		List<PayLaterPaymentDto> payLaterPayments;
-
-		if (hasPayLaterPayment)
-		{
-			var payLaterPayment = await GetPayLaterPaymentByInvoiceId(invoiceId);
-			payLaterPayments = payLaterPayment is not null ? [payLaterPayment] : [];
-		}
-		else
-		{
-			payLaterPayments = [];
-		}
-
-		return CreateSalesSummary(products.ToList(), payLaterPayments);
-	}
-
-	private async Task<PaymentsSummary> CreatePaymentsSummaryByInvoiceIdAsync(int invoiceId)
-	{
-		var payments = await GetPaymentsByInvoiceIdAsync(invoiceId);
-
-		return CreatePaymentsSummary(payments);
-	}
-
 	private static SalesSummary CreateSalesSummary(IReadOnlyList<InvoiceProductDto> products, 
 												   IReadOnlyList<PayLaterPaymentDto> payLaterPayments)
 	{
@@ -272,11 +228,6 @@ public class ReportService : IReportService
 	private async Task<IEnumerable<PayLaterPaymentDto>> GetPayLaterPaymentsByDateRangeAsync(DateOnly startDate, DateOnly endDate)
 	{
 		return await _nokpirab.SendAsync(new GetPayLaterPaymentsByDateRangeQuery(startDate, endDate));
-	}
-
-	private async Task<PayLaterPaymentDto?> GetPayLaterPaymentByInvoiceId(int invoiceId)
-	{
-		return await _nokpirab.SendAsync(new GetPayLaterPaymentByInvoiceIdQuery(invoiceId));
 	}
 
 	public async Task<IEnumerable<PayLaterPaymentDto>> GetPayLaterPaymentsAsync()
