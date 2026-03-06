@@ -1,5 +1,11 @@
 # IndyPOS - Project Context
 
+## Active Plan
+
+**Current:** `indypos-overhaul` → `.planning/indypos-overhaul/implementation-status.md`
+
+---
+
 ## Overview
 
 IndyPOS is a Point-of-Sale system for small retail stores (3 stores, 1-2 terminals each).
