@@ -480,3 +480,4 @@ fabric.properties
 
 # Claude Code workspace (session logs are personal notes)
 .claude/sessions/
+*.db
