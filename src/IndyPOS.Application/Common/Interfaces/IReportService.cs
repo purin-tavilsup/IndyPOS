@@ -33,9 +33,5 @@ public interface IReportService
 
 	Task<IEnumerable<PayLaterPaymentDto>> GetPayLaterPaymentsAsync();
 
-	Task<SalesReport> CreateSalesReportByInvoiceIdAsync(int invoiceId, bool hasPayLaterPayment);
-
-	Task<PaymentsReport> CreatePaymentsReportByInvoiceIdAsync(int invoiceId);
-
 	Task<IInvoiceInfo> GetInvoiceInfoAsync(int invoiceId);
 }
