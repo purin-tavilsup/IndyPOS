@@ -18,6 +18,7 @@
   <ItemGroup>
     <PackageReference Include="LazyCache" Version="2.4.0" />
     <PackageReference Include="Microsoft.CSharp" Version="4.7.0" />
+    <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="8.0.0" />
     <PackageReference Include="Prism.Core" Version="9.0.537" />
   </ItemGroup>
   <ItemGroup>

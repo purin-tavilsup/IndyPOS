@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-	  <TargetFramework>net8.0</TargetFramework>
+	  <TargetFramework>net8.0-windows</TargetFramework>
 	  <IsPackable>false</IsPackable>
 	  <PlatformTarget>x64</PlatformTarget>
 	  <Platforms>x64</Platforms>
@@ -30,6 +30,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\IndyPOS.Application\IndyPOS.Application.csproj" />
+    <ProjectReference Include="..\..\src\IndyPOS.Infrastructure\IndyPOS.Infrastructure.csproj" />
   </ItemGroup>
 
 </Project>
