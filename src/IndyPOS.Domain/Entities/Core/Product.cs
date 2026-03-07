@@ -7,7 +7,7 @@ namespace IndyPOS.Domain.Entities.Core;
 public class Product
 {
     public Guid Id { get; set; }
-    public string Barcode { get; set; } = default!;
+    public string Barcode { get; set; } = default!; 
     public string Name { get; set; } = default!;
     public string? Description { get; set; }
     public string? Manufacturer { get; set; }
