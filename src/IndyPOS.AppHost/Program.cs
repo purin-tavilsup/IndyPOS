@@ -2,8 +2,8 @@ var builder = DistributedApplication.CreateBuilder(args);
 
 // PostgreSQL for local development
 var postgres = builder.AddPostgres("postgres")
-                      .WithPgAdmin()
-                      .WithDbGate();
+                      .WithPgAdmin(configureContainer: pgadmin => pgadmin.WithExplicitStart())
+                      .WithDbGate(configureContainer: dbgate => dbgate.WithExplicitStart());
 
 var storeHubDb = postgres.AddDatabase("storehub-db");
 
