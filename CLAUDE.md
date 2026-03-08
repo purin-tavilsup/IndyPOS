@@ -11,10 +11,11 @@
 IndyPOS is a Point-of-Sale system for small retail stores (3 stores, 1-2 terminals each).
 
 **Tech Stack:**
-- Backend: C# .NET 8 (Clean Architecture)
+- Backend: C# .NET 10 (Clean Architecture)
 - UI: Windows.Forms (future: MAUI)
-- Database: SQLite (current) → PostgreSQL (planned)
-- Patterns: CQRS (Nokpirab), Domain-Driven Design
+- Database: SQLite (legacy) → PostgreSQL (StoreHub)
+- Dev Environment: .NET Aspire
+- Patterns: CQRS, Domain-Driven Design
 
 ## Project Structure
 
@@ -23,14 +24,16 @@ src/
 ├── IndyPOS.Domain/          # Entities, Value Objects, Domain Logic
 ├── IndyPOS.Application/     # Use Cases (Commands/Queries), Interfaces, DTOs
 ├── IndyPOS.Infrastructure/  # Repositories, External Services
-└── IndyPOS.Windows.Forms/   # Desktop UI
+├── IndyPOS.Windows.Forms/   # Desktop UI (legacy)
+├── IndyPOS.StoreHub/        # Local API service (ASP.NET Core)
+├── IndyPOS.AppHost/         # Aspire orchestrator
+└── IndyPOS.ServiceDefaults/ # Shared health checks, OpenTelemetry
 
 tests/
 └── IndyPOS.Application.Tests/
 
 docs/                        # Architecture docs, diagrams
 .planning/                   # Planning docs, ADRs, implementation status
-.claude/                     # Claude workspace (session logs)
 ```
 
 ## Coding Standards
@@ -51,6 +54,24 @@ docs/                        # Architecture docs, diagrams
 - **Legacy entities**: Keep `int Id` for SQLite compatibility
 - **New entities**: Add `Guid PublicId` for distributed identity
 - **All entities**: Add `DateTime CreatedUtc`, `DateTime LastModifiedUtc`
+
+### Method Chaining Style
+Use vertical alignment for fluent APIs / method chaining:
+
+```csharp
+// Good - dots vertically aligned
+builder.AddProject<Projects.IndyPOS_StoreHub>("storehub-api")
+       .WithReference(storeHubDb)
+       .WaitFor(postgres);
+
+// Good - also acceptable with standard indent
+builder.AddProject<Projects.IndyPOS_StoreHub>("storehub-api")
+    .WithReference(storeHubDb)
+    .WaitFor(postgres);
+
+// Bad - no alignment
+builder.AddProject<Projects.IndyPOS_StoreHub>("storehub-api").WithReference(storeHubDb).WaitFor(postgres);
+```
 
 ## Development Workflow
 
@@ -81,10 +102,11 @@ dotnet test tests/IndyPOS.Application.Tests/
 dotnet build
 ```
 
-### Local Postgres (Dev)
+### Run with Aspire (Dev)
 ```bash
-docker-compose up -d
+dotnet run --project src/IndyPOS.AppHost --launch-profile https
 ```
+Opens dashboard at https://localhost:17222 (requires Docker)
 
 ### Store Configuration (Required for Debug)
 
