@@ -478,6 +478,7 @@ fabric.properties
 .idea/caches/build_file_checksums.ser
 .idea/.idea.IndyPOS/.idea/
 
-# Claude Code workspace (session logs are personal notes)
+# Claude Code workspace (session logs and local settings are personal)
 .claude/sessions/
+.claude/settings.local.json
 *.db
