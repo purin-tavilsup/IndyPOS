@@ -59,10 +59,15 @@ public static class ConfigureServices
 	/// Registers StoreHub-specific services (EF Core repositories).
 	/// Use this for StoreHub API, not for Windows.Forms.
 	/// </summary>
-	public static IServiceCollection AddStoreHubServices(this IServiceCollection services)
+	public static IServiceCollection AddStoreHubServices(this IServiceCollection services, IConfiguration configuration)
 	{
+		// Store Identity
+		services.Configure<StoreIdentityOptions>(configuration.GetSection(StoreIdentityOptions.SectionName));
+		services.AddSingleton<IStoreIdentityService, StoreIdentityService>();
+
 		// StoreHub repositories (Scoped for EF Core DbContext)
-		services.AddScoped<IProductRepository, ProductRepository>();
+		services.AddScoped<IProductRepository, ProductRepository>()
+		        .AddScoped<ISaleRepository, SaleRepository>();
 
 		return services;
 	}

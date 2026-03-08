@@ -1,5 +1,8 @@
+using IndyPOS.Application.Common.Interfaces;
 using IndyPOS.Application.UseCases.StoreHub.Products;
 using IndyPOS.Application.UseCases.StoreHub.Products.Get;
+using IndyPOS.Application.UseCases.StoreHub.Sales;
+using IndyPOS.Application.UseCases.StoreHub.Sales.Complete;
 using IndyPOS.Infrastructure.Persistence.StoreHub;
 using IndyPOS.ServiceDefaults;
 using Nokpirab;
@@ -13,12 +16,13 @@ builder.AddServiceDefaults();
 // Connection name must match AppHost: postgres.AddDatabase("storehub-db")
 builder.AddNpgsqlDbContext<StoreHubDbContext>("storehub-db");
 
-// Add StoreHub infrastructure services (repositories)
-builder.Services.AddStoreHubServices();
+// Add StoreHub infrastructure services (repositories, store identity)
+builder.Services.AddStoreHubServices(builder.Configuration);
 
 // Register StoreHub CQRS handlers manually
 // Note: We don't use AddApplicationServices() as it registers ALL handlers including legacy ones
 builder.Services.AddTransient<IQueryHandler<GetProductsQuery, IReadOnlyList<ProductDto>>, GetProductsQueryHandler>();
+builder.Services.AddTransient<ICommandHandler<CompleteSaleCommand, CompleteSaleResponse>, CompleteSaleCommandHandler>();
 
 // Add OpenAPI
 builder.Services.AddOpenApi();
@@ -73,10 +77,21 @@ app.MapGet("/products", async (
     return Results.Ok(products);
 });
 
-// Sales endpoint (placeholder)
-app.MapPost("/sales/complete", () =>
+// Sales endpoint
+app.MapPost("/sales/complete", async (
+    ICommandHandler<CompleteSaleCommand, CompleteSaleResponse> handler,
+    IStoreIdentityService storeIdentity,
+    CompleteSaleRequest request,
+    CancellationToken cancellationToken) =>
 {
-    return Results.Ok(new { message = "Sales complete endpoint - coming soon" });
+    var command = new CompleteSaleCommand(
+        StoreId: storeIdentity.StoreId,
+        UserId: request.UserId,
+        Lines: request.Lines,
+        Payments: request.Payments);
+
+    var response = await handler.HandleAsync(command, cancellationToken);
+    return Results.Ok(response);
 });
 
 app.Run();
