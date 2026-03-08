@@ -1,8 +1,9 @@
 # IndyPOS Overhaul - Implementation Status
 
 **Last Updated:** 2026-03-08
-**Current Sprint:** Sprint 1
-**Current Epic:** Epic 0, A, B, D Complete - Ready for Epic C
+**Last Session:** 2026-03-08
+**Current Sprint:** Sprint 2
+**Current Epic:** Epic C (StoreHub + Aspire) - Foundation Complete
 **Docs Version:** v1.4.0 (with .NET Aspire support)
 
 ---
@@ -12,7 +13,7 @@
 | Sprint | Focus | Status |
 |--------|-------|--------|
 | Sprint 1 | **Epic 0** ✅ + **Epic A** ✅ + **Epic B** ✅ + **Epic D** ✅ | 🟢 Complete |
-| Sprint 2 | Epic C (StoreHub Service) | Not Started |
+| Sprint 2 | Epic C (StoreHub Service) | 🟡 In Progress |
 | Sprint 3 | Epic E (Outbox + Sync) | Not Started |
 | Sprint 4 | Epic F (Cloud API) | Not Started |
 | Sprint 5 | Epic G (Desktop Integration) | Not Started |
@@ -169,7 +170,7 @@ Created new Core domain entities with UUID-based IDs and EF Core configurations 
 ## Epic C: Create StoreHub Service + Aspire Foundation
 
 **Goal:** New StoreHub Windows Service project with .NET Aspire dev orchestration
-**Status:** 🔴 Not Started
+**Status:** 🟡 In Progress (Foundation Complete)
 **Target:** Sprint 2
 **Priority:** HIGH
 
@@ -177,30 +178,42 @@ Created new Core domain entities with UUID-based IDs and EF Core configurations 
 
 | Task | Description | Status | PR | Notes |
 |------|-------------|--------|-----|-------|
-| C0a | Add IndyPOS.ServiceDefaults project | 🔴 Not Started | - | Shared health checks, OpenTelemetry, conventions |
-| C0b | Add IndyPOS.AppHost project | 🔴 Not Started | - | Aspire orchestrator for dev environment |
-| C1 | Add IndyPOS.StoreHub project | 🔴 Not Started | - | ASP.NET Core + Windows Service template |
-| C2 | Add local Postgres persistence | 🔴 Not Started | - | EF Core + connection string |
-| C3 | Expose minimal endpoints | 🔴 Not Started | - | POST /sales/complete, GET /products, etc. |
-| C4 | Move selling logic to hub | 🔴 Not Started | - | Reuse Application services initially |
-| C5 | Add StoreHub to AppHost | 🔴 Not Started | - | Wire up Postgres + StoreHub in Aspire |
+| C0a | Add IndyPOS.ServiceDefaults project | 🟢 Complete | - | Health checks, OpenTelemetry, service discovery |
+| C0b | Add IndyPOS.AppHost project | 🟢 Complete | - | Aspire orchestrator with PostgreSQL, PgAdmin, DbGate |
+| C1 | Add IndyPOS.StoreHub project | 🟢 Complete | - | ASP.NET Core Web API |
+| C2 | Add local Postgres persistence | 🟢 Complete | - | EF Core via Aspire integration |
+| C3 | Expose minimal endpoints | 🟢 Complete | - | Placeholder endpoints: /, /health/ready, /products, /sales/complete |
+| C4 | Move selling logic to hub | 🔴 Not Started | - | Implement real endpoint logic |
+| C5 | Add StoreHub to AppHost | 🟢 Complete | - | Wired with service discovery |
 
 ### Aspire Setup Details
 
 **IndyPOS.ServiceDefaults** provides:
-- Health check endpoints
+- Health check endpoints (`/health`, `/alive`)
 - OpenTelemetry tracing/metrics
-- Shared service conventions
+- HTTP resilience handlers
+- Service discovery
 
 **IndyPOS.AppHost** orchestrates:
-- PostgreSQL container (dev)
-- StoreHub API
-- Future: CloudApi, SyncWorker
+- PostgreSQL container (auto-start)
+- PgAdmin (on-demand via `WithExplicitStart`)
+- DbGate (on-demand via `WithExplicitStart`)
+- StoreHub API (auto-start, waits for Postgres)
 
 **Developer workflow:**
 ```bash
-dotnet run --project src/IndyPOS.AppHost
+dotnet run --project src/IndyPOS.AppHost --launch-profile https
+# Dashboard: https://localhost:17222 (requires Docker)
 ```
+
+### Commits (2026-03-08)
+- `443043a` docs: add v1.4.0 specs and update diagrams for Epic C
+- `0a406fd` feat: add Aspire foundation and StoreHub API project (Epic C)
+- `23f1b97` fix: add launchSettings and fix resource naming conflict
+- `cb78af7` fix: correct connection name to match AppHost database reference
+- `d2217f6` docs: update CLAUDE.md with method chaining style and Aspire setup
+- `dc4a73f` feat: add DbGate database UI via Community Toolkit
+- `6beefb6` feat: make PgAdmin and DbGate start on-demand via WithExplicitStart
 
 ### Implementation Notes
 
@@ -342,17 +355,24 @@ Upgraded the entire solution from .NET 8 to .NET 10 LTS before starting Epic C.
 
 ## Current Focus
 
-**Now:** .NET 10 Upgrade Complete ✅
-**Next:** Epic C (Create StoreHub Service + Aspire Foundation)
+**Now:** Epic C Foundation Complete ✅
+**Next:** Epic C Task C4 (Move selling logic to hub)
+
+### Completed Today (2026-03-08)
+1. ✅ Created IndyPOS.ServiceDefaults (health checks, OpenTelemetry, service discovery)
+2. ✅ Created IndyPOS.AppHost (Aspire orchestrator)
+3. ✅ Created IndyPOS.StoreHub (ASP.NET Core Web API)
+4. ✅ Wired StoreHub + Postgres in AppHost
+5. ✅ Added PostgreSQL persistence via Aspire integration
+6. ✅ Added PgAdmin + DbGate (on-demand)
+7. ✅ Exposed placeholder API endpoints
+8. ✅ Added v1.4.0 documentation and 3 new diagrams
+9. ✅ Updated CLAUDE.md with method chaining style
 
 ### Next Actions
-1. Create IndyPOS.ServiceDefaults (shared health/OTel)
-2. Create IndyPOS.AppHost (Aspire orchestrator)
-3. Create IndyPOS.StoreHub ASP.NET Core project (net10.0)
-4. Wire StoreHub + Postgres in AppHost
-5. Add PostgreSQL persistence with EF Core
-6. Expose minimal API endpoints
-7. Move selling logic to hub
+1. Implement real `/sales/complete` endpoint logic (C4)
+2. Implement real `/products` endpoint logic (C4)
+3. Test full Aspire stack with Docker running
 
 ---
 
@@ -360,11 +380,11 @@ Upgraded the entire solution from .NET 8 to .NET 10 LTS before starting Epic C.
 
 - **Total Epics:** 7
 - **Completed Epics:** 4 (Epic 0, A, B, D)
-- **Total Tasks:** 41 (+4 Aspire tasks)
-- **Completed:** 17
-- **In Progress:** 0
-- **Not Started:** 24
-- **Overall Progress:** ~41%
+- **Total Tasks:** 41
+- **Completed:** 22 (+5 today)
+- **In Progress:** 1 (C4)
+- **Not Started:** 18
+- **Overall Progress:** ~54%
 
 ---
 
@@ -379,6 +399,8 @@ Upgraded the entire solution from .NET 8 to .NET 10 LTS before starting Epic C.
 - **v1.4.0 Update:** Added .NET Aspire for dev orchestration (AppHost + ServiceDefaults)
 - **v1.4.0 Update:** Added terminal concurrency and transaction sequence details to Epic C
 - Aspire is for development only; production remains Docker + DigitalOcean
+- **Coding Style:** Method chaining uses vertical dot alignment (see CLAUDE.md)
+- **DB Tools:** PgAdmin and DbGate configured as on-demand (WithExplicitStart)
 
 ## Reference Documentation
 
