@@ -1,0 +1,6 @@
+@IndyPOS.StoreHub_HostAddress = http://localhost:5012
+
+GET {{IndyPOS.StoreHub_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
