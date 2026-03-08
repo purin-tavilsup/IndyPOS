@@ -4,10 +4,10 @@ var builder = DistributedApplication.CreateBuilder(args);
 var postgres = builder.AddPostgres("postgres")
     .WithPgAdmin();
 
-var storeHubDb = postgres.AddDatabase("storehub");
+var storeHubDb = postgres.AddDatabase("storehub-db");
 
 // StoreHub API
-builder.AddProject<Projects.IndyPOS_StoreHub>("storehub")
+builder.AddProject<Projects.IndyPOS_StoreHub>("storehub-api")
     .WithReference(storeHubDb)
     .WaitFor(postgres);
 
