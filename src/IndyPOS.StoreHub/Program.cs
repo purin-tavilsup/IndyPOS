@@ -1,5 +1,8 @@
+using IndyPOS.Application.UseCases.StoreHub.Products;
+using IndyPOS.Application.UseCases.StoreHub.Products.Get;
 using IndyPOS.Infrastructure.Persistence.StoreHub;
 using IndyPOS.ServiceDefaults;
+using Nokpirab;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -10,10 +13,23 @@ builder.AddServiceDefaults();
 // Connection name must match AppHost: postgres.AddDatabase("storehub-db")
 builder.AddNpgsqlDbContext<StoreHubDbContext>("storehub-db");
 
+// Add StoreHub infrastructure services (repositories)
+builder.Services.AddStoreHubServices();
+
+// Register StoreHub CQRS handlers manually
+// Note: We don't use AddApplicationServices() as it registers ALL handlers including legacy ones
+builder.Services.AddTransient<IQueryHandler<GetProductsQuery, IReadOnlyList<ProductDto>>, GetProductsQueryHandler>();
+
 // Add OpenAPI
 builder.Services.AddOpenApi();
 
 var app = builder.Build();
+
+// Auto-create database schema in development
+if (app.Environment.IsDevelopment())
+{
+    await app.EnsureStoreHubDatabaseCreatedAsync();
+}
 
 // Map default endpoints (health, alive)
 app.MapDefaultEndpoints();
@@ -40,10 +56,21 @@ app.MapGet("/health/ready", async (StoreHubDbContext db) =>
     }
 });
 
-// Products endpoint (placeholder)
-app.MapGet("/products", () =>
+// Products endpoint
+app.MapGet("/products", async (
+    IQueryHandler<GetProductsQuery, IReadOnlyList<ProductDto>> handler,
+    bool? activeOnly,
+    string? category,
+    string? search,
+    CancellationToken cancellationToken) =>
 {
-    return Results.Ok(new { message = "Products endpoint - coming soon" });
+    var query = new GetProductsQuery(
+        ActiveOnly: activeOnly ?? true,
+        Category: category,
+        SearchTerm: search);
+
+    var products = await handler.HandleAsync(query, cancellationToken);
+    return Results.Ok(products);
 });
 
 // Sales endpoint (placeholder)
