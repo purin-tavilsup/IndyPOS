@@ -1,3 +1,4 @@
+using IndyPOS.Application.Abstractions.StoreHub.Repositories;
 using IndyPOS.Application.Common.Interfaces;
 using IndyPOS.Application.UseCases.StoreHub.Products;
 using IndyPOS.Application.UseCases.StoreHub.Products.Get;
@@ -18,6 +19,9 @@ builder.AddNpgsqlDbContext<StoreHubDbContext>("storehub-db");
 
 // Add StoreHub infrastructure services (repositories, store identity)
 builder.Services.AddStoreHubServices(builder.Configuration);
+
+// Add SyncWorker background service
+builder.Services.AddSyncWorker();
 
 // Register StoreHub CQRS handlers manually
 // Note: We don't use AddApplicationServices() as it registers ALL handlers including legacy ones
@@ -92,6 +96,23 @@ app.MapPost("/sales/complete", async (
 
     var response = await handler.HandleAsync(command, cancellationToken);
     return Results.Ok(response);
+});
+
+// Sync status endpoint (E4)
+app.MapGet("/sync/status", async (
+    IOutboxRepository outboxRepository,
+    CancellationToken cancellationToken) =>
+{
+    var pendingCount = await outboxRepository.GetPendingCountAsync(cancellationToken);
+    var failedCount = await outboxRepository.GetFailedCountAsync(cancellationToken);
+
+    return Results.Ok(new
+    {
+        status = pendingCount == 0 ? "synced" : "pending",
+        pending = pendingCount,
+        failed = failedCount,
+        timestamp = DateTime.UtcNow
+    });
 });
 
 app.Run();

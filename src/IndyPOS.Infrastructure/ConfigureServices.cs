@@ -1,10 +1,12 @@
 ﻿using IndyPOS.Application.Abstractions.StoreHub.Repositories;
+using IndyPOS.Application.Abstractions.StoreHub.Services;
 using IndyPOS.Application.Common.Interfaces;
 using IndyPOS.Application.Common.Models;
 using IndyPOS.Infrastructure.Constants;
 using IndyPOS.Infrastructure.Persistence.Repositories.SQLite;
 using IndyPOS.Infrastructure.Persistence.StoreHub.Repositories;
 using IndyPOS.Infrastructure.Services;
+using IndyPOS.Infrastructure.Services.StoreHub;
 using LazyCache;
 using Microsoft.Extensions.Configuration;
 using Prism.Events;
@@ -67,8 +69,25 @@ public static class ConfigureServices
 
 		// StoreHub repositories (Scoped for EF Core DbContext)
 		services.AddScoped<IProductRepository, ProductRepository>()
-		        .AddScoped<ISaleRepository, SaleRepository>();
+		        .AddScoped<ISaleRepository, SaleRepository>()
+		        .AddScoped<IOutboxRepository, OutboxRepository>();
 
+		// SyncWorker configuration
+		services.Configure<SyncWorkerOptions>(configuration.GetSection(SyncWorkerOptions.SectionName));
+
+		// Cloud sync client (stub until Epic F)
+		services.AddScoped<ICloudSyncClient, StubCloudSyncClient>();
+
+		return services;
+	}
+
+	/// <summary>
+	/// Adds the SyncWorker hosted service.
+	/// Call this after AddStoreHubServices.
+	/// </summary>
+	public static IServiceCollection AddSyncWorker(this IServiceCollection services)
+	{
+		services.AddHostedService<SyncWorker>();
 		return services;
 	}
 }
