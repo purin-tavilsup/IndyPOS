@@ -1,7 +1,9 @@
 # IndyPOS Architecture Diagrams
 
-Version: 1.0.0
-Date: 2026-03-03
+Version: 1.2.0
+Date: 2026-03-08
+
+This is the **main diagrams folder** for the IndyPOS overhaul project.
 
 This folder contains comprehensive ASCII diagrams documenting the IndyPOS offline-first architecture overhaul.
 
@@ -121,6 +123,48 @@ This folder contains comprehensive ASCII diagrams documenting the IndyPOS offlin
 
 ---
 
+### 09. Terminal Concurrency ✨ NEW
+**File:** `09-terminal-concurrency.md`
+
+**Contents:**
+- Multi-terminal architecture (2 terminals → 1 StoreHub)
+- PostgreSQL transaction locking
+- Invoice number generation strategy
+- Inventory movement pattern
+- Why NOT separate databases
+
+**Use this when:** Understanding multi-terminal safety for Epic C
+
+---
+
+### 10. .NET Aspire Development Environment ✨ NEW
+**File:** `10-aspire-dev-environment.md`
+
+**Contents:**
+- Aspire orchestration architecture
+- AppHost configuration example
+- ServiceDefaults project
+- Developer workflow
+- Development vs Production comparison
+
+**Use this when:** Setting up or understanding the dev environment (Epic C)
+
+---
+
+### 11. Solution Structure ✨ NEW
+**File:** `11-solution-structure.md`
+
+**Contents:**
+- Project dependency graph
+- Folder structure
+- Dependency rules
+- Legacy migration path
+- Project references summary
+
+**Use this when:** Understanding project organization and dependencies
+
+---
+
 ## How to Use These Diagrams
 
 ### For Planning
@@ -192,6 +236,6 @@ When updating diagrams:
 ---
 
 **Related Documentation:**
-- Planning: `../.planning/indypos-overhaul/`
-- Implementation Status: `../../.claude/implementation-status.md`
-- Project Context: `../../CLAUDE.md`
+- Implementation Status: `../implementation-status.md`
+- Project Context: `../../../CLAUDE.md`
+- v1.4.0 Docs: `../IndyPOS_Docs_v1_4_0/`
