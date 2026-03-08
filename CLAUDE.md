@@ -86,6 +86,26 @@ dotnet build
 docker-compose up -d
 ```
 
+### Store Configuration (Required for Debug)
+
+Create `C:\ProgramData\IndyPOS\Config\StoreConfiguration.json`:
+
+```json
+{
+  "StoreFullName": "Test Store",
+  "StoreName": "Test Store",
+  "StoreAddressLine1": "123 Test Street",
+  "StoreAddressLine2": "Test City 12345",
+  "StorePhoneNumber": "000-000-0000",
+  "PrinterName": "XP-58",
+  "BarcodeScannerDeviceName": "",
+  "SerialPortName": "COM1",
+  "Code": 1
+}
+```
+
+> If file doesn't exist, app auto-creates with defaults.
+
 ## Important Reminders
 
 - Apply SOLID principles and Clean Code standards

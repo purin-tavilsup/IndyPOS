@@ -1,8 +1,9 @@
 # IndyPOS Overhaul - Implementation Status
 
-**Last Updated:** 2026-03-06
+**Last Updated:** 2026-03-08
 **Current Sprint:** Sprint 1
 **Current Epic:** Epic 0, A, B, D Complete - Ready for Epic C
+**Docs Version:** v1.4.0 (with .NET Aspire support)
 
 ---
 
@@ -165,23 +166,58 @@ Created new Core domain entities with UUID-based IDs and EF Core configurations 
 
 ---
 
-## Epic C: Create StoreHub Service
+## Epic C: Create StoreHub Service + Aspire Foundation
 
-**Goal:** New StoreHub Windows Service project
+**Goal:** New StoreHub Windows Service project with .NET Aspire dev orchestration
 **Status:** 🔴 Not Started
 **Target:** Sprint 2
-**Priority:** MEDIUM
+**Priority:** HIGH
 
 ### Tasks
 
 | Task | Description | Status | PR | Notes |
 |------|-------------|--------|-----|-------|
+| C0a | Add IndyPOS.ServiceDefaults project | 🔴 Not Started | - | Shared health checks, OpenTelemetry, conventions |
+| C0b | Add IndyPOS.AppHost project | 🔴 Not Started | - | Aspire orchestrator for dev environment |
 | C1 | Add IndyPOS.StoreHub project | 🔴 Not Started | - | ASP.NET Core + Windows Service template |
 | C2 | Add local Postgres persistence | 🔴 Not Started | - | EF Core + connection string |
 | C3 | Expose minimal endpoints | 🔴 Not Started | - | POST /sales/complete, GET /products, etc. |
 | C4 | Move selling logic to hub | 🔴 Not Started | - | Reuse Application services initially |
+| C5 | Add StoreHub to AppHost | 🔴 Not Started | - | Wire up Postgres + StoreHub in Aspire |
 
-**Deliverable:** Hub runs locally; can complete a sale into local Postgres
+### Aspire Setup Details
+
+**IndyPOS.ServiceDefaults** provides:
+- Health check endpoints
+- OpenTelemetry tracing/metrics
+- Shared service conventions
+
+**IndyPOS.AppHost** orchestrates:
+- PostgreSQL container (dev)
+- StoreHub API
+- Future: CloudApi, SyncWorker
+
+**Developer workflow:**
+```bash
+dotnet run --project src/IndyPOS.AppHost
+```
+
+### Implementation Notes
+
+**Terminal Concurrency Strategy** (from v1.4.0 docs):
+- Both terminals MUST call the same StoreHub API (not separate DBs)
+- StoreHub generates final invoice numbers (not terminals)
+- PostgreSQL transactions provide row locking for concurrent sales
+- Use inventory movements, not "set quantity = X"
+
+**Sales Transaction Sequence:**
+1. Begin PostgreSQL transaction
+2. Generate invoice number
+3. Lock/check stock rows
+4. Insert: invoice → lines → payments → inventory movements → outbox
+5. Commit (all or nothing)
+
+**Deliverable:** Hub runs locally via Aspire; can complete a sale into local Postgres
 
 ---
 
@@ -216,7 +252,8 @@ Created new Core domain entities with UUID-based IDs and EF Core configurations 
 
 | Task | Description | Status | PR | Notes |
 |------|-------------|--------|-----|-------|
-| F1 | Create cloud API project | 🔴 Not Started | - | IndyPOS.Cloud + Dockerfile |
+| F1 | Create IndyPOS.CloudApi project | 🔴 Not Started | - | ASP.NET Core + Dockerfile |
+| F1a | Add CloudApi to AppHost | 🔴 Not Started | - | Wire up in Aspire for local dev |
 | F2 | Idempotent event ingestion | 🔴 Not Started | - | POST /sync/events |
 | F3 | Process event types | 🔴 Not Started | - | InvoiceCompleted, InventoryMovementRecorded |
 | F4 | Master data endpoints | 🔴 Not Started | - | GET /master/products, GET /master/config |
@@ -265,16 +302,57 @@ Created new Core domain entities with UUID-based IDs and EF Core configurations 
 
 ---
 
+## .NET 10 Upgrade ✅ COMPLETE
+
+**Goal:** Upgrade entire solution to .NET 10 LTS
+**Status:** 🟢 Complete
+**Completed:** 2026-03-06
+**Commit:** `0afb961`
+
+### Summary
+
+Upgraded the entire solution from .NET 8 to .NET 10 LTS before starting Epic C.
+
+### Changes
+
+| Project | Before | After |
+|---------|--------|-------|
+| IndyPOS.Domain | net8.0 | net10.0 |
+| IndyPOS.Application | net8.0 | net10.0 |
+| IndyPOS.Infrastructure | net8.0-windows | net10.0-windows |
+| IndyPOS.Windows.Forms | net8.0-windows | net10.0-windows |
+| IndyPOS.Application.Tests | net8.0-windows | net10.0-windows |
+| IndyPOS.Windows.Forms.Tests | net8.0-windows | net10.0-windows |
+| IndyPOS.Mock | net8.0 | net10.0 |
+
+### Package Updates
+- Microsoft.Extensions.* → 10.0.x
+- Microsoft.EntityFrameworkCore → 10.0.0
+- Npgsql.EntityFrameworkCore.PostgreSQL → 10.0.0
+- Serilog packages → latest .NET 10 compatible
+- Removed legacy packages (Microsoft.CSharp, System.Memory, System.ValueTuple, etc.)
+
+### Fixes
+- Added `NoWarn` for WFO1000 (WinForms designer serialization warnings)
+- Fixed missing test runner packages
+
+**Tests:** 32/32 passing ✅
+
+---
+
 ## Current Focus
 
-**Now:** Sprint 1 Complete ✅ (Epic 0, A, B, D)
-**Next:** Epic C (Create StoreHub Service)
+**Now:** .NET 10 Upgrade Complete ✅
+**Next:** Epic C (Create StoreHub Service + Aspire Foundation)
 
 ### Next Actions
-1. Create IndyPOS.StoreHub ASP.NET Core project
-2. Add PostgreSQL persistence with EF Core
-3. Expose minimal API endpoints
-4. Move selling logic to hub
+1. Create IndyPOS.ServiceDefaults (shared health/OTel)
+2. Create IndyPOS.AppHost (Aspire orchestrator)
+3. Create IndyPOS.StoreHub ASP.NET Core project (net10.0)
+4. Wire StoreHub + Postgres in AppHost
+5. Add PostgreSQL persistence with EF Core
+6. Expose minimal API endpoints
+7. Move selling logic to hub
 
 ---
 
@@ -282,21 +360,35 @@ Created new Core domain entities with UUID-based IDs and EF Core configurations 
 
 - **Total Epics:** 7
 - **Completed Epics:** 4 (Epic 0, A, B, D)
-- **Total Tasks:** 37
+- **Total Tasks:** 41 (+4 Aspire tasks)
 - **Completed:** 17
 - **In Progress:** 0
-- **Not Started:** 20
-- **Overall Progress:** ~46%
+- **Not Started:** 24
+- **Overall Progress:** ~41%
 
 ---
 
 ## Notes
 
+- .NET 10 upgrade completed before Epic C
 - Epic order adjusted: D (Schema) now comes before C (StoreHub)
 - Rationale: Need clear schema when transitioning SQLite → PostgreSQL
 - All tasks should result in small, focused PRs
 - Tests required for all epics
 - Documentation updated as we go
+- **v1.4.0 Update:** Added .NET Aspire for dev orchestration (AppHost + ServiceDefaults)
+- **v1.4.0 Update:** Added terminal concurrency and transaction sequence details to Epic C
+- Aspire is for development only; production remains Docker + DigitalOcean
+
+## Reference Documentation
+
+| Doc | Location | Purpose |
+|-----|----------|---------|
+| v1.4.0 Docs | `.planning/indypos-overhaul/IndyPOS_Docs_v1_4_0/` | Latest architecture specs |
+| Aspire Plan | `docs/architecture/aspire.md` | Aspire setup details |
+| Solution Layout | `docs/solution-structure/recommended-layout.md` | Project organization |
+| Terminal Concurrency | `docs/storehub/terminal-concurrency-strategy.md` | Multi-terminal safety |
+| Transaction Sequence | `docs/storehub/sales-transaction-sequence.md` | Sale commit flow |
 
 ---
 
@@ -310,4 +402,4 @@ Created new Core domain entities with UUID-based IDs and EF Core configurations 
 
 ---
 
-**Last Session:** 2026-03-06
+**Last Session:** 2026-03-08

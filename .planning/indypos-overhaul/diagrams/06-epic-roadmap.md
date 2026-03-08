@@ -1,7 +1,7 @@
 # Implementation Roadmap - Epic Dependencies
 
-Version: 1.0.0
-Date: 2026-03-03
+Version: 1.1.0
+Date: 2026-03-08
 
 ## Epic Dependency Graph
 
@@ -22,41 +22,42 @@ Date: 2026-03-03
                         START
                           │
                           ▼
-                  ┌───────────────┐
-                  │   Epic B      │  Sprint 1
-                  │   Remove      │  PRIORITY: HIGH
-                  │   Deprecated  │  PR Count: ~5
-                  │   PG Report   │  Risk: LOW
-                  └───────┬───────┘
+                  ╔═══════════════╗
+                  ║   Epic 0  ✅  ║  Sprint 1
+                  ║   Extract     ║  PRIORITY: HIGH
+                  ║   Business    ║  ✅ COMPLETE
+                  ║   Logic       ║
+                  ╚═══════╤═══════╝
                           │
-                          │ Unblocks
+                          │ Enables clean separation
                           ▼
-                  ┌───────────────┐
-                  │   Epic A      │  Sprint 1
-                  │   Prepare     │  PRIORITY: HIGH
-                  │   Codebase    │  PR Count: ~3
-                  │   (StoreId,   │  Risk: LOW
-                  │    Docs)      │
-                  └───────┬───────┘
-                          │
-                          │ Enables
-                          ▼
-                  ┌───────────────┐
-                  │   Epic D      │  Sprint 1-2
-                  │   Schema      │  PRIORITY: HIGH
-                  │   Design      │  PR Count: ~4
-                  │   (PublicId,  │  Risk: MEDIUM
-                  │    Outbox)    │
-                  └───────┬───────┘
+         ┌────────────────┴────────────────┐
+         │                                 │
+         ▼                                 ▼
+╔═══════════════╗               ╔═══════════════╗
+║   Epic B  ✅  ║               ║   Epic A  ✅  ║  Sprint 1
+║   Remove      ║               ║   Prepare     ║  PRIORITY: HIGH
+║   Deprecated  ║               ║   Codebase    ║  ✅ COMPLETE
+║   PG Report   ║               ║   (StoreId)   ║
+╚═══════╤═══════╝               ╚═══════╤═══════╝
+         │                               │
+         └───────────────┬───────────────┘
+                         │ Both enable
+                         ▼
+                  ╔═══════════════╗
+                  ║   Epic D  ✅  ║  Sprint 1
+                  ║   Schema      ║  PRIORITY: HIGH
+                  ║   Design      ║  ✅ COMPLETE
+                  ║   (PublicId)  ║
+                  ╚═══════╤═══════╝
                           │
                           │ Required for
                           ▼
                   ┌───────────────┐
-                  │   Epic C      │  Sprint 2
+                  │   Epic C      │  Sprint 2       ◄── WE ARE HERE
                   │   StoreHub    │  PRIORITY: HIGH
-                  │   Service     │  PR Count: ~6
-                  │   (Windows    │  Risk: MEDIUM
-                  │    Service)   │
+                  │   + Aspire    │  PR Count: ~7
+                  │   Service     │  Risk: MEDIUM
                   └───────┬───────┘
                           │
                           │ Enables
