@@ -7,7 +7,8 @@ var builder = WebApplication.CreateBuilder(args);
 builder.AddServiceDefaults();
 
 // Add PostgreSQL with EF Core via Aspire
-builder.AddNpgsqlDbContext<StoreHubDbContext>("storehub");
+// Connection name must match AppHost: postgres.AddDatabase("storehub-db")
+builder.AddNpgsqlDbContext<StoreHubDbContext>("storehub-db");
 
 // Add OpenAPI
 builder.Services.AddOpenApi();
