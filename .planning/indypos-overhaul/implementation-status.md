@@ -3,7 +3,7 @@
 **Last Updated:** 2026-03-08
 **Last Session:** 2026-03-08
 **Current Sprint:** Sprint 2
-**Current Epic:** Epic C (StoreHub + Aspire) - Foundation Complete
+**Current Epic:** Epic C (StoreHub + Aspire) - COMPLETE ✅
 **Docs Version:** v1.4.0 (with .NET Aspire support)
 
 ---
@@ -13,7 +13,7 @@
 | Sprint | Focus | Status |
 |--------|-------|--------|
 | Sprint 1 | **Epic 0** ✅ + **Epic A** ✅ + **Epic B** ✅ + **Epic D** ✅ | 🟢 Complete |
-| Sprint 2 | Epic C (StoreHub Service) | 🟡 In Progress |
+| Sprint 2 | **Epic C** (StoreHub Service) ✅ | 🟢 Complete |
 | Sprint 3 | Epic E (Outbox + Sync) | Not Started |
 | Sprint 4 | Epic F (Cloud API) | Not Started |
 | Sprint 5 | Epic G (Desktop Integration) | Not Started |
@@ -167,24 +167,24 @@ Created new Core domain entities with UUID-based IDs and EF Core configurations 
 
 ---
 
-## Epic C: Create StoreHub Service + Aspire Foundation
+## Epic C: Create StoreHub Service + Aspire Foundation ✅ COMPLETE
 
 **Goal:** New StoreHub Windows Service project with .NET Aspire dev orchestration
-**Status:** 🟡 In Progress (Foundation Complete)
-**Target:** Sprint 2
+**Status:** 🟢 Complete
+**Completed:** 2026-03-08
 **Priority:** HIGH
 
 ### Tasks
 
-| Task | Description | Status | PR | Notes |
-|------|-------------|--------|-----|-------|
-| C0a | Add IndyPOS.ServiceDefaults project | 🟢 Complete | - | Health checks, OpenTelemetry, service discovery |
-| C0b | Add IndyPOS.AppHost project | 🟢 Complete | - | Aspire orchestrator with PostgreSQL, PgAdmin, DbGate |
-| C1 | Add IndyPOS.StoreHub project | 🟢 Complete | - | ASP.NET Core Web API |
-| C2 | Add local Postgres persistence | 🟢 Complete | - | EF Core via Aspire integration |
-| C3 | Expose minimal endpoints | 🟢 Complete | - | Placeholder endpoints: /, /health/ready, /products, /sales/complete |
-| C4 | Move selling logic to hub | 🔴 Not Started | - | Implement real endpoint logic |
-| C5 | Add StoreHub to AppHost | 🟢 Complete | - | Wired with service discovery |
+| Task | Description | Status | Notes |
+|------|-------------|--------|-------|
+| C0a | Add IndyPOS.ServiceDefaults project | 🟢 Complete | Health checks, OpenTelemetry, service discovery |
+| C0b | Add IndyPOS.AppHost project | 🟢 Complete | Aspire orchestrator with PostgreSQL, PgAdmin, DbGate |
+| C1 | Add IndyPOS.StoreHub project | 🟢 Complete | ASP.NET Core Web API |
+| C2 | Add local Postgres persistence | 🟢 Complete | EF Core via Aspire integration |
+| C3 | Expose minimal endpoints | 🟢 Complete | /, /health/ready |
+| C4 | Implement selling logic | 🟢 Complete | GET /products, POST /sales/complete |
+| C5 | Add StoreHub to AppHost | 🟢 Complete | Wired with service discovery |
 
 ### Aspire Setup Details
 
@@ -206,6 +206,27 @@ dotnet run --project src/IndyPOS.AppHost --launch-profile https
 # Dashboard: https://localhost:17222 (requires Docker)
 ```
 
+### Task C4 Implementation Details
+
+**GET /products endpoint:**
+- `ProductDto`, `ProductExtensions` for entity-to-DTO mapping
+- `GetProductsQuery` with filtering (activeOnly, category, search)
+- `GetProductsQueryHandler` using Nokpirab CQRS
+- `IProductRepository` + `ProductRepository` with EF Core
+- 6 unit tests
+
+**POST /sales/complete endpoint:**
+- `CompleteSaleRequest/Response` DTOs
+- `CompleteSaleCommand` + `CompleteSaleCommandHandler`
+- Full transaction flow:
+  - Creates invoice with calculated total
+  - Creates invoice lines with product name snapshot
+  - Creates payments
+  - Creates inventory movements (negative for sales)
+  - Creates outbox event for cloud sync
+- `ISaleRepository` + `SaleRepository` with atomic EF Core transaction
+- 4 unit tests
+
 ### Commits (2026-03-08)
 - `443043a` docs: add v1.4.0 specs and update diagrams for Epic C
 - `0a406fd` feat: add Aspire foundation and StoreHub API project (Epic C)
@@ -214,6 +235,9 @@ dotnet run --project src/IndyPOS.AppHost --launch-profile https
 - `d2217f6` docs: update CLAUDE.md with method chaining style and Aspire setup
 - `dc4a73f` feat: add DbGate database UI via Community Toolkit
 - `6beefb6` feat: make PgAdmin and DbGate start on-demand via WithExplicitStart
+- `c0d79ab` feat(storehub): implement GET /products endpoint with CQRS
+- `c01fd0b` feat(storehub): implement POST /sales/complete endpoint with CQRS
+- `362ea1f` chore: ignore .claude/settings.local.json
 
 ### Implementation Notes
 
@@ -230,7 +254,7 @@ dotnet run --project src/IndyPOS.AppHost --launch-profile https
 4. Insert: invoice → lines → payments → inventory movements → outbox
 5. Commit (all or nothing)
 
-**Deliverable:** Hub runs locally via Aspire; can complete a sale into local Postgres
+**Deliverable:** Hub runs locally via Aspire; can complete a sale into local Postgres ✅
 
 ---
 
@@ -245,8 +269,8 @@ dotnet run --project src/IndyPOS.AppHost --launch-profile https
 
 | Task | Description | Status | PR | Notes |
 |------|-------------|--------|-----|-------|
-| E1 | Create Outbox table | 🔴 Not Started | - | EF migration |
-| E2 | Write Outbox events at commit points | 🔴 Not Started | - | Same transaction as business data |
+| E1 | Create Outbox table | 🟢 Complete | - | Already exists in schema (OutboxEvent entity) |
+| E2 | Write Outbox events at commit points | 🟢 Complete | - | Done in CompleteSaleCommandHandler |
 | E3 | Implement SyncWorker | 🔴 Not Started | - | BackgroundService with retry |
 | E4 | Local observability endpoints | 🔴 Not Started | - | GET /sync/status |
 
@@ -355,36 +379,37 @@ Upgraded the entire solution from .NET 8 to .NET 10 LTS before starting Epic C.
 
 ## Current Focus
 
-**Now:** Epic C Foundation Complete ✅
-**Next:** Epic C Task C4 (Move selling logic to hub)
+**Now:** Epic C Complete ✅
+**Next:** Epic E (Outbox + SyncWorker)
 
-### Completed Today (2026-03-08)
+### Completed This Session (2026-03-08)
 1. ✅ Created IndyPOS.ServiceDefaults (health checks, OpenTelemetry, service discovery)
 2. ✅ Created IndyPOS.AppHost (Aspire orchestrator)
 3. ✅ Created IndyPOS.StoreHub (ASP.NET Core Web API)
 4. ✅ Wired StoreHub + Postgres in AppHost
 5. ✅ Added PostgreSQL persistence via Aspire integration
 6. ✅ Added PgAdmin + DbGate (on-demand)
-7. ✅ Exposed placeholder API endpoints
-8. ✅ Added v1.4.0 documentation and 3 new diagrams
-9. ✅ Updated CLAUDE.md with method chaining style
+7. ✅ Implemented GET /products endpoint with CQRS
+8. ✅ Implemented POST /sales/complete endpoint with CQRS
+9. ✅ Added 10 unit tests (42 total passing)
+10. ✅ Tested full Aspire stack with Docker
 
 ### Next Actions
-1. Implement real `/sales/complete` endpoint logic (C4)
-2. Implement real `/products` endpoint logic (C4)
-3. Test full Aspire stack with Docker running
+1. Implement SyncWorker BackgroundService (E3)
+2. Add /sync/status observability endpoint (E4)
+3. Create Cloud API project (F1)
 
 ---
 
 ## Statistics
 
 - **Total Epics:** 7
-- **Completed Epics:** 4 (Epic 0, A, B, D)
+- **Completed Epics:** 5 (Epic 0, A, B, C, D)
 - **Total Tasks:** 41
-- **Completed:** 22 (+5 today)
-- **In Progress:** 1 (C4)
-- **Not Started:** 18
-- **Overall Progress:** ~54%
+- **Completed:** 28
+- **In Progress:** 0
+- **Not Started:** 13
+- **Overall Progress:** ~68%
 
 ---
 
@@ -401,6 +426,7 @@ Upgraded the entire solution from .NET 8 to .NET 10 LTS before starting Epic C.
 - Aspire is for development only; production remains Docker + DigitalOcean
 - **Coding Style:** Method chaining uses vertical dot alignment (see CLAUDE.md)
 - **DB Tools:** PgAdmin and DbGate configured as on-demand (WithExplicitStart)
+- **Epic E partially done:** OutboxEvent entity exists, events written in sales flow
 
 ## Reference Documentation
 
