@@ -1,7 +1,9 @@
-﻿using IndyPOS.Application.Common.Interfaces;
+﻿using IndyPOS.Application.Abstractions.StoreHub.Repositories;
+using IndyPOS.Application.Common.Interfaces;
 using IndyPOS.Application.Common.Models;
 using IndyPOS.Infrastructure.Constants;
 using IndyPOS.Infrastructure.Persistence.Repositories.SQLite;
+using IndyPOS.Infrastructure.Persistence.StoreHub.Repositories;
 using IndyPOS.Infrastructure.Services;
 using LazyCache;
 using Microsoft.Extensions.Configuration;
@@ -52,4 +54,16 @@ public static class ConfigureServices
 
 		return services;
     }
+
+	/// <summary>
+	/// Registers StoreHub-specific services (EF Core repositories).
+	/// Use this for StoreHub API, not for Windows.Forms.
+	/// </summary>
+	public static IServiceCollection AddStoreHubServices(this IServiceCollection services)
+	{
+		// StoreHub repositories (Scoped for EF Core DbContext)
+		services.AddScoped<IProductRepository, ProductRepository>();
+
+		return services;
+	}
 }
