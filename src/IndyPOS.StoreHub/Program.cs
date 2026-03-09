@@ -7,6 +7,7 @@ using IndyPOS.Application.UseCases.StoreHub.Sales.Complete;
 using IndyPOS.Infrastructure.Persistence.StoreHub;
 using IndyPOS.ServiceDefaults;
 using Nokpirab;
+using Scalar.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -46,6 +47,7 @@ app.MapDefaultEndpoints();
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
+    app.MapScalarApiReference();
 }
 
 // Minimal API endpoints

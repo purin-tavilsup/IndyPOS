@@ -7,9 +7,12 @@ var postgres = builder.AddPostgres("postgres")
 
 var storeHubDb = postgres.AddDatabase("storehub-db");
 
-// StoreHub API
+// StoreHub API (local store service)
 builder.AddProject<Projects.IndyPOS_StoreHub>("storehub-api")
        .WithReference(storeHubDb)
        .WaitFor(postgres);
+
+// Cloud API (central cloud service)
+builder.AddProject<Projects.IndyPOS_CloudApi>("cloud-api");
 
 builder.Build().Run();
