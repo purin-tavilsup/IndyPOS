@@ -75,8 +75,24 @@ public static class ConfigureServices
 		// SyncWorker configuration
 		services.Configure<SyncWorkerOptions>(configuration.GetSection(SyncWorkerOptions.SectionName));
 
-		// Cloud sync client (stub until Epic F)
-		services.AddScoped<ICloudSyncClient, StubCloudSyncClient>();
+		// Cloud API configuration
+		services.Configure<CloudTokenOptions>(configuration.GetSection(CloudTokenOptions.SectionName));
+
+		// Cloud sync client - use HTTP client if configured, otherwise stub
+		var cloudApiSection = configuration.GetSection(CloudTokenOptions.SectionName);
+		var clientId = cloudApiSection.GetValue<string>("ClientId");
+
+		if (!string.IsNullOrEmpty(clientId))
+		{
+			// HTTP client with OAuth2 authentication
+			services.AddHttpClient<ITokenService, CloudTokenService>();
+			services.AddHttpClient<ICloudSyncClient, HttpCloudSyncClient>();
+		}
+		else
+		{
+			// Stub for development/testing without Cloud API
+			services.AddScoped<ICloudSyncClient, StubCloudSyncClient>();
+		}
 
 		return services;
 	}
