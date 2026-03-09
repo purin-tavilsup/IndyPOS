@@ -6,10 +6,17 @@ namespace IndyPOS.CloudApi.Infrastructure;
 
 /// <summary>
 /// EF Core DbContext for Cloud database.
+/// Includes OpenIddict entities for OAuth2 token management.
 /// </summary>
 public class CloudDbContext : DbContext
 {
     public CloudDbContext(DbContextOptions<CloudDbContext> options) : base(options) { }
+
+    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+    {
+        // OpenIddict uses its own entity configuration
+        base.OnConfiguring(optionsBuilder);
+    }
 
     // Inbox - raw events from stores
     public DbSet<SyncedEventEntity> SyncedEvents => Set<SyncedEventEntity>();
@@ -19,6 +26,10 @@ public class CloudDbContext : DbContext
     public DbSet<CloudInvoiceLine> InvoiceLines => Set<CloudInvoiceLine>();
     public DbSet<CloudPayment> Payments => Set<CloudPayment>();
     public DbSet<CloudInventoryMovement> InventoryMovements => Set<CloudInventoryMovement>();
+
+    // Master data - distributed to stores
+    public DbSet<CloudProduct> Products => Set<CloudProduct>();
+    public DbSet<CloudStoreConfig> StoreConfigs => Set<CloudStoreConfig>();
 
     // Idempotency - tracks processed events
     public DbSet<ProcessedEvent> ProcessedEvents => Set<ProcessedEvent>();
@@ -87,6 +98,40 @@ public class CloudDbContext : DbContext
             entity.HasIndex(e => new { e.StoreId, e.EventType });
             entity.Property(e => e.StoreId).HasMaxLength(50);
             entity.Property(e => e.EventType).HasMaxLength(100);
+        });
+
+        // CloudProduct - master data
+        modelBuilder.Entity<CloudProduct>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.HasIndex(e => e.Barcode);
+            entity.HasIndex(e => e.IsActive);
+            entity.Property(e => e.Barcode).HasMaxLength(50);
+            entity.Property(e => e.Name).HasMaxLength(200);
+            entity.Property(e => e.Category).HasMaxLength(100);
+            entity.Property(e => e.Brand).HasMaxLength(100);
+            entity.Property(e => e.Manufacturer).HasMaxLength(100);
+            entity.Property(e => e.UnitPrice).HasPrecision(18, 2);
+            entity.Property(e => e.GroupPrice).HasPrecision(18, 2);
+        });
+
+        // CloudStoreConfig - per-store configuration with OAuth2 credentials
+        modelBuilder.Entity<CloudStoreConfig>(entity =>
+        {
+            entity.HasKey(e => e.StoreId);
+            entity.Property(e => e.StoreId).HasMaxLength(50);
+            entity.Property(e => e.StoreName).HasMaxLength(100);
+            entity.Property(e => e.StoreFullName).HasMaxLength(200);
+            entity.Property(e => e.AddressLine1).HasMaxLength(200);
+            entity.Property(e => e.AddressLine2).HasMaxLength(200);
+            entity.Property(e => e.PhoneNumber).HasMaxLength(50);
+            entity.Property(e => e.PrinterName).HasMaxLength(100);
+
+            // OAuth2 fields
+            entity.Property(e => e.ClientId).HasMaxLength(100);
+            entity.HasIndex(e => e.ClientId).IsUnique();
+            entity.Property(e => e.ClientSecretHash).HasMaxLength(200);
+            entity.HasIndex(e => e.IsActive);
         });
     }
 }
