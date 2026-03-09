@@ -3,6 +3,7 @@ using IndyPOS.Application.UseCases.Cloud.Sync;
 using IndyPOS.Application.UseCases.Cloud.Sync.IngestEvents;
 using IndyPOS.CloudApi.Infrastructure;
 using IndyPOS.ServiceDefaults;
+using Microsoft.EntityFrameworkCore;
 using Nokpirab;
 using Scalar.AspNetCore;
 
@@ -11,11 +12,15 @@ var builder = WebApplication.CreateBuilder(args);
 // Add Aspire service defaults (health checks, OpenTelemetry, service discovery)
 builder.AddServiceDefaults();
 
+// Add PostgreSQL with EF Core via Aspire
+// Connection name must match AppHost: postgres.AddDatabase("cloud-db")
+builder.AddNpgsqlDbContext<CloudDbContext>("cloud-db");
+
 // Add Cloud infrastructure services
-// Register as singleton so in-memory state persists across requests
-var eventRepository = new InMemorySyncedEventRepository();
-builder.Services.AddSingleton<ISyncedEventRepository>(eventRepository);
-builder.Services.AddSingleton(eventRepository); // Also register concrete type for status endpoint
+builder.Services.AddScoped<ISyncedEventRepository, DbSyncedEventRepository>();
+
+// Add EventProcessor background service
+builder.Services.AddHostedService<EventProcessor>();
 
 // Register Cloud CQRS handlers
 builder.Services.AddTransient<ICommandHandler<IngestEventsCommand, SyncEventsResponse>, IngestEventsCommandHandler>();
@@ -24,6 +29,14 @@ builder.Services.AddTransient<ICommandHandler<IngestEventsCommand, SyncEventsRes
 builder.Services.AddOpenApi();
 
 var app = builder.Build();
+
+// Auto-create database schema in development
+if (app.Environment.IsDevelopment())
+{
+    using var scope = app.Services.CreateScope();
+    var db = scope.ServiceProvider.GetRequiredService<CloudDbContext>();
+    await db.Database.EnsureCreatedAsync();
+}
 
 // Map default endpoints (health, alive)
 app.MapDefaultEndpoints();
@@ -50,16 +63,37 @@ app.MapPost("/sync/events", async (
 });
 
 // Sync status endpoint
-app.MapGet("/sync/status", (InMemorySyncedEventRepository repository) =>
+app.MapGet("/sync/status", async (CloudDbContext db, CancellationToken cancellationToken) =>
 {
+    var totalEvents = await db.SyncedEvents.CountAsync(cancellationToken);
+    var unprocessedEvents = await db.SyncedEvents.CountAsync(e => e.ProcessedAtUtc == null, cancellationToken);
+    var processedEvents = await db.ProcessedEvents.CountAsync(cancellationToken);
+    var totalInvoices = await db.Invoices.CountAsync(cancellationToken);
+
     return Results.Ok(new
     {
         status = "running",
-        storage = "in-memory",
-        totalEvents = repository.GetTotalCount(),
-        unprocessedEvents = repository.GetUnprocessedCount(),
+        storage = "postgresql",
+        totalEvents,
+        unprocessedEvents,
+        processedEvents,
+        totalInvoices,
         timestamp = DateTime.UtcNow
     });
+});
+
+// Health/ready endpoint with database check
+app.MapGet("/health/ready", async (CloudDbContext db) =>
+{
+    try
+    {
+        await db.Database.CanConnectAsync();
+        return Results.Ok(new { status = "healthy", database = "connected" });
+    }
+    catch (Exception ex)
+    {
+        return Results.Problem($"Database connection failed: {ex.Message}");
+    }
 });
 
 app.Run();
