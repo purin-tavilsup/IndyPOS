@@ -1,5 +1,6 @@
 using System.Text.Json;
 using IndyPOS.Application.Abstractions.StoreHub.Repositories;
+using IndyPOS.Application.UseCases.Cloud.Sync.Events;
 using IndyPOS.Domain.Entities.Core;
 using Nokpirab;
 
@@ -82,21 +83,47 @@ public class CompleteSaleCommandHandler : ICommandHandler<CompleteSaleCommand, C
             CreatedUtc = now
         }).ToList();
 
+        // Build rich event payload (transaction snapshot)
+        var eventId = Guid.NewGuid();
+        var invoiceCompletedEvent = new InvoiceCompletedEvent
+        {
+            EventId = eventId,
+            InvoiceId = invoiceId,
+            StoreId = command.StoreId,
+            UserId = command.UserId,
+            TotalAmount = invoice.TotalAmount,
+            CreatedAtUtc = now,
+            Lines = lines.Select(l => new InvoiceLineSnapshot
+            {
+                LineId = l.Id,
+                ProductId = l.ProductId,
+                ProductName = l.ProductName,
+                Quantity = l.Quantity,
+                UnitPrice = l.UnitPrice
+            }).ToList(),
+            Payments = payments.Select(p => new PaymentSnapshot
+            {
+                PaymentId = p.Id,
+                Method = p.Method,
+                Amount = p.Amount,
+                Note = p.Note
+            }).ToList(),
+            InventoryMovements = inventoryMovements.Select(m => new InventoryMovementSnapshot
+            {
+                MovementId = m.Id,
+                ProductId = m.ProductId,
+                QuantityDelta = m.QuantityDelta,
+                Reason = m.Reason
+            }).ToList()
+        };
+
         // Build outbox event for cloud sync
         var outboxEvent = new OutboxEvent
         {
-            Id = Guid.NewGuid(),
+            Id = eventId,
             StoreId = command.StoreId,
             Type = "InvoiceCompleted",
-            PayloadJson = JsonSerializer.Serialize(new
-            {
-                InvoiceId = invoiceId,
-                StoreId = command.StoreId,
-                UserId = command.UserId,
-                TotalAmount = invoice.TotalAmount,
-                LineCount = lines.Count,
-                CreatedUtc = now
-            }),
+            PayloadJson = JsonSerializer.Serialize(invoiceCompletedEvent),
             CreatedUtc = now,
             Status = "Pending"
         };
