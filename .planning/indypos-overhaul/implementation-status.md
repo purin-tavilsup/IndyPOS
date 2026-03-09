@@ -1,9 +1,9 @@
 # IndyPOS Overhaul - Implementation Status
 
-**Last Updated:** 2026-03-08
-**Last Session:** 2026-03-08
-**Current Sprint:** Sprint 3
-**Current Epic:** Epic E (Outbox + SyncWorker) - COMPLETE ✅
+**Last Updated:** 2026-03-09
+**Last Session:** 2026-03-09
+**Current Sprint:** Sprint 4
+**Current Epic:** Epic F (Cloud API) - IN PROGRESS 🟡
 **Docs Version:** v1.4.0 (with .NET Aspire support)
 
 ---
@@ -15,7 +15,7 @@
 | Sprint 1 | **Epic 0** ✅ + **Epic A** ✅ + **Epic B** ✅ + **Epic D** ✅ | 🟢 Complete |
 | Sprint 2 | **Epic C** (StoreHub Service) ✅ | 🟢 Complete |
 | Sprint 3 | **Epic E** (Outbox + Sync) ✅ | 🟢 Complete |
-| Sprint 4 | Epic F (Cloud API) | Not Started |
+| Sprint 4 | **Epic F** (Cloud API) 🟡 | 🟡 In Progress |
 | Sprint 5 | Epic G (Desktop Integration) | Not Started |
 | Sprint 6 | Epic H (Testing & Rollout) | Not Started |
 
@@ -304,23 +304,57 @@ dotnet run --project src/IndyPOS.AppHost --launch-profile https
 
 ---
 
-## Epic F: Cloud API
+## Epic F: Cloud API 🟡 IN PROGRESS
 
 **Goal:** Central cloud API + PostgreSQL (Singapore)
-**Status:** 🔴 Not Started
+**Status:** 🟡 In Progress
 **Target:** Sprint 4
 **Priority:** MEDIUM
 
 ### Tasks
 
-| Task | Description | Status | PR | Notes |
-|------|-------------|--------|-----|-------|
-| F1 | Create IndyPOS.CloudApi project | 🔴 Not Started | - | ASP.NET Core + Dockerfile |
-| F1a | Add CloudApi to AppHost | 🔴 Not Started | - | Wire up in Aspire for local dev |
-| F2 | Idempotent event ingestion | 🔴 Not Started | - | POST /sync/events |
-| F3 | Process event types | 🔴 Not Started | - | InvoiceCompleted, InventoryMovementRecorded |
-| F4 | Master data endpoints | 🔴 Not Started | - | GET /master/products, GET /master/config |
-| F5 | Auth (API key) | 🔴 Not Started | - | StoreId + shared secret |
+| Task | Description | Status | Notes |
+|------|-------------|--------|-------|
+| F1 | Create IndyPOS.CloudApi project | 🟢 Complete | ASP.NET Core, net10.0 |
+| F1a | Add CloudApi to AppHost | 🟢 Complete | Wired with cloud-db |
+| F2 | Idempotent event ingestion | 🟢 Complete | POST /sync/events |
+| F3 | Process event types | 🟢 Complete | InvoiceCompletedEvent with rich payload |
+| F4 | Master data endpoints | 🔴 Not Started | GET /master/products, GET /master/config |
+| F5 | Auth (API key) | 🔴 Not Started | StoreId + shared secret |
+
+### Implementation Details (2026-03-09)
+
+**F1-F2: CloudApi Foundation**
+- Created `IndyPOS.CloudApi` project (ASP.NET Core, net10.0)
+- Added Scalar API documentation UI
+- Implemented `POST /sync/events` with idempotent ingestion
+- Added `ISyncedEventRepository` abstraction
+- Added `IngestEventsCommand/Handler` with CQRS pattern
+
+**F3: Event Processing with Rich Payload**
+- Defined `InvoiceCompletedEvent` contract with schema versioning
+- Rich transaction snapshot: invoice header, lines, payments, inventory movements
+- Created Cloud domain entities:
+  - `CloudInvoice`, `CloudInvoiceLine`, `CloudPayment`, `CloudInventoryMovement`
+  - `ProcessedEvent` for first-class idempotency/dedupe
+- Added `CloudDbContext` with EF Core configurations
+- Added `DbSyncedEventRepository` (database-backed)
+- Added `EventProcessor` BackgroundService with idempotent processing
+
+**Event Processing Flow:**
+```
+POST /sync/events → SyncedEvents table → EventProcessor (background)
+                                              ↓
+                                         ProcessedEvents (idempotency check)
+                                              ↓
+                                         CloudInvoice + CloudInventoryMovement
+```
+
+**Commits:**
+- `caba1dd` feat(cloudapi): add CloudApi project with idempotent sync endpoint (Epic F)
+- `0ea7a33` feat(cloudapi): add event processing with rich payload and idempotency (F3)
+
+**Tests:** 4 new tests for IngestEventsCommandHandler (50 total passing)
 
 **Deliverable:** Cloud accepts events; stores them; supports master data pull
 
@@ -405,27 +439,26 @@ Upgraded the entire solution from .NET 8 to .NET 10 LTS before starting Epic C.
 
 ## Current Focus
 
-**Now:** Epic E Complete ✅
-**Next:** Epic F (Cloud API)
+**Now:** Epic F In Progress 🟡
+**Next:** F4 (Master data endpoints), F5 (API key auth)
 
-### Completed This Session (2026-03-08)
-1. ✅ Created IndyPOS.ServiceDefaults (health checks, OpenTelemetry, service discovery)
-2. ✅ Created IndyPOS.AppHost (Aspire orchestrator)
-3. ✅ Created IndyPOS.StoreHub (ASP.NET Core Web API)
-4. ✅ Wired StoreHub + Postgres in AppHost
-5. ✅ Added PostgreSQL persistence via Aspire integration
-6. ✅ Added PgAdmin + DbGate (on-demand)
-7. ✅ Implemented GET /products endpoint with CQRS
-8. ✅ Implemented POST /sales/complete endpoint with CQRS
-9. ✅ Implemented SyncWorker BackgroundService with retry logic
-10. ✅ Added /sync/status observability endpoint
-11. ✅ Added 14 unit tests (46 total passing)
-12. ✅ Tested full Aspire stack with Docker
+### Completed This Session (2026-03-09)
+1. ✅ Created IndyPOS.CloudApi project (F1)
+2. ✅ Wired CloudApi into AppHost with cloud-db (F1a)
+3. ✅ Added Scalar API documentation UI to StoreHub and CloudApi
+4. ✅ Implemented POST /sync/events with idempotent ingestion (F2)
+5. ✅ Defined InvoiceCompletedEvent contract with schema versioning
+6. ✅ Enhanced CompleteSaleCommandHandler to emit rich transaction snapshot
+7. ✅ Created Cloud domain entities (CloudInvoice, CloudInvoiceLine, etc.)
+8. ✅ Added ProcessedEvent table for first-class idempotency
+9. ✅ Added CloudDbContext with EF Core configurations
+10. ✅ Added EventProcessor BackgroundService with idempotent processing
+11. ✅ Added 4 unit tests (50 total passing)
 
 ### Next Actions
-1. Create IndyPOS.CloudApi project (F1)
-2. Add CloudApi to AppHost (F1a)
-3. Implement idempotent event ingestion POST /sync/events (F2)
+1. Implement GET /master/products endpoint (F4)
+2. Implement GET /master/config endpoint (F4)
+3. Add API key authentication (F5)
 
 ---
 
@@ -433,11 +466,12 @@ Upgraded the entire solution from .NET 8 to .NET 10 LTS before starting Epic C.
 
 - **Total Epics:** 7
 - **Completed Epics:** 6 (Epic 0, A, B, C, D, E)
+- **In Progress Epics:** 1 (Epic F)
 - **Total Tasks:** 41
-- **Completed:** 32
+- **Completed:** 36
 - **In Progress:** 0
-- **Not Started:** 9
-- **Overall Progress:** ~78%
+- **Not Started:** 5
+- **Overall Progress:** ~88%
 
 ---
 
@@ -478,4 +512,4 @@ Upgraded the entire solution from .NET 8 to .NET 10 LTS before starting Epic C.
 
 ---
 
-**Last Session:** 2026-03-08
+**Last Session:** 2026-03-09
