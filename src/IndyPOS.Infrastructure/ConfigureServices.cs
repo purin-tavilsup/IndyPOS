@@ -86,8 +86,21 @@ public static class ConfigureServices
 		if (!string.IsNullOrEmpty(clientId))
 		{
 			// HTTP client with OAuth2 authentication
-			services.AddHttpClient<ITokenService, CloudTokenService>();
-			services.AddHttpClient<ICloudSyncClient, HttpCloudSyncClient>();
+			// Uses Aspire service discovery: "https+http://cloud-api" resolves to CloudApi service
+			// The ServiceDefaults configures AddServiceDiscovery() on all HttpClients
+			var cloudApiBaseUrl = configuration["services:cloud-api:https:0"]
+				?? configuration["services:cloud-api:http:0"]
+				?? "https+http://cloud-api"; // Aspire service discovery fallback
+
+			services.AddHttpClient<ITokenService, CloudTokenService>(client =>
+			{
+				client.BaseAddress = new Uri(cloudApiBaseUrl);
+			});
+
+			services.AddHttpClient<ICloudSyncClient, HttpCloudSyncClient>(client =>
+			{
+				client.BaseAddress = new Uri(cloudApiBaseUrl);
+			});
 		}
 		else
 		{
