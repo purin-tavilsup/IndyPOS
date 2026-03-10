@@ -76,4 +76,45 @@ public class StoreUserRepository : IStoreUserRepository
                             .SetProperty(u => u.LastLoginAtUtc, loginTimeUtc),
                             cancellationToken);
     }
+
+    public async Task<StoreUser?> GetByCloudIdAsync(Guid cloudUserId, CancellationToken cancellationToken = default)
+    {
+        return await _dbContext.StoreUsers
+                               .FirstOrDefaultAsync(u => u.CloudUserId == cloudUserId, cancellationToken);
+    }
+
+    public async Task UpsertByCloudIdAsync(StoreUser user, CancellationToken cancellationToken = default)
+    {
+        var existing = await _dbContext.StoreUsers
+            .FirstOrDefaultAsync(u => u.CloudUserId == user.CloudUserId, cancellationToken);
+
+        if (existing is null)
+        {
+            // Insert new user
+            _dbContext.StoreUsers.Add(user);
+        }
+        else
+        {
+            // Update existing user (preserve password and local-only fields)
+            existing.Username = user.Username;
+            existing.FirstName = user.FirstName;
+            existing.LastName = user.LastName;
+            existing.RoleId = user.RoleId;
+            existing.IsActive = user.IsActive;
+            existing.CloudVersion = user.CloudVersion;
+            existing.LastSyncedAtUtc = user.LastSyncedAtUtc;
+            existing.LastModifiedAtUtc = DateTime.UtcNow;
+        }
+
+        await _dbContext.SaveChangesAsync(cancellationToken);
+    }
+
+    public async Task<long> GetMaxCloudVersionAsync(string storeId, CancellationToken cancellationToken = default)
+    {
+        var maxVersion = await _dbContext.StoreUsers
+            .Where(u => u.StoreId == storeId && u.CloudUserId != null)
+            .MaxAsync(u => (long?)u.CloudVersion, cancellationToken);
+
+        return maxVersion ?? 0;
+    }
 }

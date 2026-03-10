@@ -9,4 +9,10 @@ public class SyncWorkerOptions
     public int MaxRetries { get; set; } = 5;
     public int BaseRetryDelaySeconds { get; set; } = 30;
     public bool Enabled { get; set; } = true;
+
+    /// <summary>
+    /// Interval (in seconds) between user sync attempts.
+    /// Default: 300 seconds (5 minutes).
+    /// </summary>
+    public int UserSyncIntervalSeconds { get; set; } = 300;
 }
