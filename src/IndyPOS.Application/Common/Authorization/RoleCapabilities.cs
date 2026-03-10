@@ -31,6 +31,10 @@ public static class RoleCapabilities
             Capability.SalesComplete,
             Capability.SyncViewStatus,
             Capability.AdminStoresRegister,
+            Capability.UsersRead,
+            Capability.UsersCreate,
+            Capability.UsersUpdate,
+            Capability.UsersDeactivate,
         ]
     };
 
