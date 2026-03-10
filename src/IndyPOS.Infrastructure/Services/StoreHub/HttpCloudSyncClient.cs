@@ -6,33 +6,29 @@ using IndyPOS.Application.UseCases.Cloud.Sync;
 using IndyPOS.Application.UseCases.StoreHub.Users;
 using IndyPOS.Domain.Entities.Core;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 
 namespace IndyPOS.Infrastructure.Services.StoreHub;
 
 /// <summary>
 /// HTTP client for syncing events to Cloud API with OAuth2 Bearer authentication.
 /// Handles token acquisition, retry on 401, and graceful offline degradation.
+/// BaseAddress is configured via Aspire service discovery in ConfigureServices.
 /// </summary>
 public class HttpCloudSyncClient : ICloudSyncClient
 {
     private readonly HttpClient _httpClient;
     private readonly ITokenService _tokenService;
-    private readonly CloudTokenOptions _options;
     private readonly ILogger<HttpCloudSyncClient> _logger;
 
     public HttpCloudSyncClient(
         HttpClient httpClient,
         ITokenService tokenService,
-        IOptions<CloudTokenOptions> options,
         ILogger<HttpCloudSyncClient> logger)
     {
         _httpClient = httpClient;
         _tokenService = tokenService;
-        _options = options.Value;
         _logger = logger;
-
-        _httpClient.BaseAddress = new Uri(_options.BaseUrl);
+        // BaseAddress is configured via DI in ConfigureServices (Aspire service discovery)
     }
 
     public async Task<bool> SendEventAsync(OutboxEvent outboxEvent, CancellationToken cancellationToken = default)
