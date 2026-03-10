@@ -1,11 +1,17 @@
+using System.Text;
 using IndyPOS.Application.Abstractions.StoreHub.Repositories;
 using IndyPOS.Application.Common.Interfaces;
+using IndyPOS.Application.UseCases.StoreHub.Auth;
+using IndyPOS.Application.UseCases.StoreHub.Auth.Login;
 using IndyPOS.Application.UseCases.StoreHub.Products;
 using IndyPOS.Application.UseCases.StoreHub.Products.Get;
 using IndyPOS.Application.UseCases.StoreHub.Sales;
 using IndyPOS.Application.UseCases.StoreHub.Sales.Complete;
 using IndyPOS.Infrastructure.Persistence.StoreHub;
+using IndyPOS.Infrastructure.Services.StoreHub;
 using IndyPOS.ServiceDefaults;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
 using Nokpirab;
 using Scalar.AspNetCore;
 
@@ -24,10 +30,36 @@ builder.Services.AddStoreHubServices(builder.Configuration);
 // Add SyncWorker background service
 builder.Services.AddSyncWorker();
 
+// Add auth services
+builder.Services.AddStoreHubAuthServices(builder.Configuration);
+
 // Register StoreHub CQRS handlers manually
 // Note: We don't use AddApplicationServices() as it registers ALL handlers including legacy ones
 builder.Services.AddTransient<IQueryHandler<GetProductsQuery, IReadOnlyList<ProductDto>>, GetProductsQueryHandler>();
 builder.Services.AddTransient<ICommandHandler<CompleteSaleCommand, CompleteSaleResponse>, CompleteSaleCommandHandler>();
+builder.Services.AddTransient<ICommandHandler<LoginCommand, LoginResponse>, LoginCommandHandler>();
+
+// Add JWT authentication
+var tokenOptions = builder.Configuration.GetSection(LocalTokenOptions.SectionName).Get<LocalTokenOptions>()
+    ?? new LocalTokenOptions();
+
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+       .AddJwtBearer(options =>
+       {
+           options.TokenValidationParameters = new TokenValidationParameters
+           {
+               ValidateIssuer = true,
+               ValidateAudience = true,
+               ValidateLifetime = true,
+               ValidateIssuerSigningKey = true,
+               ValidIssuer = tokenOptions.Issuer,
+               ValidAudience = tokenOptions.Audience,
+               IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(tokenOptions.SecretKey)),
+               ClockSkew = TimeSpan.FromMinutes(1)
+           };
+       });
+
+builder.Services.AddAuthorization();
 
 // Add OpenAPI
 builder.Services.AddOpenApi();
@@ -44,6 +76,9 @@ if (app.Environment.IsDevelopment())
 app.MapDefaultEndpoints();
 
 // Configure the HTTP request pipeline
+app.UseAuthentication();
+app.UseAuthorization();
+
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
@@ -52,6 +87,39 @@ if (app.Environment.IsDevelopment())
 
 // Minimal API endpoints
 app.MapGet("/", () => "IndyPOS StoreHub API");
+
+// Auth endpoints
+app.MapPost("/auth/login", async (
+    ICommandHandler<LoginCommand, LoginResponse> handler,
+    LoginRequest request,
+    CancellationToken cancellationToken) =>
+{
+    var command = new LoginCommand(request.Username, request.Password);
+    var response = await handler.HandleAsync(command, cancellationToken);
+
+    return response.Success
+        ? Results.Ok(response)
+        : Results.Unauthorized();
+});
+
+app.MapGet("/auth/me", (HttpContext context) =>
+{
+    var user = context.User;
+    if (user.Identity?.IsAuthenticated != true)
+    {
+        return Results.Unauthorized();
+    }
+
+    return Results.Ok(new
+    {
+        userId = user.FindFirst("sub")?.Value,
+        username = user.FindFirst("unique_name")?.Value,
+        roleId = user.FindFirst("role_id")?.Value,
+        storeId = user.FindFirst("store_id")?.Value,
+        firstName = user.FindFirst("first_name")?.Value,
+        lastName = user.FindFirst("last_name")?.Value
+    });
+}).RequireAuthorization();
 
 app.MapGet("/health/ready", async (StoreHubDbContext db) =>
 {

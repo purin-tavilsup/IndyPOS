@@ -1,17 +1,18 @@
-﻿using IndyPOS.Application.Abstractions.StoreHub.Repositories;
+using IndyPOS.Application.Abstractions.Pos.Repositories;
+using IndyPOS.Application.Abstractions.StoreHub.Repositories;
 using IndyPOS.Application.Abstractions.StoreHub.Services;
 using IndyPOS.Application.Common.Interfaces;
 using IndyPOS.Application.Common.Models;
 using IndyPOS.Infrastructure.Constants;
 using IndyPOS.Infrastructure.Persistence.Repositories.SQLite;
 using IndyPOS.Infrastructure.Persistence.StoreHub.Repositories;
+using IndyPOS.Infrastructure.Persistence.StoreHub.Seeders;
 using IndyPOS.Infrastructure.Services;
 using IndyPOS.Infrastructure.Services.StoreHub;
 using LazyCache;
 using Microsoft.Extensions.Configuration;
 using Prism.Events;
 using System.Runtime.Versioning;
-using IndyPOS.Application.Abstractions.Pos.Repositories;
 
 // ReSharper disable CheckNamespace
 namespace Microsoft.Extensions.DependencyInjection;
@@ -104,6 +105,33 @@ public static class ConfigureServices
 	public static IServiceCollection AddSyncWorker(this IServiceCollection services)
 	{
 		services.AddHostedService<SyncWorker>();
+		return services;
+	}
+
+	/// <summary>
+	/// Adds StoreHub authentication services (BCrypt, JWT, auth service).
+	/// Call this after AddStoreHubServices.
+	/// </summary>
+	public static IServiceCollection AddStoreHubAuthServices(this IServiceCollection services, IConfiguration configuration)
+	{
+		// Local token configuration
+		services.Configure<LocalTokenOptions>(configuration.GetSection(LocalTokenOptions.SectionName));
+
+		// Auth services (Scoped for EF Core DbContext)
+		services.AddScoped<IStoreUserRepository, StoreUserRepository>();
+		services.AddSingleton<IPasswordHasher, BcryptPasswordHasher>();
+		services.AddSingleton<ILocalTokenService, LocalTokenService>();
+		services.AddScoped<IStoreAuthService, StoreAuthService>();
+
+		// Legacy crypto service for password migration
+		services.AddTransient<ICryptographyService, CryptographyService>();
+
+		// SQLite connection provider (for user migration from legacy database)
+		services.AddSingleton<IDbConnectionProvider, DbConnectionProvider>();
+
+		// User migration seeder (for dev migration from SQLite)
+		services.AddScoped<UserMigrationSeeder>();
+
 		return services;
 	}
 }
