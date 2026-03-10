@@ -5,9 +5,14 @@ using IndyPOS.Application.Common.Authorization;
 using IndyPOS.Application.UseCases.Cloud.Stores.RegisterStore;
 using IndyPOS.Application.UseCases.Cloud.Sync;
 using IndyPOS.Application.UseCases.Cloud.Sync.IngestEvents;
+using IndyPOS.Application.UseCases.Cloud.Users.CreateUser;
+using IndyPOS.Application.UseCases.Cloud.Users.UpdateUser;
+using IndyPOS.Application.UseCases.Cloud.Users.DeactivateUser;
+using IndyPOS.Application.UseCases.Cloud.Users.GetUsers;
 using IndyPOS.CloudApi.Domain;
 using IndyPOS.CloudApi.Infrastructure;
 using IndyPOS.CloudApi.Infrastructure.Auth;
+using IndyPOS.CloudApi.Infrastructure.Repositories;
 using IndyPOS.ServiceDefaults;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
@@ -28,6 +33,7 @@ builder.AddNpgsqlDbContext<CloudDbContext>("cloud-db");
 
 // Add Cloud infrastructure services
 builder.Services.AddScoped<ISyncedEventRepository, DbSyncedEventRepository>();
+builder.Services.AddScoped<ICloudUserRepository, CloudUserRepository>();
 
 // Add EventProcessor background service
 builder.Services.AddHostedService<EventProcessor>();
@@ -35,6 +41,10 @@ builder.Services.AddHostedService<EventProcessor>();
 // Register Cloud CQRS handlers
 builder.Services.AddTransient<ICommandHandler<IngestEventsCommand, SyncEventsResponse>, IngestEventsCommandHandler>();
 builder.Services.AddTransient<ICommandHandler<RegisterStoreCommand, RegisterStoreResponse>, RegisterStoreHandler>();
+builder.Services.AddTransient<ICommandHandler<CreateCloudUserCommand, CreateCloudUserResponse>, CreateCloudUserCommandHandler>();
+builder.Services.AddTransient<ICommandHandler<UpdateCloudUserCommand, UpdateCloudUserResponse>, UpdateCloudUserCommandHandler>();
+builder.Services.AddTransient<ICommandHandler<DeactivateCloudUserCommand, DeactivateCloudUserResponse>, DeactivateCloudUserCommandHandler>();
+builder.Services.AddTransient<IQueryHandler<GetCloudUsersQuery, GetCloudUsersResponse>, GetCloudUsersQueryHandler>();
 
 // Add OpenIddict OAuth2 server
 builder.Services.AddOpenIddictServer(builder.Configuration);
@@ -76,6 +86,12 @@ builder.Services.AddAuthorizationBuilder()
         policy.AuthenticationSchemes.Add("StoreHubJwt");
         policy.RequireAuthenticatedUser();
         policy.AddRequirements(new CapabilityRequirement(Capability.AdminStoresRegister));
+    })
+    .AddPolicy("CanManageUsers", policy =>
+    {
+        policy.AuthenticationSchemes.Add("StoreHubJwt");
+        policy.RequireAuthenticatedUser();
+        policy.AddRequirements(new CapabilityRequirement(Capability.UsersCreate));
     });
 
 // Add controllers for token endpoint
@@ -310,6 +326,115 @@ app.MapPost("/admin/stores/register", [Authorize(Policy = "SystemAdminOnly")] as
         return Results.Conflict(new { error = ex.Message });
     }
 }).RequireAuthorization("SystemAdminOnly");
+
+// POST /admin/users - Create a new cloud user (S4: User Management)
+// Protected by CanManageUsers policy
+app.MapPost("/admin/users", [Authorize(Policy = "CanManageUsers")] async (
+    ICommandHandler<CreateCloudUserCommand, CreateCloudUserResponse> handler,
+    CreateCloudUserRequest request,
+    CancellationToken cancellationToken) =>
+{
+    try
+    {
+        var command = new CreateCloudUserCommand(
+            StoreId: request.StoreId,
+            Username: request.Username,
+            FirstName: request.FirstName,
+            LastName: request.LastName,
+            RoleId: request.RoleId);
+
+        var response = await handler.HandleAsync(command, cancellationToken);
+        return Results.Created($"/admin/users/{response.Id}", response);
+    }
+    catch (InvalidOperationException ex)
+    {
+        return Results.BadRequest(new { error = ex.Message });
+    }
+}).RequireAuthorization("CanManageUsers");
+
+// PUT /admin/users/{id} - Update a cloud user (S4: User Management)
+// Protected by CanManageUsers policy
+app.MapPut("/admin/users/{id:guid}", [Authorize(Policy = "CanManageUsers")] async (
+    Guid id,
+    ICommandHandler<UpdateCloudUserCommand, UpdateCloudUserResponse> handler,
+    UpdateCloudUserRequest request,
+    CancellationToken cancellationToken) =>
+{
+    try
+    {
+        var command = new UpdateCloudUserCommand(
+            Id: id,
+            FirstName: request.FirstName,
+            LastName: request.LastName,
+            RoleId: request.RoleId,
+            IsActive: request.IsActive);
+
+        var response = await handler.HandleAsync(command, cancellationToken);
+        return response.Found ? Results.Ok(response) : Results.NotFound(response);
+    }
+    catch (InvalidOperationException ex)
+    {
+        return Results.BadRequest(new { error = ex.Message });
+    }
+}).RequireAuthorization("CanManageUsers");
+
+// GET /admin/users/{id} - Get a single cloud user by ID (S4: User Management)
+// Protected by CanManageUsers policy
+app.MapGet("/admin/users/{id:guid}", [Authorize(Policy = "CanManageUsers")] async (
+    Guid id,
+    ICloudUserRepository userRepository,
+    CancellationToken cancellationToken) =>
+{
+    var user = await userRepository.GetByIdAsync(id, cancellationToken);
+    if (user is null)
+    {
+        return Results.NotFound(new { error = $"User with ID '{id}' not found." });
+    }
+
+    return Results.Ok(new CloudUserItem(
+        user.Id,
+        user.StoreId,
+        user.Username,
+        user.FirstName,
+        user.LastName,
+        user.RoleId,
+        user.IsActive,
+        user.Version,
+        user.CreatedAtUtc,
+        user.LastModifiedAtUtc));
+}).RequireAuthorization("CanManageUsers");
+
+// GET /admin/users - List cloud users with pagination (S4: User Management)
+// Protected by CanManageUsers policy
+app.MapGet("/admin/users", [Authorize(Policy = "CanManageUsers")] async (
+    IQueryHandler<GetCloudUsersQuery, GetCloudUsersResponse> handler,
+    string? storeId,
+    bool? activeOnly,
+    int? page,
+    int? pageSize,
+    CancellationToken cancellationToken) =>
+{
+    var query = new GetCloudUsersQuery(
+        StoreId: storeId,
+        ActiveOnly: activeOnly,
+        Page: page ?? 1,
+        PageSize: pageSize ?? 50);
+
+    var response = await handler.HandleAsync(query, cancellationToken);
+    return Results.Ok(response);
+}).RequireAuthorization("CanManageUsers");
+
+// DELETE /admin/users/{id} - Deactivate a cloud user (S4: User Management)
+// Soft delete - sets IsActive to false
+// Protected by CanManageUsers policy
+app.MapDelete("/admin/users/{id:guid}", [Authorize(Policy = "CanManageUsers")] async (
+    Guid id,
+    ICommandHandler<DeactivateCloudUserCommand, DeactivateCloudUserResponse> handler,
+    CancellationToken cancellationToken) =>
+{
+    var response = await handler.HandleAsync(new DeactivateCloudUserCommand(id), cancellationToken);
+    return response.Found ? Results.Ok(response) : Results.NotFound(response);
+}).RequireAuthorization("CanManageUsers");
 
 app.Run();
 

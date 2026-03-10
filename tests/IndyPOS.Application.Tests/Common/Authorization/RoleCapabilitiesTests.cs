@@ -50,6 +50,20 @@ public class RoleCapabilitiesTests
         Assert.False(result);
     }
 
+    [Theory]
+    [InlineData(Capability.UsersRead)]
+    [InlineData(Capability.UsersCreate)]
+    [InlineData(Capability.UsersUpdate)]
+    [InlineData(Capability.UsersDeactivate)]
+    public void Cashier_HasCapability_UserManagement_ReturnsFalse(string capability)
+    {
+        // Act
+        var result = RoleCapabilities.HasCapability((int)UserRole.Cashier, capability);
+
+        // Assert
+        Assert.False(result);
+    }
+
     // ==========================================
     // StoreManager Role Tests
     // ==========================================
@@ -94,6 +108,20 @@ public class RoleCapabilitiesTests
         Assert.False(result);
     }
 
+    [Theory]
+    [InlineData(Capability.UsersRead)]
+    [InlineData(Capability.UsersCreate)]
+    [InlineData(Capability.UsersUpdate)]
+    [InlineData(Capability.UsersDeactivate)]
+    public void StoreManager_HasCapability_UserManagement_ReturnsFalse(string capability)
+    {
+        // Act
+        var result = RoleCapabilities.HasCapability((int)UserRole.StoreManager, capability);
+
+        // Assert
+        Assert.False(result);
+    }
+
     // ==========================================
     // SystemAdmin Role Tests
     // ==========================================
@@ -133,6 +161,20 @@ public class RoleCapabilitiesTests
     {
         // Act
         var result = RoleCapabilities.HasCapability((int)UserRole.SystemAdmin, Capability.AdminStoresRegister);
+
+        // Assert
+        Assert.True(result);
+    }
+
+    [Theory]
+    [InlineData(Capability.UsersRead)]
+    [InlineData(Capability.UsersCreate)]
+    [InlineData(Capability.UsersUpdate)]
+    [InlineData(Capability.UsersDeactivate)]
+    public void SystemAdmin_HasCapability_UserManagement_ReturnsTrue(string capability)
+    {
+        // Act
+        var result = RoleCapabilities.HasCapability((int)UserRole.SystemAdmin, capability);
 
         // Assert
         Assert.True(result);
@@ -209,7 +251,11 @@ public class RoleCapabilitiesTests
         Assert.Contains(Capability.SalesComplete, capabilities);
         Assert.Contains(Capability.SyncViewStatus, capabilities);
         Assert.Contains(Capability.AdminStoresRegister, capabilities);
-        Assert.Equal(4, capabilities.Count);
+        Assert.Contains(Capability.UsersRead, capabilities);
+        Assert.Contains(Capability.UsersCreate, capabilities);
+        Assert.Contains(Capability.UsersUpdate, capabilities);
+        Assert.Contains(Capability.UsersDeactivate, capabilities);
+        Assert.Equal(8, capabilities.Count);
     }
 
     [Fact]

@@ -3,7 +3,7 @@
 **Last Updated:** 2026-03-10
 **Last Session:** 2026-03-10
 **Current Sprint:** Sprint 5
-**Current Epic:** Epic S (Security) - IN PROGRESS 🟡
+**Current Epic:** Epic S (Security) - IN PROGRESS 🟡 (S4 Complete)
 **Docs Version:** v1.4.0 (with .NET Aspire support)
 
 ---
@@ -392,7 +392,7 @@ POST /sync/events → SyncedEvents table → EventProcessor (background)
 ## Epic S: Security Hardening 🔐
 
 **Goal:** Complete security implementation per security design spec
-**Status:** 🟡 In Progress (2/9 complete)
+**Status:** 🟡 In Progress (4/9 complete)
 **Target:** Sprint 5
 **Priority:** HIGH
 **Reference:** `.planning/indypos-overhaul/security/indypos_security_design_spec.md`
@@ -414,13 +414,89 @@ POST /sync/events → SyncedEvents table → EventProcessor (background)
 |------|-------------|--------|----------|-------|
 | S1 | POS offline authentication | 🟢 Complete | HIGH | BCrypt, JWT, migration from TripleDES |
 | S2 | Local user cache | 🟢 Complete | HIGH | Sync users from cloud, cache locally |
-| S3 | RBAC implementation | 🔴 Not Started | HIGH | Owner/Manager/Cashier roles |
-| S4 | ASP.NET Identity integration | 🔴 Not Started | MEDIUM | User management in CloudApi |
+| S3 | RBAC implementation | 🟢 Complete | HIGH | Capability-based RBAC |
+| S4 | CloudApi user management | 🟢 Complete | MEDIUM | Admin CRUD endpoints (no full Identity) |
 | S5 | RSA key signing | 🔴 Not Started | MEDIUM | Replace dev certs with RSA 2048+ |
 | S6 | Key rotation support | 🔴 Not Started | LOW | 6-month rotation for JWT signing |
 | S7 | Security audit logging | 🔴 Not Started | LOW | Login, permission changes, etc. |
 | S8 | Rate limiting | 🔴 Not Started | LOW | API abuse protection |
 | S9 | Secrets management | 🔴 Not Started | LOW | Azure Key Vault / env vars |
+
+### S3: RBAC Implementation Details (2026-03-10)
+
+**Capability-based RBAC** - Roles map to capabilities for future flexibility.
+
+**Files Created:**
+- `Application/Common/Authorization/Capability.cs` - Capability constants
+- `Application/Common/Authorization/RoleCapabilities.cs` - Role-to-capability mapping
+- `Application/Common/Authorization/CapabilityAuthorizationHandler.cs` - ASP.NET handler
+- `Application.Tests/Common/Authorization/RoleCapabilitiesTests.cs` - 21 tests
+
+**Endpoint Protection:**
+
+| Endpoint | Policy | Cashier | Manager | Admin |
+|----------|--------|:-------:|:-------:|:-----:|
+| `GET /products` | CanReadProducts | ✅ | ✅ | ✅ |
+| `POST /sales/complete` | CanCompleteSales | ✅ | ✅ | ✅ |
+| `GET /sync/status` | CanViewSyncStatus | ❌ | ✅ | ✅ |
+| `POST /admin/stores/register` | SystemAdminOnly | ❌ | ❌ | ✅ |
+
+**Design Decisions:**
+- Keep current role names (Cashier, StoreManager, SystemAdmin)
+- Full admin auth for `/admin/stores/register` (not API key)
+- Capability pattern enables future fine-grained permissions
+
+**Commits:**
+- `3b18010` feat(security): add RBAC with capability-based authorization (Epic S3)
+- `c9b98ee` feat(aspire): add service discovery for StoreHub → CloudApi communication
+
+**Additional Improvements:**
+- StoreHub → CloudApi now uses Aspire service discovery instead of hardcoded URLs
+- `CloudTokenOptions.BaseUrl` marked `[Obsolete]` (replaced by Aspire)
+- HttpClient BaseAddress configured via DI using `services:cloud-api:https:0`
+
+**Plan:** `.planning/indypos-overhaul/s3-rbac-implementation-plan.md`
+
+### S4: CloudApi User Management Details (2026-03-10)
+
+**Decision:** Admin CRUD endpoints instead of full ASP.NET Identity (passwords stay local at StoreHub).
+
+**New Capabilities Added:**
+- `users.read` - Read user data
+- `users.create` - Create users
+- `users.update` - Update users
+- `users.deactivate` - Soft delete users
+
+**API Endpoints:**
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/admin/users` | GET | List users (paginated, filterable) |
+| `/admin/users/{id}` | GET | Get single user |
+| `/admin/users` | POST | Create user |
+| `/admin/users/{id}` | PUT | Update user |
+| `/admin/users/{id}` | DELETE | Deactivate user (soft delete) |
+
+**Files Created:**
+- `Application/Abstractions/Cloud/Repositories/ICloudUserRepository.cs`
+- `Application/UseCases/Cloud/Users/CreateUser/CreateCloudUserCommand.cs`
+- `Application/UseCases/Cloud/Users/CreateUser/CreateCloudUserCommandHandler.cs`
+- `Application/UseCases/Cloud/Users/UpdateUser/UpdateCloudUserCommand.cs`
+- `Application/UseCases/Cloud/Users/UpdateUser/UpdateCloudUserCommandHandler.cs`
+- `Application/UseCases/Cloud/Users/DeactivateUser/DeactivateCloudUserCommand.cs`
+- `Application/UseCases/Cloud/Users/DeactivateUser/DeactivateCloudUserCommandHandler.cs`
+- `Application/UseCases/Cloud/Users/GetUsers/GetCloudUsersQuery.cs`
+- `Application/UseCases/Cloud/Users/GetUsers/GetCloudUsersQueryHandler.cs`
+- `CloudApi/Infrastructure/Repositories/CloudUserRepository.cs`
+
+**Tests Added:** 29 new tests (156 total)
+
+**Key Design Decisions:**
+- Keep `CloudUser` entity (no migration to IdentityUser)
+- Version increment on every change (critical for StoreHub sync)
+- Soft delete only (IsActive = false)
+- No password management in cloud (stays local)
+- SystemAdmin authorization via CanManageUsers policy
 
 ### Threat Mitigations
 
@@ -429,7 +505,7 @@ POST /sync/events → SyncedEvents table → EventProcessor (background)
 | Stolen POS device | Encrypted local DB, device identity | 🔴 Not Started |
 | Credential theft | Salted hashing, rate limiting, lockouts | 🟡 Partial (hashing done) |
 | API abuse | JWT validation, rate limiting | 🟡 Partial (JWT done) |
-| Insider misuse | RBAC, audit logging | 🔴 Not Started |
+| Insider misuse | RBAC, audit logging | 🟡 Partial (RBAC done) |
 
 **Deliverable:** Production-ready security with offline auth, RBAC, and audit trail
 
@@ -514,10 +590,32 @@ Upgraded the entire solution from .NET 8 to .NET 10 LTS before starting Epic C.
 
 ## Current Focus
 
-**Now:** Epic F Complete! 🟢
-**Next:** Epic S (Security Hardening) → Epic G (Desktop Integration)
+**Now:** Epic S (Security) in progress - S1, S2, S3, S4 complete 🟡
+**Next:** S5 (RSA key signing) or Epic G (Desktop Integration)
 
-### Completed This Session (2026-03-09)
+### Completed This Session (2026-03-10)
+1. ✅ Implemented capability-based RBAC (S3):
+   - Created Capability constants and RoleCapabilities mapping
+   - Added CapabilityAuthorizationHandler for ASP.NET Core
+   - Protected StoreHub endpoints with policies (products, sales, sync)
+   - Protected CloudApi admin endpoint with SystemAdminOnly policy
+   - Added 21 unit tests for RoleCapabilities
+2. ✅ Added Aspire service discovery for StoreHub → CloudApi:
+   - AppHost now wires CloudApi reference to StoreHub
+   - HttpClient uses service discovery URL instead of hardcoded BaseUrl
+   - Marked CloudTokenOptions.BaseUrl as [Obsolete]
+3. ✅ Implemented CloudApi user management (S4):
+   - Added user management capabilities (users.read/create/update/deactivate)
+   - Created ICloudUserRepository interface and CloudUserRepository
+   - Created CreateCloudUserCommand/Handler with validation
+   - Created UpdateCloudUserCommand/Handler with partial updates
+   - Created DeactivateCloudUserCommand/Handler (soft delete)
+   - Created GetCloudUsersQuery/Handler with pagination
+   - Added admin endpoints: GET/POST/PUT/DELETE /admin/users
+   - Added 29 unit tests for user management
+4. ✅ All tests passing (156 total)
+
+### Previous Session (2026-03-09)
 1. ✅ Created IndyPOS.CloudApi project (F1)
 2. ✅ Wired CloudApi into AppHost with cloud-db (F1a)
 3. ✅ Added Scalar API documentation UI to StoreHub and CloudApi
@@ -539,7 +637,7 @@ Upgraded the entire solution from .NET 8 to .NET 10 LTS before starting Epic C.
 13. ✅ Added 8 unit tests (54 total passing)
 
 ### Next Actions
-1. Epic S: Security Hardening (S1-S3 are HIGH priority)
+1. Epic S: S5 (RSA key signing) or S6-S9 (LOW priority)
 2. Epic G: Desktop Integration
 
 ---
@@ -548,12 +646,13 @@ Upgraded the entire solution from .NET 8 to .NET 10 LTS before starting Epic C.
 
 - **Total Epics:** 9 (added Epic S: Security)
 - **Completed Epics:** 7 (Epic 0, A, B, C, D, E, F)
-- **In Progress Epics:** 0
+- **In Progress Epics:** 1 (Epic S - 4/9 tasks done)
 - **Total Tasks:** 53 (41 + 9 security + 3 desktop)
-- **Completed:** 41
+- **Completed:** 45
 - **In Progress:** 0
-- **Not Started:** 12 (Epic S: 9, Epic G: 3)
-- **Overall Progress:** ~77% (Security + Desktop integration remaining)
+- **Not Started:** 8 (Epic S: 5, Epic G: 3)
+- **Overall Progress:** ~85% (Security + Desktop integration remaining)
+- **Total Tests:** 156 (all passing)
 
 ---
 
@@ -595,4 +694,4 @@ Upgraded the entire solution from .NET 8 to .NET 10 LTS before starting Epic C.
 
 ---
 
-**Last Session:** 2026-03-09
+**Last Session:** 2026-03-10

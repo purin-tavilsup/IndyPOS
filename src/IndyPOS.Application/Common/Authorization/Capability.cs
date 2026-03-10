@@ -17,4 +17,10 @@ public static class Capability
 
     // Admin operations
     public const string AdminStoresRegister = "admin.stores.register";
+
+    // User management (admin)
+    public const string UsersRead = "users.read";
+    public const string UsersCreate = "users.create";
+    public const string UsersUpdate = "users.update";
+    public const string UsersDeactivate = "users.deactivate";
 }
