@@ -20,6 +20,7 @@ public class StoreHubDbContext : DbContext
     public DbSet<PayLater> PayLaters => Set<PayLater>();
     public DbSet<InventoryMovement> InventoryMovements => Set<InventoryMovement>();
     public DbSet<OutboxEvent> OutboxEvents => Set<OutboxEvent>();
+    public DbSet<StoreUser> StoreUsers => Set<StoreUser>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

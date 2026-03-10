@@ -16,7 +16,7 @@
 | Sprint 2 | **Epic C** (StoreHub Service) ✅ | 🟢 Complete |
 | Sprint 3 | **Epic E** (Outbox + Sync) ✅ | 🟢 Complete |
 | Sprint 4 | **Epic F** (Cloud API) ✅ | 🟢 Complete |
-| Sprint 5 | Epic G (Desktop Integration) | Not Started |
+| Sprint 5 | Epic S (Security) + Epic G (Desktop Integration) | Not Started |
 | Sprint 6 | Epic H (Testing & Rollout) | Not Started |
 
 ---
@@ -389,6 +389,52 @@ POST /sync/events → SyncedEvents table → EventProcessor (background)
 
 ---
 
+## Epic S: Security Hardening 🔐
+
+**Goal:** Complete security implementation per security design spec
+**Status:** 🔴 Not Started
+**Target:** Sprint 5
+**Priority:** HIGH
+**Reference:** `.planning/indypos-overhaul/security/indypos_security_design_spec.md`
+
+### Already Implemented (Epic F)
+
+| Item | Status | Notes |
+|------|--------|-------|
+| OAuth2 + OpenIddict | ✅ Done | Client Credentials flow |
+| JWT Bearer tokens | ✅ Done | 15min access, 24hr refresh |
+| Store registration | ✅ Done | ClientId/Secret generation |
+| Token validation | ✅ Done | Signature, expiry, issuer |
+| BCrypt password hashing | ✅ Done | For client secrets |
+| [Authorize] on endpoints | ✅ Done | All sensitive APIs protected |
+
+### Tasks
+
+| Task | Description | Status | Priority | Notes |
+|------|-------------|--------|----------|-------|
+| S1 | POS offline authentication | 🔴 Not Started | HIGH | Local credential verification |
+| S2 | Local user cache | 🔴 Not Started | HIGH | Sync users from cloud, cache locally |
+| S3 | RBAC implementation | 🔴 Not Started | HIGH | Owner/Manager/Cashier roles |
+| S4 | ASP.NET Identity integration | 🔴 Not Started | MEDIUM | User management in CloudApi |
+| S5 | RSA key signing | 🔴 Not Started | MEDIUM | Replace dev certs with RSA 2048+ |
+| S6 | Key rotation support | 🔴 Not Started | LOW | 6-month rotation for JWT signing |
+| S7 | Security audit logging | 🔴 Not Started | LOW | Login, permission changes, etc. |
+| S8 | Rate limiting | 🔴 Not Started | LOW | API abuse protection |
+| S9 | Secrets management | 🔴 Not Started | LOW | Azure Key Vault / env vars |
+
+### Threat Mitigations
+
+| Threat | Mitigation | Status |
+|--------|------------|--------|
+| Stolen POS device | Encrypted local DB, device identity | 🔴 Not Started |
+| Credential theft | Salted hashing, rate limiting, lockouts | 🟡 Partial (hashing done) |
+| API abuse | JWT validation, rate limiting | 🟡 Partial (JWT done) |
+| Insider misuse | RBAC, audit logging | 🔴 Not Started |
+
+**Deliverable:** Production-ready security with offline auth, RBAC, and audit trail
+
+---
+
 ## Epic G: Desktop Integration
 
 **Goal:** Desktop app becomes hub client
@@ -469,7 +515,7 @@ Upgraded the entire solution from .NET 8 to .NET 10 LTS before starting Epic C.
 ## Current Focus
 
 **Now:** Epic F Complete! 🟢
-**Next:** Epic G (Desktop Integration)
+**Next:** Epic S (Security Hardening) → Epic G (Desktop Integration)
 
 ### Completed This Session (2026-03-09)
 1. ✅ Created IndyPOS.CloudApi project (F1)
@@ -493,20 +539,21 @@ Upgraded the entire solution from .NET 8 to .NET 10 LTS before starting Epic C.
 13. ✅ Added 8 unit tests (54 total passing)
 
 ### Next Actions
-1. Epic G: Desktop Integration (next sprint)
+1. Epic S: Security Hardening (S1-S3 are HIGH priority)
+2. Epic G: Desktop Integration
 
 ---
 
 ## Statistics
 
-- **Total Epics:** 8
+- **Total Epics:** 9 (added Epic S: Security)
 - **Completed Epics:** 7 (Epic 0, A, B, C, D, E, F)
 - **In Progress Epics:** 0
-- **Total Tasks:** 41
+- **Total Tasks:** 53 (41 + 9 security + 3 desktop)
 - **Completed:** 41
 - **In Progress:** 0
-- **Not Started:** 0 (for current sprint)
-- **Overall Progress:** ~92% (Cloud-ready, Desktop integration remaining)
+- **Not Started:** 12 (Epic S: 9, Epic G: 3)
+- **Overall Progress:** ~77% (Security + Desktop integration remaining)
 
 ---
 
@@ -530,6 +577,7 @@ Upgraded the entire solution from .NET 8 to .NET 10 LTS before starting Epic C.
 | Doc | Location | Purpose |
 |-----|----------|---------|
 | v1.4.0 Docs | `.planning/indypos-overhaul/IndyPOS_Docs_v1_4_0/` | Latest architecture specs |
+| Security Spec | `.planning/indypos-overhaul/security/indypos_security_design_spec.md` | Security design guide |
 | Aspire Plan | `docs/architecture/aspire.md` | Aspire setup details |
 | Solution Layout | `docs/solution-structure/recommended-layout.md` | Project organization |
 | Terminal Concurrency | `docs/storehub/terminal-concurrency-strategy.md` | Multi-terminal safety |
