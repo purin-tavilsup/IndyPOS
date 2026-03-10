@@ -1,5 +1,6 @@
 using System.Text;
 using IndyPOS.Application.Abstractions.StoreHub.Repositories;
+using IndyPOS.Application.Common.Authorization;
 using IndyPOS.Application.Common.Interfaces;
 using IndyPOS.Application.UseCases.StoreHub.Auth;
 using IndyPOS.Application.UseCases.StoreHub.Auth.Login;
@@ -11,6 +12,7 @@ using IndyPOS.Infrastructure.Persistence.StoreHub;
 using IndyPOS.Infrastructure.Services.StoreHub;
 using IndyPOS.ServiceDefaults;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.IdentityModel.Tokens;
 using Nokpirab;
 using Scalar.AspNetCore;
@@ -60,6 +62,20 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
        });
 
 builder.Services.AddAuthorization();
+
+// Add capability-based authorization (S3: RBAC)
+builder.Services.AddSingleton<IAuthorizationHandler, CapabilityAuthorizationHandler>();
+
+builder.Services.AddAuthorizationBuilder()
+    .AddPolicy("CanReadProducts", policy =>
+        policy.RequireAuthenticatedUser()
+              .AddRequirements(new CapabilityRequirement(Capability.ProductsRead)))
+    .AddPolicy("CanCompleteSales", policy =>
+        policy.RequireAuthenticatedUser()
+              .AddRequirements(new CapabilityRequirement(Capability.SalesComplete)))
+    .AddPolicy("CanViewSyncStatus", policy =>
+        policy.RequireAuthenticatedUser()
+              .AddRequirements(new CapabilityRequirement(Capability.SyncViewStatus)));
 
 // Add OpenAPI
 builder.Services.AddOpenApi();
@@ -149,7 +165,7 @@ app.MapGet("/products", async (
 
     var products = await handler.HandleAsync(query, cancellationToken);
     return Results.Ok(products);
-});
+}).RequireAuthorization("CanReadProducts");
 
 // Sales endpoint
 app.MapPost("/sales/complete", async (
@@ -166,7 +182,7 @@ app.MapPost("/sales/complete", async (
 
     var response = await handler.HandleAsync(command, cancellationToken);
     return Results.Ok(response);
-});
+}).RequireAuthorization("CanCompleteSales");
 
 // Sync status endpoint (E4)
 app.MapGet("/sync/status", async (
@@ -183,6 +199,6 @@ app.MapGet("/sync/status", async (
         failed = failedCount,
         timestamp = DateTime.UtcNow
     });
-});
+}).RequireAuthorization("CanViewSyncStatus");
 
 app.Run();
