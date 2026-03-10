@@ -3,6 +3,7 @@ using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using IndyPOS.Application.Abstractions.StoreHub.Services;
 using IndyPOS.Application.UseCases.Cloud.Sync;
+using IndyPOS.Application.UseCases.StoreHub.Users;
 using IndyPOS.Domain.Entities.Core;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -137,5 +138,88 @@ public class HttpCloudSyncClient : ICloudSyncClient
         // This accommodates the difference between OutboxEvent.StoreId (string)
         // and SyncEventRequest.StoreId (int)
         return int.TryParse(storeId, out var id) ? id : 0;
+    }
+
+    public async Task<CloudUserSyncResponse?> GetUsersAsync(
+        string storeId,
+        long? sinceVersion = null,
+        CancellationToken cancellationToken = default)
+    {
+        // Get access token
+        var token = await _tokenService.GetAccessTokenAsync(cancellationToken);
+        if (string.IsNullOrEmpty(token))
+        {
+            _logger.LogWarning("Unable to acquire token for user sync, operating in offline mode");
+            return null;
+        }
+
+        return await GetUsersWithAuthAsync(storeId, sinceVersion, token, cancellationToken);
+    }
+
+    private async Task<CloudUserSyncResponse?> GetUsersWithAuthAsync(
+        string storeId,
+        long? sinceVersion,
+        string token,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            var url = $"/master/users/{storeId}";
+            if (sinceVersion.HasValue)
+            {
+                url += $"?sinceVersion={sinceVersion.Value}";
+            }
+
+            using var request = new HttpRequestMessage(HttpMethod.Get, url);
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            var response = await _httpClient.SendAsync(request, cancellationToken);
+
+            if (response.IsSuccessStatusCode)
+            {
+                return await response.Content.ReadFromJsonAsync<CloudUserSyncResponse>(cancellationToken);
+            }
+
+            // Handle 401 - token may have expired
+            if (response.StatusCode == HttpStatusCode.Unauthorized)
+            {
+                _logger.LogWarning("Received 401 from Cloud API during user sync, clearing cached token and retrying");
+                _tokenService.ClearCachedToken();
+
+                // Try once more with fresh token
+                var newToken = await _tokenService.GetAccessTokenAsync(cancellationToken);
+                if (string.IsNullOrEmpty(newToken))
+                {
+                    return null;
+                }
+
+                using var retryRequest = new HttpRequestMessage(HttpMethod.Get, url);
+                retryRequest.Headers.Authorization = new AuthenticationHeaderValue("Bearer", newToken);
+
+                var retryResponse = await _httpClient.SendAsync(retryRequest, cancellationToken);
+                if (retryResponse.IsSuccessStatusCode)
+                {
+                    return await retryResponse.Content.ReadFromJsonAsync<CloudUserSyncResponse>(cancellationToken);
+                }
+            }
+
+            var errorBody = await response.Content.ReadAsStringAsync(cancellationToken);
+            _logger.LogWarning(
+                "Cloud API returned {StatusCode} during user sync: {Error}",
+                response.StatusCode,
+                errorBody);
+
+            return null;
+        }
+        catch (HttpRequestException ex)
+        {
+            _logger.LogWarning(ex, "HTTP error during user sync (offline mode?)");
+            return null;
+        }
+        catch (TaskCanceledException ex) when (!cancellationToken.IsCancellationRequested)
+        {
+            _logger.LogWarning(ex, "User sync request timed out");
+            return null;
+        }
     }
 }
