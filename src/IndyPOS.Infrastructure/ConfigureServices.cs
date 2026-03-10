@@ -123,6 +123,9 @@ public static class ConfigureServices
 		services.AddSingleton<ILocalTokenService, LocalTokenService>();
 		services.AddScoped<IStoreAuthService, StoreAuthService>();
 
+		// User sync service (Epic S2: Local User Cache)
+		services.AddScoped<IUserSyncService, UserSyncService>();
+
 		// Legacy crypto service for password migration
 		services.AddTransient<ICryptographyService, CryptographyService>();
 

@@ -1,7 +1,9 @@
+using System.Security.Claims;
 using IndyPOS.Application.Abstractions.Cloud.Repositories;
 using IndyPOS.Application.UseCases.Cloud.Stores.RegisterStore;
 using IndyPOS.Application.UseCases.Cloud.Sync;
 using IndyPOS.Application.UseCases.Cloud.Sync.IngestEvents;
+using IndyPOS.CloudApi.Domain;
 using IndyPOS.CloudApi.Infrastructure;
 using IndyPOS.CloudApi.Infrastructure.Auth;
 using IndyPOS.ServiceDefaults;
@@ -198,6 +200,47 @@ app.MapGet("/master/config/{storeId}", [Authorize] async (
     });
 }).RequireAuthorization();
 
+// GET /master/users/{storeId} - Get users for a specific store (S2: Local User Cache)
+// Uses version-based sync to avoid clock drift issues
+// Requires OAuth2 token - stores can only fetch their own users
+app.MapGet("/master/users/{storeId}", [Authorize] async (
+    string storeId,
+    long? sinceVersion,
+    CloudDbContext db,
+    ClaimsPrincipal user,
+    CancellationToken cancellationToken) =>
+{
+    // Authorization: Ensure requesting store can only fetch its own users
+    var tokenStoreId = user.FindFirst("store_id")?.Value;
+    if (tokenStoreId != storeId)
+    {
+        return Results.Forbid();
+    }
+
+    var query = db.Users.Where(u => u.StoreId == storeId);
+
+    if (sinceVersion.HasValue)
+    {
+        query = query.Where(u => u.Version > sinceVersion.Value);
+    }
+
+    var users = await query
+        .OrderBy(u => u.Version)
+        .Select(u => new CloudUserDto(
+            u.Id,
+            u.Username,
+            u.FirstName,
+            u.LastName,
+            u.RoleId,
+            u.IsActive,
+            u.Version))
+        .ToListAsync(cancellationToken);
+
+    var maxVersion = users.Count > 0 ? users.Max(u => u.Version) : sinceVersion ?? 0;
+
+    return Results.Ok(new CloudUserSyncResponse(users.Count, users, maxVersion, DateTime.UtcNow));
+}).RequireAuthorization();
+
 // ============================================
 // Admin Endpoints (F5)
 // ============================================
@@ -230,3 +273,21 @@ app.MapPost("/admin/stores/register", async (
 });
 
 app.Run();
+
+// ============================================
+// DTOs for user sync (S2: Local User Cache)
+// ============================================
+public record CloudUserDto(
+    Guid Id,
+    string Username,
+    string FirstName,
+    string LastName,
+    int RoleId,
+    bool IsActive,
+    long Version);
+
+public record CloudUserSyncResponse(
+    int Count,
+    List<CloudUserDto> Users,
+    long MaxVersion,
+    DateTime Timestamp);

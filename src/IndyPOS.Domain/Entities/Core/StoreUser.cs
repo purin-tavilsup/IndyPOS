@@ -48,4 +48,14 @@ public class StoreUser
     /// Link to CloudApi user for sync (Epic S2).
     /// </summary>
     public Guid? CloudUserId { get; set; }
+
+    /// <summary>
+    /// Last time this user was synced from CloudApi.
+    /// </summary>
+    public DateTime? LastSyncedAtUtc { get; set; }
+
+    /// <summary>
+    /// Version from CloudApi for incremental sync (avoids clock drift).
+    /// </summary>
+    public long CloudVersion { get; set; }
 }

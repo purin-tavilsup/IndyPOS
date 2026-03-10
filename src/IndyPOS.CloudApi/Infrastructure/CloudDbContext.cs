@@ -30,6 +30,7 @@ public class CloudDbContext : DbContext
     // Master data - distributed to stores
     public DbSet<CloudProduct> Products => Set<CloudProduct>();
     public DbSet<CloudStoreConfig> StoreConfigs => Set<CloudStoreConfig>();
+    public DbSet<CloudUser> Users => Set<CloudUser>();
 
     // Idempotency - tracks processed events
     public DbSet<ProcessedEvent> ProcessedEvents => Set<ProcessedEvent>();
@@ -132,6 +133,19 @@ public class CloudDbContext : DbContext
             entity.HasIndex(e => e.ClientId).IsUnique();
             entity.Property(e => e.ClientSecretHash).HasMaxLength(200);
             entity.HasIndex(e => e.IsActive);
+        });
+
+        // CloudUser - master user data distributed to stores
+        modelBuilder.Entity<CloudUser>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.HasIndex(e => e.StoreId);
+            entity.HasIndex(e => new { e.StoreId, e.Username }).IsUnique();
+            entity.HasIndex(e => e.Version);  // For efficient incremental sync
+            entity.Property(e => e.StoreId).HasMaxLength(50);
+            entity.Property(e => e.Username).HasMaxLength(100);
+            entity.Property(e => e.FirstName).HasMaxLength(100);
+            entity.Property(e => e.LastName).HasMaxLength(100);
         });
     }
 }

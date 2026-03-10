@@ -46,4 +46,19 @@ public interface IStoreUserRepository
     /// Updates the last login timestamp.
     /// </summary>
     Task UpdateLastLoginAsync(Guid id, DateTime loginTimeUtc, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Gets a user by CloudUserId (for sync).
+    /// </summary>
+    Task<StoreUser?> GetByCloudIdAsync(Guid cloudUserId, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Upserts a user by CloudUserId. Insert if new, update if exists.
+    /// </summary>
+    Task UpsertByCloudIdAsync(StoreUser user, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Gets the maximum CloudVersion for incremental sync.
+    /// </summary>
+    Task<long> GetMaxCloudVersionAsync(string storeId, CancellationToken cancellationToken = default);
 }

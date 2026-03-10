@@ -13,6 +13,7 @@ public class SyncWorker(
     ILogger<SyncWorker> logger) : BackgroundService
 {
     private readonly SyncWorkerOptions _options = options.Value;
+    private DateTime _lastUserSync = DateTime.MinValue;
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
@@ -23,25 +24,65 @@ public class SyncWorker(
         }
 
         logger.LogInformation(
-            "SyncWorker started. Polling every {Interval}s, batch size {BatchSize}",
+            "SyncWorker started. Polling every {Interval}s, batch size {BatchSize}, user sync every {UserSyncInterval}s",
             _options.PollingIntervalSeconds,
-            _options.BatchSize);
+            _options.BatchSize,
+            _options.UserSyncIntervalSeconds);
 
         while (!stoppingToken.IsCancellationRequested)
         {
             try
             {
                 await ProcessPendingEventsAsync(stoppingToken);
+
+                // User sync (Epic S2) - runs at separate interval
+                if (ShouldSyncUsers())
+                {
+                    await SyncUsersAsync(stoppingToken);
+                }
             }
             catch (Exception ex) when (ex is not OperationCanceledException)
             {
-                logger.LogError(ex, "Error processing outbox events");
+                logger.LogError(ex, "Error in SyncWorker");
             }
 
             await Task.Delay(TimeSpan.FromSeconds(_options.PollingIntervalSeconds), stoppingToken);
         }
 
         logger.LogInformation("SyncWorker stopped");
+    }
+
+    private bool ShouldSyncUsers()
+    {
+        var elapsed = (DateTime.UtcNow - _lastUserSync).TotalSeconds;
+        return elapsed >= _options.UserSyncIntervalSeconds;
+    }
+
+    private async Task SyncUsersAsync(CancellationToken cancellationToken)
+    {
+        using var scope = scopeFactory.CreateScope();
+
+        // IUserSyncService might not be registered if auth services aren't added
+        var userSyncService = scope.ServiceProvider.GetService<IUserSyncService>();
+        if (userSyncService is null)
+        {
+            return;
+        }
+
+        try
+        {
+            var synced = await userSyncService.SyncUsersFromCloudAsync(cancellationToken);
+            _lastUserSync = DateTime.UtcNow;
+
+            if (synced > 0)
+            {
+                logger.LogInformation("Synced {Count} users from cloud", synced);
+            }
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            logger.LogWarning(ex, "User sync failed");
+        }
     }
 
     private async Task ProcessPendingEventsAsync(CancellationToken cancellationToken)
