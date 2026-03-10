@@ -9,6 +9,7 @@ namespace IndyPOS.Infrastructure.Services.StoreHub;
 /// <summary>
 /// Service for acquiring and caching OAuth2 tokens for Cloud API communication.
 /// Thread-safe with in-memory caching and automatic refresh before expiry.
+/// BaseAddress is configured via Aspire service discovery in ConfigureServices.
 /// </summary>
 public class CloudTokenService : ITokenService
 {
@@ -32,8 +33,7 @@ public class CloudTokenService : ITokenService
         _httpClient = httpClient;
         _options = options.Value;
         _logger = logger;
-
-        _httpClient.BaseAddress = new Uri(_options.BaseUrl);
+        // BaseAddress is configured via DI in ConfigureServices (Aspire service discovery)
     }
 
     public async Task<string?> GetAccessTokenAsync(CancellationToken cancellationToken = default)

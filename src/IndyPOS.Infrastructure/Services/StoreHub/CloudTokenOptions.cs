@@ -9,7 +9,9 @@ public class CloudTokenOptions
 
     /// <summary>
     /// Base URL of the Cloud API (e.g., "https://localhost:7180")
+    /// Optional when using Aspire - URL is injected via HttpClient configuration.
     /// </summary>
+    [Obsolete("Use Aspire service discovery instead. BaseUrl is set via HttpClient configuration.")]
     public string BaseUrl { get; set; } = string.Empty;
 
     /// <summary>
