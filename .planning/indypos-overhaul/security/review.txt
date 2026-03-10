@@ -1,0 +1,275 @@
+Epic S1: POS Offline Authentication – Architecture Review
+Reviewer: ChatGPT
+For: Pond
+Date: 2026-03-10
+
+SUMMARY
+
+Overall this is a very strong architecture and implementation plan.
+It modernizes password security, centralizes authentication in StoreHub, and creates a clean foundation for future security features.
+
+The design aligns well with modern backend practices and is appropriate for a POS environment that must operate offline.
+
+KEY STRENGTHS
+
+Security Upgrade
+
+Replacing TripleDES with BCrypt is the correct direction.
+
+Issues with the current system:
+
+- Reversible encryption
+- Hard-coded encryption key
+- No salt
+- ECB encryption mode
+
+BCrypt with work factor 12 is appropriate for POS hardware.
+
+Migration Strategy
+
+On-demand migration during login is excellent.
+
+Benefits:
+
+- No downtime
+- No bulk migration risk
+- Gradual upgrade
+- Transparent for users
+
+Example logic:
+
+if (user.PasswordHashVersion == 1)
+{
+var encryptedPassword = _legacyCrypto.Encrypt(password);
+isValid = encryptedPassword == user.PasswordHash;
+
+if (isValid)
+{
+    var bcryptHash = _passwordHasher.Hash(password);
+    await _userRepository.UpdatePasswordHashAsync(user.Id, bcryptHash, version: 2, ct);
+}
+
+}
+
+StoreHub Authentication Layer
+
+Moving authentication to StoreHub improves the architecture.
+
+Old flow:
+
+WinForms → SQLite
+
+New flow:
+
+WinForms → StoreHub API → PostgreSQL
+
+Benefits:
+
+- Centralized authentication
+- Easier RBAC later
+- Better security boundary
+- Enables audit logging
+- Enables cloud sync later
+
+POTENTIAL ISSUES
+
+JWT May Be Overkill
+
+If both processes run on the same machine:
+
+POS.exe
+StoreHub.exe
+
+JWT may be unnecessary.
+
+Simpler option:
+
+SessionId = Guid.NewGuid()
+
+But JWT is still acceptable if you prefer stateless auth.
+
+Token Expiry
+
+Current proposal:
+
+8 hour JWT
+
+Shifts may exceed that.
+
+Recommendation:
+
+12 hour token
+
+This avoids mid-shift logouts.
+
+Seeder Risk
+
+Seeder migration could create duplicate users if run multiple times.
+
+Add protection such as:
+
+UNIQUE(LegacyUserId)
+
+or implement:
+
+UPSERT logic
+
+ARCHITECTURE SUGGESTIONS
+
+Add StoreId
+
+POS systems usually require store scoping.
+
+Suggested field:
+
+public Guid StoreId { get; set; }
+
+This helps future cloud synchronization and multi-store support.
+
+Add Authentication Audit Log
+
+Recommended audit events:
+
+LoginSuccess
+LoginFailure
+PasswordMigration
+
+Example table:
+
+AuthAuditLog
+
+Columns:
+
+UserId
+Timestamp
+Result
+TerminalId
+IpAddress
+
+This is useful for fraud investigation and troubleshooting.
+
+TerminalId
+
+POS environments normally have multiple terminals.
+
+Example:
+
+Terminal1
+Terminal2
+Terminal3
+
+Consider adding TerminalId to login requests.
+
+SECURITY IMPROVEMENTS
+
+Login Rate Limiting
+
+Even offline POS systems should limit login attempts.
+
+Example:
+
+5 failed attempts
+→ 30 second cooldown
+
+This prevents brute-force attacks.
+
+Secure Token Storage
+
+DPAPI is the correct approach.
+
+Example:
+
+ProtectedData.Protect()
+
+.NET IMPLEMENTATION NOTES
+
+BCrypt Library
+
+Recommended library:
+
+BCrypt.Net-Next
+
+Example usage:
+
+BCrypt.HashPassword(password, 12);
+BCrypt.Verify(password, hash);
+
+HttpClient Usage
+
+Instead of injecting HttpClient directly, prefer:
+
+IHttpClientFactory
+
+Example registration:
+
+AddHttpClient<IStoreAuthClient>()
+
+This avoids socket exhaustion.
+
+API Contract
+
+Avoid anonymous request objects.
+
+Recommended DTO:
+
+public record LoginRequest(
+string Username,
+string Password
+);
+
+ANSWERS TO OPEN QUESTIONS
+
+Refresh Tokens
+
+Usually unnecessary for POS.
+
+Recommendation:
+
+12 hour token lifetime.
+
+JWT Storage in WinForms
+
+Recommended approach:
+
+Memory storage
+
+optional DPAPI encrypted fallback
+
+If the application restarts, require login again.
+
+Migration Window
+
+Typical migration window:
+
+90 days
+
+After the migration period:
+
+- Remove TripleDES code
+- Force password reset if needed
+
+OVERALL EVALUATION
+
+Architecture: Excellent
+Security: Very Good
+Maintainability: Excellent
+Migration Strategy: Excellent
+
+Overall this is production-quality design with only minor improvements recommended.
+
+SUGGESTED FUTURE EVOLUTION
+
+As the system grows, consider creating a dedicated authentication module inside StoreHub.
+
+Example services:
+
+AuthService
+SessionService
+AuditService
+
+This will support future capabilities such as:
+
+- RBAC
+- Cashier switching
+- Shift tracking
+- Cloud identity sync
