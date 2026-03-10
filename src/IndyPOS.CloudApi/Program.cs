@@ -1,5 +1,7 @@
 using System.Security.Claims;
+using System.Text;
 using IndyPOS.Application.Abstractions.Cloud.Repositories;
+using IndyPOS.Application.Common.Authorization;
 using IndyPOS.Application.UseCases.Cloud.Stores.RegisterStore;
 using IndyPOS.Application.UseCases.Cloud.Sync;
 using IndyPOS.Application.UseCases.Cloud.Sync.IngestEvents;
@@ -7,8 +9,10 @@ using IndyPOS.CloudApi.Domain;
 using IndyPOS.CloudApi.Infrastructure;
 using IndyPOS.CloudApi.Infrastructure.Auth;
 using IndyPOS.ServiceDefaults;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using Nokpirab;
 using OpenIddict.Validation.AspNetCore;
 using Scalar.AspNetCore;
@@ -36,8 +40,43 @@ builder.Services.AddTransient<ICommandHandler<RegisterStoreCommand, RegisterStor
 builder.Services.AddOpenIddictServer(builder.Configuration);
 
 // Add authentication & authorization
+// Default scheme: OpenIddict for M2M (store-to-cloud) auth
 builder.Services.AddAuthentication(OpenIddictValidationAspNetCoreDefaults.AuthenticationScheme);
+
+// Add StoreHub JWT validation for admin endpoints (S3: RBAC)
+// IMPORTANT: SecretKey must be configured - fail fast if missing
+var localTokenSecretKey = builder.Configuration["LocalToken:SecretKey"]
+    ?? throw new InvalidOperationException("LocalToken:SecretKey configuration is required for admin authentication");
+var localTokenIssuer = builder.Configuration["LocalToken:Issuer"] ?? "indypos-storehub";
+var localTokenAudience = builder.Configuration["LocalToken:Audience"] ?? "indypos-clients";
+
+builder.Services.AddAuthentication()
+    .AddJwtBearer("StoreHubJwt", options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+            ValidIssuer = localTokenIssuer,
+            ValidAudience = localTokenAudience,
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(localTokenSecretKey)),
+        };
+    });
+
 builder.Services.AddAuthorization();
+
+// Add capability-based authorization handler (S3: RBAC)
+builder.Services.AddSingleton<IAuthorizationHandler, CapabilityAuthorizationHandler>();
+
+builder.Services.AddAuthorizationBuilder()
+    .AddPolicy("SystemAdminOnly", policy =>
+    {
+        policy.AuthenticationSchemes.Add("StoreHubJwt");
+        policy.RequireAuthenticatedUser();
+        policy.AddRequirements(new CapabilityRequirement(Capability.AdminStoresRegister));
+    });
 
 // Add controllers for token endpoint
 builder.Services.AddControllers();
@@ -246,8 +285,8 @@ app.MapGet("/master/users/{storeId}", [Authorize] async (
 // ============================================
 
 // POST /admin/stores/register - Register a new store with OAuth2 credentials
-// Note: In production, this should be protected by admin authentication
-app.MapPost("/admin/stores/register", async (
+// Protected by SystemAdminOnly policy (S3: RBAC)
+app.MapPost("/admin/stores/register", [Authorize(Policy = "SystemAdminOnly")] async (
     ICommandHandler<RegisterStoreCommand, RegisterStoreResponse> handler,
     RegisterStoreRequest request,
     CancellationToken cancellationToken) =>
@@ -270,7 +309,7 @@ app.MapPost("/admin/stores/register", async (
     {
         return Results.Conflict(new { error = ex.Message });
     }
-});
+}).RequireAuthorization("SystemAdminOnly");
 
 app.Run();
 
