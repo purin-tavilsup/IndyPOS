@@ -6,6 +6,7 @@ namespace IndyPOS.Application.UseCases.Invoices;
 public class InvoiceInfo: IInvoiceInfo
 {
 	public int Id { get; init; }
+	public Guid? StoreHubInvoiceId { get; init; }
 	public IList<Product> Products { get; init; } = new List<Product>();
 	public IList<Payment> Payments { get; init; } = new List<Payment>();
 	public bool IsRefundInvoice { get; init; }

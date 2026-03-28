@@ -86,7 +86,8 @@ internal static class Program
 	{
 		services.AddApplicationServices()
 				.AddUIServices()
-				.AddInfrastructureServices(context.Configuration);
+				.AddInfrastructureServices(context.Configuration)
+				.AddStoreHubClientServices(context.Configuration); // Epic G: StoreHub integration
 	}
 
 	private static void ClosePreviousProcesses()
