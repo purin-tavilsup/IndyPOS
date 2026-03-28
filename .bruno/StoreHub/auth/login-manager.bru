@@ -1,0 +1,45 @@
+meta {
+  name: Login (Manager)
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{baseUrl}}/auth/login
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "username": "manager",
+    "password": "manager123"
+  }
+}
+
+script:post-response {
+  if (res.body.success && res.body.token) {
+    bru.setVar("token", res.body.token);
+  }
+}
+
+docs {
+  # Login as Store Manager
+
+  Logs in with manager credentials (roleId: 2).
+
+  **Capabilities:**
+  - products.read
+  - sales.complete
+  - sync.view_status
+
+  **Cannot access:**
+  - admin.*
+  - users.*
+
+  The token is automatically saved to the `token` variable for use in subsequent requests.
+}
