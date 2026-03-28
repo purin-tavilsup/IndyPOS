@@ -1,9 +1,9 @@
 # IndyPOS Overhaul - Implementation Status
 
-**Last Updated:** 2026-03-10
-**Last Session:** 2026-03-10
+**Last Updated:** 2026-03-27
+**Last Session:** 2026-03-27
 **Current Sprint:** Sprint 5
-**Current Epic:** Epic S (Security) - IN PROGRESS 🟡 (S4 Complete)
+**Current Epic:** Epic S (Security) - IN PROGRESS 🟡 (S5 Complete)
 **Docs Version:** v1.4.0 (with .NET Aspire support)
 
 ---
@@ -416,11 +416,11 @@ POST /sync/events → SyncedEvents table → EventProcessor (background)
 | S2 | Local user cache | 🟢 Complete | HIGH | Sync users from cloud, cache locally |
 | S3 | RBAC implementation | 🟢 Complete | HIGH | Capability-based RBAC |
 | S4 | CloudApi user management | 🟢 Complete | MEDIUM | Admin CRUD endpoints (no full Identity) |
-| S5 | RSA key signing | 🔴 Not Started | MEDIUM | Replace dev certs with RSA 2048+ |
+| S5 | RSA key signing + DPAPI secrets | 🟢 Complete | MEDIUM | RSA 2048+ for CloudApi, DPAPI for StoreHub |
 | S6 | Key rotation support | 🔴 Not Started | LOW | 6-month rotation for JWT signing |
 | S7 | Security audit logging | 🔴 Not Started | LOW | Login, permission changes, etc. |
 | S8 | Rate limiting | 🔴 Not Started | LOW | API abuse protection |
-| S9 | Secrets management | 🔴 Not Started | LOW | Azure Key Vault / env vars |
+| S9 | Secrets management | 🔴 Not Started | LOW | Covered by S5 (env vars + DPAPI) |
 
 ### S3: RBAC Implementation Details (2026-03-10)
 
@@ -456,6 +456,38 @@ POST /sync/events → SyncedEvents table → EventProcessor (background)
 - HttpClient BaseAddress configured via DI using `services:cloud-api:https:0`
 
 **Plan:** `.planning/indypos-overhaul/s3-rbac-implementation-plan.md`
+
+### S5: RSA Key Signing + DPAPI Secrets Details (2026-03-27)
+
+**Two-part implementation** based on where secrets are stored:
+
+**S5a: CloudApi RSA Signing Key (Linux/Cloud)**
+- RSA 2048+ key loaded from `INDYPOS_RSA_SIGNING_KEY` environment variable
+- Key format: PEM (PKCS#1 or PKCS#8), base64-encoded
+- Falls back to development certificates when env var not set
+- Automatic key ID generation from SHA256 hash of public key (for rotation)
+
+**S5b: StoreHub ClientSecret with DPAPI (Windows)**
+- `ISecretStorage` abstraction for platform-agnostic secret storage
+- `DpapiSecretStorage` implementation using Windows DPAPI
+- Secrets stored in `%ProgramData%\IndyPOS\Secrets\` as encrypted files
+- `DataProtectionScope.LocalMachine` allows any user on the POS to access
+- `SecureCloudTokenOptions` wraps `CloudTokenOptions` with secure secret retrieval
+- Falls back to config value during migration/development
+
+**Files Created:**
+- `Application/Abstractions/Security/ISecretStorage.cs`
+- `Infrastructure/Services/Security/DpapiSecretStorage.cs`
+- `Infrastructure/Services/StoreHub/SecureCloudTokenOptions.cs`
+- `scripts/generate-rsa-key.ps1` - Helper script for RSA key generation
+- `Application.Tests/Infrastructure/Security/DpapiSecretStorageTests.cs` (10 tests)
+
+**Files Modified:**
+- `CloudApi/Infrastructure/Auth/OpenIddictExtensions.cs` - RSA key loading
+- `Infrastructure/Services/StoreHub/CloudTokenService.cs` - Uses SecureCloudTokenOptions
+- `Infrastructure/ConfigureServices.cs` - Registers DPAPI storage
+
+**Tests Added:** 10 new tests (166 total)
 
 ### S4: CloudApi User Management Details (2026-03-10)
 
@@ -590,30 +622,27 @@ Upgraded the entire solution from .NET 8 to .NET 10 LTS before starting Epic C.
 
 ## Current Focus
 
-**Now:** Epic S (Security) in progress - S1, S2, S3, S4 complete 🟡
-**Next:** S5 (RSA key signing) or Epic G (Desktop Integration)
+**Now:** Epic S (Security) in progress - S1-S5 complete 🟡
+**Next:** S6-S9 (LOW priority) or Epic G (Desktop Integration)
 
-### Completed This Session (2026-03-10)
-1. ✅ Implemented capability-based RBAC (S3):
-   - Created Capability constants and RoleCapabilities mapping
-   - Added CapabilityAuthorizationHandler for ASP.NET Core
-   - Protected StoreHub endpoints with policies (products, sales, sync)
-   - Protected CloudApi admin endpoint with SystemAdminOnly policy
-   - Added 21 unit tests for RoleCapabilities
-2. ✅ Added Aspire service discovery for StoreHub → CloudApi:
-   - AppHost now wires CloudApi reference to StoreHub
-   - HttpClient uses service discovery URL instead of hardcoded BaseUrl
-   - Marked CloudTokenOptions.BaseUrl as [Obsolete]
-3. ✅ Implemented CloudApi user management (S4):
-   - Added user management capabilities (users.read/create/update/deactivate)
-   - Created ICloudUserRepository interface and CloudUserRepository
-   - Created CreateCloudUserCommand/Handler with validation
-   - Created UpdateCloudUserCommand/Handler with partial updates
-   - Created DeactivateCloudUserCommand/Handler (soft delete)
-   - Created GetCloudUsersQuery/Handler with pagination
-   - Added admin endpoints: GET/POST/PUT/DELETE /admin/users
-   - Added 29 unit tests for user management
-4. ✅ All tests passing (156 total)
+### Completed This Session (2026-03-27)
+1. ✅ Implemented RSA key signing for CloudApi (S5a):
+   - RSA 2048+ key loaded from `INDYPOS_RSA_SIGNING_KEY` env var
+   - PEM format (base64-encoded), supports PKCS#1 and PKCS#8
+   - Falls back to dev certs when env var not set
+   - Added `scripts/generate-rsa-key.ps1` helper
+2. ✅ Implemented DPAPI secret storage for StoreHub (S5b):
+   - Created `ISecretStorage` abstraction
+   - Created `DpapiSecretStorage` using Windows DPAPI
+   - Created `SecureCloudTokenOptions` wrapper
+   - Secrets stored in `%ProgramData%\IndyPOS\Secrets\`
+   - Updated `CloudTokenService` to use secure options
+3. ✅ Added 10 new tests (166 total passing)
+
+### Previous Session (2026-03-10)
+1. ✅ Implemented capability-based RBAC (S3)
+2. ✅ Added Aspire service discovery for StoreHub → CloudApi
+3. ✅ Implemented CloudApi user management (S4)
 
 ### Previous Session (2026-03-09)
 1. ✅ Created IndyPOS.CloudApi project (F1)
@@ -637,8 +666,8 @@ Upgraded the entire solution from .NET 8 to .NET 10 LTS before starting Epic C.
 13. ✅ Added 8 unit tests (54 total passing)
 
 ### Next Actions
-1. Epic S: S5 (RSA key signing) or S6-S9 (LOW priority)
-2. Epic G: Desktop Integration
+1. Epic S: S6-S9 (LOW priority - key rotation, audit logging, rate limiting)
+2. Epic G: Desktop Integration (make WinForms use StoreHub API)
 
 ---
 
@@ -646,13 +675,13 @@ Upgraded the entire solution from .NET 8 to .NET 10 LTS before starting Epic C.
 
 - **Total Epics:** 9 (added Epic S: Security)
 - **Completed Epics:** 7 (Epic 0, A, B, C, D, E, F)
-- **In Progress Epics:** 1 (Epic S - 4/9 tasks done)
+- **In Progress Epics:** 1 (Epic S - 5/9 tasks done)
 - **Total Tasks:** 53 (41 + 9 security + 3 desktop)
-- **Completed:** 45
+- **Completed:** 46
 - **In Progress:** 0
-- **Not Started:** 8 (Epic S: 5, Epic G: 3)
-- **Overall Progress:** ~85% (Security + Desktop integration remaining)
-- **Total Tests:** 156 (all passing)
+- **Not Started:** 7 (Epic S: 4, Epic G: 3)
+- **Overall Progress:** ~87% (Security polish + Desktop integration remaining)
+- **Total Tests:** 166 (all passing)
 
 ---
 
@@ -694,4 +723,4 @@ Upgraded the entire solution from .NET 8 to .NET 10 LTS before starting Epic C.
 
 ---
 
-**Last Session:** 2026-03-10
+**Last Session:** 2026-03-27
