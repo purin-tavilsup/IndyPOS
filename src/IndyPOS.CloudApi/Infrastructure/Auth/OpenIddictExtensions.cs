@@ -1,4 +1,6 @@
+using System.Security.Cryptography;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using OpenIddict.Abstractions;
 
 namespace IndyPOS.CloudApi.Infrastructure.Auth;
@@ -9,10 +11,29 @@ namespace IndyPOS.CloudApi.Infrastructure.Auth;
 /// </summary>
 public static class OpenIddictExtensions
 {
+    /// <summary>
+    /// Environment variable name for RSA private key (PEM format, base64-encoded).
+    /// </summary>
+    public const string RsaSigningKeyEnvVar = "INDYPOS_RSA_SIGNING_KEY";
+
     public static IServiceCollection AddOpenIddictServer(
         this IServiceCollection services,
         IConfiguration configuration)
     {
+        // Try to load RSA key from environment variable (production)
+        var rsaKeyBase64 = Environment.GetEnvironmentVariable(RsaSigningKeyEnvVar)
+            ?? configuration["OpenIddict:RsaSigningKey"];
+
+        RsaSecurityKey? rsaSecurityKey = null;
+        if (!string.IsNullOrEmpty(rsaKeyBase64))
+        {
+            var rsa = LoadRsaKeyFromBase64(rsaKeyBase64);
+            rsaSecurityKey = new RsaSecurityKey(rsa)
+            {
+                KeyId = GenerateKeyId(rsa)
+            };
+        }
+
         services.AddOpenIddict()
             .AddCore(options =>
             {
@@ -38,10 +59,20 @@ public static class OpenIddictExtensions
                     "master.read"   // Download master data
                 );
 
-                // Development: use ephemeral signing keys (auto-generated)
-                // Production: use AddSigningKey() with RSA key from secrets manager
-                options.AddDevelopmentEncryptionCertificate()
-                       .AddDevelopmentSigningCertificate();
+                // Configure signing and encryption keys
+                if (rsaSecurityKey is not null)
+                {
+                    // Production: use RSA key from environment
+                    options.AddSigningKey(rsaSecurityKey);
+                    options.AddEncryptionKey(rsaSecurityKey);
+                }
+                else
+                {
+                    // Development: use ephemeral signing keys (auto-generated on startup)
+                    // WARNING: Tokens become invalid on app restart
+                    options.AddDevelopmentEncryptionCertificate()
+                           .AddDevelopmentSigningCertificate();
+                }
 
                 // Disable encryption for access tokens (simpler JWTs)
                 options.DisableAccessTokenEncryption();
@@ -58,5 +89,56 @@ public static class OpenIddictExtensions
             });
 
         return services;
+    }
+
+    /// <summary>
+    /// Load RSA key from base64-encoded PEM string.
+    /// Supports both PKCS#8 (BEGIN PRIVATE KEY) and PKCS#1 (BEGIN RSA PRIVATE KEY) formats.
+    /// </summary>
+    private static RSA LoadRsaKeyFromBase64(string base64Key)
+    {
+        // Decode base64 to PEM string
+        var pemBytes = Convert.FromBase64String(base64Key);
+        var pemString = System.Text.Encoding.UTF8.GetString(pemBytes);
+
+        var rsa = RSA.Create();
+
+        // Determine PEM format and import accordingly
+        if (pemString.Contains("BEGIN PRIVATE KEY"))
+        {
+            // PKCS#8 format
+            rsa.ImportFromPem(pemString);
+        }
+        else if (pemString.Contains("BEGIN RSA PRIVATE KEY"))
+        {
+            // PKCS#1 format
+            rsa.ImportFromPem(pemString);
+        }
+        else
+        {
+            throw new InvalidOperationException(
+                $"Invalid RSA key format in {RsaSigningKeyEnvVar}. " +
+                "Expected PEM format (PKCS#1 or PKCS#8), base64-encoded.");
+        }
+
+        // Validate key size (minimum 2048 bits for security)
+        if (rsa.KeySize < 2048)
+        {
+            throw new InvalidOperationException(
+                $"RSA key size must be at least 2048 bits. Current: {rsa.KeySize} bits.");
+        }
+
+        return rsa;
+    }
+
+    /// <summary>
+    /// Generate a stable key ID from RSA public key for key rotation support.
+    /// Uses first 8 chars of SHA256 hash of the public key.
+    /// </summary>
+    private static string GenerateKeyId(RSA rsa)
+    {
+        var publicKeyBytes = rsa.ExportRSAPublicKey();
+        var hash = SHA256.HashData(publicKeyBytes);
+        return Convert.ToHexString(hash)[..8].ToLowerInvariant();
     }
 }

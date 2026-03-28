@@ -1,4 +1,6 @@
+using System.Security.Cryptography;
 using IndyPOS.Application.Abstractions.Pos.Repositories;
+using IndyPOS.Application.Abstractions.Security;
 using IndyPOS.Application.Abstractions.StoreHub.Repositories;
 using IndyPOS.Application.Abstractions.StoreHub.Services;
 using IndyPOS.Application.Common.Interfaces;
@@ -8,9 +10,11 @@ using IndyPOS.Infrastructure.Persistence.Repositories.SQLite;
 using IndyPOS.Infrastructure.Persistence.StoreHub.Repositories;
 using IndyPOS.Infrastructure.Persistence.StoreHub.Seeders;
 using IndyPOS.Infrastructure.Services;
+using IndyPOS.Infrastructure.Services.Security;
 using IndyPOS.Infrastructure.Services.StoreHub;
 using LazyCache;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using Prism.Events;
 using System.Runtime.Versioning;
 
@@ -78,6 +82,20 @@ public static class ConfigureServices
 
 		// Cloud API configuration
 		services.Configure<CloudTokenOptions>(configuration.GetSection(CloudTokenOptions.SectionName));
+
+		// DPAPI secret storage for secure credential storage (S5b)
+		// Stores encrypted secrets in %ProgramData%\IndyPOS\Secrets
+		var secretsDirectory = Path.Combine(
+			Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData),
+			"IndyPOS", "Secrets");
+		services.AddSingleton<ISecretStorage>(sp =>
+			new DpapiSecretStorage(
+				secretsDirectory,
+				sp.GetRequiredService<ILogger<DpapiSecretStorage>>(),
+				DataProtectionScope.LocalMachine)); // LocalMachine allows any user on this PC
+
+		// Secure cloud token options (wraps CloudTokenOptions with DPAPI)
+		services.AddSingleton<SecureCloudTokenOptions>();
 
 		// Cloud sync client - use HTTP client if configured, otherwise stub
 		var cloudApiSection = configuration.GetSection(CloudTokenOptions.SectionName);
