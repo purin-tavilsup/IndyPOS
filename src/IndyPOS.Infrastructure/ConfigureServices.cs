@@ -1,6 +1,7 @@
 using System.Security.Cryptography;
 using IndyPOS.Application.Abstractions.Pos.Repositories;
 using IndyPOS.Application.Abstractions.Security;
+using IndyPOS.Application.Abstractions.StoreHub;
 using IndyPOS.Application.Abstractions.StoreHub.Repositories;
 using IndyPOS.Application.Abstractions.StoreHub.Services;
 using IndyPOS.Application.Common.Interfaces;
@@ -165,6 +166,42 @@ public static class ConfigureServices
 
 		// User migration seeder (for dev migration from SQLite)
 		services.AddScoped<UserMigrationSeeder>();
+
+		return services;
+	}
+
+	/// <summary>
+	/// Registers StoreHub client services for WinForms app.
+	/// Enables WinForms to call StoreHub API instead of direct SQLite access.
+	/// Configure via "StoreHub" section in appsettings.json.
+	/// </summary>
+	public static IServiceCollection AddStoreHubClientServices(this IServiceCollection services, IConfiguration configuration)
+	{
+		// StoreHub options
+		var storeHubOptions = configuration.GetSection(StoreHubOptions.SectionName).Get<StoreHubOptions>()
+			?? new StoreHubOptions();
+
+		services.Configure<StoreHubOptions>(configuration.GetSection(StoreHubOptions.SectionName));
+
+		if (!storeHubOptions.Enabled)
+		{
+			// StoreHub disabled - use legacy SQLite services
+			return services;
+		}
+
+		// Register StoreHub HTTP client
+		services.AddHttpClient<IStoreHubClient, StoreHubHttpClient>(client =>
+		{
+			client.BaseAddress = new Uri(storeHubOptions.BaseUrl);
+			client.Timeout = TimeSpan.FromSeconds(storeHubOptions.TimeoutSeconds);
+		});
+
+		// Product cache service (in-memory)
+		services.AddSingleton<IProductCacheService, ProductCacheService>();
+
+		// Replace legacy SaleService with StoreHub version
+		// Note: This replaces the registration from AddInfrastructureServices
+		services.AddSingleton<ISaleService, StoreHubSaleService>();
 
 		return services;
 	}

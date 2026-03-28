@@ -8,20 +8,23 @@ internal static class InventoryProductExtensions
 {
 	internal static InventoryProductDto ToDto(this InventoryProduct entity)
 	{
-		var dto = new InventoryProductDto(entity.InventoryProductId,
-										  entity.Barcode,
-										  entity.Description,
-										  entity.Manufacturer,
-										  entity.Brand,
-										  entity.Category,
-										  entity.UnitPrice,
-										  entity.QuantityInStock,
-										  entity.GroupPrice,
-										  entity.GroupPriceQuantity,
-										  entity.IsTrackable,
-										  entity.DateCreated,
-										  entity.DateUpdated);
-        return dto;
+		return new InventoryProductDto
+		{
+			InventoryProductId = entity.InventoryProductId,
+			StoreHubProductId = null, // SQLite entities don't have StoreHub IDs
+			Barcode = entity.Barcode,
+			Description = entity.Description,
+			Manufacturer = entity.Manufacturer,
+			Brand = entity.Brand,
+			Category = entity.Category,
+			UnitPrice = entity.UnitPrice,
+			QuantityInStock = entity.QuantityInStock,
+			GroupPrice = entity.GroupPrice,
+			GroupPriceQuantity = entity.GroupPriceQuantity,
+			IsTrackable = entity.IsTrackable,
+			DateCreated = entity.DateCreated,
+			DateUpdated = entity.DateUpdated
+		};
     }
 
 	internal static InventoryProduct ToEntity(this CreateInventoryProductCommand command)

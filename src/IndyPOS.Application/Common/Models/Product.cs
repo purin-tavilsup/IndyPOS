@@ -5,7 +5,15 @@ namespace IndyPOS.Application.Common.Models;
 [ExcludeFromCodeCoverage]
 public class Product
 {
+    /// <summary>
+    /// Legacy SQLite product ID. Used by legacy SaleService.
+    /// </summary>
 	public int InventoryProductId { get; init; }
+
+    /// <summary>
+    /// StoreHub product ID (UUID). Used by StoreHubSaleService.
+    /// </summary>
+    public Guid? StoreHubProductId { get; init; }
 
     public string Barcode { get; init; } = string.Empty;
 
