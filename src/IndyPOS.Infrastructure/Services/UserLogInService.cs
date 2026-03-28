@@ -66,6 +66,8 @@ public class UserLogInService : IUserLogInService
 
 		public int UserId => _user.UserId;
 
+		public Guid? StoreHubUserId => null; // Legacy SQLite users don't have StoreHub IDs
+
 		public string FirstName => _user.FirstName;
 
 		public string LastName => _user.LastName;
