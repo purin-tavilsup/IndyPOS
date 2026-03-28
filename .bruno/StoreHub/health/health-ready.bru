@@ -1,0 +1,36 @@
+meta {
+  name: Health Check (Ready)
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/health/ready
+  body: none
+  auth: none
+}
+
+docs {
+  # Health Check - Ready
+
+  Checks if the service is ready to accept requests.
+
+  **No authentication required.**
+
+  **Response (healthy):**
+  ```json
+  {
+    "status": "healthy",
+    "database": "connected"
+  }
+  ```
+
+  **Response (unhealthy):**
+  - HTTP 503 Service Unavailable
+  - Database connection failed
+
+  **Use cases:**
+  - Kubernetes readiness probe
+  - Load balancer health check
+  - Monitoring
+}
