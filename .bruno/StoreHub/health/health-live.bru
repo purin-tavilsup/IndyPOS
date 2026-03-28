@@ -1,0 +1,26 @@
+meta {
+  name: Health Check (Live)
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{baseUrl}}/health/live
+  body: none
+  auth: none
+}
+
+docs {
+  # Health Check - Live
+
+  Checks if the service is alive (basic liveness).
+
+  **No authentication required.**
+
+  **Response:**
+  - HTTP 200 OK = Service is running
+
+  **Use cases:**
+  - Kubernetes liveness probe
+  - Process monitoring
+}

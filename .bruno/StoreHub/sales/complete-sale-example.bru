@@ -1,0 +1,64 @@
+meta {
+  name: Complete Sale (Example)
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{baseUrl}}/sales/complete
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "userId": "578d0dbb-ccd3-4dd7-9df9-0e7943f83615",
+    "lines": [
+      {
+        "productId": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+        "quantity": 2,
+        "unitPrice": 7.00
+      },
+      {
+        "productId": "b2c3d4e5-f6a7-8901-bcde-f12345678901",
+        "quantity": 1,
+        "unitPrice": 15.00
+      }
+    ],
+    "payments": [
+      {
+        "method": "Cash",
+        "amount": 30.00
+      }
+    ]
+  }
+}
+
+docs {
+  # Complete Sale (Example with multiple items)
+
+  Example sale with 2 different products:
+  - 2x น้ำดื่ม @ 7 baht = 14 baht
+  - 1x โค้ก @ 15 baht = 15 baht
+  - Total: 29 baht
+  - Paid: 30 baht cash (1 baht change)
+
+  **Important:** Update the GUIDs with real values from:
+  - `userId`: from login response
+  - `productId`: from "Get All Products" response
+
+  **Workflow:**
+  1. Login as cashier
+  2. Get products list
+  3. Copy the real IDs
+  4. Update this request
+  5. Execute
+}
