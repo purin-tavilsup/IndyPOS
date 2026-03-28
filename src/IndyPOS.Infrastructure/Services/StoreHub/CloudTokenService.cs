@@ -1,5 +1,6 @@
 using System.Net.Http.Json;
 using System.Text.Json.Serialization;
+using IndyPOS.Application.Abstractions.Security;
 using IndyPOS.Application.Abstractions.StoreHub.Services;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -10,11 +11,12 @@ namespace IndyPOS.Infrastructure.Services.StoreHub;
 /// Service for acquiring and caching OAuth2 tokens for Cloud API communication.
 /// Thread-safe with in-memory caching and automatic refresh before expiry.
 /// BaseAddress is configured via Aspire service discovery in ConfigureServices.
+/// Uses DPAPI for secure client secret storage when available (S5b).
 /// </summary>
 public class CloudTokenService : ITokenService
 {
     private readonly HttpClient _httpClient;
-    private readonly CloudTokenOptions _options;
+    private readonly SecureCloudTokenOptions _secureOptions;
     private readonly ILogger<CloudTokenService> _logger;
     private readonly SemaphoreSlim _semaphore = new(1, 1);
 
@@ -27,11 +29,11 @@ public class CloudTokenService : ITokenService
 
     public CloudTokenService(
         HttpClient httpClient,
-        IOptions<CloudTokenOptions> options,
+        SecureCloudTokenOptions secureOptions,
         ILogger<CloudTokenService> logger)
     {
         _httpClient = httpClient;
-        _options = options.Value;
+        _secureOptions = secureOptions;
         _logger = logger;
         // BaseAddress is configured via DI in ConfigureServices (Aspire service discovery)
     }
@@ -75,12 +77,15 @@ public class CloudTokenService : ITokenService
         {
             _logger.LogDebug("Requesting new access token from Cloud API");
 
+            // Get client secret from secure storage (DPAPI)
+            var clientSecret = await _secureOptions.GetClientSecretAsync();
+
             var content = new FormUrlEncodedContent(new Dictionary<string, string>
             {
                 ["grant_type"] = "client_credentials",
-                ["client_id"] = _options.ClientId,
-                ["client_secret"] = _options.ClientSecret,
-                ["scope"] = _options.Scopes
+                ["client_id"] = _secureOptions.ClientId,
+                ["client_secret"] = clientSecret,
+                ["scope"] = _secureOptions.Scopes
             });
 
             var response = await _httpClient.PostAsync("/oauth/token", content, cancellationToken);

@@ -1,5 +1,6 @@
 using System.Net;
 using System.Text.Json;
+using IndyPOS.Application.Abstractions.Security;
 using IndyPOS.Infrastructure.Services.StoreHub;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -11,17 +12,29 @@ namespace IndyPOS.Application.Tests.StoreHub.Services;
 public class CloudTokenServiceTests
 {
     private readonly CloudTokenOptions _options;
+    private readonly SecureCloudTokenOptions _secureOptions;
     private readonly ILogger<CloudTokenService> _logger;
 
     public CloudTokenServiceTests()
     {
         _options = new CloudTokenOptions
         {
-            BaseUrl = "https://test-api.example.com",
             ClientId = "test_client",
             ClientSecret = "test_secret",
             Scopes = "sync.write master.read"
         };
+
+        // Create a mock secret storage that returns null (falls back to config)
+        var mockSecretStorage = new Mock<ISecretStorage>();
+        mockSecretStorage.Setup(x => x.GetSecretAsync(It.IsAny<string>()))
+            .ReturnsAsync((string?)null);
+        mockSecretStorage.Setup(x => x.ExistsAsync(It.IsAny<string>()))
+            .ReturnsAsync(false);
+
+        _secureOptions = new SecureCloudTokenOptions(
+            Options.Create(_options),
+            mockSecretStorage.Object);
+
         _logger = new Mock<ILogger<CloudTokenService>>().Object;
     }
 
@@ -42,7 +55,7 @@ public class CloudTokenServiceTests
 
         var sut = new CloudTokenService(
             httpClient,
-            Options.Create(_options),
+            _secureOptions,
             _logger);
 
         // Act
@@ -64,7 +77,7 @@ public class CloudTokenServiceTests
 
         var sut = new CloudTokenService(
             httpClient,
-            Options.Create(_options),
+            _secureOptions,
             _logger);
 
         // Act
@@ -83,12 +96,12 @@ public class CloudTokenServiceTests
 
         var httpClient = new HttpClient(handler)
         {
-            BaseAddress = new Uri(_options.BaseUrl)
+            BaseAddress = new Uri("https://test-api.example.com")
         };
 
         var sut = new CloudTokenService(
             httpClient,
-            Options.Create(_options),
+            _secureOptions,
             _logger);
 
         // Act
@@ -106,7 +119,7 @@ public class CloudTokenServiceTests
 
         var sut = new CloudTokenService(
             httpClient,
-            Options.Create(_options),
+            _secureOptions,
             _logger);
 
         // Act - just verify it doesn't throw
@@ -128,7 +141,7 @@ public class CloudTokenServiceTests
 
         return new HttpClient(handler)
         {
-            BaseAddress = new Uri(_options.BaseUrl)
+            BaseAddress = new Uri("https://test-api.example.com")
         };
     }
 
