@@ -1,5 +1,6 @@
 using System.Text.Json;
 using FluentAssertions;
+using IndyPOS.Application.Common.Enums;
 using IndyPOS.Application.UseCases.StoreHub.Auth;
 using IndyPOS.Application.UseCases.StoreHub.Products;
 using IndyPOS.Application.UseCases.StoreHub.Sales;
@@ -163,7 +164,7 @@ public class StoreHubE2ETests : IDisposable
                 Username: "cashier",
                 FirstName: "Test",
                 LastName: "Cashier",
-                RoleId: 3,
+                RoleId: (int)UserRole.Cashier,
                 StoreId: "STORE-001"),
             ErrorMessage: null);
 
