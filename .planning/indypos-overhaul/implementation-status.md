@@ -546,7 +546,7 @@ POST /sync/events → SyncedEvents table → EventProcessor (background)
 ## Epic G: Desktop Integration
 
 **Goal:** Desktop app becomes hub client
-**Status:** 🟡 In Progress (G1 complete)
+**Status:** 🟢 G1 Complete (incl. E2E tests)
 **Target:** Sprint 5
 **Priority:** MEDIUM
 
@@ -554,7 +554,7 @@ POST /sync/events → SyncedEvents table → EventProcessor (background)
 
 | Task | Description | Status | PR | Notes |
 |------|-------------|--------|-----|-------|
-| G1 | Desktop becomes hub client | 🟢 Complete | - | Full StoreHub client integration |
+| G1 | Desktop becomes hub client | 🟢 Complete | - | Full StoreHub client integration + E2E tests |
 | G2 | Prepare for tablet | 🔴 Not Started | - | LAN interface + device auth |
 | G3 | Decommission direct SQLite writes | 🔴 Not Started | - | After hub is stable |
 
@@ -608,8 +608,16 @@ POST /sync/events → SyncedEvents table → EventProcessor (background)
 - `10288f1` feat(desktop): add StoreHub client integration foundation (Epic G1)
 - `73e6e35` feat(desktop): add StoreHub authentication flow (Epic G1e)
 - `473da76` refactor: simplify UserId from int to Guid
+- `b04e026` test(e2e): add development seeder and WireMock integration tests (Epic G1f)
 
-**Deliverable:** Desktop uses hub API; local Postgres is single source of truth
+**E2E Testing (G1f):**
+- `DevelopmentDataSeeder` - Seeds test users and products in dev mode
+- `StoreHubHttpClientTests` - 8 tests with mocked HTTP handler
+- `StoreHubE2ETests` - 5 tests using WireMock for realistic API simulation
+- Tests cover: login, get products, complete sale, health check, logout
+- **Total: 179 tests passing**
+
+**Deliverable:** Desktop uses hub API; local Postgres is single source of truth ✅
 
 ---
 
@@ -692,6 +700,11 @@ Upgraded the entire solution from .NET 8 to .NET 10 LTS before starting Epic C.
    - Updated StoreHub entities (Invoice, CloudInvoice, InvoiceCompletedEvent)
    - Legacy code extracts int from deterministic Guid for SQLite
    - Decision: All new users created in StoreHub with Guid IDs
+5. ✅ Added E2E testing (G1f):
+   - `DevelopmentDataSeeder` for test users/products
+   - `StoreHubHttpClientTests` (8 tests with mocked HTTP)
+   - `StoreHubE2ETests` (5 tests with WireMock)
+   - Total: 179 tests passing
 
 ### Previous Session (2026-03-10)
 1. ✅ Implemented capability-based RBAC (S3)
@@ -735,7 +748,7 @@ Upgraded the entire solution from .NET 8 to .NET 10 LTS before starting Epic C.
 - **In Progress:** 0
 - **Not Started:** 6 (Epic S: 4, Epic G: 2)
 - **Overall Progress:** ~89% (Security polish + Desktop tablet/decommission remaining)
-- **Total Tests:** 166 (all passing)
+- **Total Tests:** 179 (all passing)
 
 ---
 
