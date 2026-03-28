@@ -1,0 +1,32 @@
+meta {
+  name: Get Invoice Detail
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{baseUrl}}/reports/invoices/{{invoiceId}}
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+vars:pre-request {
+  invoiceId: 00000000-0000-0000-0000-000000000001
+}
+
+docs {
+  Get full invoice detail by ID.
+
+  Returns:
+  - Invoice header (ID, storeId, userId, total, createdUtc)
+  - All line items (product, quantity, price, total)
+  - All payments (method, amount, note)
+
+  Returns 404 if invoice not found.
+
+  Required role: StoreManager or SystemAdmin
+}
