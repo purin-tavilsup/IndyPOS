@@ -151,7 +151,7 @@ public partial class UsersPanel : UserControl
 
 		if (_loggedInUser.RoleId == (int) UserRoleEnum.Cashier)
 		{
-			var user = await GetUserByIdAsync(_loggedInUser.UserId);
+			var user = await GetUserByIdAsync(GetLegacyUserId(_loggedInUser.UserId));
 
 			return new List<UserDto> { user };
 		}
@@ -174,6 +174,16 @@ public partial class UsersPanel : UserControl
 	private async Task<UserDto> GetUserByIdAsync(int id)
 	{
 		return await _nokpirab.SendAsync(new GetUserByIdQuery(id));
+	}
+
+	/// <summary>
+	/// Extracts legacy int user ID from the deterministic Guid.
+	/// Legacy users have their int ID stored in the last 4 bytes of the Guid.
+	/// </summary>
+	private static int GetLegacyUserId(Guid userId)
+	{
+		var bytes = userId.ToByteArray();
+		return BitConverter.ToInt32(bytes, 12);
 	}
 
 	private async Task UpdateUserCredential(int userId, string encryptedPassword)
@@ -271,7 +281,7 @@ public partial class UsersPanel : UserControl
 						   ? _userRoleDictionary[_selectedUser.RoleId] 
 						   : "Unknown";
 			
-		var isVisibleToLoggedInUser = userId                   == _loggedInUser.UserId;
+		var isVisibleToLoggedInUser = userId == GetLegacyUserId(_loggedInUser.UserId);
 		var isVisibleToLoggedInUserRole = _loggedInUser.RoleId != (int) UserRoleEnum.Cashier;
 
 		PasswordLabel.Visible = isVisibleToLoggedInUser;

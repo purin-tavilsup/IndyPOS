@@ -374,10 +374,12 @@ public class SaleService : ISaleService
 	{
 		_loggedInUser.ThrowIfNull(() => throw new UserNotLoggedInException("User has not logged in."));
 
-		var loggedInUserId = _loggedInUser.UserId;
+		// Extract legacy int userId from the deterministic Guid (stored in last 4 bytes)
+		var userIdBytes = _loggedInUser.UserId.ToByteArray();
+		var legacyUserId = BitConverter.ToInt32(userIdBytes, 12);
 		var invoiceTotal = CalculateInvoiceTotal();
 
-		var invoiceId = await AddInvoiceToDatabaseAsync(invoiceTotal, loggedInUserId);
+		var invoiceId = await AddInvoiceToDatabaseAsync(invoiceTotal, legacyUserId);
 
 		var invoiceInfo = CreateInvoiceInfo(invoiceId, invoiceTotal);
 

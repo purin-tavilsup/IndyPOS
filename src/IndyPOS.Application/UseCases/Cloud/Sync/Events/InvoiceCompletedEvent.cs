@@ -19,7 +19,7 @@ public record InvoiceCompletedEvent
     public string? TerminalId { get; init; }
 
     // Invoice header
-    public long UserId { get; init; }
+    public Guid UserId { get; init; }
     public decimal TotalAmount { get; init; }
     public DateTime CreatedAtUtc { get; init; }
 

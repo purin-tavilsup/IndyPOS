@@ -4,7 +4,7 @@ namespace IndyPOS.Application.UseCases.StoreHub.Sales;
 /// Request to complete a sale in StoreHub.
 /// </summary>
 public record CompleteSaleRequest(
-    long UserId,
+    Guid UserId,
     IReadOnlyList<SaleLineRequest> Lines,
     IReadOnlyList<SalePaymentRequest> Payments);
 

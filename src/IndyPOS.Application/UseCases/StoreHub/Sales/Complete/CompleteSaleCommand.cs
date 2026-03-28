@@ -7,6 +7,6 @@ namespace IndyPOS.Application.UseCases.StoreHub.Sales.Complete;
 /// </summary>
 public record CompleteSaleCommand(
     string StoreId,
-    long UserId,
+    Guid UserId,
     IReadOnlyList<SaleLineRequest> Lines,
     IReadOnlyList<SalePaymentRequest> Payments) : ICommand<CompleteSaleResponse>;

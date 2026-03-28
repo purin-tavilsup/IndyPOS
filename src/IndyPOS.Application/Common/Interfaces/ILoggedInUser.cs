@@ -3,14 +3,9 @@
 public interface ILoggedInUser
 {
 	/// <summary>
-	/// Legacy SQLite user ID.
+	/// User ID (UUID from StoreHub).
 	/// </summary>
-	int UserId { get; }
-
-	/// <summary>
-	/// StoreHub user ID (UUID). Null for legacy SQLite users.
-	/// </summary>
-	Guid? StoreHubUserId { get; }
+	Guid UserId { get; }
 
 	string FirstName { get; }
 
