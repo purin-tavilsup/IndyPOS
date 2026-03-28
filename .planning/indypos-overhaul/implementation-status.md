@@ -3,7 +3,7 @@
 **Last Updated:** 2026-03-27
 **Last Session:** 2026-03-27
 **Current Sprint:** Sprint 5
-**Current Epic:** Epic S (Security) - IN PROGRESS 🟡 (S5 Complete)
+**Current Epic:** Epic G (Desktop Integration) - IN PROGRESS 🟡 (G1 Complete)
 **Docs Version:** v1.4.0 (with .NET Aspire support)
 
 ---
@@ -577,7 +577,12 @@ POST /sync/events → SyncedEvents table → EventProcessor (background)
 - `Product.StoreHubProductId` - UUID for StoreHub products
 - `InventoryProductDto.StoreHubProductId` - Bridge for compatibility
 - `IInvoiceInfo.StoreHubInvoiceId` - UUID for StoreHub invoices
-- `ILoggedInUser.StoreHubUserId` - UUID for StoreHub users
+
+**UserId Simplification (2026-03-27):**
+- Changed `ILoggedInUser.UserId` from `int` to `Guid` (removed `StoreHubUserId`)
+- Updated StoreHub entities to use `Guid UserId` (Invoice, CloudInvoice, InvoiceCompletedEvent)
+- Legacy WinForms extracts int from deterministic Guid for SQLite compatibility
+- All new users will be created in StoreHub with Guid IDs
 
 **Configuration (appsettings.json):**
 ```json
@@ -602,6 +607,7 @@ POST /sync/events → SyncedEvents table → EventProcessor (background)
 **Commits:**
 - `10288f1` feat(desktop): add StoreHub client integration foundation (Epic G1)
 - `73e6e35` feat(desktop): add StoreHub authentication flow (Epic G1e)
+- `473da76` refactor: simplify UserId from int to Guid
 
 **Deliverable:** Desktop uses hub API; local Postgres is single source of truth
 
@@ -668,7 +674,7 @@ Upgraded the entire solution from .NET 8 to .NET 10 LTS before starting Epic C.
 ## Current Focus
 
 **Now:** Epic G (Desktop Integration) in progress - G1 complete 🟡
-**Next:** G2 (tablet prep) or G3 (decommission SQLite)
+**Next:** G1f (end-to-end testing), then G2 (tablet prep) or G3 (decommission SQLite)
 
 ### Completed This Session (2026-03-27)
 1. ✅ Implemented RSA key signing for CloudApi (S5a)
@@ -680,6 +686,12 @@ Upgraded the entire solution from .NET 8 to .NET 10 LTS before starting Epic C.
    - Created `StoreHubUserLogInService` (replaces legacy UserLogInService)
    - Added `StoreHubOptions` for config-based mode switching
    - Extended models with StoreHub IDs (Product, Invoice, User)
+4. ✅ Simplified UserId from int to Guid:
+   - `ILoggedInUser.UserId` changed from int to Guid
+   - Removed `StoreHubUserId` property (merged into `UserId`)
+   - Updated StoreHub entities (Invoice, CloudInvoice, InvoiceCompletedEvent)
+   - Legacy code extracts int from deterministic Guid for SQLite
+   - Decision: All new users created in StoreHub with Guid IDs
 
 ### Previous Session (2026-03-10)
 1. ✅ Implemented capability-based RBAC (S3)
