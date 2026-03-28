@@ -682,9 +682,30 @@ Upgraded the entire solution from .NET 8 to .NET 10 LTS before starting Epic C.
 ## Current Focus
 
 **Now:** Epic G (Desktop Integration) in progress - G1 complete 🟡
-**Next:** G1f (end-to-end testing), then G2 (tablet prep) or G3 (decommission SQLite)
+**Next:** G2 (tablet prep) or G3 (decommission SQLite)
 
 ### Completed This Session (2026-03-27)
+1. ✅ Implemented Report API for StoreHub dashboard:
+   - Created clean DTOs: `SalesSummaryDto`, `PaymentBreakdownDto`, `TopProductDto`, `InvoiceSummaryDto`, `InvoiceDetailDto`, `PayLaterSummaryDto`, `ProductSalesDto`, `PagedResult<T>`
+   - Created CQRS queries with DateOnly parameters (not legacy TimePeriod enum)
+   - Implemented 5 query handlers in Infrastructure layer (EF Core)
+   - Added `Capability.ReportsView` for StoreManager and SystemAdmin
+   - Added `CanViewReports` authorization policy
+   - Created 5 report endpoints in StoreHub
+   - Added Bruno API collection for reports (5 `.bru` files)
+   - Added 13 unit tests with EF Core InMemory
+   - **Total: 192 tests passing**
+
+### Report API Endpoints
+| Endpoint | Description |
+|----------|-------------|
+| `GET /reports/sales-summary` | Sales aggregation with payment breakdown |
+| `GET /reports/invoices` | Paginated invoice list |
+| `GET /reports/invoices/{id}` | Invoice detail with lines & payments |
+| `GET /reports/pay-later` | Accounts receivable by customer |
+| `GET /reports/product-sales` | Product sales by date range |
+
+### Previous Session (2026-03-27)
 1. ✅ Implemented RSA key signing for CloudApi (S5a)
 2. ✅ Implemented DPAPI secret storage for StoreHub (S5b)
 3. ✅ Implemented StoreHub client integration (G1):
@@ -748,7 +769,7 @@ Upgraded the entire solution from .NET 8 to .NET 10 LTS before starting Epic C.
 - **In Progress:** 0
 - **Not Started:** 6 (Epic S: 4, Epic G: 2)
 - **Overall Progress:** ~89% (Security polish + Desktop tablet/decommission remaining)
-- **Total Tests:** 179 (all passing)
+- **Total Tests:** 192 (all passing)
 
 ---
 

@@ -6,8 +6,15 @@ using IndyPOS.Application.UseCases.StoreHub.Auth;
 using IndyPOS.Application.UseCases.StoreHub.Auth.Login;
 using IndyPOS.Application.UseCases.StoreHub.Products;
 using IndyPOS.Application.UseCases.StoreHub.Products.Get;
+using IndyPOS.Application.UseCases.StoreHub.Reports;
+using IndyPOS.Application.UseCases.StoreHub.Reports.GetInvoiceDetail;
+using IndyPOS.Application.UseCases.StoreHub.Reports.GetInvoices;
+using IndyPOS.Application.UseCases.StoreHub.Reports.GetPayLaterReport;
+using IndyPOS.Application.UseCases.StoreHub.Reports.GetProductSales;
+using IndyPOS.Application.UseCases.StoreHub.Reports.GetSalesSummary;
 using IndyPOS.Application.UseCases.StoreHub.Sales;
 using IndyPOS.Application.UseCases.StoreHub.Sales.Complete;
+using IndyPOS.Infrastructure.QueryHandlers.Reports;
 using IndyPOS.Infrastructure.Persistence.StoreHub;
 using IndyPOS.Infrastructure.Services.StoreHub;
 using IndyPOS.ServiceDefaults;
@@ -40,6 +47,13 @@ builder.Services.AddStoreHubAuthServices(builder.Configuration);
 builder.Services.AddTransient<IQueryHandler<GetProductsQuery, IReadOnlyList<ProductDto>>, GetProductsQueryHandler>();
 builder.Services.AddTransient<ICommandHandler<CompleteSaleCommand, CompleteSaleResponse>, CompleteSaleCommandHandler>();
 builder.Services.AddTransient<ICommandHandler<LoginCommand, LoginResponse>, LoginCommandHandler>();
+
+// Register Report query handlers (in Infrastructure layer)
+builder.Services.AddTransient<IQueryHandler<GetSalesSummaryQuery, SalesSummaryDto>, GetSalesSummaryQueryHandler>();
+builder.Services.AddTransient<IQueryHandler<GetInvoicesQuery, PagedResult<InvoiceSummaryDto>>, GetInvoicesQueryHandler>();
+builder.Services.AddTransient<IQueryHandler<GetInvoiceDetailQuery, InvoiceDetailDto?>, GetInvoiceDetailQueryHandler>();
+builder.Services.AddTransient<IQueryHandler<GetPayLaterReportQuery, PayLaterReportDto>, GetPayLaterReportQueryHandler>();
+builder.Services.AddTransient<IQueryHandler<GetProductSalesQuery, PagedResult<ProductSalesDto>>, GetProductSalesQueryHandler>();
 
 // Add JWT authentication
 var tokenOptions = builder.Configuration.GetSection(LocalTokenOptions.SectionName).Get<LocalTokenOptions>()
@@ -75,7 +89,10 @@ builder.Services.AddAuthorizationBuilder()
               .AddRequirements(new CapabilityRequirement(Capability.SalesComplete)))
     .AddPolicy("CanViewSyncStatus", policy =>
         policy.RequireAuthenticatedUser()
-              .AddRequirements(new CapabilityRequirement(Capability.SyncViewStatus)));
+              .AddRequirements(new CapabilityRequirement(Capability.SyncViewStatus)))
+    .AddPolicy("CanViewReports", policy =>
+        policy.RequireAuthenticatedUser()
+              .AddRequirements(new CapabilityRequirement(Capability.ReportsView)));
 
 // Add OpenAPI
 builder.Services.AddOpenApi();
@@ -201,5 +218,97 @@ app.MapGet("/sync/status", async (
         timestamp = DateTime.UtcNow
     });
 }).RequireAuthorization("CanViewSyncStatus");
+
+// ========================
+// Report endpoints
+// ========================
+
+// Sales summary (daily/weekly/monthly dashboard)
+app.MapGet("/reports/sales-summary", async (
+    IQueryHandler<GetSalesSummaryQuery, SalesSummaryDto> handler,
+    DateOnly fromDate,
+    DateOnly toDate,
+    int? topProductsCount,
+    CancellationToken cancellationToken) =>
+{
+    var query = new GetSalesSummaryQuery(
+        FromDate: fromDate,
+        ToDate: toDate,
+        TopProductsCount: topProductsCount ?? 10);
+
+    var result = await handler.HandleAsync(query, cancellationToken);
+    return Results.Ok(result);
+}).RequireAuthorization("CanViewReports");
+
+// Invoice list (paginated)
+app.MapGet("/reports/invoices", async (
+    IQueryHandler<GetInvoicesQuery, PagedResult<InvoiceSummaryDto>> handler,
+    DateOnly fromDate,
+    DateOnly toDate,
+    int? page,
+    int? pageSize,
+    CancellationToken cancellationToken) =>
+{
+    var query = new GetInvoicesQuery(
+        FromDate: fromDate,
+        ToDate: toDate,
+        Page: page ?? 1,
+        PageSize: pageSize ?? 50);
+
+    var result = await handler.HandleAsync(query, cancellationToken);
+    return Results.Ok(result);
+}).RequireAuthorization("CanViewReports");
+
+// Invoice detail
+app.MapGet("/reports/invoices/{invoiceId:guid}", async (
+    IQueryHandler<GetInvoiceDetailQuery, InvoiceDetailDto?> handler,
+    Guid invoiceId,
+    CancellationToken cancellationToken) =>
+{
+    var query = new GetInvoiceDetailQuery(invoiceId);
+    var result = await handler.HandleAsync(query, cancellationToken);
+
+    return result is null
+        ? Results.NotFound()
+        : Results.Ok(result);
+}).RequireAuthorization("CanViewReports");
+
+// PayLater (accounts receivable) report
+app.MapGet("/reports/pay-later", async (
+    IQueryHandler<GetPayLaterReportQuery, PayLaterReportDto> handler,
+    bool? includeCompleted,
+    int? page,
+    int? pageSize,
+    CancellationToken cancellationToken) =>
+{
+    var query = new GetPayLaterReportQuery(
+        IncludeCompleted: includeCompleted ?? false,
+        Page: page ?? 1,
+        PageSize: pageSize ?? 50);
+
+    var result = await handler.HandleAsync(query, cancellationToken);
+    return Results.Ok(result);
+}).RequireAuthorization("CanViewReports");
+
+// Product sales report
+app.MapGet("/reports/product-sales", async (
+    IQueryHandler<GetProductSalesQuery, PagedResult<ProductSalesDto>> handler,
+    DateOnly fromDate,
+    DateOnly toDate,
+    string? category,
+    int? page,
+    int? pageSize,
+    CancellationToken cancellationToken) =>
+{
+    var query = new GetProductSalesQuery(
+        FromDate: fromDate,
+        ToDate: toDate,
+        Category: category,
+        Page: page ?? 1,
+        PageSize: pageSize ?? 50);
+
+    var result = await handler.HandleAsync(query, cancellationToken);
+    return Results.Ok(result);
+}).RequireAuthorization("CanViewReports");
 
 app.Run();
