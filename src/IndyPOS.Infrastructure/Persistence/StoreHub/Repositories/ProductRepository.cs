@@ -82,4 +82,10 @@ public class ProductRepository : IProductRepository
             .AsNoTracking()
             .FirstOrDefaultAsync(p => p.Barcode == barcode, cancellationToken);
     }
+
+    public async Task AddAsync(Product product, CancellationToken cancellationToken = default)
+    {
+        _dbContext.Products.Add(product);
+        await _dbContext.SaveChangesAsync(cancellationToken);
+    }
 }

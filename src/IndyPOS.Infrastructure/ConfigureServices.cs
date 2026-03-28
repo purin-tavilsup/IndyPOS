@@ -167,6 +167,9 @@ public static class ConfigureServices
 		// User migration seeder (for dev migration from SQLite)
 		services.AddScoped<UserMigrationSeeder>();
 
+		// Development data seeder (test users and products)
+		services.AddScoped<DevelopmentDataSeeder>();
+
 		return services;
 	}
 

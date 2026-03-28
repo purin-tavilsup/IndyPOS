@@ -82,10 +82,11 @@ builder.Services.AddOpenApi();
 
 var app = builder.Build();
 
-// Auto-create database schema in development
+// Auto-create database schema and seed dev data
 if (app.Environment.IsDevelopment())
 {
     await app.EnsureStoreHubDatabaseCreatedAsync();
+    await app.SeedDevelopmentDataAsync();
 }
 
 // Map default endpoints (health, alive)
