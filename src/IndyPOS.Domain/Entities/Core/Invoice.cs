@@ -8,7 +8,7 @@ public class Invoice
 {
     public Guid Id { get; set; }
     public string StoreId { get; set; } = default!;
-    public long UserId { get; set; }
+    public Guid UserId { get; set; }
     public decimal TotalAmount { get; set; }
     public DateTime CreatedUtc { get; set; }
     public DateTime LastModifiedUtc { get; set; }

@@ -8,7 +8,7 @@ public class CloudInvoice
 {
     public Guid Id { get; set; }
     public string StoreId { get; set; } = string.Empty;
-    public long UserId { get; set; }
+    public Guid UserId { get; set; }
     public decimal TotalAmount { get; set; }
     public DateTime CreatedAtUtc { get; set; }
     public DateTime SyncedAtUtc { get; set; }

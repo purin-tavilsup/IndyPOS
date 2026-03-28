@@ -110,11 +110,7 @@ public class StoreHubUserLogInService : IUserLogInService
             _user = user;
         }
 
-        // StoreHub uses Guid, but legacy code expects int UserId
-        // Use a hash or 0 for compatibility
-        public int UserId => 0;
-
-        public Guid? StoreHubUserId => _user.Id;
+        public Guid UserId => _user.Id;
 
         public string FirstName => _user.FirstName;
 

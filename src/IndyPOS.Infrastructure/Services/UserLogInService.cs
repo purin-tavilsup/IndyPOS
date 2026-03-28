@@ -64,9 +64,8 @@ public class UserLogInService : IUserLogInService
 			_user = user;
 		}
 
-		public int UserId => _user.UserId;
-
-		public Guid? StoreHubUserId => null; // Legacy SQLite users don't have StoreHub IDs
+		// Legacy users get a deterministic GUID from their int ID
+		public Guid UserId => new Guid(0, 0, 0, BitConverter.GetBytes(_user.UserId));
 
 		public string FirstName => _user.FirstName;
 

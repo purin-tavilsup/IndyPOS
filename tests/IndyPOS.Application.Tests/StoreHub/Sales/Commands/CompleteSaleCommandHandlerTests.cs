@@ -50,7 +50,7 @@ public class CompleteSaleCommandHandlerTests
 
         var command = new CompleteSaleCommand(
             StoreId: "STORE-001",
-            UserId: 1,
+            UserId: Guid.NewGuid(),
             Lines: new List<SaleLineRequest>
             {
                 new(ProductId: productId, Quantity: 2, UnitPrice: 100m)
@@ -102,7 +102,7 @@ public class CompleteSaleCommandHandlerTests
 
         var command = new CompleteSaleCommand(
             StoreId: "STORE-001",
-            UserId: 1,
+            UserId: Guid.NewGuid(),
             Lines: new List<SaleLineRequest>
             {
                 new(ProductId: product1Id, Quantity: 3, UnitPrice: 50m),
@@ -154,7 +154,7 @@ public class CompleteSaleCommandHandlerTests
 
         var command = new CompleteSaleCommand(
             StoreId: "STORE-001",
-            UserId: 1,
+            UserId: Guid.NewGuid(),
             Lines: new List<SaleLineRequest>
             {
                 new(ProductId: productId, Quantity: 1, UnitPrice: 100m)
@@ -213,7 +213,7 @@ public class CompleteSaleCommandHandlerTests
 
         var command = new CompleteSaleCommand(
             StoreId: "STORE-001",
-            UserId: 1,
+            UserId: Guid.NewGuid(),
             Lines: new List<SaleLineRequest>
             {
                 new(ProductId: productId, Quantity: 1, UnitPrice: 100m)
