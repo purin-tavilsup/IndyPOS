@@ -1,5 +1,6 @@
 using IndyPOS.Application.Abstractions.StoreHub.Repositories;
 using IndyPOS.Application.Abstractions.StoreHub.Services;
+using IndyPOS.Application.Common.Enums;
 using IndyPOS.Application.Common.Interfaces;
 using IndyPOS.Domain.Entities.Core;
 using Microsoft.Extensions.Logging;
@@ -50,11 +51,12 @@ public class DevelopmentDataSeeder
     private async Task SeedUsersAsync(CancellationToken cancellationToken)
     {
         var storeId = _storeIdentity.StoreId;
+        // RoleIds must match UserRole enum: Cashier=1, StoreManager=2, SystemAdmin=3
         var testUsers = new[]
         {
-            new { Username = "admin", Password = "admin123", FirstName = "Admin", LastName = "User", RoleId = 1 },
-            new { Username = "manager", Password = "manager123", FirstName = "Store", LastName = "Manager", RoleId = 2 },
-            new { Username = "cashier", Password = "cashier123", FirstName = "Test", LastName = "Cashier", RoleId = 3 }
+            new { Username = "admin", Password = "admin123", FirstName = "Admin", LastName = "User", RoleId = (int)UserRole.SystemAdmin },
+            new { Username = "manager", Password = "manager123", FirstName = "Store", LastName = "Manager", RoleId = (int)UserRole.StoreManager },
+            new { Username = "cashier", Password = "cashier123", FirstName = "Test", LastName = "Cashier", RoleId = (int)UserRole.Cashier }
         };
 
         foreach (var testUser in testUsers)
