@@ -546,7 +546,7 @@ POST /sync/events → SyncedEvents table → EventProcessor (background)
 ## Epic G: Desktop Integration
 
 **Goal:** Desktop app becomes hub client
-**Status:** 🔴 Not Started
+**Status:** 🟡 In Progress (G1 complete)
 **Target:** Sprint 5
 **Priority:** MEDIUM
 
@@ -554,9 +554,54 @@ POST /sync/events → SyncedEvents table → EventProcessor (background)
 
 | Task | Description | Status | PR | Notes |
 |------|-------------|--------|-----|-------|
-| G1 | Desktop becomes hub client | 🔴 Not Started | - | Call localhost hub endpoints |
+| G1 | Desktop becomes hub client | 🟢 Complete | - | Full StoreHub client integration |
 | G2 | Prepare for tablet | 🔴 Not Started | - | LAN interface + device auth |
 | G3 | Decommission direct SQLite writes | 🔴 Not Started | - | After hub is stable |
+
+### G1: Desktop Hub Client Details (2026-03-27)
+
+**Architecture:** WinForms → StoreHub API → PostgreSQL (Option 2: Full migration with local cache)
+
+**New Abstractions:**
+- `IStoreHubClient` - HTTP client for StoreHub API
+- `IProductCacheService` - Local product cache with sync/clear
+
+**New Implementations:**
+- `StoreHubHttpClient` - HTTP client with JWT auth
+- `ProductCacheService` - In-memory cache with barcode lookup
+- `StoreHubSaleService` - ISaleService using StoreHub API
+- `StoreHubUserLogInService` - IUserLogInService using StoreHub auth
+- `StoreHubOptions` - Configuration for StoreHub mode
+
+**Model Extensions:**
+- `Product.StoreHubProductId` - UUID for StoreHub products
+- `InventoryProductDto.StoreHubProductId` - Bridge for compatibility
+- `IInvoiceInfo.StoreHubInvoiceId` - UUID for StoreHub invoices
+- `ILoggedInUser.StoreHubUserId` - UUID for StoreHub users
+
+**Configuration (appsettings.json):**
+```json
+{
+  "StoreHub": {
+    "Enabled": true,
+    "BaseUrl": "http://localhost:5000",
+    "AutoSyncProductsOnStartup": true,
+    "TimeoutSeconds": 30
+  }
+}
+```
+
+**Flow:**
+1. User launches WinForms app
+2. Login form calls `IUserLogInService.LogInAsync()`
+3. `StoreHubUserLogInService` calls StoreHub `/auth/login`
+4. On success, JWT token cached in `IStoreHubClient`
+5. Products auto-synced to `IProductCacheService`
+6. Sales call `StoreHubSaleService.CompleteSaleAsync()` → StoreHub API
+
+**Commits:**
+- `10288f1` feat(desktop): add StoreHub client integration foundation (Epic G1)
+- `73e6e35` feat(desktop): add StoreHub authentication flow (Epic G1e)
 
 **Deliverable:** Desktop uses hub API; local Postgres is single source of truth
 
@@ -622,22 +667,19 @@ Upgraded the entire solution from .NET 8 to .NET 10 LTS before starting Epic C.
 
 ## Current Focus
 
-**Now:** Epic S (Security) in progress - S1-S5 complete 🟡
-**Next:** S6-S9 (LOW priority) or Epic G (Desktop Integration)
+**Now:** Epic G (Desktop Integration) in progress - G1 complete 🟡
+**Next:** G2 (tablet prep) or G3 (decommission SQLite)
 
 ### Completed This Session (2026-03-27)
-1. ✅ Implemented RSA key signing for CloudApi (S5a):
-   - RSA 2048+ key loaded from `INDYPOS_RSA_SIGNING_KEY` env var
-   - PEM format (base64-encoded), supports PKCS#1 and PKCS#8
-   - Falls back to dev certs when env var not set
-   - Added `scripts/generate-rsa-key.ps1` helper
-2. ✅ Implemented DPAPI secret storage for StoreHub (S5b):
-   - Created `ISecretStorage` abstraction
-   - Created `DpapiSecretStorage` using Windows DPAPI
-   - Created `SecureCloudTokenOptions` wrapper
-   - Secrets stored in `%ProgramData%\IndyPOS\Secrets\`
-   - Updated `CloudTokenService` to use secure options
-3. ✅ Added 10 new tests (166 total passing)
+1. ✅ Implemented RSA key signing for CloudApi (S5a)
+2. ✅ Implemented DPAPI secret storage for StoreHub (S5b)
+3. ✅ Implemented StoreHub client integration (G1):
+   - Created `IStoreHubClient` + `StoreHubHttpClient`
+   - Created `IProductCacheService` + `ProductCacheService`
+   - Created `StoreHubSaleService` (replaces legacy SaleService)
+   - Created `StoreHubUserLogInService` (replaces legacy UserLogInService)
+   - Added `StoreHubOptions` for config-based mode switching
+   - Extended models with StoreHub IDs (Product, Invoice, User)
 
 ### Previous Session (2026-03-10)
 1. ✅ Implemented capability-based RBAC (S3)
@@ -675,12 +717,12 @@ Upgraded the entire solution from .NET 8 to .NET 10 LTS before starting Epic C.
 
 - **Total Epics:** 9 (added Epic S: Security)
 - **Completed Epics:** 7 (Epic 0, A, B, C, D, E, F)
-- **In Progress Epics:** 1 (Epic S - 5/9 tasks done)
+- **In Progress Epics:** 2 (Epic S - 5/9, Epic G - 1/3)
 - **Total Tasks:** 53 (41 + 9 security + 3 desktop)
-- **Completed:** 46
+- **Completed:** 47
 - **In Progress:** 0
-- **Not Started:** 7 (Epic S: 4, Epic G: 3)
-- **Overall Progress:** ~87% (Security polish + Desktop integration remaining)
+- **Not Started:** 6 (Epic S: 4, Epic G: 2)
+- **Overall Progress:** ~89% (Security polish + Desktop tablet/decommission remaining)
 - **Total Tests:** 166 (all passing)
 
 ---
