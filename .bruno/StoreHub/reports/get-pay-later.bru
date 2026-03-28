@@ -1,0 +1,33 @@
+meta {
+  name: Get PayLater Report
+  type: http
+  seq: 4
+}
+
+get {
+  url: {{baseUrl}}/reports/pay-later?includeCompleted=false&page=1&pageSize=20
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+docs {
+  Get PayLater (accounts receivable) report.
+
+  Returns:
+  - Total outstanding balance
+  - Total paid amount
+  - Active customer count
+  - Completed transaction count
+  - Paginated customer list with balances
+
+  Query params:
+  - includeCompleted: Include fully paid records (default: false)
+  - page: Page number (default: 1)
+  - pageSize: Items per page (default: 50)
+
+  Required role: StoreManager or SystemAdmin
+}

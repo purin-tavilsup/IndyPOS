@@ -1,0 +1,32 @@
+meta {
+  name: Get Sales Summary
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/reports/sales-summary?fromDate={{fromDate}}&toDate={{toDate}}&topProductsCount=10
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+vars:pre-request {
+  fromDate: 2024-01-01
+  toDate: 2024-12-31
+}
+
+docs {
+  Get sales summary for a date range.
+
+  Returns:
+  - Invoice count
+  - Total revenue
+  - Payment breakdown (cash, card, transfer, etc.)
+  - Top products by revenue
+
+  Required role: StoreManager or SystemAdmin
+}

@@ -23,4 +23,7 @@ public static class Capability
     public const string UsersCreate = "users.create";
     public const string UsersUpdate = "users.update";
     public const string UsersDeactivate = "users.deactivate";
+
+    // Report operations
+    public const string ReportsView = "reports.view";
 }

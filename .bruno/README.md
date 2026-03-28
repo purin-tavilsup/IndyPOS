@@ -29,6 +29,12 @@ API collection for testing IndyPOS StoreHub API using [Bruno](https://www.usebru
 │   │   └── complete-sale-example.bru
 │   ├── sync/
 │   │   └── get-sync-status.bru
+│   ├── reports/
+│   │   ├── get-sales-summary.bru
+│   │   ├── get-invoices.bru
+│   │   ├── get-invoice-detail.bru
+│   │   ├── get-pay-later.bru
+│   │   └── get-product-sales.bru
 │   └── health/
 │       ├── health-ready.bru
 │       └── health-live.bru
@@ -54,8 +60,8 @@ API collection for testing IndyPOS StoreHub API using [Bruno](https://www.usebru
 | Username | Password    | Role     | Capabilities |
 |----------|-------------|----------|--------------|
 | cashier  | cashier123  | Cashier  | products, sales |
-| manager  | manager123  | Manager  | + sync status |
-| admin    | admin123    | Admin    | + all admin ops |
+| manager  | manager123  | Manager  | + sync status, reports |
+| admin    | admin123    | Admin    | + all admin ops, reports |
 
 ## Environment Variables
 

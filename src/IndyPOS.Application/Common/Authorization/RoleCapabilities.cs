@@ -23,6 +23,7 @@ public static class RoleCapabilities
             Capability.ProductsRead,
             Capability.SalesComplete,
             Capability.SyncViewStatus,
+            Capability.ReportsView,
         ],
 
         [UserRole.SystemAdmin] =
@@ -35,6 +36,7 @@ public static class RoleCapabilities
             Capability.UsersCreate,
             Capability.UsersUpdate,
             Capability.UsersDeactivate,
+            Capability.ReportsView,
         ]
     };
 
