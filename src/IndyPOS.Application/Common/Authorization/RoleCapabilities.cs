@@ -21,6 +21,8 @@ public static class RoleCapabilities
         [UserRole.StoreManager] =
         [
             Capability.ProductsRead,
+            Capability.ProductsManage,
+            Capability.InventoryAdjust,
             Capability.SalesComplete,
             Capability.SyncViewStatus,
             Capability.ReportsView,
@@ -29,6 +31,8 @@ public static class RoleCapabilities
         [UserRole.SystemAdmin] =
         [
             Capability.ProductsRead,
+            Capability.ProductsManage,
+            Capability.InventoryAdjust,
             Capability.SalesComplete,
             Capability.SyncViewStatus,
             Capability.AdminStoresRegister,

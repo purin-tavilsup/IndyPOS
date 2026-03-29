@@ -20,6 +20,8 @@ public class StoreIdentityService : IStoreIdentityService
 
     public string StoreName => _options.Name ?? "Default Store";
 
+    public int StoreCode => _options.Code;
+
     public void EnsureConfigured()
     {
         if (string.IsNullOrWhiteSpace(_options.Id))

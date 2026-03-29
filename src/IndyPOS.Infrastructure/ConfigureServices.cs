@@ -76,7 +76,9 @@ public static class ConfigureServices
 		// StoreHub repositories (Scoped for EF Core DbContext)
 		services.AddScoped<IProductRepository, ProductRepository>()
 		        .AddScoped<ISaleRepository, SaleRepository>()
-		        .AddScoped<IOutboxRepository, OutboxRepository>();
+		        .AddScoped<IOutboxRepository, OutboxRepository>()
+		        .AddScoped<IInventoryMovementRepository, InventoryMovementRepository>()
+		        .AddScoped<IStoreSettingRepository, StoreSettingRepository>();
 
 		// SyncWorker configuration
 		services.Configure<SyncWorkerOptions>(configuration.GetSection(SyncWorkerOptions.SectionName));

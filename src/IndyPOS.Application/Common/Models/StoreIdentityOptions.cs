@@ -23,4 +23,10 @@ public class StoreIdentityOptions
     /// Path to the store configuration JSON file.
     /// </summary>
     public string? ConfigPath { get; set; }
+
+    /// <summary>
+    /// Numeric code for barcode prefix (e.g., 1, 2, 3).
+    /// Used in barcode generation: {Code}{Sequence:D8}
+    /// </summary>
+    public int Code { get; set; } = 1;
 }
