@@ -1,5 +1,8 @@
 using IndyPOS.Application.UseCases.StoreHub.Auth;
 using IndyPOS.Application.UseCases.StoreHub.Products;
+using IndyPOS.Application.UseCases.StoreHub.Products.AdjustQuantity;
+using IndyPOS.Application.UseCases.StoreHub.Products.Create;
+using IndyPOS.Application.UseCases.StoreHub.Products.Update;
 using IndyPOS.Application.UseCases.StoreHub.Sales;
 
 namespace IndyPOS.Application.Abstractions.StoreHub;
@@ -24,6 +27,43 @@ public interface IStoreHubClient
         string? category = null,
         string? searchTerm = null,
         CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Create a new product in StoreHub.
+    /// Requires authentication and ProductsManage capability.
+    /// </summary>
+    Task<ProductDto> CreateProductAsync(
+        CreateProductCommand command,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Update an existing product in StoreHub.
+    /// Requires authentication and ProductsManage capability.
+    /// </summary>
+    Task<ProductDto> UpdateProductAsync(
+        UpdateProductCommand command,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Soft delete a product in StoreHub (sets IsActive = false).
+    /// Requires authentication and ProductsManage capability.
+    /// </summary>
+    Task DeleteProductAsync(Guid productId, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Adjust product quantity via inventory movement.
+    /// Requires authentication and InventoryAdjust capability.
+    /// </summary>
+    Task<ProductDto> AdjustProductQuantityAsync(
+        Guid productId,
+        AdjustQuantityRequest request,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Generate the next available barcode for the store.
+    /// Requires authentication.
+    /// </summary>
+    Task<string> GenerateBarcodeAsync(CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Complete a sale in StoreHub.

@@ -48,6 +48,18 @@ public interface IProductCacheService
     void ClearCache();
 
     /// <summary>
+    /// Add or update a product in the cache.
+    /// Called after creating/updating a product via API.
+    /// </summary>
+    void UpsertProduct(ProductDto product);
+
+    /// <summary>
+    /// Remove a product from the cache.
+    /// Called after deleting a product via API.
+    /// </summary>
+    void RemoveProduct(Guid productId);
+
+    /// <summary>
     /// Check if cache has been populated.
     /// </summary>
     bool IsCachePopulated { get; }

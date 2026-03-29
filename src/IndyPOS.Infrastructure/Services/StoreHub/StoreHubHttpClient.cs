@@ -4,6 +4,9 @@ using System.Text.Json;
 using IndyPOS.Application.Abstractions.StoreHub;
 using IndyPOS.Application.UseCases.StoreHub.Auth;
 using IndyPOS.Application.UseCases.StoreHub.Products;
+using IndyPOS.Application.UseCases.StoreHub.Products.AdjustQuantity;
+using IndyPOS.Application.UseCases.StoreHub.Products.Create;
+using IndyPOS.Application.UseCases.StoreHub.Products.Update;
 using IndyPOS.Application.UseCases.StoreHub.Sales;
 using Microsoft.Extensions.Logging;
 
@@ -91,69 +94,96 @@ public class StoreHubHttpClient : IStoreHubClient
         string? searchTerm = null,
         CancellationToken cancellationToken = default)
     {
-        EnsureAuthenticated();
+        var queryParams = new List<string> { $"activeOnly={activeOnly}" };
+        if (!string.IsNullOrEmpty(category))
+            queryParams.Add($"category={Uri.EscapeDataString(category)}");
+        if (!string.IsNullOrEmpty(searchTerm))
+            queryParams.Add($"search={Uri.EscapeDataString(searchTerm)}");
 
-        try
-        {
-            var queryParams = new List<string> { $"activeOnly={activeOnly}" };
-            if (!string.IsNullOrEmpty(category))
-                queryParams.Add($"category={Uri.EscapeDataString(category)}");
-            if (!string.IsNullOrEmpty(searchTerm))
-                queryParams.Add($"search={Uri.EscapeDataString(searchTerm)}");
+        var url = $"/products?{string.Join("&", queryParams)}";
 
-            var url = $"/products?{string.Join("&", queryParams)}";
+        var products = await SendAuthenticatedAsync<IReadOnlyList<ProductDto>>(
+            HttpMethod.Get, url, content: null, cancellationToken);
 
-            using var request = CreateAuthenticatedRequest(HttpMethod.Get, url);
-            var response = await _httpClient.SendAsync(request, cancellationToken);
+        _logger.LogDebug("Fetched {Count} products from StoreHub", products?.Count ?? 0);
+        return products ?? [];
+    }
 
-            response.EnsureSuccessStatusCode();
+    public async Task<ProductDto> CreateProductAsync(
+        CreateProductCommand command,
+        CancellationToken cancellationToken = default)
+    {
+        _logger.LogDebug("Creating product: {Name}, Barcode: {Barcode}", command.Name, command.Barcode);
 
-            var products = await response.Content.ReadFromJsonAsync<IReadOnlyList<ProductDto>>(JsonOptions, cancellationToken);
-            _logger.LogDebug("Fetched {Count} products from StoreHub", products?.Count ?? 0);
+        var result = await SendAuthenticatedAsync<ProductDto>(
+            HttpMethod.Post, "/products", command, cancellationToken);
 
-            return products ?? [];
-        }
-        catch (HttpRequestException ex)
-        {
-            _logger.LogError(ex, "Failed to fetch products from StoreHub");
-            throw new StoreHubClientException("Cannot connect to StoreHub", ex);
-        }
+        _logger.LogInformation("Product created successfully. Id: {Id}, Name: {Name}", result.Id, result.Name);
+        return result;
+    }
+
+    public async Task<ProductDto> UpdateProductAsync(
+        UpdateProductCommand command,
+        CancellationToken cancellationToken = default)
+    {
+        _logger.LogDebug("Updating product: {Id}, Name: {Name}", command.Id, command.Name);
+
+        var result = await SendAuthenticatedAsync<ProductDto>(
+            HttpMethod.Put, $"/products/{command.Id}", command, cancellationToken);
+
+        _logger.LogInformation("Product updated successfully. Id: {Id}, Name: {Name}", result.Id, result.Name);
+        return result;
+    }
+
+    public async Task DeleteProductAsync(Guid productId, CancellationToken cancellationToken = default)
+    {
+        _logger.LogDebug("Deleting product: {Id}", productId);
+
+        await SendAuthenticatedAsync(HttpMethod.Delete, $"/products/{productId}", cancellationToken);
+
+        _logger.LogInformation("Product deleted successfully. Id: {Id}", productId);
+    }
+
+    public async Task<ProductDto> AdjustProductQuantityAsync(
+        Guid productId,
+        AdjustQuantityRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        _logger.LogDebug("Adjusting quantity for product: {Id}, Target: {TargetQuantity}",
+            productId, request.TargetQuantity);
+
+        var result = await SendAuthenticatedAsync<ProductDto>(
+            HttpMethod.Post, $"/products/{productId}/adjust-quantity", request, cancellationToken);
+
+        _logger.LogInformation("Product quantity adjusted. Id: {Id}, Target: {TargetQuantity}",
+            result.Id, request.TargetQuantity);
+        return result;
+    }
+
+    public async Task<string> GenerateBarcodeAsync(CancellationToken cancellationToken = default)
+    {
+        _logger.LogDebug("Generating next barcode");
+
+        var result = await SendAuthenticatedAsync<GenerateBarcodeResponse>(
+            HttpMethod.Post, "/products/next-barcode", content: null, cancellationToken);
+
+        _logger.LogInformation("Barcode generated: {Barcode}", result.Barcode);
+        return result.Barcode;
     }
 
     public async Task<CompleteSaleResponse> CompleteSaleAsync(
         CompleteSaleRequest request,
         CancellationToken cancellationToken = default)
     {
-        EnsureAuthenticated();
+        _logger.LogDebug("Completing sale with {LineCount} lines, {PaymentCount} payments",
+            request.Lines.Count, request.Payments.Count);
 
-        try
-        {
-            _logger.LogDebug("Completing sale with {LineCount} lines, {PaymentCount} payments",
-                request.Lines.Count, request.Payments.Count);
+        var result = await SendAuthenticatedAsync<CompleteSaleResponse>(
+            HttpMethod.Post, "/sales/complete", request, cancellationToken);
 
-            using var httpRequest = CreateAuthenticatedRequest(HttpMethod.Post, "/sales/complete");
-            httpRequest.Content = JsonContent.Create(request, options: JsonOptions);
-
-            var response = await _httpClient.SendAsync(httpRequest, cancellationToken);
-            response.EnsureSuccessStatusCode();
-
-            var result = await response.Content.ReadFromJsonAsync<CompleteSaleResponse>(JsonOptions, cancellationToken);
-
-            if (result is null)
-            {
-                throw new StoreHubClientException("Invalid response from StoreHub");
-            }
-
-            _logger.LogInformation("Sale completed successfully. InvoiceId: {InvoiceId}, Total: {Total}",
-                result.InvoiceId, result.TotalAmount);
-
-            return result;
-        }
-        catch (HttpRequestException ex)
-        {
-            _logger.LogError(ex, "Failed to complete sale");
-            throw new StoreHubClientException("Cannot connect to StoreHub", ex);
-        }
+        _logger.LogInformation("Sale completed successfully. InvoiceId: {InvoiceId}, Total: {Total}",
+            result.InvoiceId, result.TotalAmount);
+        return result;
     }
 
     public async Task<bool> IsHealthyAsync(CancellationToken cancellationToken = default)
@@ -166,6 +196,70 @@ public class StoreHubHttpClient : IStoreHubClient
         catch
         {
             return false;
+        }
+    }
+
+    #region Private Helpers
+
+    /// <summary>
+    /// Send an authenticated request and deserialize the response.
+    /// </summary>
+    private async Task<T> SendAuthenticatedAsync<T>(
+        HttpMethod method,
+        string url,
+        object? content,
+        CancellationToken cancellationToken)
+    {
+        EnsureAuthenticated();
+
+        try
+        {
+            using var request = CreateAuthenticatedRequest(method, url);
+
+            if (content is not null)
+            {
+                request.Content = JsonContent.Create(content, options: JsonOptions);
+            }
+
+            var response = await _httpClient.SendAsync(request, cancellationToken);
+            response.EnsureSuccessStatusCode();
+
+            var result = await response.Content.ReadFromJsonAsync<T>(JsonOptions, cancellationToken);
+
+            if (result is null)
+            {
+                throw new StoreHubClientException("Invalid response from StoreHub");
+            }
+
+            return result;
+        }
+        catch (HttpRequestException ex)
+        {
+            _logger.LogError(ex, "HTTP request failed: {Method} {Url}", method, url);
+            throw new StoreHubClientException("Cannot connect to StoreHub", ex);
+        }
+    }
+
+    /// <summary>
+    /// Send an authenticated request without expecting a response body.
+    /// </summary>
+    private async Task SendAuthenticatedAsync(
+        HttpMethod method,
+        string url,
+        CancellationToken cancellationToken)
+    {
+        EnsureAuthenticated();
+
+        try
+        {
+            using var request = CreateAuthenticatedRequest(method, url);
+            var response = await _httpClient.SendAsync(request, cancellationToken);
+            response.EnsureSuccessStatusCode();
+        }
+        catch (HttpRequestException ex)
+        {
+            _logger.LogError(ex, "HTTP request failed: {Method} {Url}", method, url);
+            throw new StoreHubClientException("Cannot connect to StoreHub", ex);
         }
     }
 
@@ -183,13 +277,9 @@ public class StoreHubHttpClient : IStoreHubClient
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _authToken);
         return request;
     }
-}
 
-/// <summary>
-/// Exception thrown when StoreHub API communication fails.
-/// </summary>
-public class StoreHubClientException : Exception
-{
-    public StoreHubClientException(string message) : base(message) { }
-    public StoreHubClientException(string message, Exception innerException) : base(message, innerException) { }
+    #endregion
+
+    // Internal record for barcode response deserialization
+    private record GenerateBarcodeResponse(string Barcode);
 }
