@@ -1,4 +1,5 @@
 ﻿using IndyPOS.Application.Abstractions.Pos.Repositories;
+using IndyPOS.Application.Common.Helpers;
 using IndyPOS.Domain.Events;
 using Nokpirab;
 
@@ -18,9 +19,10 @@ public class CreateInventoryProductCommandHandler : ICommandHandler<CreateInvent
 
 	public Task HandleAsync(CreateInventoryProductCommand command, CancellationToken cancellationToken = default)
 	{
-		var id = _productRepository.Add(command.ToEntity());
+		var legacyId = _productRepository.Add(command.ToEntity());
+		var guid = LegacyIdHelper.ToGuid(legacyId);
 
-		_eventAggregator.GetEvent<InventoryProductAddedEvent>().Publish(id);
+		_eventAggregator.GetEvent<InventoryProductAddedEvent>().Publish(guid);
 
 		return Task.CompletedTask;
 	}

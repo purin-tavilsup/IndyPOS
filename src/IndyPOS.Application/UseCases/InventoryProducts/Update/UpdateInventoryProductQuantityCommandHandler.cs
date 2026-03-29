@@ -1,4 +1,5 @@
 ﻿using IndyPOS.Application.Abstractions.Pos.Repositories;
+using IndyPOS.Application.Common.Helpers;
 using IndyPOS.Domain.Events;
 using Nokpirab;
 
@@ -9,7 +10,7 @@ public class UpdateInventoryProductQuantityCommandHandler : ICommandHandler<Upda
 	private readonly IInventoryProductRepository _productRepository;
 	private readonly IEventAggregator _eventAggregator;
 
-	public UpdateInventoryProductQuantityCommandHandler(IInventoryProductRepository productRepository, 
+	public UpdateInventoryProductQuantityCommandHandler(IInventoryProductRepository productRepository,
 														IEventAggregator eventAggregator)
     {
         _productRepository = productRepository;
@@ -20,7 +21,8 @@ public class UpdateInventoryProductQuantityCommandHandler : ICommandHandler<Upda
 	{
 		_ = _productRepository.UpdateProductQuantityById(command.Id, command.Quantity);
 
-		_eventAggregator.GetEvent<InventoryProductUpdatedEvent>().Publish(command.Id);
+		var guid = LegacyIdHelper.ToGuid(command.Id);
+		_eventAggregator.GetEvent<InventoryProductUpdatedEvent>().Publish(guid);
 
 		return Task.CompletedTask;
 	}

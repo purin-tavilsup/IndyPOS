@@ -134,3 +134,4 @@ Create `C:\ProgramData\IndyPOS\Config\StoreConfiguration.json`:
 - Write small, testable functions
 - Use async/await for I/O operations
 - Validate input at system boundaries
+- **Modernization mindset**: Always look for opportunities to modernize or improve code while working on tasks (e.g., DRY refactoring, extracting helpers, using newer C#/.NET features where beneficial)

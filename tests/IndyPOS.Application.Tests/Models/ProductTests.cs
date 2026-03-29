@@ -12,6 +12,7 @@ public class ProductTests
         // Arrange
         var product = new Product
         {
+            Id = Guid.NewGuid(),
             UnitPrice = 100m,
             Quantity = 3,
             IsGroupProduct = false,
@@ -31,6 +32,7 @@ public class ProductTests
         // Arrange
         var product = new Product
         {
+            Id = Guid.NewGuid(),
             UnitPrice = 100m,
             Quantity = 3,
             IsGroupProduct = true,
@@ -50,6 +52,7 @@ public class ProductTests
         // Arrange
         var product = new Product
         {
+            Id = Guid.NewGuid(),
             UnitPrice = 100m,
             Quantity = 0,
             IsGroupProduct = false
@@ -68,6 +71,7 @@ public class ProductTests
         // Arrange (refund scenario)
         var product = new Product
         {
+            Id = Guid.NewGuid(),
             UnitPrice = 100m,
             Quantity = -2,
             IsGroupProduct = false
