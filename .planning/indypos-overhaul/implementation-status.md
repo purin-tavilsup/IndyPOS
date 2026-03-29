@@ -3,7 +3,7 @@
 **Last Updated:** 2026-03-28
 **Last Session:** 2026-03-28
 **Current Sprint:** Sprint 5
-**Current Epic:** Epic G (Desktop Integration) - IN PROGRESS 🟡 (G1 Complete, G3 Phase 1 Complete)
+**Current Epic:** Epic G (Desktop Integration) - G1 ✅, G3 ✅ Complete
 **Docs Version:** v1.4.0 (with .NET Aspire support)
 
 ---
@@ -686,7 +686,7 @@ POST /sync/events → SyncedEvents table → EventProcessor (background)
 - Extended `IProductRepository` with `UpdateAsync`, `SoftDeleteAsync`, `ExistsByBarcodeAsync`
 - Registered `IInventoryMovementRepository` and `IStoreSettingRepository` in DI
 
-**Tests:** 192 passing ✅
+**Tests:** 202 passing ✅
 
 ---
 
