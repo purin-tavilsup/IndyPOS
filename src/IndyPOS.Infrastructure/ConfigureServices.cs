@@ -204,6 +204,9 @@ public static class ConfigureServices
 		// Product cache service (in-memory)
 		services.AddSingleton<IProductCacheService, ProductCacheService>();
 
+		// Inventory product service (uses StoreHub API + cache)
+		services.AddSingleton<IInventoryProductService, StoreHubInventoryProductService>();
+
 		// Replace legacy services with StoreHub versions
 		// Note: These replace registrations from AddInfrastructureServices
 		services.AddSingleton<ISaleService, StoreHubSaleService>();
