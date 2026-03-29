@@ -1,5 +1,4 @@
-﻿using IndyPOS.Application.Common.Helpers;
-using IndyPOS.Application.Common.Interfaces;
+﻿using IndyPOS.Application.Common.Interfaces;
 using IndyPOS.Application.Events;
 using IndyPOS.Domain.Events;
 using IndyPOS.Windows.Forms.Enums;
@@ -7,8 +6,6 @@ using IndyPOS.Windows.Forms.Events;
 using IndyPOS.Windows.Forms.Extensions;
 using System.Diagnostics.CodeAnalysis;
 using IndyPOS.Application.UseCases.InventoryProducts;
-using IndyPOS.Application.UseCases.InventoryProducts.Get;
-using Nokpirab;
 
 namespace IndyPOS.Windows.Forms.UI.Inventory;
 
@@ -16,6 +13,7 @@ namespace IndyPOS.Windows.Forms.UI.Inventory;
 public partial class InventoryPanel : UserControl
 {
     private readonly IEventAggregator _eventAggregator;
+    private readonly IInventoryProductService _inventoryProductService;
     private readonly IReadOnlyDictionary<int, string> _productCategoryDictionary;
     private readonly AddNewInventoryProductForm _addNewProductForm;
     private readonly UpdateInventoryProductForm _updateProductForm;
@@ -23,7 +21,6 @@ public partial class InventoryPanel : UserControl
     private readonly MessageForm _messageForm;
     private int? _lastQueryCategoryId;
     private SubPanel _activeSubPanel;
-    private readonly INokpirab _nokpirab;
 
     private enum ProductColumn
     {
@@ -45,16 +42,16 @@ public partial class InventoryPanel : UserControl
                           AddNewInventoryProductForm addNewProductForm,
                           UpdateInventoryProductForm updateProductForm,
                           AddNewInventoryProductWithCustomBarcodeForm addNewProductWithCustomBarcodeForm,
-                          MessageForm messageForm, 
-                          INokpirab nokpirab)
+                          MessageForm messageForm,
+                          IInventoryProductService inventoryProductService)
     {
         _eventAggregator = eventAggregator;
+        _inventoryProductService = inventoryProductService;
         _productCategoryDictionary = storeConstants.ProductCategories;
         _addNewProductForm = addNewProductForm;
         _updateProductForm = updateProductForm;
         _addNewProductWithCustomBarcodeForm = addNewProductWithCustomBarcodeForm;
         _messageForm = messageForm;
-        _nokpirab = nokpirab;
 
         InitializeComponent();
         InitializeProductCategories();
@@ -243,39 +240,22 @@ public partial class InventoryPanel : UserControl
 
     private async Task<IReadOnlyList<InventoryProductDto>> GetInventoryProductsByCategoryIdAsync(int id)
     {
-        var results = await _nokpirab.SendAsync(new GetInventoryProductsByCategoryIdQuery(id));
-
-        return results.ToList();
+        return await _inventoryProductService.GetByCategoryIdAsync(id);
     }
 
     private async Task<InventoryProductDto> GetInventoryProductsByByBarcodeAsync(string barcode)
     {
-        var result = await _nokpirab.SendAsync(new GetInventoryProductByBarcodeQuery(barcode));
-
-        return result;
-    }
-
-    private async Task<InventoryProductDto> GetInventoryProductsByIdAsync(Guid id)
-    {
-        var legacyId = LegacyIdHelper.ToInt(id);
-#pragma warning disable CS0618 // Legacy SQLite query
-        var result = await _nokpirab.SendAsync(new GetInventoryProductByIdQuery(legacyId));
-#pragma warning restore CS0618
-        return result;
+        return await _inventoryProductService.GetByBarcodeAsync(barcode);
     }
 
     private async Task<IReadOnlyList<InventoryProductDto>> GetProductsByDescriptionKeywordAsync(string keyword)
 	{
-		var result = await _nokpirab.SendAsync(new GetInventoryProductsByDescriptionKeywordQuery(keyword));
-
-		return result.ToList();
+		return await _inventoryProductService.SearchByDescriptionAsync(keyword);
 	}
 
 	private async Task<IReadOnlyList<InventoryProductDto>> GetProductsByBrandKeywordAsync(string keyword)
 	{
-		var result = await _nokpirab.SendAsync(new GetInventoryProductsByBrandKeywordQuery(keyword));
-
-		return result.ToList();
+		return await _inventoryProductService.SearchByBrandAsync(keyword);
 	}
 
     private void ShowExistingProduct(InventoryProductDto product)
@@ -302,22 +282,16 @@ public partial class InventoryPanel : UserControl
         });
     }
 
-    private async void NewInventoryProductAdded(Guid id)
+    private void NewInventoryProductAdded(Guid id)
     {
-        try
+        // When a new product is added, the cache is already updated by the service.
+        // We trigger a refresh of the current category view if applicable.
+        if (_lastQueryCategoryId.HasValue)
         {
-            var product = await GetInventoryProductsByIdAsync(id);
-
-            ProductDataView.UiThread(delegate
+            ProductDataView.UiThread(async delegate
             {
-                ProductDataView.Rows.Clear();
-
-                AddProductToProductDataView(product);
+                await ShowProductsByCategoryId(_lastQueryCategoryId.Value);
             });
-        }
-        catch
-        {
-            // ignored
         }
     }
 

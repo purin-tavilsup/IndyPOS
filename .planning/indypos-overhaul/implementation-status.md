@@ -641,9 +641,18 @@ POST /sync/events → SyncedEvents table → EventProcessor (background)
 | 1.5-1.6 | Capabilities + StoreHub endpoints | ✅ Complete |
 | 2 | Extend IStoreHubClient + cache invalidation | ✅ Complete |
 | 3 | Migrate to Guid IDs | ✅ Complete |
-| 4-5 | Create IInventoryProductService + update handlers | 🔴 Pending |
+| 4-5 | Create IInventoryProductService + update WinForms | ✅ Complete |
 | 6 | Database migration for StoreSetting | 🔴 Pending |
 | 7 | Unit + integration tests | 🔴 Pending |
+
+**New Files Created (Phase 4-5):**
+- `IInventoryProductService.cs` - Service interface for inventory operations
+- `StoreHubInventoryProductService.cs` - StoreHub-based implementation
+- Updated `AddNewInventoryProductForm.cs` - Uses IInventoryProductService
+- Updated `UpdateInventoryProductForm.cs` - Uses IInventoryProductService
+- Updated `AddNewInventoryProductWithCustomBarcodeForm.cs` - Uses IInventoryProductService
+- Updated `InventoryPanel.cs` - Uses IInventoryProductService
+- Updated `ConfigureServices.cs` - Registered StoreHubInventoryProductService
 
 **New Files Created (Phase 1):**
 - `IInventoryMovementRepository.cs` + `InventoryMovementRepository.cs`
@@ -772,21 +781,26 @@ Upgraded the entire solution from .NET 8 to .NET 10 LTS before starting Epic C.
 
 ## Current Focus
 
-**Now:** Epic G3 (Decommission SQLite) - Phase 1 complete 🟡
-**Next:** G3 Phases 2-7 (client, Guid migration, handlers, tests)
+**Now:** Epic G3 (Decommission SQLite) - Phase 5 complete 🟡
+**Next:** G3 Phases 6-7 (database migration, tests)
 
 ### Completed This Session (2026-03-28)
-1. ✅ **G3 Phase 1: StoreHub Product Write API** (backend complete)
-   - Created `IInventoryMovementRepository` + implementation (movement-based tracking)
-   - Created `StoreSetting` entity for barcode counter
-   - Extended `IProductRepository` with `UpdateAsync`, `SoftDeleteAsync`, `ExistsByBarcodeAsync`
-   - Added `ProductsManage` and `InventoryAdjust` capabilities
-   - Created 5 CQRS commands/handlers for product operations
-   - Added 5 new StoreHub API endpoints
-   - Added `StoreCode` property to `IStoreIdentityService`
+1. ✅ **G3 Phase 4-5: IInventoryProductService + WinForms Migration**
+   - Created `IInventoryProductService` interface for inventory operations
+   - Implemented `StoreHubInventoryProductService` using StoreHub API + cache
+   - Updated `AddNewInventoryProductForm` to use IInventoryProductService
+   - Updated `UpdateInventoryProductForm` to use IInventoryProductService
+   - Updated `AddNewInventoryProductWithCustomBarcodeForm` to use IInventoryProductService
+   - Updated `InventoryPanel` to use IInventoryProductService
+   - Registered services in DI container
    - **192 tests passing**
 
-2. ✅ Updated planning docs:
+2. ✅ **G3 Phases 1-3** (previous commits):
+   - Phase 1: StoreHub Product Write API (backend complete)
+   - Phase 2: Extended IStoreHubClient + cache invalidation
+   - Phase 3: Migrated to Guid IDs with LegacyIdHelper
+
+3. ✅ Updated planning docs:
    - Deferred G2 (tablet) to post-MAUI migration
    - Added Epic I (Cloud Infrastructure) for post-pilot
    - Documented DO Droplet specs (2GB/1vCPU/50GB)
