@@ -642,8 +642,13 @@ POST /sync/events → SyncedEvents table → EventProcessor (background)
 | 2 | Extend IStoreHubClient + cache invalidation | ✅ Complete |
 | 3 | Migrate to Guid IDs | ✅ Complete |
 | 4-5 | Create IInventoryProductService + update WinForms | ✅ Complete |
-| 6 | Database migration for StoreSetting | 🔴 Pending |
-| 7 | Unit + integration tests | 🔴 Pending |
+| 6 | Database migration for StoreSetting | ✅ Complete |
+| 7 | Unit tests for StoreHubInventoryProductService | ✅ Complete |
+
+**New Files Created (Phase 6-7):**
+- `20260329060235_AddStoreSettingTable.cs` - Initial EF Core migration for all StoreHub tables
+- `StoreHubInventoryProductServiceTests.cs` - 10 unit tests for inventory service
+- Updated `DevelopmentDataSeeder.cs` - Seeds BarcodeCounter setting
 
 **New Files Created (Phase 4-5):**
 - `IInventoryProductService.cs` - Service interface for inventory operations
@@ -781,26 +786,28 @@ Upgraded the entire solution from .NET 8 to .NET 10 LTS before starting Epic C.
 
 ## Current Focus
 
-**Now:** Epic G3 (Decommission SQLite) - Phase 5 complete 🟡
-**Next:** G3 Phases 6-7 (database migration, tests)
+**Now:** Epic G3 (Decommission SQLite) - **COMPLETE** ✅
+**Next:** Epic H (Testing & Rollout) or Epic D (MAUI Migration)
 
 ### Completed This Session (2026-03-28)
-1. ✅ **G3 Phase 4-5: IInventoryProductService + WinForms Migration**
+1. ✅ **G3 Phase 6-7: Database Migration + Unit Tests**
+   - Created initial EF Core migration for all StoreHub tables
+   - Added BarcodeCounter seeding to `DevelopmentDataSeeder`
+   - Added 10 unit tests for `StoreHubInventoryProductService`
+   - **202 tests passing**
+
+2. ✅ **G3 Phase 4-5: IInventoryProductService + WinForms Migration**
    - Created `IInventoryProductService` interface for inventory operations
    - Implemented `StoreHubInventoryProductService` using StoreHub API + cache
-   - Updated `AddNewInventoryProductForm` to use IInventoryProductService
-   - Updated `UpdateInventoryProductForm` to use IInventoryProductService
-   - Updated `AddNewInventoryProductWithCustomBarcodeForm` to use IInventoryProductService
-   - Updated `InventoryPanel` to use IInventoryProductService
+   - Updated all 4 WinForms inventory forms to use IInventoryProductService
    - Registered services in DI container
-   - **192 tests passing**
 
-2. ✅ **G3 Phases 1-3** (previous commits):
+3. ✅ **G3 Phases 1-3** (previous commits):
    - Phase 1: StoreHub Product Write API (backend complete)
    - Phase 2: Extended IStoreHubClient + cache invalidation
    - Phase 3: Migrated to Guid IDs with LegacyIdHelper
 
-3. ✅ Updated planning docs:
+4. ✅ Updated planning docs:
    - Deferred G2 (tablet) to post-MAUI migration
    - Added Epic I (Cloud Infrastructure) for post-pilot
    - Documented DO Droplet specs (2GB/1vCPU/50GB)
