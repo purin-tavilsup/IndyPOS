@@ -9,13 +9,14 @@ namespace IndyPOS.Infrastructure.Persistence.StoreHub.Seeders;
 
 /// <summary>
 /// Seeds development test data for StoreHub.
-/// Creates test users and products for manual testing.
+/// Creates test users, products, and settings for manual testing.
 /// Only runs in Development environment.
 /// </summary>
 public class DevelopmentDataSeeder
 {
     private readonly IStoreUserRepository _userRepository;
     private readonly IProductRepository _productRepository;
+    private readonly IStoreSettingRepository _settingRepository;
     private readonly IPasswordHasher _passwordHasher;
     private readonly IStoreIdentityService _storeIdentity;
     private readonly ILogger<DevelopmentDataSeeder> _logger;
@@ -23,29 +24,47 @@ public class DevelopmentDataSeeder
     public DevelopmentDataSeeder(
         IStoreUserRepository userRepository,
         IProductRepository productRepository,
+        IStoreSettingRepository settingRepository,
         IPasswordHasher passwordHasher,
         IStoreIdentityService storeIdentity,
         ILogger<DevelopmentDataSeeder> logger)
     {
         _userRepository = userRepository;
         _productRepository = productRepository;
+        _settingRepository = settingRepository;
         _passwordHasher = passwordHasher;
         _storeIdentity = storeIdentity;
         _logger = logger;
     }
 
     /// <summary>
-    /// Seeds test users and products if they don't exist.
+    /// Seeds test users, products, and settings if they don't exist.
     /// Safe to run multiple times.
     /// </summary>
     public async Task SeedAsync(CancellationToken cancellationToken = default)
     {
         _logger.LogInformation("Seeding development data...");
 
+        await SeedSettingsAsync(cancellationToken);
         await SeedUsersAsync(cancellationToken);
         await SeedProductsAsync(cancellationToken);
 
         _logger.LogInformation("Development data seeding complete.");
+    }
+
+    private async Task SeedSettingsAsync(CancellationToken cancellationToken)
+    {
+        // Seed barcode counter if not exists
+        var existingCounter = await _settingRepository.GetValueAsync(StoreSettingKeys.BarcodeCounter, cancellationToken);
+        if (existingCounter is null)
+        {
+            await _settingRepository.SetValueAsync(StoreSettingKeys.BarcodeCounter, "0", cancellationToken);
+            _logger.LogInformation("Initialized BarcodeCounter to 0");
+        }
+        else
+        {
+            _logger.LogDebug("BarcodeCounter already exists: {Value}", existingCounter);
+        }
     }
 
     private async Task SeedUsersAsync(CancellationToken cancellationToken)
