@@ -18,6 +18,11 @@ public interface IStoreIdentityService
     string StoreName { get; }
 
     /// <summary>
+    /// Gets the numeric store code for barcode generation (e.g., 1, 2, 3).
+    /// </summary>
+    int StoreCode { get; }
+
+    /// <summary>
     /// Validates that the store is properly configured.
     /// Throws if StoreId is missing or invalid.
     /// </summary>

@@ -88,4 +88,58 @@ public class ProductRepository : IProductRepository
         _dbContext.Products.Add(product);
         await _dbContext.SaveChangesAsync(cancellationToken);
     }
+
+    public async Task UpdateAsync(Product product, CancellationToken cancellationToken = default)
+    {
+        var existing = await _dbContext.Products
+            .FirstOrDefaultAsync(p => p.Id == product.Id, cancellationToken)
+            ?? throw new InvalidOperationException($"Product with ID {product.Id} not found");
+
+        // Update all editable fields
+        existing.Barcode = product.Barcode;
+        existing.Name = product.Name;
+        existing.Description = product.Description;
+        existing.Manufacturer = product.Manufacturer;
+        existing.Brand = product.Brand;
+        existing.Category = product.Category;
+        existing.UnitPrice = product.UnitPrice;
+        existing.GroupPrice = product.GroupPrice;
+        existing.GroupPriceQuantity = product.GroupPriceQuantity;
+        existing.IsActive = product.IsActive;
+        existing.LastModifiedUtc = DateTime.UtcNow;
+
+        await _dbContext.SaveChangesAsync(cancellationToken);
+    }
+
+    public async Task SoftDeleteAsync(Guid id, CancellationToken cancellationToken = default)
+    {
+        var product = await _dbContext.Products
+            .FirstOrDefaultAsync(p => p.Id == id, cancellationToken);
+
+        if (product is null)
+        {
+            return; // Already deleted or never existed
+        }
+
+        product.IsActive = false;
+        product.LastModifiedUtc = DateTime.UtcNow;
+
+        await _dbContext.SaveChangesAsync(cancellationToken);
+    }
+
+    public async Task<bool> ExistsByBarcodeAsync(
+        string barcode,
+        Guid? excludeId = null,
+        CancellationToken cancellationToken = default)
+    {
+        var query = _dbContext.Products
+            .Where(p => p.Barcode == barcode);
+
+        if (excludeId.HasValue)
+        {
+            query = query.Where(p => p.Id != excludeId.Value);
+        }
+
+        return await query.AnyAsync(cancellationToken);
+    }
 }

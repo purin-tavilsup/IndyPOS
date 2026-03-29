@@ -21,6 +21,7 @@ public class StoreHubDbContext : DbContext
     public DbSet<InventoryMovement> InventoryMovements => Set<InventoryMovement>();
     public DbSet<OutboxEvent> OutboxEvents => Set<OutboxEvent>();
     public DbSet<StoreUser> StoreUsers => Set<StoreUser>();
+    public DbSet<StoreSetting> StoreSettings => Set<StoreSetting>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
