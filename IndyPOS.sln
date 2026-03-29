@@ -31,6 +31,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IndyPOS.CloudApi", "src\Ind
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IndyPOS.StoreHub.IntegrationTests", "tests\IndyPOS.StoreHub.IntegrationTests\IndyPOS.StoreHub.IntegrationTests.csproj", "{47EF8824-5DF3-4E73-89AF-8FA9652557D4}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IndyPOS.Migration.Tests", "tests\IndyPOS.Migration.Tests\IndyPOS.Migration.Tests.csproj", "{0FBDC401-E867-4489-A735-782E5CA9F00E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -185,6 +187,18 @@ Global
 		{47EF8824-5DF3-4E73-89AF-8FA9652557D4}.Release|Any CPU.Build.0 = Release|Any CPU
 		{47EF8824-5DF3-4E73-89AF-8FA9652557D4}.Release|x86.ActiveCfg = Release|Any CPU
 		{47EF8824-5DF3-4E73-89AF-8FA9652557D4}.Release|x86.Build.0 = Release|Any CPU
+		{0FBDC401-E867-4489-A735-782E5CA9F00E}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{0FBDC401-E867-4489-A735-782E5CA9F00E}.Debug|x64.Build.0 = Debug|Any CPU
+		{0FBDC401-E867-4489-A735-782E5CA9F00E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0FBDC401-E867-4489-A735-782E5CA9F00E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0FBDC401-E867-4489-A735-782E5CA9F00E}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{0FBDC401-E867-4489-A735-782E5CA9F00E}.Debug|x86.Build.0 = Debug|Any CPU
+		{0FBDC401-E867-4489-A735-782E5CA9F00E}.Release|x64.ActiveCfg = Release|Any CPU
+		{0FBDC401-E867-4489-A735-782E5CA9F00E}.Release|x64.Build.0 = Release|Any CPU
+		{0FBDC401-E867-4489-A735-782E5CA9F00E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0FBDC401-E867-4489-A735-782E5CA9F00E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0FBDC401-E867-4489-A735-782E5CA9F00E}.Release|x86.ActiveCfg = Release|Any CPU
+		{0FBDC401-E867-4489-A735-782E5CA9F00E}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -202,6 +216,7 @@ Global
 		{AC3D7118-17F9-4465-B6FF-AD4EFC96EFEB} = {997D11A0-85EC-4363-90F7-52B709D4ED27}
 		{6E88629C-31AB-4D2C-A247-EE15D8C4A141} = {997D11A0-85EC-4363-90F7-52B709D4ED27}
 		{47EF8824-5DF3-4E73-89AF-8FA9652557D4} = {87305E60-CCF3-46E7-9CD2-E19BF10290B7}
+		{0FBDC401-E867-4489-A735-782E5CA9F00E} = {87305E60-CCF3-46E7-9CD2-E19BF10290B7}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {8DF2657F-A964-43CB-BD74-99381ADA31E6}
