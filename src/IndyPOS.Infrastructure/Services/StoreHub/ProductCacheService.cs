@@ -151,4 +151,57 @@ public class ProductCacheService : IProductCacheService
 
         _logger.LogInformation("Product cache cleared");
     }
+
+    public void UpsertProduct(ProductDto product)
+    {
+        lock (_syncLock)
+        {
+            // Remove old barcode mapping if product exists with different barcode
+            if (_productsById.TryGetValue(product.Id, out var existingProduct) &&
+                !string.IsNullOrEmpty(existingProduct.Barcode) &&
+                existingProduct.Barcode != product.Barcode)
+            {
+                _productsByBarcode.TryRemove(existingProduct.Barcode, out _);
+            }
+
+            // Update lookups
+            _productsById[product.Id] = product;
+
+            if (!string.IsNullOrEmpty(product.Barcode))
+            {
+                _productsByBarcode[product.Barcode] = product;
+            }
+
+            // Update list (replace or add)
+            var index = _allProducts.FindIndex(p => p.Id == product.Id);
+            if (index >= 0)
+            {
+                _allProducts[index] = product;
+            }
+            else
+            {
+                _allProducts.Add(product);
+            }
+        }
+
+        _logger.LogDebug("Product cache updated: {Id} - {Name}", product.Id, product.Name);
+    }
+
+    public void RemoveProduct(Guid productId)
+    {
+        lock (_syncLock)
+        {
+            if (_productsById.TryRemove(productId, out var removedProduct))
+            {
+                if (!string.IsNullOrEmpty(removedProduct.Barcode))
+                {
+                    _productsByBarcode.TryRemove(removedProduct.Barcode, out _);
+                }
+
+                _allProducts.RemoveAll(p => p.Id == productId);
+
+                _logger.LogDebug("Product removed from cache: {Id} - {Name}", productId, removedProduct.Name);
+            }
+        }
+    }
 }
