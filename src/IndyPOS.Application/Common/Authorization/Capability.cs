@@ -11,6 +11,10 @@ public static class Capability
 
     // Product operations
     public const string ProductsRead = "products.read";
+    public const string ProductsManage = "products.manage";
+
+    // Inventory operations
+    public const string InventoryAdjust = "inventory.adjust";
 
     // Sync operations
     public const string SyncViewStatus = "sync.view_status";

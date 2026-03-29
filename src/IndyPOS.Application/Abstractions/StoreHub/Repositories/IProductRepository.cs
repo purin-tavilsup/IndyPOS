@@ -20,4 +20,20 @@ public interface IProductRepository
     Task<Product?> GetByBarcodeAsync(string barcode, CancellationToken cancellationToken = default);
 
     Task AddAsync(Product product, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Updates an existing product.
+    /// </summary>
+    Task UpdateAsync(Product product, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Soft deletes a product by setting IsActive = false.
+    /// </summary>
+    Task SoftDeleteAsync(Guid id, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Checks if a barcode already exists.
+    /// Optionally excludes a specific product ID (useful for updates).
+    /// </summary>
+    Task<bool> ExistsByBarcodeAsync(string barcode, Guid? excludeId = null, CancellationToken cancellationToken = default);
 }

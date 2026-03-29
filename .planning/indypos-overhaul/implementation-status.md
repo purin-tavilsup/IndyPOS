@@ -1,9 +1,9 @@
 # IndyPOS Overhaul - Implementation Status
 
-**Last Updated:** 2026-03-27
-**Last Session:** 2026-03-27
+**Last Updated:** 2026-03-28
+**Last Session:** 2026-03-28
 **Current Sprint:** Sprint 5
-**Current Epic:** Epic G (Desktop Integration) - IN PROGRESS 🟡 (G1 Complete)
+**Current Epic:** Epic G (Desktop Integration) - IN PROGRESS 🟡 (G1 Complete, G3 Phase 1 Complete)
 **Docs Version:** v1.4.0 (with .NET Aspire support)
 
 ---
@@ -555,8 +555,8 @@ POST /sync/events → SyncedEvents table → EventProcessor (background)
 | Task | Description | Status | PR | Notes |
 |------|-------------|--------|-----|-------|
 | G1 | Desktop becomes hub client | 🟢 Complete | - | Full StoreHub client integration + E2E tests |
-| G2 | Prepare for tablet | 🔴 Not Started | - | LAN interface + device auth |
-| G3 | Decommission direct SQLite writes | 🔴 Not Started | - | After hub is stable |
+| G2 | Prepare for tablet | ⏭️ Deferred | - | Deferred to post-MAUI migration (2027+) |
+| G3 | Decommission direct SQLite writes | 🟡 In Progress | - | Phase 1 complete (backend), Phases 2-7 remaining |
 
 ### G1: Desktop Hub Client Details (2026-03-27)
 
@@ -619,6 +619,61 @@ POST /sync/events → SyncedEvents table → EventProcessor (background)
 
 **Deliverable:** Desktop uses hub API; local Postgres is single source of truth ✅
 
+### G3: Decommission SQLite Writes - In Progress (2026-03-28)
+
+**Goal:** Migrate all product write operations from SQLite to StoreHub API
+
+**Design Decisions:**
+| Decision | Choice | Rationale |
+|----------|--------|-----------|
+| Inventory tracking | Movement-based | Audit trail, supports history/reports |
+| ID strategy | Full Guid migration | Clean break, small UI footprint (~13 refs) |
+| Concurrency | Last-write-wins | Simple, acceptable for 1-2 terminals |
+| Soft delete | `IsActive = false` | Preserve history |
+
+**Phase Progress:**
+
+| Phase | Description | Status |
+|-------|-------------|--------|
+| 1.3 | InventoryMovement repository | ✅ Complete |
+| 1.4 | StoreSetting entity + EF config | ✅ Complete |
+| 1.1-1.2 | Extend ProductRepository (Update, Delete, ExistsByBarcode) | ✅ Complete |
+| 1.5-1.6 | Capabilities + StoreHub endpoints | ✅ Complete |
+| 2 | Extend IStoreHubClient + cache invalidation | 🔴 Pending |
+| 3 | Migrate to Guid IDs | 🔴 Pending |
+| 4-5 | Create IInventoryProductService + update handlers | 🔴 Pending |
+| 6 | Database migration for StoreSetting | 🔴 Pending |
+| 7 | Unit + integration tests | 🔴 Pending |
+
+**New Files Created (Phase 1):**
+- `IInventoryMovementRepository.cs` + `InventoryMovementRepository.cs`
+- `IStoreSettingRepository.cs` + `StoreSettingRepository.cs`
+- `StoreSetting.cs` + `StoreSettingConfiguration.cs`
+- `CreateProductCommand.cs` + `CreateProductCommandHandler.cs`
+- `UpdateProductCommand.cs` + `UpdateProductCommandHandler.cs`
+- `DeleteProductCommand.cs` + `DeleteProductCommandHandler.cs`
+- `AdjustProductQuantityCommand.cs` + `AdjustProductQuantityCommandHandler.cs`
+- `GenerateBarcodeQuery.cs` + `GenerateBarcodeQueryHandler.cs`
+- `AdjustQuantityRequest.cs`
+
+**New Capabilities:**
+- `products.manage` - Create/Update/Delete products
+- `inventory.adjust` - Adjust product quantities
+
+**New StoreHub Endpoints:**
+- `POST /products` - Create product
+- `PUT /products/{id}` - Update product
+- `DELETE /products/{id}` - Soft delete product
+- `POST /products/{id}/adjust-quantity` - Adjust quantity via movement
+- `POST /products/next-barcode` - Generate next barcode
+
+**Other Changes:**
+- Added `StoreCode` property to `IStoreIdentityService` for barcode generation
+- Extended `IProductRepository` with `UpdateAsync`, `SoftDeleteAsync`, `ExistsByBarcodeAsync`
+- Registered `IInventoryMovementRepository` and `IStoreSettingRepository` in DI
+
+**Tests:** 192 passing ✅
+
 ---
 
 ## Epic H: Testing & Rollout
@@ -638,6 +693,42 @@ POST /sync/events → SyncedEvents table → EventProcessor (background)
 | H4 | Operational runbook | 🔴 Not Started | - | Backup, monitoring, troubleshooting |
 
 **Deliverable:** Production-ready system; pilot store live
+
+---
+
+## Epic I: Cloud Infrastructure & Multi-Store Sync
+
+**Goal:** Deploy cloud infrastructure and enable cross-store synchronization
+**Status:** 🔴 Not Started
+**Target:** Post-pilot (after H3)
+**Priority:** LOW (until multi-store sync needed)
+
+### Prerequisites
+- ✅ Epic F (CloudApi) - already implemented
+- ⏳ Epic H3 (Pilot rollout) - must complete first
+
+### Tasks
+
+| Task | Description | Status | PR | Notes |
+|------|-------------|--------|-----|-------|
+| I1 | Provision DigitalOcean Droplet | 🔴 Not Started | - | Ubuntu, Docker, nginx |
+| I2 | Provision DO Managed PostgreSQL | 🔴 Not Started | - | Singapore region, backups enabled |
+| I3 | Deploy CloudApi to Droplet | 🔴 Not Started | - | Docker Compose + SSL |
+| I4 | Configure SyncWorker to use real CloudApi | 🔴 Not Started | - | Replace stub client |
+| I5 | Multi-store sync testing | 🔴 Not Started | - | Verify events flow correctly |
+| I6 | Central reporting dashboard | 🔴 Not Started | - | Aggregate reports across stores |
+
+### Cloud Infrastructure Specs
+| Resource | Spec | Notes |
+|----------|------|-------|
+| **Droplet** | Basic Premium AMD | 2 GB RAM, 1 vCPU, 50 GB SSD |
+| **Managed PostgreSQL** | Smallest tier | 1 GB RAM, 1 vCPU, 10-30 GB disk |
+| **Region** | Singapore | Closest to Thailand |
+
+- **Not needed until:** Multi-store sync or central reporting required
+- **Monthly cost:** ~$20-30 USD (Droplet ~$14 + Managed PG ~$15)
+
+**Deliverable:** Cloud infrastructure live; stores syncing to central database
 
 ---
 
@@ -681,10 +772,35 @@ Upgraded the entire solution from .NET 8 to .NET 10 LTS before starting Epic C.
 
 ## Current Focus
 
-**Now:** Epic G (Desktop Integration) in progress - G1 complete 🟡
-**Next:** G2 (tablet prep) or G3 (decommission SQLite)
+**Now:** Epic G3 (Decommission SQLite) - Phase 1 complete 🟡
+**Next:** G3 Phases 2-7 (client, Guid migration, handlers, tests)
 
-### Completed This Session (2026-03-27)
+### Completed This Session (2026-03-28)
+1. ✅ **G3 Phase 1: StoreHub Product Write API** (backend complete)
+   - Created `IInventoryMovementRepository` + implementation (movement-based tracking)
+   - Created `StoreSetting` entity for barcode counter
+   - Extended `IProductRepository` with `UpdateAsync`, `SoftDeleteAsync`, `ExistsByBarcodeAsync`
+   - Added `ProductsManage` and `InventoryAdjust` capabilities
+   - Created 5 CQRS commands/handlers for product operations
+   - Added 5 new StoreHub API endpoints
+   - Added `StoreCode` property to `IStoreIdentityService`
+   - **192 tests passing**
+
+2. ✅ Updated planning docs:
+   - Deferred G2 (tablet) to post-MAUI migration
+   - Added Epic I (Cloud Infrastructure) for post-pilot
+   - Documented DO Droplet specs (2GB/1vCPU/50GB)
+
+### New Product Write Endpoints
+| Endpoint | Description |
+|----------|-------------|
+| `POST /products` | Create product with initial stock |
+| `PUT /products/{id}` | Update product |
+| `DELETE /products/{id}` | Soft delete (IsActive=false) |
+| `POST /products/{id}/adjust-quantity` | Adjust via movement |
+| `POST /products/next-barcode` | Generate next barcode |
+
+### Previous Session (2026-03-27 - Report API)
 1. ✅ Implemented Report API for StoreHub dashboard:
    - Created clean DTOs: `SalesSummaryDto`, `PaymentBreakdownDto`, `TopProductDto`, `InvoiceSummaryDto`, `InvoiceDetailDto`, `PayLaterSummaryDto`, `ProductSalesDto`, `PagedResult<T>`
    - Created CQRS queries with DateOnly parameters (not legacy TimePeriod enum)
@@ -754,21 +870,22 @@ Upgraded the entire solution from .NET 8 to .NET 10 LTS before starting Epic C.
 13. ✅ Added 8 unit tests (54 total passing)
 
 ### Next Actions
-1. Epic S: S6-S9 (LOW priority - key rotation, audit logging, rate limiting)
-2. Epic G: Desktop Integration (make WinForms use StoreHub API)
+1. **G3 Phase 2-7:** Complete product write migration (client, Guid IDs, handlers, tests)
+2. Epic S: S6-S9 (LOW priority - key rotation, audit logging, rate limiting)
 
 ---
 
 ## Statistics
 
-- **Total Epics:** 9 (added Epic S: Security)
+- **Total Epics:** 10 (added Epic I: Cloud Infrastructure)
 - **Completed Epics:** 7 (Epic 0, A, B, C, D, E, F)
-- **In Progress Epics:** 2 (Epic S - 5/9, Epic G - 1/3)
-- **Total Tasks:** 53 (41 + 9 security + 3 desktop)
+- **In Progress Epics:** 2 (Epic S - 5/9, Epic G - G1 done, G3 in progress)
+- **Total Tasks:** 52 (41 + 9 security + 3 desktop - 1 deferred)
 - **Completed:** 47
-- **In Progress:** 0
-- **Not Started:** 6 (Epic S: 4, Epic G: 2)
-- **Overall Progress:** ~89% (Security polish + Desktop tablet/decommission remaining)
+- **In Progress:** 1 (G3)
+- **Deferred:** 1 (G2 - tablet prep, post-MAUI)
+- **Not Started:** 4 (Epic S: 4)
+- **Overall Progress:** ~90% (G3 backend done, client integration remaining)
 - **Total Tests:** 192 (all passing)
 
 ---
@@ -811,4 +928,4 @@ Upgraded the entire solution from .NET 8 to .NET 10 LTS before starting Epic C.
 
 ---
 
-**Last Session:** 2026-03-27
+**Last Session:** 2026-03-28

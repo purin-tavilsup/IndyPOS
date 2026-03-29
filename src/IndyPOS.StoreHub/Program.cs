@@ -5,7 +5,12 @@ using IndyPOS.Application.Common.Interfaces;
 using IndyPOS.Application.UseCases.StoreHub.Auth;
 using IndyPOS.Application.UseCases.StoreHub.Auth.Login;
 using IndyPOS.Application.UseCases.StoreHub.Products;
+using IndyPOS.Application.UseCases.StoreHub.Products.AdjustQuantity;
+using IndyPOS.Application.UseCases.StoreHub.Products.Create;
+using IndyPOS.Application.UseCases.StoreHub.Products.Delete;
+using IndyPOS.Application.UseCases.StoreHub.Products.GenerateBarcode;
 using IndyPOS.Application.UseCases.StoreHub.Products.Get;
+using IndyPOS.Application.UseCases.StoreHub.Products.Update;
 using IndyPOS.Application.UseCases.StoreHub.Reports;
 using IndyPOS.Application.UseCases.StoreHub.Reports.GetInvoiceDetail;
 using IndyPOS.Application.UseCases.StoreHub.Reports.GetInvoices;
@@ -47,6 +52,13 @@ builder.Services.AddStoreHubAuthServices(builder.Configuration);
 builder.Services.AddTransient<IQueryHandler<GetProductsQuery, IReadOnlyList<ProductDto>>, GetProductsQueryHandler>();
 builder.Services.AddTransient<ICommandHandler<CompleteSaleCommand, CompleteSaleResponse>, CompleteSaleCommandHandler>();
 builder.Services.AddTransient<ICommandHandler<LoginCommand, LoginResponse>, LoginCommandHandler>();
+
+// Product write handlers
+builder.Services.AddTransient<ICommandHandler<CreateProductCommand, ProductDto>, CreateProductCommandHandler>();
+builder.Services.AddTransient<ICommandHandler<UpdateProductCommand, ProductDto>, UpdateProductCommandHandler>();
+builder.Services.AddTransient<ICommandHandler<DeleteProductCommand>, DeleteProductCommandHandler>();
+builder.Services.AddTransient<ICommandHandler<AdjustProductQuantityCommand, int>, AdjustProductQuantityCommandHandler>();
+builder.Services.AddTransient<IQueryHandler<GenerateBarcodeQuery, string>, GenerateBarcodeQueryHandler>();
 
 // Register Report query handlers (in Infrastructure layer)
 builder.Services.AddTransient<IQueryHandler<GetSalesSummaryQuery, SalesSummaryDto>, GetSalesSummaryQueryHandler>();
@@ -92,7 +104,13 @@ builder.Services.AddAuthorizationBuilder()
               .AddRequirements(new CapabilityRequirement(Capability.SyncViewStatus)))
     .AddPolicy("CanViewReports", policy =>
         policy.RequireAuthenticatedUser()
-              .AddRequirements(new CapabilityRequirement(Capability.ReportsView)));
+              .AddRequirements(new CapabilityRequirement(Capability.ReportsView)))
+    .AddPolicy("CanManageProducts", policy =>
+        policy.RequireAuthenticatedUser()
+              .AddRequirements(new CapabilityRequirement(Capability.ProductsManage)))
+    .AddPolicy("CanAdjustInventory", policy =>
+        policy.RequireAuthenticatedUser()
+              .AddRequirements(new CapabilityRequirement(Capability.InventoryAdjust)));
 
 // Add OpenAPI
 builder.Services.AddOpenApi();
@@ -184,6 +202,70 @@ app.MapGet("/products", async (
     var products = await handler.HandleAsync(query, cancellationToken);
     return Results.Ok(products);
 }).RequireAuthorization("CanReadProducts");
+
+// Create product
+app.MapPost("/products", async (
+    ICommandHandler<CreateProductCommand, ProductDto> handler,
+    CreateProductCommand command,
+    CancellationToken cancellationToken) =>
+{
+    var result = await handler.HandleAsync(command, cancellationToken);
+    return Results.Created($"/products/{result.Id}", result);
+}).RequireAuthorization("CanManageProducts");
+
+// Update product
+app.MapPut("/products/{id:guid}", async (
+    ICommandHandler<UpdateProductCommand, ProductDto> handler,
+    Guid id,
+    UpdateProductCommand command,
+    CancellationToken cancellationToken) =>
+{
+    // Ensure ID matches
+    if (id != command.Id)
+    {
+        return Results.BadRequest("Product ID in URL does not match body");
+    }
+
+    var result = await handler.HandleAsync(command, cancellationToken);
+    return Results.Ok(result);
+}).RequireAuthorization("CanManageProducts");
+
+// Delete product (soft delete)
+app.MapDelete("/products/{id:guid}", async (
+    ICommandHandler<DeleteProductCommand> handler,
+    Guid id,
+    CancellationToken cancellationToken) =>
+{
+    await handler.HandleAsync(new DeleteProductCommand(id), cancellationToken);
+    return Results.NoContent();
+}).RequireAuthorization("CanManageProducts");
+
+// Adjust product quantity
+app.MapPost("/products/{id:guid}/adjust-quantity", async (
+    ICommandHandler<AdjustProductQuantityCommand, int> handler,
+    Guid id,
+    AdjustQuantityRequest request,
+    CancellationToken cancellationToken) =>
+{
+    var command = new AdjustProductQuantityCommand
+    {
+        ProductId = id,
+        TargetQuantity = request.TargetQuantity,
+        Reason = request.Reason
+    };
+
+    var newBalance = await handler.HandleAsync(command, cancellationToken);
+    return Results.Ok(new { productId = id, quantity = newBalance });
+}).RequireAuthorization("CanAdjustInventory");
+
+// Generate next barcode
+app.MapPost("/products/next-barcode", async (
+    IQueryHandler<GenerateBarcodeQuery, string> handler,
+    CancellationToken cancellationToken) =>
+{
+    var barcode = await handler.HandleAsync(new GenerateBarcodeQuery(), cancellationToken);
+    return Results.Ok(new { barcode });
+}).RequireAuthorization("CanManageProducts");
 
 // Sales endpoint
 app.MapPost("/sales/complete", async (
