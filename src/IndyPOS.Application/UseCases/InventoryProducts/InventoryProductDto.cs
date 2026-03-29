@@ -3,14 +3,15 @@
 public record InventoryProductDto
 {
 	/// <summary>
-	/// Legacy SQLite product ID.
+	/// Primary product ID (StoreHub UUID).
 	/// </summary>
-	public int InventoryProductId { get; init; }
+	public required Guid Id { get; init; }
 
 	/// <summary>
-	/// StoreHub product ID (UUID). Null for legacy SQLite-only products.
+	/// Legacy SQLite product ID. Zero for StoreHub-only products.
 	/// </summary>
-	public Guid? StoreHubProductId { get; init; }
+	[Obsolete("Use Id (Guid) instead. Kept for legacy SQLite compatibility.")]
+	public int InventoryProductId { get; init; }
 
 	public string Barcode { get; init; } = string.Empty;
 	public string Description { get; init; } = string.Empty;

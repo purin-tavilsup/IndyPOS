@@ -99,24 +99,23 @@ public class StoreHubSaleService : ISaleService
         Products.Add(productToAdd);
     }
 
-    private static Product ConvertToInvoiceProduct(InventoryProductDto legacyProduct)
+    private static Product ConvertToInvoiceProduct(InventoryProductDto product)
     {
         return new Product
         {
-            InventoryProductId = legacyProduct.InventoryProductId,
-            StoreHubProductId = legacyProduct.StoreHubProductId,
-            Barcode = legacyProduct.Barcode,
-            Description = legacyProduct.Description,
-            Manufacturer = legacyProduct.Manufacturer,
-            Brand = legacyProduct.Brand,
-            Category = legacyProduct.Category,
-            UnitPrice = legacyProduct.UnitPrice,
-            OriginalUnitPrice = legacyProduct.UnitPrice,
+            Id = product.Id,
+            Barcode = product.Barcode,
+            Description = product.Description,
+            Manufacturer = product.Manufacturer,
+            Brand = product.Brand,
+            Category = product.Category,
+            UnitPrice = product.UnitPrice,
+            OriginalUnitPrice = product.UnitPrice,
             Quantity = 1,
-            GroupPrice = legacyProduct.GroupPrice,
-            GroupPriceQuantity = legacyProduct.GroupPriceQuantity,
+            GroupPrice = product.GroupPrice,
+            GroupPriceQuantity = product.GroupPriceQuantity,
             IsGroupProduct = false,
-            IsTrackable = legacyProduct.IsTrackable
+            IsTrackable = product.IsTrackable
         };
     }
 
@@ -130,18 +129,16 @@ public class StoreHubSaleService : ISaleService
             throw new ProductNotFoundException($"Product not found: {barcode}");
         }
 
-        // Convert StoreHub ProductDto to legacy InventoryProductDto for compatibility
-        var legacyDto = ConvertToLegacyDto(cachedProduct);
+        var dto = ConvertToInventoryDto(cachedProduct);
 
-        return Task.FromResult(legacyDto);
+        return Task.FromResult(dto);
     }
 
-    private static InventoryProductDto ConvertToLegacyDto(ProductDto product)
+    private static InventoryProductDto ConvertToInventoryDto(ProductDto product)
     {
         return new InventoryProductDto
         {
-            InventoryProductId = 0, // Not used with StoreHub
-            StoreHubProductId = product.Id,
+            Id = product.Id,
             Barcode = product.Barcode,
             Description = product.Name,
             Manufacturer = product.Manufacturer ?? string.Empty,
@@ -173,15 +170,13 @@ public class StoreHubSaleService : ISaleService
         _eventAggregator.GetEvent<InvoiceProductRemovedEvent>().Publish();
     }
 
-    public void UpdateProductUnitPrice(int inventoryProductId, int priority, decimal unitPrice, string note)
+    public void UpdateProductUnitPrice(Guid productId, int priority, decimal unitPrice, string note)
     {
-        var productToUpdate = Products.FirstOrDefault(p =>
-            (p.InventoryProductId == inventoryProductId || p.StoreHubProductId.HasValue) &&
-            p.Priority == priority);
+        var productToUpdate = Products.FirstOrDefault(p => p.Id == productId && p.Priority == priority);
 
         if (productToUpdate is null)
         {
-            throw new ProductNotFoundException($"Sale Invoice Product not found. Priority: {priority}");
+            throw new ProductNotFoundException($"Sale Invoice Product not found. ProductId: {productId}, Priority: {priority}");
         }
 
         if (productToUpdate.UnitPrice == unitPrice)
@@ -193,15 +188,13 @@ public class StoreHubSaleService : ISaleService
         _eventAggregator.GetEvent<InvoiceProductUpdatedEvent>().Publish();
     }
 
-    public Task UpdateProductQuantityAsync(int inventoryProductId, int priority, int newQuantity)
+    public Task UpdateProductQuantityAsync(Guid productId, int priority, int newQuantity)
     {
-        var productToUpdate = Products.FirstOrDefault(p =>
-            (p.InventoryProductId == inventoryProductId || p.StoreHubProductId.HasValue) &&
-            p.Priority == priority);
+        var productToUpdate = Products.FirstOrDefault(p => p.Id == productId && p.Priority == priority);
 
         if (productToUpdate is null)
         {
-            throw new ProductNotFoundException($"Sale Invoice Product not found. Priority: {priority}");
+            throw new ProductNotFoundException($"Sale Invoice Product not found. ProductId: {productId}, Priority: {priority}");
         }
 
         if (productToUpdate.Quantity == newQuantity)
@@ -328,7 +321,7 @@ public class StoreHubSaleService : ISaleService
     private CompleteSaleRequest BuildCompleteSaleRequest()
     {
         var lines = Products.Select(p => new SaleLineRequest(
-            ProductId: p.StoreHubProductId ?? throw new InvalidOperationException($"Product {p.Barcode} missing StoreHubProductId"),
+            ProductId: p.Id,
             Quantity: p.Quantity,
             UnitPrice: p.UnitPrice
         )).ToList();

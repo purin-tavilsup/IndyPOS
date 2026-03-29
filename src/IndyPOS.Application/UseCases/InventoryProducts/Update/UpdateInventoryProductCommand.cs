@@ -2,6 +2,11 @@
 
 namespace IndyPOS.Application.UseCases.InventoryProducts.Update;
 
+/// <summary>
+/// Legacy command for SQLite inventory products. Uses int ID.
+/// For StoreHub, use UpdateProductCommand instead.
+/// </summary>
+[Obsolete("Use UpdateProductCommand for StoreHub mode")]
 public record UpdateInventoryProductCommand : ICommand
 {
 	public int Id { get; set; }

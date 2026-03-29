@@ -639,8 +639,8 @@ POST /sync/events → SyncedEvents table → EventProcessor (background)
 | 1.4 | StoreSetting entity + EF config | ✅ Complete |
 | 1.1-1.2 | Extend ProductRepository (Update, Delete, ExistsByBarcode) | ✅ Complete |
 | 1.5-1.6 | Capabilities + StoreHub endpoints | ✅ Complete |
-| 2 | Extend IStoreHubClient + cache invalidation | 🔴 Pending |
-| 3 | Migrate to Guid IDs | 🔴 Pending |
+| 2 | Extend IStoreHubClient + cache invalidation | ✅ Complete |
+| 3 | Migrate to Guid IDs | ✅ Complete |
 | 4-5 | Create IInventoryProductService + update handlers | 🔴 Pending |
 | 6 | Database migration for StoreSetting | 🔴 Pending |
 | 7 | Unit + integration tests | 🔴 Pending |

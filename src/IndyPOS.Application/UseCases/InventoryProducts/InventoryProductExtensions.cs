@@ -1,4 +1,5 @@
-﻿using IndyPOS.Application.UseCases.InventoryProducts.Create;
+﻿using IndyPOS.Application.Common.Helpers;
+using IndyPOS.Application.UseCases.InventoryProducts.Create;
 using IndyPOS.Application.UseCases.InventoryProducts.Update;
 using IndyPOS.Domain.Entities;
 
@@ -10,8 +11,10 @@ internal static class InventoryProductExtensions
 	{
 		return new InventoryProductDto
 		{
+			Id = LegacyIdHelper.ToGuid(entity.InventoryProductId),
+#pragma warning disable CS0618 // Keep for legacy SQLite compatibility
 			InventoryProductId = entity.InventoryProductId,
-			StoreHubProductId = null, // SQLite entities don't have StoreHub IDs
+#pragma warning restore CS0618
 			Barcode = entity.Barcode,
 			Description = entity.Description,
 			Manufacturer = entity.Manufacturer,
