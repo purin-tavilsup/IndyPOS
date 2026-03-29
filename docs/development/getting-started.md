@@ -171,26 +171,33 @@ IndyPOS/
 dotnet test tests/IndyPOS.Application.Tests/
 ```
 
-**Current Status: 179 tests**
+**Current Status: 266 tests** (202 unit + 49 integration + 15 migration)
 
 ### Test Categories
 
 ```
-tests/IndyPOS.Application.Tests/
-├── Common/                      # Authorization, helpers
-│   └── Authorization/           # RoleCapabilities tests
-├── Integration/                 # HTTP client integration tests
-│   └── StoreHub/
-│       ├── StoreHubHttpClientTests.cs  # Mocked HTTP handler
-│       └── StoreHubE2ETests.cs         # WireMock E2E tests
-├── StoreHub/                    # Use case tests
-│   ├── Auth/                    # BCrypt, JWT, Login
-│   ├── Products/
-│   ├── Sales/
-│   └── Services/                # SyncWorker, UserSync
-├── UseCases/
-│   └── Cloud/                   # CloudApi handlers
-└── Infrastructure/              # DPAPI, storage tests
+tests/
+├── IndyPOS.Application.Tests/        # 202 unit tests
+│   ├── Common/Authorization/         # RoleCapabilities tests
+│   ├── Integration/StoreHub/         # WireMock E2E tests
+│   ├── StoreHub/                     # Auth, Products, Sales handlers
+│   ├── UseCases/Cloud/               # CloudApi handlers
+│   └── Infrastructure/               # DPAPI, storage tests
+│
+├── IndyPOS.StoreHub.IntegrationTests/  # 49 integration tests
+│   ├── StoreHubWebApplicationFactory.cs
+│   ├── IntegrationTestBase.cs
+│   └── Endpoints/
+│       ├── AuthEndpointTests.cs
+│       ├── ProductsEndpointTests.cs
+│       ├── SalesEndpointTests.cs
+│       ├── ReportsEndpointTests.cs
+│       └── SyncEndpointTests.cs
+│
+└── IndyPOS.Migration.Tests/          # 15 migration tests
+    ├── MigrationTestFixture.cs
+    ├── ProductMigrationTests.cs
+    └── InvoiceMigrationTests.cs
 ```
 
 ### Test Frameworks Used
@@ -220,9 +227,57 @@ dotnet test --filter "FullyQualifiedName~Authorization"
 
 | Test Type          | Docker Required? | Notes                           |
 |--------------------|------------------|---------------------------------|
-| Unit tests         | No               | All mocked                      |
-| Integration tests  | No               | Uses WireMock, mocked handlers  |
+| Unit tests         | No               | All mocked (202 tests)          |
+| Integration tests  | Yes              | Testcontainers PostgreSQL (49)  |
+| Migration tests    | Yes              | Testcontainers PostgreSQL (15)  |
 | Manual E2E testing | Yes              | Real PostgreSQL via Aspire      |
+
+---
+
+## Running WinForms with Aspire
+
+To test the full stack (WinForms → StoreHub → PostgreSQL):
+
+### 1. Start Aspire (StoreHub + PostgreSQL)
+
+```bash
+# Ensure Docker Desktop is running
+dotnet run --project src/IndyPOS.AppHost --launch-profile https
+```
+
+### 2. Check StoreHub URL
+
+Open Aspire Dashboard at `https://localhost:17222` and find the StoreHub endpoint (usually `http://localhost:5000`).
+
+### 3. Configure WinForms
+
+Edit `src/IndyPOS.Windows.Forms/appsettings.json`:
+```json
+{
+  "StoreHub": {
+    "Enabled": true,
+    "BaseUrl": "http://localhost:5000",
+    "AutoSyncProductsOnStartup": true,
+    "TimeoutSeconds": 30
+  }
+}
+```
+
+### 4. Run WinForms (Separate Process)
+
+```bash
+dotnet run --project src/IndyPOS.Windows.Forms
+```
+
+Or in Rider: Right-click `IndyPOS.Windows.Forms` → Run
+
+### Pro Tip: Compound Run Configuration (Rider)
+
+1. **Run → Edit Configurations**
+2. Click **+** → **Compound**
+3. Name: `Full Stack (Aspire + WinForms)`
+4. Add: `IndyPOS.AppHost`, `IndyPOS.Windows.Forms`
+5. Now one click runs everything!
 
 ---
 
