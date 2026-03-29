@@ -1,4 +1,5 @@
 ﻿using IndyPOS.Application.Abstractions.Pos.Repositories;
+using IndyPOS.Application.Common.Helpers;
 using IndyPOS.Domain.Events;
 using Nokpirab;
 
@@ -20,7 +21,8 @@ public class UpdateInventoryProductCommandHandler : ICommandHandler<UpdateInvent
 	{
 		_ = _productRepository.Update(command.ToEntity());
 
-		_eventAggregator.GetEvent<InventoryProductUpdatedEvent>().Publish(command.Id);
+		var guid = LegacyIdHelper.ToGuid(command.Id);
+		_eventAggregator.GetEvent<InventoryProductUpdatedEvent>().Publish(guid);
 
 		return Task.CompletedTask;
 	}

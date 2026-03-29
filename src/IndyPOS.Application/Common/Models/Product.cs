@@ -6,14 +6,15 @@ namespace IndyPOS.Application.Common.Models;
 public class Product
 {
     /// <summary>
-    /// Legacy SQLite product ID. Used by legacy SaleService.
+    /// Primary product ID (StoreHub UUID).
     /// </summary>
-	public int InventoryProductId { get; init; }
+    public required Guid Id { get; init; }
 
     /// <summary>
-    /// StoreHub product ID (UUID). Used by StoreHubSaleService.
+    /// Legacy SQLite product ID. Zero for StoreHub-only products.
     /// </summary>
-    public Guid? StoreHubProductId { get; init; }
+    [Obsolete("Use Id (Guid) instead. Kept for legacy SQLite compatibility.")]
+    public int InventoryProductId { get; init; }
 
     public string Barcode { get; init; } = string.Empty;
 

@@ -8,6 +8,12 @@ public record CreateInvoiceProductCommand : ICommand
 
 	public int InvoiceId { get; set; }
 
+	/// <summary>
+	/// Product ID (StoreHub UUID).
+	/// </summary>
+	public Guid ProductId { get; set; }
+
+	[Obsolete("Use ProductId (Guid) instead. Kept for legacy SQLite compatibility.")]
 	public int InventoryProductId { get; set; }
 
 	public string Barcode { get; set; } = string.Empty;

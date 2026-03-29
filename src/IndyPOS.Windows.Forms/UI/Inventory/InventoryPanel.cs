@@ -1,4 +1,5 @@
-﻿using IndyPOS.Application.Common.Interfaces;
+﻿using IndyPOS.Application.Common.Helpers;
+using IndyPOS.Application.Common.Interfaces;
 using IndyPOS.Application.Events;
 using IndyPOS.Domain.Events;
 using IndyPOS.Windows.Forms.Enums;
@@ -254,10 +255,12 @@ public partial class InventoryPanel : UserControl
         return result;
     }
 
-    private async Task<InventoryProductDto> GetInventoryProductsByIdAsync(int id)
+    private async Task<InventoryProductDto> GetInventoryProductsByIdAsync(Guid id)
     {
-        var result = await _nokpirab.SendAsync(new GetInventoryProductByIdQuery(id));
-
+        var legacyId = LegacyIdHelper.ToInt(id);
+#pragma warning disable CS0618 // Legacy SQLite query
+        var result = await _nokpirab.SendAsync(new GetInventoryProductByIdQuery(legacyId));
+#pragma warning restore CS0618
         return result;
     }
 
@@ -299,7 +302,7 @@ public partial class InventoryPanel : UserControl
         });
     }
 
-    private async void NewInventoryProductAdded(int id)
+    private async void NewInventoryProductAdded(Guid id)
     {
         try
         {
@@ -318,7 +321,7 @@ public partial class InventoryPanel : UserControl
         }
     }
 
-    private async void InventoryProductUpdated(int inventoryProductId)
+    private async void InventoryProductUpdated(Guid productId)
     {
         if (!_lastQueryCategoryId.HasValue)
             return;

@@ -42,7 +42,7 @@ public interface ISaleService
 
 	void AddPayment(PaymentType paymentType, decimal paymentAmount, string note);
 
-	Task UpdateProductQuantityAsync(int inventoryProductId, int priority, int quantity);
+	Task UpdateProductQuantityAsync(Guid productId, int priority, int quantity);
 
-	void UpdateProductUnitPrice(int inventoryProductId, int priority, decimal unitPrice, string note);
+	void UpdateProductUnitPrice(Guid productId, int priority, decimal unitPrice, string note);
 }

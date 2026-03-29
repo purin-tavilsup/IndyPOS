@@ -1,6 +1,7 @@
 ﻿using IndyPOS.Application.Common.Enums;
 using IndyPOS.Application.Common.Exceptions;
 using IndyPOS.Application.Common.Extensions;
+using IndyPOS.Application.Common.Helpers;
 using IndyPOS.Application.Common.Interfaces;
 using IndyPOS.Application.Common.Models;
 using IndyPOS.Application.Events;
@@ -89,7 +90,10 @@ public class SaleService : ISaleService
 	{
 		return new Product
 		{
+			Id = product.Id,
+#pragma warning disable CS0618 // Keep for legacy SQLite compatibility
 			InventoryProductId = product.InventoryProductId,
+#pragma warning restore CS0618
 			Barcode = product.Barcode,
 			Description = product.Description,
 			Manufacturer = product.Manufacturer,
@@ -203,21 +207,25 @@ public class SaleService : ISaleService
 		return result;
 	}
 
-	private async Task<InventoryProductDto> GetInventoryProductByIdAsync(int id)
+	private async Task<InventoryProductDto> GetInventoryProductByIdAsync(Guid id)
 	{
-		var result = await _nokpirab.SendAsync(new GetInventoryProductByIdQuery(id));
-
+		var legacyId = LegacyIdHelper.ToInt(id);
+#pragma warning disable CS0618 // Legacy SQLite query
+		var result = await _nokpirab.SendAsync(new GetInventoryProductByIdQuery(legacyId));
+#pragma warning restore CS0618
 		return result;
 	}
 
-	private async Task UpdateInventoryProductQuantityAsync(int id, int quantity)
+	private async Task UpdateInventoryProductQuantityAsync(Guid id, int quantity)
 	{
+		var legacyId = LegacyIdHelper.ToInt(id);
+#pragma warning disable CS0618 // Legacy SQLite command
 		var command = new UpdateInventoryProductQuantityCommand
 		{
-			Id = id,
+			Id = legacyId,
 			Quantity = quantity
 		};
-
+#pragma warning restore CS0618
 		await _nokpirab.SendAsync(command);
 	}
 
@@ -241,18 +249,15 @@ public class SaleService : ISaleService
 		Payments.Add(payment);
 	}
 
-	public void UpdateProductUnitPrice(int inventoryProductId, int priority, decimal unitPrice, string note)
+	public void UpdateProductUnitPrice(Guid productId, int priority, decimal unitPrice, string note)
 	{
-		var productToUpdate = Products.FirstOrDefault(p => p.InventoryProductId == inventoryProductId && 
-														   p.Priority           == priority);
+		var productToUpdate = Products.FirstOrDefault(p => p.Id == productId && p.Priority == priority);
 
 		if (productToUpdate is null)
 		{
-			var message = $"Sale Invoice Product is not found. InventoryProductId: {inventoryProductId}. Priority: {priority}.";
-
-			throw new ProductNotFoundException(message);
+			throw new ProductNotFoundException($"Sale Invoice Product is not found. ProductId: {productId}. Priority: {priority}.");
 		}
-		
+
 		if (productToUpdate.UnitPrice == unitPrice) { return; }
 
 		productToUpdate.UnitPrice = unitPrice;
@@ -261,22 +266,20 @@ public class SaleService : ISaleService
 		_eventAggregator.GetEvent<InvoiceProductUpdatedEvent>().Publish();
 	}
 
-	public async Task UpdateProductQuantityAsync(int inventoryProductId, int priority, int newQuantity)
+	public async Task UpdateProductQuantityAsync(Guid productId, int priority, int newQuantity)
 	{
-		var productToUpdate = Products.FirstOrDefault(p => p.InventoryProductId == inventoryProductId &&
-														   p.Priority == priority);
+		var productToUpdate = Products.FirstOrDefault(p => p.Id == productId && p.Priority == priority);
 
 		if (productToUpdate == null)
 		{
-			var message = $"Sale Invoice Product is not found. InventoryProductId: {inventoryProductId}. Priority: {priority}.";
-			throw new ProductNotFoundException(message);
+			throw new ProductNotFoundException($"Sale Invoice Product is not found. ProductId: {productId}. Priority: {priority}.");
 		}
 
 		if (productToUpdate.Quantity == newQuantity)
 		{
 			return;
 		}
-		
+
 		if (!productToUpdate.HasGroupPrice())
 		{
 			productToUpdate.Quantity = newQuantity;
@@ -308,7 +311,7 @@ public class SaleService : ISaleService
 	{
 		var quantityToAdd = newQuantity;
 		var groupPriceQuantity = product.GroupPriceQuantity.GetValueOrDefault();
-		var inventoryProduct = await GetInventoryProductByIdAsync(product.InventoryProductId);
+		var inventoryProduct = await GetInventoryProductByIdAsync(product.Id);
 
 		while (IsEligibleForGroupPrice(product, quantityToAdd))
 		{
@@ -414,7 +417,7 @@ public class SaleService : ISaleService
 	{
 		var productGroups = invoiceInfo.Products
 									   .Where(p => p.IsTrackable)
-									   .GroupBy(p => p.InventoryProductId);
+									   .GroupBy(p => p.Id);
 
 		foreach (var group in productGroups)
 		{

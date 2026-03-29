@@ -1,4 +1,5 @@
-﻿using IndyPOS.Application.Common.Models;
+﻿using IndyPOS.Application.Common.Helpers;
+using IndyPOS.Application.Common.Models;
 using IndyPOS.Application.UseCases.InvoiceProducts;
 
 namespace IndyPOS.Application.Common.Extensions;
@@ -19,7 +20,10 @@ public static class ProductExtensions
 	{
 		return new Product
 		{
+			Id = LegacyIdHelper.ToGuid(product.InventoryProductId),
+#pragma warning disable CS0618 // Keep for legacy SQLite compatibility
 			InventoryProductId = product.InventoryProductId,
+#pragma warning restore CS0618
 			Barcode = product.Barcode,
 			Description = product.Description,
 			Manufacturer = product.Manufacturer,
