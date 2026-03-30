@@ -9,6 +9,7 @@ using IndyPOS.Application.UseCases.Cloud.Users.CreateUser;
 using IndyPOS.Application.UseCases.Cloud.Users.UpdateUser;
 using IndyPOS.Application.UseCases.Cloud.Users.DeactivateUser;
 using IndyPOS.Application.UseCases.Cloud.Users.GetUsers;
+using IndyPOS.Application.UseCases.Cloud.Sync.BulkMigration;
 using IndyPOS.CloudApi.Domain;
 using IndyPOS.CloudApi.Infrastructure;
 using IndyPOS.CloudApi.Infrastructure.Auth;
@@ -45,6 +46,7 @@ builder.Services.AddTransient<ICommandHandler<CreateCloudUserCommand, CreateClou
 builder.Services.AddTransient<ICommandHandler<UpdateCloudUserCommand, UpdateCloudUserResponse>, UpdateCloudUserCommandHandler>();
 builder.Services.AddTransient<ICommandHandler<DeactivateCloudUserCommand, DeactivateCloudUserResponse>, DeactivateCloudUserCommandHandler>();
 builder.Services.AddTransient<IQueryHandler<GetCloudUsersQuery, GetCloudUsersResponse>, GetCloudUsersQueryHandler>();
+builder.Services.AddTransient<ICommandHandler<BulkMigrationCommand, BulkMigrationResponse>, BulkMigrationCommandHandler>();
 
 // Add OpenIddict OAuth2 server
 builder.Services.AddOpenIddictServer(builder.Configuration);
@@ -140,6 +142,22 @@ app.MapPost("/sync/events", [Authorize] async (
     var command = new IngestEventsCommand(request.Events);
     var response = await handler.HandleAsync(command, cancellationToken);
     return Results.Ok(response);
+}).RequireAuthorization();
+
+// Bulk migration endpoint - one-time sync from SQLite migration
+// Requires OAuth2 token (store must be registered)
+app.MapPost("/sync/bulk-migration", [Authorize] async (
+    ICommandHandler<BulkMigrationCommand, BulkMigrationResponse> handler,
+    BulkMigrationRequest request,
+    CancellationToken cancellationToken) =>
+{
+    var command = new BulkMigrationCommand(
+        request.StoreId,
+        request.Users,
+        request.Products,
+        request.Invoices);
+    var response = await handler.HandleAsync(command, cancellationToken);
+    return response.Success ? Results.Ok(response) : Results.BadRequest(response);
 }).RequireAuthorization();
 
 // Sync status endpoint
