@@ -62,42 +62,68 @@ Clean Architecture with 4 layers:
 - **Infrastructure** - Repositories, external services
 - **Presentation** - UI (WinForms), APIs (StoreHub, CloudApi)
 
-## Project Structure
+## Solution Structure
 
 ```
-src/
-├── IndyPOS.Domain/          # Core entities
-├── IndyPOS.Application/     # Use cases (CQRS)
-├── IndyPOS.Infrastructure/  # EF Core, repositories
-├── IndyPOS.StoreHub/        # Local API service
-├── IndyPOS.CloudApi/        # Central cloud API
-├── IndyPOS.Windows.Forms/   # Desktop UI
-├── IndyPOS.AppHost/         # Aspire orchestrator
-└── IndyPOS.ServiceDefaults/ # Shared config
+📁 Core
+├── IndyPOS.Domain/              # Core entities, business rules
+├── IndyPOS.Application/         # Use cases (CQRS commands/queries)
+└── IndyPOS.Infrastructure/      # EF Core, repositories, services
 
-tests/
-└── IndyPOS.Application.Tests/  # 179 tests (unit + integration)
+📁 DesktopApp
+└── IndyPOS.Windows.Forms/       # Desktop UI (WinForms)
 
-docs/                        # Documentation
-.planning/                   # Planning docs, ADRs
+📁 Services
+├── IndyPOS.StoreHub/            # Local API service (per-store)
+└── IndyPOS.CloudApi/            # Central cloud API
+
+📁 DevAppHost
+├── IndyPOS.AppHost/             # Aspire orchestrator (dev only)
+└── IndyPOS.ServiceDefaults/     # Shared health checks, telemetry
+
+📁 Tools
+└── IndyPOS.MigrationTool/       # SQLite → PostgreSQL migration CLI
+
+📁 Tests
+├── 📁 Core
+│   └── IndyPOS.Application.Tests/
+├── 📁 DesktopApp
+│   └── IndyPOS.Windows.Forms.Tests/
+├── 📁 Services
+│   └── IndyPOS.StoreHub.IntegrationTests/
+├── 📁 Tools
+│   ├── IndyPOS.Migration.Tests/
+│   └── IndyPOS.MigrationTool.Tests/
+└── IndyPOS.Mock/
+
+docs/                            # Documentation
+.planning/                       # Planning docs, ADRs
 ```
 
 ## Testing
 
 ```bash
-# All tests (no Docker required)
+# All tests (unit tests - no Docker required)
 dotnet test tests/IndyPOS.Application.Tests/
+dotnet test tests/IndyPOS.Windows.Forms.Tests/
 
-# Run specific category
-dotnet test --filter "FullyQualifiedName~StoreHub"
-dotnet test --filter "FullyQualifiedName~Integration"
+# Integration tests (requires Docker for Testcontainers)
+dotnet test tests/IndyPOS.StoreHub.IntegrationTests/
+dotnet test tests/IndyPOS.MigrationTool.Tests/
+
+# Run all tests
+dotnet test
 ```
 
-| Test Type | Docker? | Framework |
-|-----------|---------|-----------|
-| Unit tests | No | xUnit, Moq, AutoFixture |
-| Integration tests | No | WireMock.Net |
-| Manual E2E | Yes | Aspire + PostgreSQL |
+| Test Project | Tests | Docker? | Framework |
+|--------------|-------|---------|-----------|
+| Application.Tests | 202 | No | xUnit, Moq, AutoFixture |
+| Windows.Forms.Tests | ~20 | No | xUnit, Moq |
+| StoreHub.IntegrationTests | 49 | Yes | Testcontainers, Respawn |
+| MigrationTool.Tests | 23 | Yes | Testcontainers, Bogus |
+| Migration.Tests | 15 | Yes | Testcontainers |
+
+**Total: 300+ tests**
 
 ## Documentation
 
@@ -105,6 +131,8 @@ dotnet test --filter "FullyQualifiedName~Integration"
 - [Architecture Overview](docs/architecture/overview.md)
 - [ASCII Diagrams](docs/diagrams/architecture-overview.md)
 - [Data Flow](docs/diagrams/data-flow.md)
+- [Operations Runbook](docs/operations/RUNBOOK.md) - Production support
+- [Migration Tool](src/IndyPOS.MigrationTool/README.md) - SQLite → PostgreSQL
 
 ## Store Configuration
 
