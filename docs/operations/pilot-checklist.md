@@ -95,16 +95,47 @@ Invoke-RestMethod -Uri "http://localhost:5000/health/ready" -Method GET
 ```powershell
 # Run migration tool (one-time)
 cd "C:\Program Files\IndyPOS\StoreHub"
+
+# Step 4a: Dry run first to validate data
 .\IndyPOS.MigrationTool.exe `
   --sqlite "C:\ProgramData\IndyPOS\db\Store.db" `
+  --postgres "Host=127.0.0.1;Database=indypos_storehub;Username=indypos_app;Password=<APP_PASSWORD>" `
+  --store-id "STORE-001" `
+  --dry-run
+
+# Step 4b: Execute actual migration
+.\IndyPOS.MigrationTool.exe `
+  --sqlite "C:\ProgramData\IndyPOS\db\Store.db" `
+  --postgres "Host=127.0.0.1;Database=indypos_storehub;Username=indypos_app;Password=<APP_PASSWORD>" `
+  --store-id "STORE-001"
+
+# Step 4c: Verify migration with verification tool
+.\IndyPOS.MigrationTool.exe verify `
+  --sqlite "C:\ProgramData\IndyPOS\db\Store.db" `
+  --postgres "Host=127.0.0.1;Database=indypos_storehub;Username=indypos_app;Password=<APP_PASSWORD>" `
   --store-id "STORE-001"
 ```
 
+**Optional: Cloud Sync After Migration**
+```powershell
+# If cloud sync is configured, add OAuth2 credentials
+.\IndyPOS.MigrationTool.exe `
+  --sqlite "C:\ProgramData\IndyPOS\db\Store.db" `
+  --postgres "Host=127.0.0.1;Database=indypos_storehub;Username=indypos_app;Password=<APP_PASSWORD>" `
+  --store-id "STORE-001" `
+  --cloud-api "https://cloud.indypos.app" `
+  --client-id "<CLIENT_ID>" `
+  --client-secret "<CLIENT_SECRET>"
+```
+
 **Verification:**
+- [ ] Dry run completes without errors
 - [ ] Migration completes without errors
-- [ ] Product count matches SQLite
-- [ ] User count matches SQLite
-- [ ] Invoice count matches SQLite
+- [ ] Verification tool shows all checks passed (✓)
+- [ ] Product count matches: SQLite → PostgreSQL
+- [ ] User count matches: SQLite → PostgreSQL
+- [ ] Invoice count matches: SQLite → PostgreSQL
+- [ ] Revenue totals match (within ±$0.01)
 
 ### Step 5: Configure Backup Schedule
 ```powershell

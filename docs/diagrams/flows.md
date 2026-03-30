@@ -686,6 +686,88 @@ This document contains detailed ASCII diagrams for all major flows in the IndyPO
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
 
+### Migration Tool CLI
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                      MIGRATION TOOL COMMANDS                                 │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                              │
+│   1. DRY RUN (Validate Data)                                                │
+│   ┌─────────────────────────────────────────────────────────────────────┐   │
+│   │  IndyPOS.MigrationTool.exe                                          │   │
+│   │    --sqlite "C:\ProgramData\IndyPOS\db\Store.db"                   │   │
+│   │    --postgres "Host=127.0.0.1;Database=indypos;..."                │   │
+│   │    --store-id "STORE-001"                                          │   │
+│   │    --dry-run                                                        │   │
+│   │                                                                      │   │
+│   │  Output: Shows what WOULD be migrated without making changes        │   │
+│   └─────────────────────────────────────────────────────────────────────┘   │
+│                                                                              │
+│   2. EXECUTE MIGRATION                                                       │
+│   ┌─────────────────────────────────────────────────────────────────────┐   │
+│   │  IndyPOS.MigrationTool.exe                                          │   │
+│   │    --sqlite "C:\ProgramData\IndyPOS\db\Store.db"                   │   │
+│   │    --postgres "Host=127.0.0.1;Database=indypos;..."                │   │
+│   │    --store-id "STORE-001"                                          │   │
+│   │                                                                      │   │
+│   │  Output:                                                            │   │
+│   │  ┌───────────┬──────────┬─────────┬────────┐                        │   │
+│   │  │ Entity    │ Migrated │ Skipped │ Failed │                        │   │
+│   │  ├───────────┼──────────┼─────────┼────────┤                        │   │
+│   │  │ Users     │       5  │       0 │      0 │                        │   │
+│   │  │ Products  │     150  │       0 │      0 │                        │   │
+│   │  │ Invoices  │   1,234  │       0 │      0 │                        │   │
+│   │  │ Payments  │   1,500  │       0 │      0 │                        │   │
+│   │  │ PayLater  │      12  │       0 │      0 │                        │   │
+│   │  └───────────┴──────────┴─────────┴────────┘                        │   │
+│   │                                                                      │   │
+│   │  ✓ Migration completed successfully!                                │   │
+│   └─────────────────────────────────────────────────────────────────────┘   │
+│                                                                              │
+│   3. VERIFY MIGRATION                                                        │
+│   ┌─────────────────────────────────────────────────────────────────────┐   │
+│   │  IndyPOS.MigrationTool.exe verify                                   │   │
+│   │    --sqlite "C:\ProgramData\IndyPOS\db\Store.db"                   │   │
+│   │    --postgres "Host=127.0.0.1;Database=indypos;..."                │   │
+│   │    --store-id "STORE-001"                                          │   │
+│   │                                                                      │   │
+│   │  Output:                                                            │   │
+│   │  ┌───────────────┬─────────┬────────────┬────────┐                  │   │
+│   │  │ Entity        │ SQLite  │ PostgreSQL │ Status │                  │   │
+│   │  ├───────────────┼─────────┼────────────┼────────┤                  │   │
+│   │  │ Users         │       5 │          5 │   ✓    │                  │   │
+│   │  │ Products      │     150 │        150 │   ✓    │                  │   │
+│   │  │ Invoices      │   1,234 │      1,234 │   ✓    │                  │   │
+│   │  │ Invoice Lines │   3,500 │      3,500 │   ✓    │                  │   │
+│   │  │ Payments      │   1,500 │      1,500 │   ✓    │                  │   │
+│   │  │ PayLater      │      12 │         12 │   ✓    │                  │   │
+│   │  │ Total Revenue │$125,000 │   $125,000 │   ✓    │                  │   │
+│   │  └───────────────┴─────────┴────────────┴────────┘                  │   │
+│   │                                                                      │   │
+│   │  ✓ Migration verification passed!                                   │   │
+│   └─────────────────────────────────────────────────────────────────────┘   │
+│                                                                              │
+│   4. MIGRATE WITH CLOUD SYNC                                                 │
+│   ┌─────────────────────────────────────────────────────────────────────┐   │
+│   │  IndyPOS.MigrationTool.exe                                          │   │
+│   │    --sqlite "..."                                                   │   │
+│   │    --postgres "..."                                                 │   │
+│   │    --store-id "STORE-001"                                          │   │
+│   │    --cloud-api "https://cloud.indypos.app"                         │   │
+│   │    --client-id "<OAUTH_CLIENT_ID>"                                 │   │
+│   │    --client-secret "<OAUTH_CLIENT_SECRET>"                         │   │
+│   │                                                                      │   │
+│   │  Flow:                                                              │   │
+│   │  1. Migrate SQLite → PostgreSQL (local)                            │   │
+│   │  2. Get OAuth2 token from Cloud API                                │   │
+│   │  3. POST /sync/bulk-migration with all migrated data               │   │
+│   │  4. Cloud imports: Users, Products, Invoices                       │   │
+│   └─────────────────────────────────────────────────────────────────────┘   │
+│                                                                              │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
 ---
 
 ## 6. Product Management Flow
