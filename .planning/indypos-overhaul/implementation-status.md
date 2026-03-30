@@ -1017,6 +1017,12 @@ Upgraded the entire solution from .NET 8 to .NET 10 LTS before starting Epic C.
 1. **Epic I:** Cloud Infrastructure deployment (post-pilot, when multi-store sync needed)
 2. **Epic S:** S6-S9 (LOW priority - key rotation, audit logging, rate limiting, secrets management)
 
+### Backlog (Future Enhancements)
+| Item | Description | Priority |
+|------|-------------|----------|
+| Migration `--sync-to-cloud` flag | Create outbox events for migrated invoices to sync historical data to cloud | LOW |
+| └─ Tests for `--sync-to-cloud` | Verify outbox events created with correct payload, event count matches invoice count, idempotency on re-run | LOW |
+
 ---
 
 ## Statistics
