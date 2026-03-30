@@ -851,6 +851,52 @@ Upgraded the entire solution from .NET 8 to .NET 10 LTS before starting Epic C.
 
 ### Completed This Session (2026-03-29)
 
+1. ✅ **Solution Folder Reorganization**
+   - Organized 14 projects into logical solution folders
+   - Fixed all NuGet vulnerabilities and version conflicts
+
+2. ✅ **Package Security Updates**
+   - Fixed Azure.Identity 1.3.0 vulnerability → 1.13.2
+   - Fixed KubernetesClient vulnerability → 17.0.14
+   - Aligned all Microsoft.Extensions.* packages to 10.0.5
+   - Aligned Microsoft.EntityFrameworkCore to 10.0.5
+   - **Build: 0 Warnings, 0 Errors**
+
+3. ✅ **H2: Migration Tool with Thai Locale Support**
+   - Created `IndyPOS.MigrationTool` console app (SQLite → PostgreSQL)
+   - Created `IndyPOS.MigrationTool.Tests` with Testcontainers
+   - Added Thai product names and user names for realistic test data
+   - 23 migration tests passing
+
+**Total: 225+ tests passing**
+
+### Solution Folder Structure
+
+```
+📁 Core
+├── IndyPOS.Domain
+├── IndyPOS.Application
+└── IndyPOS.Infrastructure
+📁 DesktopApp
+└── IndyPOS.Windows.Forms
+📁 Services
+├── IndyPOS.StoreHub
+└── IndyPOS.CloudApi
+📁 DevAppHost
+├── IndyPOS.AppHost
+└── IndyPOS.ServiceDefaults
+📁 Tools
+└── IndyPOS.MigrationTool
+📁 Tests
+├── 📁 Core → IndyPOS.Application.Tests
+├── 📁 DesktopApp → IndyPOS.Windows.Forms.Tests
+├── 📁 Services → IndyPOS.StoreHub.IntegrationTests
+├── 📁 Tools → IndyPOS.Migration.Tests, IndyPOS.MigrationTool.Tests
+└── IndyPOS.Mock
+```
+
+### Previous Session (2026-03-29)
+
 1. ✅ **H1: Integration Tests**
    - Created `IndyPOS.StoreHub.IntegrationTests` project
    - WebApplicationFactory + Testcontainers PostgreSQL + Respawn
@@ -872,8 +918,6 @@ Upgraded the entire solution from .NET 8 to .NET 10 LTS before starting Epic C.
    - `update-procedure.md` - How to apply updates
    - `health-check.ps1` - Scheduled monitoring script
    - `RUNBOOK.md` - Comprehensive operations reference
-
-**Total: 266 tests passing (202 unit + 49 integration + 15 migration)**
 
 ### Completed Previous Session (2026-03-28)
 1. ✅ **G3 Phase 6-7: Database Migration + Unit Tests**
@@ -986,7 +1030,20 @@ Upgraded the entire solution from .NET 8 to .NET 10 LTS before starting Epic C.
 - **Deferred:** 1 (G2 - tablet prep, post-MAUI)
 - **Not Started:** 4 (Epic S: S6-S9)
 - **Overall Progress:** ~93% (H complete, only S6-S9 remaining)
-- **Total Tests:** 266 (all passing)
+- **Total Tests:** 225+ (all passing)
+- **Build Status:** 0 Warnings, 0 Errors ✅
+
+## Package Versions (2026-03-29)
+
+| Package | Version | Notes |
+|---------|---------|-------|
+| Microsoft.EntityFrameworkCore | 10.0.5 | Aligned across all projects |
+| Microsoft.Extensions.* | 10.0.5 | Aligned across all projects |
+| Azure.Identity | 1.13.2 | Fixed vulnerability |
+| KubernetesClient | 17.0.14 | Fixed vulnerability GHSA-w7r3-mgwf-4mqq |
+| Aspire.* | 9.3.0 | SDK and hosting packages |
+| Testcontainers.PostgreSql | 4.3.0 | Integration tests |
+| Bogus | 35.6.1 | Fake data generation |
 
 ---
 
@@ -1012,7 +1069,7 @@ Upgraded the entire solution from .NET 8 to .NET 10 LTS before starting Epic C.
 | v1.4.0 Docs | `.planning/indypos-overhaul/IndyPOS_Docs_v1_4_0/` | Latest architecture specs |
 | Security Spec | `.planning/indypos-overhaul/security/indypos_security_design_spec.md` | Security design guide |
 | Aspire Plan | `docs/architecture/aspire.md` | Aspire setup details |
-| Solution Layout | `docs/solution-structure/recommended-layout.md` | Project organization |
+| Solution Layout | See Solution Folder Structure section above | Project organization |
 | Terminal Concurrency | `docs/storehub/terminal-concurrency-strategy.md` | Multi-terminal safety |
 | Transaction Sequence | `docs/storehub/sales-transaction-sequence.md` | Sale commit flow |
 

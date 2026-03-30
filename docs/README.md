@@ -51,6 +51,7 @@ docs/
 | [Troubleshooting Guide](operations/troubleshooting-guide.md) | Common issues and fixes |
 | [Pilot Checklist](operations/pilot-checklist.md) | Deployment steps |
 | [Rollback Plan](operations/rollback-plan.md) | Emergency recovery |
+| [Migration Tool Guide](../src/IndyPOS.MigrationTool/README.md) | SQLite → PostgreSQL migration |
 
 ## Quick Commands
 
