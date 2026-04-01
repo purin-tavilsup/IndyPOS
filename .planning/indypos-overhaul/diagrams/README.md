@@ -1,7 +1,8 @@
 # IndyPOS Architecture Diagrams
 
-Version: 1.2.0
-Date: 2026-03-08
+Version: 2.0.0
+Date: 2026-03-31
+Status: ✅ Updated for Epic H completion (93% overall progress)
 
 This is the **main diagrams folder** for the IndyPOS overhaul project.
 
@@ -14,9 +15,10 @@ This folder contains comprehensive ASCII diagrams documenting the IndyPOS offlin
 
 **Contents:**
 - Current vs Target architecture side-by-side
-- Component breakdown
-- Network resilience comparison
-- Deployment model
+- Authentication & authorization flow
+- API endpoints summary
+- Deployment models (Store + Cloud)
+- .NET Aspire development environment
 
 **Use this when:** Understanding the big picture transformation
 
@@ -57,9 +59,10 @@ This folder contains comprehensive ASCII diagrams documenting the IndyPOS offlin
 **Contents:**
 - StoreHub database tables (local PostgreSQL)
 - Cloud database tables (central PostgreSQL)
+- User & Auth tables (Epic S)
+- OAuth2 / OpenIddict tables
 - Entity relationships
-- Query patterns
-- Index strategy
+- InvoiceCompletedEvent payload
 
 **Use this when:** Designing schema or writing migrations
 
@@ -83,12 +86,11 @@ This folder contains comprehensive ASCII diagrams documenting the IndyPOS offlin
 **File:** `06-epic-roadmap.md`
 
 **Contents:**
-- Epic dependency graph
-- Sprint breakdown (6 sprints / ~10 weeks)
-- Critical path
-- Parallel work opportunities
-- Risk mitigation
-- Success criteria
+- Epic dependency graph (with completion status)
+- Sprint breakdown (all 6 sprints)
+- Current status (93% complete)
+- Remaining work (Epic S6-S9, Epic I)
+- Success criteria by epic
 
 **Use this when:** Planning sprints or understanding dependencies
 
@@ -123,7 +125,7 @@ This folder contains comprehensive ASCII diagrams documenting the IndyPOS offlin
 
 ---
 
-### 09. Terminal Concurrency ✨ NEW
+### 09. Terminal Concurrency
 **File:** `09-terminal-concurrency.md`
 
 **Contents:**
@@ -137,7 +139,7 @@ This folder contains comprehensive ASCII diagrams documenting the IndyPOS offlin
 
 ---
 
-### 10. .NET Aspire Development Environment ✨ NEW
+### 10. .NET Aspire Development Environment
 **File:** `10-aspire-dev-environment.md`
 
 **Contents:**
@@ -151,17 +153,37 @@ This folder contains comprehensive ASCII diagrams documenting the IndyPOS offlin
 
 ---
 
-### 11. Solution Structure ✨ NEW
+### 11. Solution Structure
 **File:** `11-solution-structure.md`
 
 **Contents:**
+- Solution folder structure (15 projects)
 - Project dependency graph
-- Folder structure
+- Desktop client architecture (Epic G)
+- Test project architecture (266+ tests)
 - Dependency rules
-- Legacy migration path
-- Project references summary
+- File system layout
+- Package dependencies
 
 **Use this when:** Understanding project organization and dependencies
+
+---
+
+### 12. Security & Authentication Flow ✨ NEW
+**File:** `12-security-auth-flow.md`
+
+**Contents:**
+- Authentication architecture (Store vs Cloud)
+- StoreHub login flow (offline-capable)
+- CloudApi OAuth2 flow (OpenIddict)
+- Store registration flow
+- RBAC capability matrix
+- Authorization handler flow
+- Secret storage (RSA + DPAPI)
+- JWT token structure
+- Implementation status
+
+**Use this when:** Understanding authentication, authorization, or security features
 
 ---
 
@@ -176,18 +198,22 @@ This folder contains comprehensive ASCII diagrams documenting the IndyPOS offlin
 1. Review `03-component-relationships.md` to understand where code goes
 2. Check `04-database-schema.md` for schema details
 3. Reference `02-data-flow.md` for specific flows you're implementing
+4. Check `12-security-auth-flow.md` for auth requirements
 
 ### For Debugging
 1. Trace through `02-data-flow.md` to find where things break
 2. Review `05-sync-flow-outbox-pattern.md` for sync issues
 3. Check `04-database-schema.md` for query problems
+4. Review `12-security-auth-flow.md` for auth issues
 
 ### For Onboarding New Developers
 Read in this order:
 1. `01-architecture-overview.md` (big picture)
-2. `03-component-relationships.md` (code organization)
-3. `06-epic-roadmap.md` (implementation plan)
-4. Others as needed
+2. `11-solution-structure.md` (project organization)
+3. `03-component-relationships.md` (code organization)
+4. `06-epic-roadmap.md` (implementation plan)
+5. `12-security-auth-flow.md` (security model)
+6. Others as needed
 
 ---
 
@@ -209,9 +235,9 @@ When updating diagrams:
 │ System  │  Standard component
 └─────────┘
 
-┌═════════┐
-│ Process │  Critical/emphasized component
-└═════════┘
+╔═════════╗
+║ Process ║  Critical/emphasized component (or completed epic)
+╚═════════╝
 
 [Optional]  Optional or future component
 ```
@@ -231,7 +257,21 @@ When updating diagrams:
 🟡  In progress
 ⚠️   Warning / Attention needed
 ❌  Deprecated / Removed
+⏭️   Skipped / Deferred
 ```
+
+---
+
+## Quick Stats
+
+| Metric | Value |
+|--------|-------|
+| Total Epics | 11 (including Epic 0) |
+| Completed Epics | 8 |
+| In Progress | 2 (S, I) |
+| Tests Passing | 266+ |
+| Build Status | 0 Warnings, 0 Errors |
+| Progress | 93% |
 
 ---
 
@@ -239,3 +279,5 @@ When updating diagrams:
 - Implementation Status: `../implementation-status.md`
 - Project Context: `../../../CLAUDE.md`
 - v1.4.0 Docs: `../IndyPOS_Docs_v1_4_0/`
+- Security Spec: `../security/indypos_security_design_spec.md`
+- Operations: `../../../docs/operations/RUNBOOK.md`

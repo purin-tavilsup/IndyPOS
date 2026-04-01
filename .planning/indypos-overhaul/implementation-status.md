@@ -1,9 +1,9 @@
 # IndyPOS Overhaul - Implementation Status
 
-**Last Updated:** 2026-03-29
-**Last Session:** 2026-03-29
+**Last Updated:** 2026-03-31
+**Last Session:** 2026-03-31
 **Current Sprint:** Sprint 6
-**Current Epic:** Epic H (Testing & Rollout) - ✅ COMPLETE
+**Current Epic:** Epic G3 (SQLite Removal) - 🟡 In Progress
 **Docs Version:** v1.4.0 (with .NET Aspire support)
 
 ---
@@ -619,9 +619,11 @@ POST /sync/events → SyncedEvents table → EventProcessor (background)
 
 **Deliverable:** Desktop uses hub API; local Postgres is single source of truth ✅
 
-### G3: Decommission SQLite Writes - In Progress (2026-03-28)
+### G3: Decommission SQLite - In Progress (2026-03-31)
 
-**Goal:** Migrate all product write operations from SQLite to StoreHub API
+**Goal:** Remove all SQLite dependencies from main application, keep MigrationTool for ongoing store migrations
+
+**Reference:** `.planning/indypos-overhaul/sqlite-removal-plan.md`
 
 **Design Decisions:**
 | Decision | Choice | Rationale |
@@ -687,6 +689,56 @@ POST /sync/events → SyncedEvents table → EventProcessor (background)
 - Registered `IInventoryMovementRepository` and `IStoreSettingRepository` in DI
 
 **Tests:** 202 passing ✅
+
+### G3: SQLite Removal Phases (2026-03-31)
+
+**Current Status:** Phase 0a and 0b complete - prerequisite StoreHub replacements created
+
+| Phase | Description | Status | Notes |
+|-------|-------------|--------|-------|
+| 0a | Fix IStoreConstants | ✅ Complete | `HardcodedStoreConstants` uses enums instead of SQLite |
+| 0b | Create StoreHubReportService | ✅ Complete | Legacy report endpoints added to StoreHub |
+| 1 | Delete SQLite repositories | ⏳ Pending | 9 files in `Persistence/Repositories/SQLite/` |
+| 2 | Delete Pos interfaces | ⏳ Pending | 9 files in `Abstractions/Pos/Repositories/` |
+| 3 | Delete legacy Nokpirab handlers | ⏳ Pending | ~30 handler files |
+| 4 | Delete legacy services | ⏳ Pending | `SaleService`, `UserLogInService`, `ReportService` |
+| 5 | Update WinForms | ⏳ Pending | Remove SQLite fallback, require StoreHub |
+| 6 | Clean up tests | ⏳ Pending | Remove SQLite-dependent tests |
+| 7 | Update documentation | ⏳ Pending | Final cleanup |
+
+**Phase 0a Files Created:**
+- `Infrastructure/Constants/HardcodedStoreConstants.cs` - Replaces SQLite-based `StoreConstants`
+
+**Phase 0b Files Created:**
+- `Application/UseCases/StoreHub/Reports/GetLegacySalesSummary/` - Query and Handler
+- `Application/UseCases/StoreHub/Reports/GetLegacyPaymentsSummary/` - Query and Handler
+- `Infrastructure/Services/StoreHub/StoreHubReportService.cs` - Implements `IReportService` via StoreHub
+- StoreHub endpoints: `/reports/legacy/sales-summary`, `/reports/legacy/payments-summary`
+
+### 📋 Technical Debt: Legacy Report Format (MAUI Migration)
+
+**Context:** Created "legacy endpoints" that return exact `SalesSummary` and `PaymentsSummary` models expected by WinForms UI. These contain Thai retail-specific fields (GeneralProducts vs Hardware, PayLater breakdowns) that differ from new StoreHub DTOs.
+
+**Files Involved:**
+- `StoreHubReportService.cs` - Contains stub implementations for int-based methods
+- `GetLegacySalesSummaryQuery.cs` / `GetLegacySalesSummaryQueryHandler.cs`
+- `GetLegacyPaymentsSummaryQuery.cs` / `GetLegacyPaymentsSummaryQueryHandler.cs`
+
+**Legacy Methods Returning Empty (need MAUI migration):**
+- `GetInvoicesByPeriodAsync()`, `GetInvoicesByDateRangeAsync()`
+- `GetPayLaterPaymentsByPeriodAsync()`, `GetPayLaterPaymentsAsync()`
+- `GetInvoiceProductsByDateAsync()`, `GetInvoiceProductsByDateRangeAsync()`
+- `GetInvoiceProductsByInvoiceIdAsync(int)` - int-based, not supported
+- `GetPaymentsByInvoiceIdAsync(int)` - int-based, not supported
+- `GetInvoiceInfoAsync(int)` - int-based, not supported
+
+**Future Work (MAUI Migration):**
+1. Replace `IReportService` interface with Guid-based methods
+2. Update UI to use StoreHub DTOs directly (`SalesSummaryDto`, `InvoiceSummaryDto`, etc.)
+3. Remove legacy endpoints and handlers
+4. Delete `StoreHubReportService` in favor of direct StoreHub client calls
+
+**Reference:** See `src/IndyPOS.Application/UseCases/StoreHub/Reports/ReportDtos.cs` for new DTO structure
 
 ---
 
@@ -846,10 +898,28 @@ Upgraded the entire solution from .NET 8 to .NET 10 LTS before starting Epic C.
 
 ## Current Focus
 
-**Now:** Epic H (Testing & Rollout) - **COMPLETE** ✅
-**Next:** Epic I (Cloud Infrastructure) or remaining Epic S tasks (S6-S9)
+**Now:** Epic G3 (SQLite Removal) - **Phase 0 COMPLETE** ✅
+**Next:** Phase 1-7 of SQLite removal, then Epic I (Cloud Infrastructure) or remaining Epic S tasks (S6-S9)
 
-### Completed This Session (2026-03-29)
+### Completed This Session (2026-03-31)
+
+1. ✅ **G3 Phase 0a: HardcodedStoreConstants**
+   - Created `HardcodedStoreConstants.cs` using enums instead of SQLite lookups
+   - Registered in `ConfigureServices.cs` for StoreHub client mode
+
+2. ✅ **G3 Phase 0b: StoreHubReportService**
+   - Created `StoreHubReportService.cs` implementing `IReportService`
+   - Added `GetLegacySalesSummaryQuery` + Handler (EF Core)
+   - Added `GetLegacyPaymentsSummaryQuery` + Handler (EF Core)
+   - Added legacy report endpoints to StoreHub API
+   - Updated `IStoreHubClient` and `StoreHubHttpClient` with report methods
+
+3. 📋 **Documented Technical Debt**
+   - Legacy report format documented for MAUI migration
+   - Updated `sqlite-removal-plan.md` with progress tracker
+   - Updated `implementation-status.md` with G3 phase details
+
+### Previous Session (2026-03-29)
 
 1. ✅ **Solution Folder Reorganization**
    - Organized 14 projects into logical solution folders
@@ -1029,13 +1099,13 @@ Upgraded the entire solution from .NET 8 to .NET 10 LTS before starting Epic C.
 
 - **Total Epics:** 10 (added Epic I: Cloud Infrastructure)
 - **Completed Epics:** 8 (Epic 0, A, B, C, D, E, F, H)
-- **In Progress Epics:** 2 (Epic S - 5/9, Epic G - G1 ✅, G3 ✅)
+- **In Progress Epics:** 2 (Epic S - 5/9, Epic G - G1 ✅, G3 🟡)
 - **Total Tasks:** 56 (41 + 9 security + 3 desktop + 4 testing - 1 deferred)
 - **Completed:** 52
-- **In Progress:** 0
+- **In Progress:** 1 (G3 SQLite Removal - Phase 0 complete, Phases 1-7 pending)
 - **Deferred:** 1 (G2 - tablet prep, post-MAUI)
 - **Not Started:** 4 (Epic S: S6-S9)
-- **Overall Progress:** ~93% (H complete, only S6-S9 remaining)
+- **Overall Progress:** ~93% (G3 Phase 0 complete, Phases 1-7 pending)
 - **Total Tests:** 225+ (all passing)
 - **Build Status:** 0 Warnings, 0 Errors ✅
 
@@ -1067,6 +1137,8 @@ Upgraded the entire solution from .NET 8 to .NET 10 LTS before starting Epic C.
 - **Coding Style:** Method chaining uses vertical dot alignment (see CLAUDE.md)
 - **DB Tools:** PgAdmin and DbGate configured as on-demand (WithExplicitStart)
 - **Epic E complete:** SyncWorker + /sync/status endpoint implemented
+- **G3 SQLite Removal:** Plan documented in `.planning/indypos-overhaul/sqlite-removal-plan.md`
+- **MAUI Migration Tech Debt:** Legacy report format endpoints created - to be removed during MAUI UI migration
 
 ## Reference Documentation
 
@@ -1074,6 +1146,7 @@ Upgraded the entire solution from .NET 8 to .NET 10 LTS before starting Epic C.
 |-----|----------|---------|
 | v1.4.0 Docs | `.planning/indypos-overhaul/IndyPOS_Docs_v1_4_0/` | Latest architecture specs |
 | Security Spec | `.planning/indypos-overhaul/security/indypos_security_design_spec.md` | Security design guide |
+| SQLite Removal Plan | `.planning/indypos-overhaul/sqlite-removal-plan.md` | Phase-by-phase SQLite decommission |
 | Aspire Plan | `docs/architecture/aspire.md` | Aspire setup details |
 | Solution Layout | See Solution Folder Structure section above | Project organization |
 | Terminal Concurrency | `docs/storehub/terminal-concurrency-strategy.md` | Multi-terminal safety |
@@ -1091,4 +1164,4 @@ Upgraded the entire solution from .NET 8 to .NET 10 LTS before starting Epic C.
 
 ---
 
-**Last Session:** 2026-03-29
+**Last Session:** 2026-03-31

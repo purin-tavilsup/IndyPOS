@@ -2,7 +2,9 @@ using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text.Json;
 using IndyPOS.Application.Abstractions.StoreHub;
+using IndyPOS.Application.Common.Models;
 using IndyPOS.Application.UseCases.StoreHub.Auth;
+using IndyPOS.Application.UseCases.StoreHub.PayLater;
 using IndyPOS.Application.UseCases.StoreHub.Products;
 using IndyPOS.Application.UseCases.StoreHub.Products.AdjustQuantity;
 using IndyPOS.Application.UseCases.StoreHub.Products.Create;
@@ -197,6 +199,93 @@ public class StoreHubHttpClient : IStoreHubClient
         {
             return false;
         }
+    }
+
+    // ========================
+    // PayLater methods
+    // ========================
+
+    public async Task<GetPayLaterResponse> GetPayLaterAsync(
+        bool includeCompleted = false,
+        string? searchTerm = null,
+        CancellationToken cancellationToken = default)
+    {
+        var queryParams = new List<string> { $"includeCompleted={includeCompleted}" };
+        if (!string.IsNullOrEmpty(searchTerm))
+            queryParams.Add($"search={Uri.EscapeDataString(searchTerm)}");
+
+        var url = $"/pay-later?{string.Join("&", queryParams)}";
+
+        var result = await SendAuthenticatedAsync<GetPayLaterResponse>(
+            HttpMethod.Get, url, content: null, cancellationToken);
+
+        _logger.LogDebug("Fetched {Count} pay-later records from StoreHub", result.Items.Count);
+        return result;
+    }
+
+    public async Task<PayLaterDto?> GetPayLaterByIdAsync(
+        Guid id,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var result = await SendAuthenticatedAsync<PayLaterDto>(
+                HttpMethod.Get, $"/pay-later/{id}", content: null, cancellationToken);
+
+            return result;
+        }
+        catch (HttpRequestException ex) when (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
+        {
+            return null;
+        }
+    }
+
+    public async Task<PayLaterDto> RecordPayLaterPaymentAsync(
+        Guid payLaterId,
+        decimal paymentAmount,
+        CancellationToken cancellationToken = default)
+    {
+        _logger.LogDebug("Recording payment for PayLater: {Id}, Amount: {Amount}", payLaterId, paymentAmount);
+
+        var request = new RecordPaymentRequest(paymentAmount);
+        var result = await SendAuthenticatedAsync<PayLaterDto>(
+            HttpMethod.Post, $"/pay-later/{payLaterId}/record-payment", request, cancellationToken);
+
+        _logger.LogInformation("Payment recorded for PayLater: {Id}, New Paid Amount: {PaidAmount}, Completed: {IsCompleted}",
+            result.Id, result.PaidAmount, result.IsCompleted);
+        return result;
+    }
+
+    // ========================
+    // Report methods (legacy format)
+    // ========================
+
+    public async Task<SalesSummary> GetLegacySalesSummaryAsync(
+        DateOnly fromDate,
+        DateOnly toDate,
+        CancellationToken cancellationToken = default)
+    {
+        var url = $"/reports/legacy/sales-summary?fromDate={fromDate:yyyy-MM-dd}&toDate={toDate:yyyy-MM-dd}";
+
+        var result = await SendAuthenticatedAsync<SalesSummary>(
+            HttpMethod.Get, url, content: null, cancellationToken);
+
+        _logger.LogDebug("Fetched legacy sales summary from StoreHub: {FromDate} to {ToDate}", fromDate, toDate);
+        return result;
+    }
+
+    public async Task<PaymentsSummary> GetLegacyPaymentsSummaryAsync(
+        DateOnly fromDate,
+        DateOnly toDate,
+        CancellationToken cancellationToken = default)
+    {
+        var url = $"/reports/legacy/payments-summary?fromDate={fromDate:yyyy-MM-dd}&toDate={toDate:yyyy-MM-dd}";
+
+        var result = await SendAuthenticatedAsync<PaymentsSummary>(
+            HttpMethod.Get, url, content: null, cancellationToken);
+
+        _logger.LogDebug("Fetched legacy payments summary from StoreHub: {FromDate} to {ToDate}", fromDate, toDate);
+        return result;
     }
 
     #region Private Helpers

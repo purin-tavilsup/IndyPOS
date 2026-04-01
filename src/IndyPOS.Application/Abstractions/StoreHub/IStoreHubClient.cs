@@ -1,4 +1,6 @@
+using IndyPOS.Application.Common.Models;
 using IndyPOS.Application.UseCases.StoreHub.Auth;
+using IndyPOS.Application.UseCases.StoreHub.PayLater;
 using IndyPOS.Application.UseCases.StoreHub.Products;
 using IndyPOS.Application.UseCases.StoreHub.Products.AdjustQuantity;
 using IndyPOS.Application.UseCases.StoreHub.Products.Create;
@@ -93,4 +95,51 @@ public interface IStoreHubClient
     /// Check if currently authenticated (has valid token).
     /// </summary>
     bool IsAuthenticated { get; }
+
+    // ========================
+    // PayLater endpoints
+    // ========================
+
+    /// <summary>
+    /// Get PayLater records with optional filtering.
+    /// </summary>
+    Task<GetPayLaterResponse> GetPayLaterAsync(
+        bool includeCompleted = false,
+        string? searchTerm = null,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Get a single PayLater record by ID.
+    /// </summary>
+    Task<PayLaterDto?> GetPayLaterByIdAsync(
+        Guid id,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Record a payment against a PayLater account.
+    /// </summary>
+    Task<PayLaterDto> RecordPayLaterPaymentAsync(
+        Guid payLaterId,
+        decimal paymentAmount,
+        CancellationToken cancellationToken = default);
+
+    // ========================
+    // Report endpoints (legacy format for WinForms)
+    // ========================
+
+    /// <summary>
+    /// Get sales summary in legacy format.
+    /// </summary>
+    Task<SalesSummary> GetLegacySalesSummaryAsync(
+        DateOnly fromDate,
+        DateOnly toDate,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Get payments summary in legacy format.
+    /// </summary>
+    Task<PaymentsSummary> GetLegacyPaymentsSummaryAsync(
+        DateOnly fromDate,
+        DateOnly toDate,
+        CancellationToken cancellationToken = default);
 }
