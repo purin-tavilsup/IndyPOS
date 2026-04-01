@@ -1,39 +1,38 @@
-﻿using IndyPOS.Application.Common.Exceptions;
+using IndyPOS.Application.Abstractions.StoreHub;
+using IndyPOS.Application.Common.Exceptions;
+using IndyPOS.Application.UseCases.StoreHub.PayLater;
 using IndyPOS.Windows.Forms.UI.Report;
 using System.Diagnostics.CodeAnalysis;
-using IndyPOS.Application.UseCases.PayLaterPayments;
-using IndyPOS.Application.UseCases.PayLaterPayments.Get;
-using IndyPOS.Application.UseCases.PayLaterPayments.Update;
-using Nokpirab;
 
 namespace IndyPOS.Windows.Forms.UI.PayLater;
 
 [ExcludeFromCodeCoverage]
 public partial class PayLaterPaymentPanel : UserControl
 {
-    private readonly INokpirab _nokpirab;
+    private readonly IPayLaterService? _payLaterService;
     private readonly SaleHistoryByInvoiceIdForm _saleHistoryByInvoiceIdForm;
     private readonly MessageForm _messageForm;
 
     private enum AccountColumn
     {
+        Id,
         InvoiceId,
         Description,
         Amount,
         PaidAmount,
         IsCompleted,
-        PaymentId,
         DateCreated,
         DateUpdated
     }
 
-    public PayLaterPaymentPanel(SaleHistoryByInvoiceIdForm saleHistoryByInvoiceIdForm,
-                                MessageForm messageForm, 
-                                INokpirab nokpirab)
+    public PayLaterPaymentPanel(
+        SaleHistoryByInvoiceIdForm saleHistoryByInvoiceIdForm,
+        MessageForm messageForm,
+        IPayLaterService? payLaterService = null)
     {
         _saleHistoryByInvoiceIdForm = saleHistoryByInvoiceIdForm;
         _messageForm = messageForm;
-        _nokpirab = nokpirab;
+        _payLaterService = payLaterService;
 
         InitializeComponent();
         InitializeUserDataView();
@@ -46,9 +45,13 @@ public partial class PayLaterPaymentPanel : UserControl
         PayLaterPaymentsDataView.Columns.Clear();
         PayLaterPaymentsDataView.ColumnCount = 8;
 
+        PayLaterPaymentsDataView.Columns[(int)AccountColumn.Id].Name = "ID";
+        PayLaterPaymentsDataView.Columns[(int)AccountColumn.Id].Width = 0;  // Hidden
+        PayLaterPaymentsDataView.Columns[(int)AccountColumn.Id].Visible = false;
+
         PayLaterPaymentsDataView.Columns[(int)AccountColumn.InvoiceId].Name = "Invoice ID";
-        PayLaterPaymentsDataView.Columns[(int)AccountColumn.InvoiceId].Width = 150;
-        PayLaterPaymentsDataView.Columns[(int)AccountColumn.InvoiceId].ReadOnly = true;
+        PayLaterPaymentsDataView.Columns[(int)AccountColumn.InvoiceId].Width = 0;  // Hidden
+        PayLaterPaymentsDataView.Columns[(int)AccountColumn.InvoiceId].Visible = false;
 
         PayLaterPaymentsDataView.Columns[(int)AccountColumn.Description].Name = "คำอธิบาย";
         PayLaterPaymentsDataView.Columns[(int)AccountColumn.Description].Width = 250;
@@ -68,10 +71,6 @@ public partial class PayLaterPaymentPanel : UserControl
         PayLaterPaymentsDataView.Columns[(int)AccountColumn.IsCompleted].Width = 150;
         PayLaterPaymentsDataView.Columns[(int)AccountColumn.IsCompleted].ReadOnly = true;
 
-        PayLaterPaymentsDataView.Columns[(int)AccountColumn.PaymentId].Name = "Payment ID";
-        PayLaterPaymentsDataView.Columns[(int)AccountColumn.PaymentId].Width = 150;
-        PayLaterPaymentsDataView.Columns[(int)AccountColumn.PaymentId].ReadOnly = true;
-
         PayLaterPaymentsDataView.Columns[(int)AccountColumn.DateCreated].Name = "วันที่สร้าง";
         PayLaterPaymentsDataView.Columns[(int)AccountColumn.DateCreated].Width = 200;
         PayLaterPaymentsDataView.Columns[(int)AccountColumn.DateCreated].ReadOnly = true;
@@ -83,19 +82,19 @@ public partial class PayLaterPaymentPanel : UserControl
         #endregion
     }
 
-    private void AddToPayLaterPaymentsDataView(PayLaterPaymentDto payment)
+    private void AddToPayLaterPaymentsDataView(PayLaterDto payment)
     {
         var columnCount = PayLaterPaymentsDataView.ColumnCount;
         var row = new object[columnCount];
 
+        row[(int)AccountColumn.Id] = payment.Id;
         row[(int)AccountColumn.InvoiceId] = payment.InvoiceId;
         row[(int)AccountColumn.Description] = payment.Description;
-        row[(int)AccountColumn.Amount] = payment.ReceivableAmount;
+        row[(int)AccountColumn.Amount] = payment.PayLaterAmount;
         row[(int)AccountColumn.PaidAmount] = payment.PaidAmount;
         row[(int)AccountColumn.IsCompleted] = payment.IsCompleted ? "ชำระแล้ว" : "ยังไม่ชำระ";
-        row[(int)AccountColumn.PaymentId] = payment.PaymentId;
-        row[(int)AccountColumn.DateCreated] = payment.DateCreated;
-        row[(int)AccountColumn.DateUpdated] = payment.DateUpdated;
+        row[(int)AccountColumn.DateCreated] = payment.CreatedUtc.ToLocalTime();
+        row[(int)AccountColumn.DateUpdated] = payment.LastModifiedUtc.ToLocalTime();
 
         var rowIndex = PayLaterPaymentsDataView.Rows.Add(row);
         var rowBackColor = rowIndex % 2 == 0 ? Color.FromArgb(38, 38, 38) : Color.FromArgb(48, 48, 48);
@@ -108,86 +107,84 @@ public partial class PayLaterPaymentPanel : UserControl
         }
     }
 
-    private async Task<IEnumerable<PayLaterPaymentDto>> GetPayLaterPaymentsAsync()
-    {
-        return await _nokpirab.SendAsync(new GetPayLaterPaymentsQuery());
-    }
-
-	private async Task<IEnumerable<PayLaterPaymentDto>> GetPayLaterPaymentsByDescriptionKeywordAsync(string keyword)
-	{
-		return await _nokpirab.SendAsync(new GetPayLaterPaymentsByDescriptionKeywordQuery(keyword));
-	}
-
-    private async Task<PayLaterPaymentDto> GetPayLaterPaymentByPaymentIdAsync(int paymentId)
-    {
-        return await _nokpirab.SendAsync(new GetPayLaterPaymentByIdQuery(paymentId));
-    }
-
-    private async Task UpdatePayLaterPaymentAsync(PayLaterPaymentDto payment, decimal paidAmount)
-    {
-        var command = CreateCommandForUpdatePayLaterPayment(payment, paidAmount);
-
-        await _nokpirab.SendAsync(command);
-    }
-
-    private static UpdatePayLaterPaymentCommand CreateCommandForUpdatePayLaterPayment(PayLaterPaymentDto payment, decimal paidAmount)
-    {
-        return new UpdatePayLaterPaymentCommand
-        {
-            PaymentId = payment.PaymentId,
-            PaidAmount = paidAmount,
-            IsCompleted = payment.WouldBeCompletedWith(paidAmount)
-        };
-    }
-
     private async Task ShowPayLaterPaymentsAsync(bool showIncompleteOnly)
     {
         ResetDetails();
 
-        var payments = await GetPayLaterPaymentsAsync();
-
-        PayLaterPaymentsDataView.Rows.Clear();
-
-        foreach (var payment in payments)
+        if (_payLaterService is null)
         {
-            if (showIncompleteOnly && payment.IsCompleted)
-                continue;
+            _messageForm.ShowDialog("PayLater service is not available. Please ensure StoreHub mode is enabled.", "Service Not Available");
+            return;
+        }
 
-            AddToPayLaterPaymentsDataView(payment);
+        try
+        {
+            var response = await _payLaterService.GetAllAsync(
+                includeCompleted: !showIncompleteOnly,
+                searchTerm: null);
+
+            PayLaterPaymentsDataView.Rows.Clear();
+
+            foreach (var payment in response.Items)
+            {
+                AddToPayLaterPaymentsDataView(payment);
+            }
+        }
+        catch (Exception ex)
+        {
+            _messageForm.ShowDialog($"เกิดข้อผิดพลาดในการดึงข้อมูล: {ex.Message}", "Error");
         }
     }
 
     private async void ShowPayLaterPaymentsButton_Click(object sender, EventArgs e)
     {
         var showIncompleteOnly = ShowIncompleteOnlyCheckBox.Checked;
-
         await ShowPayLaterPaymentsAsync(showIncompleteOnly);
     }
 
     private async void PayLaterPaymentsDataView_CellClick(object sender, DataGridViewCellEventArgs e)
     {
-        var paymentId = GetPaymentIdFromSelectedPayLaterPayment();
+        var payLaterId = GetPayLaterIdFromSelectedRow();
 
-        await ShowPayLaterPaymentDetailsByPaymentIdAsync(paymentId);
+        if (payLaterId.HasValue)
+        {
+            await ShowPayLaterPaymentDetailsAsync(payLaterId.Value);
+        }
     }
 
-    private int GetPaymentIdFromSelectedPayLaterPayment()
+    private Guid? GetPayLaterIdFromSelectedRow()
     {
         if (PayLaterPaymentsDataView.SelectedCells.Count == 0)
         {
-            return -1;
+            return null;
         }
 
         var selectedCell = PayLaterPaymentsDataView.SelectedCells[0];
         var rowIndex = selectedCell.RowIndex;
         var selectedRow = PayLaterPaymentsDataView.Rows[rowIndex];
-        var paymentId = (int)selectedRow.Cells[(int)AccountColumn.PaymentId].Value;
+        var payLaterId = selectedRow.Cells[(int)AccountColumn.Id].Value;
 
-        return paymentId;
+        return payLaterId is Guid id ? id : null;
+    }
+
+    private Guid? GetInvoiceIdFromSelectedRow()
+    {
+        if (PayLaterPaymentsDataView.SelectedCells.Count == 0)
+        {
+            return null;
+        }
+
+        var selectedCell = PayLaterPaymentsDataView.SelectedCells[0];
+        var rowIndex = selectedCell.RowIndex;
+        var selectedRow = PayLaterPaymentsDataView.Rows[rowIndex];
+        var invoiceId = selectedRow.Cells[(int)AccountColumn.InvoiceId].Value;
+
+        return invoiceId is Guid id ? id : null;
     }
 
     private void ResetDetails()
     {
+        PaymentIdLabel.Text = string.Empty;
         InvoiceIdLabel.Text = string.Empty;
         DescriptionLabel.Text = string.Empty;
         AmountLabel.Text = string.Empty;
@@ -197,16 +194,27 @@ public partial class PayLaterPaymentPanel : UserControl
         UpdateButton.Visible = true;
     }
 
-    private async Task ShowPayLaterPaymentDetailsByPaymentIdAsync(int paymentId)
+    private async Task ShowPayLaterPaymentDetailsAsync(Guid payLaterId)
     {
+        if (_payLaterService is null)
+        {
+            return;
+        }
+
         try
         {
-            var payment = await GetPayLaterPaymentByPaymentIdAsync(paymentId);
+            var payment = await _payLaterService.GetByIdAsync(payLaterId);
 
-            PaymentIdLabel.Text = payment.PaymentId.ToString();
+            if (payment is null)
+            {
+                _messageForm.ShowDialog($"ไม่พบรายการลงบัญชีสำหรับ ID {payLaterId}", "ไม่พบรายการลงบัญชี");
+                return;
+            }
+
+            PaymentIdLabel.Text = payment.Id.ToString();
             InvoiceIdLabel.Text = payment.InvoiceId.ToString();
             DescriptionLabel.Text = payment.Description;
-            AmountLabel.Text = $"{payment.ReceivableAmount:N}";
+            AmountLabel.Text = $"{payment.PayLaterAmount:N}";
             PaidAmountTextBox.Texts = $"{payment.PaidAmount:N}";
 
             PaidAmountTextBox.ReadOnly = payment.IsCompleted;
@@ -214,19 +222,18 @@ public partial class PayLaterPaymentPanel : UserControl
         }
         catch (PayLaterPaymentNotFoundException ex)
         {
-            _messageForm.ShowDialog($"ไม่พบรายการลงบัญชีสำหรับ Payment ID {paymentId}. Error: {ex.Message}", "ไม่พบรายการลงบัญชี");
+            _messageForm.ShowDialog($"ไม่พบรายการลงบัญชี. Error: {ex.Message}", "ไม่พบรายการลงบัญชี");
         }
     }
 
     private bool ValidateUserInput()
     {
-        if (decimal.TryParse(PaidAmountTextBox.Texts.Trim(), out _))
+        if (decimal.TryParse(PaidAmountTextBox.Texts.Trim(), out var amount) && amount >= 0)
         {
             return true;
         }
 
         _messageForm.ShowDialog("กรุณาใส่ยอดชำระให้ถูกต้อง", "ยอดชำระไม่ถูกต้อง");
-
         return false;
     }
 
@@ -237,71 +244,107 @@ public partial class PayLaterPaymentPanel : UserControl
             return;
         }
 
-        var paymentId = int.Parse(PaymentIdLabel.Text);
-        var paidAmount = decimal.Parse(PaidAmountTextBox.Texts.Trim());
+        if (_payLaterService is null)
+        {
+            _messageForm.ShowDialog("PayLater service is not available.", "Service Not Available");
+            return;
+        }
+
+        if (!Guid.TryParse(PaymentIdLabel.Text, out var payLaterId))
+        {
+            _messageForm.ShowDialog("Invalid PayLater ID", "Error");
+            return;
+        }
+
+        var newPaidAmount = decimal.Parse(PaidAmountTextBox.Texts.Trim());
 
         try
         {
-            var payment = await GetPayLaterPaymentByPaymentIdAsync(paymentId);
+            // Get current payment to calculate the delta
+            var current = await _payLaterService.GetByIdAsync(payLaterId);
+            if (current is null)
+            {
+                _messageForm.ShowDialog($"ไม่พบรายการลงบัญชี", "Error");
+                return;
+            }
 
-            await UpdatePayLaterPaymentAsync(payment, paidAmount);
+            // Calculate payment amount as the difference
+            var paymentAmount = newPaidAmount - current.PaidAmount;
+
+            if (paymentAmount <= 0)
+            {
+                _messageForm.ShowDialog("ยอดชำระใหม่ต้องมากกว่ายอดที่ชำระแล้ว", "ยอดชำระไม่ถูกต้อง");
+                return;
+            }
+
+            await _payLaterService.RecordPaymentAsync(payLaterId, paymentAmount);
         }
         catch (PayLaterPaymentNotFoundException ex)
         {
-            _messageForm.ShowDialog($"ไม่พบรายการลงบัญชีสำหรับ Payment ID {paymentId}. Error: {ex.Message}", "ไม่พบรายการลงบัญชี");
+            _messageForm.ShowDialog($"ไม่พบรายการลงบัญชี. Error: {ex.Message}", "ไม่พบรายการลงบัญชี");
         }
         catch (PayLaterPaymentNotUpdatedException ex)
         {
-            _messageForm.ShowDialog($"ไม่สามารถอัพเดทรายการลงบัญชีสำหรับ Payment ID {paymentId}. Error: {ex.Message}", "ไม่สามารถอัพเดทรายการลงบัญชี");
+            _messageForm.ShowDialog($"ไม่สามารถอัพเดทรายการลงบัญชี. Error: {ex.Message}", "ไม่สามารถอัพเดทรายการลงบัญชี");
         }
         catch (Exception ex)
         {
-            _messageForm.ShowDialog($"เกิดข้อผิดพลาดระหว่างที่กำลังอัพเดทรายการลงบัญชีสำหรับ Payment ID {paymentId}. Error: {ex.Message}", "ไม่สามารถอัพเดทรายการลงบัญชี");
+            _messageForm.ShowDialog($"เกิดข้อผิดพลาด: {ex.Message}", "Error");
         }
 
         await ShowPayLaterPaymentsAsync(ShowIncompleteOnlyCheckBox.Checked);
     }
 
     private async void SearchByKeywordButton_Click(object sender, EventArgs e)
-	{
-		ResetDetails();
+    {
+        ResetDetails();
 
-		var keyword = SearchByKeywordTextBox.Texts.Trim();
+        var keyword = SearchByKeywordTextBox.Texts.Trim();
 
         if (string.IsNullOrWhiteSpace(keyword))
         {
             return;
         }
 
-        PayLaterPaymentsDataView.Rows.Clear();
+        if (_payLaterService is null)
+        {
+            _messageForm.ShowDialog("PayLater service is not available.", "Service Not Available");
+            return;
+        }
 
-		var payments = await GetPayLaterPaymentsByDescriptionKeywordAsync(keyword);
+        try
+        {
+            PayLaterPaymentsDataView.Rows.Clear();
 
-		PayLaterPaymentsDataView.Rows.Clear();
+            var response = await _payLaterService.GetAllAsync(
+                includeCompleted: true,
+                searchTerm: keyword);
 
-		foreach (var payment in payments)
-		{
-			AddToPayLaterPaymentsDataView(payment);
-		}
+            foreach (var payment in response.Items)
+            {
+                AddToPayLaterPaymentsDataView(payment);
+            }
+        }
+        catch (Exception ex)
+        {
+            _messageForm.ShowDialog($"เกิดข้อผิดพลาดในการค้นหา: {ex.Message}", "Error");
+        }
     }
 
     private async void ShowIncompleteOnlyCheckBox_Click(object sender, EventArgs e)
     {
         var showIncompleteOnly = ShowIncompleteOnlyCheckBox.Checked;
-
         await ShowPayLaterPaymentsAsync(showIncompleteOnly);
     }
 
-    private async void PayLaterPaymentsDataView_DoubleClick(object sender, EventArgs e)
+    private void PayLaterPaymentsDataView_DoubleClick(object sender, EventArgs e)
     {
-        if (PayLaterPaymentsDataView.SelectedCells.Count == 0)
-            return;
-
-        var selectedCell = PayLaterPaymentsDataView.SelectedCells[0];
-        var rowIndex = selectedCell.RowIndex;
-        var selectedRow = PayLaterPaymentsDataView.Rows[rowIndex];
-        var invoiceId = (int)selectedRow.Cells[(int)AccountColumn.InvoiceId].Value;
-
-        await _saleHistoryByInvoiceIdForm.ShowDialogAsync(invoiceId);
+        // Invoice viewing is currently not supported in StoreHub mode
+        // TODO: Implement when invoice detail view is available via StoreHub client
+        var invoiceId = GetInvoiceIdFromSelectedRow();
+        if (invoiceId.HasValue)
+        {
+            _messageForm.ShowDialog($"Invoice ID: {invoiceId.Value}\n\n(Invoice detail view coming soon)", "Invoice Details");
+        }
     }
 }
