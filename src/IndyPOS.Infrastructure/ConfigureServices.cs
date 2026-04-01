@@ -3,6 +3,7 @@ using IndyPOS.Application.Abstractions.Pos.Repositories;
 using IndyPOS.Application.Abstractions.Security;
 using IndyPOS.Application.Abstractions.StoreHub;
 using IndyPOS.Application.Abstractions.StoreHub.Repositories;
+using IndyPOS.Infrastructure.Services.StoreHub;
 using IndyPOS.Application.Abstractions.StoreHub.Services;
 using IndyPOS.Application.Common.Interfaces;
 using IndyPOS.Application.Common.Models;
@@ -40,7 +41,7 @@ public static class ConfigureServices
                 .AddSingleton<IStoreConstantRepository, StoreConstantRepository>()
                 .AddSingleton<IUserRepository, UserRepository>()
 				.AddSingleton<IUserCredentialRepository, UserCredentialRepository>()
-                .AddSingleton<IPayLaterPaymentRepository, PayLaterRepository>();
+                .AddSingleton<IPayLaterPaymentRepository, IndyPOS.Infrastructure.Persistence.Repositories.SQLite.PayLaterRepository>();
 
         services.AddSingleton<IStoreConstants, StoreConstants>()
 				.AddSingleton<IStoreConfigurationService, StoreConfigurationService>()
@@ -78,7 +79,8 @@ public static class ConfigureServices
 		        .AddScoped<ISaleRepository, SaleRepository>()
 		        .AddScoped<IOutboxRepository, OutboxRepository>()
 		        .AddScoped<IInventoryMovementRepository, InventoryMovementRepository>()
-		        .AddScoped<IStoreSettingRepository, StoreSettingRepository>();
+		        .AddScoped<IStoreSettingRepository, StoreSettingRepository>()
+		        .AddScoped<IPayLaterRepository, IndyPOS.Infrastructure.Persistence.StoreHub.Repositories.PayLaterRepository>();
 
 		// SyncWorker configuration
 		services.Configure<SyncWorkerOptions>(configuration.GetSection(SyncWorkerOptions.SectionName));
@@ -211,6 +213,15 @@ public static class ConfigureServices
 		// Note: These replace registrations from AddInfrastructureServices
 		services.AddSingleton<ISaleService, StoreHubSaleService>();
 		services.AddSingleton<IUserLogInService, StoreHubUserLogInService>();
+
+		// PayLater service (uses StoreHub API)
+		services.AddSingleton<IPayLaterService, StoreHubPayLaterService>();
+
+		// Replace SQLite-based StoreConstants with hardcoded version
+		services.AddSingleton<IStoreConstants, HardcodedStoreConstants>();
+
+		// Replace SQLite-based ReportService with StoreHub version
+		services.AddSingleton<IReportService, StoreHubReportService>();
 
 		return services;
 	}

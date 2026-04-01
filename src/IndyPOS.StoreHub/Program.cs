@@ -1,6 +1,7 @@
 using System.Text;
 using IndyPOS.Application.Abstractions.StoreHub.Repositories;
 using IndyPOS.Application.Common.Authorization;
+using IndyPOS.Application.Common.Exceptions;
 using IndyPOS.Application.Common.Interfaces;
 using IndyPOS.Application.UseCases.StoreHub.Auth;
 using IndyPOS.Application.UseCases.StoreHub.Auth.Login;
@@ -17,6 +18,10 @@ using IndyPOS.Application.UseCases.StoreHub.Reports.GetInvoices;
 using IndyPOS.Application.UseCases.StoreHub.Reports.GetPayLaterReport;
 using IndyPOS.Application.UseCases.StoreHub.Reports.GetProductSales;
 using IndyPOS.Application.UseCases.StoreHub.Reports.GetSalesSummary;
+using IndyPOS.Application.UseCases.StoreHub.Reports.GetLegacySalesSummary;
+using IndyPOS.Application.UseCases.StoreHub.Reports.GetLegacyPaymentsSummary;
+using IndyPOS.Application.Common.Models;
+using IndyPOS.Application.UseCases.StoreHub.PayLater;
 using IndyPOS.Application.UseCases.StoreHub.Sales;
 using IndyPOS.Application.UseCases.StoreHub.Sales.Complete;
 using IndyPOS.Infrastructure.QueryHandlers.Reports;
@@ -66,6 +71,15 @@ builder.Services.AddTransient<IQueryHandler<GetInvoicesQuery, PagedResult<Invoic
 builder.Services.AddTransient<IQueryHandler<GetInvoiceDetailQuery, InvoiceDetailDto?>, GetInvoiceDetailQueryHandler>();
 builder.Services.AddTransient<IQueryHandler<GetPayLaterReportQuery, PayLaterReportDto>, GetPayLaterReportQueryHandler>();
 builder.Services.AddTransient<IQueryHandler<GetProductSalesQuery, PagedResult<ProductSalesDto>>, GetProductSalesQueryHandler>();
+
+// Legacy report handlers (for WinForms compatibility)
+builder.Services.AddTransient<IQueryHandler<GetLegacySalesSummaryQuery, SalesSummary>, GetLegacySalesSummaryQueryHandler>();
+builder.Services.AddTransient<IQueryHandler<GetLegacyPaymentsSummaryQuery, PaymentsSummary>, GetLegacyPaymentsSummaryQueryHandler>();
+
+// PayLater handlers (for cashier pay-later management)
+builder.Services.AddTransient<IQueryHandler<GetPayLaterQuery, GetPayLaterResponse>, GetPayLaterQueryHandler>();
+builder.Services.AddTransient<IQueryHandler<GetPayLaterByIdQuery, PayLaterDto>, GetPayLaterByIdQueryHandler>();
+builder.Services.AddTransient<ICommandHandler<RecordPayLaterPaymentCommand, PayLaterDto>, RecordPayLaterPaymentCommandHandler>();
 
 // Add JWT authentication
 var tokenOptions = builder.Configuration.GetSection(LocalTokenOptions.SectionName).Get<LocalTokenOptions>()
@@ -392,6 +406,97 @@ app.MapGet("/reports/product-sales", async (
     var result = await handler.HandleAsync(query, cancellationToken);
     return Results.Ok(result);
 }).RequireAuthorization("CanViewReports");
+
+// ========================
+// Legacy Report Endpoints (for WinForms compatibility)
+// ========================
+
+// Legacy sales summary (returns SalesSummary model)
+app.MapGet("/reports/legacy/sales-summary", async (
+    IQueryHandler<GetLegacySalesSummaryQuery, SalesSummary> handler,
+    DateOnly fromDate,
+    DateOnly toDate,
+    CancellationToken cancellationToken) =>
+{
+    var query = new GetLegacySalesSummaryQuery(fromDate, toDate);
+    var result = await handler.HandleAsync(query, cancellationToken);
+    return Results.Ok(result);
+}).RequireAuthorization("CanViewReports");
+
+// Legacy payments summary (returns PaymentsSummary model)
+app.MapGet("/reports/legacy/payments-summary", async (
+    IQueryHandler<GetLegacyPaymentsSummaryQuery, PaymentsSummary> handler,
+    DateOnly fromDate,
+    DateOnly toDate,
+    CancellationToken cancellationToken) =>
+{
+    var query = new GetLegacyPaymentsSummaryQuery(fromDate, toDate);
+    var result = await handler.HandleAsync(query, cancellationToken);
+    return Results.Ok(result);
+}).RequireAuthorization("CanViewReports");
+
+// ========================
+// PayLater endpoints (for cashiers to view and update pay-later accounts)
+// ========================
+
+// List pay-later records
+app.MapGet("/pay-later", async (
+    IQueryHandler<GetPayLaterQuery, GetPayLaterResponse> handler,
+    bool? includeCompleted,
+    string? search,
+    CancellationToken cancellationToken) =>
+{
+    var query = new GetPayLaterQuery(
+        IncludeCompleted: includeCompleted ?? false,
+        SearchTerm: search);
+
+    var result = await handler.HandleAsync(query, cancellationToken);
+    return Results.Ok(result);
+}).RequireAuthorization();
+
+// Get single pay-later record
+app.MapGet("/pay-later/{id:guid}", async (
+    IQueryHandler<GetPayLaterByIdQuery, PayLaterDto> handler,
+    Guid id,
+    CancellationToken cancellationToken) =>
+{
+    try
+    {
+        var result = await handler.HandleAsync(new GetPayLaterByIdQuery(id), cancellationToken);
+        return Results.Ok(result);
+    }
+    catch (PayLaterPaymentNotFoundException)
+    {
+        return Results.NotFound();
+    }
+}).RequireAuthorization();
+
+// Record payment against pay-later
+app.MapPost("/pay-later/{id:guid}/record-payment", async (
+    ICommandHandler<RecordPayLaterPaymentCommand, PayLaterDto> handler,
+    Guid id,
+    RecordPaymentRequest request,
+    CancellationToken cancellationToken) =>
+{
+    try
+    {
+        var command = new RecordPayLaterPaymentCommand(id, request.PaymentAmount);
+        var result = await handler.HandleAsync(command, cancellationToken);
+        return Results.Ok(result);
+    }
+    catch (PayLaterPaymentNotFoundException)
+    {
+        return Results.NotFound();
+    }
+    catch (PayLaterPaymentNotUpdatedException ex)
+    {
+        return Results.BadRequest(new { error = ex.Message });
+    }
+    catch (ArgumentException ex)
+    {
+        return Results.BadRequest(new { error = ex.Message });
+    }
+}).RequireAuthorization();
 
 app.Run();
 
