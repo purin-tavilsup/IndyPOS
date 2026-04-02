@@ -7,7 +7,6 @@ using IndyPOS.Application.Common.Models;
 using IndyPOS.Application.Events;
 using IndyPOS.Application.UseCases.InventoryProducts;
 using IndyPOS.Application.UseCases.StoreHub.Products;
-using IndyPOS.Application.UseCases.Invoices;
 using IndyPOS.Application.UseCases.StoreHub.Sales;
 using IndyPOS.Domain.Events;
 using Microsoft.Extensions.Logging;
@@ -365,7 +364,7 @@ public class StoreHubSaleService : ISaleService
             PaymentTotal = paymentTotal,
             Changes = CalculateChanges(),
             IsRefundInvoice = isRefundInvoice,
-            HasPayLaterPayment = Payments.HasPayLayerPayment()
+            HasPayLaterPayment = Payments.HasPayLaterPayment()
         };
     }
 

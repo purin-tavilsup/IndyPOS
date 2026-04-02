@@ -1,6 +1,4 @@
 ﻿using IndyPOS.Application.Common.Helpers;
-using IndyPOS.Application.UseCases.InventoryProducts.Create;
-using IndyPOS.Application.UseCases.InventoryProducts.Update;
 using IndyPOS.Domain.Entities;
 
 namespace IndyPOS.Application.UseCases.InventoryProducts;
@@ -28,42 +26,5 @@ internal static class InventoryProductExtensions
 			DateCreated = entity.DateCreated,
 			DateUpdated = entity.DateUpdated
 		};
-    }
-
-	internal static InventoryProduct ToEntity(this CreateInventoryProductCommand command)
-    {
-		var entity = new InventoryProduct
-		{
-			Barcode = command.Barcode,
-			Description = command.Description,
-			Manufacturer = command.Manufacturer,
-			Brand = command.Brand,
-			Category = command.Category,
-			UnitPrice = command.UnitPrice,
-			QuantityInStock = command.QuantityInStock,
-			GroupPrice = command.GroupPrice,
-			GroupPriceQuantity = command.GroupPriceQuantity,
-			IsTrackable = command.IsTrackable
-		};
-
-        return entity;
-    }
-
-	internal static InventoryProduct ToEntity(this UpdateInventoryProductCommand command)
-    {
-		var entity = new InventoryProduct
-		{
-			InventoryProductId = command.Id,
-			Description = command.Description,
-			Manufacturer = command.Manufacturer,
-			Brand = command.Brand,
-			Category = command.Category,
-			UnitPrice = command.UnitPrice,
-			QuantityInStock = command.QuantityInStock,
-			GroupPrice = command.GroupPrice,
-			GroupPriceQuantity = command.GroupPriceQuantity
-		};
-
-        return entity;
     }
 }
