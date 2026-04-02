@@ -11,12 +11,8 @@ using IndyPOS.Windows.Forms.UI.Report;
 using IndyPOS.Windows.Forms.UI.Sale;
 using IndyPOS.Windows.Forms.UI.Setting;
 using IndyPOS.Windows.Forms.UI.User;
-using Microsoft.Extensions.Configuration;
 using Prism.Events;
-using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
-using System.IO;
-using IndyPOS.Application.Abstractions.Pos.Repositories;
 using Timer = System.Windows.Forms.Timer;
 
 namespace IndyPOS.Windows.Forms.UI;
@@ -32,24 +28,19 @@ public partial class MainForm : Form
 	private readonly SettingsPanel _settingsPanel;
 	private readonly UserLogInPanel _userLogInPanel;
 	private readonly IEventAggregator _eventAggregator;
-	private readonly IDbConnectionProvider _dbConnectionProvider;
-	private readonly bool _isDatabaseBackupEnabled;
-	private readonly string _backupDatabaseDirectory;
 
 	private UserControl _activePanel;
 	private bool _isUserLoggedIn;
 	private ILoggedInUser? _loggedInUser;
 
-	public MainForm(SalePanel salesPanel, 
-					InventoryPanel inventoryPanel, 
-					UsersPanel usersPanel, 
-					ReportsPanel reportsPanel, 
-					PayLaterPaymentPanel accountsReceivablePanel, 
+	public MainForm(SalePanel salesPanel,
+					InventoryPanel inventoryPanel,
+					UsersPanel usersPanel,
+					ReportsPanel reportsPanel,
+					PayLaterPaymentPanel accountsReceivablePanel,
 					SettingsPanel settingsPanel,
 					UserLogInPanel userLogInPanel,
-					IEventAggregator eventAggregator,
-					IDbConnectionProvider dbConnectionProvider,
-					IConfiguration configuration)
+					IEventAggregator eventAggregator)
 	{
 		InitializeComponent();
 
@@ -69,11 +60,7 @@ public partial class MainForm : Form
 		_userLogInPanel.Visible = false;
 		_eventAggregator = eventAggregator;
 		_isUserLoggedIn = false;
-		_dbConnectionProvider = dbConnectionProvider;
 		_activePanel = new UserControl();
-
-		_isDatabaseBackupEnabled = configuration.GetValue<bool>("Database:BackupEnabled");
-		_backupDatabaseDirectory = GetBackupDatabaseDirectory(configuration);
 
 		SubscribeEvents();
 			
@@ -93,13 +80,6 @@ public partial class MainForm : Form
 	public void SetVersion(string version)
 	{
 		VersionLabel.Text = $"Version: {version}";
-	}
-
-	private static string GetBackupDatabaseDirectory(IConfiguration configuration)
-	{
-		var path = configuration.GetValue<string>("Database:BackupDirectory");
-
-		return path ?? "C:\\ProgramData\\IndyPOS\\Reports";
 	}
 
 	private void DateTimeUpdateTimer_Tick(object? sender, EventArgs e)
@@ -278,25 +258,7 @@ public partial class MainForm : Form
 
 	private void CloseApplication()
 	{
-		BackupDatabase();
-
 		Close();
-	}
-
-	[Conditional("RELEASE")]
-	private void BackupDatabase()
-	{
-		if (_isDatabaseBackupEnabled.IsFalse())
-			return;
-
-		var today = DateTime.Today;
-		var byDateBackupDirectory = $"{_backupDatabaseDirectory}\\{today.Year}\\{today.Month:00}\\{today.Day:00}";
-			
-		if (!Directory.Exists(byDateBackupDirectory)) 
-			Directory.CreateDirectory(byDateBackupDirectory);
-
-		_dbConnectionProvider.BackupDatabase(byDateBackupDirectory);
-		_dbConnectionProvider.BackupDatabase(_backupDatabaseDirectory);
 	}
         
 	private void MainForm_Load(object sender, EventArgs e)

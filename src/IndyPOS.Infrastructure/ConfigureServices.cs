@@ -1,14 +1,11 @@
 using System.Security.Cryptography;
-using IndyPOS.Application.Abstractions.Pos.Repositories;
 using IndyPOS.Application.Abstractions.Security;
 using IndyPOS.Application.Abstractions.StoreHub;
 using IndyPOS.Application.Abstractions.StoreHub.Repositories;
-using IndyPOS.Infrastructure.Services.StoreHub;
 using IndyPOS.Application.Abstractions.StoreHub.Services;
 using IndyPOS.Application.Common.Interfaces;
 using IndyPOS.Application.Common.Models;
 using IndyPOS.Infrastructure.Constants;
-using IndyPOS.Infrastructure.Persistence.Repositories.SQLite;
 using IndyPOS.Infrastructure.Persistence.StoreHub.Repositories;
 using IndyPOS.Infrastructure.Persistence.StoreHub.Seeders;
 using IndyPOS.Infrastructure.Services;
@@ -26,28 +23,18 @@ namespace Microsoft.Extensions.DependencyInjection;
 [type: SupportedOSPlatform("windows")]
 public static class ConfigureServices
 {
+	/// <summary>
+	/// Registers core infrastructure services shared across all modes.
+	/// This method is called regardless of StoreHub enabled/disabled.
+	/// </summary>
 	public static IServiceCollection AddInfrastructureServices(this IServiceCollection services, IConfiguration configuration)
 	{
 		// Store Identity
 		services.Configure<StoreIdentityOptions>(configuration.GetSection(StoreIdentityOptions.SectionName));
 		services.AddSingleton<IStoreIdentityService, StoreIdentityService>();
 
-		// Persistence
-		services.AddSingleton<IDbConnectionProvider, DbConnectionProvider>()
-                .AddSingleton<IInvoiceRepository, InvoiceRepository>()
-                .AddSingleton<IInvoiceProductRepository, InvoiceProductRepository>()
-                .AddSingleton<IInvoicePaymentRepository, InvoicePaymentRepository>()
-                .AddSingleton<IInventoryProductRepository, InventoryProductRepository>()
-                .AddSingleton<IStoreConstantRepository, StoreConstantRepository>()
-                .AddSingleton<IUserRepository, UserRepository>()
-				.AddSingleton<IUserCredentialRepository, UserCredentialRepository>()
-                .AddSingleton<IPayLaterPaymentRepository, IndyPOS.Infrastructure.Persistence.Repositories.SQLite.PayLaterRepository>();
-
-        services.AddSingleton<IStoreConstants, StoreConstants>()
-				.AddSingleton<IStoreConfigurationService, StoreConfigurationService>()
-				.AddSingleton<IUserLogInService, UserLogInService>()
-				.AddSingleton<ISaleService, SaleService>()
-				.AddSingleton<IReportService, ReportService>()
+		// Core services (non-database)
+		services.AddSingleton<IStoreConfigurationService, StoreConfigurationService>()
 				.AddSingleton<IEventAggregator, EventAggregator>()
 				.AddSingleton<IRawInputDeviceService, RawInputDeviceService>()
 				.AddSingleton<IReceiptPrinterService, ReceiptPrinterService>()
@@ -162,14 +149,8 @@ public static class ConfigureServices
 		// User sync service (Epic S2: Local User Cache)
 		services.AddScoped<IUserSyncService, UserSyncService>();
 
-		// Legacy crypto service for password migration
+		// Legacy crypto service for password migration (TripleDES → BCrypt)
 		services.AddTransient<ICryptographyService, CryptographyService>();
-
-		// SQLite connection provider (for user migration from legacy database)
-		services.AddSingleton<IDbConnectionProvider, DbConnectionProvider>();
-
-		// User migration seeder (for dev migration from SQLite)
-		services.AddScoped<UserMigrationSeeder>();
 
 		// Development data seeder (test users and products)
 		services.AddScoped<DevelopmentDataSeeder>();
