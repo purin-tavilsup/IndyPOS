@@ -1,53 +1,29 @@
 ﻿using IndyPOS.Application.Common.Interfaces;
 using System.Diagnostics.CodeAnalysis;
-using IndyPOS.Application.UseCases.Users;
-using IndyPOS.Application.UseCases.Users.Get;
-using Nokpirab;
 
 namespace IndyPOS.Windows.Forms.UI.Login;
 
+/// <summary>
+/// User login panel.
+/// In StoreHub mode, user list is not pre-populated - users type their username directly.
+/// </summary>
 [ExcludeFromCodeCoverage]
 public partial class UserLogInPanel : UserControl
 {
 	private readonly IUserLogInService _userLogInService;
-	private readonly INokpirab _nokpirab;
 	private readonly ICryptographyService _cryptographyService;
 	private readonly MessageForm _messageForm;
 	private bool _isLoggedIn;
-		
+
 	public UserLogInPanel(IUserLogInService userLogInService,
 						  ICryptographyService cryptographyService,
-						  MessageForm messageForm,
-						  INokpirab nokpirab)
+						  MessageForm messageForm)
 	{
 		_userLogInService = userLogInService;
 		_cryptographyService = cryptographyService;
 		_messageForm = messageForm;
-		_nokpirab = nokpirab;
 
 		InitializeComponent();
-		InitializeUsers();
-	}
-
-	private void InitializeUsers()
-	{
-		UsersComboBox.Items.Clear();
-
-		var users = GetUsers();
-
-		foreach (var user in users)
-		{
-			var username = $"{user.FirstName.ToLower()}.{user.LastName.ToLower()}";
-
-			UsersComboBox.Items.Add(username);
-		}
-	}
-
-	private IEnumerable<UserDto> GetUsers()
-	{
-		return _nokpirab.SendAsync(new GetUsersQuery())
-						.GetAwaiter()
-						.GetResult();
 	}
 
 	private async void LogInButton_Click(object sender, EventArgs e)
@@ -64,7 +40,7 @@ public partial class UserLogInPanel : UserControl
 
 	private async Task TryLogInAsync()
 	{
-		var username = UsersComboBox.SelectedItem?.ToString() ?? string.Empty;
+		var username = UsersComboBox.Texts?.Trim() ?? string.Empty;
 		var password = _cryptographyService.Encrypt(UserSecretTextBox.Texts.Trim());
 
 		_isLoggedIn = await _userLogInService.LogInAsync(username, password);
@@ -92,8 +68,8 @@ public partial class UserLogInPanel : UserControl
 	{
 		UserSecretTextBox.PasswordChar = !UserSecretTextBox.PasswordChar;
 
-		PasswordVisibilityButton.Image = UserSecretTextBox.PasswordChar 
-											 ? Properties.Resources.Visible_25 
+		PasswordVisibilityButton.Image = UserSecretTextBox.PasswordChar
+											 ? Properties.Resources.Visible_25
 											 : Properties.Resources.Hidden_25;
 	}
 

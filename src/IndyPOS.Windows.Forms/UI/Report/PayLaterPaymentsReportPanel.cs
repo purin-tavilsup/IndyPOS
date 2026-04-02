@@ -1,6 +1,6 @@
 ﻿using IndyPOS.Application.Common.Enums;
 using IndyPOS.Application.Common.Interfaces;
-using IndyPOS.Application.UseCases.PayLaterPayments;
+using IndyPOS.Application.Common.Models;
 
 namespace IndyPOS.Windows.Forms.UI.Report;
 

@@ -1,9 +1,9 @@
 # IndyPOS Overhaul - Implementation Status
 
-**Last Updated:** 2026-03-31
-**Last Session:** 2026-03-31
+**Last Updated:** 2026-04-01
+**Last Session:** 2026-04-01
 **Current Sprint:** Sprint 6
-**Current Epic:** Epic G3 (SQLite Removal) - 🟡 In Progress
+**Current Epic:** Epic G3 (SQLite Removal) - 🟢 Complete
 **Docs Version:** v1.4.0 (with .NET Aspire support)
 
 ---
@@ -556,7 +556,7 @@ POST /sync/events → SyncedEvents table → EventProcessor (background)
 |------|-------------|--------|-----|-------|
 | G1 | Desktop becomes hub client | 🟢 Complete | - | Full StoreHub client integration + E2E tests |
 | G2 | Prepare for tablet | ⏭️ Deferred | - | Deferred to post-MAUI migration (2027+) |
-| G3 | Decommission direct SQLite writes | 🟡 In Progress | - | Phase 1 complete (backend), Phases 2-7 remaining |
+| G3 | Decommission direct SQLite writes | 🟢 Complete | - | All phases complete, 298 tests passing |
 
 ### G1: Desktop Hub Client Details (2026-03-27)
 
@@ -690,21 +690,41 @@ POST /sync/events → SyncedEvents table → EventProcessor (background)
 
 **Tests:** 202 passing ✅
 
-### G3: SQLite Removal Phases (2026-03-31)
+### G3: SQLite Removal Phases (2026-04-01) ✅ COMPLETE
 
-**Current Status:** Phase 0a and 0b complete - prerequisite StoreHub replacements created
+**Status:** All phases complete! SQLite fully removed from main application.
 
 | Phase | Description | Status | Notes |
 |-------|-------------|--------|-------|
 | 0a | Fix IStoreConstants | ✅ Complete | `HardcodedStoreConstants` uses enums instead of SQLite |
 | 0b | Create StoreHubReportService | ✅ Complete | Legacy report endpoints added to StoreHub |
-| 1 | Delete SQLite repositories | ⏳ Pending | 9 files in `Persistence/Repositories/SQLite/` |
-| 2 | Delete Pos interfaces | ⏳ Pending | 9 files in `Abstractions/Pos/Repositories/` |
-| 3 | Delete legacy Nokpirab handlers | ⏳ Pending | ~30 handler files |
-| 4 | Delete legacy services | ⏳ Pending | `SaleService`, `UserLogInService`, `ReportService` |
-| 5 | Update WinForms | ⏳ Pending | Remove SQLite fallback, require StoreHub |
-| 6 | Clean up tests | ⏳ Pending | Remove SQLite-dependent tests |
-| 7 | Update documentation | ⏳ Pending | Final cleanup |
+| 1 | Delete SQLite repositories | ✅ Complete | 9 files deleted from `Persistence/Repositories/SQLite/` |
+| 2 | Delete Pos interfaces | ✅ Complete | 8 files deleted from `Abstractions/Pos/Repositories/` |
+| 3 | Delete legacy Nokpirab handlers | ✅ Complete | ~70+ handler files deleted |
+| 4 | Delete legacy services | ✅ Complete | `SaleService`, `UserLogInService`, `ReportService`, `StoreConstants` deleted |
+| 5 | Update WinForms | ✅ Complete | `MainForm`, `UserLogInPanel`, `UsersPanel`, `AddNewUserForm` updated for StoreHub-only |
+| 6 | Clean up tests | ✅ Complete | Legacy handler tests deleted (InventoryProducts, InvoiceProducts, PayLaterPayments) |
+| 7 | Update documentation | ✅ Complete | This file + sqlite-removal-plan.md updated |
+
+**Key Changes:**
+- Removed `System.Data.SQLite.Core` and `Dapper` packages from Infrastructure.csproj
+- Created `LegacyDtos.cs` for backward compatibility with WinForms report panels
+- User management disabled in WinForms (StoreHub mode uses CloudAPI)
+- Database backup feature removed (was SQLite-specific)
+- **298 tests passing** (down from 302 - removed 4 legacy handler test files)
+
+**Files Deleted (~90 files):**
+- 9 SQLite repository implementations
+- 8 Pos repository interfaces
+- 70+ legacy Nokpirab handlers (InventoryProducts, Invoices, InvoiceProducts, InvoicePayments, PayLaterPayments, Users, UserCredentials)
+- Legacy services (SaleService, UserLogInService, ReportService, StoreConstants)
+- Legacy tests (InventoryProducts, InvoiceProducts, PayLaterPayments)
+
+**WinForms Disabled Features:**
+- User management (UsersPanel, AddNewUserForm) - shows "Feature not available in StoreHub mode"
+- Database backup on exit - removed
+
+**MigrationTool:** KEPT for ongoing store migrations (uses separate SQLite dependency)
 
 **Phase 0a Files Created:**
 - `Infrastructure/Constants/HardcodedStoreConstants.cs` - Replaces SQLite-based `StoreConstants`

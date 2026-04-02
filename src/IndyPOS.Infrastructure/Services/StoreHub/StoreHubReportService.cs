@@ -3,10 +3,6 @@ using IndyPOS.Application.Common.Enums;
 using IndyPOS.Application.Common.Extensions;
 using IndyPOS.Application.Common.Interfaces;
 using IndyPOS.Application.Common.Models;
-using IndyPOS.Application.UseCases.InvoicePayments;
-using IndyPOS.Application.UseCases.InvoiceProducts;
-using IndyPOS.Application.UseCases.Invoices;
-using IndyPOS.Application.UseCases.PayLaterPayments;
 
 namespace IndyPOS.Infrastructure.Services.StoreHub;
 

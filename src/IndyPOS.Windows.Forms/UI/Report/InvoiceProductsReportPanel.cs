@@ -1,8 +1,8 @@
 ﻿using IndyPOS.Application.Common.Enums;
 using IndyPOS.Application.Common.Extensions;
 using IndyPOS.Application.Common.Interfaces;
+using IndyPOS.Application.Common.Models;
 using System.Diagnostics.CodeAnalysis;
-using IndyPOS.Application.UseCases.InvoiceProducts;
 
 namespace IndyPOS.Windows.Forms.UI.Report;
 
