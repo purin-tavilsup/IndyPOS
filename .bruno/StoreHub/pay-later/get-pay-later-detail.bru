@@ -1,0 +1,48 @@
+meta {
+  name: Get Pay Later Detail
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{baseUrl}}/pay-later/{{payLaterId}}
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+docs {
+  # Get Pay Later Detail
+
+  Returns detailed information about a specific pay-later record.
+
+  ## Path Parameters
+
+  | Parameter | Type | Description |
+  |-----------|------|-------------|
+  | payLaterId | GUID | The pay-later record ID |
+
+  ## Response
+
+  ```json
+  {
+    "id": "guid",
+    "invoiceId": "guid",
+    "invoiceNumber": "INV-2024-0001",
+    "description": "Customer Name",
+    "payLaterAmount": 500.00,
+    "paidAmount": 200.00,
+    "remainingAmount": 300.00,
+    "isCompleted": false,
+    "createdUtc": "2024-03-01T10:00:00Z",
+    "lastModifiedUtc": "2024-03-05T14:30:00Z"
+  }
+  ```
+
+  ## Authorization
+
+  Requires `reports.view` capability (Manager, Admin).
+}

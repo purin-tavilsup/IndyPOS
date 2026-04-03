@@ -1,0 +1,51 @@
+meta {
+  name: Update Product
+  type: http
+  seq: 4
+}
+
+put {
+  url: {{baseUrl}}/products/{{productId}}
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:json {
+  {
+    "barcode": "1234567890123",
+    "description": "Updated Product Name",
+    "category": "General",
+    "unitPrice": 120.00,
+    "groupPrice": 100.00,
+    "groupPriceQuantity": 10,
+    "isTrackable": true
+  }
+}
+
+docs {
+  # Update Product
+
+  Updates an existing product.
+
+  ## Path Parameters
+
+  | Parameter | Type | Description |
+  |-----------|------|-------------|
+  | productId | GUID | The product ID |
+
+  ## Request Body
+
+  Same as Create Product. All fields are optional - only provided fields are updated.
+
+  ## Response
+
+  Returns the updated product.
+
+  ## Authorization
+
+  Requires `products.manage` capability (Manager, Admin).
+}
