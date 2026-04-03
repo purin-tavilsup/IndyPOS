@@ -18,6 +18,7 @@
 | F | Cloud API | Complete |
 | G | Desktop Integration | Complete |
 | H | Testing & Rollout | Complete |
+| **L** | **Local Deployment Readiness** | **In Progress** |
 | I | Cloud Infrastructure | Not Started |
 | S | Security Hardening | 5/9 Complete |
 
@@ -26,6 +27,24 @@
 ---
 
 ## Current Focus
+
+### Epic L: Local Deployment Readiness (NEW)
+
+**Goal:** Get the system ready for local machine deployment and testing
+
+| Task | Description | Priority | Status |
+|------|-------------|----------|--------|
+| L1 | Add StoreHub config to WinForms appsettings.json | HIGH | Not Started |
+| L2 | Create StoreHub appsettings.Production.json | HIGH | Not Started |
+| L3 | Create install-config.ps1 script | MEDIUM | Not Started |
+| L4 | Create publish script (build release binaries) | MEDIUM | Not Started |
+| L5 | End-to-end test: WinForms → StoreHub → PostgreSQL | HIGH | Not Started |
+
+**Deployment Scenarios:**
+- **Dev/Test (Aspire):** `dotnet run --project src/IndyPOS.AppHost` - API testing with Bruno
+- **Local Production:** WinForms + StoreHub + PostgreSQL on same machine
+
+---
 
 ### Epic S: Security Hardening (Partial)
 
