@@ -1,34 +1,31 @@
-# Claude Workspace
+# Claude Session Context
 
-This folder contains workspace metadata for Claude Code sessions.
+This folder contains session context for quick handoffs and resumption.
 
-## Structure
+## Files
 
-```
-.claude/
-├── README.md              # This file
-├── settings.local.json    # Local settings (not tracked)
-└── sessions/              # Session logs (NOT tracked in git)
-    └── YYYY-MM-DD-*.md    # Individual session logs
-```
+| File | Purpose | When to Read |
+|------|---------|--------------|
+| `STATUS.md` | Quick checkpoint (~50 lines) | **Always first** |
+| `session-log.md` | Recent session history | When resuming work |
+| `session-log-archive.md` | Older sessions | For deep historical context |
 
-## Session Logs
+## Session Workflow
 
-**Tracked in git:** No (in `.gitignore`)
+### Starting a Session
+1. Read `STATUS.md` - Current state + next actions
+2. If needed, read `session-log.md` - Recent context
+3. Start working on next action
 
-Session logs help Claude resume work across conversations. These are working notes and not meant for version control.
+### Ending a Session / Compact
+1. Update `STATUS.md` with current state + next actions
+2. Add session summary to `session-log.md`
 
-**What's in a session log:**
-- Date and summary
-- What was accomplished
-- Decisions made
-- Context needed to resume work
+## Related Documentation
 
-## Related Files
-
-| File | Location | Purpose |
-|------|----------|---------|
-| Project Context | `../CLAUDE.md` | Generic project info, coding standards |
-| Implementation Status | `../.planning/indypos-overhaul/implementation-status.md` | Epic/task tracker |
-| Planning Docs | `../.planning/indypos-overhaul/` | Detailed plans, ADRs, specs |
-| Architecture Docs | `../docs/` | Public documentation |
+| Doc | Location |
+|-----|----------|
+| Project context | `../CLAUDE.md` |
+| Full plan | `../.planning/indypos-overhaul/PLAN.md` |
+| Completed epics | `../.planning/indypos-overhaul/completed/` |
+| Architecture docs | `../docs/` |
