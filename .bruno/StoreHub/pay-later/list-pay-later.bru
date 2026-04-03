@@ -1,0 +1,58 @@
+meta {
+  name: List Pay Later
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/pay-later?includeCompleted=false
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+params:query {
+  includeCompleted: false
+}
+
+docs {
+  # List Pay Later Records
+
+  Returns all pay-later (credit) records.
+
+  ## Query Parameters
+
+  | Parameter | Type | Default | Description |
+  |-----------|------|---------|-------------|
+  | includeCompleted | bool | false | Include completed pay-later records |
+
+  ## Response
+
+  ```json
+  [
+    {
+      "id": "guid",
+      "invoiceId": "guid",
+      "description": "Customer Name",
+      "payLaterAmount": 500.00,
+      "paidAmount": 200.00,
+      "remainingAmount": 300.00,
+      "isCompleted": false,
+      "createdUtc": "2024-03-01T10:00:00Z"
+    }
+  ]
+  ```
+
+  ## Notes
+
+  - Pay-later is a credit system for trusted customers
+  - Customer is identified by the description field
+  - `remainingAmount = payLaterAmount - paidAmount`
+
+  ## Authorization
+
+  Requires `reports.view` capability (Manager, Admin).
+}

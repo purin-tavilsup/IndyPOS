@@ -1,0 +1,41 @@
+meta {
+  name: Delete Product
+  type: http
+  seq: 5
+}
+
+delete {
+  url: {{baseUrl}}/products/{{productId}}
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+docs {
+  # Delete Product
+
+  Soft-deletes a product (sets IsActive = false).
+
+  ## Path Parameters
+
+  | Parameter | Type | Description |
+  |-----------|------|-------------|
+  | productId | GUID | The product ID |
+
+  ## Response
+
+  Returns `204 No Content` on success.
+
+  ## Notes
+
+  - This is a soft delete - the product is deactivated, not removed
+  - Deactivated products won't appear in product listings
+  - Historical sales data referencing this product is preserved
+
+  ## Authorization
+
+  Requires `products.manage` capability (Manager, Admin).
+}
