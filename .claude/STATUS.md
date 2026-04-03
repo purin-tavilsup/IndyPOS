@@ -7,52 +7,54 @@
 | Field | Value |
 |-------|-------|
 | **Branch** | `indypos-overhaul` |
-| **Sprint** | Sprint 6 (complete) |
-| **Phase** | Post-MVP Polish |
+| **Sprint** | Sprint 7 |
+| **Phase** | Local Deployment Readiness |
 | **Blocked?** | No |
 
-## Recent Completion (2026-04-01)
+## Recent Completion (2026-04-03)
 
-**Epic G3: SQLite Removal** - COMPLETE
-- Removed all SQLite dependencies from main app
-- 174 files changed, 5,699 lines deleted
-- MigrationTool kept for store migrations
-- 298 tests passing, 0 errors
+- Restructured session context docs (STATUS.md, PLAN.md, completed/)
+- Updated Bruno collection (25 requests, 100% endpoint coverage)
 
 ## Next Actions (Priority Order)
 
-1. [ ] **Epic I: Cloud Infrastructure** (LOW - when multi-store sync needed)
-   - Provision DigitalOcean droplet + managed PostgreSQL
-   - Deploy CloudApi
-   - Configure SyncWorker with real CloudApi
+### Epic L: Local Deployment Readiness
 
-2. [ ] **Epic S (remaining)** (LOW priority)
-   - S6: Key rotation support
-   - S7: Security audit logging
-   - S8: Rate limiting
-   - S9: Secrets management
+1. [ ] **L1: WinForms appsettings.json** (HIGH)
+   - Add `StoreHub` section with `Enabled: true`, `BaseUrl`
 
-3. [ ] **Backlog: Migration --sync-to-cloud flag**
-   - Create outbox events for migrated invoices
+2. [ ] **L2: StoreHub appsettings.Production.json** (HIGH)
+   - Connection string for local PostgreSQL
+   - JWT signing key config
+
+3. [ ] **L3: install-config.ps1 script** (MEDIUM)
+   - PostgreSQL setup automation
+   - Referenced in pilot-checklist but missing
+
+4. [ ] **L4: Publish script** (MEDIUM)
+   - Build release binaries for StoreHub + WinForms
+
+5. [ ] **L5: End-to-end test** (HIGH)
+   - WinForms → StoreHub → PostgreSQL full flow
 
 ## Key Files
 
 | Purpose | Path |
 |---------|------|
-| Full plan & epics | `.planning/indypos-overhaul/PLAN.md` |
-| Session history | `.claude/session-log.md` |
-| Completed epics | `.planning/indypos-overhaul/completed/` |
-| Security spec | `.planning/indypos-overhaul/security/` |
+| Full plan | `.planning/indypos-overhaul/PLAN.md` |
+| Pilot checklist | `docs/operations/pilot-checklist.md` |
+| StoreHub options | `Infrastructure/Services/StoreHub/StoreHubOptions.cs` |
+| WinForms config | `src/IndyPOS.Windows.Forms/appsettings.json` |
 
 ## Quick Context
 
-IndyPOS is a Point-of-Sale system migrating from SQLite to PostgreSQL (StoreHub). The main MVP is ~95% complete. Desktop app now uses StoreHub API exclusively. Cloud sync infrastructure exists but isn't deployed yet.
+IndyPOS StoreHub migration is ~95% code complete. Now focusing on deployment readiness - config files, scripts, and end-to-end testing before pilot rollout.
 
 ## Stats
 
 - **Tests:** 298 passing
 - **Build:** 0 errors, 55 warnings
-- **Progress:** ~95% complete
+- **Bruno:** 25 requests (100% coverage)
 
 ---
 *Last updated: 2026-04-03*
