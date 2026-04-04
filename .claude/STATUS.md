@@ -22,7 +22,7 @@
 | L3 | publish.ps1 script | ✅ |
 | L4 | install-config.ps1 script | ✅ |
 | L5 | smoke-test.ps1 (comprehensive E2E) | ✅ |
-| L6 | setup-local.md guide | ✅ |
+| L6 | Store installation guide | ✅ |
 
 ### Bonus: Velopack Prep
 
@@ -38,7 +38,7 @@
 | Scenario | Config | Guide |
 |----------|--------|-------|
 | **Development** | Aspire + Docker | `dotnet run --project src/IndyPOS.AppHost` |
-| **Local Production** | PostgreSQL on Windows | `docs/operations/setup-local.md` |
+| **Local Production** | PostgreSQL on Windows | `docs/operations/store-installation-guide.md` |
 | **Cloud** | DigitalOcean | Epic I (not started) |
 
 ## Next Actions (Priority Order)
@@ -46,7 +46,7 @@
 ### Ready for Pilot! 🚀
 
 1. [ ] Run `publish.ps1` to build release binaries
-2. [ ] Deploy to pilot store using `setup-local.md`
+2. [ ] Deploy to pilot store using `store-installation-guide.md`
 3. [ ] Run `smoke-test.ps1` to verify
 4. [ ] Monitor and gather feedback
 
@@ -60,7 +60,7 @@
 | Purpose | Path |
 |---------|------|
 | Full plan | `.planning/indypos-overhaul/PLAN.md` |
-| Local setup guide | `docs/operations/setup-local.md` |
+| Store installation guide | `docs/operations/store-installation-guide.md` |
 | Pilot checklist | `docs/operations/pilot-checklist.md` |
 | Publish script | `scripts/publish.ps1` |
 | Install script | `scripts/install-config.ps1` |
