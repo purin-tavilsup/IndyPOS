@@ -255,10 +255,9 @@ Edit `src/IndyPOS.Windows.Forms/appsettings.json`:
 ```json
 {
   "StoreHub": {
-    "Enabled": true,
     "BaseUrl": "http://localhost:5000",
-    "AutoSyncProductsOnStartup": true,
-    "TimeoutSeconds": 30
+    "TimeoutSeconds": 30,
+    "AutoSyncProductsOnStartup": true
   }
 }
 ```

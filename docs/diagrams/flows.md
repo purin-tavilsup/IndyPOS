@@ -57,7 +57,6 @@ This document contains detailed ASCII diagrams for all major flows in the IndyPO
 │   │  Configure in appsettings.json:                                      │   │
 │   │  {                                                                   │   │
 │   │    "StoreHub": {                                                     │   │
-│   │      "Enabled": true,                                                │   │
 │   │      "BaseUrl": "http://localhost:5000"                              │   │
 │   │    }                                                                 │   │
 │   │  }                                                                   │   │
