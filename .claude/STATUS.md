@@ -24,6 +24,14 @@
 | L5 | smoke-test.ps1 (comprehensive E2E) | ✅ |
 | L6 | Store installation guide | ✅ |
 
+### Session Cleanup (Boy Scout Rule)
+
+| Task | Description | Status |
+|------|-------------|--------|
+| Doc cleanup | Remove outdated `Enabled` flag from docs | ✅ |
+| Rename guide | `setup-local.md` → `store-installation-guide.md` | ✅ |
+| PostgreSQL 18 | Update all docs from PG 16 → 18 | ✅ |
+
 ### Bonus: Velopack Prep
 
 | Task | Description | Status |

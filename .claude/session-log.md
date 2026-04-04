@@ -4,6 +4,51 @@
 
 ---
 
+## 2026-04-03: Epic L Complete - Local Deployment Readiness
+
+**Epic:** L | **Commits:** `aaea941..9d810ad` (11 commits)
+
+### Summary
+Completed Epic L (Local Deployment Readiness) - system is now **ready for pilot deployment**! 🚀
+
+### Work Done
+
+**L1-L6 Core Tasks:**
+- L1: WinForms appsettings.json + removed legacy `Enabled` flag (StoreHub is now default)
+- L2: StoreHub appsettings.Production.json + README documentation
+- L3: `publish.ps1` - builds self-contained releases
+- L4: `install-config.ps1` - automates PostgreSQL setup
+- L5: `smoke-test.ps1` - comprehensive E2E test (health, auth, products, sales, pay later)
+- L6: `store-installation-guide.md` - complete deployment guide
+
+**Velopack Prep (Bonus):**
+- `Directory.Build.props` - centralized version (1.0.0)
+- `AppVersion.cs` - version helper class
+- `/version` endpoint in StoreHub
+- `docs/versioning.md` + Bruno request
+
+**Boy Scout Cleanup:**
+- Removed outdated `Enabled` flag references from 3 docs
+- Renamed `setup-local.md` → `store-installation-guide.md`
+- Updated PostgreSQL 16 → 18 across all docs/scripts (10 files)
+
+### Key Files Created
+| File | Purpose |
+|------|---------|
+| `scripts/publish.ps1` | Build release binaries |
+| `scripts/install-config.ps1` | PostgreSQL + config setup |
+| `scripts/smoke-test.ps1` | E2E API tests |
+| `docs/operations/store-installation-guide.md` | Deployment guide |
+| `docs/versioning.md` | Version management docs |
+
+### Next Steps
+1. Run `publish.ps1` to build release binaries
+2. Deploy to pilot store
+3. Run `smoke-test.ps1` to verify
+4. Monitor and gather feedback
+
+---
+
 ## 2026-04-01: Epic G3 SQLite Removal Complete
 
 **Epic:** G3 | **Commit:** `02c35fc`
