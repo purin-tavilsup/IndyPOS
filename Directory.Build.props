@@ -1,0 +1,32 @@
+<Project>
+  <!--
+    Centralized version management for all IndyPOS projects.
+    Update these values when releasing a new version.
+
+    Velopack Prep: These properties will be used by Velopack for:
+    - Determining current app version
+    - Creating update packages
+    - Version comparison for updates
+  -->
+  <PropertyGroup>
+    <!-- Semantic Version: MAJOR.MINOR.PATCH -->
+    <Version>1.0.0</Version>
+
+    <!-- Assembly versioning (used by .NET runtime) -->
+    <AssemblyVersion>1.0.0.0</AssemblyVersion>
+    <FileVersion>1.0.0.0</FileVersion>
+
+    <!-- Informational version (can include pre-release tags) -->
+    <InformationalVersion>1.0.0</InformationalVersion>
+
+    <!-- Product info -->
+    <Product>IndyPOS</Product>
+    <Company>IndyPOS</Company>
+    <Copyright>Copyright © 2026 IndyPOS</Copyright>
+  </PropertyGroup>
+
+  <!--
+    To set version at build time (CI/CD):
+    dotnet build /p:Version=1.2.3 /p:InformationalVersion=1.2.3-beta.1
+  -->
+</Project>

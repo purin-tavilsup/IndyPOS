@@ -200,6 +200,21 @@ app.MapGet("/health/ready", async (StoreHubDbContext db) =>
     }
 });
 
+// Version endpoint (Velopack prep - used for update checks)
+app.MapGet("/version", () =>
+{
+    var versionInfo = IndyPOS.Application.Common.AppVersion.GetVersionInfo(typeof(Program).Assembly);
+
+    return Results.Ok(new
+    {
+        version = versionInfo.DisplayVersion,
+        assemblyVersion = versionInfo.AssemblyVersion,
+        fullVersion = versionInfo.InformationalVersion,
+        name = "IndyPOS.StoreHub",
+        environment = app.Environment.EnvironmentName
+    });
+});
+
 // Products endpoint
 app.MapGet("/products", async (
     IQueryHandler<GetProductsQuery, IReadOnlyList<ProductDto>> handler,

@@ -1,0 +1,46 @@
+meta {
+  name: Get Version
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{baseUrl}}/version
+  body: none
+  auth: none
+}
+
+docs {
+  # Get Version
+
+  Returns version information for the StoreHub service.
+
+  **No authentication required.**
+
+  **Response:**
+  ```json
+  {
+    "version": "1.0.0",
+    "assemblyVersion": "1.0.0.0",
+    "fullVersion": "1.0.0",
+    "name": "IndyPOS.StoreHub",
+    "environment": "Development"
+  }
+  ```
+
+  **Fields:**
+  - `version` - Display version (e.g., "1.0.0", "1.0.0-beta.1")
+  - `assemblyVersion` - .NET assembly version (e.g., "1.0.0.0")
+  - `fullVersion` - Full informational version including build metadata
+  - `name` - Service name
+  - `environment` - Current environment (Development, Production)
+
+  **Use cases:**
+  - Troubleshooting ("what version is running?")
+  - Update checks (compare with latest available)
+  - Health monitoring dashboards
+
+  **Velopack prep:**
+  This endpoint will be used by future auto-update functionality to determine
+  if a newer version is available.
+}
