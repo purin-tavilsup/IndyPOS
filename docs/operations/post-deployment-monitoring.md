@@ -130,7 +130,7 @@ Register-ScheduledTask -TaskName "IndyPOS-HealthCheck" -Action $action -Trigger 
 | Log | Location | Retention |
 |-----|----------|-----------|
 | StoreHub Logs | `C:\ProgramData\IndyPOS\logs\` | 7 days |
-| PostgreSQL Logs | `C:\ProgramData\PostgreSQL\16\log\` | 7 days |
+| PostgreSQL Logs | `C:\ProgramData\PostgreSQL\18\log\` | 7 days |
 | Windows Events | Event Viewer > Application | 30 days |
 | Backup Logs | `C:\ProgramData\IndyPOS\backups\*.log` | 60 files |
 
@@ -200,7 +200,7 @@ foreach ($endpoint in $endpoints) {
 ### PostgreSQL Query Performance
 ```powershell
 $env:PGPASSWORD = "<PASSWORD>"
-& "C:\Program Files\PostgreSQL\16\bin\psql" -U indypos_app -d indypos_storehub -h 127.0.0.1 -c `
+& "C:\Program Files\PostgreSQL\18\bin\psql" -U indypos_app -d indypos_storehub -h 127.0.0.1 -c `
   "SELECT query, calls, mean_exec_time, total_exec_time
    FROM pg_stat_statements
    ORDER BY mean_exec_time DESC
@@ -223,7 +223,7 @@ $env:PGPASSWORD = "<PASSWORD>"
 1. Check service: `Get-Service postgresql*`
 2. Check PostgreSQL logs for errors
 3. Verify disk space
-4. Restart service: `Restart-Service postgresql-x64-16`
+4. Restart service: `Restart-Service postgresql-x64-18`
 5. If data corruption suspected, restore from backup
 
 ### High Sync Backlog
@@ -287,7 +287,7 @@ Get-ChildItem "C:\ProgramData\IndyPOS\backups" -Filter "*.dump" | Sort-Object La
 
 # PostgreSQL status
 Get-Service postgresql*
-& "C:\Program Files\PostgreSQL\16\bin\psql" -U indypos_app -d indypos_storehub -h 127.0.0.1 -c "SELECT version();"
+& "C:\Program Files\PostgreSQL\18\bin\psql" -U indypos_app -d indypos_storehub -h 127.0.0.1 -c "SELECT version();"
 
 # Network connectivity
 Test-NetConnection -ComputerName "api.indypos.cloud" -Port 443

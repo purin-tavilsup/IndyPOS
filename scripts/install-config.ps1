@@ -8,7 +8,7 @@
 
     PREREQUISITES:
     ==============
-    - PostgreSQL 16 installed (https://www.postgresql.org/download/windows/)
+    - PostgreSQL 18 installed (https://www.postgresql.org/download/windows/)
     - PostgreSQL service running
     - Know the postgres superuser password
 
@@ -77,7 +77,7 @@
 
 .PARAMETER PgBin
     Path to PostgreSQL bin directory containing psql.exe.
-    Default: C:\Program Files\PostgreSQL\16\bin
+    Default: C:\Program Files\PostgreSQL\18\bin
     Change if using different PostgreSQL version or install location.
 
 .PARAMETER StoreId
@@ -126,7 +126,7 @@
 #>
 
 param(
-    [string]$PgBin = "C:\Program Files\PostgreSQL\16\bin",
+    [string]$PgBin = "C:\Program Files\PostgreSQL\18\bin",
     [Parameter(Mandatory=$true)]
     [string]$StoreId,
     [string]$DbName = "indypos_storehub",
@@ -151,7 +151,7 @@ Write-Host ""
 
 # Verify PostgreSQL bin directory
 if (-not (Test-Path "$PgBin\psql.exe")) {
-    Write-Error "PostgreSQL not found at $PgBin. Please install PostgreSQL 16 or specify -PgBin parameter."
+    Write-Error "PostgreSQL not found at $PgBin. Please install PostgreSQL 18 or specify -PgBin parameter."
     exit 1
 }
 

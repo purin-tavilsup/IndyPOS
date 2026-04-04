@@ -29,7 +29,7 @@ Before starting the update:
 $timestamp = Get-Date -Format "yyyyMMdd_HHmmss"
 $env:PGPASSWORD = "<APP_PASSWORD>"
 
-& "C:\Program Files\PostgreSQL\16\bin\pg_dump" `
+& "C:\Program Files\PostgreSQL\18\bin\pg_dump" `
     -h 127.0.0.1 -U indypos_app -d indypos_storehub `
     -F c -f "C:\ProgramData\IndyPOS\backups\pre_update_$timestamp.dump"
 
@@ -107,7 +107,7 @@ If the release includes database schema changes:
 **Migration Verification:**
 ```powershell
 $env:PGPASSWORD = "<APP_PASSWORD>"
-& "C:\Program Files\PostgreSQL\16\bin\psql" -U indypos_app -d indypos_storehub -h 127.0.0.1 -c "
+& "C:\Program Files\PostgreSQL\18\bin\psql" -U indypos_app -d indypos_storehub -h 127.0.0.1 -c "
 SELECT * FROM __EFMigrationsHistory ORDER BY MigrationId DESC LIMIT 5;"
 ```
 
@@ -210,7 +210,7 @@ Stop-Service -Name "IndyPOS.StoreHub" -Force
 # Restore database
 $backupFile = "C:\ProgramData\IndyPOS\backups\pre_update_<TIMESTAMP>.dump"
 & "C:\ProgramData\IndyPOS\ops\restore.ps1" `
-    -PgBin "C:\Program Files\PostgreSQL\16\bin" `
+    -PgBin "C:\Program Files\PostgreSQL\18\bin" `
     -DbName "indypos_storehub" `
     -DbUser "postgres" `
     -DbPassword "<POSTGRES_PASSWORD>" `

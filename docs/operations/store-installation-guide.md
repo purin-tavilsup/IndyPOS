@@ -103,7 +103,7 @@ One Store Hub PC, multiple POS terminals:
 |----------|---------|----------|
 | Windows | 10/11 (64-bit) | - |
 | .NET Runtime | 10.0 | [Download](https://dotnet.microsoft.com/download/dotnet/10.0) |
-| PostgreSQL | 16.x | [Download](https://www.postgresql.org/download/windows/) |
+| PostgreSQL | 18.x | [Download](https://www.postgresql.org/download/windows/) |
 
 ### Network Requirements
 
@@ -117,7 +117,7 @@ One Store Hub PC, multiple POS terminals:
 
 ### 1.1 Download and Install
 
-1. Download PostgreSQL 16 from https://www.postgresql.org/download/windows/
+1. Download PostgreSQL 18 from https://www.postgresql.org/download/windows/
 2. Run the installer as Administrator
 3. During installation:
    - Remember the **postgres** superuser password
@@ -135,14 +135,14 @@ Get-Service postgresql*
 # Expected output:
 # Status   Name               DisplayName
 # ------   ----               -----------
-# Running  postgresql-x64-16  postgresql-x64-16
+# Running  postgresql-x64-18  postgresql-x64-18
 ```
 
 ### 1.3 Test Connection
 
 ```powershell
 # Connect to PostgreSQL
-& "C:\Program Files\PostgreSQL\16\bin\psql.exe" -U postgres -c "SELECT version();"
+& "C:\Program Files\PostgreSQL\18\bin\psql.exe" -U postgres -c "SELECT version();"
 # Enter the postgres password when prompted
 ```
 
@@ -411,7 +411,7 @@ Register-ScheduledTask -TaskName "IndyPOS-Backup" `
 ### 8.3 Test Backup
 
 ```powershell
-.\backup.ps1 -PgBin "C:\Program Files\PostgreSQL\16\bin" `
+.\backup.ps1 -PgBin "C:\Program Files\PostgreSQL\18\bin" `
     -DbName "indypos_storehub" `
     -DbUser "indypos_app" `
     -DbPassword "YOUR_APP_PASSWORD" `
@@ -493,7 +493,7 @@ Test-NetConnection -ComputerName 192.168.1.100 -Port 5000
 
 **Test PostgreSQL:**
 ```powershell
-& "C:\Program Files\PostgreSQL\16\bin\psql.exe" `
+& "C:\Program Files\PostgreSQL\18\bin\psql.exe" `
     -h 127.0.0.1 -U indypos_app -d indypos_storehub -c "SELECT 1"
 ```
 
@@ -518,7 +518,7 @@ Invoke-RestMethod -Uri "http://localhost:5000/products" `
 
 **Check database has data:**
 ```powershell
-& "C:\Program Files\PostgreSQL\16\bin\psql.exe" `
+& "C:\Program Files\PostgreSQL\18\bin\psql.exe" `
     -h 127.0.0.1 -U indypos_app -d indypos_storehub `
     -c "SELECT COUNT(*) FROM products"
 ```

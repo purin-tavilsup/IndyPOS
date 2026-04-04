@@ -146,7 +146,7 @@ If you need to recover data from PostgreSQL after rollback:
 
 ### Export Invoices
 ```powershell
-$pgBin = "C:\Program Files\PostgreSQL\16\bin"
+$pgBin = "C:\Program Files\PostgreSQL\18\bin"
 $env:PGPASSWORD = "<APP_PASSWORD>"
 
 & "$pgBin\psql" -U indypos_app -d indypos_storehub -h 127.0.0.1 -c `
@@ -171,8 +171,8 @@ After successful rollback and data recovery, you may optionally clean up:
 
 ```powershell
 # Stop PostgreSQL service
-Stop-Service -Name "postgresql-x64-16"
-Set-Service -Name "postgresql-x64-16" -StartupType Disabled
+Stop-Service -Name "postgresql-x64-18"
+Set-Service -Name "postgresql-x64-18" -StartupType Disabled
 
 # Keep data for potential future analysis
 # DO NOT delete until incident is fully resolved
