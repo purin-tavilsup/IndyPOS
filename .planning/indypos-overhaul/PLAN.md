@@ -133,7 +133,7 @@
 9. Maintenance and Troubleshooting
 
 **Files created:**
-- `docs/operations/setup-local.md` - Comprehensive local deployment guide
+- `docs/operations/store-installation-guide.md` - Comprehensive store deployment guide
 
 ---
 
