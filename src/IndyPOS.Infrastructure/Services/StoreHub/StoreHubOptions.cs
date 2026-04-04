@@ -1,17 +1,11 @@
 namespace IndyPOS.Infrastructure.Services.StoreHub;
 
 /// <summary>
-/// Configuration options for StoreHub integration.
+/// Configuration options for StoreHub client (WinForms → StoreHub API).
 /// </summary>
 public class StoreHubOptions
 {
     public const string SectionName = "StoreHub";
-
-    /// <summary>
-    /// Enable StoreHub mode (use StoreHub API instead of direct SQLite).
-    /// When false, legacy SQLite-based services are used.
-    /// </summary>
-    public bool Enabled { get; set; } = false;
 
     /// <summary>
     /// Base URL of the StoreHub API (e.g., "http://localhost:5000").
