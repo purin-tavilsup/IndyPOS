@@ -66,7 +66,7 @@ IndyPOS is a Point-of-Sale system designed for small retail stores with offline-
 |-----------|------------|---------|
 | Desktop UI | Windows.Forms (.NET 10) | Current POS interface |
 | Local API | ASP.NET Core Minimal APIs | StoreHub service |
-| Local Database | PostgreSQL 16 + EF Core | Transactional data |
+| Local Database | PostgreSQL 18 + EF Core | Transactional data |
 | Cloud API | ASP.NET Core | Central sync endpoint |
 | Cloud Database | PostgreSQL (Managed) | Aggregated data |
 | Dev Orchestration | .NET Aspire | Local development |

@@ -9,7 +9,7 @@ IndyPOS StoreHub is a local API service that runs on a Store Hub PC, serving POS
 ┌──────────────────────────────────────────────────────────────┐
 │                        Store Hub PC                          │
 │  ┌──────────────────┐  ┌─────────────────────────────────┐  │
-│  │   PostgreSQL 16  │◄─│      IndyPOS.StoreHub.exe       │  │
+│  │   PostgreSQL 18  │◄─│      IndyPOS.StoreHub.exe       │  │
 │  │   (localhost)    │  │         (port 5000)             │  │
 │  └──────────────────┘  └──────────────┬──────────────────┘  │
 │                                       │                      │
@@ -37,7 +37,7 @@ Get-Service IndyPOS.StoreHub, postgresql* | Format-Table Name, Status
 Restart-Service IndyPOS.StoreHub
 
 # Restart PostgreSQL
-Restart-Service postgresql-x64-16
+Restart-Service postgresql-x64-18
 ```
 
 ### Health Check
@@ -67,7 +67,7 @@ Get-Content "C:\ProgramData\IndyPOS\logs\storehub-*.log" -Tail 500 | Select-Stri
 
 ```powershell
 & "C:\ProgramData\IndyPOS\ops\backup.ps1" `
-  -PgBin "C:\Program Files\PostgreSQL\16\bin" `
+  -PgBin "C:\Program Files\PostgreSQL\18\bin" `
   -DbName "indypos_storehub" `
   -DbUser "indypos_app" `
   -DbPassword "<APP_PASSWORD>" `
@@ -86,8 +86,8 @@ Get-Content "C:\ProgramData\IndyPOS\logs\storehub-*.log" -Tail 500 | Select-Stri
 | Logs | `C:\ProgramData\IndyPOS\logs\` |
 | Backups | `C:\ProgramData\IndyPOS\backups\` |
 | Configuration | `C:\ProgramData\IndyPOS\Config\` |
-| PostgreSQL Data | `C:\Program Files\PostgreSQL\16\data\` |
-| PostgreSQL Logs | `C:\Program Files\PostgreSQL\16\data\log\` |
+| PostgreSQL Data | `C:\Program Files\PostgreSQL\18\data\` |
+| PostgreSQL Logs | `C:\Program Files\PostgreSQL\18\data\log\` |
 
 ---
 
@@ -145,7 +145,7 @@ Get-Content "C:\ProgramData\IndyPOS\logs\storehub-*.log" -Tail 500 | Select-Stri
 3. **Run VACUUM on PostgreSQL:**
    ```powershell
    $env:PGPASSWORD = "<APP_PASSWORD>"
-   & "C:\Program Files\PostgreSQL\16\bin\psql" -U indypos_app -d indypos_storehub -h 127.0.0.1 -c "VACUUM ANALYZE;"
+   & "C:\Program Files\PostgreSQL\18\bin\psql" -U indypos_app -d indypos_storehub -h 127.0.0.1 -c "VACUUM ANALYZE;"
    ```
 
 4. **Verify disk space:**
@@ -164,7 +164,7 @@ Get-Content "C:\ProgramData\IndyPOS\logs\storehub-*.log" -Tail 500 | Select-Stri
 **Action:**
 ```powershell
 powershell.exe -ExecutionPolicy Bypass -File "C:\ProgramData\IndyPOS\ops\backup.ps1" `
-  -PgBin "C:\Program Files\PostgreSQL\16\bin" `
+  -PgBin "C:\Program Files\PostgreSQL\18\bin" `
   -DbName "indypos_storehub" `
   -DbUser "indypos_app" `
   -DbPassword "<APP_PASSWORD>" `
@@ -198,7 +198,7 @@ powershell.exe -ExecutionPolicy Bypass -File "C:\ProgramData\IndyPOS\ops\health-
 
 1. Check service: `Get-Service postgresql*`
 2. Check PostgreSQL logs
-3. Restart service: `Restart-Service postgresql-x64-16`
+3. Restart service: `Restart-Service postgresql-x64-18`
 4. If persists: check disk space, consider restore
 
 ### Data Loss Suspected
