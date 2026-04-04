@@ -160,7 +160,7 @@ public static class ConfigureServices
 
 	/// <summary>
 	/// Registers StoreHub client services for WinForms app.
-	/// Enables WinForms to call StoreHub API instead of direct SQLite access.
+	/// WinForms calls StoreHub API for all data operations.
 	/// Configure via "StoreHub" section in appsettings.json.
 	/// </summary>
 	public static IServiceCollection AddStoreHubClientServices(this IServiceCollection services, IConfiguration configuration)
@@ -170,12 +170,6 @@ public static class ConfigureServices
 			?? new StoreHubOptions();
 
 		services.Configure<StoreHubOptions>(configuration.GetSection(StoreHubOptions.SectionName));
-
-		if (!storeHubOptions.Enabled)
-		{
-			// StoreHub disabled - use legacy SQLite services
-			return services;
-		}
 
 		// Register StoreHub HTTP client
 		services.AddHttpClient<IStoreHubClient, StoreHubHttpClient>(client =>
@@ -190,18 +184,11 @@ public static class ConfigureServices
 		// Inventory product service (uses StoreHub API + cache)
 		services.AddSingleton<IInventoryProductService, StoreHubInventoryProductService>();
 
-		// Replace legacy services with StoreHub versions
-		// Note: These replace registrations from AddInfrastructureServices
+		// StoreHub service implementations
 		services.AddSingleton<ISaleService, StoreHubSaleService>();
 		services.AddSingleton<IUserLogInService, StoreHubUserLogInService>();
-
-		// PayLater service (uses StoreHub API)
 		services.AddSingleton<IPayLaterService, StoreHubPayLaterService>();
-
-		// Replace SQLite-based StoreConstants with hardcoded version
 		services.AddSingleton<IStoreConstants, HardcodedStoreConstants>();
-
-		// Replace SQLite-based ReportService with StoreHub version
 		services.AddSingleton<IReportService, StoreHubReportService>();
 
 		return services;

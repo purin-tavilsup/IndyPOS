@@ -44,10 +44,7 @@ public class Machine : IMachine
 
 	private static string GetVersion()
 	{
-		var assembly = System.Reflection.Assembly.GetExecutingAssembly();
-		var versionInfo = FileVersionInfo.GetVersionInfo(assembly.Location);
-
-		return versionInfo.FileVersion ?? "0.0.0";
+		return Application.Common.AppVersion.GetVersionInfo().DisplayVersion;
 	}
 
 	private void Shutdown()
