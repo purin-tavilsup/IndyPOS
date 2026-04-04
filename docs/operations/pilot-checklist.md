@@ -5,7 +5,7 @@ This checklist is for deploying IndyPOS StoreHub at the pilot store (Store 1).
 
 **Target Environment:**
 - Windows 10/11 PC (Store Hub)
-- PostgreSQL 16
+- PostgreSQL 18
 - 1-2 POS terminals connecting via LAN
 
 ---
@@ -22,7 +22,7 @@ This checklist is for deploying IndyPOS StoreHub at the pilot store (Store 1).
 ### Software Prerequisites
 - [ ] Windows 10/11 updated
 - [ ] .NET 10 Runtime installed
-- [ ] PostgreSQL 16 installed (official Windows installer)
+- [ ] PostgreSQL 18 installed (official Windows installer)
 - [ ] Docker Desktop installed (optional, for local dev testing)
 
 ### Backup Preparation
@@ -40,7 +40,7 @@ This checklist is for deploying IndyPOS StoreHub at the pilot store (Store 1).
 cd C:\ProgramData\IndyPOS\ops
 
 .\install-config.ps1 `
-  -PgBin "C:\Program Files\PostgreSQL\16\bin" `
+  -PgBin "C:\Program Files\PostgreSQL\18\bin" `
   -StoreId "STORE-001" `
   -DbName "indypos_storehub" `
   -AppUser "indypos_app" `
@@ -141,7 +141,7 @@ cd "C:\Program Files\IndyPOS\StoreHub"
 ```powershell
 # Create scheduled task for backups every 4 hours
 $action = New-ScheduledTaskAction -Execute "powershell.exe" `
-  -Argument '-ExecutionPolicy Bypass -File "C:\ProgramData\IndyPOS\ops\backup.ps1" -PgBin "C:\Program Files\PostgreSQL\16\bin" -DbName "indypos_storehub" -DbUser "indypos_app" -DbPassword "<APP_PASSWORD>" -BackupDir "C:\ProgramData\IndyPOS\backups" -Retention 60'
+  -Argument '-ExecutionPolicy Bypass -File "C:\ProgramData\IndyPOS\ops\backup.ps1" -PgBin "C:\Program Files\PostgreSQL\18\bin" -DbName "indypos_storehub" -DbUser "indypos_app" -DbPassword "<APP_PASSWORD>" -BackupDir "C:\ProgramData\IndyPOS\backups" -Retention 60'
 
 $trigger = New-ScheduledTaskTrigger -Once -At (Get-Date) -RepetitionInterval (New-TimeSpan -Hours 4)
 $principal = New-ScheduledTaskPrincipal -UserId "SYSTEM" -LogonType ServiceAccount

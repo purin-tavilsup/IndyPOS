@@ -208,7 +208,7 @@ Re-run migration to sync remaining records.
 ## Prerequisites
 
 - .NET 10 Runtime
-- PostgreSQL 16 with StoreHub database created
+- PostgreSQL 18 with StoreHub database created
 - SQLite database file (Store.db)
 - Store registered in system (for cloud sync)
 

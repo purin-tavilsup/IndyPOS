@@ -20,7 +20,7 @@ Invoke-RestMethod -Uri "http://localhost:5000/health/ready" -TimeoutSec 5
 
 # Check PostgreSQL connectivity
 $env:PGPASSWORD = "<APP_PASSWORD>"
-& "C:\Program Files\PostgreSQL\16\bin\psql" -U indypos_app -d indypos_storehub -h 127.0.0.1 -c "SELECT 1;"
+& "C:\Program Files\PostgreSQL\18\bin\psql" -U indypos_app -d indypos_storehub -h 127.0.0.1 -c "SELECT 1;"
 ```
 
 ---
@@ -53,7 +53,7 @@ netstat -ano | findstr ":5000"
 | Cause | Solution |
 |-------|----------|
 | Port 5000 already in use | Find and stop conflicting process: `taskkill /PID <PID> /F` |
-| PostgreSQL not running | Start PostgreSQL: `Start-Service postgresql-x64-16` |
+| PostgreSQL not running | Start PostgreSQL: `Start-Service postgresql-x64-18` |
 | Configuration file missing | Verify `appsettings.json` exists in install directory |
 | Invalid connection string | Check PostgreSQL credentials in appsettings |
 | Missing .NET Runtime | Install .NET 10 Runtime |
@@ -112,7 +112,7 @@ Get-Process | Where-Object {$_.ProcessName -like "*IndyPOS*"} | Select-Object Pr
 Get-Service postgresql*
 
 # Check PostgreSQL logs
-Get-Content "C:\Program Files\PostgreSQL\16\data\log\*.log" -Tail 100
+Get-Content "C:\Program Files\PostgreSQL\18\data\log\*.log" -Tail 100
 ```
 
 **Common Causes & Solutions:**
@@ -126,9 +126,9 @@ Get-Content "C:\Program Files\PostgreSQL\16\data\log\*.log" -Tail 100
 
 **Recovery:**
 ```powershell
-Start-Service postgresql-x64-16
+Start-Service postgresql-x64-18
 Start-Sleep -Seconds 10
-Get-Service postgresql-x64-16
+Get-Service postgresql-x64-18
 ```
 
 ---
@@ -144,7 +144,7 @@ Get-Service postgresql-x64-16
 ```powershell
 # Check active connections
 $env:PGPASSWORD = "<APP_PASSWORD>"
-& "C:\Program Files\PostgreSQL\16\bin\psql" -U indypos_app -d indypos_storehub -h 127.0.0.1 -c "SELECT count(*) FROM pg_stat_activity WHERE datname = 'indypos_storehub';"
+& "C:\Program Files\PostgreSQL\18\bin\psql" -U indypos_app -d indypos_storehub -h 127.0.0.1 -c "SELECT count(*) FROM pg_stat_activity WHERE datname = 'indypos_storehub';"
 ```
 
 **Common Causes & Solutions:**
@@ -168,7 +168,7 @@ $env:PGPASSWORD = "<APP_PASSWORD>"
 **Diagnostic Steps:**
 ```powershell
 # Check slow queries
-& "C:\Program Files\PostgreSQL\16\bin\psql" -U indypos_app -d indypos_storehub -h 127.0.0.1 -c "
+& "C:\Program Files\PostgreSQL\18\bin\psql" -U indypos_app -d indypos_storehub -h 127.0.0.1 -c "
 SELECT query, calls, mean_exec_time, total_exec_time
 FROM pg_stat_statements
 ORDER BY mean_exec_time DESC
@@ -178,10 +178,10 @@ LIMIT 10;"
 **Solutions:**
 ```powershell
 # Run VACUUM ANALYZE to update statistics
-& "C:\Program Files\PostgreSQL\16\bin\psql" -U indypos_app -d indypos_storehub -h 127.0.0.1 -c "VACUUM ANALYZE;"
+& "C:\Program Files\PostgreSQL\18\bin\psql" -U indypos_app -d indypos_storehub -h 127.0.0.1 -c "VACUUM ANALYZE;"
 
 # Check for missing indexes
-& "C:\Program Files\PostgreSQL\16\bin\psql" -U indypos_app -d indypos_storehub -h 127.0.0.1 -c "
+& "C:\Program Files\PostgreSQL\18\bin\psql" -U indypos_app -d indypos_storehub -h 127.0.0.1 -c "
 SELECT relname, seq_scan, idx_scan
 FROM pg_stat_user_tables
 WHERE seq_scan > idx_scan
@@ -311,7 +311,7 @@ Get-WinEvent -LogName "Microsoft-Windows-TaskScheduler/Operational" |
 **Manual Backup Test:**
 ```powershell
 & "C:\ProgramData\IndyPOS\ops\backup.ps1" `
-  -PgBin "C:\Program Files\PostgreSQL\16\bin" `
+  -PgBin "C:\Program Files\PostgreSQL\18\bin" `
   -DbName "indypos_storehub" `
   -DbUser "indypos_app" `
   -DbPassword "<APP_PASSWORD>" `
