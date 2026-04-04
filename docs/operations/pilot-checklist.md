@@ -160,7 +160,8 @@ Update `appsettings.json` on POS terminals:
 {
   "StoreHub": {
     "BaseUrl": "http://<STOREHUB_IP>:5000",
-    "Enabled": true
+    "TimeoutSeconds": 30,
+    "AutoSyncProductsOnStartup": true
   }
 }
 ```
