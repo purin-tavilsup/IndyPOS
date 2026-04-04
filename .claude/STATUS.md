@@ -13,48 +13,74 @@
 
 ## Recent Completion (2026-04-03)
 
-- Restructured session context docs (STATUS.md, PLAN.md, completed/)
-- Updated Bruno collection (25 requests, 100% endpoint coverage)
+### Epic L: Local Deployment Readiness ✅ COMPLETE
+
+| Task | Description | Status |
+|------|-------------|--------|
+| L1 | WinForms appsettings.json + remove `Enabled` flag | ✅ |
+| L2 | StoreHub appsettings.Production.json + README | ✅ |
+| L3 | publish.ps1 script | ✅ |
+| L4 | install-config.ps1 script | ✅ |
+| L5 | smoke-test.ps1 (comprehensive E2E) | ✅ |
+| L6 | setup-local.md guide | ✅ |
+
+### Bonus: Velopack Prep
+
+| Task | Description | Status |
+|------|-------------|--------|
+| Version system | `Directory.Build.props`, `AppVersion.cs` | ✅ |
+| Version endpoint | `GET /version` in StoreHub | ✅ |
+| Bruno request | `get-version.bru` | ✅ |
+| Versioning docs | `docs/versioning.md` | ✅ |
+
+## Deployment Scenarios
+
+| Scenario | Config | Guide |
+|----------|--------|-------|
+| **Development** | Aspire + Docker | `dotnet run --project src/IndyPOS.AppHost` |
+| **Local Production** | PostgreSQL on Windows | `docs/operations/setup-local.md` |
+| **Cloud** | DigitalOcean | Epic I (not started) |
 
 ## Next Actions (Priority Order)
 
-### Epic L: Local Deployment Readiness
+### Ready for Pilot! 🚀
 
-1. [ ] **L1: WinForms appsettings.json** (HIGH)
-   - Add `StoreHub` section with `Enabled: true`, `BaseUrl`
+1. [ ] Run `publish.ps1` to build release binaries
+2. [ ] Deploy to pilot store using `setup-local.md`
+3. [ ] Run `smoke-test.ps1` to verify
+4. [ ] Monitor and gather feedback
 
-2. [ ] **L2: StoreHub appsettings.Production.json** (HIGH)
-   - Connection string for local PostgreSQL
-   - JWT signing key config
+### Future (Epic I: Cloud Infrastructure)
 
-3. [ ] **L3: install-config.ps1 script** (MEDIUM)
-   - PostgreSQL setup automation
-   - Referenced in pilot-checklist but missing
-
-4. [ ] **L4: Publish script** (MEDIUM)
-   - Build release binaries for StoreHub + WinForms
-
-5. [ ] **L5: End-to-end test** (HIGH)
-   - WinForms → StoreHub → PostgreSQL full flow
+- [ ] I1-I6: CloudApi deployment
+- [ ] I7: Cloud setup guide
 
 ## Key Files
 
 | Purpose | Path |
 |---------|------|
 | Full plan | `.planning/indypos-overhaul/PLAN.md` |
+| Local setup guide | `docs/operations/setup-local.md` |
 | Pilot checklist | `docs/operations/pilot-checklist.md` |
-| StoreHub options | `Infrastructure/Services/StoreHub/StoreHubOptions.cs` |
-| WinForms config | `src/IndyPOS.Windows.Forms/appsettings.json` |
+| Publish script | `scripts/publish.ps1` |
+| Install script | `scripts/install-config.ps1` |
+| Smoke test | `scripts/smoke-test.ps1` |
+| Versioning | `docs/versioning.md` |
 
 ## Quick Context
 
-IndyPOS StoreHub migration is ~95% code complete. Now focusing on deployment readiness - config files, scripts, and end-to-end testing before pilot rollout.
+IndyPOS StoreHub migration is **ready for pilot deployment**. Epic L (Local Deployment Readiness) is complete with:
+- Production config files
+- Automated scripts (publish, install, smoke test)
+- Comprehensive setup guide
+- Version system ready for future auto-update (Velopack)
 
 ## Stats
 
-- **Tests:** 298 passing
+- **Tests:** 298 passing (211 unit)
 - **Build:** 0 errors, 55 warnings
-- **Bruno:** 25 requests (100% coverage)
+- **Bruno:** 26 requests (100% coverage)
+- **Scripts:** 3 (publish, install-config, smoke-test)
 
 ---
 *Last updated: 2026-04-03*
