@@ -4,6 +4,7 @@ using IndyPOS.Application.UseCases.StoreHub.PayLater;
 using IndyPOS.Domain.Entities.Core;
 using IndyPOS.Infrastructure.Persistence.StoreHub;
 using IndyPOS.Infrastructure.Persistence.StoreHub.Repositories;
+using IndyPOS.Mock;
 using Microsoft.EntityFrameworkCore;
 using Xunit;
 
@@ -13,6 +14,8 @@ namespace IndyPOS.Application.Tests.StoreHub.PayLater;
 
 public class RecordPayLaterPaymentCommandHandlerTests
 {
+    private static readonly MockStoreIdentityService _storeIdentity = MockStoreIdentityService.GeneralHardware();
+
     private static StoreHubDbContext CreateDbContext()
     {
         var options = new DbContextOptionsBuilder<StoreHubDbContext>()
@@ -22,18 +25,35 @@ public class RecordPayLaterPaymentCommandHandlerTests
         return new StoreHubDbContext(options);
     }
 
+    private static Guid CreateTestInvoice(StoreHubDbContext dbContext)
+    {
+        var invoice = new Invoice
+        {
+            Id = Guid.NewGuid(),
+            StoreId = _storeIdentity.StoreId,
+            UserId = Guid.NewGuid(),
+            TotalAmount = 1000m,
+            CreatedUtc = DateTime.UtcNow,
+            LastModifiedUtc = DateTime.UtcNow
+        };
+        dbContext.Invoices.Add(invoice);
+        return invoice.Id;
+    }
+
     private static Domain.Entities.Core.PayLater CreatePayLater(
+        StoreHubDbContext dbContext,
         Guid? id = null,
         string description = "Test Customer",
         decimal payLaterAmount = 1000m,
         decimal paidAmount = 0m,
         bool isCompleted = false)
     {
+        var invoiceId = CreateTestInvoice(dbContext);
         return new Domain.Entities.Core.PayLater
         {
             Id = id ?? Guid.NewGuid(),
             PaymentId = Guid.NewGuid(),
-            InvoiceId = Guid.NewGuid(),
+            InvoiceId = invoiceId,
             Description = description,
             PayLaterAmount = payLaterAmount,
             PaidAmount = paidAmount,
@@ -48,11 +68,12 @@ public class RecordPayLaterPaymentCommandHandlerTests
     {
         // Arrange
         await using var dbContext = CreateDbContext();
-        var repository = new PayLaterRepository(dbContext);
-        var handler = new RecordPayLaterPaymentCommandHandler(repository);
+        var repository = new PayLaterRepository(dbContext, _storeIdentity);
+        var handler = new RecordPayLaterPaymentCommandHandler(repository, _storeIdentity);
 
         var payLaterId = Guid.NewGuid();
         var payLater = CreatePayLater(
+            dbContext,
             id: payLaterId,
             payLaterAmount: 1000m,
             paidAmount: 0m);
@@ -76,11 +97,12 @@ public class RecordPayLaterPaymentCommandHandlerTests
     {
         // Arrange
         await using var dbContext = CreateDbContext();
-        var repository = new PayLaterRepository(dbContext);
-        var handler = new RecordPayLaterPaymentCommandHandler(repository);
+        var repository = new PayLaterRepository(dbContext, _storeIdentity);
+        var handler = new RecordPayLaterPaymentCommandHandler(repository, _storeIdentity);
 
         var payLaterId = Guid.NewGuid();
         var payLater = CreatePayLater(
+            dbContext,
             id: payLaterId,
             payLaterAmount: 1000m,
             paidAmount: 500m);
@@ -104,11 +126,12 @@ public class RecordPayLaterPaymentCommandHandlerTests
     {
         // Arrange
         await using var dbContext = CreateDbContext();
-        var repository = new PayLaterRepository(dbContext);
-        var handler = new RecordPayLaterPaymentCommandHandler(repository);
+        var repository = new PayLaterRepository(dbContext, _storeIdentity);
+        var handler = new RecordPayLaterPaymentCommandHandler(repository, _storeIdentity);
 
         var payLaterId = Guid.NewGuid();
         var payLater = CreatePayLater(
+            dbContext,
             id: payLaterId,
             payLaterAmount: 1000m,
             paidAmount: 800m);
@@ -132,8 +155,8 @@ public class RecordPayLaterPaymentCommandHandlerTests
     {
         // Arrange
         await using var dbContext = CreateDbContext();
-        var repository = new PayLaterRepository(dbContext);
-        var handler = new RecordPayLaterPaymentCommandHandler(repository);
+        var repository = new PayLaterRepository(dbContext, _storeIdentity);
+        var handler = new RecordPayLaterPaymentCommandHandler(repository, _storeIdentity);
 
         var nonExistentId = Guid.NewGuid();
         var command = new RecordPayLaterPaymentCommand(nonExistentId, PaymentAmount: 100m);
@@ -149,11 +172,12 @@ public class RecordPayLaterPaymentCommandHandlerTests
     {
         // Arrange
         await using var dbContext = CreateDbContext();
-        var repository = new PayLaterRepository(dbContext);
-        var handler = new RecordPayLaterPaymentCommandHandler(repository);
+        var repository = new PayLaterRepository(dbContext, _storeIdentity);
+        var handler = new RecordPayLaterPaymentCommandHandler(repository, _storeIdentity);
 
         var payLaterId = Guid.NewGuid();
         var payLater = CreatePayLater(
+            dbContext,
             id: payLaterId,
             payLaterAmount: 1000m,
             paidAmount: 1000m,
@@ -178,11 +202,11 @@ public class RecordPayLaterPaymentCommandHandlerTests
     {
         // Arrange
         await using var dbContext = CreateDbContext();
-        var repository = new PayLaterRepository(dbContext);
-        var handler = new RecordPayLaterPaymentCommandHandler(repository);
+        var repository = new PayLaterRepository(dbContext, _storeIdentity);
+        var handler = new RecordPayLaterPaymentCommandHandler(repository, _storeIdentity);
 
         var payLaterId = Guid.NewGuid();
-        var payLater = CreatePayLater(id: payLaterId);
+        var payLater = CreatePayLater(dbContext, id: payLaterId);
 
         dbContext.PayLaters.Add(payLater);
         await dbContext.SaveChangesAsync();
@@ -200,12 +224,12 @@ public class RecordPayLaterPaymentCommandHandlerTests
     {
         // Arrange
         await using var dbContext = CreateDbContext();
-        var repository = new PayLaterRepository(dbContext);
-        var handler = new RecordPayLaterPaymentCommandHandler(repository);
+        var repository = new PayLaterRepository(dbContext, _storeIdentity);
+        var handler = new RecordPayLaterPaymentCommandHandler(repository, _storeIdentity);
 
         var payLaterId = Guid.NewGuid();
         var originalDate = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc);
-        var payLater = CreatePayLater(id: payLaterId, payLaterAmount: 1000m);
+        var payLater = CreatePayLater(dbContext, id: payLaterId, payLaterAmount: 1000m);
         payLater.LastModifiedUtc = originalDate;
 
         dbContext.PayLaters.Add(payLater);
@@ -225,11 +249,12 @@ public class RecordPayLaterPaymentCommandHandlerTests
     {
         // Arrange
         await using var dbContext = CreateDbContext();
-        var repository = new PayLaterRepository(dbContext);
-        var handler = new RecordPayLaterPaymentCommandHandler(repository);
+        var repository = new PayLaterRepository(dbContext, _storeIdentity);
+        var handler = new RecordPayLaterPaymentCommandHandler(repository, _storeIdentity);
 
         var payLaterId = Guid.NewGuid();
         var payLater = CreatePayLater(
+            dbContext,
             id: payLaterId,
             payLaterAmount: 1000m,
             paidAmount: 0m);
@@ -254,11 +279,12 @@ public class RecordPayLaterPaymentCommandHandlerTests
     {
         // Arrange
         await using var dbContext = CreateDbContext();
-        var repository = new PayLaterRepository(dbContext);
-        var handler = new RecordPayLaterPaymentCommandHandler(repository);
+        var repository = new PayLaterRepository(dbContext, _storeIdentity);
+        var handler = new RecordPayLaterPaymentCommandHandler(repository, _storeIdentity);
 
         var payLaterId = Guid.NewGuid();
         var payLater = CreatePayLater(
+            dbContext,
             id: payLaterId,
             payLaterAmount: 1000m,
             paidAmount: 0m);
@@ -274,5 +300,23 @@ public class RecordPayLaterPaymentCommandHandlerTests
         // Assert
         result.PaidAmount.Should().Be(1000m);
         result.IsCompleted.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task HandleAsync_ShouldThrowException_WhenPayLaterDisabledForStoreType()
+    {
+        // Arrange
+        var minimartStoreIdentity = MockStoreIdentityService.Minimart();
+        await using var dbContext = CreateDbContext();
+        var repository = new PayLaterRepository(dbContext, minimartStoreIdentity);
+        var handler = new RecordPayLaterPaymentCommandHandler(repository, minimartStoreIdentity);
+
+        var payLaterId = Guid.NewGuid();
+        var command = new RecordPayLaterPaymentCommand(payLaterId, PaymentAmount: 100m);
+
+        // Act & Assert
+        await handler.Invoking(h => h.HandleAsync(command))
+            .Should().ThrowAsync<InvalidOperationException>()
+            .WithMessage("*PayLater is not available*Minimart*");
     }
 }

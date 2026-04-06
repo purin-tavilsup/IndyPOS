@@ -23,7 +23,7 @@ public class UserSyncServiceTests
         _cloudClient = new Mock<ICloudSyncClient>();
         _userRepository = new Mock<IStoreUserRepository>();
         _storeIdentity = new Mock<IStoreIdentityService>();
-        var logger = Mock.Of<ILogger<UserSyncService>>();
+        var logger = Moq.Mock.Of<ILogger<UserSyncService>>();
 
         _storeIdentity.Setup(x => x.StoreId).Returns("store-001");
 

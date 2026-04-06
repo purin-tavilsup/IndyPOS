@@ -159,6 +159,7 @@ public class SqliteMigrationService
                 var newProduct = new Product
                 {
                     Id = Guid.NewGuid(),
+                    StoreId = _options.StoreId,
                     Barcode = Truncate(product.Barcode, 50),
                     Name = Truncate(product.Description, 50),
                     Description = Truncate(product.Description, 200),
