@@ -1,4 +1,5 @@
 using IndyPOS.Application.Abstractions.StoreHub.Repositories;
+using IndyPOS.Application.Common.Interfaces;
 using Nokpirab;
 
 namespace IndyPOS.Application.UseCases.StoreHub.PayLater;
@@ -16,16 +17,31 @@ public record GetPayLaterQuery(
 public class GetPayLaterQueryHandler : IQueryHandler<GetPayLaterQuery, GetPayLaterResponse>
 {
     private readonly IPayLaterRepository _payLaterRepository;
+    private readonly IStoreIdentityService _storeIdentity;
 
-    public GetPayLaterQueryHandler(IPayLaterRepository payLaterRepository)
+    public GetPayLaterQueryHandler(
+        IPayLaterRepository payLaterRepository,
+        IStoreIdentityService storeIdentity)
     {
         _payLaterRepository = payLaterRepository;
+        _storeIdentity = storeIdentity;
     }
 
     public async Task<GetPayLaterResponse> HandleAsync(
         GetPayLaterQuery query,
         CancellationToken cancellationToken = default)
     {
+        // Return empty response if PayLater is not enabled for this store type
+        if (!_storeIdentity.Features.PayLaterEnabled)
+        {
+            return new GetPayLaterResponse(
+                TotalOutstanding: 0,
+                TotalPaid: 0,
+                ActiveCount: 0,
+                CompletedCount: 0,
+                Items: []);
+        }
+
         var payLaters = await _payLaterRepository.GetAllAsync(
             query.IncludeCompleted,
             query.SearchTerm,

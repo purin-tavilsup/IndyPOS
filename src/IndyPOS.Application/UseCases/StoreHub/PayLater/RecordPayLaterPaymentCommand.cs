@@ -1,5 +1,6 @@
 using IndyPOS.Application.Abstractions.StoreHub.Repositories;
 using IndyPOS.Application.Common.Exceptions;
+using IndyPOS.Application.Common.Interfaces;
 using Nokpirab;
 
 namespace IndyPOS.Application.UseCases.StoreHub.PayLater;
@@ -17,16 +18,27 @@ public record RecordPayLaterPaymentCommand(
 public class RecordPayLaterPaymentCommandHandler : ICommandHandler<RecordPayLaterPaymentCommand, PayLaterDto>
 {
     private readonly IPayLaterRepository _payLaterRepository;
+    private readonly IStoreIdentityService _storeIdentity;
 
-    public RecordPayLaterPaymentCommandHandler(IPayLaterRepository payLaterRepository)
+    public RecordPayLaterPaymentCommandHandler(
+        IPayLaterRepository payLaterRepository,
+        IStoreIdentityService storeIdentity)
     {
         _payLaterRepository = payLaterRepository;
+        _storeIdentity = storeIdentity;
     }
 
     public async Task<PayLaterDto> HandleAsync(
         RecordPayLaterPaymentCommand command,
         CancellationToken cancellationToken = default)
     {
+        // Validate PayLater is enabled for this store type
+        if (!_storeIdentity.Features.PayLaterEnabled)
+        {
+            throw new InvalidOperationException(
+                $"PayLater is not available for {_storeIdentity.StoreType} stores.");
+        }
+
         var payLater = await _payLaterRepository.GetByIdAsync(command.PayLaterId, cancellationToken)
             ?? throw new PayLaterPaymentNotFoundException($"PayLater with ID {command.PayLaterId} not found.");
 
