@@ -464,6 +464,7 @@ dotnet test --filter "FullyQualifiedName=IndyPOS.Application.Tests.StoreHub.Auth
 - [Architecture Overview](../architecture/overview.md)
 - [ASCII Diagrams](../diagrams/architecture-overview.md)
 - [Data Flow Diagrams](../diagrams/data-flow.md)
+- [VM Testing Guide](./vm-testing-guide.md) - Test installers in Hyper-V
 - [Implementation Status](.planning/indypos-overhaul/implementation-status.md)
 
 ---
