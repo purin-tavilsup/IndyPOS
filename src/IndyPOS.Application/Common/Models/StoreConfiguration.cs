@@ -3,6 +3,11 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace IndyPOS.Application.Common.Models;
 
+/// <summary>
+/// Store configuration loaded from StoreConfiguration.json.
+/// Contains store display details (name, address, hardware settings).
+/// For store identity (Id, Type), see StoreIdentityOptions.
+/// </summary>
 [ExcludeFromCodeCoverage]
 public class StoreConfiguration
 {
@@ -16,5 +21,6 @@ public class StoreConfiguration
 
     public string? SerialPortName { get; init; } = "COM1";
 
+    [Obsolete("Use StoreIdentityOptions.Id (UUID) instead. Kept for backwards compatibility.")]
     public int? Code { get; init; } = 1;
 }
