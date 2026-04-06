@@ -19,8 +19,10 @@
 | G | Desktop Integration | Complete |
 | H | Testing & Rollout | Complete |
 | L | Local Deployment Readiness | Complete |
+| V | Velopack Integration | Complete |
 | I | Cloud Infrastructure | Not Started |
 | S | Security Hardening | 5/9 Complete |
+| M | Multi-Store Type Support | 🟢 Ready |
 
 > For detailed epic history, see `completed/` folder
 
@@ -154,9 +156,45 @@
 | S8 | Rate limiting | LOW |
 | S9 | Secrets management | LOW (covered by S5) |
 
+### Epic M: Multi-Store Type Support 🟢 Ready
+
+**Goal:** Support multiple store types (GeneralHardware, Minimart, CoffeeShop) with different feature sets.
+
+**Key Decisions:**
+| Aspect | Decision |
+|--------|----------|
+| StoreHub Location | Local per store |
+| Offline Support | Local PostgreSQL required (offline-first) |
+| StoreId Generation | Manual UUID by System Admin |
+| Central Database | One DB per store type |
+| Migration | Migrate existing 1 store → `generalHardware` DB |
+
+**Tasks:**
+| Task | Description | Complexity |
+|------|-------------|------------|
+| M1 | Add `StoreType` enum and `StoreTypeFeatures` to Domain | Low |
+| M2 | Update `StoreConfiguration` schema | Low |
+| M3 | Add `StoreId` column to all entities | Medium |
+| M4 | Update repositories to filter by StoreId | Medium |
+| M5 | Update StoreHub API for StoreId | Low |
+| M6 | Add feature validation in Application | Medium |
+| M7 | Update First-Run Wizard | Medium |
+| M8 | Update WinForms UI for feature flags | Medium |
+| M9 | Update CloudApi store registry + DB routing | Medium |
+| M10 | Update Bootstrapper | Low |
+| M11 | Database migrations | Medium |
+| M12 | Migrate existing store | Medium |
+| M13 | Tests + Documentation | Medium |
+
+**Dependencies:** Requires Epic I (Cloud Infrastructure) for central database routing. M1-M8 can be done locally.
+
+**Full Plan:** `.planning/indypos-overhaul/drafts/epic-m-multi-store-type.md`
+
+---
+
 ### Epic I: Cloud Infrastructure (Not Started)
 
-**Prerequisites:** Epic L (Local Deployment) should complete first
+**Prerequisites:** Epic L (Local Deployment) complete ✅
 
 | Task | Description |
 |------|-------------|
