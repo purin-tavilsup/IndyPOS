@@ -1,0 +1,31 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <UseWindowsForms>true</UseWindowsForms>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <!-- <ApplicationIcon>indypos-installer.ico</ApplicationIcon> -->
+    <StartupObject>IndyPOS.Bootstrapper.Program</StartupObject>
+
+    <!-- Self-contained single file for distribution -->
+    <PublishSingleFile>true</PublishSingleFile>
+    <SelfContained>true</SelfContained>
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
+
+    <!-- Request admin elevation -->
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="System.ServiceProcess.ServiceController" Version="9.0.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Embedded resources for StoreHub binaries will be added during build -->
+    <EmbeddedResource Include="Resources\**\*" Condition="Exists('Resources')" />
+  </ItemGroup>
+
+</Project>
