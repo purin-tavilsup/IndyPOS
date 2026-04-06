@@ -4,6 +4,32 @@ This guide walks you through deploying IndyPOS on a local store machine.
 
 ---
 
+## Quick Start (Automated Installer) 🚀
+
+The easiest way to deploy IndyPOS is using the automated installer:
+
+```powershell
+# 1. Download IndyPOS-Setup.exe from GitHub Releases
+# 2. Run as Administrator
+.\IndyPOS-Setup.exe
+```
+
+The installer automatically handles:
+- ✅ .NET 10 Runtime installation
+- ✅ PostgreSQL 18 download & silent install
+- ✅ StoreHub Windows Service setup
+- ✅ Database configuration
+- ✅ WinForms installation (with auto-updates via Velopack)
+- ✅ First-run wizard for store configuration
+
+**After installation:**
+- WinForms auto-updates via GitHub Releases
+- StoreHub updates can be managed from WinForms Settings
+
+For manual installation or troubleshooting, follow the detailed steps below.
+
+---
+
 ## Table of Contents
 
 1. [Overview](#overview)
