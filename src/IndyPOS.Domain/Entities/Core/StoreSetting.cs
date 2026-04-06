@@ -6,14 +6,16 @@ namespace IndyPOS.Domain.Entities.Core;
 /// </summary>
 public class StoreSetting
 {
+    public string StoreId { get; set; } = default!;
     public string Key { get; set; } = default!;
     public string Value { get; set; } = default!;
     public DateTime LastModifiedUtc { get; set; }
 
-    public static StoreSetting Create(string key, string value)
+    public static StoreSetting Create(string storeId, string key, string value)
     {
         return new StoreSetting
         {
+            StoreId = storeId,
             Key = key,
             Value = value,
             LastModifiedUtc = DateTime.UtcNow

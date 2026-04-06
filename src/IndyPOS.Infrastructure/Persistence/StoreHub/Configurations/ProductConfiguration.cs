@@ -16,6 +16,11 @@ public class ProductConfiguration : IEntityTypeConfiguration<Product>
             .HasColumnName("id")
             .HasDefaultValueSql("gen_random_uuid()");
 
+        builder.Property(e => e.StoreId)
+            .HasColumnName("store_id")
+            .HasMaxLength(50)
+            .IsRequired();
+
         builder.Property(e => e.Barcode)
             .HasColumnName("barcode")
             .HasMaxLength(50)
@@ -66,8 +71,11 @@ public class ProductConfiguration : IEntityTypeConfiguration<Product>
             .HasColumnName("last_modified_utc")
             .IsRequired();
 
-        builder.HasIndex(e => e.Barcode)
+        // Unique barcode per store
+        builder.HasIndex(e => new { e.StoreId, e.Barcode })
             .IsUnique();
+
+        builder.HasIndex(e => e.StoreId);
 
         builder.HasIndex(e => e.IsActive);
     }
