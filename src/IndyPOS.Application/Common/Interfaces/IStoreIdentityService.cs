@@ -1,3 +1,6 @@
+using IndyPOS.Domain.Enums;
+using IndyPOS.Domain.ValueObjects;
+
 namespace IndyPOS.Application.Common.Interfaces;
 
 /// <summary>
@@ -7,7 +10,7 @@ namespace IndyPOS.Application.Common.Interfaces;
 public interface IStoreIdentityService
 {
     /// <summary>
-    /// Gets the unique identifier for this store (e.g., "STORE-001").
+    /// Gets the unique identifier for this store (UUID format).
     /// Used as a prefix/namespace for cloud sync and cross-store identification.
     /// </summary>
     string StoreId { get; }
@@ -18,8 +21,19 @@ public interface IStoreIdentityService
     string StoreName { get; }
 
     /// <summary>
+    /// Gets the type of store.
+    /// </summary>
+    StoreType StoreType { get; }
+
+    /// <summary>
+    /// Gets the feature flags for this store based on its type.
+    /// </summary>
+    StoreTypeFeatures Features { get; }
+
+    /// <summary>
     /// Gets the numeric store code for barcode generation (e.g., 1, 2, 3).
     /// </summary>
+    [Obsolete("Use StoreId (UUID) for identification. StoreCode is kept for barcode generation only.")]
     int StoreCode { get; }
 
     /// <summary>

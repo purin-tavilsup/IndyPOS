@@ -1,5 +1,7 @@
 using IndyPOS.Application.Common.Interfaces;
 using IndyPOS.Application.Common.Models;
+using IndyPOS.Domain.Enums;
+using IndyPOS.Domain.ValueObjects;
 using Microsoft.Extensions.Options;
 
 namespace IndyPOS.Infrastructure.Services;
@@ -10,16 +12,23 @@ namespace IndyPOS.Infrastructure.Services;
 public class StoreIdentityService : IStoreIdentityService
 {
     private readonly StoreIdentityOptions _options;
+    private readonly Lazy<StoreTypeFeatures> _features;
 
     public StoreIdentityService(IOptions<StoreIdentityOptions> options)
     {
         _options = options.Value;
+        _features = new Lazy<StoreTypeFeatures>(() => StoreTypeFeatures.For(_options.Type));
     }
 
     public string StoreId => _options.Id ?? GetDefaultStoreId();
 
     public string StoreName => _options.Name ?? "Default Store";
 
+    public StoreType StoreType => _options.Type;
+
+    public StoreTypeFeatures Features => _features.Value;
+
+    [Obsolete("Use StoreId (UUID) for identification. StoreCode is kept for barcode generation only.")]
     public int StoreCode => _options.Code;
 
     public void EnsureConfigured()
@@ -28,13 +37,13 @@ public class StoreIdentityService : IStoreIdentityService
         {
             throw new InvalidOperationException(
                 "Store.Id is not configured. Please set 'Store:Id' in appsettings.json. " +
-                "Example: \"Store\": { \"Id\": \"STORE-001\", \"Name\": \"My Store\" }");
+                "Example: \"Store\": { \"Id\": \"550e8400-e29b-41d4-a716-446655440000\", \"Name\": \"My Store\", \"Type\": \"GeneralHardware\" }");
         }
     }
 
     /// <summary>
     /// Returns a default store ID for backward compatibility during migration.
-    /// New installations should always configure an explicit Store.Id.
+    /// New installations should always configure an explicit Store.Id (UUID).
     /// </summary>
     private static string GetDefaultStoreId()
     {
