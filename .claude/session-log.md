@@ -4,6 +4,120 @@
 
 ---
 
+## 2026-04-05: Epic M Progress (M1-M6) + VM Testing Plan
+
+**Epic:** M | **Tasks:** M1-M6 complete | **Commits:** 9
+
+### Summary
+Continued Epic M (Multi-Store Type Support). Completed M1-M6 (core domain work). Created VM testing documentation and automation plan.
+
+### Key Decision
+**StoreId Strategy:** Root entities only (Product, StoreSetting). Child entities (Payment, InvoiceLine, PayLater) inherit via JOIN to Invoice.
+
+### Work Done
+
+**M3: StoreId on Entities**
+- Added StoreId to Product and StoreSetting entities
+- Updated repositories with IStoreIdentityService injection
+- Created composite unique index (StoreId, Barcode) for Product
+- Created EF Core migration: `AddStoreIdToProductAndStoreSetting`
+
+**M4: Repository Updates**
+- PayLaterRepository now filters by StoreId via Invoice JOIN
+- Maintains store isolation without adding StoreId to child entities
+
+**M5-M6: Feature Validation**
+- CompleteSaleCommand blocks PayLater for non-GeneralHardware stores
+- GetPayLaterQuery/GetPayLaterByIdQuery validate `Features.PayLaterEnabled`
+- RecordPayLaterPaymentCommand validates before processing
+
+**Testing**
+- Created `MockStoreIdentityService` in IndyPOS.Mock project
+- Updated all PayLater tests to use mock
+- Fixed namespace conflicts (IndyPOS.Mock vs Moq.Mock)
+- All 301 tests passing ✅
+
+**Documentation**
+- Created `docs/development/vm-testing-guide.md` - Hyper-V setup guide
+- Created `.planning/indypos-overhaul/drafts/vm-installer-testing-plan.md`
+  - Phase 1 (Quick Win): Script-driven with pre-installed Windows
+  - Phase 2 (Full Auto): Unattended Windows install + complete pipeline
+
+### Commits
+1. `feat(domain): add StoreType enum and StoreTypeFeatures value object`
+2. `feat(infrastructure): add StoreId to Product and StoreSetting entities`
+3. `feat(infrastructure): filter PayLater by StoreId via Invoice JOIN`
+4. `feat(application): add store type feature validation for PayLater`
+5. `test: add MockStoreIdentityService and update tests for StoreId`
+6. `docs: add VM testing guide and installer testing plan`
+7. `feat(installer): add Velopack bootstrapper and publish script`
+8. `feat(winforms): add first-run setup wizard foundation`
+9. `docs: update store installation guide and plan`
+
+### Files Created
+| File | Purpose |
+|------|---------|
+| `tests/IndyPOS.Mock/MockStoreIdentityService.cs` | Test mock for store types |
+| `docs/development/vm-testing-guide.md` | Hyper-V testing guide |
+| `.planning/.../vm-installer-testing-plan.md` | VM automation plan |
+
+### Next Session
+- Implement Phase 1 VM testing scripts (Quick Win)
+- Continue Epic M (M7-M13): UI, installer, CloudApi updates
+- Test Epic V installer in Hyper-V VM
+
+---
+
+## 2026-04-05: Epic M Started - Multi-Store Type Support
+
+**Epic:** M | **Tasks:** M1-M2 complete
+
+### Summary
+Finalized Epic M decisions and began implementation. Completed M1 (Domain types) and M2 (config schemas).
+
+### Decisions Finalized
+| Question | Answer |
+|----------|--------|
+| StoreHub Location | Local per store (most stores = 1 POS machine) |
+| Offline Support | Local PostgreSQL required (offline-first POS) |
+| StoreId Generation | Manual UUID by System Admin (avoids ID mismatch) |
+| Migration | 1 existing hardware store → migrate to `generalHardware` DB |
+
+Architecture unchanged - still Local PG → SyncWorker → CloudApi → Central PG.
+
+### Work Done
+
+**M1: Domain types**
+- Created `src/IndyPOS.Domain/Enums/StoreType.cs` (GeneralHardware, Minimart, CoffeeShop)
+- Created `src/IndyPOS.Domain/ValueObjects/StoreTypeFeatures.cs` (PayLaterEnabled, MultipleProductTypesEnabled)
+
+**M2: Config schemas**
+- Updated `StoreIdentityOptions` - added `Type` property
+- Updated `IStoreIdentityService` - added `StoreType` and `Features` properties
+- Updated `StoreIdentityService` - implements new interface members
+- Marked `Code` as obsolete (use UUID StoreId instead)
+
+### Files Created/Modified
+| File | Change |
+|------|--------|
+| `Domain/Enums/StoreType.cs` | Created |
+| `Domain/ValueObjects/StoreTypeFeatures.cs` | Created |
+| `Application/Common/Models/StoreIdentityOptions.cs` | Added Type |
+| `Application/Common/Interfaces/IStoreIdentityService.cs` | Added StoreType, Features |
+| `Infrastructure/Services/StoreIdentityService.cs` | Implemented new members |
+| `.planning/indypos-overhaul/drafts/epic-m-multi-store-type.md` | Updated with decisions |
+
+### Open Decision for Next Session
+**M3: StoreId on entities** - Should we add StoreId to ALL entities or only root entities?
+- Currently 4 have it: Invoice, StoreUser, OutboxEvent, InventoryMovement
+- Missing 5: Product, Payment, PayLater, InvoiceLine, StoreSetting
+- Child entities (Payment, InvoiceLine, PayLater) could inherit via JOIN to Invoice
+
+### Build Status
+✅ 0 errors, 62 warnings (including expected obsolete warnings)
+
+---
+
 ## 2026-04-03: Epic L Complete - Local Deployment Readiness
 
 **Epic:** L | **Commits:** `aaea941..9d810ad` (11 commits)

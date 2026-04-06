@@ -8,87 +8,90 @@
 |-------|-------|
 | **Branch** | `indypos-overhaul` |
 | **Sprint** | Sprint 7 |
-| **Phase** | Local Deployment Readiness |
+| **Phase** | Epic M In Progress (M1-M6 done) |
 | **Blocked?** | No |
 
-## Recent Completion (2026-04-03)
+## In Progress
 
-### Epic L: Local Deployment Readiness ✅ COMPLETE
+### Epic M: Multi-Store Type Support 🟡 IN PROGRESS
 
-| Task | Description | Status |
-|------|-------------|--------|
-| L1 | WinForms appsettings.json + remove `Enabled` flag | ✅ |
-| L2 | StoreHub appsettings.Production.json + README | ✅ |
-| L3 | publish.ps1 script | ✅ |
-| L4 | install-config.ps1 script | ✅ |
-| L5 | smoke-test.ps1 (comprehensive E2E) | ✅ |
-| L6 | Store installation guide | ✅ |
+Support multiple store types (GeneralHardware, Minimart, CoffeeShop).
 
-### Session Cleanup (Boy Scout Rule)
+**All Decisions Finalized:**
+| Aspect | Decision |
+|--------|----------|
+| StoreHub Location | Local per store (most stores = 1 POS) |
+| Offline Support | Local PostgreSQL required (offline-first) |
+| StoreId Generation | Manual UUID by System Admin |
+| Central Database | One DB per store type (`generalHardware`, `minimart`, `coffeeShop`) |
+| Store Type | Immutable after installation |
+| Migration | Migrate existing 1 store → `generalHardware` DB |
+| **StoreId on Entities** | **Root entities only** (child entities inherit via JOIN) |
 
-| Task | Description | Status |
-|------|-------------|--------|
-| Doc cleanup | Remove outdated `Enabled` flag from docs | ✅ |
-| Rename guide | `setup-local.md` → `store-installation-guide.md` | ✅ |
-| PostgreSQL 18 | Update all docs from PG 16 → 18 | ✅ |
+**Task Progress:**
+| Task | Status | Notes |
+|------|--------|-------|
+| M1: StoreType enum + StoreTypeFeatures | ✅ Done | `Domain/Enums/`, `Domain/ValueObjects/` |
+| M2: Update config schemas | ✅ Done | `StoreIdentityOptions` has Type; `IStoreIdentityService` exposes Features |
+| M3: Add StoreId to entities | ✅ Done | Added to Product, StoreSetting; repositories filter by StoreId |
+| M4: Update repositories for StoreId | ✅ Done | PayLaterRepository now filters via Invoice JOIN |
+| M5: Verify StoreHub API | ✅ Done | StoreId passed to commands via IStoreIdentityService |
+| M6: Add feature validation | ✅ Done | PayLater blocked for non-GeneralHardware stores |
+| M7-M13 | Pending | UI, installer, CloudApi, migrations, docs |
 
-### Bonus: Velopack Prep
+**M4-M6 Summary:**
+- PayLaterRepository filters by StoreId via JOIN to Invoice
+- CompleteSaleCommand validates PayLater payment method against store type
+- PayLater queries/commands validate `Features.PayLaterEnabled`
+- MockStoreIdentityService added to test project for unit testing
+- EF Core migration: `AddStoreIdToProductAndStoreSetting`
 
-| Task | Description | Status |
-|------|-------------|--------|
-| Version system | `Directory.Build.props`, `AppVersion.cs` | ✅ |
-| Version endpoint | `GET /version` in StoreHub | ✅ |
-| Bruno request | `get-version.bru` | ✅ |
-| Versioning docs | `docs/versioning.md` | ✅ |
-
-## Deployment Scenarios
-
-| Scenario | Config | Guide |
-|----------|--------|-------|
-| **Development** | Aspire + Docker | `dotnet run --project src/IndyPOS.AppHost` |
-| **Local Production** | PostgreSQL on Windows | `docs/operations/store-installation-guide.md` |
-| **Cloud** | DigitalOcean | Epic I (not started) |
+**Plan:** `.planning/indypos-overhaul/drafts/epic-m-multi-store-type.md`
 
 ## Next Actions (Priority Order)
 
-### Ready for Pilot! 🚀
+### 1. Implement VM Testing Scripts (Phase 1 - Quick Win)
+- [ ] Create `scripts/vm-testing/Initialize-TestVM.ps1`
+- [ ] Create `scripts/vm-testing/New-CleanSnapshot.ps1`
+- [ ] Create `scripts/vm-testing/Test-IndyPOSInstaller.ps1`
+- [ ] Create `scripts/vm-testing/Test-IndyPOSInstallation.ps1`
+- [ ] Manual test & debug
 
-1. [ ] Run `publish.ps1` to build release binaries
-2. [ ] Deploy to pilot store using `store-installation-guide.md`
-3. [ ] Run `smoke-test.ps1` to verify
-4. [ ] Monitor and gather feedback
+### 2. Test Epic V Installer in VM
+- [ ] Create Hyper-V VM with Windows 11
+- [ ] Run `scripts\publish.ps1` to create Velopack packages
+- [ ] Run `installer\build-installer.ps1` to build bootstrapper
+- [ ] Test full installation in VM
+- [ ] Test update scenarios
 
-### Future (Epic I: Cloud Infrastructure)
-
-- [ ] I1-I6: CloudApi deployment
-- [ ] I7: Cloud setup guide
+### 3. Continue Epic M (M7-M13)
+- M7: Update First-Run Wizard (store type selection)
+- M8: Update WinForms UI to respect feature flags
+- M9: Update CloudApi for store type routing
+- M10-M13: Installer, migrations, docs
 
 ## Key Files
 
 | Purpose | Path |
 |---------|------|
 | Full plan | `.planning/indypos-overhaul/PLAN.md` |
-| Store installation guide | `docs/operations/store-installation-guide.md` |
-| Pilot checklist | `docs/operations/pilot-checklist.md` |
+| Epic M draft | `.planning/indypos-overhaul/drafts/epic-m-multi-store-type.md` |
+| VM testing plan | `.planning/indypos-overhaul/drafts/vm-installer-testing-plan.md` |
+| VM testing guide | `docs/development/vm-testing-guide.md` |
+| Bootstrapper project | `installer/IndyPOS.Bootstrapper/` |
 | Publish script | `scripts/publish.ps1` |
-| Install script | `scripts/install-config.ps1` |
-| Smoke test | `scripts/smoke-test.ps1` |
-| Versioning | `docs/versioning.md` |
+| Store installation guide | `docs/operations/store-installation-guide.md` |
+| Mock for tests | `tests/IndyPOS.Mock/MockStoreIdentityService.cs` |
 
 ## Quick Context
 
-IndyPOS StoreHub migration is **ready for pilot deployment**. Epic L (Local Deployment Readiness) is complete with:
-- Production config files
-- Automated scripts (publish, install, smoke test)
-- Comprehensive setup guide
-- Version system ready for future auto-update (Velopack)
+- **Epic V (Velopack):** ✅ Complete - one-stop installer with auto-updates
+- **Epic M (Multi-Store):** 🟡 Core domain complete (M1-M6), UI/installer pending (M7-M13)
 
 ## Stats
 
-- **Tests:** 298 passing (211 unit)
-- **Build:** 0 errors, 55 warnings
-- **Bruno:** 26 requests (100% coverage)
-- **Scripts:** 3 (publish, install-config, smoke-test)
+- **Tests:** 301 passing (214 + 15 + 23 + 49)
+- **Build:** 0 errors, 0 warnings
 
 ---
-*Last updated: 2026-04-03*
+*Last updated: 2026-04-06*
