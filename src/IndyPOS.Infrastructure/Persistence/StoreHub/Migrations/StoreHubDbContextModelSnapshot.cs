@@ -374,6 +374,12 @@ namespace IndyPOS.Infrastructure.Persistence.StoreHub.Migrations
                         .HasColumnType("character varying(200)")
                         .HasColumnName("name");
 
+                    b.Property<string>("StoreId")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("store_id");
+
                     b.Property<decimal>("UnitPrice")
                         .HasPrecision(18, 2)
                         .HasColumnType("numeric(18,2)")
@@ -381,16 +387,23 @@ namespace IndyPOS.Infrastructure.Persistence.StoreHub.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("Barcode")
-                        .IsUnique();
-
                     b.HasIndex("IsActive");
+
+                    b.HasIndex("StoreId");
+
+                    b.HasIndex("StoreId", "Barcode")
+                        .IsUnique();
 
                     b.ToTable("product", (string)null);
                 });
 
             modelBuilder.Entity("IndyPOS.Domain.Entities.Core.StoreSetting", b =>
                 {
+                    b.Property<string>("StoreId")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("store_id");
+
                     b.Property<string>("Key")
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)")
@@ -406,7 +419,9 @@ namespace IndyPOS.Infrastructure.Persistence.StoreHub.Migrations
                         .HasColumnType("character varying(1000)")
                         .HasColumnName("value");
 
-                    b.HasKey("Key");
+                    b.HasKey("StoreId", "Key");
+
+                    b.HasIndex("StoreId");
 
                     b.ToTable("store_setting", (string)null);
                 });
