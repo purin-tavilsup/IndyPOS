@@ -1,3 +1,6 @@
+using IndyPOS.Application.Common.Interfaces;
+using IndyPOS.Domain.Enums;
+using IndyPOS.Domain.ValueObjects;
 using IndyPOS.Infrastructure.Persistence.StoreHub;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -53,6 +56,10 @@ public class StoreHubWebApplicationFactory : WebApplicationFactory<Program>, IAs
             {
                 options.UseNpgsql(_postgresContainer.GetConnectionString());
             }, ServiceLifetime.Scoped, ServiceLifetime.Scoped);
+
+            // Replace IStoreIdentityService with test implementation
+            services.RemoveAll<IStoreIdentityService>();
+            services.AddSingleton<IStoreIdentityService>(new TestStoreIdentityService());
         });
     }
 
@@ -66,4 +73,22 @@ public class StoreHubWebApplicationFactory : WebApplicationFactory<Program>, IAs
         await _postgresContainer.DisposeAsync();
         await base.DisposeAsync();
     }
+}
+
+/// <summary>
+/// Test implementation of IStoreIdentityService with known values.
+/// </summary>
+internal class TestStoreIdentityService : IStoreIdentityService
+{
+    public const string TestStoreId = "test-store";
+
+    public string StoreId => TestStoreId;
+    public string StoreName => "Test Store";
+    public StoreType StoreType => StoreType.GeneralHardware;
+    public StoreTypeFeatures Features => StoreTypeFeatures.For(StoreType.GeneralHardware);
+
+    [Obsolete("Use StoreId (UUID) for identification.")]
+    public int StoreCode => 1;
+
+    public void EnsureConfigured() { }
 }
