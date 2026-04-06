@@ -32,7 +32,7 @@ public class SyncWorkerTests
     {
         var outboxRepo = new Mock<IOutboxRepository>();
         var syncClient = new Mock<ICloudSyncClient>();
-        var logger = Mock.Of<ILogger<SyncWorker>>();
+        var logger = Moq.Mock.Of<ILogger<SyncWorker>>();
 
         var serviceProvider = new Mock<IServiceProvider>();
         serviceProvider.Setup(x => x.GetService(typeof(IOutboxRepository))).Returns(outboxRepo.Object);

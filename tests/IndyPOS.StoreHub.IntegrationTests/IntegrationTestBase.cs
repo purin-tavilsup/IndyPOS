@@ -187,6 +187,7 @@ public abstract class IntegrationTestBase : IClassFixture<StoreHubWebApplication
         var product = new Product
         {
             Id = Guid.NewGuid(),
+            StoreId = "test-store",
             Barcode = barcode ?? $"TEST{Random.Shared.Next(100000, 999999)}",
             Name = name,
             Description = name,

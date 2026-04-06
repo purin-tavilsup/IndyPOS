@@ -72,6 +72,7 @@ public class MigrationService
                 var product = new Product
                 {
                     Id = Guid.NewGuid(),
+                    StoreId = storeId,
                     Barcode = legacy.Barcode,
                     Name = legacy.Description, // SQLite uses Description as name
                     Description = legacy.Description,

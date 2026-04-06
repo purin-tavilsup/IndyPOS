@@ -33,6 +33,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\src\IndyPOS.Application\IndyPOS.Application.csproj" />
     <ProjectReference Include="..\..\src\IndyPOS.Infrastructure\IndyPOS.Infrastructure.csproj" />
+    <ProjectReference Include="..\IndyPOS.Mock\IndyPOS.Mock.csproj" />
   </ItemGroup>
 
 </Project>

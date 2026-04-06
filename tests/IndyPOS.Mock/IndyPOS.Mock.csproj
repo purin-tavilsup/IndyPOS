@@ -24,4 +24,7 @@
     <PackageReference Include="Castle.Core" Version="5.2.1" />
     <PackageReference Include="xunit" Version="2.9.3" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\IndyPOS.Application\IndyPOS.Application.csproj" />
+  </ItemGroup>
 </Project>
