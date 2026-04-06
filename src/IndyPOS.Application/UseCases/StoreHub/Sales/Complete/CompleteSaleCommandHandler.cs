@@ -1,5 +1,6 @@
 using System.Text.Json;
 using IndyPOS.Application.Abstractions.StoreHub.Repositories;
+using IndyPOS.Application.Common.Interfaces;
 using IndyPOS.Application.UseCases.Cloud.Sync.Events;
 using IndyPOS.Domain.Entities.Core;
 using Nokpirab;
@@ -10,19 +11,31 @@ public class CompleteSaleCommandHandler : ICommandHandler<CompleteSaleCommand, C
 {
     private readonly ISaleRepository _saleRepository;
     private readonly IProductRepository _productRepository;
+    private readonly IStoreIdentityService _storeIdentity;
 
     public CompleteSaleCommandHandler(
         ISaleRepository saleRepository,
-        IProductRepository productRepository)
+        IProductRepository productRepository,
+        IStoreIdentityService storeIdentity)
     {
         _saleRepository = saleRepository;
         _productRepository = productRepository;
+        _storeIdentity = storeIdentity;
     }
 
     public async Task<CompleteSaleResponse> HandleAsync(
         CompleteSaleCommand command,
         CancellationToken cancellationToken = default)
     {
+        // Validate PayLater is allowed for this store type
+        var features = _storeIdentity.Features;
+        var hasPayLater = command.Payments.Any(p => p.Method.Equals("PayLater", StringComparison.OrdinalIgnoreCase));
+        if (hasPayLater && !features.PayLaterEnabled)
+        {
+            throw new InvalidOperationException(
+                $"PayLater payment is not available for {_storeIdentity.StoreType} stores.");
+        }
+
         var now = DateTime.UtcNow;
         var invoiceId = Guid.NewGuid();
 
