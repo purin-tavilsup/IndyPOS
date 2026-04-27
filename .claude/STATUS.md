@@ -55,17 +55,22 @@ This allows testing from any location (e.g., Canada) while reports use Thai loca
 
 ## Next Actions (Priority Order)
 
-### 1. VM Testing for Epic V Installer
-- [ ] Create Hyper-V VM with Windows 11
+### 1. Test Velopack Installer (Local Machine)
+- [ ] Install Velopack CLI: `dotnet tool install -g vpk`
 - [ ] Run `scripts\publish.ps1` to create Velopack packages
 - [ ] Run `installer\build-installer.ps1` to build bootstrapper
-- [ ] Test full installation in VM
+- [ ] Test `IndyPOS-Setup.exe` (requires Admin)
 
-### 2. Continue Epic M (M7-M13)
+### 2. Epic I: Cloud Infrastructure
+- [ ] I0: Create Dockerfile for CloudApi
+- [ ] I1-I2: Provision DigitalOcean (Droplet + PostgreSQL)
+- [ ] I3-I4: Deploy CloudApi, configure SyncWorker
+- Full plan in `.planning/indypos-overhaul/PLAN.md`
+
+### 3. Continue Epic M (M7-M13)
 - M7: Update First-Run Wizard (store type selection)
 - M8: Update WinForms UI to respect feature flags
 - M9: Update CloudApi for store type routing
-- M10-M13: Installer, migrations, docs
 
 ## Key Files
 
