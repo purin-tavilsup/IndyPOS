@@ -1,3 +1,4 @@
+using IndyPOS.Application.Common.Models;
 using IndyPOS.Domain.Entities.Core;
 using IndyPOS.Infrastructure.Services.StoreHub;
 using Microsoft.Extensions.Options;

@@ -105,6 +105,21 @@ public class StoreHubHttpClientTests
     }
 
     [Fact]
+    public async Task GetLegacySalesSummaryAsync_WhenForbidden_ThrowsPermissionError()
+    {
+        // Arrange
+        _sut.SetAuthToken("valid-token");
+        SetupMockResponse(HttpStatusCode.Forbidden, new { });
+
+        // Act
+        var act = () => _sut.GetLegacySalesSummaryAsync(DateOnly.FromDateTime(DateTime.Today), DateOnly.FromDateTime(DateTime.Today));
+
+        // Assert
+        var exception = await Assert.ThrowsAsync<StoreHubClientException>(act);
+        exception.Message.Should().Contain("permission");
+    }
+
+    [Fact]
     public async Task CompleteSaleAsync_WhenAuthenticated_ReturnsSuccess()
     {
         // Arrange

@@ -2,6 +2,7 @@ using System.Collections.Concurrent;
 using IndyPOS.Application.Abstractions.Cloud.Repositories;
 using IndyPOS.Application.UseCases.Cloud.Sync;
 using IndyPOS.Application.UseCases.Cloud.Sync.IngestEvents;
+using Microsoft.Extensions.Logging.Abstractions;
 using Xunit;
 
 namespace IndyPOS.Application.Tests.UseCases.Cloud.Sync;
@@ -14,7 +15,7 @@ public class IngestEventsCommandHandlerTests
     public IngestEventsCommandHandlerTests()
     {
         _repository = new FakeSyncedEventRepository();
-        _handler = new IngestEventsCommandHandler(_repository);
+        _handler = new IngestEventsCommandHandler(_repository, NullLogger<IngestEventsCommandHandler>.Instance);
     }
 
     [Fact]

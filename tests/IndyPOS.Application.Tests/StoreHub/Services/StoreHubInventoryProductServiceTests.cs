@@ -294,10 +294,11 @@ public class StoreHubInventoryProductServiceTests
         var products = new List<ProductDto>
         {
             new(Guid.NewGuid(), "123", "Product 1", "Desc 1", categoryName, null, null, 10m, null, null, true),
-            new(Guid.NewGuid(), "456", "Product 2", "Desc 2", categoryName, null, null, 20m, null, null, true)
+            new(Guid.NewGuid(), "456", "Product 2", "Desc 2", categoryName, null, null, 20m, null, null, true),
+            new(Guid.NewGuid(), "789", "Product 3", "Desc 3", "อาหาร", null, null, 30m, null, null, true)
         };
 
-        _productCacheServiceMock.Setup(x => x.GetByCategory(categoryName)).Returns(products);
+        _productCacheServiceMock.Setup(x => x.GetAll()).Returns(products);
 
         // Act
         var result = await _sut.GetByCategoryIdAsync(categoryId);
@@ -305,6 +306,26 @@ public class StoreHubInventoryProductServiceTests
         // Assert
         result.Should().HaveCount(2);
         result.All(p => p.Category == categoryId).Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task GetAllAsync_ShouldReturnAllCachedProducts()
+    {
+        // Arrange
+        var products = new List<ProductDto>
+        {
+            new(Guid.NewGuid(), "123", "Product 1", "Desc 1", "เครื่องดื่ม", null, null, 10m, null, null, true),
+            new(Guid.NewGuid(), "456", "Product 2", "Desc 2", "อาหาร", null, null, 20m, null, null, true)
+        };
+
+        _productCacheServiceMock.Setup(x => x.GetAll()).Returns(products);
+
+        // Act
+        var result = await _sut.GetAllAsync();
+
+        // Assert
+        result.Should().HaveCount(2);
+        result.Select(p => p.Barcode).Should().BeEquivalentTo("123", "456");
     }
 
     [Fact]
