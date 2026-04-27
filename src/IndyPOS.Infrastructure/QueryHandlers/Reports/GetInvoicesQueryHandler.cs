@@ -2,6 +2,7 @@ using IndyPOS.Application.UseCases.StoreHub.Reports;
 using IndyPOS.Application.UseCases.StoreHub.Reports.GetInvoices;
 using IndyPOS.Infrastructure.Persistence.StoreHub;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using Nokpirab;
 
 namespace IndyPOS.Infrastructure.QueryHandlers.Reports;
@@ -13,19 +14,24 @@ namespace IndyPOS.Infrastructure.QueryHandlers.Reports;
 public class GetInvoicesQueryHandler : IQueryHandler<GetInvoicesQuery, PagedResult<InvoiceSummaryDto>>
 {
     private readonly StoreHubDbContext _dbContext;
+    private readonly ILogger<GetInvoicesQueryHandler> _logger;
 
-    public GetInvoicesQueryHandler(StoreHubDbContext dbContext)
+    public GetInvoicesQueryHandler(StoreHubDbContext dbContext, ILogger<GetInvoicesQueryHandler> logger)
     {
         _dbContext = dbContext;
+        _logger = logger;
     }
 
     public async Task<PagedResult<InvoiceSummaryDto>> HandleAsync(GetInvoicesQuery query, CancellationToken cancellationToken = default)
     {
-        var fromDateUtc = query.FromDate.ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc);
-        var toDateUtc = query.ToDate.ToDateTime(TimeOnly.MaxValue, DateTimeKind.Utc);
+        _logger.LogDebug(
+            "Fetching invoices: FromDate={FromDate}, ToDate={ToDate}, Page={Page}, PageSize={PageSize}",
+            query.FromDate, query.ToDate, query.Page, query.PageSize);
+
+        var dateRange = ReportDateRange.ToUtcRange(query.FromDate, query.ToDate);
 
         var baseQuery = _dbContext.Invoices
-            .Where(i => i.CreatedUtc >= fromDateUtc && i.CreatedUtc <= toDateUtc)
+            .Where(i => i.CreatedUtc >= dateRange.StartUtc && i.CreatedUtc < dateRange.EndExclusiveUtc)
             .AsNoTracking();
 
         var totalCount = await baseQuery.CountAsync(cancellationToken);
@@ -41,6 +47,10 @@ public class GetInvoicesQueryHandler : IQueryHandler<GetInvoicesQuery, PagedResu
                 LineCount: i.Lines.Count,
                 CreatedUtc: i.CreatedUtc))
             .ToListAsync(cancellationToken);
+
+        _logger.LogInformation(
+            "Invoices fetched: FromDate={FromDate}, ToDate={ToDate}, Page={Page}, Returned={Count}, Total={TotalCount}",
+            query.FromDate, query.ToDate, query.Page, invoices.Count, totalCount);
 
         return new PagedResult<InvoiceSummaryDto>(
             Items: invoices,

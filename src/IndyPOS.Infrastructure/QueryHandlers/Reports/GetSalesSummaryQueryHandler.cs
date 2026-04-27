@@ -2,6 +2,7 @@ using IndyPOS.Application.UseCases.StoreHub.Reports;
 using IndyPOS.Application.UseCases.StoreHub.Reports.GetSalesSummary;
 using IndyPOS.Infrastructure.Persistence.StoreHub;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using Nokpirab;
 
 namespace IndyPOS.Infrastructure.QueryHandlers.Reports;
@@ -13,20 +14,25 @@ namespace IndyPOS.Infrastructure.QueryHandlers.Reports;
 public class GetSalesSummaryQueryHandler : IQueryHandler<GetSalesSummaryQuery, SalesSummaryDto>
 {
     private readonly StoreHubDbContext _dbContext;
+    private readonly ILogger<GetSalesSummaryQueryHandler> _logger;
 
-    public GetSalesSummaryQueryHandler(StoreHubDbContext dbContext)
+    public GetSalesSummaryQueryHandler(StoreHubDbContext dbContext, ILogger<GetSalesSummaryQueryHandler> logger)
     {
         _dbContext = dbContext;
+        _logger = logger;
     }
 
     public async Task<SalesSummaryDto> HandleAsync(GetSalesSummaryQuery query, CancellationToken cancellationToken = default)
     {
-        var fromDateUtc = query.FromDate.ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc);
-        var toDateUtc = query.ToDate.ToDateTime(TimeOnly.MaxValue, DateTimeKind.Utc);
+        _logger.LogDebug(
+            "Generating sales summary: FromDate={FromDate}, ToDate={ToDate}, TopProducts={TopCount}",
+            query.FromDate, query.ToDate, query.TopProductsCount);
+
+        var dateRange = ReportDateRange.ToUtcRange(query.FromDate, query.ToDate);
 
         // Get invoices in date range
         var invoices = await _dbContext.Invoices
-            .Where(i => i.CreatedUtc >= fromDateUtc && i.CreatedUtc <= toDateUtc)
+            .Where(i => i.CreatedUtc >= dateRange.StartUtc && i.CreatedUtc < dateRange.EndExclusiveUtc)
             .Include(i => i.Payments)
             .Include(i => i.Lines)
             .AsNoTracking()
@@ -69,6 +75,10 @@ public class GetSalesSummaryQueryHandler : IQueryHandler<GetSalesSummaryQuery, S
         var topProductsWithCategory = topProducts
             .Select(p => p with { Category = productCategories.GetValueOrDefault(p.ProductId) })
             .ToList();
+
+        _logger.LogInformation(
+            "Sales summary generated: FromDate={FromDate}, ToDate={ToDate}, Invoices={InvoiceCount}, Revenue={TotalRevenue:C}",
+            query.FromDate, query.ToDate, invoiceCount, totalRevenue);
 
         return new SalesSummaryDto(
             FromDate: query.FromDate,

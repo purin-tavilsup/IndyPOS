@@ -3,6 +3,7 @@ using IndyPOS.Application.Abstractions.StoreHub.Repositories;
 using IndyPOS.Application.Common.Interfaces;
 using IndyPOS.Application.UseCases.Cloud.Sync.Events;
 using IndyPOS.Domain.Entities.Core;
+using Microsoft.Extensions.Logging;
 using Nokpirab;
 
 namespace IndyPOS.Application.UseCases.StoreHub.Sales.Complete;
@@ -12,26 +13,36 @@ public class CompleteSaleCommandHandler : ICommandHandler<CompleteSaleCommand, C
     private readonly ISaleRepository _saleRepository;
     private readonly IProductRepository _productRepository;
     private readonly IStoreIdentityService _storeIdentity;
+    private readonly ILogger<CompleteSaleCommandHandler> _logger;
 
     public CompleteSaleCommandHandler(
         ISaleRepository saleRepository,
         IProductRepository productRepository,
-        IStoreIdentityService storeIdentity)
+        IStoreIdentityService storeIdentity,
+        ILogger<CompleteSaleCommandHandler> logger)
     {
         _saleRepository = saleRepository;
         _productRepository = productRepository;
         _storeIdentity = storeIdentity;
+        _logger = logger;
     }
 
     public async Task<CompleteSaleResponse> HandleAsync(
         CompleteSaleCommand command,
         CancellationToken cancellationToken = default)
     {
+        _logger.LogDebug(
+            "Processing sale: StoreId={StoreId}, UserId={UserId}, Lines={LineCount}, Payments={PaymentCount}",
+            command.StoreId, command.UserId, command.Lines.Count, command.Payments.Count);
+
         // Validate PayLater is allowed for this store type
         var features = _storeIdentity.Features;
         var hasPayLater = command.Payments.Any(p => p.Method.Equals("PayLater", StringComparison.OrdinalIgnoreCase));
         if (hasPayLater && !features.PayLaterEnabled)
         {
+            _logger.LogWarning(
+                "PayLater rejected: StoreType={StoreType}, UserId={UserId}",
+                _storeIdentity.StoreType, command.UserId);
             throw new InvalidOperationException(
                 $"PayLater payment is not available for {_storeIdentity.StoreType} stores.");
         }
@@ -149,6 +160,10 @@ public class CompleteSaleCommandHandler : ICommandHandler<CompleteSaleCommand, C
             inventoryMovements,
             outboxEvent,
             cancellationToken);
+
+        _logger.LogInformation(
+            "Sale completed: InvoiceId={InvoiceId}, Total={TotalAmount:C}, Lines={LineCount}, UserId={UserId}",
+            invoice.Id, invoice.TotalAmount, lines.Count, command.UserId);
 
         return new CompleteSaleResponse(
             InvoiceId: invoice.Id,

@@ -2,6 +2,7 @@ using IndyPOS.Application.UseCases.StoreHub.Reports;
 using IndyPOS.Application.UseCases.StoreHub.Reports.GetProductSales;
 using IndyPOS.Infrastructure.Persistence.StoreHub;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using Nokpirab;
 
 namespace IndyPOS.Infrastructure.QueryHandlers.Reports;
@@ -13,21 +14,26 @@ namespace IndyPOS.Infrastructure.QueryHandlers.Reports;
 public class GetProductSalesQueryHandler : IQueryHandler<GetProductSalesQuery, PagedResult<ProductSalesDto>>
 {
     private readonly StoreHubDbContext _dbContext;
+    private readonly ILogger<GetProductSalesQueryHandler> _logger;
 
-    public GetProductSalesQueryHandler(StoreHubDbContext dbContext)
+    public GetProductSalesQueryHandler(StoreHubDbContext dbContext, ILogger<GetProductSalesQueryHandler> logger)
     {
         _dbContext = dbContext;
+        _logger = logger;
     }
 
     public async Task<PagedResult<ProductSalesDto>> HandleAsync(GetProductSalesQuery query, CancellationToken cancellationToken = default)
     {
-        var fromDateUtc = query.FromDate.ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc);
-        var toDateUtc = query.ToDate.ToDateTime(TimeOnly.MaxValue, DateTimeKind.Utc);
+        _logger.LogDebug(
+            "Generating product sales report: FromDate={FromDate}, ToDate={ToDate}, Category={Category}, Page={Page}",
+            query.FromDate, query.ToDate, query.Category ?? "All", query.Page);
+
+        var dateRange = ReportDateRange.ToUtcRange(query.FromDate, query.ToDate);
 
         // Get invoice lines in date range with product info
         var invoiceLines = await _dbContext.InvoiceLines
             .Include(l => l.Invoice)
-            .Where(l => l.Invoice.CreatedUtc >= fromDateUtc && l.Invoice.CreatedUtc <= toDateUtc)
+            .Where(l => l.Invoice.CreatedUtc >= dateRange.StartUtc && l.Invoice.CreatedUtc < dateRange.EndExclusiveUtc)
             .AsNoTracking()
             .ToListAsync(cancellationToken);
 
@@ -75,6 +81,10 @@ public class GetProductSalesQueryHandler : IQueryHandler<GetProductSalesQuery, P
             .Skip((query.Page - 1) * query.PageSize)
             .Take(query.PageSize)
             .ToList();
+
+        _logger.LogInformation(
+            "Product sales report generated: FromDate={FromDate}, ToDate={ToDate}, Products={TotalCount}, Page={Page}",
+            query.FromDate, query.ToDate, totalCount, query.Page);
 
         return new PagedResult<ProductSalesDto>(
             Items: pagedProducts,
