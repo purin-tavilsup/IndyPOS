@@ -1,3 +1,4 @@
+using IndyPOS.Application.Common.Interfaces;
 using IndyPOS.Application.UseCases.StoreHub.Reports;
 using IndyPOS.Application.UseCases.StoreHub.Reports.GetInvoices;
 using IndyPOS.Infrastructure.Persistence.StoreHub;
@@ -14,21 +15,26 @@ namespace IndyPOS.Infrastructure.QueryHandlers.Reports;
 public class GetInvoicesQueryHandler : IQueryHandler<GetInvoicesQuery, PagedResult<InvoiceSummaryDto>>
 {
     private readonly StoreHubDbContext _dbContext;
+    private readonly IStoreIdentityService _storeIdentity;
     private readonly ILogger<GetInvoicesQueryHandler> _logger;
 
-    public GetInvoicesQueryHandler(StoreHubDbContext dbContext, ILogger<GetInvoicesQueryHandler> logger)
+    public GetInvoicesQueryHandler(
+        StoreHubDbContext dbContext,
+        IStoreIdentityService storeIdentity,
+        ILogger<GetInvoicesQueryHandler> logger)
     {
         _dbContext = dbContext;
+        _storeIdentity = storeIdentity;
         _logger = logger;
     }
 
     public async Task<PagedResult<InvoiceSummaryDto>> HandleAsync(GetInvoicesQuery query, CancellationToken cancellationToken = default)
     {
         _logger.LogDebug(
-            "Fetching invoices: FromDate={FromDate}, ToDate={ToDate}, Page={Page}, PageSize={PageSize}",
-            query.FromDate, query.ToDate, query.Page, query.PageSize);
+            "Fetching invoices: FromDate={FromDate}, ToDate={ToDate}, Page={Page}, PageSize={PageSize}, TimeZone={TimeZone}",
+            query.FromDate, query.ToDate, query.Page, query.PageSize, _storeIdentity.TimeZone.Id);
 
-        var dateRange = ReportDateRange.ToUtcRange(query.FromDate, query.ToDate);
+        var dateRange = ReportDateRange.ToUtcRange(query.FromDate, query.ToDate, _storeIdentity.TimeZone);
 
         var baseQuery = _dbContext.Invoices
             .Where(i => i.CreatedUtc >= dateRange.StartUtc && i.CreatedUtc < dateRange.EndExclusiveUtc)

@@ -37,6 +37,12 @@ public interface IStoreIdentityService
     int StoreCode { get; }
 
     /// <summary>
+    /// Gets the timezone for this store (e.g., "SE Asia Standard Time" for Thailand).
+    /// Used for report date range calculations.
+    /// </summary>
+    TimeZoneInfo TimeZone { get; }
+
+    /// <summary>
     /// Validates that the store is properly configured.
     /// Throws if StoreId is missing or invalid.
     /// </summary>

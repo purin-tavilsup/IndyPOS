@@ -86,6 +86,7 @@ internal class TestStoreIdentityService : IStoreIdentityService
     public string StoreName => "Test Store";
     public StoreType StoreType => StoreType.GeneralHardware;
     public StoreTypeFeatures Features => StoreTypeFeatures.For(StoreType.GeneralHardware);
+    public TimeZoneInfo TimeZone => TimeZoneInfo.Local;
 
     [Obsolete("Use StoreId (UUID) for identification.")]
     public int StoreCode => 1;

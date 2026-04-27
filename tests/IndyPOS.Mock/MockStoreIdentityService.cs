@@ -14,6 +14,7 @@ public class MockStoreIdentityService : IStoreIdentityService
     public string StoreName { get; set; } = "Test Store";
     public StoreType StoreType { get; set; } = StoreType.GeneralHardware;
     public StoreTypeFeatures Features => StoreTypeFeatures.For(StoreType);
+    public TimeZoneInfo TimeZone { get; set; } = TimeZoneInfo.Local;
 
     [Obsolete("Use StoreId (UUID) for identification.")]
     public int StoreCode { get; set; } = 1;

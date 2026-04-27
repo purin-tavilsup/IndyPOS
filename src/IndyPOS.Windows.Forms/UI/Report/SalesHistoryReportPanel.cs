@@ -40,7 +40,7 @@ public partial class SalesHistoryReportPanel : UserControl
     }
 
     public SalesHistoryReportPanel(IReportService reportService,
-                                   IStoreConstants storeConstants, 
+                                   IStoreConstants storeConstants,
 								   IReceiptPrinterService receiptPrinterService,
                                    MessageForm messageForm)
     {
@@ -53,6 +53,10 @@ public partial class SalesHistoryReportPanel : UserControl
         InitializeSaleInvoiceDataView();
         InitializeInvoiceProductsDataView();
         InitializePaymentDataView();
+
+        // Initialize date pickers to today
+        StartDatePicker.Value = DateTime.Today;
+        EndDatePicker.Value = DateTime.Today;
     }
 
     private void InitializeSaleInvoiceDataView()

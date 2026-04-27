@@ -1,3 +1,4 @@
+using IndyPOS.Application.Common.Interfaces;
 using IndyPOS.Application.UseCases.StoreHub.Reports;
 using IndyPOS.Application.UseCases.StoreHub.Reports.GetSalesSummary;
 using IndyPOS.Infrastructure.Persistence.StoreHub;
@@ -14,21 +15,26 @@ namespace IndyPOS.Infrastructure.QueryHandlers.Reports;
 public class GetSalesSummaryQueryHandler : IQueryHandler<GetSalesSummaryQuery, SalesSummaryDto>
 {
     private readonly StoreHubDbContext _dbContext;
+    private readonly IStoreIdentityService _storeIdentity;
     private readonly ILogger<GetSalesSummaryQueryHandler> _logger;
 
-    public GetSalesSummaryQueryHandler(StoreHubDbContext dbContext, ILogger<GetSalesSummaryQueryHandler> logger)
+    public GetSalesSummaryQueryHandler(
+        StoreHubDbContext dbContext,
+        IStoreIdentityService storeIdentity,
+        ILogger<GetSalesSummaryQueryHandler> logger)
     {
         _dbContext = dbContext;
+        _storeIdentity = storeIdentity;
         _logger = logger;
     }
 
     public async Task<SalesSummaryDto> HandleAsync(GetSalesSummaryQuery query, CancellationToken cancellationToken = default)
     {
         _logger.LogDebug(
-            "Generating sales summary: FromDate={FromDate}, ToDate={ToDate}, TopProducts={TopCount}",
-            query.FromDate, query.ToDate, query.TopProductsCount);
+            "Generating sales summary: FromDate={FromDate}, ToDate={ToDate}, TopProducts={TopCount}, TimeZone={TimeZone}",
+            query.FromDate, query.ToDate, query.TopProductsCount, _storeIdentity.TimeZone.Id);
 
-        var dateRange = ReportDateRange.ToUtcRange(query.FromDate, query.ToDate);
+        var dateRange = ReportDateRange.ToUtcRange(query.FromDate, query.ToDate, _storeIdentity.TimeZone);
 
         // Get invoices in date range
         var invoices = await _dbContext.Invoices
