@@ -2,6 +2,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using IndyPOS.Application.Abstractions.StoreHub.Services;
+using IndyPOS.Application.Common.Models;
 using IndyPOS.Domain.Entities.Core;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;

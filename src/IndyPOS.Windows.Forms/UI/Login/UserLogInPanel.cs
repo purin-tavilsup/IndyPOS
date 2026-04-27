@@ -1,5 +1,5 @@
-﻿using IndyPOS.Application.Common.Interfaces;
 using System.Diagnostics.CodeAnalysis;
+using IndyPOS.Application.Common.Interfaces;
 
 namespace IndyPOS.Windows.Forms.UI.Login;
 
@@ -11,16 +11,13 @@ namespace IndyPOS.Windows.Forms.UI.Login;
 public partial class UserLogInPanel : UserControl
 {
 	private readonly IUserLogInService _userLogInService;
-	private readonly ICryptographyService _cryptographyService;
 	private readonly MessageForm _messageForm;
 	private bool _isLoggedIn;
 
 	public UserLogInPanel(IUserLogInService userLogInService,
-						  ICryptographyService cryptographyService,
 						  MessageForm messageForm)
 	{
 		_userLogInService = userLogInService;
-		_cryptographyService = cryptographyService;
 		_messageForm = messageForm;
 
 		InitializeComponent();
@@ -41,7 +38,7 @@ public partial class UserLogInPanel : UserControl
 	private async Task TryLogInAsync()
 	{
 		var username = UsersComboBox.Texts?.Trim() ?? string.Empty;
-		var password = _cryptographyService.Encrypt(UserSecretTextBox.Texts.Trim());
+		var password = UserSecretTextBox.Texts.Trim();
 
 		_isLoggedIn = await _userLogInService.LogInAsync(username, password);
 
