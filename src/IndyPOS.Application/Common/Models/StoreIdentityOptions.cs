@@ -37,4 +37,10 @@ public class StoreIdentityOptions
     /// </summary>
     [Obsolete("Use Id (UUID) for store identification. Code is kept for barcode generation only.")]
     public int Code { get; set; } = 1;
+
+    /// <summary>
+    /// IANA timezone ID for the store (e.g., "Asia/Bangkok" for Thailand).
+    /// Used for report date range calculations. Defaults to "Asia/Bangkok" for Thai stores.
+    /// </summary>
+    public string TimeZoneId { get; set; } = "SE Asia Standard Time";
 }

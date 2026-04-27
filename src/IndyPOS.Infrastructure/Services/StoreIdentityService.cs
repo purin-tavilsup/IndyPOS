@@ -13,11 +13,13 @@ public class StoreIdentityService : IStoreIdentityService
 {
     private readonly StoreIdentityOptions _options;
     private readonly Lazy<StoreTypeFeatures> _features;
+    private readonly Lazy<TimeZoneInfo> _timeZone;
 
     public StoreIdentityService(IOptions<StoreIdentityOptions> options)
     {
         _options = options.Value;
         _features = new Lazy<StoreTypeFeatures>(() => StoreTypeFeatures.For(_options.Type));
+        _timeZone = new Lazy<TimeZoneInfo>(() => GetTimeZone(_options.TimeZoneId));
     }
 
     public string StoreId => _options.Id ?? GetDefaultStoreId();
@@ -27,6 +29,8 @@ public class StoreIdentityService : IStoreIdentityService
     public StoreType StoreType => _options.Type;
 
     public StoreTypeFeatures Features => _features.Value;
+
+    public TimeZoneInfo TimeZone => _timeZone.Value;
 
     [Obsolete("Use StoreId (UUID) for identification. StoreCode is kept for barcode generation only.")]
     public int StoreCode => _options.Code;
@@ -49,5 +53,22 @@ public class StoreIdentityService : IStoreIdentityService
     {
         // Use machine name as fallback for existing single-store installations
         return $"STORE-{Environment.MachineName}".ToUpperInvariant();
+    }
+
+    /// <summary>
+    /// Gets the TimeZoneInfo for the configured timezone ID.
+    /// Falls back to local timezone if the configured ID is invalid.
+    /// </summary>
+    private static TimeZoneInfo GetTimeZone(string timeZoneId)
+    {
+        try
+        {
+            return TimeZoneInfo.FindSystemTimeZoneById(timeZoneId);
+        }
+        catch (TimeZoneNotFoundException)
+        {
+            // Fall back to local timezone if configured ID is invalid
+            return TimeZoneInfo.Local;
+        }
     }
 }

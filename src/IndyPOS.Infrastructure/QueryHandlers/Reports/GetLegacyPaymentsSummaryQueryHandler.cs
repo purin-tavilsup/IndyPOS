@@ -1,3 +1,4 @@
+using IndyPOS.Application.Common.Interfaces;
 using IndyPOS.Application.Common.Models;
 using IndyPOS.Application.UseCases.StoreHub.Reports.GetLegacyPaymentsSummary;
 using IndyPOS.Infrastructure.Persistence.StoreHub;
@@ -14,19 +15,26 @@ namespace IndyPOS.Infrastructure.QueryHandlers.Reports;
 public class GetLegacyPaymentsSummaryQueryHandler : IQueryHandler<GetLegacyPaymentsSummaryQuery, PaymentsSummary>
 {
     private readonly StoreHubDbContext _dbContext;
+    private readonly IStoreIdentityService _storeIdentity;
     private readonly ILogger<GetLegacyPaymentsSummaryQueryHandler> _logger;
 
-    public GetLegacyPaymentsSummaryQueryHandler(StoreHubDbContext dbContext, ILogger<GetLegacyPaymentsSummaryQueryHandler> logger)
+    public GetLegacyPaymentsSummaryQueryHandler(
+        StoreHubDbContext dbContext,
+        IStoreIdentityService storeIdentity,
+        ILogger<GetLegacyPaymentsSummaryQueryHandler> logger)
     {
         _dbContext = dbContext;
+        _storeIdentity = storeIdentity;
         _logger = logger;
     }
 
     public async Task<PaymentsSummary> HandleAsync(GetLegacyPaymentsSummaryQuery query, CancellationToken cancellationToken = default)
     {
-        _logger.LogDebug("Generating legacy payments summary: FromDate={FromDate}, ToDate={ToDate}", query.FromDate, query.ToDate);
+        _logger.LogDebug(
+            "Generating legacy payments summary: FromDate={FromDate}, ToDate={ToDate}, TimeZone={TimeZone}",
+            query.FromDate, query.ToDate, _storeIdentity.TimeZone.Id);
 
-        var dateRange = ReportDateRange.ToUtcRange(query.FromDate, query.ToDate);
+        var dateRange = ReportDateRange.ToUtcRange(query.FromDate, query.ToDate, _storeIdentity.TimeZone);
 
         // Get all payments in the date range
         var payments = await _dbContext.Payments

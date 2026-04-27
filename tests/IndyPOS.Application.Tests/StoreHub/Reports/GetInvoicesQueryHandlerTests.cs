@@ -3,6 +3,7 @@ using IndyPOS.Application.UseCases.StoreHub.Reports.GetInvoices;
 using IndyPOS.Domain.Entities.Core;
 using IndyPOS.Infrastructure.Persistence.StoreHub;
 using IndyPOS.Infrastructure.QueryHandlers.Reports;
+using IndyPOS.Mock;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging.Abstractions;
 using Xunit;
@@ -11,6 +12,8 @@ namespace IndyPOS.Application.Tests.StoreHub.Reports;
 
 public class GetInvoicesQueryHandlerTests
 {
+    private static readonly MockStoreIdentityService StoreIdentity = MockStoreIdentityService.GeneralHardware();
+
     private static StoreHubDbContext CreateDbContext()
     {
         var options = new DbContextOptionsBuilder<StoreHubDbContext>()
@@ -65,7 +68,7 @@ public class GetInvoicesQueryHandlerTests
     {
         // Arrange
         await using var dbContext = CreateDbContext();
-        var handler = new GetInvoicesQueryHandler(dbContext, NullLogger<GetInvoicesQueryHandler>.Instance);
+        var handler = new GetInvoicesQueryHandler(dbContext, StoreIdentity, NullLogger<GetInvoicesQueryHandler>.Instance);
 
         for (var i = 0; i < 5; i++)
         {
@@ -100,7 +103,7 @@ public class GetInvoicesQueryHandlerTests
     {
         // Arrange
         await using var dbContext = CreateDbContext();
-        var handler = new GetInvoicesQueryHandler(dbContext, NullLogger<GetInvoicesQueryHandler>.Instance);
+        var handler = new GetInvoicesQueryHandler(dbContext, StoreIdentity, NullLogger<GetInvoicesQueryHandler>.Instance);
 
         var invoice1 = CreateInvoice(new DateTime(2024, 6, 10, 10, 0, 0, DateTimeKind.Utc), 100m);
         var invoice2 = CreateInvoice(new DateTime(2024, 6, 20, 10, 0, 0, DateTimeKind.Utc), 200m);
@@ -128,7 +131,7 @@ public class GetInvoicesQueryHandlerTests
     {
         // Arrange
         await using var dbContext = CreateDbContext();
-        var handler = new GetInvoicesQueryHandler(dbContext, NullLogger<GetInvoicesQueryHandler>.Instance);
+        var handler = new GetInvoicesQueryHandler(dbContext, StoreIdentity, NullLogger<GetInvoicesQueryHandler>.Instance);
 
         var invoice = new Invoice
         {
@@ -179,7 +182,7 @@ public class GetInvoicesQueryHandlerTests
     {
         // Arrange
         await using var dbContext = CreateDbContext();
-        var handler = new GetInvoicesQueryHandler(dbContext, NullLogger<GetInvoicesQueryHandler>.Instance);
+        var handler = new GetInvoicesQueryHandler(dbContext, StoreIdentity, NullLogger<GetInvoicesQueryHandler>.Instance);
 
         var invoice = new Invoice
         {
