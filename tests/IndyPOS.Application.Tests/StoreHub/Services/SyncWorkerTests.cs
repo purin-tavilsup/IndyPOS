@@ -64,6 +64,7 @@ public class SyncWorkerTests
         // Arrange
         var (worker, outboxRepo, syncClient) = CreateSut();
         var testEvent = CreateTestEvent();
+        var markAsSentCalled = new TaskCompletionSource<bool>();
 
         outboxRepo.SetupSequence(x => x.GetPendingEventsAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(new List<OutboxEvent> { testEvent })
@@ -72,15 +73,23 @@ public class SyncWorkerTests
         syncClient.Setup(x => x.SendEventAsync(testEvent, It.IsAny<CancellationToken>()))
             .ReturnsAsync(true);
 
+        outboxRepo.Setup(x => x.MarkAsSentAsync(testEvent.Id, It.IsAny<CancellationToken>()))
+            .Callback(() => markAsSentCalled.TrySetResult(true))
+            .Returns(Task.CompletedTask);
+
         using var cts = new CancellationTokenSource();
 
-        // Act - Start the worker and cancel after a short delay
+        // Act - Start the worker and wait for processing
         var workerTask = worker.StartAsync(cts.Token);
-        await Task.Delay(100);
+
+        // Wait for MarkAsSentAsync to be called (with timeout)
+        var completedTask = await Task.WhenAny(markAsSentCalled.Task, Task.Delay(5000));
+
         cts.Cancel();
         await worker.StopAsync(CancellationToken.None);
 
         // Assert
+        completedTask.Should().Be(markAsSentCalled.Task, "MarkAsSentAsync should have been called within timeout");
         syncClient.Verify(x => x.SendEventAsync(testEvent, It.IsAny<CancellationToken>()), Times.AtLeastOnce);
         outboxRepo.Verify(x => x.MarkAsSentAsync(testEvent.Id, It.IsAny<CancellationToken>()), Times.AtLeastOnce);
     }
@@ -91,6 +100,7 @@ public class SyncWorkerTests
         // Arrange
         var (worker, outboxRepo, syncClient) = CreateSut();
         var testEvent = CreateTestEvent();
+        var markAsFailedCalled = new TaskCompletionSource<bool>();
 
         outboxRepo.SetupSequence(x => x.GetPendingEventsAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(new List<OutboxEvent> { testEvent })
@@ -99,15 +109,23 @@ public class SyncWorkerTests
         syncClient.Setup(x => x.SendEventAsync(testEvent, It.IsAny<CancellationToken>()))
             .ReturnsAsync(false); // Simulate failure
 
+        outboxRepo.Setup(x => x.MarkAsFailedAsync(testEvent.Id, It.IsAny<DateTime>(), It.IsAny<CancellationToken>()))
+            .Callback(() => markAsFailedCalled.TrySetResult(true))
+            .Returns(Task.CompletedTask);
+
         using var cts = new CancellationTokenSource();
 
         // Act
         var workerTask = worker.StartAsync(cts.Token);
-        await Task.Delay(100);
+
+        // Wait for MarkAsFailedAsync to be called (with timeout)
+        var completedTask = await Task.WhenAny(markAsFailedCalled.Task, Task.Delay(5000));
+
         cts.Cancel();
         await worker.StopAsync(CancellationToken.None);
 
         // Assert
+        completedTask.Should().Be(markAsFailedCalled.Task, "MarkAsFailedAsync should have been called within timeout");
         outboxRepo.Verify(x => x.MarkAsFailedAsync(
             testEvent.Id,
             It.IsAny<DateTime>(),

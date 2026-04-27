@@ -75,9 +75,11 @@ public class ReportsEndpointTests : IntegrationTestBase
             Lines = new[] { new { ProductId = product.Id, Quantity = 3, UnitPrice = 100m } },
             Payments = new[] { new { Method = "Cash", Amount = 300m } }
         };
-        await Client.PostAsJsonAsync("/sales/complete", saleRequest);
+        var saleResponse = await Client.PostAsJsonAsync("/sales/complete", saleRequest);
+        saleResponse.EnsureSuccessStatusCode();
 
-        var today = DateOnly.FromDateTime(DateTime.UtcNow);
+        // Use local date since ReportDateRange converts using local timezone
+        var today = DateOnly.FromDateTime(DateTime.Now);
 
         // Act
         var response = await Client.GetAsync($"/reports/sales-summary?fromDate={today}&toDate={today}");
