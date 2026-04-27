@@ -1,4 +1,5 @@
 using IndyPOS.Application.Abstractions.StoreHub;
+using IndyPOS.Application.Common.Enums;
 using IndyPOS.Application.Common.Interfaces;
 using IndyPOS.Application.UseCases.InventoryProducts;
 using IndyPOS.Application.UseCases.StoreHub.Products;
@@ -166,12 +167,22 @@ public class StoreHubInventoryProductService : IInventoryProductService
         return Task.FromResult(MapToInventoryProductDto(product, GetCategoryId(product.Category), isTrackable: true));
     }
 
+    public Task<IReadOnlyList<InventoryProductDto>> GetAllAsync(CancellationToken cancellationToken = default)
+    {
+        var result = _productCacheService.GetAll()
+            .Select(p => MapToInventoryProductDto(p, GetCategoryId(p.Category), isTrackable: true))
+            .ToList();
+
+        return Task.FromResult<IReadOnlyList<InventoryProductDto>>(result);
+    }
+
     public Task<IReadOnlyList<InventoryProductDto>> GetByCategoryIdAsync(
         int categoryId,
         CancellationToken cancellationToken = default)
     {
-        var categoryName = GetCategoryName(categoryId);
-        var products = _productCacheService.GetByCategory(categoryName);
+        var products = _productCacheService.GetAll()
+            .Where(p => GetCategoryId(p.Category) == categoryId)
+            .ToList();
 
         var result = products
             .Select(p => MapToInventoryProductDto(p, categoryId, isTrackable: true))
@@ -242,12 +253,14 @@ public class StoreHubInventoryProductService : IInventoryProductService
     private int GetCategoryId(string? categoryName)
     {
         if (string.IsNullOrEmpty(categoryName))
-            return 0;
+            return (int)ProductCategory.GeneralGoods;
 
         var category = _storeConstants.ProductCategories
             .FirstOrDefault(x => x.Value.Equals(categoryName, StringComparison.OrdinalIgnoreCase));
 
-        return category.Key;
+        return category.Key == 0
+            ? (int)ProductCategory.GeneralGoods
+            : category.Key;
     }
 
     #endregion

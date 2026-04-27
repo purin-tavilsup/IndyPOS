@@ -39,6 +39,11 @@ public interface IInventoryProductService
     Task<InventoryProductDto> GetByBarcodeAsync(string barcode, CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// Get all cached inventory products.
+    /// </summary>
+    Task<IReadOnlyList<InventoryProductDto>> GetAllAsync(CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// Get inventory products by category ID.
     /// </summary>
     Task<IReadOnlyList<InventoryProductDto>> GetByCategoryIdAsync(int categoryId, CancellationToken cancellationToken = default);
