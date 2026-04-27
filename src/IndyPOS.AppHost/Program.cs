@@ -1,7 +1,11 @@
 var builder = DistributedApplication.CreateBuilder(args);
 
 // PostgreSQL for local development
+// WithDataVolume persists data across restarts and reuses containers
+// WithLifetime(ContainerLifetime.Persistent) keeps container running after Aspire stops
 var postgres = builder.AddPostgres("postgres")
+                      .WithDataVolume("indypos-postgres-data")
+                      .WithLifetime(ContainerLifetime.Persistent)
                       .WithPgAdmin(configureContainer: pgadmin => pgadmin.WithExplicitStart())
                       .WithDbGate(configureContainer: dbgate => dbgate.WithExplicitStart());
 
