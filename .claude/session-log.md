@@ -4,6 +4,68 @@
 
 ---
 
+## 2026-04-27: Aspire Local Testing Complete ✅
+
+**Focus:** Fix all blockers for running IndyPOS locally with Aspire
+
+### Summary
+Fixed all issues preventing team from testing IndyPOS with Aspire. Login, products, reports, and sales all working. Added comprehensive logging for debugging.
+
+### Fixes Applied
+
+| Area | Issue | Fix |
+|------|-------|-----|
+| global.json | SDK version 7.0.0 invalid | Changed to 10.0.107 |
+| AppHost | PostgreSQL containers not persisting | Added WithDataVolume + WithLifetime |
+| WinForms | Wrong StoreHub port (5000) | Changed to 5012 |
+| CloudApi | LocalToken:SecretKey config error | Moved LocalTokenOptions to Application with defaults |
+| Login | Password encrypted before sending | Removed encryption (API expects plaintext) |
+| Products | Not showing after login | Fixed StoreId in seeder, singleton HttpClient |
+| Reports | 403 errors not handled | Added ReportErrorHandler for graceful handling |
+| Tests | Flaky SyncWorkerTests | Used TaskCompletionSource pattern |
+| Tests | Handler tests missing logger | Added NullLogger |
+| Tests | ReportsEndpointTests timezone | Use DateTime.Now not UtcNow |
+| Security | OpenTelemetry CVE-2026-40894 | Updated to 1.15.x |
+| Aspire | WinForms not in dashboard | Added with WithExplicitStart() |
+| Aspire | dbgate redundant | Removed (pgAdmin sufficient) |
+| Reports | Date picker not initialized | Added DateTime.Today initialization |
+| Reports | Testing from Canada shows wrong dates | Added store timezone support (defaults to Thailand) |
+
+### Timezone Support
+- Added `TimeZone` property to `IStoreIdentityService`
+- Added `TimeZoneId` config option to `StoreIdentityOptions` (default: "SE Asia Standard Time")
+- Updated all 5 report handlers to pass store timezone to `ReportDateRange.ToUtcRange()`
+- Reports now correctly use Thai local time regardless of where app is running
+
+### Logging Added
+- CompleteSaleCommandHandler
+- IngestEventsCommandHandler
+- All 7 report query handlers
+
+### Test Results
+- **306 tests passing** (219 + 15 + 23 + 49)
+- All integration tests green ✅
+
+### Commits (12 total)
+1. `fix(aspire): correct SDK version, postgres persistence, and StoreHub URL`
+2. `fix(auth): move LocalTokenOptions to Application layer and remove password encryption`
+3. `feat(logging): add debug logging to command and query handlers`
+4. `fix(ui): improve reports, inventory, and error handling`
+5. `test: fix tests for logging changes and flaky behavior`
+6. `feat(aspire): add WinForms app to AppHost with explicit start`
+7. `fix(security): update OpenTelemetry packages for CVE-2026-40894`
+8. `chore(aspire): remove dbgate, pgAdmin is sufficient`
+9. `feat(reports): add timezone support for store-specific date calculations`
+
+### Test Accounts
+| Username | Password | Role |
+|----------|----------|------|
+| admin | admin123 | SystemAdmin |
+| manager | manager123 | StoreManager |
+| cashier | cashier123 | Cashier |
+
+---
+
 ## 2026-04-05: Epic M Progress (M1-M6) + VM Testing Plan
 
 **Epic:** M | **Tasks:** M1-M6 complete | **Commits:** 9

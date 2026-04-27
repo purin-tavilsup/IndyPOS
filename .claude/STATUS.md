@@ -8,63 +8,60 @@
 |-------|-------|
 | **Branch** | `indypos-overhaul` |
 | **Sprint** | Sprint 7 |
-| **Phase** | Epic M In Progress (M1-M6 done) |
+| **Phase** | Aspire Local Testing ✅ |
 | **Blocked?** | No |
+
+## Recent Session (2026-04-27)
+
+### Aspire Local Testing - COMPLETE ✅
+
+Fixed all blockers for running IndyPOS locally with Aspire:
+
+| Fix | Description |
+|-----|-------------|
+| global.json | SDK version 7.0.0 → 10.0.107 |
+| AppHost postgres | Added WithDataVolume + WithLifetime for persistence |
+| WinForms URL | Port 5000 → 5012 for StoreHub |
+| LocalTokenOptions | Moved to Application layer with defaults |
+| Login | Removed password encryption (API expects plaintext) |
+| Products | Fixed StoreId in seeder, singleton HttpClient for auth |
+| Reports | Added ReportErrorHandler for 403/error handling |
+| Logging | Added debug logging to all command/query handlers |
+| OpenTelemetry | Updated to 1.15.x for CVE-2026-40894 fix |
+| WinForms in Aspire | Added with WithExplicitStart() |
+| dbgate | Removed (pgAdmin sufficient) |
+| **Timezone** | Added store timezone support for reports (defaults to Thailand) |
+
+**Test Results:** All 306 tests passing (219 + 15 + 23 + 49)
+
+### Timezone Support
+Reports now use store-configured timezone (default: "SE Asia Standard Time" for Thailand).
+This allows testing from any location (e.g., Canada) while reports use Thai local time for date calculations.
+
+### Test Accounts (seeded)
+
+| Username | Password | Role |
+|----------|----------|------|
+| admin | admin123 | SystemAdmin |
+| manager | manager123 | StoreManager |
+| cashier | cashier123 | Cashier |
 
 ## In Progress
 
 ### Epic M: Multi-Store Type Support 🟡 IN PROGRESS
 
-Support multiple store types (GeneralHardware, Minimart, CoffeeShop).
-
-**All Decisions Finalized:**
-| Aspect | Decision |
-|--------|----------|
-| StoreHub Location | Local per store (most stores = 1 POS) |
-| Offline Support | Local PostgreSQL required (offline-first) |
-| StoreId Generation | Manual UUID by System Admin |
-| Central Database | One DB per store type (`generalHardware`, `minimart`, `coffeeShop`) |
-| Store Type | Immutable after installation |
-| Migration | Migrate existing 1 store → `generalHardware` DB |
-| **StoreId on Entities** | **Root entities only** (child entities inherit via JOIN) |
-
-**Task Progress:**
-| Task | Status | Notes |
-|------|--------|-------|
-| M1: StoreType enum + StoreTypeFeatures | ✅ Done | `Domain/Enums/`, `Domain/ValueObjects/` |
-| M2: Update config schemas | ✅ Done | `StoreIdentityOptions` has Type; `IStoreIdentityService` exposes Features |
-| M3: Add StoreId to entities | ✅ Done | Added to Product, StoreSetting; repositories filter by StoreId |
-| M4: Update repositories for StoreId | ✅ Done | PayLaterRepository now filters via Invoice JOIN |
-| M5: Verify StoreHub API | ✅ Done | StoreId passed to commands via IStoreIdentityService |
-| M6: Add feature validation | ✅ Done | PayLater blocked for non-GeneralHardware stores |
-| M7-M13 | Pending | UI, installer, CloudApi, migrations, docs |
-
-**M4-M6 Summary:**
-- PayLaterRepository filters by StoreId via JOIN to Invoice
-- CompleteSaleCommand validates PayLater payment method against store type
-- PayLater queries/commands validate `Features.PayLaterEnabled`
-- MockStoreIdentityService added to test project for unit testing
-- EF Core migration: `AddStoreIdToProductAndStoreSetting`
-
-**Plan:** `.planning/indypos-overhaul/drafts/epic-m-multi-store-type.md`
+**Completed:** M1-M6 (core domain)
+**Pending:** M7-M13 (UI, installer, CloudApi, migrations, docs)
 
 ## Next Actions (Priority Order)
 
-### 1. Implement VM Testing Scripts (Phase 1 - Quick Win)
-- [ ] Create `scripts/vm-testing/Initialize-TestVM.ps1`
-- [ ] Create `scripts/vm-testing/New-CleanSnapshot.ps1`
-- [ ] Create `scripts/vm-testing/Test-IndyPOSInstaller.ps1`
-- [ ] Create `scripts/vm-testing/Test-IndyPOSInstallation.ps1`
-- [ ] Manual test & debug
-
-### 2. Test Epic V Installer in VM
+### 1. VM Testing for Epic V Installer
 - [ ] Create Hyper-V VM with Windows 11
 - [ ] Run `scripts\publish.ps1` to create Velopack packages
 - [ ] Run `installer\build-installer.ps1` to build bootstrapper
 - [ ] Test full installation in VM
-- [ ] Test update scenarios
 
-### 3. Continue Epic M (M7-M13)
+### 2. Continue Epic M (M7-M13)
 - M7: Update First-Run Wizard (store type selection)
 - M8: Update WinForms UI to respect feature flags
 - M9: Update CloudApi for store type routing
@@ -76,22 +73,20 @@ Support multiple store types (GeneralHardware, Minimart, CoffeeShop).
 |---------|------|
 | Full plan | `.planning/indypos-overhaul/PLAN.md` |
 | Epic M draft | `.planning/indypos-overhaul/drafts/epic-m-multi-store-type.md` |
-| VM testing plan | `.planning/indypos-overhaul/drafts/vm-installer-testing-plan.md` |
-| VM testing guide | `docs/development/vm-testing-guide.md` |
-| Bootstrapper project | `installer/IndyPOS.Bootstrapper/` |
-| Publish script | `scripts/publish.ps1` |
-| Store installation guide | `docs/operations/store-installation-guide.md` |
-| Mock for tests | `tests/IndyPOS.Mock/MockStoreIdentityService.cs` |
+| Session log | `.claude/session-log.md` |
 
-## Quick Context
+## Quick Commands
 
-- **Epic V (Velopack):** ✅ Complete - one-stop installer with auto-updates
-- **Epic M (Multi-Store):** 🟡 Core domain complete (M1-M6), UI/installer pending (M7-M13)
+```bash
+# Run Aspire (http profile)
+dotnet run --project src/IndyPOS.AppHost --launch-profile http
 
-## Stats
+# Run tests
+dotnet test
 
-- **Tests:** 301 passing (214 + 15 + 23 + 49)
-- **Build:** 0 errors, 0 warnings
+# Build
+dotnet build
+```
 
 ---
-*Last updated: 2026-04-06*
+*Last updated: 2026-04-27*
