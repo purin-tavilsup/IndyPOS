@@ -1,12 +1,14 @@
 ﻿using IndyPOS.Application.Common.Enums;
 using IndyPOS.Application.Common.Interfaces;
 using IndyPOS.Application.Common.Models;
+using IndyPOS.Windows.Forms.UI;
 
 namespace IndyPOS.Windows.Forms.UI.Report;
 
 public partial class PayLaterPaymentsReportPanel : UserControl
 {
     private readonly IReportService _reportService;
+    private readonly MessageForm _messageForm;
 
     private enum AccountColumn
     {
@@ -15,9 +17,10 @@ public partial class PayLaterPaymentsReportPanel : UserControl
         RemainingAmountTotal
     }
 
-    public PayLaterPaymentsReportPanel(IReportService reportService)
+    public PayLaterPaymentsReportPanel(IReportService reportService, MessageForm messageForm)
     {
         _reportService = reportService;
+        _messageForm = messageForm;
 
         InitializeComponent();
         InitializeUserDataView();
@@ -47,40 +50,50 @@ public partial class PayLaterPaymentsReportPanel : UserControl
         #endregion
     }
 
+    private async Task ShowPaymentsByPeriodAsync(string periodText, TimePeriod period)
+    {
+        PeriodLabel.Text = periodText;
+
+        try
+        {
+            var payments = await _reportService.GetPayLaterPaymentsByPeriodAsync(period);
+            ShowPayments(payments);
+        }
+        catch (Exception ex)
+        {
+            ReportErrorHandler.Show(_messageForm, ex);
+        }
+    }
+
     private async void ShowReportByTodayButton_Click(object sender, EventArgs e)
     {
-        PeriodLabel.Text = ShowReportByTodayButton.Text;
-
-        var payments = await _reportService.GetPayLaterPaymentsByPeriodAsync(TimePeriod.Today);
-
-        ShowPayments(payments);
+        await ShowPaymentsByPeriodAsync(ShowReportByTodayButton.Text, TimePeriod.Today);
     }
 
     private async void ShowReportByThisMonthButton_Click(object sender, EventArgs e)
     {
-        PeriodLabel.Text = ShowReportByThisMonthButton.Text;
-
-        var payments = await _reportService.GetPayLaterPaymentsByPeriodAsync(TimePeriod.ThisMonth);
-
-        ShowPayments(payments);
+        await ShowPaymentsByPeriodAsync(ShowReportByThisMonthButton.Text, TimePeriod.ThisMonth);
     }
 
     private async void ShowReportByThisYearButton_Click(object sender, EventArgs e)
     {
-        PeriodLabel.Text = ShowReportByThisYearButton.Text;
-
-        var payments = await _reportService.GetPayLaterPaymentsByPeriodAsync(TimePeriod.ThisYear);
-
-        ShowPayments(payments);
+        await ShowPaymentsByPeriodAsync(ShowReportByThisYearButton.Text, TimePeriod.ThisYear);
     }
 
 	private async void ShowAllPayLaterPaymentsButton_Click(object sender, EventArgs e)
 	{
 		PeriodLabel.Text = ShowAllPayLaterPaymentsButton.Text;
 
-		var payments = await _reportService.GetPayLaterPaymentsAsync();
+        try
+        {
+		    var payments = await _reportService.GetPayLaterPaymentsAsync();
 
-		ShowPayments(payments);
+		    ShowPayments(payments);
+        }
+        catch (Exception ex)
+        {
+            ReportErrorHandler.Show(_messageForm, ex);
+        }
 	}
 
     private void ShowPayments(IEnumerable<PayLaterPaymentDto> payments)

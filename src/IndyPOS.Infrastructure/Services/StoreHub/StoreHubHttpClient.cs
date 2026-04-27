@@ -1,3 +1,4 @@
+using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text.Json;
@@ -311,7 +312,7 @@ public class StoreHubHttpClient : IStoreHubClient
             }
 
             var response = await _httpClient.SendAsync(request, cancellationToken);
-            response.EnsureSuccessStatusCode();
+            await EnsureSuccessfulResponseAsync(response, method, url, cancellationToken);
 
             var result = await response.Content.ReadFromJsonAsync<T>(JsonOptions, cancellationToken);
 
@@ -343,12 +344,56 @@ public class StoreHubHttpClient : IStoreHubClient
         {
             using var request = CreateAuthenticatedRequest(method, url);
             var response = await _httpClient.SendAsync(request, cancellationToken);
-            response.EnsureSuccessStatusCode();
+            await EnsureSuccessfulResponseAsync(response, method, url, cancellationToken);
         }
         catch (HttpRequestException ex)
         {
             _logger.LogError(ex, "HTTP request failed: {Method} {Url}", method, url);
             throw new StoreHubClientException("Cannot connect to StoreHub", ex);
+        }
+    }
+
+    private async Task EnsureSuccessfulResponseAsync(
+        HttpResponseMessage response,
+        HttpMethod method,
+        string url,
+        CancellationToken cancellationToken)
+    {
+        if (response.IsSuccessStatusCode)
+            return;
+
+        var responseBody = await ReadResponseBodyAsync(response, cancellationToken);
+
+        _logger.LogWarning(
+            "StoreHub request failed: {Method} {Url} responded {StatusCode}. {ResponseBody}",
+            method,
+            url,
+            response.StatusCode,
+            responseBody);
+
+        var message = response.StatusCode switch
+        {
+            HttpStatusCode.Unauthorized => "StoreHub session expired. Please log in again.",
+            HttpStatusCode.Forbidden => "You do not have permission to perform this action.",
+            _ => $"StoreHub request failed: {(int)response.StatusCode} {response.StatusCode}"
+        };
+
+        throw new StoreHubClientException(message);
+    }
+
+    private static async Task<string?> ReadResponseBodyAsync(
+        HttpResponseMessage response,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            return response.Content is null
+                ? null
+                : await response.Content.ReadAsStringAsync(cancellationToken);
+        }
+        catch
+        {
+            return null;
         }
     }
 

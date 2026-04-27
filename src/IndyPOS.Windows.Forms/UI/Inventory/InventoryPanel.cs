@@ -21,6 +21,10 @@ public partial class InventoryPanel : UserControl
     private readonly MessageForm _messageForm;
     private int? _lastQueryCategoryId;
     private SubPanel _activeSubPanel;
+    private bool _suppressCategorySelectionChanged;
+
+    private const int AllProductsCategoryId = 0;
+    private const string AllProductsCategoryText = "ทั้งหมด";
 
     private enum ProductColumn
     {
@@ -67,11 +71,13 @@ public partial class InventoryPanel : UserControl
         _eventAggregator.GetEvent<InventoryProductUpdatedEvent>().Subscribe(InventoryProductUpdated);
         _eventAggregator.GetEvent<InventoryProductDeletedEvent>().Subscribe(InventoryProductDeleted);
         _eventAggregator.GetEvent<ActiveSubPanelChangedEvent>().Subscribe(ActiveSubPanelChanged);
+        _eventAggregator.GetEvent<UserLoggedInEvent>().Subscribe(UserLoggedIn);
     }
 
     private void InitializeProductCategories()
     {
         CategoryComboBox.Items.Clear();
+        CategoryComboBox.Items.Add(AllProductsCategoryText);
 
         foreach (var item in _productCategoryDictionary)
         {
@@ -135,24 +141,62 @@ public partial class InventoryPanel : UserControl
         #endregion
     }
 
-    private void ActiveSubPanelChanged(SubPanel activeSubPanel)
+    private async void ActiveSubPanelChanged(SubPanel activeSubPanel)
     {
         _activeSubPanel = activeSubPanel;
+
+        if (_activeSubPanel == SubPanel.Inventory)
+        {
+            await RefreshCurrentProductViewAsync();
+        }
+    }
+
+    private async void UserLoggedIn(ILoggedInUser loggedInUser)
+    {
+        await ShowAllProductsAsync();
+    }
+
+    private async Task RefreshCurrentProductViewAsync()
+    {
+        if (_lastQueryCategoryId is null or AllProductsCategoryId)
+        {
+            await ShowAllProductsAsync();
+            return;
+        }
+
+        await ShowProductsByCategoryId(_lastQueryCategoryId.Value);
+    }
+
+    private async Task ShowAllProductsAsync()
+    {
+        _lastQueryCategoryId = AllProductsCategoryId;
+        SelectAllProductsCategory();
+
+        var products = await _inventoryProductService.GetAllAsync();
+        ShowProducts(products);
     }
 
     private async Task ShowProductsByCategoryId(int id)
     {
         var products = await GetInventoryProductsByCategoryIdAsync(id);
 
-        ProductDataView.Rows.Clear();
+        ShowProducts(products);
+    }
 
-        if (products.Count == 0)
-            return;
-
-        foreach (var product in products)
+    private void ShowProducts(IReadOnlyList<InventoryProductDto> products)
+    {
+        ProductDataView.UiThread(delegate
         {
-            AddProductToProductDataView(product);
-        }
+            ProductDataView.Rows.Clear();
+
+            if (products.Count == 0)
+                return;
+
+            foreach (var product in products)
+            {
+                AddProductToProductDataView(product);
+            }
+        });
     }
 
     private void AddProductToProductDataView(InventoryProductDto product)
@@ -182,6 +226,22 @@ public partial class InventoryPanel : UserControl
         var rowBackColor = rowIndex % 2 == 0 ? Color.FromArgb(38, 38, 38) : Color.FromArgb(48, 48, 48);
 
         ProductDataView.Rows[rowIndex].DefaultCellStyle.BackColor = rowBackColor;
+    }
+
+    private void SelectAllProductsCategory()
+    {
+        if (CategoryComboBox.SelectedItem?.ToString() == AllProductsCategoryText)
+            return;
+
+        _suppressCategorySelectionChanged = true;
+        try
+        {
+            CategoryComboBox.SelectedItem = AllProductsCategoryText;
+        }
+        finally
+        {
+            _suppressCategorySelectionChanged = false;
+        }
     }
 
     private void AddProductButton_Click(object sender, EventArgs e)
@@ -286,29 +346,20 @@ public partial class InventoryPanel : UserControl
     {
         // When a new product is added, the cache is already updated by the service.
         // We trigger a refresh of the current category view if applicable.
-        if (_lastQueryCategoryId.HasValue)
+        ProductDataView.UiThread(async delegate
         {
-            ProductDataView.UiThread(async delegate
-            {
-                await ShowProductsByCategoryId(_lastQueryCategoryId.Value);
-            });
-        }
+            await RefreshCurrentProductViewAsync();
+        });
     }
 
     private async void InventoryProductUpdated(Guid productId)
     {
-        if (!_lastQueryCategoryId.HasValue)
-            return;
-
-        await ShowProductsByCategoryId(_lastQueryCategoryId.GetValueOrDefault());
+        await RefreshCurrentProductViewAsync();
     }
 
     private async void InventoryProductDeleted()
     {
-        if (!_lastQueryCategoryId.HasValue)
-            return;
-
-        await ShowProductsByCategoryId(_lastQueryCategoryId.GetValueOrDefault());
+        await RefreshCurrentProductViewAsync();
     }
 
     private void ClearLastQueryHistory()
@@ -318,7 +369,17 @@ public partial class InventoryPanel : UserControl
 
     private async void CategoryComboBox_SelectedIndexChanged(object sender, EventArgs e)
     {
-        var selectedCategoryValue = CategoryComboBox.SelectedItem.ToString();
+        if (_suppressCategorySelectionChanged)
+            return;
+
+        var selectedCategoryValue = CategoryComboBox.SelectedItem?.ToString();
+
+        if (selectedCategoryValue == AllProductsCategoryText)
+        {
+            await ShowAllProductsAsync();
+            return;
+        }
+
         var category = _productCategoryDictionary.FirstOrDefault(x => x.Value == selectedCategoryValue);
         var categoryId = category.Key;
 
@@ -344,15 +405,7 @@ public partial class InventoryPanel : UserControl
 
 		var products = await SearchProductsByKeyword(keyword);
 
-		ProductDataView.Rows.Clear();
-
-		if (products.Count == 0)
-			return;
-
-		foreach (var product in products)
-		{
-			AddProductToProductDataView(product);
-		}
+        ShowProducts(products);
 	}
 
 	private async Task<IReadOnlyList<InventoryProductDto>> SearchProductsByKeyword(string keyword)
