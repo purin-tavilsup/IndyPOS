@@ -1,6 +1,7 @@
 using IndyPOS.Application.Abstractions.StoreHub.Repositories;
 using IndyPOS.Application.Abstractions.StoreHub.Services;
 using IndyPOS.Application.Common.Interfaces;
+using IndyPOS.Application.Common.Models;
 using IndyPOS.Domain.Entities.Core;
 using IndyPOS.Infrastructure.Services.StoreHub;
 using Microsoft.Extensions.Logging;

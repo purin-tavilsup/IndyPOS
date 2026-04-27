@@ -4,6 +4,7 @@ using IndyPOS.Domain.Entities.Core;
 using IndyPOS.Infrastructure.Persistence.StoreHub;
 using IndyPOS.Infrastructure.QueryHandlers.Reports;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging.Abstractions;
 using Xunit;
 
 namespace IndyPOS.Application.Tests.StoreHub.Reports;
@@ -24,7 +25,7 @@ public class GetInvoiceDetailQueryHandlerTests
     {
         // Arrange
         await using var dbContext = CreateDbContext();
-        var handler = new GetInvoiceDetailQueryHandler(dbContext);
+        var handler = new GetInvoiceDetailQueryHandler(dbContext, NullLogger<GetInvoiceDetailQueryHandler>.Instance);
 
         var invoiceId = Guid.NewGuid();
         var productId1 = Guid.NewGuid();
@@ -110,7 +111,7 @@ public class GetInvoiceDetailQueryHandlerTests
     {
         // Arrange
         await using var dbContext = CreateDbContext();
-        var handler = new GetInvoiceDetailQueryHandler(dbContext);
+        var handler = new GetInvoiceDetailQueryHandler(dbContext, NullLogger<GetInvoiceDetailQueryHandler>.Instance);
 
         var query = new GetInvoiceDetailQuery(Guid.NewGuid());
 
@@ -126,7 +127,7 @@ public class GetInvoiceDetailQueryHandlerTests
     {
         // Arrange
         await using var dbContext = CreateDbContext();
-        var handler = new GetInvoiceDetailQueryHandler(dbContext);
+        var handler = new GetInvoiceDetailQueryHandler(dbContext, NullLogger<GetInvoiceDetailQueryHandler>.Instance);
 
         var invoiceId = Guid.NewGuid();
         var lineId = Guid.NewGuid();
@@ -182,7 +183,7 @@ public class GetInvoiceDetailQueryHandlerTests
     {
         // Arrange
         await using var dbContext = CreateDbContext();
-        var handler = new GetInvoiceDetailQueryHandler(dbContext);
+        var handler = new GetInvoiceDetailQueryHandler(dbContext, NullLogger<GetInvoiceDetailQueryHandler>.Instance);
 
         var invoiceId = Guid.NewGuid();
 
