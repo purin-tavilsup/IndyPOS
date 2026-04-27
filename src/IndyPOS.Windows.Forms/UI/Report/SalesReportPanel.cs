@@ -19,6 +19,10 @@ public partial class SalesReportPanel : UserControl
         _messageForm = messageForm;
 
         InitializeComponent();
+
+        // Initialize date pickers to today
+        StartDatePicker.Value = DateTime.Today;
+        EndDatePicker.Value = DateTime.Today;
     }
 
     private void ShowSummary(SalesSummary salesSummary, PaymentsSummary paymentsSummary)

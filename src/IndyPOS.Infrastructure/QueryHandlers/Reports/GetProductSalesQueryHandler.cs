@@ -1,3 +1,4 @@
+using IndyPOS.Application.Common.Interfaces;
 using IndyPOS.Application.UseCases.StoreHub.Reports;
 using IndyPOS.Application.UseCases.StoreHub.Reports.GetProductSales;
 using IndyPOS.Infrastructure.Persistence.StoreHub;
@@ -14,21 +15,26 @@ namespace IndyPOS.Infrastructure.QueryHandlers.Reports;
 public class GetProductSalesQueryHandler : IQueryHandler<GetProductSalesQuery, PagedResult<ProductSalesDto>>
 {
     private readonly StoreHubDbContext _dbContext;
+    private readonly IStoreIdentityService _storeIdentity;
     private readonly ILogger<GetProductSalesQueryHandler> _logger;
 
-    public GetProductSalesQueryHandler(StoreHubDbContext dbContext, ILogger<GetProductSalesQueryHandler> logger)
+    public GetProductSalesQueryHandler(
+        StoreHubDbContext dbContext,
+        IStoreIdentityService storeIdentity,
+        ILogger<GetProductSalesQueryHandler> logger)
     {
         _dbContext = dbContext;
+        _storeIdentity = storeIdentity;
         _logger = logger;
     }
 
     public async Task<PagedResult<ProductSalesDto>> HandleAsync(GetProductSalesQuery query, CancellationToken cancellationToken = default)
     {
         _logger.LogDebug(
-            "Generating product sales report: FromDate={FromDate}, ToDate={ToDate}, Category={Category}, Page={Page}",
-            query.FromDate, query.ToDate, query.Category ?? "All", query.Page);
+            "Generating product sales report: FromDate={FromDate}, ToDate={ToDate}, Category={Category}, Page={Page}, TimeZone={TimeZone}",
+            query.FromDate, query.ToDate, query.Category ?? "All", query.Page, _storeIdentity.TimeZone.Id);
 
-        var dateRange = ReportDateRange.ToUtcRange(query.FromDate, query.ToDate);
+        var dateRange = ReportDateRange.ToUtcRange(query.FromDate, query.ToDate, _storeIdentity.TimeZone);
 
         // Get invoice lines in date range with product info
         var invoiceLines = await _dbContext.InvoiceLines

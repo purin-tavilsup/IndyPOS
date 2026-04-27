@@ -3,6 +3,7 @@ using IndyPOS.Application.UseCases.StoreHub.Reports.GetSalesSummary;
 using IndyPOS.Domain.Entities.Core;
 using IndyPOS.Infrastructure.Persistence.StoreHub;
 using IndyPOS.Infrastructure.QueryHandlers.Reports;
+using IndyPOS.Mock;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging.Abstractions;
 using Xunit;
@@ -11,6 +12,8 @@ namespace IndyPOS.Application.Tests.StoreHub.Reports;
 
 public class GetSalesSummaryQueryHandlerTests
 {
+    private static readonly MockStoreIdentityService StoreIdentity = MockStoreIdentityService.GeneralHardware();
+
     private static StoreHubDbContext CreateDbContext()
     {
         var options = new DbContextOptionsBuilder<StoreHubDbContext>()
@@ -74,7 +77,7 @@ public class GetSalesSummaryQueryHandlerTests
     {
         // Arrange
         await using var dbContext = CreateDbContext();
-        var handler = new GetSalesSummaryQueryHandler(dbContext, NullLogger<GetSalesSummaryQueryHandler>.Instance);
+        var handler = new GetSalesSummaryQueryHandler(dbContext, StoreIdentity, NullLogger<GetSalesSummaryQueryHandler>.Instance);
 
         var invoice1 = CreateInvoice(
             new DateTime(2024, 6, 15, 10, 0, 0, DateTimeKind.Utc),
@@ -107,7 +110,7 @@ public class GetSalesSummaryQueryHandlerTests
     {
         // Arrange
         await using var dbContext = CreateDbContext();
-        var handler = new GetSalesSummaryQueryHandler(dbContext, NullLogger<GetSalesSummaryQueryHandler>.Instance);
+        var handler = new GetSalesSummaryQueryHandler(dbContext, StoreIdentity, NullLogger<GetSalesSummaryQueryHandler>.Instance);
 
         var invoiceInRange = CreateInvoice(
             new DateTime(2024, 6, 15, 10, 0, 0, DateTimeKind.Utc),
@@ -136,7 +139,7 @@ public class GetSalesSummaryQueryHandlerTests
     {
         // Arrange
         await using var dbContext = CreateDbContext();
-        var handler = new GetSalesSummaryQueryHandler(dbContext, NullLogger<GetSalesSummaryQueryHandler>.Instance);
+        var handler = new GetSalesSummaryQueryHandler(dbContext, StoreIdentity, NullLogger<GetSalesSummaryQueryHandler>.Instance);
 
         var productId1 = Guid.NewGuid();
         var productId2 = Guid.NewGuid();
@@ -173,7 +176,7 @@ public class GetSalesSummaryQueryHandlerTests
     {
         // Arrange
         await using var dbContext = CreateDbContext();
-        var handler = new GetSalesSummaryQueryHandler(dbContext, NullLogger<GetSalesSummaryQueryHandler>.Instance);
+        var handler = new GetSalesSummaryQueryHandler(dbContext, StoreIdentity, NullLogger<GetSalesSummaryQueryHandler>.Instance);
 
         var query = new GetSalesSummaryQuery(
             FromDate: new DateOnly(2024, 6, 1),
@@ -194,7 +197,7 @@ public class GetSalesSummaryQueryHandlerTests
     {
         // Arrange
         await using var dbContext = CreateDbContext();
-        var handler = new GetSalesSummaryQueryHandler(dbContext, NullLogger<GetSalesSummaryQueryHandler>.Instance);
+        var handler = new GetSalesSummaryQueryHandler(dbContext, StoreIdentity, NullLogger<GetSalesSummaryQueryHandler>.Instance);
 
         var invoice = CreateInvoice(
             new DateTime(2024, 6, 15, 10, 0, 0, DateTimeKind.Utc),

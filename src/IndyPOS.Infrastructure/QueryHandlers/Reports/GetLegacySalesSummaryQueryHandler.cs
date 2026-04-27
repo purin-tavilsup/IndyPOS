@@ -1,4 +1,5 @@
 using IndyPOS.Application.Common.Enums;
+using IndyPOS.Application.Common.Interfaces;
 using IndyPOS.Application.Common.Models;
 using IndyPOS.Application.UseCases.StoreHub.Reports.GetLegacySalesSummary;
 using IndyPOS.Infrastructure.Persistence.StoreHub;
@@ -15,19 +16,26 @@ namespace IndyPOS.Infrastructure.QueryHandlers.Reports;
 public class GetLegacySalesSummaryQueryHandler : IQueryHandler<GetLegacySalesSummaryQuery, SalesSummary>
 {
     private readonly StoreHubDbContext _dbContext;
+    private readonly IStoreIdentityService _storeIdentity;
     private readonly ILogger<GetLegacySalesSummaryQueryHandler> _logger;
 
-    public GetLegacySalesSummaryQueryHandler(StoreHubDbContext dbContext, ILogger<GetLegacySalesSummaryQueryHandler> logger)
+    public GetLegacySalesSummaryQueryHandler(
+        StoreHubDbContext dbContext,
+        IStoreIdentityService storeIdentity,
+        ILogger<GetLegacySalesSummaryQueryHandler> logger)
     {
         _dbContext = dbContext;
+        _storeIdentity = storeIdentity;
         _logger = logger;
     }
 
     public async Task<SalesSummary> HandleAsync(GetLegacySalesSummaryQuery query, CancellationToken cancellationToken = default)
     {
-        _logger.LogDebug("Generating legacy sales summary: FromDate={FromDate}, ToDate={ToDate}", query.FromDate, query.ToDate);
+        _logger.LogDebug(
+            "Generating legacy sales summary: FromDate={FromDate}, ToDate={ToDate}, TimeZone={TimeZone}",
+            query.FromDate, query.ToDate, _storeIdentity.TimeZone.Id);
 
-        var dateRange = ReportDateRange.ToUtcRange(query.FromDate, query.ToDate);
+        var dateRange = ReportDateRange.ToUtcRange(query.FromDate, query.ToDate, _storeIdentity.TimeZone);
 
         // Get all invoices with their lines and payments in the date range
         var invoices = await _dbContext.Invoices
