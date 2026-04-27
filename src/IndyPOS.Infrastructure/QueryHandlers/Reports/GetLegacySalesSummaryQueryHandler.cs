@@ -3,6 +3,7 @@ using IndyPOS.Application.Common.Models;
 using IndyPOS.Application.UseCases.StoreHub.Reports.GetLegacySalesSummary;
 using IndyPOS.Infrastructure.Persistence.StoreHub;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using Nokpirab;
 
 namespace IndyPOS.Infrastructure.QueryHandlers.Reports;
@@ -14,20 +15,23 @@ namespace IndyPOS.Infrastructure.QueryHandlers.Reports;
 public class GetLegacySalesSummaryQueryHandler : IQueryHandler<GetLegacySalesSummaryQuery, SalesSummary>
 {
     private readonly StoreHubDbContext _dbContext;
+    private readonly ILogger<GetLegacySalesSummaryQueryHandler> _logger;
 
-    public GetLegacySalesSummaryQueryHandler(StoreHubDbContext dbContext)
+    public GetLegacySalesSummaryQueryHandler(StoreHubDbContext dbContext, ILogger<GetLegacySalesSummaryQueryHandler> logger)
     {
         _dbContext = dbContext;
+        _logger = logger;
     }
 
     public async Task<SalesSummary> HandleAsync(GetLegacySalesSummaryQuery query, CancellationToken cancellationToken = default)
     {
-        var fromDateUtc = query.FromDate.ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc);
-        var toDateUtc = query.ToDate.ToDateTime(TimeOnly.MaxValue, DateTimeKind.Utc);
+        _logger.LogDebug("Generating legacy sales summary: FromDate={FromDate}, ToDate={ToDate}", query.FromDate, query.ToDate);
+
+        var dateRange = ReportDateRange.ToUtcRange(query.FromDate, query.ToDate);
 
         // Get all invoices with their lines and payments in the date range
         var invoices = await _dbContext.Invoices
-            .Where(i => i.CreatedUtc >= fromDateUtc && i.CreatedUtc <= toDateUtc)
+            .Where(i => i.CreatedUtc >= dateRange.StartUtc && i.CreatedUtc < dateRange.EndExclusiveUtc)
             .Include(i => i.Lines)
             .Include(i => i.Payments)
             .AsNoTracking()
@@ -42,7 +46,7 @@ public class GetLegacySalesSummaryQueryHandler : IQueryHandler<GetLegacySalesSum
 
         // Get PayLater records for this period
         var payLaters = await _dbContext.PayLaters
-            .Where(pl => pl.CreatedUtc >= fromDateUtc && pl.CreatedUtc <= toDateUtc)
+            .Where(pl => pl.CreatedUtc >= dateRange.StartUtc && pl.CreatedUtc < dateRange.EndExclusiveUtc)
             .AsNoTracking()
             .ToListAsync(cancellationToken);
 
@@ -93,6 +97,10 @@ public class GetLegacySalesSummaryQueryHandler : IQueryHandler<GetLegacySalesSum
         // Calculate completed vs incomplete PayLater
         var completedPayLaterTotal = payLaters.Where(pl => pl.IsCompleted).Sum(pl => pl.PaidAmount);
         var incompletePayLaterTotal = payLaterPaymentsTotal - completedPayLaterTotal;
+
+        _logger.LogInformation(
+            "Legacy sales summary generated: FromDate={FromDate}, ToDate={ToDate}, Invoices={InvoiceCount}, Total={InvoiceTotal:C}",
+            query.FromDate, query.ToDate, invoices.Count, invoiceTotal);
 
         return new SalesSummary
         {

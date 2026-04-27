@@ -2,6 +2,7 @@ using IndyPOS.Application.Common.Models;
 using IndyPOS.Application.UseCases.StoreHub.Reports.GetLegacyPaymentsSummary;
 using IndyPOS.Infrastructure.Persistence.StoreHub;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using Nokpirab;
 
 namespace IndyPOS.Infrastructure.QueryHandlers.Reports;
@@ -13,22 +14,30 @@ namespace IndyPOS.Infrastructure.QueryHandlers.Reports;
 public class GetLegacyPaymentsSummaryQueryHandler : IQueryHandler<GetLegacyPaymentsSummaryQuery, PaymentsSummary>
 {
     private readonly StoreHubDbContext _dbContext;
+    private readonly ILogger<GetLegacyPaymentsSummaryQueryHandler> _logger;
 
-    public GetLegacyPaymentsSummaryQueryHandler(StoreHubDbContext dbContext)
+    public GetLegacyPaymentsSummaryQueryHandler(StoreHubDbContext dbContext, ILogger<GetLegacyPaymentsSummaryQueryHandler> logger)
     {
         _dbContext = dbContext;
+        _logger = logger;
     }
 
     public async Task<PaymentsSummary> HandleAsync(GetLegacyPaymentsSummaryQuery query, CancellationToken cancellationToken = default)
     {
-        var fromDateUtc = query.FromDate.ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc);
-        var toDateUtc = query.ToDate.ToDateTime(TimeOnly.MaxValue, DateTimeKind.Utc);
+        _logger.LogDebug("Generating legacy payments summary: FromDate={FromDate}, ToDate={ToDate}", query.FromDate, query.ToDate);
+
+        var dateRange = ReportDateRange.ToUtcRange(query.FromDate, query.ToDate);
 
         // Get all payments in the date range
         var payments = await _dbContext.Payments
-            .Where(p => p.CreatedUtc >= fromDateUtc && p.CreatedUtc <= toDateUtc)
+            .Where(p => p.CreatedUtc >= dateRange.StartUtc && p.CreatedUtc < dateRange.EndExclusiveUtc)
             .AsNoTracking()
             .ToListAsync(cancellationToken);
+
+        var totalPayments = payments.Sum(p => p.Amount);
+        _logger.LogInformation(
+            "Legacy payments summary generated: FromDate={FromDate}, ToDate={ToDate}, PaymentCount={Count}, Total={Total:C}",
+            query.FromDate, query.ToDate, payments.Count, totalPayments);
 
         // Group by payment method
         // Legacy payment type names map to method strings

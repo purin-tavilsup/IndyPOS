@@ -2,6 +2,7 @@ using IndyPOS.Application.UseCases.StoreHub.Reports;
 using IndyPOS.Application.UseCases.StoreHub.Reports.GetPayLaterReport;
 using IndyPOS.Infrastructure.Persistence.StoreHub;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using Nokpirab;
 
 namespace IndyPOS.Infrastructure.QueryHandlers.Reports;
@@ -13,14 +14,20 @@ namespace IndyPOS.Infrastructure.QueryHandlers.Reports;
 public class GetPayLaterReportQueryHandler : IQueryHandler<GetPayLaterReportQuery, PayLaterReportDto>
 {
     private readonly StoreHubDbContext _dbContext;
+    private readonly ILogger<GetPayLaterReportQueryHandler> _logger;
 
-    public GetPayLaterReportQueryHandler(StoreHubDbContext dbContext)
+    public GetPayLaterReportQueryHandler(StoreHubDbContext dbContext, ILogger<GetPayLaterReportQueryHandler> logger)
     {
         _dbContext = dbContext;
+        _logger = logger;
     }
 
     public async Task<PayLaterReportDto> HandleAsync(GetPayLaterReportQuery query, CancellationToken cancellationToken = default)
     {
+        _logger.LogDebug(
+            "Generating PayLater report: IncludeCompleted={IncludeCompleted}, Page={Page}, PageSize={PageSize}",
+            query.IncludeCompleted, query.Page, query.PageSize);
+
         var baseQuery = _dbContext.PayLaters.AsNoTracking();
 
         if (!query.IncludeCompleted)
@@ -56,6 +63,10 @@ public class GetPayLaterReportQueryHandler : IQueryHandler<GetPayLaterReportQuer
             .Skip((query.Page - 1) * query.PageSize)
             .Take(query.PageSize)
             .ToList();
+
+        _logger.LogInformation(
+            "PayLater report generated: ActiveCustomers={ActiveCustomers}, Outstanding={Outstanding:C}, Paid={Paid:C}",
+            activeCustomers, totalOutstanding, totalPaid);
 
         return new PayLaterReportDto(
             TotalOutstanding: totalOutstanding,

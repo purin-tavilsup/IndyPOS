@@ -1,4 +1,5 @@
 using IndyPOS.Application.Abstractions.Cloud.Repositories;
+using Microsoft.Extensions.Logging;
 using Nokpirab;
 
 namespace IndyPOS.Application.UseCases.Cloud.Sync.IngestEvents;
@@ -7,13 +8,17 @@ namespace IndyPOS.Application.UseCases.Cloud.Sync.IngestEvents;
 /// Handler for ingesting sync events from stores.
 /// Implements idempotent event ingestion - duplicate events are accepted but not stored twice.
 /// </summary>
-public class IngestEventsCommandHandler(ISyncedEventRepository repository)
+public class IngestEventsCommandHandler(
+    ISyncedEventRepository repository,
+    ILogger<IngestEventsCommandHandler> logger)
     : ICommandHandler<IngestEventsCommand, SyncEventsResponse>
 {
     public async Task<SyncEventsResponse> HandleAsync(
         IngestEventsCommand command,
         CancellationToken cancellationToken = default)
     {
+        logger.LogDebug("Ingesting {EventCount} events", command.Events.Count);
+
         var results = new List<SyncEventResult>();
         var acceptedCount = 0;
         var duplicateCount = 0;
@@ -29,6 +34,9 @@ public class IngestEventsCommandHandler(ISyncedEventRepository repository)
                 if (exists)
                 {
                     duplicateCount++;
+                    logger.LogDebug(
+                        "Duplicate event skipped: EventId={EventId}, Type={EventType}, StoreId={StoreId}",
+                        eventRequest.EventId, eventRequest.EventType, eventRequest.StoreId);
                     results.Add(new SyncEventResult(eventRequest.EventId, Accepted: true, Reason: "duplicate"));
                     continue;
                 }
@@ -46,14 +54,24 @@ public class IngestEventsCommandHandler(ISyncedEventRepository repository)
 
                 await repository.AddAsync(entity, cancellationToken);
                 acceptedCount++;
+                logger.LogDebug(
+                    "Event ingested: EventId={EventId}, Type={EventType}, StoreId={StoreId}",
+                    eventRequest.EventId, eventRequest.EventType, eventRequest.StoreId);
                 results.Add(new SyncEventResult(eventRequest.EventId, Accepted: true));
             }
             catch (Exception ex)
             {
                 failedCount++;
+                logger.LogError(
+                    ex, "Failed to ingest event: EventId={EventId}, Type={EventType}, StoreId={StoreId}",
+                    eventRequest.EventId, eventRequest.EventType, eventRequest.StoreId);
                 results.Add(new SyncEventResult(eventRequest.EventId, Accepted: false, Reason: ex.Message));
             }
         }
+
+        logger.LogInformation(
+            "Event ingestion complete: Accepted={Accepted}, Duplicates={Duplicates}, Failed={Failed}",
+            acceptedCount, duplicateCount, failedCount);
 
         return new SyncEventsResponse(acceptedCount, duplicateCount, failedCount, results);
     }
