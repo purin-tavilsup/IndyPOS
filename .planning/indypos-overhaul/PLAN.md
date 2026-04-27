@@ -1,7 +1,7 @@
 # IndyPOS Overhaul - Implementation Plan
 
-**Last Updated:** 2026-04-03
-**Progress:** ~98% Complete (Epic L Done, Ready for Pilot)
+**Last Updated:** 2026-04-27
+**Progress:** ~98% Complete (Local Ready, Cloud Infrastructure Pending)
 
 ---
 
@@ -192,25 +192,186 @@
 
 ---
 
-### Epic I: Cloud Infrastructure (Not Started)
+### Epic I: Cloud Infrastructure (Not Started) 🔴 BLOCKING FOR CLOUD TESTING
 
 **Prerequisites:** Epic L (Local Deployment) complete ✅
 
-| Task | Description |
-|------|-------------|
-| I1 | Provision DigitalOcean Droplet |
-| I2 | Provision DO Managed PostgreSQL |
-| I3 | Deploy CloudApi to Droplet |
-| I4 | Configure SyncWorker with real CloudApi |
-| I5 | Multi-store sync testing |
-| I6 | Central reporting dashboard |
-| I7 | Create setup guide: Cloud Deployment |
+**Goal:** Deploy CloudApi to DigitalOcean Singapore and enable store-to-cloud sync.
+
+| Task | Description | Priority | Status |
+|------|-------------|----------|--------|
+| I0 | Create Dockerfile for CloudApi | HIGH | ❌ |
+| I1 | Provision DigitalOcean Droplet | HIGH | ❌ |
+| I2 | Provision DO Managed PostgreSQL | HIGH | ❌ |
+| I3 | Deploy CloudApi to Droplet | HIGH | ❌ |
+| I4 | Configure SyncWorker with real CloudApi | HIGH | ❌ |
+| I5 | Multi-store sync testing | MEDIUM | ❌ |
+| I6 | Central reporting dashboard | LOW | ❌ |
+| I7 | Create setup guide: Cloud Deployment | MEDIUM | ❌ |
 
 **Cloud Specs:**
-- Droplet: Basic Premium AMD (2 GB RAM, 1 vCPU, 50 GB SSD)
-- Managed PostgreSQL: Smallest tier (1 GB RAM)
-- Region: Singapore
-- Monthly cost: ~$20-30 USD
+- Droplet: Basic Premium AMD (2 GB RAM, 1 vCPU, 50 GB SSD) - ~$12/mo
+- Managed PostgreSQL: Smallest tier (1 GB RAM) - ~$15/mo
+- Region: Singapore (closest to Thailand stores)
+- Monthly cost: ~$27 USD
+
+---
+
+#### I0: Create Dockerfile for CloudApi ❌
+
+**Why:** Required for containerized deployment to DigitalOcean.
+
+**Deliverables:**
+- `src/IndyPOS.CloudApi/Dockerfile` - Multi-stage build
+- `docker-compose.cloudapi.yml` - CloudApi + PostgreSQL stack
+- Update `scripts/publish.ps1` to include CloudApi publishing
+
+**Dockerfile spec:**
+```dockerfile
+# Build stage
+FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
+WORKDIR /src
+COPY . .
+RUN dotnet publish src/IndyPOS.CloudApi -c Release -o /app
+
+# Runtime stage
+FROM mcr.microsoft.com/dotnet/aspnet:10.0
+WORKDIR /app
+COPY --from=build /app .
+EXPOSE 8080
+HEALTHCHECK CMD curl --fail http://localhost:8080/health/live || exit 1
+ENTRYPOINT ["dotnet", "IndyPOS.CloudApi.dll"]
+```
+
+---
+
+#### I1: Provision DigitalOcean Droplet ❌
+
+**Steps:**
+1. Create DO account (if needed) and project
+2. Create Droplet:
+   - Image: Ubuntu 24.04 LTS
+   - Plan: Basic Premium AMD ($12/mo)
+   - Datacenter: Singapore (SGP1)
+   - Add SSH key
+3. Configure firewall:
+   - Allow 22 (SSH) from admin IPs only
+   - Allow 443 (HTTPS) from anywhere
+   - Allow 5432 (PostgreSQL) from Droplet only
+4. Point domain/subdomain to Droplet IP (e.g., `api.indypos.app`)
+5. Install Docker + Docker Compose
+
+---
+
+#### I2: Provision DO Managed PostgreSQL ❌
+
+**Steps:**
+1. Create Managed PostgreSQL cluster:
+   - Plan: Basic ($15/mo, 1 GB RAM, 10 GB storage)
+   - Datacenter: Singapore (SGP1)
+   - Database name: `indypos_cloud`
+2. Configure trusted sources (Droplet IP only)
+3. Create database user for CloudApi
+4. Note connection string for I3
+
+---
+
+#### I3: Deploy CloudApi to Droplet ❌
+
+**Steps:**
+1. SSH to Droplet
+2. Clone repo or copy Docker image
+3. Create `appsettings.Production.json`:
+   ```json
+   {
+     "ConnectionStrings": {
+       "CloudDb": "Host=<managed-pg>;Database=indypos_cloud;Username=<user>;Password=<pass>;SSL Mode=Require"
+     },
+     "Jwt": {
+       "RsaSigningKey": "<base64-encoded-rsa-private-key>"
+     },
+     "OpenIddict": {
+       "EncryptionKey": "<base64-encoded-256-bit-key>"
+     }
+   }
+   ```
+4. Generate RSA key: `scripts/generate-rsa-key.ps1`
+5. Run with Docker Compose
+6. Set up SSL with Let's Encrypt (Caddy or nginx reverse proxy)
+7. Verify health: `curl https://api.indypos.app/health/ready`
+
+---
+
+#### I4: Configure SyncWorker with Real CloudApi ❌
+
+**Steps:**
+1. Register store as OAuth2 client in CloudApi:
+   ```bash
+   POST /admin/stores/register
+   {
+     "storeId": "550e8400-e29b-41d4-a716-446655440001",
+     "storeName": "Bangkok Store 1",
+     "storeType": "GeneralHardware"
+   }
+   ```
+   Response: `{ "clientId": "...", "clientSecret": "..." }`
+
+2. Update StoreHub `appsettings.Production.json`:
+   ```json
+   {
+     "CloudApi": {
+       "BaseUrl": "https://api.indypos.app",
+       "ClientId": "<from-step-1>",
+       "ClientSecret": "<from-step-1>"
+     },
+     "SyncWorker": {
+       "Enabled": true
+     }
+   }
+   ```
+
+3. Restart StoreHub and verify sync:
+   - Check logs for successful token acquisition
+   - Make a sale and verify event synced to CloudApi
+   - Check CloudApi logs for event ingestion
+
+---
+
+#### I5: Multi-Store Sync Testing ❌
+
+**Test scenarios:**
+- [ ] Two stores sync to same CloudApi independently
+- [ ] Events from Store A don't appear in Store B queries
+- [ ] Concurrent sync from multiple stores
+- [ ] Offline → Online sync recovery
+- [ ] Large batch sync (100+ events)
+
+---
+
+#### I6: Central Reporting Dashboard ❌
+
+**Low priority** - Can use direct SQL queries initially.
+
+**Future options:**
+- Grafana dashboard connected to CloudApi PostgreSQL
+- Custom admin UI in CloudApi
+- Metabase or similar BI tool
+
+---
+
+#### I7: Cloud Deployment Guide ❌
+
+**File:** `docs/operations/setup-cloud.md`
+
+**Sections:**
+1. Overview & Architecture
+2. DigitalOcean Infrastructure Setup
+3. CloudApi Deployment
+4. SSL/TLS Configuration
+5. OAuth2 Client Registration
+6. Store Configuration for Cloud Sync
+7. Monitoring & Maintenance
+8. Troubleshooting
 
 ---
 
@@ -454,8 +615,8 @@ Stub implementations return empty collections. Address during MAUI migration:
 |--------|-------|
 | Total Epics | 10 |
 | Completed Epics | 9 |
-| Total Tests | 298 |
-| Build Status | 0 Errors, 55 Warnings |
+| Total Tests | 306 |
+| Build Status | 0 Errors, 0 Warnings |
 
 ---
 
