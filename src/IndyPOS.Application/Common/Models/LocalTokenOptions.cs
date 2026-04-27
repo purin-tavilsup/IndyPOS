@@ -1,7 +1,8 @@
-namespace IndyPOS.Infrastructure.Services.StoreHub;
+namespace IndyPOS.Application.Common.Models;
 
 /// <summary>
 /// Configuration options for local JWT token generation.
+/// Used by both StoreHub (token generation) and CloudApi (token validation).
 /// </summary>
 public class LocalTokenOptions
 {
