@@ -18,10 +18,16 @@ var cloudApi = builder.AddProject<Projects.IndyPOS_CloudApi>("cloud-api")
                       .WaitFor(postgres);
 
 // StoreHub API (local store service) - references CloudApi for sync
-builder.AddProject<Projects.IndyPOS_StoreHub>("storehub-api")
-       .WithReference(storeHubDb)
-       .WithReference(cloudApi)
-       .WaitFor(postgres)
-       .WaitFor(cloudApi);
+var storeHub = builder.AddProject<Projects.IndyPOS_StoreHub>("storehub-api")
+                      .WithReference(storeHubDb)
+                      .WithReference(cloudApi)
+                      .WaitFor(postgres)
+                      .WaitFor(cloudApi);
+
+// WinForms desktop app - explicit start so it doesn't auto-launch
+builder.AddProject<Projects.IndyPOS_Windows_Forms>("winforms-app")
+       .WithReference(storeHub)
+       .WaitFor(storeHub)
+       .WithExplicitStart();
 
 builder.Build().Run();

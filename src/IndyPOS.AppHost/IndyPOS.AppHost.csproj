@@ -22,6 +22,7 @@
   <ItemGroup>
     <ProjectReference Include="..\IndyPOS.StoreHub\IndyPOS.StoreHub.csproj" />
     <ProjectReference Include="..\IndyPOS.CloudApi\IndyPOS.CloudApi.csproj" />
+    <ProjectReference Include="..\IndyPOS.Windows.Forms\IndyPOS.Windows.Forms.csproj" />
   </ItemGroup>
 
 </Project>
