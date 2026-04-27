@@ -6,8 +6,7 @@ var builder = DistributedApplication.CreateBuilder(args);
 var postgres = builder.AddPostgres("postgres")
                       .WithDataVolume("indypos-postgres-data")
                       .WithLifetime(ContainerLifetime.Persistent)
-                      .WithPgAdmin(configureContainer: pgadmin => pgadmin.WithExplicitStart())
-                      .WithDbGate(configureContainer: dbgate => dbgate.WithExplicitStart());
+                      .WithPgAdmin(configureContainer: pgadmin => pgadmin.WithExplicitStart());
 
 var storeHubDb = postgres.AddDatabase("storehub-db");
 var cloudDb = postgres.AddDatabase("cloud-db");
