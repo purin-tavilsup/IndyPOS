@@ -14,6 +14,7 @@ using IndyPOS.CloudApi.Domain;
 using IndyPOS.CloudApi.Infrastructure;
 using IndyPOS.CloudApi.Infrastructure.Auth;
 using IndyPOS.CloudApi.Infrastructure.Repositories;
+using IndyPOS.Application.Common.Models;
 using IndyPOS.ServiceDefaults;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
@@ -56,11 +57,9 @@ builder.Services.AddOpenIddictServer(builder.Configuration);
 builder.Services.AddAuthentication(OpenIddictValidationAspNetCoreDefaults.AuthenticationScheme);
 
 // Add StoreHub JWT validation for admin endpoints (S3: RBAC)
-// IMPORTANT: SecretKey must be configured - fail fast if missing
-var localTokenSecretKey = builder.Configuration["LocalToken:SecretKey"]
-    ?? throw new InvalidOperationException("LocalToken:SecretKey configuration is required for admin authentication");
-var localTokenIssuer = builder.Configuration["LocalToken:Issuer"] ?? "indypos-storehub";
-var localTokenAudience = builder.Configuration["LocalToken:Audience"] ?? "indypos-clients";
+// Uses LocalTokenOptions for consistency with StoreHub (shared defaults for dev)
+var localTokenOptions = builder.Configuration.GetSection(LocalTokenOptions.SectionName).Get<LocalTokenOptions>()
+    ?? new LocalTokenOptions();
 
 builder.Services.AddAuthentication()
     .AddJwtBearer("StoreHubJwt", options =>
@@ -71,9 +70,9 @@ builder.Services.AddAuthentication()
             ValidateAudience = true,
             ValidateLifetime = true,
             ValidateIssuerSigningKey = true,
-            ValidIssuer = localTokenIssuer,
-            ValidAudience = localTokenAudience,
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(localTokenSecretKey)),
+            ValidIssuer = localTokenOptions.Issuer,
+            ValidAudience = localTokenOptions.Audience,
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(localTokenOptions.SecretKey)),
         };
     });
 
