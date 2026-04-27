@@ -171,12 +171,13 @@ public static class ConfigureServices
 
 		services.Configure<StoreHubOptions>(configuration.GetSection(StoreHubOptions.SectionName));
 
-		// Register StoreHub HTTP client
-		services.AddHttpClient<IStoreHubClient, StoreHubHttpClient>(client =>
+		// Register one StoreHub client instance so login auth state is shared by product cache and sale services.
+		services.AddHttpClient<StoreHubHttpClient>(client =>
 		{
 			client.BaseAddress = new Uri(storeHubOptions.BaseUrl);
 			client.Timeout = TimeSpan.FromSeconds(storeHubOptions.TimeoutSeconds);
 		});
+		services.AddSingleton<IStoreHubClient>(sp => sp.GetRequiredService<StoreHubHttpClient>());
 
 		// Product cache service (in-memory)
 		services.AddSingleton<IProductCacheService, ProductCacheService>();

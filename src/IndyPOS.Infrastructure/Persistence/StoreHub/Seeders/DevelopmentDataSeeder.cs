@@ -109,13 +109,15 @@ public class DevelopmentDataSeeder
 
     private async Task SeedProductsAsync(CancellationToken cancellationToken)
     {
+        var storeId = _storeIdentity.StoreId;
+        var generalGoodsCategory = nameof(ProductCategory.GeneralGoods);
         var testProducts = new[]
         {
-            new { Barcode = "8850000000001", Name = "น้ำดื่ม 600ml", UnitPrice = 7m, Category = "เครื่องดื่ม" },
-            new { Barcode = "8850000000002", Name = "โค้ก 325ml", UnitPrice = 15m, Category = "เครื่องดื่ม" },
-            new { Barcode = "8850000000003", Name = "มาม่าหมูสับ", UnitPrice = 6m, Category = "อาหาร" },
-            new { Barcode = "8850000000004", Name = "ขนมปังปี๊บ", UnitPrice = 20m, Category = "ขนม" },
-            new { Barcode = "8850000000005", Name = "นมจืด 200ml", UnitPrice = 12m, Category = "เครื่องดื่ม" }
+            new { Barcode = "8850000000001", Name = "น้ำดื่ม 600ml", UnitPrice = 7m, Category = generalGoodsCategory },
+            new { Barcode = "8850000000002", Name = "โค้ก 325ml", UnitPrice = 15m, Category = generalGoodsCategory },
+            new { Barcode = "8850000000003", Name = "มาม่าหมูสับ", UnitPrice = 6m, Category = generalGoodsCategory },
+            new { Barcode = "8850000000004", Name = "ขนมปังปี๊บ", UnitPrice = 20m, Category = generalGoodsCategory },
+            new { Barcode = "8850000000005", Name = "นมจืด 200ml", UnitPrice = 12m, Category = generalGoodsCategory }
         };
 
         foreach (var testProduct in testProducts)
@@ -123,13 +125,31 @@ public class DevelopmentDataSeeder
             var existing = await _productRepository.GetByBarcodeAsync(testProduct.Barcode, cancellationToken);
             if (existing is not null)
             {
-                _logger.LogDebug("Product {Barcode} already exists, skipping", testProduct.Barcode);
+                if (existing.Name != testProduct.Name ||
+                    existing.Description != testProduct.Name ||
+                    existing.Category != testProduct.Category ||
+                    existing.UnitPrice != testProduct.UnitPrice)
+                {
+                    existing.Name = testProduct.Name;
+                    existing.Description = testProduct.Name;
+                    existing.Category = testProduct.Category;
+                    existing.UnitPrice = testProduct.UnitPrice;
+
+                    await _productRepository.UpdateAsync(existing, cancellationToken);
+                    _logger.LogInformation("Updated test product: {Name} ({Barcode})", testProduct.Name, testProduct.Barcode);
+                }
+                else
+                {
+                    _logger.LogDebug("Product {Barcode} already exists, skipping", testProduct.Barcode);
+                }
+
                 continue;
             }
 
             var product = new Product
             {
                 Id = Guid.NewGuid(),
+                StoreId = storeId,
                 Barcode = testProduct.Barcode,
                 Name = testProduct.Name,
                 Description = testProduct.Name,
