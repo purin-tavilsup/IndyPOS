@@ -213,9 +213,12 @@ if (-not $SkipVelopack) {
         dotnet tool install -g vpk
     }
 
-    # Create Velopack package
+    # Create Velopack package — packId is versioned ("v4") so v4 installs
+    # never collide with the legacy v3.7.0 footprint on the same machine.
+    $packId = "IndyPOS.POS.v4"
+
     vpk pack `
-        --packId "IndyPOS.POS" `
+        --packId $packId `
         --packVersion $Version `
         --packDir $winFormsOutput `
         --mainExe "IndyPOS.Windows.Forms.exe" `
@@ -223,7 +226,7 @@ if (-not $SkipVelopack) {
         --channel stable
 
     if ($LASTEXITCODE -ne 0) {
-        Write-Warning "Velopack packaging failed. You can retry with: vpk pack --packId IndyPOS.POS --packVersion $Version --packDir $winFormsOutput --mainExe IndyPOS.Windows.Forms.exe --outputDir $releasesOutput"
+        Write-Warning "Velopack packaging failed. You can retry with: vpk pack --packId $packId --packVersion $Version --packDir $winFormsOutput --mainExe IndyPOS.Windows.Forms.exe --outputDir $releasesOutput"
     } else {
         Write-Host "Velopack package created at: $releasesOutput" -ForegroundColor Gray
     }
