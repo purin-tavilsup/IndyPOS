@@ -9,10 +9,11 @@ namespace IndyPOS.Bootstrapper.Installers;
 /// </summary>
 public class StoreHubInstaller
 {
-    private const string ServiceName = "IndyPOS.StoreHub";
-    private const string DisplayName = "IndyPOS StoreHub";
-    private const string Description = "IndyPOS local API service for point-of-sale operations";
-    private const string InstallPath = @"C:\Program Files\IndyPOS\StoreHub";
+    private InstallationConfig? _config;
+
+    private InstallationConfig Config =>
+        _config ?? throw new InvalidOperationException(
+            "StoreHubInstaller has not been configured. Call InstallAsync before StartServiceAsync.");
 
     /// <summary>
     /// Install StoreHub binaries and register as Windows Service.
@@ -23,16 +24,16 @@ public class StoreHubInstaller
         IProgress<string>? log = null,
         CancellationToken cancellationToken = default)
     {
+        _config = config;
+
         try
         {
-            // Step 1: Ensure install directory exists
             log?.Report("Creating installation directory...");
-            if (!Directory.Exists(InstallPath))
+            if (!Directory.Exists(Config.StoreHubInstallPath))
             {
-                Directory.CreateDirectory(InstallPath);
+                Directory.CreateDirectory(Config.StoreHubInstallPath);
             }
 
-            // Step 2: Extract/copy StoreHub binaries
             log?.Report("Extracting StoreHub binaries...");
             var extractResult = await ExtractStoreHubBinariesAsync(log, cancellationToken);
             if (!extractResult)
@@ -44,11 +45,9 @@ public class StoreHubInstaller
                 };
             }
 
-            // Step 3: Stop existing service if running
             log?.Report("Checking for existing service...");
             await StopExistingServiceAsync(cancellationToken);
 
-            // Step 4: Create/update Windows Service
             log?.Report("Registering Windows Service...");
             var serviceResult = await CreateWindowsServiceAsync(log, cancellationToken);
             if (!serviceResult)
@@ -79,7 +78,7 @@ public class StoreHubInstaller
     {
         try
         {
-            using var sc = new ServiceController(ServiceName);
+            using var sc = new ServiceController(Config.ServiceName);
 
             if (sc.Status == ServiceControllerStatus.Running)
             {
@@ -88,7 +87,6 @@ public class StoreHubInstaller
 
             sc.Start();
 
-            // Wait for service to start (up to 60 seconds)
             var timeout = TimeSpan.FromSeconds(60);
             await Task.Run(() => sc.WaitForStatus(ServiceControllerStatus.Running, timeout), cancellationToken);
 
@@ -104,14 +102,10 @@ public class StoreHubInstaller
         }
     }
 
-    /// <summary>
-    /// Extract StoreHub binaries from embedded resources or external source.
-    /// </summary>
     private async Task<bool> ExtractStoreHubBinariesAsync(
         IProgress<string>? log,
         CancellationToken cancellationToken)
     {
-        // Check if binaries are embedded as a resource
         var assembly = typeof(StoreHubInstaller).Assembly;
         var resourceName = "IndyPOS.Bootstrapper.Resources.StoreHub.zip";
 
@@ -128,10 +122,10 @@ public class StoreHubInstaller
 
                 if (string.IsNullOrEmpty(entry.Name))
                 {
-                    continue; // Skip directories
+                    continue;
                 }
 
-                var destPath = Path.Combine(InstallPath, entry.FullName);
+                var destPath = Path.Combine(Config.StoreHubInstallPath, entry.FullName);
                 var destDir = Path.GetDirectoryName(destPath);
 
                 if (!string.IsNullOrEmpty(destDir) && !Directory.Exists(destDir))
@@ -145,23 +139,21 @@ public class StoreHubInstaller
             return true;
         }
 
-        // Check for external StoreHub.zip in same directory as bootstrapper
         var externalZip = Path.Combine(AppContext.BaseDirectory, "StoreHub.zip");
 
         if (File.Exists(externalZip))
         {
             log?.Report("Extracting from external package...");
-            ZipFile.ExtractToDirectory(externalZip, InstallPath, overwriteFiles: true);
+            ZipFile.ExtractToDirectory(externalZip, Config.StoreHubInstallPath, overwriteFiles: true);
             return true;
         }
 
-        // Check for StoreHub folder next to bootstrapper
         var externalFolder = Path.Combine(AppContext.BaseDirectory, "StoreHub");
 
         if (Directory.Exists(externalFolder))
         {
             log?.Report("Copying from external folder...");
-            await CopyDirectoryAsync(externalFolder, InstallPath, cancellationToken);
+            await CopyDirectoryAsync(externalFolder, Config.StoreHubInstallPath, cancellationToken);
             return true;
         }
 
@@ -201,11 +193,11 @@ public class StoreHubInstaller
         }
     }
 
-    private static async Task StopExistingServiceAsync(CancellationToken cancellationToken)
+    private async Task StopExistingServiceAsync(CancellationToken cancellationToken)
     {
         try
         {
-            using var sc = new ServiceController(ServiceName);
+            using var sc = new ServiceController(Config.ServiceName);
 
             if (sc.Status == ServiceControllerStatus.Running ||
                 sc.Status == ServiceControllerStatus.StartPending)
@@ -222,11 +214,11 @@ public class StoreHubInstaller
         }
     }
 
-    private static async Task<bool> CreateWindowsServiceAsync(
+    private async Task<bool> CreateWindowsServiceAsync(
         IProgress<string>? log,
         CancellationToken cancellationToken)
     {
-        var exePath = Path.Combine(InstallPath, "IndyPOS.StoreHub.exe");
+        var exePath = Path.Combine(Config.StoreHubInstallPath, "IndyPOS.StoreHub.exe");
 
         if (!File.Exists(exePath))
         {
@@ -234,9 +226,8 @@ public class StoreHubInstaller
             return false;
         }
 
-        // Check if service already exists
         var serviceExists = ServiceController.GetServices()
-            .Any(s => s.ServiceName == ServiceName);
+            .Any(s => s.ServiceName == Config.ServiceName);
 
         if (serviceExists)
         {
@@ -244,14 +235,13 @@ public class StoreHubInstaller
             return true;
         }
 
-        // Use sc.exe to create the service
         var psi = new ProcessStartInfo
         {
             FileName = "sc.exe",
-            Arguments = $"create {ServiceName} " +
+            Arguments = $"create {Config.ServiceName} " +
                         $"binPath= \"{exePath}\" " +
                         $"start= auto " +
-                        $"DisplayName= \"{DisplayName}\"",
+                        $"DisplayName= \"{Config.ServiceDisplayName}\"",
             UseShellExecute = false,
             CreateNoWindow = true,
             RedirectStandardOutput = true,
@@ -275,11 +265,10 @@ public class StoreHubInstaller
             return false;
         }
 
-        // Set service description
         var descPsi = new ProcessStartInfo
         {
             FileName = "sc.exe",
-            Arguments = $"description {ServiceName} \"{Description}\"",
+            Arguments = $"description {Config.ServiceName} \"{Config.ServiceDescription}\"",
             UseShellExecute = false,
             CreateNoWindow = true
         };
@@ -287,11 +276,10 @@ public class StoreHubInstaller
         using var descProcess = Process.Start(descPsi);
         descProcess?.WaitForExit(5000);
 
-        // Configure service recovery (restart on failure)
         var recoveryPsi = new ProcessStartInfo
         {
             FileName = "sc.exe",
-            Arguments = $"failure {ServiceName} reset= 86400 actions= restart/5000/restart/10000/restart/30000",
+            Arguments = $"failure {Config.ServiceName} reset= 86400 actions= restart/5000/restart/10000/restart/30000",
             UseShellExecute = false,
             CreateNoWindow = true
         };

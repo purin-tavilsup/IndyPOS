@@ -1,5 +1,4 @@
 using System.Diagnostics;
-using System.IO.Compression;
 
 namespace IndyPOS.Bootstrapper.Installers;
 
@@ -8,16 +7,24 @@ namespace IndyPOS.Bootstrapper.Installers;
 /// </summary>
 public class VelopackLauncher
 {
+    private InstallationConfig? _config;
+
+    private InstallationConfig Config =>
+        _config ?? throw new InvalidOperationException(
+            "VelopackLauncher has not been configured. Call InstallAsync first.");
+
     /// <summary>
     /// Install WinForms using Velopack Setup.exe.
     /// </summary>
     public async Task<VelopackLauncherResult> InstallAsync(
+        InstallationConfig config,
         IProgress<int>? progress = null,
         CancellationToken cancellationToken = default)
     {
+        _config = config;
+
         try
         {
-            // Look for Velopack Setup.exe
             var setupPath = FindSetupExecutable();
 
             if (string.IsNullOrEmpty(setupPath))
@@ -31,11 +38,10 @@ public class VelopackLauncher
 
             progress?.Report(10);
 
-            // Run Setup.exe with silent/minimal UI
             var psi = new ProcessStartInfo
             {
                 FileName = setupPath,
-                Arguments = "--silent", // Or use --minimized for minimal UI
+                Arguments = "--silent",
                 UseShellExecute = false,
                 CreateNoWindow = true
             };
@@ -52,7 +58,6 @@ public class VelopackLauncher
 
             progress?.Report(50);
 
-            // Wait for installation to complete (up to 5 minutes)
             var completed = await Task.Run(() =>
                 process.WaitForExit((int)TimeSpan.FromMinutes(5).TotalMilliseconds),
                 cancellationToken);
@@ -69,7 +74,6 @@ public class VelopackLauncher
 
             progress?.Report(90);
 
-            // Velopack Setup.exe returns 0 on success
             if (process.ExitCode != 0)
             {
                 return new VelopackLauncherResult
@@ -97,46 +101,39 @@ public class VelopackLauncher
         }
     }
 
-    /// <summary>
-    /// Find the Velopack Setup.exe file.
-    /// </summary>
-    private static string? FindSetupExecutable()
+    private string? FindSetupExecutable()
     {
-        // Check for embedded resource
+        var setupFileName = $"{Config.VelopackAppId}-Setup.exe";
+
         var assembly = typeof(VelopackLauncher).Assembly;
-        var resourceName = "IndyPOS.Bootstrapper.Resources.IndyPOS.POS-Setup.exe";
+        var resourceName = $"IndyPOS.Bootstrapper.Resources.{setupFileName}";
 
         using var resourceStream = assembly.GetManifestResourceStream(resourceName);
 
         if (resourceStream != null)
         {
-            // Extract to temp location
-            var tempPath = Path.Combine(Path.GetTempPath(), "IndyPOS.POS-Setup.exe");
+            var tempPath = Path.Combine(Path.GetTempPath(), setupFileName);
             using var fileStream = File.Create(tempPath);
             resourceStream.CopyTo(fileStream);
             return tempPath;
         }
 
-        // Check for external file locations
         var possiblePaths = new[]
         {
-            Path.Combine(AppContext.BaseDirectory, "IndyPOS.POS-Setup.exe"),
+            Path.Combine(AppContext.BaseDirectory, setupFileName),
             Path.Combine(AppContext.BaseDirectory, "Setup.exe"),
-            Path.Combine(AppContext.BaseDirectory, "Velopack", "IndyPOS.POS-Setup.exe"),
+            Path.Combine(AppContext.BaseDirectory, "Velopack", setupFileName),
             Path.Combine(AppContext.BaseDirectory, "WinForms", "Setup.exe")
         };
 
         return possiblePaths.FirstOrDefault(File.Exists);
     }
 
-    /// <summary>
-    /// Get the installation path for WinForms (Velopack default location).
-    /// </summary>
-    private static string GetWinFormsInstallPath()
+    private string GetWinFormsInstallPath()
     {
         return Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-            "IndyPOS.POS",
+            Config.VelopackAppId,
             "current");
     }
 }

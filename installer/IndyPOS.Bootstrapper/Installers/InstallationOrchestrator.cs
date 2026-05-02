@@ -128,6 +128,7 @@ public class InstallationOrchestrator
         progress.Report(InstallationProgress.Log("Installing POS application via Velopack..."));
 
         var winFormsResult = await _velopackLauncher.InstallAsync(
+            config,
             new Progress<int>(pct =>
             {
                 var adjustedPct = 75 + (int)(pct * 0.15); // 75-90%
@@ -169,7 +170,7 @@ public class InstallationOrchestrator
 
         // Verify health
         progress.Report(InstallationProgress.Log("Verifying StoreHub health..."));
-        var healthOk = await VerifyStoreHubHealthAsync(cancellationToken);
+        var healthOk = await VerifyStoreHubHealthAsync(config.HealthCheckPort, cancellationToken);
 
         if (healthOk)
         {
@@ -186,15 +187,16 @@ public class InstallationOrchestrator
             100));
     }
 
-    private async Task<bool> VerifyStoreHubHealthAsync(CancellationToken cancellationToken)
+    private static async Task<bool> VerifyStoreHubHealthAsync(int port, CancellationToken cancellationToken)
     {
         using var client = new HttpClient { Timeout = TimeSpan.FromSeconds(10) };
+        var healthUrl = $"http://localhost:{port}/health/live";
 
         for (var i = 0; i < 5; i++)
         {
             try
             {
-                var response = await client.GetAsync("http://localhost:5000/health/live", cancellationToken);
+                var response = await client.GetAsync(healthUrl, cancellationToken);
                 if (response.IsSuccessStatusCode)
                 {
                     return true;
