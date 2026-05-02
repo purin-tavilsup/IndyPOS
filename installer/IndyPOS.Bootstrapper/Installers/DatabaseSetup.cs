@@ -1,6 +1,5 @@
 using System.Diagnostics;
 using System.Security.Cryptography;
-using System.Text;
 using System.Text.Json;
 
 namespace IndyPOS.Bootstrapper.Installers;
@@ -10,11 +9,11 @@ namespace IndyPOS.Bootstrapper.Installers;
 /// </summary>
 public class DatabaseSetup
 {
-    private const string KeysDirectory = @"C:\ProgramData\IndyPOS\keys";
-    private const string ConfigDirectory = @"C:\ProgramData\IndyPOS\Config";
-    private const string LogsDirectory = @"C:\ProgramData\IndyPOS\logs";
-    private const string BackupsDirectory = @"C:\ProgramData\IndyPOS\backups";
-    private const string StoreHubDirectory = @"C:\Program Files\IndyPOS\StoreHub";
+    private InstallationConfig? _config;
+
+    private InstallationConfig Config =>
+        _config ?? throw new InvalidOperationException(
+            "DatabaseSetup has not been configured. Call SetupAsync first.");
 
     /// <summary>
     /// Set up the database, user, and configuration files.
@@ -25,17 +24,16 @@ public class DatabaseSetup
         IProgress<string>? log = null,
         CancellationToken cancellationToken = default)
     {
+        _config = config;
+
         try
         {
-            // Step 1: Create directories
             log?.Report("Creating system directories...");
             CreateDirectories();
 
-            // Step 2: Generate JWT secret
             log?.Report("Generating JWT secret key...");
             var jwtSecret = await GenerateJwtSecretAsync(cancellationToken);
 
-            // Step 3: Create database user and database
             log?.Report($"Creating database user '{config.AppUser}'...");
             var userCreated = await CreateDatabaseUserAsync(
                 config.PostgresBinPath,
@@ -62,7 +60,6 @@ public class DatabaseSetup
                 log?.Report("Database already exists, continuing...");
             }
 
-            // Step 4: Grant permissions and create extensions
             log?.Report("Configuring database permissions...");
             await ConfigureDatabaseAsync(
                 config.PostgresBinPath,
@@ -71,11 +68,9 @@ public class DatabaseSetup
                 config.AppUser,
                 cancellationToken);
 
-            // Step 5: Create StoreHub configuration file
             log?.Report("Creating StoreHub configuration...");
-            await CreateStoreHubConfigAsync(config, jwtSecret, cancellationToken);
+            await CreateStoreHubConfigAsync(jwtSecret, cancellationToken);
 
-            // Step 6: Create Store configuration template
             log?.Report("Creating store configuration template...");
             await CreateStoreConfigTemplateAsync(cancellationToken);
 
@@ -95,15 +90,15 @@ public class DatabaseSetup
         }
     }
 
-    private static void CreateDirectories()
+    private void CreateDirectories()
     {
         var directories = new[]
         {
-            ConfigDirectory,
-            KeysDirectory,
-            LogsDirectory,
-            BackupsDirectory,
-            StoreHubDirectory
+            Config.ConfigDirectory,
+            Config.KeysDirectory,
+            Config.LogsDirectory,
+            Config.BackupsDirectory,
+            Config.StoreHubInstallPath
         };
 
         foreach (var dir in directories)
@@ -115,9 +110,9 @@ public class DatabaseSetup
         }
     }
 
-    private static async Task<string> GenerateJwtSecretAsync(CancellationToken cancellationToken)
+    private async Task<string> GenerateJwtSecretAsync(CancellationToken cancellationToken)
     {
-        var keyPath = Path.Combine(KeysDirectory, "storehub.key");
+        var keyPath = Path.Combine(Config.KeysDirectory, "storehub.key");
 
         if (File.Exists(keyPath))
         {
@@ -131,7 +126,6 @@ public class DatabaseSetup
 
         await File.WriteAllTextAsync(keyPath, jwtSecret, cancellationToken);
 
-        // Restrict file permissions (only Administrators and SYSTEM)
         RestrictFilePermissions(keyPath);
 
         return jwtSecret;
@@ -144,24 +138,20 @@ public class DatabaseSetup
             var fileInfo = new FileInfo(filePath);
             var security = fileInfo.GetAccessControl();
 
-            // Remove inheritance
             security.SetAccessRuleProtection(isProtected: true, preserveInheritance: false);
 
-            // Clear existing rules
             var rules = security.GetAccessRules(true, true, typeof(System.Security.Principal.NTAccount));
             foreach (System.Security.AccessControl.FileSystemAccessRule rule in rules)
             {
                 security.RemoveAccessRule(rule);
             }
 
-            // Add Administrators full control
             security.AddAccessRule(new System.Security.AccessControl.FileSystemAccessRule(
                 new System.Security.Principal.SecurityIdentifier(
                     System.Security.Principal.WellKnownSidType.BuiltinAdministratorsSid, null),
                 System.Security.AccessControl.FileSystemRights.FullControl,
                 System.Security.AccessControl.AccessControlType.Allow));
 
-            // Add SYSTEM full control
             security.AddAccessRule(new System.Security.AccessControl.FileSystemAccessRule(
                 new System.Security.Principal.SecurityIdentifier(
                     System.Security.Principal.WellKnownSidType.LocalSystemSid, null),
@@ -183,7 +173,6 @@ public class DatabaseSetup
         string password,
         CancellationToken cancellationToken)
     {
-        // Check if user exists
         var checkResult = await RunPsqlAsync(
             pgBinPath,
             postgresPassword,
@@ -193,10 +182,9 @@ public class DatabaseSetup
 
         if (checkResult.Output?.Contains("1") == true)
         {
-            return false; // User already exists
+            return false;
         }
 
-        // Create user
         var createResult = await RunPsqlAsync(
             pgBinPath,
             postgresPassword,
@@ -214,7 +202,6 @@ public class DatabaseSetup
         string owner,
         CancellationToken cancellationToken)
     {
-        // Check if database exists
         var checkResult = await RunPsqlAsync(
             pgBinPath,
             postgresPassword,
@@ -224,10 +211,9 @@ public class DatabaseSetup
 
         if (checkResult.Output?.Contains("1") == true)
         {
-            return false; // Database already exists
+            return false;
         }
 
-        // Create database
         var createResult = await RunPsqlAsync(
             pgBinPath,
             postgresPassword,
@@ -245,7 +231,6 @@ public class DatabaseSetup
         string appUser,
         CancellationToken cancellationToken)
     {
-        // Grant privileges
         await RunPsqlAsync(
             pgBinPath,
             postgresPassword,
@@ -253,7 +238,6 @@ public class DatabaseSetup
             $"GRANT ALL PRIVILEGES ON DATABASE {dbName} TO {appUser}",
             cancellationToken);
 
-        // Create uuid-ossp extension
         await RunPsqlAsync(
             pgBinPath,
             postgresPassword,
@@ -281,7 +265,6 @@ public class DatabaseSetup
             RedirectStandardError = true
         };
 
-        // Set password via environment variable
         psi.Environment["PGPASSWORD"] = postgresPassword;
 
         using var process = Process.Start(psi);
@@ -302,18 +285,16 @@ public class DatabaseSetup
         };
     }
 
-    private static async Task CreateStoreHubConfigAsync(
-        InstallationConfig config,
-        string jwtSecret,
-        CancellationToken cancellationToken)
+    private async Task CreateStoreHubConfigAsync(string jwtSecret, CancellationToken cancellationToken)
     {
-        var configPath = Path.Combine(StoreHubDirectory, "appsettings.Production.json");
+        var configPath = Path.Combine(Config.StoreHubInstallPath, "appsettings.Production.json");
 
         var configObject = new
         {
+            Urls = $"http://localhost:{Config.HealthCheckPort}",
             ConnectionStrings = new
             {
-                storehub_db = $"Host=127.0.0.1;Port=5432;Database={config.DatabaseName};Username={config.AppUser};Password={config.AppPassword}"
+                storehub_db = $"Host=127.0.0.1;Port=5432;Database={Config.DatabaseName};Username={Config.AppUser};Password={Config.AppPassword}"
             },
             LocalToken = new
             {
@@ -324,7 +305,7 @@ public class DatabaseSetup
             },
             StoreIdentity = new
             {
-                StoreId = config.StoreId
+                StoreId = Config.StoreId
             },
             CloudApi = new
             {
@@ -356,7 +337,7 @@ public class DatabaseSetup
 
         var json = JsonSerializer.Serialize(configObject, options);
 
-        // Fix the property name for connection string (has hyphen)
+        // Property names with hyphens/dots can't be C# identifiers, so swap after serialize.
         json = json.Replace("\"storehub_db\"", "\"storehub-db\"");
         json = json.Replace("\"Microsoft_AspNetCore\"", "\"Microsoft.AspNetCore\"");
         json = json.Replace("\"Microsoft_EntityFrameworkCore\"", "\"Microsoft.EntityFrameworkCore\"");
@@ -364,13 +345,13 @@ public class DatabaseSetup
         await File.WriteAllTextAsync(configPath, json, cancellationToken);
     }
 
-    private static async Task CreateStoreConfigTemplateAsync(CancellationToken cancellationToken)
+    private async Task CreateStoreConfigTemplateAsync(CancellationToken cancellationToken)
     {
-        var configPath = Path.Combine(ConfigDirectory, "StoreConfiguration.json");
+        var configPath = Path.Combine(Config.ConfigDirectory, "StoreConfiguration.json");
 
         if (File.Exists(configPath))
         {
-            return; // Don't overwrite existing config
+            return;
         }
 
         var configObject = new
