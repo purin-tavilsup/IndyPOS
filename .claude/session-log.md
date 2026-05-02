@@ -4,6 +4,75 @@
 
 ---
 
+## 2026-05-02: Installer Side-by-Side — Stage 1 Refactor ✅
+
+**Focus:** Make `InstallationConfig` the version-aware source-of-truth so v4 paths/IDs/ports come from one place. All install surfaces refactored to read from config; legacy const paths gone.
+
+### Design calls (locked)
+- **A) `InstallVersion` source:** derive from bootstrapper assembly (`<Version>4.0.0</Version>` in csproj). No drift between assembly and computed paths.
+- **B) StoreHubInstaller helpers:** convert from `private static` → instance methods reading captured `_config` field, set in `InstallAsync`. Same pattern applied to DatabaseSetup + VelopackLauncher (helpers that touch paths/IDs).
+
+### Changes
+- `IndyPOS.Bootstrapper.csproj` → `<Version>4.0.0</Version>`
+- `InstallationConfig.cs` → `InstallVersion` (from assembly) + 9 computed properties: `SystemRoot`, `ConfigDirectory`, `KeysDirectory`, `LogsDirectory`, `BackupsDirectory`, `StoreHubInstallPath`, `ServiceName`, `ServiceDisplayName`, `VelopackAppId`, `HealthCheckPort`
+- `StoreHubInstaller.cs` → 4 consts dropped, helpers instance, captured `Config`
+- `DatabaseSetup.cs` → 5 directory consts dropped, instance helpers, `appsettings.Production.json` template now pins `Urls: http://localhost:5000`
+- `VelopackLauncher.cs` → takes config, finds `IndyPOS.POS.v4-Setup.exe`, install path uses `VelopackAppId`
+- `InstallationOrchestrator.cs` → passes config into launcher, health check uses `config.HealthCheckPort`
+- `publish.ps1` → `--packId "IndyPOS.POS.v4"`
+
+### Result
+- `dotnet build` clean: 0 warnings, 0 errors
+- v4 install footprint fully isolated under `C:\ProgramData\IndyPOS\v4.0.0\` + `%LOCALAPPDATA%\IndyPOS.POS.v4\`
+- Service registers as `IndyPOS.StoreHub.v4` — no collision with v3.7.0
+
+### Next session — Stage 2: Build Pipeline
+1. Install `vpk` CLI: `dotnet tool install -g vpk`
+2. Run `scripts/publish.ps1` to produce `IndyPOS.POS.v4-Setup.exe` + `StoreHub-{version}.zip`
+3. Copy/embed into `installer/IndyPOS.Bootstrapper/Resources/` so `GetManifestResourceStream` finds them
+4. Verify resource names match what `StoreHubInstaller`/`VelopackLauncher` look up
+
+---
+
+## 2026-04-28: Installer Side-by-Side Planning 📋
+
+**Focus:** Plan Velopack installer testing, with v3.7.0 ↔ v4.0.0 side-by-side coexistence requirement.
+
+### Decisions Locked-in
+- `InstallVersion = "4.0.0"` from bootstrapper assembly version (single source of truth)
+- System-shared root: `C:\ProgramData\IndyPOS\v4.0.0\` (everything except Velopack)
+- Velopack stays at `%LOCALAPPDATA%\IndyPOS.POS.v4\current` (per-user, supports auto-update)
+- Service name: `IndyPOS.StoreHub.v4`
+- Velopack app ID: `IndyPOS.POS.v4`
+- Health check port: `5000` (fix orchestrator/WinForms inconsistency)
+- DB name `indypos_storehub` (no version suffix — 3.7.0 uses SQLite, no collision)
+
+### Stage 0 Discovery — Complete ✅
+- All v4 paths free, no service/port conflicts
+- 3.7.0 footprint: `C:\ProgramData\IndyPOS\{Config,db,Logs}` — DON'T TOUCH ZONE
+- No Postgres on dev box → smoke test will trigger fresh Postgres 18 install (~300MB)
+- Hyper-V enabled, vpk not yet installed
+
+### Files Affected by Stage 1 Refactor
+- `installer/IndyPOS.Bootstrapper/Installers/InstallationConfig.cs`
+- `installer/IndyPOS.Bootstrapper/Installers/StoreHubInstaller.cs`
+- `installer/IndyPOS.Bootstrapper/Installers/DatabaseSetup.cs`
+- `installer/IndyPOS.Bootstrapper/Installers/VelopackLauncher.cs`
+- `installer/IndyPOS.Bootstrapper/Installers/InstallationOrchestrator.cs` (port fix)
+- `scripts/publish.ps1` (`--packId IndyPOS.POS.v4`)
+
+### Artifacts Created
+- `.planning/indypos-overhaul/drafts/installer-side-by-side-plan.md` — full plan with stages 0–7
+- 8 tasks tracked (Stage 0 complete, Stages 1–7 pending)
+
+### Open Decision (next session)
+Smoke test approach: **A)** let installer run real Postgres 18 install (full path, heavy cleanup) vs **B)** pre-install Postgres on dev box (faster iteration, skip Postgres-install path testing). Leaning A — VM will catch any gaps anyway.
+
+### Next Up
+Stage 1: refactor `InstallationConfig` for version-aware paths and propagate through 4 installers.
+
+---
+
 ## 2026-04-27: Aspire Local Testing Complete ✅
 
 **Focus:** Fix all blockers for running IndyPOS locally with Aspire

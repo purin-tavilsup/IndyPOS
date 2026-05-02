@@ -8,7 +8,7 @@
 |-------|-------|
 | **Branch** | `indypos-overhaul` |
 | **Sprint** | Sprint 7 |
-| **Phase** | Aspire Local Testing ✅ |
+| **Phase** | Installer Side-by-Side — Stage 1 ✅ done, Stage 2 next |
 | **Blocked?** | No |
 
 ## Recent Session (2026-04-27)
@@ -55,11 +55,28 @@ This allows testing from any location (e.g., Canada) while reports use Thai loca
 
 ## Next Actions (Priority Order)
 
-### 1. Test Velopack Installer (Local Machine)
-- [ ] Install Velopack CLI: `dotnet tool install -g vpk`
-- [ ] Run `scripts\publish.ps1` to create Velopack packages
-- [ ] Run `installer\build-installer.ps1` to build bootstrapper
-- [ ] Test `IndyPOS-Setup.exe` (requires Admin)
+### 1. Installer Side-by-Side (v3.7.0 ↔ v4.0.0) — ACTIVE 📋
+**Plan:** `.planning/indypos-overhaul/drafts/installer-side-by-side-plan.md`
+**Tasks:** 8 stages tracked (Stages 0, 1 ✅ · Stages 2–7 pending)
+
+**Stage 0 ✅** — Discovery: dev box clean, 3.7.0 footprint mapped, no conflicts.
+
+**Stage 1 ✅** (2026-05-02) — `InstallationConfig` is now version-aware:
+- Bootstrapper csproj: `<Version>4.0.0</Version>` → `InstallVersion` derives from assembly
+- `InstallationConfig` exposes 9 computed properties (paths, service name, Velopack app ID, health-check port)
+- StoreHubInstaller / DatabaseSetup / VelopackLauncher dropped consts → instance methods reading `Config.*`
+- `appsettings.Production.json` template pins `Urls: http://localhost:5000`
+- Orchestrator health check uses `config.HealthCheckPort` (no magic number)
+- `publish.ps1` → `--packId "IndyPOS.POS.v4"`
+- Build: clean, 0 warnings, 0 errors
+
+**Stage 2 (next)** — Build pipeline:
+- Install `vpk` CLI tool
+- Run `publish.ps1` to produce `IndyPOS.POS.v4-Setup.exe` + `StoreHub.zip`
+- Embed both into `installer/IndyPOS.Bootstrapper/Resources/`
+- Verify resource lookup paths match (`IndyPOS.Bootstrapper.Resources.StoreHub.zip`, `IndyPOS.Bootstrapper.Resources.IndyPOS.POS.v4-Setup.exe`)
+
+**Decided (option A):** smoke-test on dev box with real Postgres 18 install — full path coverage, VM will catch any remaining gaps.
 
 ### 2. Epic I: Cloud Infrastructure
 - [ ] I0: Create Dockerfile for CloudApi
@@ -77,6 +94,8 @@ This allows testing from any location (e.g., Canada) while reports use Thai loca
 | Purpose | Path |
 |---------|------|
 | Full plan | `.planning/indypos-overhaul/PLAN.md` |
+| Installer side-by-side plan | `.planning/indypos-overhaul/drafts/installer-side-by-side-plan.md` |
+| VM testing plan | `.planning/indypos-overhaul/drafts/vm-installer-testing-plan.md` |
 | Epic M draft | `.planning/indypos-overhaul/drafts/epic-m-multi-store-type.md` |
 | Session log | `.claude/session-log.md` |
 
@@ -94,4 +113,4 @@ dotnet build
 ```
 
 ---
-*Last updated: 2026-04-27*
+*Last updated: 2026-05-02*
