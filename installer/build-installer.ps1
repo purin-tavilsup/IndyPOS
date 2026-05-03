@@ -72,7 +72,45 @@ if (-not (Test-Path $releasesDir)) {
     exit 1
 }
 
+# Stage embedded payloads — bootstrapper csproj globs Resources\**\* as EmbeddedResource.
+# Manifest names must match what the installers expect:
+#   IndyPOS.Bootstrapper.Resources.IndyPOS.POS.v4-Setup.exe   (VelopackLauncher)
+#   IndyPOS.Bootstrapper.Resources.StoreHub.zip               (StoreHubInstaller)
+$resourcesDir = "$PSScriptRoot\IndyPOS.Bootstrapper\Resources"
+$velopackPackId = "IndyPOS.POS.v4"
+
+# vpk filenames vary by channel (e.g. {packId}-stable-Setup.exe). Glob then rename to
+# the canonical name the bootstrapper looks up at runtime.
+$velopackSetup = Get-ChildItem -Path $releasesDir -Filter "$velopackPackId*Setup.exe" -File `
+    | Sort-Object LastWriteTime -Descending `
+    | Select-Object -First 1
+$storeHubZip = Get-ChildItem -Path $releasesDir -Filter "IndyPOS.StoreHub-*.zip" -File `
+    | Sort-Object LastWriteTime -Descending `
+    | Select-Object -First 1
+
+if ($null -eq $velopackSetup) {
+    Write-Error "Velopack setup not found in $releasesDir (pattern $velopackPackId*Setup.exe). Re-run publish.ps1."
+    exit 1
+}
+if ($null -eq $storeHubZip) {
+    Write-Error "StoreHub zip not found in $releasesDir (pattern IndyPOS.StoreHub-*.zip). Re-run publish.ps1."
+    exit 1
+}
+
+Write-Host "Staging embedded payloads..." -ForegroundColor Green
+if (Test-Path $resourcesDir) {
+    Remove-Item -Path $resourcesDir -Recurse -Force
+}
+New-Item -ItemType Directory -Path $resourcesDir -Force | Out-Null
+
+Copy-Item -Path $velopackSetup.FullName -Destination "$resourcesDir\$velopackPackId-Setup.exe" -Force
+Copy-Item -Path $storeHubZip.FullName -Destination "$resourcesDir\StoreHub.zip" -Force
+
+Write-Host "  Embedded: $velopackPackId-Setup.exe from $($velopackSetup.Name) ($([math]::Round($velopackSetup.Length / 1MB, 1)) MB)" -ForegroundColor Gray
+Write-Host "  Embedded: StoreHub.zip from $($storeHubZip.Name) ($([math]::Round($storeHubZip.Length / 1MB, 1)) MB)" -ForegroundColor Gray
+
 # Build and publish the bootstrapper
+Write-Host ""
 Write-Host "Building IndyPOS Bootstrapper..." -ForegroundColor Green
 
 dotnet publish $BootstrapperProject `
