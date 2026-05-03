@@ -8,7 +8,7 @@
 |-------|-------|
 | **Branch** | `indypos-overhaul` |
 | **Sprint** | Sprint 7 |
-| **Phase** | Installer Side-by-Side — Stage 1 ✅ done, Stage 2 next |
+| **Phase** | Installer Side-by-Side — Stages 1 + 2 ✅ done, Stage 3 next |
 | **Blocked?** | No |
 
 ## Recent Session (2026-04-27)
@@ -57,26 +57,25 @@ This allows testing from any location (e.g., Canada) while reports use Thai loca
 
 ### 1. Installer Side-by-Side (v3.7.0 ↔ v4.0.0) — ACTIVE 📋
 **Plan:** `.planning/indypos-overhaul/drafts/installer-side-by-side-plan.md`
-**Tasks:** 8 stages tracked (Stages 0, 1 ✅ · Stages 2–7 pending)
+**Tasks:** 8 stages tracked (Stages 0, 1, 2 ✅ · Stages 3–7 pending)
 
 **Stage 0 ✅** — Discovery: dev box clean, 3.7.0 footprint mapped, no conflicts.
 
-**Stage 1 ✅** (2026-05-02) — `InstallationConfig` is now version-aware:
-- Bootstrapper csproj: `<Version>4.0.0</Version>` → `InstallVersion` derives from assembly
-- `InstallationConfig` exposes 9 computed properties (paths, service name, Velopack app ID, health-check port)
-- StoreHubInstaller / DatabaseSetup / VelopackLauncher dropped consts → instance methods reading `Config.*`
-- `appsettings.Production.json` template pins `Urls: http://localhost:5000`
-- Orchestrator health check uses `config.HealthCheckPort` (no magic number)
-- `publish.ps1` → `--packId "IndyPOS.POS.v4"`
-- Build: clean, 0 warnings, 0 errors
+**Stage 1 ✅** (2026-05-02) — `InstallationConfig` version-aware (9 computed properties from assembly version).
 
-**Stage 2 (next)** — Build pipeline:
-- Install `vpk` CLI tool
-- Run `publish.ps1` to produce `IndyPOS.POS.v4-Setup.exe` + `StoreHub.zip`
-- Embed both into `installer/IndyPOS.Bootstrapper/Resources/`
-- Verify resource lookup paths match (`IndyPOS.Bootstrapper.Resources.StoreHub.zip`, `IndyPOS.Bootstrapper.Resources.IndyPOS.POS.v4-Setup.exe`)
+**Stage 2 ✅** (2026-05-03) — Build pipeline + version alignment:
+- `vpk` CLI installed globally (v0.0.1298)
+- `build-installer.ps1` now stages `Resources/` from `publish/Releases/` before `dotnet publish` (globs vpk Setup.exe pattern, renames to canonical names)
+- Repo-wide version bump in `Directory.Build.props`: `1.0.0` → `4.0.0` (Stage 1 leak — D.B.props was clobbering bootstrapper's local `<Version>`)
+- `WinForms/Properties/AssemblyInfo.cs`: `3.7.0` → `4.0.0` (legacy `<GenerateAssemblyInfo>false</GenerateAssemblyInfo>` bypassed D.B.props; vpk auto-detects pack version here)
+- `Resources/` gitignored
+- **Verified:** Bootstrapper `AssemblyVersion 4.0.0.0`, both manifest resources embedded with expected names, final `IndyPOS-Setup.exe` 189 MB v4.0.0.0, vpk packs `IndyPOS.POS.v4` v `4.0.0`
+
+**Stage 3 (next)** — Smoke-test runner + uninstall/cleanup script.
 
 **Decided (option A):** smoke-test on dev box with real Postgres 18 install — full path coverage, VM will catch any remaining gaps.
+
+**Follow-up (modernization, not blocking):** Delete legacy `Properties/AssemblyInfo.cs` from Application/Infrastructure/WinForms; flip `<GenerateAssemblyInfo>false</GenerateAssemblyInfo>` → default. Would let D.B.props drive every assembly's version uniformly.
 
 ### 2. Epic I: Cloud Infrastructure
 - [ ] I0: Create Dockerfile for CloudApi
@@ -113,4 +112,4 @@ dotnet build
 ```
 
 ---
-*Last updated: 2026-05-02*
+*Last updated: 2026-05-03*
