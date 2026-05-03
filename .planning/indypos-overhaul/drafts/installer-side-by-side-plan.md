@@ -47,7 +47,7 @@ C:\ProgramData\IndyPOS\
 |---|---|---|
 | 0 | Discovery — verify dev box is clean for v4 paths/ports/services | ✅ |
 | 1 | Refactor `InstallationConfig` to carry version + computed paths | ✅ |
-| 2 | Build pipeline — install vpk, embed Setup.exe + StoreHub.zip into bootstrapper resources | ⏳ |
+| 2 | Build pipeline — install vpk, embed Setup.exe + StoreHub.zip into bootstrapper resources | ✅ |
 | 3 | Smoke-test runner + uninstall/cleanup script | ⏳ |
 | 4 | Smoke-test on dev box, fix bugs as found | ⏳ (option A — real Postgres 18 install) |
 | 5 | Implement Phase 1 VM scripts (per `vm-installer-testing-plan.md`) | ⏳ |
@@ -65,6 +65,23 @@ C:\ProgramData\IndyPOS\
 - `scripts/publish.ps1` — `--packId "IndyPOS.POS.v4"`
 
 **Build:** `dotnet build` clean, 0 warnings, 0 errors.
+
+## Stage 2 Files Touched ✅ (2026-05-03)
+
+- `.gitignore` — added `installer/IndyPOS.Bootstrapper/Resources/` (build-time blobs, ~80 MB)
+- `installer/build-installer.ps1` — added embed step before `dotnet publish`: globs `IndyPOS.POS.v4*Setup.exe` + `IndyPOS.StoreHub-*.zip` from `publish/Releases/`, copies into `Resources/` with canonical names (`IndyPOS.POS.v4-Setup.exe`, `StoreHub.zip`) so manifest names match the bootstrapper's runtime lookup
+- `Directory.Build.props` — repo-wide version bump `1.0.0` → `4.0.0` (Stage 1's bootstrapper-only `<Version>` was being clobbered by the `<AssemblyVersion>1.0.0.0</AssemblyVersion>` in D.B.props, making `InstallVersion` resolve to `1.0.0` instead of `4.0.0`)
+- `installer/IndyPOS.Bootstrapper/IndyPOS.Bootstrapper.csproj` — dropped redundant local `<Version>4.0.0</Version>` (now matches D.B.props)
+- `src/IndyPOS.Windows.Forms/Properties/AssemblyInfo.cs` — `AssemblyVersion`/`AssemblyFileVersion` `3.7.0` → `4.0.0`. Project has `<GenerateAssemblyInfo>false</GenerateAssemblyInfo>` so D.B.props doesn't reach it; vpk auto-detects pack version from `IndyPOS.Windows.Forms.exe` ProductVersion
+- `vpk` CLI installed globally (`dotnet tool install -g vpk`, v0.0.1298)
+
+**Verified:**
+- `IndyPOS.Bootstrapper.dll` reflected `AssemblyVersion = 4.0.0.0`
+- Manifest contains `IndyPOS.Bootstrapper.Resources.IndyPOS.POS.v4-Setup.exe` (12.3 MB) + `IndyPOS.Bootstrapper.Resources.StoreHub.zip` (70.0 MB)
+- `publish/IndyPOS-Setup.exe` final: 189 MB, FileVersion `4.0.0.0`
+- vpk packed as `IndyPOS.POS.v4` v `4.0.0` (was `3.7.0` before WinForms AssemblyInfo bump)
+
+**Follow-up (not blocking Stage 3):** `IndyPOS.Application`, `IndyPOS.Infrastructure`, `IndyPOS.Windows.Forms` all carry legacy `<GenerateAssemblyInfo>false</GenerateAssemblyInfo>` + hand-written `Properties/AssemblyInfo.cs`. Modernizing (delete those files, flip to default auto-gen) would let D.B.props drive every assembly's version. Out of scope for the side-by-side install epic.
 
 ## Success Criteria
 
