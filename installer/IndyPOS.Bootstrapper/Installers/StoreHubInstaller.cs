@@ -20,7 +20,6 @@ public class StoreHubInstaller
     /// </summary>
     public async Task<StoreHubInstallerResult> InstallAsync(
         InstallationConfig config,
-        string jwtSecret,
         IProgress<string>? log = null,
         CancellationToken cancellationToken = default)
     {
@@ -102,14 +101,6 @@ public class StoreHubInstaller
         }
     }
 
-    // Files that the bootstrapper generates at install time. The publish output
-    // ships templates with placeholder values; we must NOT clobber the real
-    // config written by DatabaseSetup.CreateStoreHubConfigAsync.
-    private static readonly HashSet<string> RuntimeGeneratedFiles = new(StringComparer.OrdinalIgnoreCase)
-    {
-        "appsettings.Production.json"
-    };
-
     private async Task<bool> ExtractStoreHubBinariesAsync(
         IProgress<string>? log,
         CancellationToken cancellationToken)
@@ -130,12 +121,6 @@ public class StoreHubInstaller
 
                 if (string.IsNullOrEmpty(entry.Name))
                 {
-                    continue;
-                }
-
-                if (RuntimeGeneratedFiles.Contains(entry.Name))
-                {
-                    log?.Report($"Skipping '{entry.Name}' (bootstrapper-generated, preserving real config)");
                     continue;
                 }
 

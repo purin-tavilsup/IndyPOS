@@ -26,6 +26,27 @@ public class DatabaseSetup
     {
         _config = config;
 
+        // PostgresInstaller returns an empty password when it detects an
+        // existing install — the silent-install password we generated last
+        // time isn't persisted, so we can't reuse it. Without it, psql can't
+        // authenticate as the superuser to create the role + database. Fail
+        // fast with actionable guidance instead of letting psql hang on a
+        // password prompt (psql defaults to interactive prompting when
+        // PGPASSWORD is empty, even with stdin redirected).
+        if (string.IsNullOrEmpty(postgresPassword))
+        {
+            return new DatabaseSetupResult
+            {
+                Success = false,
+                ErrorMessage =
+                    "PostgreSQL 18 is already installed, but its superuser password is unknown " +
+                    "(the installer doesn't persist it across runs). To proceed, either:\n" +
+                    "  - Uninstall PostgreSQL: scripts\\cleanup-v4.ps1 -Force -RemovePostgres\n" +
+                    "  - Or remove C:\\Program Files\\PostgreSQL\\18 manually,\n" +
+                    "then re-run this installer for a clean Postgres install."
+            };
+        }
+
         try
         {
             log?.Report("Creating system directories...");
@@ -258,7 +279,11 @@ public class DatabaseSetup
         var psi = new ProcessStartInfo
         {
             FileName = psqlPath,
-            Arguments = $"-h 127.0.0.1 -U postgres -d {database} -tAc \"{sql}\"",
+            // -w (--no-password) means psql will NEVER prompt for a password.
+            // If PGPASSWORD is missing or wrong, psql exits immediately with
+            // an error instead of hanging on stdin (which is redirected here
+            // and would block forever).
+            Arguments = $"-w -h 127.0.0.1 -U postgres -d {database} -tAc \"{sql}\"",
             UseShellExecute = false,
             CreateNoWindow = true,
             RedirectStandardOutput = true,
@@ -287,11 +312,16 @@ public class DatabaseSetup
 
     private async Task CreateStoreHubConfigAsync(string jwtSecret, CancellationToken cancellationToken)
     {
-        var configPath = Path.Combine(Config.StoreHubInstallPath, "appsettings.Production.json");
+        // We deliberately use appsettings.json (not .Production.json) because
+        // this single-tier deployment doesn't need ASP.NET Core's environment
+        // overlay machinery. The bootstrapper owns this file end-to-end —
+        // there is no source-controlled template that could clobber it.
+        var configPath = Path.Combine(Config.StoreHubInstallPath, "appsettings.json");
 
         var configObject = new
         {
             Urls = $"http://localhost:{Config.HealthCheckPort}",
+            AllowedHosts = "*",
             ConnectionStrings = new
             {
                 storehub_db = $"Host=127.0.0.1;Port=5432;Database={Config.DatabaseName};Username={Config.AppUser};Password={Config.AppPassword}"

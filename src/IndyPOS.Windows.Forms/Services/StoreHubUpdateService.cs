@@ -300,8 +300,7 @@ public class StoreHubUpdateService : IStoreHubUpdateService
             foreach (var file in Directory.GetFiles(StoreHubPath, "*", SearchOption.AllDirectories))
             {
                 // Preserve configuration files
-                if (file.EndsWith("appsettings.json", StringComparison.OrdinalIgnoreCase) ||
-                    file.EndsWith("appsettings.Production.json", StringComparison.OrdinalIgnoreCase))
+                if (file.EndsWith("appsettings.json", StringComparison.OrdinalIgnoreCase))
                 {
                     continue;
                 }
