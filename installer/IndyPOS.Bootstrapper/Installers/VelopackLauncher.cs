@@ -88,7 +88,7 @@ public class VelopackLauncher
             return new VelopackLauncherResult
             {
                 Success = true,
-                InstallPath = GetWinFormsInstallPath()
+                InstallPath = Config.VelopackInstallPath
             };
         }
         catch (Exception ex)
@@ -129,13 +129,6 @@ public class VelopackLauncher
         return possiblePaths.FirstOrDefault(File.Exists);
     }
 
-    private string GetWinFormsInstallPath()
-    {
-        return Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-            Config.VelopackAppId,
-            "current");
-    }
 }
 
 /// <summary>

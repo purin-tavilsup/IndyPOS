@@ -124,11 +124,12 @@ public class VelopackLauncherTests
     public async Task InstallAsync_WhenSetupNotFound_ShouldReturnError()
     {
         // Arrange
+        var config = new InstallationConfig { StoreId = "test", AppPassword = "test" };
         var launcher = new VelopackLauncher();
         var progress = new Progress<int>(_ => { });
 
         // Act
-        var result = await launcher.InstallAsync(progress);
+        var result = await launcher.InstallAsync(config, progress);
 
         // Assert
         // If Setup.exe is not present, should return error

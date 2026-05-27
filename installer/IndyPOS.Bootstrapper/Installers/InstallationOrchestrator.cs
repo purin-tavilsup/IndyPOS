@@ -181,6 +181,22 @@ public class InstallationOrchestrator
             progress.Report(InstallationProgress.Error("Warning: StoreHub health check failed"));
         }
 
+        // Step 7: Write install manifest (post-health-check so a partial install
+        // doesn't leave a misleading manifest claiming success).
+        progress.Report(InstallationProgress.Log("Writing install manifest..."));
+        try
+        {
+            await InstallManifestWriter.WriteAsync(config, cancellationToken);
+            progress.Report(InstallationProgress.Log(
+                $"Manifest written: {Path.Combine(config.SystemRoot, InstallManifestWriter.ManifestFileName)}"));
+        }
+        catch (Exception ex)
+        {
+            // Non-fatal — install succeeded; manifest is a nicety for teardown scripts.
+            progress.Report(InstallationProgress.Error(
+                $"Warning: Could not write install manifest: {ex.Message}"));
+        }
+
         progress.Report(InstallationProgress.Step(
             "Installation Complete",
             "IndyPOS has been installed successfully!",
