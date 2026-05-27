@@ -225,9 +225,9 @@ function Test-Filesystem {
         Fail "IndyPOS.StoreHub.exe missing" $storeHubExe
     }
 
-    $appsettings = Join-Path $StoreHubInstallPath 'appsettings.Production.json'
+    $appsettings = Join-Path $StoreHubInstallPath 'appsettings.json'
     if (Test-Path $appsettings) {
-        Pass "appsettings.Production.json present"
+        Pass "appsettings.json present"
         try {
             $cfg = Get-Content $appsettings -Raw | ConvertFrom-Json
             $expectedUrls = "http://localhost:$HealthCheckPort"
@@ -248,10 +248,10 @@ function Test-Filesystem {
                 Fail "Connection string user mismatch" $connStr
             }
         } catch {
-            Fail "appsettings.Production.json unparseable" $_.Exception.Message
+            Fail "appsettings.json unparseable" $_.Exception.Message
         }
     } else {
-        Fail "appsettings.Production.json missing" $appsettings
+        Fail "appsettings.json missing" $appsettings
     }
 
     $jwtKey = Join-Path $KeysDirectory 'storehub.key'
@@ -283,9 +283,9 @@ function Test-Database {
         return
     }
 
-    $appsettings = Join-Path $StoreHubInstallPath 'appsettings.Production.json'
+    $appsettings = Join-Path $StoreHubInstallPath 'appsettings.json'
     if (-not (Test-Path $appsettings)) {
-        Skip "Database checks" "appsettings.Production.json missing — cannot recover credentials"
+        Skip "Database checks" "appsettings.json missing — cannot recover credentials"
         return
     }
 
