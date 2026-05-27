@@ -1,6 +1,6 @@
 # StoreHub Production Configuration Guide
 
-This document explains each configuration property in `appsettings.Production.json`.
+This document explains each configuration property in `appsettings.json`.
 
 ---
 
@@ -279,3 +279,4 @@ ASP.NET Core logging configuration.
 - [ ] `ClientSecret` (if using cloud) is kept confidential
 - [ ] Config file has restricted permissions (Administrators only)
 - [ ] Backups of config are encrypted or secured
+
