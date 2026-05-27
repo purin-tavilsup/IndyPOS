@@ -8,7 +8,7 @@
 |-------|-------|
 | **Branch** | `indypos-overhaul` |
 | **Sprint** | Sprint 7 |
-| **Phase** | Installer Side-by-Side — Stages 1 + 2 ✅, Stage 3 🟡 cleanup-v4 + manifest done · verify-install next |
+| **Phase** | Installer Side-by-Side — Stages 0–3 ✅ · Stage 4 (VM smoke-test, parked) next |
 | **Blocked?** | No |
 
 ## Recent Session (2026-04-27)
@@ -71,15 +71,24 @@ This allows testing from any location (e.g., Canada) while reports use Thai loca
 - `Resources/` gitignored
 - **Verified:** Bootstrapper `AssemblyVersion 4.0.0.0`, both manifest resources embedded with expected names, final `IndyPOS-Setup.exe` 189 MB v4.0.0.0, vpk packs `IndyPOS.POS.v4` v `4.0.0`
 
-**Stage 3 🟡 in progress** (2026-05-26):
-- ✅ `scripts/cleanup-v4.ps1` (~250 lines) — reverses install in 5 steps (service → Velopack → DB → dirs → opt-in Postgres uninstall). QA-reviewed; P0+P1 hardening shipped: `DbConnectionStringBuilder` for password parsing, `Assert-V4Path` regex safety guard, `Wait-ServiceGone` polling, Velopack process wait + shortcut sweep, `DROP OWNED BY` before `DROP ROLE`, `-Force` actually skips Read-Host.
-- ✅ **Install manifest infrastructure** — bootstrapper writes `$SystemRoot\install-manifest.json` (camelCase JSON, no secrets, ManifestVersion=1) as post-health-check step in `InstallationOrchestrator`. Cleanup script glob-discovers `v*\install-manifest.json` and overrides hardcoded defaults — cleanup is now genuinely version-agnostic (synthetic v9.9.9 test passed). Kills the `# must match InstallationConfig.cs` lockstep coupling the architecture reviewer flagged.
-- ⏳ `scripts/verify-install.ps1` (next) — install-artifact audit; sister script to cleanup, consumes same manifest.
-- ⏳ First real smoke-test cycle: build installer → manual click-through → verify → cleanup.
+**Stage 3 ✅ COMPLETE** (2026-05-27) — `verify-install.ps1`: **31/31 PASS** end-to-end. Install ran in 9m31s (Postgres extraction ~9m + everything else <30s). v3.7.0 footprint confirmed untouched.
 
-**Verified:** `dotnet build` 0/0 · `dotnet test` 3/3 new manifest tests passing · cleanup no-op on clean box ✅ · synthetic v9.9.9 manifest discovered + targeted correctly ✅.
+**7 production bugs caught + fixed** by the cycle (none would've been caught by unit tests):
+1. Postgres installer `--serviceaccount NT AUTHORITY\NetworkService` was unquoted → EDB exit 1 in 30s.
+2. 10-min Postgres install timeout too tight when Defender real-time-scans every extracted file → bumped to 25 min.
+3. `FindPostgresInstallation` only checked `psql.exe`; a half-installed Postgres (killed mid-unpack) fooled it → also requires the `postgresql-x64-NN` service.
+4. `StoreHubInstaller` zip-extracted AFTER `DatabaseSetup` wrote `appsettings.Production.json` → clobbered real config with the template. Reordered orchestrator (binaries first, DB+config second).
+5. `IndyPOS.StoreHub` was a console ASP.NET app → SCM start callback timed out (error 1053). Added `AddWindowsService` + `Microsoft.Extensions.Hosting.WindowsServices`.
+6. Bootstrapper probed `/health/live` which didn't exist → 404. Switched to `/health/ready` and standardised endpoints (see Stage 3 refactors below).
+7. `psql` defaults to interactive password prompt → hung when `pgResult.SuperuserPassword=""` (existing-install case). Added `-w` (never-prompt) flag + early-return in `DatabaseSetup.SetupAsync` with actionable error.
 
-**Decided (option A):** smoke-test on dev box with real Postgres 18 install — full path coverage, VM will catch any remaining gaps.
+**Stage 3 refactors (architecture + QA reviews):**
+- `scripts/cleanup-v4.ps1` (~250 lines) with P0+P1 hardening: `DbConnectionStringBuilder` parse, `Assert-V4Path` regex guard, `Wait-ServiceGone` poll, Velopack process wait + shortcut sweep, `DROP OWNED BY` before `DROP ROLE`.
+- `scripts/verify-install.ps1` (~330 lines) — install-artifact audit, no admin required, 31 checks across 7 categories.
+- **Install manifest** (`InstallManifest.cs` + `Writer` + 3 tests): bootstrapper writes `$SystemRoot\install-manifest.json` (camelCase JSON, ManifestVersion=1, no secrets). Cleanup + verify glob-discover under `v*\` subdirs of `$ProgramDataRoot` — version-agnostic, no more `# must match InstallationConfig.cs` lockstep.
+- **Postgres installer cache** at `%LOCALAPPDATA%\IndyPOS.Bootstrapper\cache\` — skips 372 MB re-download every cycle. Stale partial downloads (<100 MB) auto-discarded.
+- **`appsettings.Production.json` → `appsettings.json`** + orchestrator reorder. Single-tier deployment, no overlay machinery. Removed the runtime-generated-files skip-list workaround entirely.
+- **Industry-standard health endpoints** in `ServiceDefaults`: `/health/live` (tag=live) + `/health/ready` (tag=ready). Replaced StoreHub's custom `MapGet` with framework `AddDbContextCheck`. `/health` stays dev-only (verbose body).
 
 **Stage 4 (parked, plan saved):** VM smoke-test via Hyper-V. Hyper-V confirmed enabled on dev box. Practical commands + simplified scope (just 2 scripts, skip Phase 2 unattend) appended to `vm-installer-testing-plan.md` § Hyper-V Quick-Start. Pick up after Stage 3 passes.
 
@@ -120,4 +129,4 @@ dotnet build
 ```
 
 ---
-*Last updated: 2026-05-26 — Stage 3 cleanup-v4.ps1 + install-manifest infrastructure shipped (3 commits). Cleanup is version-agnostic via manifest glob-discovery; synthetic v9.9.9 test passed. Next: verify-install.ps1, then first real smoke-test cycle.*
+*Last updated: 2026-05-27 — **Stage 3 ✅ DONE**. 9 commits (`c425be9..7d25e05`). Real install + verify cycle 31/31 PASS in 9m31s. 7 production bugs caught and fixed. Next: Stage 4 (VM smoke-test via Hyper-V — plan in `vm-installer-testing-plan.md`).*
