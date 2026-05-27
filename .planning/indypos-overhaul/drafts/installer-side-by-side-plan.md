@@ -48,7 +48,7 @@ C:\ProgramData\IndyPOS\
 | 0 | Discovery — verify dev box is clean for v4 paths/ports/services | ✅ |
 | 1 | Refactor `InstallationConfig` to carry version + computed paths | ✅ |
 | 2 | Build pipeline — install vpk, embed Setup.exe + StoreHub.zip into bootstrapper resources | ✅ |
-| 3 | Smoke-test runner + uninstall/cleanup script | 🟡 cleanup-v4.ps1 + manifest done; verify-install.ps1 next |
+| 3 | Smoke-test runner + uninstall/cleanup script | ✅ |
 | 4 | Smoke-test on dev box, fix bugs as found | ⏳ (option A — real Postgres 18 install) |
 | 5 | Implement Phase 1 VM scripts (per `vm-installer-testing-plan.md`) | ⏳ |
 | 6 | Manual: Win11 ISO, Hyper-V VM, clean snapshot (Pond) | ⏳ |
@@ -112,16 +112,28 @@ C:\ProgramData\IndyPOS\
 - `cleanup-v4.ps1 -Force` no-op run on clean dev box: graceful "nothing to do" for all 4 steps, `Source: defaults` banner.
 - Synthetic `v9.9.9` manifest test: glob discovered, all values overridden (ServiceName → `IndyPOS.StoreHub.v9`, DB → `indypos_storehub_v9`, etc.), correctly deleted the synthetic dir. Confirms cleanup is now version-agnostic.
 
-**Still pending in Stage 3:**
-- `scripts/verify-install.ps1` — install-artifact audit (sister script to cleanup; consumes the same manifest).
-- First real smoke-test cycle: build installer → manual click-through → verify → cleanup. Will surface anything missed.
+**Stage 3 COMPLETED (2026-05-27)** — `verify-install.ps1` 31/31 PASS end-to-end; install ran in 9m31s; v3.7.0 untouched.
 
-**Deferred from QA review** (P2/P3, not blocking smoke-test loop):
-- JWT key ACL `takeown /f` before `Remove-Item` (if perms strip blocks deletion).
+**7 production bugs caught + fixed by the smoke-test cycle:**
+1. `--serviceaccount` arg unquoted → EDB exit 1.
+2. 10-min Postgres timeout too tight for Defender-throttled unpack → 25 min.
+3. `FindPostgresInstallation` only checked psql.exe → partial install fooled it. Now also requires `postgresql-x64-NN` service.
+4. `StoreHubInstaller` zip-extract clobbered `appsettings.Production.json`. Reordered orchestrator (binaries → DB) and renamed to `appsettings.json` (single tier — no overlay needed).
+5. StoreHub was a console app, not a Windows Service → SCM error 1053. Added `AddWindowsService` + `Microsoft.Extensions.Hosting.WindowsServices`.
+6. Bootstrapper probed `/health/live` (didn't exist) → 404. Industry-standardised: `/health/live` + `/health/ready` (tag-filtered, in prod), `/health` dev-only.
+7. `psql` hangs on missing superuser pw. Added `-w` flag + early-return with actionable error.
+
+**Architecture wins:**
+- `InstallManifest` (record + writer + tests): bootstrapper writes `$SystemRoot\install-manifest.json`. Scripts glob-discover under `v*\` subdirs → version-agnostic, no more `# must match InstallationConfig.cs` lockstep.
+- Postgres installer cache at `%LOCALAPPDATA%\IndyPOS.Bootstrapper\cache\` — skips 372 MB download per cycle.
+
+**Deferred (P2/P3, follow-ups):**
+- Velopack `Update.exe` path bug in cleanup-v4 (looks in `\current\` instead of AppId root). Workaround via COM shortcut sweep + temp Setup.exe cleanup means net effect is correct.
+- JWT key ACL `takeown` before `Remove-Item`.
 - Velopack uninstall registry key (`HKCU\...\Uninstall\IndyPOS.POS.v4`).
 - Postgres firewall rule + data directory on `--mode unattended` uninstall.
-- `$env:PGPASSWORD` parent-scope leak on Ctrl-C (move to child-process env).
-- `smoke-test.ps1` (the existing API smoke test) reliability — hardcoded inventory `88`, stale pay-later accounts.
+- `$env:PGPASSWORD` parent-scope leak on Ctrl-C.
+- `smoke-test.ps1` reliability (hardcoded inventory `88`, stale pay-later accounts).
 
 ## Success Criteria
 
