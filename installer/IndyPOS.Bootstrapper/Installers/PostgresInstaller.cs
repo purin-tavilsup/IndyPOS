@@ -23,6 +23,16 @@ public class PostgresInstaller
     private const string DefaultInstallPath = @"C:\Program Files\PostgreSQL\18";
     private const int DefaultPort = 5432;
 
+    // Cache the downloaded installer outside %TEMP% so it survives smoke-test
+    // re-install cycles. cleanup-v4.ps1 doesn't touch this dir (it's scoped
+    // to the v4 install footprint, not the bootstrapper).
+    private const string InstallerFileName = "postgresql-18-windows-x64.exe";
+    private const long MinValidInstallerSize = 100L * 1024 * 1024; // 100 MB; full file is ~370 MB
+    private static readonly string CacheDirectory = Path.Combine(
+        Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+        "IndyPOS.Bootstrapper",
+        "cache");
+
     /// <summary>
     /// Ensure PostgreSQL 18 is installed.
     /// </summary>
@@ -49,54 +59,68 @@ public class PostgresInstaller
             };
         }
 
-        // Download PostgreSQL installer
-        progress?.Report(new DownloadProgress
-        {
-            StatusMessage = "Downloading PostgreSQL 18...",
-            Percentage = 0
-        });
+        // Cache lookup: skip download if a previous run already cached a
+        // reasonably-sized installer. Saves ~300 MB on every smoke-test cycle.
+        Directory.CreateDirectory(CacheDirectory);
+        var installerPath = Path.Combine(CacheDirectory, InstallerFileName);
 
-        var installerPath = Path.Combine(Path.GetTempPath(), "postgresql-18-windows-x64.exe");
-
-        try
+        if (File.Exists(installerPath) && new FileInfo(installerPath).Length >= MinValidInstallerSize)
         {
-            await DownloadHelper.DownloadFileAsync(
-                PostgresDownloadUrl,
-                installerPath,
-                progress,
-                cancellationToken);
+            progress?.Report(new DownloadProgress
+            {
+                StatusMessage = $"Using cached PostgreSQL installer ({new FileInfo(installerPath).Length / 1024 / 1024} MB)",
+                Percentage = 0.5
+            });
         }
-        catch (HttpRequestException ex)
+        else
         {
-            // Try fallback URLs
-            var downloaded = false;
-            foreach (var fallbackUrl in FallbackUrls)
+            // Stale partial downloads (< MinValidInstallerSize) get overwritten below.
+            progress?.Report(new DownloadProgress
             {
-                try
-                {
-                    await DownloadHelper.DownloadFileAsync(
-                        fallbackUrl,
-                        installerPath,
-                        progress,
-                        cancellationToken);
-                    downloaded = true;
-                    break;
-                }
-                catch
-                {
-                    // Try next URL
-                }
-            }
+                StatusMessage = "Downloading PostgreSQL 18...",
+                Percentage = 0
+            });
 
-            if (!downloaded)
+            try
             {
-                return new PostgresInstallerResult
+                await DownloadHelper.DownloadFileAsync(
+                    PostgresDownloadUrl,
+                    installerPath,
+                    progress,
+                    cancellationToken);
+            }
+            catch (HttpRequestException ex)
+            {
+                // Try fallback URLs
+                var downloaded = false;
+                foreach (var fallbackUrl in FallbackUrls)
                 {
-                    Success = false,
-                    ErrorMessage = $"Failed to download PostgreSQL: {ex.Message}\n\n" +
-                                   "Please download PostgreSQL 18 manually from:\n" +
-                                   "https://www.postgresql.org/download/windows/"
-                };
+                    try
+                    {
+                        await DownloadHelper.DownloadFileAsync(
+                            fallbackUrl,
+                            installerPath,
+                            progress,
+                            cancellationToken);
+                        downloaded = true;
+                        break;
+                    }
+                    catch
+                    {
+                        // Try next URL
+                    }
+                }
+
+                if (!downloaded)
+                {
+                    return new PostgresInstallerResult
+                    {
+                        Success = false,
+                        ErrorMessage = $"Failed to download PostgreSQL: {ex.Message}\n\n" +
+                                       "Please download PostgreSQL 18 manually from:\n" +
+                                       "https://www.postgresql.org/download/windows/"
+                    };
+                }
             }
         }
 
@@ -115,18 +139,9 @@ public class PostgresInstaller
             superuserPassword,
             cancellationToken);
 
-        // Cleanup installer
-        try
-        {
-            if (File.Exists(installerPath))
-            {
-                File.Delete(installerPath);
-            }
-        }
-        catch
-        {
-            // Ignore cleanup errors
-        }
+        // Keep the cached installer for next time — even on failure, the
+        // installer file itself is fine; only the install attempt failed.
+        // To force re-download, delete the cached file manually.
 
         if (!installResult.Success)
         {
@@ -182,7 +197,7 @@ public class PostgresInstaller
                    $"--unattendedmodeui minimal " +
                    $"--superpassword \"{superuserPassword}\" " +
                    $"--servicename postgresql-x64-18 " +
-                   $"--serviceaccount NT AUTHORITY\\NetworkService " +
+                   $"--serviceaccount \"NT AUTHORITY\\NetworkService\" " +
                    $"--serverport {DefaultPort} " +
                    $"--prefix \"{DefaultInstallPath}\" " +
                    $"--datadir \"{DefaultInstallPath}\\data\" " +
@@ -210,9 +225,12 @@ public class PostgresInstaller
                 };
             }
 
-            // Wait with timeout (10 minutes should be enough)
+            // Wait with timeout. 25 min is generous but accounts for Windows
+            // Defender real-time scanning every extracted file — EDB's unpacker
+            // writes ~10k files, each triggering a scan.
+            var timeoutMinutes = 25;
             var completed = await Task.Run(() =>
-                process.WaitForExit((int)TimeSpan.FromMinutes(10).TotalMilliseconds),
+                process.WaitForExit((int)TimeSpan.FromMinutes(timeoutMinutes).TotalMilliseconds),
                 cancellationToken);
 
             if (!completed)
@@ -221,7 +239,9 @@ public class PostgresInstaller
                 return new PostgresInstallerResult
                 {
                     Success = false,
-                    ErrorMessage = "PostgreSQL installation timed out after 10 minutes"
+                    ErrorMessage = $"PostgreSQL installation timed out after {timeoutMinutes} minutes. " +
+                                   "If this happens repeatedly, consider temporarily disabling Windows Defender " +
+                                   "real-time scanning, or pre-installing PostgreSQL 18 manually."
                 };
             }
 
@@ -254,24 +274,27 @@ public class PostgresInstaller
     }
 
     /// <summary>
-    /// Find existing PostgreSQL installation.
+    /// Find existing PostgreSQL installation. Requires BOTH psql.exe AND the
+    /// matching Windows service to be registered — psql.exe alone is a half-
+    /// installed state (e.g. installer killed during extraction) that would
+    /// fool the next install into thinking Postgres is ready.
     /// </summary>
     private static PostgresInstallInfo? FindPostgresInstallation()
     {
         // Check common locations
-        string[] possiblePaths =
+        (string Path, string ServiceName)[] possible =
         {
-            @"C:\Program Files\PostgreSQL\18",
-            @"C:\Program Files\PostgreSQL\17",
-            @"C:\Program Files\PostgreSQL\16"
+            (@"C:\Program Files\PostgreSQL\18", "postgresql-x64-18"),
+            (@"C:\Program Files\PostgreSQL\17", "postgresql-x64-17"),
+            (@"C:\Program Files\PostgreSQL\16", "postgresql-x64-16")
         };
 
-        foreach (var path in possiblePaths)
+        foreach (var (path, serviceName) in possible)
         {
             var binPath = Path.Combine(path, "bin");
             var psqlPath = Path.Combine(binPath, "psql.exe");
 
-            if (File.Exists(psqlPath))
+            if (File.Exists(psqlPath) && ServiceExists(serviceName))
             {
                 return new PostgresInstallInfo
                 {
@@ -294,17 +317,20 @@ public class PostgresInstaller
                 {
                     using var subKey = key.OpenSubKey(subKeyName);
                     var basePath = subKey?.GetValue("Base Directory") as string;
+                    var version = subKey?.GetValue("Version") as string;
 
-                    if (!string.IsNullOrEmpty(basePath))
+                    if (!string.IsNullOrEmpty(basePath) && !string.IsNullOrEmpty(version))
                     {
                         var binPath = Path.Combine(basePath, "bin");
-                        if (File.Exists(Path.Combine(binPath, "psql.exe")))
+                        var majorVersion = version.Split('.')[0];
+                        var serviceName = $"postgresql-x64-{majorVersion}";
+                        if (File.Exists(Path.Combine(binPath, "psql.exe")) && ServiceExists(serviceName))
                         {
                             return new PostgresInstallInfo
                             {
                                 InstallPath = basePath,
                                 BinPath = binPath,
-                                Version = subKey?.GetValue("Version") as string ?? "unknown"
+                                Version = version
                             };
                         }
                     }
@@ -317,6 +343,19 @@ public class PostgresInstaller
         }
 
         return null;
+    }
+
+    private static bool ServiceExists(string serviceName)
+    {
+        try
+        {
+            return System.ServiceProcess.ServiceController.GetServices()
+                .Any(s => string.Equals(s.ServiceName, serviceName, StringComparison.OrdinalIgnoreCase));
+        }
+        catch
+        {
+            return false;
+        }
     }
 
     /// <summary>
