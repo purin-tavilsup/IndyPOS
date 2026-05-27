@@ -19,7 +19,7 @@
     DATABASE CREDENTIALS:
     The Postgres superuser password is generated randomly during install and
     not persisted, so we recover the v4 app-user credentials from
-    appsettings.Production.json. The app user owns the database, so it can
+    appsettings.json. The app user owns the database, so it can
     DROP DATABASE on its own. The role itself is preserved (installer is
     idempotent on existing roles). Pass -PostgresPassword to also DROP ROLE,
     or pass -SkipDatabase to leave the DB intact.
@@ -74,7 +74,7 @@ $AppUser         = "indypos_app"
 $SystemRoot      = "$ProgramDataRoot\v4.0.0"
 $PostgresBin     = "C:\Program Files\PostgreSQL\18\bin"
 $VelopackRoot    = Join-Path $env:LOCALAPPDATA $VelopackAppId
-$AppsettingsPath = Join-Path $SystemRoot "StoreHub\appsettings.Production.json"
+$AppsettingsPath = Join-Path $SystemRoot "StoreHub\appsettings.json"
 $ManifestSource  = "defaults"
 
 function Read-InstallManifest {
@@ -117,7 +117,7 @@ function Read-InstallManifest {
     $script:SystemRoot      = $m.systemRoot
     $script:PostgresBin     = $m.postgresBinPath
     $script:VelopackRoot    = Split-Path $m.velopackInstallPath -Parent
-    $script:AppsettingsPath = Join-Path $m.storeHubInstallPath "appsettings.Production.json"
+    $script:AppsettingsPath = Join-Path $m.storeHubInstallPath "appsettings.json"
     $script:ManifestSource  = "$manifestPath (v$($m.manifestVersion), installed $($m.installedUtc))"
 }
 
@@ -352,7 +352,7 @@ function Remove-StoreHubDatabase {
     $droppedViaAppUser = $false
 
     if ($appPassword) {
-        Write-Info "Recovered '$AppUser' credentials from appsettings.Production.json."
+        Write-Info "Recovered '$AppUser' credentials from appsettings.json."
         Write-Info "Dropping database '$DatabaseName' as owner '$AppUser'..."
         $result = Invoke-Psql -User $AppUser -Password $appPassword -Database "postgres" `
                               -Sql "DROP DATABASE IF EXISTS $DatabaseName"
@@ -363,7 +363,7 @@ function Remove-StoreHubDatabase {
             Write-Warn "App-user drop failed (exit $($result.ExitCode)): $($result.Output)"
         }
     } else {
-        Write-Info "No app-user credentials available (appsettings.Production.json missing or unparseable)."
+        Write-Info "No app-user credentials available (appsettings.json missing or unparseable)."
     }
 
     # Need superuser to drop the role itself. Optional unless requested.
