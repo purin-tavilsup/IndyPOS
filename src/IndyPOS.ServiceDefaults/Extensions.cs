@@ -75,13 +75,24 @@ public static class Extensions
 
     public static WebApplication MapDefaultEndpoints(this WebApplication app)
     {
+        // Industry-standard Kubernetes-style probes (matches ASP.NET Core docs).
+        // Tag-filtered so each endpoint only runs the checks relevant to its
+        // semantics: "live" = process up (cheap), "ready" = deps healthy.
+        app.MapHealthChecks("/health/live", new HealthCheckOptions
+        {
+            Predicate = check => check.Tags.Contains("live")
+        });
+
+        app.MapHealthChecks("/health/ready", new HealthCheckOptions
+        {
+            Predicate = check => check.Tags.Contains("ready")
+        });
+
+        // Verbose endpoint (all checks, full diagnostic body). Dev-only —
+        // exposes implementation details that production shouldn't leak.
         if (app.Environment.IsDevelopment())
         {
             app.MapHealthChecks("/health");
-            app.MapHealthChecks("/alive", new HealthCheckOptions
-            {
-                Predicate = r => r.Tags.Contains("live")
-            });
         }
 
         return app;

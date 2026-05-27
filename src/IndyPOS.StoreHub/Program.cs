@@ -36,12 +36,25 @@ using Scalar.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Enable Windows Service hosting so SCM's start callback is satisfied within
+// 30s (otherwise sc start fails with error 1053). No-op when running as a
+// console app (e.g. via Aspire/dotnet run in dev).
+builder.Services.AddWindowsService(options =>
+{
+    options.ServiceName = "IndyPOS.StoreHub";
+});
+
 // Add Aspire service defaults (health checks, OpenTelemetry, service discovery)
 builder.AddServiceDefaults();
 
 // Add PostgreSQL with EF Core via Aspire
 // Connection name must match AppHost: postgres.AddDatabase("storehub-db")
 builder.AddNpgsqlDbContext<StoreHubDbContext>("storehub-db");
+
+// Readiness check: surfaces DB connectivity at /health/ready. Liveness ("self"
+// check tagged "live") comes from ServiceDefaults.AddDefaultHealthChecks.
+builder.Services.AddHealthChecks()
+    .AddDbContextCheck<StoreHubDbContext>("storehub-db", tags: ["ready"]);
 
 // Add StoreHub infrastructure services (repositories, store identity)
 builder.Services.AddStoreHubServices(builder.Configuration);
@@ -187,18 +200,8 @@ app.MapGet("/auth/me", (HttpContext context) =>
     });
 }).RequireAuthorization();
 
-app.MapGet("/health/ready", async (StoreHubDbContext db) =>
-{
-    try
-    {
-        await db.Database.CanConnectAsync();
-        return Results.Ok(new { status = "healthy", database = "connected" });
-    }
-    catch (Exception ex)
-    {
-        return Results.Problem($"Database connection failed: {ex.Message}");
-    }
-});
+// /health/ready is now served by ServiceDefaults.MapDefaultEndpoints (tag
+// filter on "ready"), backed by the DbContextCheck registered above.
 
 // Version endpoint (Velopack prep - used for update checks)
 app.MapGet("/version", () =>
