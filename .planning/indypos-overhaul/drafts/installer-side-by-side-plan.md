@@ -48,7 +48,7 @@ C:\ProgramData\IndyPOS\
 | 0 | Discovery — verify dev box is clean for v4 paths/ports/services | ✅ |
 | 1 | Refactor `InstallationConfig` to carry version + computed paths | ✅ |
 | 2 | Build pipeline — install vpk, embed Setup.exe + StoreHub.zip into bootstrapper resources | ✅ |
-| 3 | Smoke-test runner + uninstall/cleanup script | ⏳ |
+| 3 | Smoke-test runner + uninstall/cleanup script | 🟡 cleanup-v4.ps1 + manifest done; verify-install.ps1 next |
 | 4 | Smoke-test on dev box, fix bugs as found | ⏳ (option A — real Postgres 18 install) |
 | 5 | Implement Phase 1 VM scripts (per `vm-installer-testing-plan.md`) | ⏳ |
 | 6 | Manual: Win11 ISO, Hyper-V VM, clean snapshot (Pond) | ⏳ |
@@ -82,6 +82,46 @@ C:\ProgramData\IndyPOS\
 - vpk packed as `IndyPOS.POS.v4` v `4.0.0` (was `3.7.0` before WinForms AssemblyInfo bump)
 
 **Follow-up (not blocking Stage 3):** `IndyPOS.Application`, `IndyPOS.Infrastructure`, `IndyPOS.Windows.Forms` all carry legacy `<GenerateAssemblyInfo>false</GenerateAssemblyInfo>` + hand-written `Properties/AssemblyInfo.cs`. Modernizing (delete those files, flip to default auto-gen) would let D.B.props drive every assembly's version. Out of scope for the side-by-side install epic.
+
+## Stage 3 Files Touched 🟡 (2026-05-26 — in progress)
+
+**Initial draft** — `scripts/cleanup-v4.ps1` (~250 lines). Reverses the 6 install steps in `InstallationOrchestrator.InstallAsync` in reverse order: service → Velopack → DB → `$SystemRoot` → `%LOCALAPPDATA%\IndyPOS.POS.v4\` → (opt-in) Postgres uninstall.
+
+**P0+P1 hardening from QA review** (subagent review 2026-05-26 — surfaced 2 BLOCKERs and 3 HIGHs):
+- Password parsing uses `[System.Data.Common.DbConnectionStringBuilder]` — the previous regex broke on passwords containing `;` or `"`.
+- Safety guard now asserts `vM.m.p` regex pattern via `Assert-V4Path` instead of a string-equality check that could never trip (paths were hardcoded constants, so the old guard was theatre).
+- `-Force` now suppresses interactive `Read-Host` prompts — previously broke unattended smoke-test loops.
+- `Wait-ServiceGone` polls after `sc.exe delete` — prevents stale entry ghosting into next install.
+- `Wait-VelopackProcessExit` + COM-based shortcut sweep — addresses Velopack's fire-and-forget Update.exe race + Start Menu orphans + `%TEMP%\$VelopackAppId-Setup.exe` leftover.
+- `REASSIGN OWNED BY` + `DROP OWNED BY ... CASCADE` before `DROP ROLE` — prevents "role cannot be dropped" failure.
+
+**Install manifest** (architecture review 2026-05-26 — kills the `# must match InstallationConfig.cs` lockstep coupling):
+- `installer/IndyPOS.Bootstrapper/Installers/InstallManifest.cs` — record with 17 safe-to-persist fields. NO passwords/secrets. `ManifestVersion = 1`.
+- `installer/IndyPOS.Bootstrapper/Installers/InstallManifestWriter.cs` — writes camelCase JSON to `$SystemRoot\install-manifest.json`. Idempotent.
+- `installer/IndyPOS.Bootstrapper/Installers/InstallationConfig.cs` — added `VelopackInstallPath` computed property (single source-of-truth).
+- `installer/IndyPOS.Bootstrapper/Installers/VelopackLauncher.cs` — uses `Config.VelopackInstallPath`; removed duplicate `GetWinFormsInstallPath()`.
+- `installer/IndyPOS.Bootstrapper/Installers/InstallationOrchestrator.cs` — calls `InstallManifestWriter.WriteAsync` as final post-health-check step. Non-fatal on failure.
+- `scripts/cleanup-v4.ps1` — `Read-InstallManifest` glob-discovers `v*\install-manifest.json` under `$ProgramDataRoot`; falls back to baked-in defaults for partial-install resilience. Banner shows source.
+- `tests/IndyPOS.Bootstrapper.Tests/Installers/InstallManifestTests.cs` — 3 tests: field-mapping, no-password-leak (asserts secret string absent from serialized JSON), filename stability constant (so a C# rename triggers test failure if PS script drifts).
+
+**Pre-existing fix folded in:** `tests/IndyPOS.Bootstrapper.Tests/Installers/StoreHubInstallerTests.cs:131` — `VelopackLauncher.InstallAsync` signature drift from Stage 1 left a `[Skip]`'d test that wouldn't compile. One-line fix to unblock the test build.
+
+**Verified end-to-end:**
+- `dotnet build` bootstrapper: 0 warnings, 0 errors.
+- `dotnet test` manifest tests: 3/3 passing.
+- `cleanup-v4.ps1 -Force` no-op run on clean dev box: graceful "nothing to do" for all 4 steps, `Source: defaults` banner.
+- Synthetic `v9.9.9` manifest test: glob discovered, all values overridden (ServiceName → `IndyPOS.StoreHub.v9`, DB → `indypos_storehub_v9`, etc.), correctly deleted the synthetic dir. Confirms cleanup is now version-agnostic.
+
+**Still pending in Stage 3:**
+- `scripts/verify-install.ps1` — install-artifact audit (sister script to cleanup; consumes the same manifest).
+- First real smoke-test cycle: build installer → manual click-through → verify → cleanup. Will surface anything missed.
+
+**Deferred from QA review** (P2/P3, not blocking smoke-test loop):
+- JWT key ACL `takeown /f` before `Remove-Item` (if perms strip blocks deletion).
+- Velopack uninstall registry key (`HKCU\...\Uninstall\IndyPOS.POS.v4`).
+- Postgres firewall rule + data directory on `--mode unattended` uninstall.
+- `$env:PGPASSWORD` parent-scope leak on Ctrl-C (move to child-process env).
+- `smoke-test.ps1` (the existing API smoke test) reliability — hardcoded inventory `88`, stale pay-later accounts.
 
 ## Success Criteria
 

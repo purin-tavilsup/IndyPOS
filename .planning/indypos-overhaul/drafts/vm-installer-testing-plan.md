@@ -444,3 +444,93 @@ scripts/
 - Phase 2 can be added later if needed
 
 Ready to implement? 🚀
+
+---
+
+## Hyper-V Quick-Start (2026-05-03)
+
+### Environment Status
+- ✅ **Hyper-V is enabled** on dev box (`Microsoft-Hyper-V-All` feature confirmed)
+- 🎯 **Sequencing decision:** smoke-test on dev box first (Stage 3 option A), VM testing comes *after* as the "lurking dev-box residue" catch-net
+- 🪄 **Key tool:** `PowerShell Direct` — `Invoke-Command -VMName` and `Copy-VMFile` work over the hypervisor bus. No networking, SSH, or shared folders required. Just admin creds.
+
+### Simplified Scope (overrides Phase 1 task list above)
+For 3 stores, we don't need 7 scripts. Build **only two**:
+
+1. `scripts/vm-testing/Reset-AndInstall.ps1` — host-side: restore snapshot → start VM → wait for ready → `Copy-VMFile` installer → `Invoke-Command` to run installer → verify → report
+2. `scripts/vm-testing/Test-IndyPOSInstallation.ps1` — runs *inside* the VM via PowerShell Direct, returns structured pass/fail
+
+Skip Phase 2 (autounattend.xml + custom ISO) entirely unless we need to spin up clean VMs frequently.
+
+### Commands Cheat Sheet
+
+#### One-time VM creation
+```powershell
+# Gen2 VM with Win11-compatible defaults
+New-VM -Name "IndyPOS-Test" -Generation 2 -MemoryStartupBytes 4GB `
+       -NewVHDPath "C:\VMs\IndyPOS-Test.vhdx" -NewVHDSizeBytes 60GB `
+       -SwitchName "Default Switch"
+
+Set-VMProcessor -VMName "IndyPOS-Test" -Count 4
+Set-VMMemory   -VMName "IndyPOS-Test" -DynamicMemoryEnabled $true `
+               -MinimumBytes 2GB -MaximumBytes 8GB
+
+# Win11 needs TPM
+Set-VMKeyProtector -VMName "IndyPOS-Test" -NewLocalKeyProtector
+Enable-VMTPM       -VMName "IndyPOS-Test"
+
+# Boot from ISO
+Add-VMDvdDrive -VMName "IndyPOS-Test" -Path "C:\ISOs\Win11.iso"
+$dvd = Get-VMDvdDrive -VMName "IndyPOS-Test"
+Set-VMFirmware -VMName "IndyPOS-Test" -FirstBootDevice $dvd
+
+Start-VM "IndyPOS-Test"
+vmconnect.exe localhost "IndyPOS-Test"
+# ... install Windows manually (~15 min) ...
+```
+
+#### Inside the VM (after Windows install)
+```powershell
+Enable-PSRemoting -Force
+Set-Item WSMan:\localhost\Client\TrustedHosts -Value "*" -Force
+# Optional: speed up tests by disabling Defender RT scan
+Set-MpPreference -DisableRealtimeMonitoring $true
+```
+
+#### Snapshot the clean state
+```powershell
+Checkpoint-VM -Name "IndyPOS-Test" -SnapshotName "Clean-Windows"
+```
+
+#### The test loop (host-side, what `Reset-AndInstall.ps1` will do)
+```powershell
+$cred = Get-Credential   # use Windows Credential Manager: "IndyPOS-TestVM"
+
+Restore-VMSnapshot -VMName "IndyPOS-Test" -Name "Clean-Windows" -Confirm:$false
+Start-VM "IndyPOS-Test"
+
+# Wait for PowerShell Direct readiness
+while (-not (Invoke-Command -VMName "IndyPOS-Test" -Credential $cred `
+              -ScriptBlock { $true } -ErrorAction SilentlyContinue)) {
+    Start-Sleep -Seconds 5
+}
+
+Copy-VMFile -Name "IndyPOS-Test" -SourcePath ".\publish\IndyPOS-Setup.exe" `
+            -DestinationPath "C:\Test\IndyPOS-Setup.exe" `
+            -CreateFullPath -FileSource Host
+
+Invoke-Command -VMName "IndyPOS-Test" -Credential $cred -ScriptBlock {
+    Start-Process "C:\Test\IndyPOS-Setup.exe" -Wait
+    # Verification checks (will move into Test-IndyPOSInstallation.ps1)
+    Test-Path "C:\ProgramData\IndyPOS\v4.0.0"
+    Get-Service postgresql* | Select-Object Name, Status
+}
+```
+
+### Prerequisites Still Needed
+- [ ] Windows 11 ISO downloaded (Microsoft eval — no key required, 90-day validity)
+- [ ] Decide VM storage location (default suggestion: `C:\VMs\`)
+- [ ] Save VM admin credentials to Windows Credential Manager as `IndyPOS-TestVM`
+
+### When to Pick This Up
+After Stage 3 smoke-test on dev box passes. VM run is the final gate before tagging v4.0.0 release.
