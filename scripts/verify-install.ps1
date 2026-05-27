@@ -369,15 +369,19 @@ function Test-HealthEndpoint {
         Skip "Port check" $_.Exception.Message
     }
 
-    try {
-        $resp = Invoke-WebRequest -Uri "http://localhost:$HealthCheckPort/health/live" -UseBasicParsing -TimeoutSec 5 -ErrorAction Stop
-        if ($resp.StatusCode -eq 200) {
-            Pass "GET /health/live returns 200"
-        } else {
-            Fail "GET /health/live returned $($resp.StatusCode)"
+    # Industry-standard probes: /health/live = liveness, /health/ready = readiness.
+    # /health is dev-only (verbose body, leaks impl details).
+    foreach ($path in @('/health/live', '/health/ready')) {
+        try {
+            $resp = Invoke-WebRequest -Uri "http://localhost:$HealthCheckPort$path" -UseBasicParsing -TimeoutSec 5 -ErrorAction Stop
+            if ($resp.StatusCode -eq 200) {
+                Pass "GET $path returns 200"
+            } else {
+                Fail "GET $path returned $($resp.StatusCode)"
+            }
+        } catch {
+            Fail "GET $path failed" $_.Exception.Message
         }
-    } catch {
-        Fail "GET /health/live failed" $_.Exception.Message
     }
 }
 
