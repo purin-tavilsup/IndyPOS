@@ -8,7 +8,7 @@
 |-------|-------|
 | **Branch** | `indypos-overhaul` |
 | **Sprint** | Sprint 7 |
-| **Phase** | Installer Side-by-Side — Stages 1 + 2 ✅ done, Stage 3 next |
+| **Phase** | Installer Side-by-Side — Stages 1 + 2 ✅, Stage 3 🟡 cleanup-v4 + manifest done · verify-install next |
 | **Blocked?** | No |
 
 ## Recent Session (2026-04-27)
@@ -71,9 +71,17 @@ This allows testing from any location (e.g., Canada) while reports use Thai loca
 - `Resources/` gitignored
 - **Verified:** Bootstrapper `AssemblyVersion 4.0.0.0`, both manifest resources embedded with expected names, final `IndyPOS-Setup.exe` 189 MB v4.0.0.0, vpk packs `IndyPOS.POS.v4` v `4.0.0`
 
-**Stage 3 (next)** — Smoke-test runner + uninstall/cleanup script.
+**Stage 3 🟡 in progress** (2026-05-26):
+- ✅ `scripts/cleanup-v4.ps1` (~250 lines) — reverses install in 5 steps (service → Velopack → DB → dirs → opt-in Postgres uninstall). QA-reviewed; P0+P1 hardening shipped: `DbConnectionStringBuilder` for password parsing, `Assert-V4Path` regex safety guard, `Wait-ServiceGone` polling, Velopack process wait + shortcut sweep, `DROP OWNED BY` before `DROP ROLE`, `-Force` actually skips Read-Host.
+- ✅ **Install manifest infrastructure** — bootstrapper writes `$SystemRoot\install-manifest.json` (camelCase JSON, no secrets, ManifestVersion=1) as post-health-check step in `InstallationOrchestrator`. Cleanup script glob-discovers `v*\install-manifest.json` and overrides hardcoded defaults — cleanup is now genuinely version-agnostic (synthetic v9.9.9 test passed). Kills the `# must match InstallationConfig.cs` lockstep coupling the architecture reviewer flagged.
+- ⏳ `scripts/verify-install.ps1` (next) — install-artifact audit; sister script to cleanup, consumes same manifest.
+- ⏳ First real smoke-test cycle: build installer → manual click-through → verify → cleanup.
+
+**Verified:** `dotnet build` 0/0 · `dotnet test` 3/3 new manifest tests passing · cleanup no-op on clean box ✅ · synthetic v9.9.9 manifest discovered + targeted correctly ✅.
 
 **Decided (option A):** smoke-test on dev box with real Postgres 18 install — full path coverage, VM will catch any remaining gaps.
+
+**Stage 4 (parked, plan saved):** VM smoke-test via Hyper-V. Hyper-V confirmed enabled on dev box. Practical commands + simplified scope (just 2 scripts, skip Phase 2 unattend) appended to `vm-installer-testing-plan.md` § Hyper-V Quick-Start. Pick up after Stage 3 passes.
 
 **Follow-up (modernization, not blocking):** Delete legacy `Properties/AssemblyInfo.cs` from Application/Infrastructure/WinForms; flip `<GenerateAssemblyInfo>false</GenerateAssemblyInfo>` → default. Would let D.B.props drive every assembly's version uniformly.
 
@@ -112,4 +120,4 @@ dotnet build
 ```
 
 ---
-*Last updated: 2026-05-03*
+*Last updated: 2026-05-26 — Stage 3 cleanup-v4.ps1 + install-manifest infrastructure shipped (3 commits). Cleanup is version-agnostic via manifest glob-discovery; synthetic v9.9.9 test passed. Next: verify-install.ps1, then first real smoke-test cycle.*
