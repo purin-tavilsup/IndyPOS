@@ -152,10 +152,12 @@ catch {
 }
 
 # Test: Health Ready
+# Standard ASP.NET Core HealthChecks responds with plain-text "Healthy" + 200
+# when all "ready"-tagged checks pass (including DbContextCheck). The HTTP
+# status code IS the contract — don't depend on body shape.
 try {
     $result = Invoke-ApiRequest -Endpoint "/health/ready" -IgnoreError $true
-    $dbConnected = $result.Success -and $result.Data.database -eq "connected"
-    Write-TestResult -TestName "GET /health/ready" -Passed $dbConnected -Details "Database: $($result.Data.database)"
+    Write-TestResult -TestName "GET /health/ready" -Passed $result.Success -Details "Status: $($result.StatusCode)"
 }
 catch {
     Write-TestResult -TestName "GET /health/ready" -Passed $false -Details $_.Exception.Message
