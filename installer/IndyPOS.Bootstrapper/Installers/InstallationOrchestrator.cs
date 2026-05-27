@@ -73,11 +73,39 @@ public class InstallationOrchestrator
 
         cancellationToken.ThrowIfCancellationRequested();
 
-        // Step 3: Setup Database (40-55%)
+        // Step 3: Install StoreHub Service (40-55%)
+        // Deliberately BEFORE database setup: StoreHubInstaller extracts the
+        // zip which includes a base appsettings.json with safe defaults.
+        // DatabaseSetup then writes the real appsettings.json on top in step 4,
+        // overwriting the shipped defaults with production values. This is
+        // cleaner than the old order, which needed a skip-list workaround to
+        // prevent extraction from clobbering the real config.
+        progress.Report(InstallationProgress.Step(
+            "Installing StoreHub Service",
+            "Deploying StoreHub API service...",
+            45));
+
+        progress.Report(InstallationProgress.Log("Installing StoreHub service..."));
+
+        var storeHubResult = await _storeHubInstaller.InstallAsync(
+            config,
+            new Progress<string>(msg => progress.Report(InstallationProgress.Log(msg))),
+            cancellationToken);
+
+        if (!storeHubResult.Success)
+        {
+            throw new InstallationException($"StoreHub installation failed: {storeHubResult.ErrorMessage}");
+        }
+
+        progress.Report(InstallationProgress.Log("StoreHub service installed"));
+
+        cancellationToken.ThrowIfCancellationRequested();
+
+        // Step 4: Setup Database (55-70%)
         progress.Report(InstallationProgress.Step(
             "Configuring Database",
             "Creating database and user...",
-            45));
+            60));
 
         progress.Report(InstallationProgress.Log($"Creating database '{config.DatabaseName}'..."));
 
@@ -93,29 +121,6 @@ public class InstallationOrchestrator
         }
 
         progress.Report(InstallationProgress.Log("Database configured successfully"));
-
-        cancellationToken.ThrowIfCancellationRequested();
-
-        // Step 4: Install StoreHub Service (55-70%)
-        progress.Report(InstallationProgress.Step(
-            "Installing StoreHub Service",
-            "Deploying StoreHub API service...",
-            60));
-
-        progress.Report(InstallationProgress.Log("Installing StoreHub service..."));
-
-        var storeHubResult = await _storeHubInstaller.InstallAsync(
-            config,
-            dbResult.JwtSecret,
-            new Progress<string>(msg => progress.Report(InstallationProgress.Log(msg))),
-            cancellationToken);
-
-        if (!storeHubResult.Success)
-        {
-            throw new InstallationException($"StoreHub installation failed: {storeHubResult.ErrorMessage}");
-        }
-
-        progress.Report(InstallationProgress.Log("StoreHub service installed"));
 
         cancellationToken.ThrowIfCancellationRequested();
 
