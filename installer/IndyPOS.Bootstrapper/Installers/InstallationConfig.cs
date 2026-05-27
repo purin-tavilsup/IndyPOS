@@ -59,6 +59,16 @@ public class InstallationConfig
 
     public string VelopackAppId => $"IndyPOS.POS.v{Major}";
 
+    /// <summary>
+    /// Where Velopack drops the WinForms install (per-user, supports auto-update).
+    /// Single source-of-truth for both <see cref="VelopackLauncher"/> and the
+    /// install manifest.
+    /// </summary>
+    public string VelopackInstallPath => Path.Combine(
+        Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+        VelopackAppId,
+        "current");
+
     public int HealthCheckPort => 5000;
 
     private string Major => InstallVersion.Split('.')[0];
