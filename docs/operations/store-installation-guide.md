@@ -201,6 +201,11 @@ Copy the `publish/` folder to the store machine (USB drive, network share, etc.)
 
 ## Step 3: Configure the System
 
+> ⚠️ **Deprecated.** `install-config.ps1` has been removed. Use the automated installer
+> (`IndyPOS-Setup.exe`, see Quick Start above), which configures PostgreSQL, the StoreHub
+> service, and DPAPI-protected secrets. The manual steps below are retained for reference
+> only and are not maintained for v4.
+
 Run the configuration script on the store machine:
 
 ```powershell

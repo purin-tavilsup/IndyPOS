@@ -235,7 +235,7 @@ powershell.exe -ExecutionPolicy Bypass -File "C:\ProgramData\IndyPOS\ops\health-
 
 | Script | Purpose |
 |--------|---------|
-| `install-config.ps1` | Configure PostgreSQL and create database |
+| ~~`install-config.ps1`~~ | _Removed — use the `IndyPOS-Setup.exe` installer (configures PostgreSQL + DPAPI-protected secrets)_ |
 | `backup.ps1` | Create pg_dump backup with retention |
 | `restore.ps1` | Restore from .dump backup |
 | `smoke-test.ps1` | Run health checks |

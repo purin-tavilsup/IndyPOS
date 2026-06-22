@@ -262,7 +262,7 @@ if (-not $SkipVelopack) {
 } else {
     Write-Host "  1. Copy StoreHub\ to C:\Program Files\IndyPOS\StoreHub"
     Write-Host "  2. Copy WinForms\ to POS terminal machines"
-    Write-Host "  3. Run install-config.ps1 to set up PostgreSQL"
+    Write-Host "  3. Configure PostgreSQL + StoreHub appsettings (see docs/operations/store-installation-guide.md)"
     Write-Host "  4. Use MigrationTool to migrate data from SQLite"
 }
 Write-Host ""
