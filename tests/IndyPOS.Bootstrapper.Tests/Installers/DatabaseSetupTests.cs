@@ -1,5 +1,7 @@
 using FluentAssertions;
 using IndyPOS.Bootstrapper.Installers;
+using IndyPOS.Vault;
+using System.Text.Json;
 
 namespace IndyPOS.Bootstrapper.Tests.Installers;
 
@@ -49,6 +51,42 @@ public class DatabaseSetupTests
         setup.Should().NotBeNull();
     }
 
+    [Fact]
+    public void BuildStoreHubConfigJson_ShouldProtectConnectionStringAndSecretKey()
+    {
+        var config = new InstallationConfig { StoreId = "STORE-001", AdminPassword = "pw" };
+
+        var json = DatabaseSetup.BuildStoreHubConfigJson(config, "jwt-secret-value");
+
+        using var doc = JsonDocument.Parse(json);
+        var root = doc.RootElement;
+        root.GetProperty("connectionStrings").GetProperty("storehub-db")
+            .GetString().Should().StartWith("DPAPI:");
+        root.GetProperty("localToken").GetProperty("secretKey")
+            .GetString().Should().StartWith("DPAPI:");
+    }
+
+    [Fact]
+    public void BuildStoreHubConfigJson_ShouldLeaveNonSecretFieldsPlaintext()
+    {
+        var config = new InstallationConfig { StoreId = "STORE-001", AdminPassword = "pw" };
+
+        var json = DatabaseSetup.BuildStoreHubConfigJson(config, "jwt-secret-value");
+
+        using var doc = JsonDocument.Parse(json);
+        var root = doc.RootElement;
+        root.GetProperty("storeIdentity").GetProperty("storeId").GetString().Should().Be("STORE-001");
+        root.GetProperty("localToken").GetProperty("issuer").GetString().Should().Be("IndyPOS.StoreHub");
+    }
+
+    [Fact]
+    public void GenerateJwtSecret_ShouldReturnBase64Of64Bytes()
+    {
+        var secret = DatabaseSetup.GenerateJwtSecret();
+
+        Convert.FromBase64String(secret).Length.Should().Be(64);
+    }
+
     // These tests require a running PostgreSQL instance
     // They are marked as integration tests
     [Fact(Skip = "Integration test - requires PostgreSQL")]
@@ -60,6 +98,7 @@ public class DatabaseSetupTests
         {
             StoreId = "TEST-001",
             AppPassword = "TestPassword123!",
+            AdminPassword = "AdminPassword123!",
             DatabaseName = "indypos_test",
             AppUser = "indypos_test_user",
             PostgresBinPath = @"C:\Program Files\PostgreSQL\18\bin"
