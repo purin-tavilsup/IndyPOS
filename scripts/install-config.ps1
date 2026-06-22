@@ -38,9 +38,8 @@
     [3/5] Generates JWT Secret Key
     ------------------------------
     Creates a secure random key for signing authentication tokens:
-      - Location: C:\ProgramData\IndyPOS\keys\storehub.key
       - Size: 64 bytes (512 bits), Base64 encoded
-      - Permissions: Restricted to Administrators and SYSTEM only
+      - Written into appsettings (no separate key file)
 
     Why? Users log into WinForms, which calls StoreHub API. The API
     returns a JWT token signed with this key. On subsequent requests,
@@ -212,35 +211,17 @@ Write-Host "  Granting permissions..." -ForegroundColor Gray
 & "$PgBin\psql.exe" -h 127.0.0.1 -U postgres -d $DbName -c "CREATE EXTENSION IF NOT EXISTS ""uuid-ossp"";"
 
 # -----------------------------------
-# Step 3: Generate RSA key pair for JWT
+# Step 3: Generate JWT signing key
 # -----------------------------------
 Write-Host ""
-Write-Host "[3/5] Generating RSA key pair..." -ForegroundColor Green
+Write-Host "[3/5] Generating JWT signing key..." -ForegroundColor Green
 
-$keyPath = "C:\ProgramData\IndyPOS\keys\storehub.key"
-if (-not (Test-Path $keyPath)) {
-    # Generate a secure random key (32 bytes = 256 bits)
-    $bytes = New-Object byte[] 64
-    [System.Security.Cryptography.RandomNumberGenerator]::Fill($bytes)
-    $jwtSecret = [Convert]::ToBase64String($bytes)
-
-    # Save to file (restrict permissions)
-    Set-Content -Path $keyPath -Value $jwtSecret -NoNewline
-
-    # Restrict file permissions (only SYSTEM and Administrators)
-    $acl = Get-Acl $keyPath
-    $acl.SetAccessRuleProtection($true, $false)
-    $adminRule = New-Object System.Security.AccessControl.FileSystemAccessRule("Administrators", "FullControl", "Allow")
-    $systemRule = New-Object System.Security.AccessControl.FileSystemAccessRule("SYSTEM", "FullControl", "Allow")
-    $acl.SetAccessRule($adminRule)
-    $acl.SetAccessRule($systemRule)
-    Set-Acl $keyPath $acl
-
-    Write-Host "  Generated: $keyPath" -ForegroundColor Gray
-} else {
-    Write-Host "  Exists: $keyPath" -ForegroundColor Gray
-    $jwtSecret = Get-Content $keyPath -Raw
-}
+# Fresh 64-byte (512-bit) signing key, written directly into appsettings below.
+# No longer persisted to a separate storehub.key file.
+$bytes = New-Object byte[] 64
+[System.Security.Cryptography.RandomNumberGenerator]::Fill($bytes)
+$jwtSecret = [Convert]::ToBase64String($bytes)
+Write-Host "  Generated JWT signing key (64 bytes, Base64)" -ForegroundColor Gray
 
 # -----------------------------------
 # Step 4: Create StoreHub appsettings
