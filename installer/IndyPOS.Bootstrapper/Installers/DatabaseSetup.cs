@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using System.Security.Cryptography;
 using System.Text.Json;
+using IndyPOS.Vault;
 
 namespace IndyPOS.Bootstrapper.Installers;
 
@@ -53,7 +54,7 @@ public class DatabaseSetup
             CreateDirectories();
 
             log?.Report("Generating JWT secret key...");
-            var jwtSecret = await GenerateJwtSecretAsync(cancellationToken);
+            var jwtSecret = GenerateJwtSecret();
 
             log?.Report($"Creating database user '{config.AppUser}'...");
             var userCreated = await CreateDatabaseUserAsync(
@@ -131,25 +132,14 @@ public class DatabaseSetup
         }
     }
 
-    private async Task<string> GenerateJwtSecretAsync(CancellationToken cancellationToken)
+    // 64-byte (512-bit) random signing key. No longer persisted to a separate
+    // file — it is DPAPI-protected inside appsettings.json (the only consumer).
+    // A fresh secret is generated per install; 12h token expiry makes that fine.
+    internal static string GenerateJwtSecret()
     {
-        var keyPath = Path.Combine(Config.KeysDirectory, "storehub.key");
-
-        if (File.Exists(keyPath))
-        {
-            return await File.ReadAllTextAsync(keyPath, cancellationToken);
-        }
-
-        // Generate 64-byte (512-bit) random key
         var bytes = new byte[64];
         RandomNumberGenerator.Fill(bytes);
-        var jwtSecret = Convert.ToBase64String(bytes);
-
-        await File.WriteAllTextAsync(keyPath, jwtSecret, cancellationToken);
-
-        RestrictFilePermissions(keyPath);
-
-        return jwtSecret;
+        return Convert.ToBase64String(bytes);
     }
 
     private static void RestrictFilePermissions(string filePath)
@@ -201,19 +191,17 @@ public class DatabaseSetup
             $"SELECT 1 FROM pg_roles WHERE rolname='{username}'",
             cancellationToken);
 
-        if (checkResult.Output?.Contains("1") == true)
-        {
-            return false;
-        }
+        // The app password is auto-generated fresh on every install. If the role
+        // already exists from a prior run, ALTER it to the new password so the
+        // connection string and the role stay in sync (avoids an auth mismatch).
+        var roleExists = checkResult.Output?.Contains("1") == true;
+        var sql = roleExists
+            ? $"ALTER USER {username} WITH PASSWORD '{password}'"
+            : $"CREATE USER {username} WITH PASSWORD '{password}'";
 
-        var createResult = await RunPsqlAsync(
-            pgBinPath,
-            postgresPassword,
-            "postgres",
-            $"CREATE USER {username} WITH PASSWORD '{password}'",
-            cancellationToken);
+        await RunPsqlAsync(pgBinPath, postgresPassword, "postgres", sql, cancellationToken);
 
-        return createResult.Success;
+        return !roleExists;
     }
 
     private static async Task<bool> CreateDatabaseAsync(
@@ -312,30 +300,45 @@ public class DatabaseSetup
 
     private async Task CreateStoreHubConfigAsync(string jwtSecret, CancellationToken cancellationToken)
     {
-        // We deliberately use appsettings.json (not .Production.json) because
-        // this single-tier deployment doesn't need ASP.NET Core's environment
-        // overlay machinery. The bootstrapper owns this file end-to-end —
-        // there is no source-controlled template that could clobber it.
         var configPath = Path.Combine(Config.StoreHubInstallPath, "appsettings.json");
+
+        var json = BuildStoreHubConfigJson(Config, jwtSecret);
+
+        await File.WriteAllTextAsync(configPath, json, cancellationToken);
+
+        // appsettings.json now holds the protected secrets; lock it down to
+        // Administrators + LocalSystem as defense-in-depth alongside DPAPI.
+        RestrictFilePermissions(configPath);
+    }
+
+    internal static string BuildStoreHubConfigJson(InstallationConfig config, string jwtSecret)
+    {
+        var connectionString =
+            $"Host=127.0.0.1;Port=5432;Database={config.DatabaseName};Username={config.AppUser};Password={config.AppPassword}";
 
         var configObject = new
         {
-            Urls = $"http://localhost:{Config.HealthCheckPort}",
+            Urls = $"http://localhost:{config.HealthCheckPort}",
             AllowedHosts = "*",
             ConnectionStrings = new
             {
-                storehub_db = $"Host=127.0.0.1;Port=5432;Database={Config.DatabaseName};Username={Config.AppUser};Password={Config.AppPassword}"
+                storehub_db = SecretProtector.Protect("ConnectionStrings:storehub-db", connectionString)
             },
             LocalToken = new
             {
-                SecretKey = jwtSecret,
+                SecretKey = SecretProtector.Protect("LocalToken:SecretKey", jwtSecret),
                 Issuer = "IndyPOS.StoreHub",
                 Audience = "IndyPOS.POS",
                 ExpiryHours = 12
             },
             StoreIdentity = new
             {
-                StoreId = Config.StoreId
+                StoreId = config.StoreId
+            },
+            InitialAdmin = new
+            {
+                Username = config.AdminUsername,
+                Password = config.AdminPassword
             },
             CloudApi = new
             {
@@ -367,12 +370,11 @@ public class DatabaseSetup
 
         var json = JsonSerializer.Serialize(configObject, options);
 
-        // Property names with hyphens/dots can't be C# identifiers, so swap after serialize.
         json = json.Replace("\"storehub_db\"", "\"storehub-db\"");
         json = json.Replace("\"Microsoft_AspNetCore\"", "\"Microsoft.AspNetCore\"");
         json = json.Replace("\"Microsoft_EntityFrameworkCore\"", "\"Microsoft.EntityFrameworkCore\"");
 
-        await File.WriteAllTextAsync(configPath, json, cancellationToken);
+        return json;
     }
 
     private async Task CreateStoreConfigTemplateAsync(CancellationToken cancellationToken)
