@@ -236,34 +236,26 @@ function Test-Filesystem {
             } else {
                 Fail "appsettings Urls mismatch" "Expected: $expectedUrls, got: $($cfg.Urls)"
             }
+            # Connection string + JWT key are DPAPI-protected at rest (see IndyPOS.Vault).
+            # The plaintext is recoverable only by the service on this machine, so we
+            # verify the marker is present rather than matching DB/user substrings.
             $connStr = $cfg.connectionStrings.'storehub-db'
-            if ($connStr -match [regex]::Escape("Database=$DatabaseName")) {
-                Pass "Connection string targets DB '$DatabaseName'"
+            if ($connStr -match '^DPAPI:') {
+                Pass "Connection string DPAPI-protected"
             } else {
-                Fail "Connection string DB mismatch" $connStr
+                Fail "Connection string not DPAPI-protected" $connStr
             }
-            if ($connStr -match [regex]::Escape("Username=$AppUser")) {
-                Pass "Connection string uses user '$AppUser'"
+            $jwtSecret = $cfg.localToken.secretKey
+            if ($jwtSecret -match '^DPAPI:') {
+                Pass "JWT secret key DPAPI-protected"
             } else {
-                Fail "Connection string user mismatch" $connStr
+                Fail "JWT secret key not DPAPI-protected" $jwtSecret
             }
         } catch {
             Fail "appsettings.json unparseable" $_.Exception.Message
         }
     } else {
         Fail "appsettings.json missing" $appsettings
-    }
-
-    $jwtKey = Join-Path $KeysDirectory 'storehub.key'
-    if (Test-Path $jwtKey) {
-        $content = (Get-Content $jwtKey -Raw).Trim()
-        if ($content.Length -ge 86 -and $content.Length -le 90) {
-            Pass "storehub.key present" "Length: $($content.Length) chars (~64 bytes base64)"
-        } else {
-            Fail "storehub.key wrong length" "Expected ~88 chars, got $($content.Length)"
-        }
-    } else {
-        Fail "storehub.key missing" $jwtKey
     }
 
     $storeConfig = Join-Path $ConfigDirectory 'StoreConfiguration.json'

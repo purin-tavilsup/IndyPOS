@@ -230,7 +230,7 @@ cd C:\path\to\publish
 
 3. **Generates JWT key:**
    - Secure random key for authentication
-   - Saved to `C:\ProgramData\IndyPOS\keys\storehub.key`
+   - Stored DPAPI-protected inside `appsettings.json` (no separate key file)
 
 4. **Creates configuration files:**
    - `C:\Program Files\IndyPOS\StoreHub\appsettings.Production.json`
@@ -584,7 +584,7 @@ Get-Service IndyPOS.StoreHub
 | StoreHub binaries | `C:\Program Files\IndyPOS\StoreHub\` |
 | StoreHub config | `C:\Program Files\IndyPOS\StoreHub\appsettings.Production.json` |
 | Store config | `C:\ProgramData\IndyPOS\Config\StoreConfiguration.json` |
-| JWT key | `C:\ProgramData\IndyPOS\keys\storehub.key` |
+| JWT key | DPAPI-protected inside StoreHub `appsettings.json` (no separate file) |
 | Logs | `C:\ProgramData\IndyPOS\logs\` |
 | Backups | `C:\ProgramData\IndyPOS\backups\` |
 
