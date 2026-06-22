@@ -335,6 +335,10 @@ public class DatabaseSetup
             {
                 StoreId = config.StoreId
             },
+            // Plaintext by design: a human-chosen bootstrap credential consumed once by
+            // SeedInitialAdminAsync, then stored only as a BCrypt hash in the DB. It is not
+            // a machine-to-machine secret, so it is guarded by the appsettings.json ACL
+            // (Administrators + LocalSystem) rather than DPAPI.
             InitialAdmin = new
             {
                 Username = config.AdminUsername,
