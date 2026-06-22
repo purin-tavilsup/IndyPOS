@@ -28,4 +28,9 @@
     <EmbeddedResource Include="Resources\**\*" Condition="Exists('Resources')" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\IndyPOS.Vault\IndyPOS.Vault.csproj" />
+    <InternalsVisibleTo Include="IndyPOS.Bootstrapper.Tests" />
+  </ItemGroup>
+
 </Project>
