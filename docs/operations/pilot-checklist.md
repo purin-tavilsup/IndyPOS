@@ -35,6 +35,11 @@ This checklist is for deploying IndyPOS StoreHub at the pilot store (Store 1).
 ## Deployment Steps
 
 ### Step 1: Configure PostgreSQL
+
+> ⚠️ **Deprecated.** `install-config.ps1` has been removed; the automated installer
+> (`IndyPOS-Setup.exe`) is the supported path and handles PostgreSQL + DPAPI-protected
+> secrets. The manual command below is retained for reference only.
+
 ```powershell
 # Run as Administrator
 cd C:\ProgramData\IndyPOS\ops

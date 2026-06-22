@@ -33,7 +33,7 @@ This document explains each configuration property in `appsettings.json`.
 
 **How to get:**
 - Use default `C:\ProgramData\IndyPOS\Config\StoreConfiguration.json`
-- Created by `install-config.ps1` or manually
+- Created by the installer or manually
 
 **Used by:**
 - Receipt printing (store name, address, phone)
