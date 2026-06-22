@@ -24,6 +24,7 @@
     <ProjectReference Include="..\IndyPOS.ServiceDefaults\IndyPOS.ServiceDefaults.csproj" />
     <ProjectReference Include="..\IndyPOS.Application\IndyPOS.Application.csproj" />
     <ProjectReference Include="..\IndyPOS.Infrastructure\IndyPOS.Infrastructure.csproj" />
+    <ProjectReference Include="..\IndyPOS.Vault\IndyPOS.Vault.csproj" />
   </ItemGroup>
 
 </Project>

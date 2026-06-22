@@ -28,6 +28,7 @@ using IndyPOS.Infrastructure.QueryHandlers.Reports;
 using IndyPOS.Infrastructure.Persistence.StoreHub;
 using IndyPOS.Infrastructure.Services.StoreHub;
 using IndyPOS.ServiceDefaults;
+using IndyPOS.StoreHub.Configuration;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.IdentityModel.Tokens;
@@ -35,6 +36,12 @@ using Nokpirab;
 using Scalar.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Decrypt DPAPI-protected secrets before any consumer reads them. No-op in dev:
+// Aspire injects an unmarked connection string. See IndyPOS.Vault.
+builder.Configuration.UnprotectSecrets(
+    "ConnectionStrings:storehub-db",
+    "LocalToken:SecretKey");
 
 // Enable Windows Service hosting so SCM's start callback is satisfied within
 // 30s (otherwise sc start fails with error 1053). No-op when running as a
@@ -144,11 +151,17 @@ builder.Services.AddOpenApi();
 
 var app = builder.Build();
 
-// Auto-create database schema and seed dev data
+// Provision the database. Dev uses EnsureCreated + test data for speed;
+// production applies EF migrations and seeds the installer-provided admin.
 if (app.Environment.IsDevelopment())
 {
     await app.EnsureStoreHubDatabaseCreatedAsync();
     await app.SeedDevelopmentDataAsync();
+}
+else
+{
+    await app.MigrateStoreHubDatabaseAsync();
+    await app.SeedInitialAdminAsync();
 }
 
 // Map default endpoints (health, alive)
