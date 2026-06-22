@@ -54,9 +54,16 @@ be decrypted elsewhere.
 
 It does **not** protect against a local attacker who already has admin/code
 execution on the box: machine scope means any process on that machine can
-unprotect. That residual risk is mitigated by the existing NTFS ACLs
-(Administrators + LocalSystem only). DPAPI + ACLs together are defense in depth,
-and that combination is the bar we target.
+unprotect. That residual risk is mitigated by NTFS ACLs (Administrators +
+LocalSystem only). DPAPI + ACLs together are defense in depth, and that
+combination is the bar we target.
+
+**ACL parity note:** today only the `storehub.key` file is ACL-locked;
+`appsettings.json` is not. Since Decision 2a moves the JWT secret *into*
+`appsettings.json`, the installer must apply the same Administrators+LocalSystem
+ACL to `appsettings.json` — otherwise dropping the locked key file would weaken
+the at-rest posture. The existing `RestrictFilePermissions` helper is repurposed
+for this.
 
 ## Relationship to existing prior art
 
