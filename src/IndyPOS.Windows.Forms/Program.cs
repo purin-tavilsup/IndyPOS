@@ -97,9 +97,11 @@ internal static class Program
 		// directory — the app can be launched with an arbitrary CWD (the
 		// installer's Finish button inherits the bootstrapper's CWD), and
 		// appsettings.json always ships next to the exe.
+		// Environment variables are added last so the Aspire AppHost can override
+		// StoreHub__BaseUrl in dev without changing the shipped appsettings.json.
 		configBuilder.SetBasePath(AppContext.BaseDirectory)
 					 .AddJsonFile("appsettings.json")
-					 .Build();
+					 .AddEnvironmentVariables();
 	}
 
 	private static void AddServices(HostBuilderContext context, IServiceCollection services)

@@ -23,9 +23,13 @@ var storeHub = builder.AddProject<Projects.IndyPOS_StoreHub>("storehub-api")
                       .WaitFor(postgres)
                       .WaitFor(cloudApi);
 
-// WinForms desktop app - explicit start so it doesn't auto-launch
+// WinForms desktop app - explicit start so it doesn't auto-launch.
+// appsettings.json defaults StoreHub to :5000 (the installed/production port);
+// override to the Aspire dev port (:5012) here so dev and prod can differ
+// without shipping a dev value to customers.
 builder.AddProject<Projects.IndyPOS_Windows_Forms>("winforms-app")
        .WithReference(storeHub)
+       .WithEnvironment("StoreHub__BaseUrl", "http://localhost:5012")
        .WaitFor(storeHub)
        .WithExplicitStart();
 
