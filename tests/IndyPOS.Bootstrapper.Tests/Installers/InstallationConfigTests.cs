@@ -12,12 +12,14 @@ public class InstallationConfigTests
         var config = new InstallationConfig
         {
             StoreId = "STORE-001",
-            AppPassword = "SecurePassword123!"
+            AppPassword = "SecurePassword123!",
+            AdminPassword = "AdminPassword123!"
         };
 
         // Assert
         config.StoreId.Should().Be("STORE-001");
         config.AppPassword.Should().Be("SecurePassword123!");
+        config.AdminPassword.Should().Be("AdminPassword123!");
     }
 
     [Fact]
@@ -27,13 +29,15 @@ public class InstallationConfigTests
         var config = new InstallationConfig
         {
             StoreId = "STORE-001",
-            AppPassword = "test"
+            AppPassword = "test",
+            AdminPassword = "test"
         };
 
         // Assert
         config.PostgresBinPath.Should().Be(@"C:\Program Files\PostgreSQL\18\bin");
         config.DatabaseName.Should().Be("indypos_storehub");
         config.AppUser.Should().Be("indypos_app");
+        config.AdminUsername.Should().Be("admin");
     }
 
     [Fact]
@@ -44,6 +48,7 @@ public class InstallationConfigTests
         {
             StoreId = "BANGKOK-01",
             AppPassword = "test",
+            AdminPassword = "test",
             DatabaseName = "indypos_bangkok",
             AppUser = "indypos_bkk"
         };
