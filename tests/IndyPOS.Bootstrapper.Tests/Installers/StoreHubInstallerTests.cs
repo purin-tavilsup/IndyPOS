@@ -124,7 +124,7 @@ public class VelopackLauncherTests
     public async Task InstallAsync_WhenSetupNotFound_ShouldReturnError()
     {
         // Arrange
-        var config = new InstallationConfig { StoreId = "test", AppPassword = "test" };
+        var config = new InstallationConfig { StoreId = "test", AppPassword = "test", AdminPassword = "test" };
         var launcher = new VelopackLauncher();
         var progress = new Progress<int>(_ => { });
 

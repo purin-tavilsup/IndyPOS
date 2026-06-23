@@ -12,7 +12,8 @@ public class InstallManifestTests
         var config = new InstallationConfig
         {
             StoreId = "STORE-001",
-            AppPassword = "secret-not-in-manifest"
+            AppPassword = "secret-not-in-manifest",
+            AdminPassword = "admin-secret-not-in-manifest"
         };
 
         var manifest = InstallManifest.From(config);
@@ -42,7 +43,8 @@ public class InstallManifestTests
         var config = new InstallationConfig
         {
             StoreId = "STORE-001",
-            AppPassword = "ShouldNeverAppearInManifest!"
+            AppPassword = "ShouldNeverAppearInManifest!",
+            AdminPassword = "AdminShouldNeverAppearInManifest!"
         };
 
         var manifest = InstallManifest.From(config);
@@ -55,6 +57,7 @@ public class InstallManifestTests
 
         json.Should().NotContain("ShouldNeverAppearInManifest");
         json.Should().NotContain("appPassword", "the manifest schema must not carry credentials");
+        json.Should().NotContain("adminPassword", "the manifest schema must not carry credentials");
         json.Should().Contain("\"serviceName\": \"IndyPOS.StoreHub.v4\"");
         json.Should().Contain("\"velopackAppId\": \"IndyPOS.POS.v4\"");
     }
