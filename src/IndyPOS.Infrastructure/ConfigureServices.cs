@@ -155,6 +155,9 @@ public static class ConfigureServices
 		// Development data seeder (test users and products)
 		services.AddScoped<DevelopmentDataSeeder>();
 
+		// Production seeder: initial admin login from the installer wizard
+		services.AddScoped<InitialAdminSeeder>();
+
 		return services;
 	}
 
