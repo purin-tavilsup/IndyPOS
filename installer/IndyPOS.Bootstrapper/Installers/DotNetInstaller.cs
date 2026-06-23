@@ -1,5 +1,4 @@
 using System.Diagnostics;
-using Microsoft.Win32;
 
 namespace IndyPOS.Bootstrapper.Installers;
 
@@ -8,16 +7,22 @@ namespace IndyPOS.Bootstrapper.Installers;
 /// </summary>
 public class DotNetInstaller
 {
-    // .NET 10 Desktop Runtime download URL (update when final release is available)
-    private const string DotNetDownloadUrl =
-        "https://download.visualstudio.microsoft.com/download/pr/dotnet-runtime-10.0-win-x64.exe";
+    // winget package id for the .NET 10 Desktop Runtime. winget ships with
+    // Windows 11 and resolves the current point release for us, so we never
+    // hardcode a build-specific download URL (which 404s every patch).
+    private const string WingetPackageId = "Microsoft.DotNet.DesktopRuntime.10";
 
-    // Alternative: Use the official download page redirect
+    // Fallback only: the official download page, opened in a browser when the
+    // silent winget install isn't available (e.g. winget missing or offline).
     private const string DotNetDownloadPageUrl =
         "https://dotnet.microsoft.com/download/dotnet/10.0";
 
+    // Upper bound on the silent winget install (download + install of ~55 MB).
+    private static readonly TimeSpan WingetInstallTimeout = TimeSpan.FromMinutes(5);
+
     /// <summary>
-    /// Ensure .NET 10 Runtime is installed.
+    /// Ensure .NET 10 Runtime is installed. Tries a silent winget install
+    /// first, then falls back to a guided manual install.
     /// </summary>
     public async Task<DotNetInstallerResult> EnsureInstalledAsync(
         IProgress<string>? log = null,
@@ -33,9 +38,23 @@ public class DotNetInstaller
 
         log?.Report(".NET 10 Desktop Runtime not found, installation required");
 
-        // For now, prompt user to install manually since .NET 10 URLs may change
-        // In production, we'd download and run the installer silently
+        if (await TryInstallViaWingetAsync(log, cancellationToken)
+            && IsDotNet10Installed())
+        {
+            log?.Report(".NET 10 Desktop Runtime installed via winget");
+            return new DotNetInstallerResult { Success = true, WasInstalled = true };
+        }
 
+        log?.Report("Silent install unavailable; switching to manual install");
+        return InstallManually(log);
+    }
+
+    /// <summary>
+    /// Guided manual install: open the download page and poll until the user
+    /// confirms .NET is installed. Fallback when winget can't be used.
+    /// </summary>
+    private DotNetInstallerResult InstallManually(IProgress<string>? log)
+    {
         var message = ".NET 10 Desktop Runtime is required but not installed.\n\n" +
                       "Please download and install it from:\n" +
                       "https://dotnet.microsoft.com/download/dotnet/10.0\n\n" +
@@ -116,36 +135,142 @@ public class DotNetInstaller
     }
 
     /// <summary>
+    /// Attempt a silent winget install of the .NET 10 Desktop Runtime.
+    /// Returns false (so the caller can fall back) on any failure — winget
+    /// missing, offline, declined agreement, or a non-zero exit code.
+    /// </summary>
+    private static async Task<bool> TryInstallViaWingetAsync(
+        IProgress<string>? log,
+        CancellationToken cancellationToken)
+    {
+        log?.Report("Installing .NET 10 Desktop Runtime via winget...");
+
+        var psi = new ProcessStartInfo
+        {
+            FileName = "winget",
+            RedirectStandardOutput = true,
+            RedirectStandardError = true,
+            UseShellExecute = false,
+            CreateNoWindow = true
+        };
+        foreach (var arg in new[]
+                 {
+                     "install", "--exact", "--id", WingetPackageId,
+                     "--source", "winget", "--silent",
+                     "--accept-package-agreements", "--accept-source-agreements",
+                     "--disable-interactivity"
+                 })
+        {
+            psi.ArgumentList.Add(arg);
+        }
+
+        using var timeout = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+        timeout.CancelAfter(WingetInstallTimeout);
+
+        try
+        {
+            using var process = Process.Start(psi);
+            if (process is null)
+            {
+                return false;
+            }
+
+            // Drain both streams so a full pipe buffer can't deadlock winget.
+            var stdout = process.StandardOutput.ReadToEndAsync(timeout.Token);
+            var stderr = process.StandardError.ReadToEndAsync(timeout.Token);
+            await process.WaitForExitAsync(timeout.Token);
+            await Task.WhenAll(stdout, stderr);
+
+            if (process.ExitCode != 0)
+            {
+                log?.Report($"winget exited with code {process.ExitCode}");
+            }
+
+            return process.ExitCode == 0;
+        }
+        catch (Exception ex)
+        {
+            log?.Report($"winget install could not run: {ex.Message}");
+            return false;
+        }
+    }
+
+    /// <summary>
     /// Check if .NET 10 Desktop Runtime is installed.
     /// </summary>
     private static bool IsDotNet10Installed()
     {
-        // Method 1: Check via registry
-        try
+        var dotnetRoot = FindDotNetRoot();
+        if (dotnetRoot is null)
         {
-            using var key = Registry.LocalMachine.OpenSubKey(
-                @"SOFTWARE\dotnet\Setup\InstalledVersions\x64\sharedfx\Microsoft.WindowsDesktop.App");
-
-            if (key != null)
-            {
-                var versions = key.GetSubKeyNames();
-                if (versions.Any(v => v.StartsWith("10.")))
-                {
-                    return true;
-                }
-            }
-        }
-        catch
-        {
-            // Ignore registry errors
+            return false;
         }
 
-        // Method 2: Check via dotnet --list-runtimes
+        // Prefer the filesystem probe: a versioned folder under
+        // shared\Microsoft.WindowsDesktop.App is exactly what the runtime
+        // needs to launch the app, and it requires no PATH or registry.
+        return HasDesktopRuntime10Folder(dotnetRoot)
+               || ListRuntimesReportsDesktop10(dotnetRoot);
+    }
+
+    /// <summary>
+    /// Locate the dotnet install root without trusting the inherited PATH
+    /// (which is captured at process start and goes stale if .NET was just
+    /// installed by another tool, e.g. winget).
+    /// </summary>
+    private static string? FindDotNetRoot()
+    {
+        var candidates = new[]
+        {
+            Environment.GetEnvironmentVariable("DOTNET_ROOT"),
+            Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles),
+                "dotnet"),
+            Environment.GetEnvironmentVariable("ProgramW6432") is { Length: > 0 } pf64
+                ? Path.Combine(pf64, "dotnet")
+                : null
+        };
+
+        return candidates.FirstOrDefault(
+            path => !string.IsNullOrEmpty(path) && Directory.Exists(path));
+    }
+
+    /// <summary>
+    /// True when a Microsoft.WindowsDesktop.App 10.x runtime folder exists.
+    /// </summary>
+    private static bool HasDesktopRuntime10Folder(string dotnetRoot)
+    {
+        var desktopApp = Path.Combine(
+            dotnetRoot, "shared", "Microsoft.WindowsDesktop.App");
+
+        if (!Directory.Exists(desktopApp))
+        {
+            return false;
+        }
+
+        return Directory.EnumerateDirectories(desktopApp)
+            .Select(Path.GetFileName)
+            .Any(name => name is not null
+                         && name.StartsWith("10.", StringComparison.Ordinal));
+    }
+
+    /// <summary>
+    /// Fallback: run the absolute dotnet.exe (not the bare PATH name) so a
+    /// freshly-installed runtime is still seen by this already-running process.
+    /// </summary>
+    private static bool ListRuntimesReportsDesktop10(string dotnetRoot)
+    {
+        var dotnetExe = Path.Combine(dotnetRoot, "dotnet.exe");
+        if (!File.Exists(dotnetExe))
+        {
+            return false;
+        }
+
         try
         {
             var psi = new ProcessStartInfo
             {
-                FileName = "dotnet",
+                FileName = dotnetExe,
                 Arguments = "--list-runtimes",
                 RedirectStandardOutput = true,
                 UseShellExecute = false,
@@ -153,21 +278,20 @@ public class DotNetInstaller
             };
 
             using var process = Process.Start(psi);
-            if (process != null)
+            if (process is null)
             {
-                var output = process.StandardOutput.ReadToEnd();
-                process.WaitForExit(5000);
-
-                // Look for Microsoft.WindowsDesktop.App 10.x.x
-                return output.Contains("Microsoft.WindowsDesktop.App 10.");
+                return false;
             }
+
+            var output = process.StandardOutput.ReadToEnd();
+            process.WaitForExit(5000);
+
+            return output.Contains("Microsoft.WindowsDesktop.App 10.");
         }
         catch
         {
-            // dotnet command not found or failed
+            return false;
         }
-
-        return false;
     }
 }
 
