@@ -32,7 +32,19 @@ public partial class UserLogInPanel : UserControl
 			return;
 		}
 
-		await TryLogInAsync();
+		// Disable while the async login is in flight so a second click or
+		// Enter press can't re-enter and show a second modal on the shared
+		// MessageForm (which would throw "Form that is already visible").
+		LogInButton.Enabled = false;
+
+		try
+		{
+			await TryLogInAsync();
+		}
+		finally
+		{
+			LogInButton.Enabled = true;
+		}
 	}
 
 	private async Task TryLogInAsync()
