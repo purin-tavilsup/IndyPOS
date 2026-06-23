@@ -1,4 +1,3 @@
-using System.Diagnostics;
 using System.IO.Ports;
 using System.Runtime.Versioning;
 using IndyPOS.Application.Common.Interfaces;
@@ -47,7 +46,6 @@ public class CashDrawerService : ICashDrawerService
 		InitializeSerialPort();
 	}
 
-	[Conditional("RELEASE")]
 	private void InitializeSerialPort()
 	{
 		_serialPort.PortName = _serialPortName;
@@ -56,7 +54,18 @@ public class CashDrawerService : ICashDrawerService
 		_serialPort.Parity = Parity.None;
 		_serialPort.StopBits = StopBits.One;
 		_serialPort.Handshake = Handshake.None;
-		_serialPort.Open();
+
+		// A cash drawer is optional hardware. If the configured COM port is
+		// absent (e.g. no drawer attached), opening it must not bring the app
+		// down — log and carry on; OpenCashDrawer() guards on IsOpen.
+		try
+		{
+			_serialPort.Open();
+		}
+		catch (Exception ex)
+		{
+			_logger.LogWarning(ex, "Unable to open cash drawer serial port '{PortName}'. The cash drawer will be unavailable.", _serialPortName);
+		}
 	}
 	
 	private void GetStoreConfiguration(IStoreConfigurationService storeConfigurationService)
@@ -77,8 +86,14 @@ public class CashDrawerService : ICashDrawerService
 	
 	public void OpenCashDrawer()
 	{
+		if (!_serialPort.IsOpen)
+		{
+			_logger.LogWarning("Cash drawer serial port '{PortName}' is not open; ignoring open-drawer request.", _serialPortName);
+			return;
+		}
+
 		var command = GetCommand(_drawerCode);
-		
+
 		_serialPort.Write(command, 0, command.Length);
 	}
 
