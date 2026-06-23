@@ -6,6 +6,7 @@ namespace IndyPOS.Bootstrapper.Installers;
 public class InstallationOrchestrator
 {
     private readonly DotNetInstaller _dotNetInstaller = new();
+    private readonly VCRedistInstaller _vcRedistInstaller = new();
     private readonly PostgresInstaller _postgresInstaller = new();
     private readonly StoreHubInstaller _storeHubInstaller = new();
     private readonly DatabaseSetup _databaseSetup = new();
@@ -42,7 +43,42 @@ public class InstallationOrchestrator
 
         cancellationToken.ThrowIfCancellationRequested();
 
-        // Step 2: Check/Install PostgreSQL (5-40%)
+        // Step 1b: Check/Install Visual C++ Redistributable (5-10%)
+        // Must run BEFORE PostgreSQL: initdb.exe depends on vcruntime140.dll /
+        // msvcp140.dll. Missing on clean Windows 11 → initdb fails with
+        // -1073741515 (STATUS_DLL_NOT_FOUND). PostgresInstaller invokes EDB with
+        // --install_runtimes 0, so the bootstrapper owns this prerequisite.
+        progress.Report(InstallationProgress.Step(
+            "Checking Prerequisites",
+            "Checking Visual C++ Redistributable...",
+            7));
+
+        progress.Report(InstallationProgress.Log("Checking for Visual C++ Redistributable (x64)..."));
+
+        var vcRedistResult = await _vcRedistInstaller.EnsureInstalledAsync(
+            new Progress<DownloadProgress>(p =>
+            {
+                var pct = 5 + (int)(p.Percentage * 5); // 5-10%
+                progress.Report(InstallationProgress.Step(
+                    "Checking Prerequisites",
+                    p.StatusMessage,
+                    pct));
+            }),
+            cancellationToken);
+
+        if (!vcRedistResult.Success)
+        {
+            throw new InstallationException(
+                $"Visual C++ Redistributable installation failed: {vcRedistResult.ErrorMessage}");
+        }
+
+        progress.Report(InstallationProgress.Log(vcRedistResult.WasInstalled
+            ? "Visual C++ Redistributable installed successfully"
+            : "Visual C++ Redistributable already installed"));
+
+        cancellationToken.ThrowIfCancellationRequested();
+
+        // Step 2: Check/Install PostgreSQL (10-40%)
         progress.Report(InstallationProgress.Step(
             "Installing PostgreSQL",
             "Checking for PostgreSQL 18...",
