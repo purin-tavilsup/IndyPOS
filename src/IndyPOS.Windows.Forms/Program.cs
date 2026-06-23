@@ -93,7 +93,11 @@ internal static class Program
 
 	private static void BuildAppConfiguration(HostBuilderContext context, IConfigurationBuilder configBuilder)
 	{
-		configBuilder.SetBasePath(Directory.GetCurrentDirectory())
+		// Base on the executable's own directory, not the current working
+		// directory — the app can be launched with an arbitrary CWD (the
+		// installer's Finish button inherits the bootstrapper's CWD), and
+		// appsettings.json always ships next to the exe.
+		configBuilder.SetBasePath(AppContext.BaseDirectory)
 					 .AddJsonFile("appsettings.json")
 					 .Build();
 	}
