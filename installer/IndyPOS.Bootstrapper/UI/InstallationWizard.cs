@@ -46,7 +46,9 @@ public partial class InstallationWizard : Form
     {
         // Form settings
         Text = "IndyPOS Setup";
-        Size = new Size(600, 600);
+        // ClientSize (not Size) so the 600px-wide usable area matches the interior
+        // layout coordinates — keeps the footer buttons symmetric to both borders.
+        ClientSize = new Size(600, 600);
         StartPosition = FormStartPosition.CenterScreen;
         FormBorderStyle = FormBorderStyle.FixedSingle;
         MaximizeBox = false;
