@@ -1,4 +1,5 @@
-﻿using IndyPOS.Windows.Forms.Interfaces;
+﻿using IndyPOS.Application.Common;
+using IndyPOS.Windows.Forms.Interfaces;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -19,7 +20,6 @@ namespace IndyPOS.Windows.Forms;
 internal static class Program
 {
 	private const string ProcessName = "IndyPOS";
-	private const string LogDirectory = @"C:\\ProgramData\\IndyPOS\\Logs";
 
 	/// <summary>
 	/// Flag indicating this is the first run after Velopack installation.
@@ -66,12 +66,14 @@ internal static class Program
 
 	private static void ConfigureLogger()
 	{
-		if (!Directory.Exists(LogDirectory))
+		var logDirectory = InstallPaths.LogsDirectory;
+
+		if (!Directory.Exists(logDirectory))
 		{
-			Directory.CreateDirectory(LogDirectory);
+			Directory.CreateDirectory(logDirectory);
 		}
 
-		const string logFilePath = $"{LogDirectory}\\log.json";
+		var logFilePath = Path.Combine(logDirectory, "log.json");
 
 		Log.Logger = new LoggerConfiguration().MinimumLevel.Debug()
 											  .MinimumLevel.Override("Microsoft", LogEventLevel.Information)
