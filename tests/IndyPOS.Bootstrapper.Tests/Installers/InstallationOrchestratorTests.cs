@@ -58,7 +58,8 @@ public class InstallationOrchestratorTests
         var config = new InstallationConfig
         {
             StoreId = "TEST-001",
-            AppPassword = "TestPassword123!"
+            AppPassword = "TestPassword123!",
+            AdminPassword = "AdminPassword123!"
         };
 
         var cts = new CancellationTokenSource();

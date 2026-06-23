@@ -26,12 +26,14 @@ public partial class InstallationWizard : Form
     // Configuration panel controls
     private Panel _configPanel = null!;
     private TextBox _storeIdTextBox = null!;
-    private TextBox _appPasswordTextBox = null!;
+    private TextBox _adminUsernameTextBox = null!;
+    private TextBox _adminPasswordTextBox = null!;
     private TextBox _confirmPasswordTextBox = null!;
     private Button _startButton = null!;
 
     private bool _installationStarted;
     private bool _installationComplete;
+    private string? _velopackExePath;
 
     public InstallationWizard()
     {
@@ -44,7 +46,7 @@ public partial class InstallationWizard : Form
     {
         // Form settings
         Text = "IndyPOS Setup";
-        Size = new Size(600, 500);
+        Size = new Size(600, 600);
         StartPosition = FormStartPosition.CenterScreen;
         FormBorderStyle = FormBorderStyle.FixedSingle;
         MaximizeBox = false;
@@ -176,7 +178,7 @@ public partial class InstallationWizard : Form
         var panel = new Panel
         {
             Location = new Point(20, 20),
-            Size = new Size(540, 300)
+            Size = new Size(540, 380)
         };
 
         var storeIdLabel = new Label
@@ -204,17 +206,42 @@ public partial class InstallationWizard : Form
             AutoSize = true
         };
 
-        var passwordLabel = new Label
+        var adminUsernameLabel = new Label
         {
-            Text = "Database Password:",
+            Text = "Admin Username:",
             Font = new Font("Segoe UI", 10),
             Location = new Point(0, 95),
             AutoSize = true
         };
 
-        _appPasswordTextBox = new TextBox
+        _adminUsernameTextBox = new TextBox
         {
             Location = new Point(0, 120),
+            Size = new Size(300, 25),
+            Font = new Font("Segoe UI", 10),
+            Text = "admin"
+        };
+
+        var adminUsernameHint = new Label
+        {
+            Text = "The administrator account used to sign in to IndyPOS",
+            Font = new Font("Segoe UI", 8),
+            ForeColor = Color.Gray,
+            Location = new Point(0, 147),
+            AutoSize = true
+        };
+
+        var passwordLabel = new Label
+        {
+            Text = "Admin Password:",
+            Font = new Font("Segoe UI", 10),
+            Location = new Point(0, 180),
+            AutoSize = true
+        };
+
+        _adminPasswordTextBox = new TextBox
+        {
+            Location = new Point(0, 205),
             Size = new Size(300, 25),
             Font = new Font("Segoe UI", 10),
             PasswordChar = '*',
@@ -225,13 +252,13 @@ public partial class InstallationWizard : Form
         {
             Text = "Confirm Password:",
             Font = new Font("Segoe UI", 10),
-            Location = new Point(0, 155),
+            Location = new Point(0, 240),
             AutoSize = true
         };
 
         _confirmPasswordTextBox = new TextBox
         {
-            Location = new Point(0, 180),
+            Location = new Point(0, 265),
             Size = new Size(300, 25),
             Font = new Font("Segoe UI", 10),
             PasswordChar = '*',
@@ -240,10 +267,10 @@ public partial class InstallationWizard : Form
 
         var passwordHint = new Label
         {
-            Text = "This password is used to secure the local database",
+            Text = "Used to sign in to IndyPOS. The database password is generated automatically.",
             Font = new Font("Segoe UI", 8),
             ForeColor = Color.Gray,
-            Location = new Point(0, 207),
+            Location = new Point(0, 292),
             AutoSize = true
         };
 
@@ -251,7 +278,7 @@ public partial class InstallationWizard : Form
         {
             Text = "Install IndyPOS",
             Size = new Size(150, 40),
-            Location = new Point(0, 250),
+            Location = new Point(0, 325),
             FlatStyle = FlatStyle.Flat,
             BackColor = Color.FromArgb(0, 122, 204),
             ForeColor = Color.White,
@@ -261,7 +288,8 @@ public partial class InstallationWizard : Form
         panel.Controls.AddRange(new Control[]
         {
             storeIdLabel, _storeIdTextBox, storeIdHint,
-            passwordLabel, _appPasswordTextBox,
+            adminUsernameLabel, _adminUsernameTextBox, adminUsernameHint,
+            passwordLabel, _adminPasswordTextBox,
             confirmLabel, _confirmPasswordTextBox, passwordHint,
             _startButton
         });
@@ -288,15 +316,23 @@ public partial class InstallationWizard : Form
             return;
         }
 
-        if (string.IsNullOrWhiteSpace(_appPasswordTextBox.Text))
+        if (string.IsNullOrWhiteSpace(_adminUsernameTextBox.Text))
         {
-            MessageBox.Show("Please enter a database password.", "Validation Error",
+            MessageBox.Show("Please enter an admin username.", "Validation Error",
                 MessageBoxButtons.OK, MessageBoxIcon.Warning);
-            _appPasswordTextBox.Focus();
+            _adminUsernameTextBox.Focus();
             return;
         }
 
-        if (_appPasswordTextBox.Text != _confirmPasswordTextBox.Text)
+        if (string.IsNullOrWhiteSpace(_adminPasswordTextBox.Text))
+        {
+            MessageBox.Show("Please enter an admin password.", "Validation Error",
+                MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            _adminPasswordTextBox.Focus();
+            return;
+        }
+
+        if (_adminPasswordTextBox.Text != _confirmPasswordTextBox.Text)
         {
             MessageBox.Show("Passwords do not match.", "Validation Error",
                 MessageBoxButtons.OK, MessageBoxIcon.Warning);
@@ -304,11 +340,11 @@ public partial class InstallationWizard : Form
             return;
         }
 
-        if (_appPasswordTextBox.Text.Length < 8)
+        if (_adminPasswordTextBox.Text.Length < 8)
         {
             MessageBox.Show("Password must be at least 8 characters.", "Validation Error",
                 MessageBoxButtons.OK, MessageBoxIcon.Warning);
-            _appPasswordTextBox.Focus();
+            _adminPasswordTextBox.Focus();
             return;
         }
 
@@ -324,8 +360,13 @@ public partial class InstallationWizard : Form
         var config = new InstallationConfig
         {
             StoreId = _storeIdTextBox.Text.Trim(),
-            AppPassword = _appPasswordTextBox.Text
+            AdminUsername = _adminUsernameTextBox.Text.Trim(),
+            AdminPassword = _adminPasswordTextBox.Text
+            // AppPassword (database) is auto-generated by InstallationConfig.
         };
+
+        // Capture the versioned install path now so Finish launches the right exe.
+        _velopackExePath = Path.Combine(config.VelopackInstallPath, "IndyPOS.Windows.Forms.exe");
 
         var progress = new Progress<InstallationProgress>(UpdateProgress);
 
@@ -423,20 +464,15 @@ public partial class InstallationWizard : Form
 
     private void FinishButton_Click(object? sender, EventArgs e)
     {
-        // Launch WinForms app
+        // Launch WinForms app from the versioned Velopack install path captured
+        // when the install started (e.g. ...\IndyPOS.POS.v4\current).
         try
         {
-            var winFormsPath = Path.Combine(
-                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-                "IndyPOS.POS",
-                "current",
-                "IndyPOS.Windows.Forms.exe");
-
-            if (File.Exists(winFormsPath))
+            if (_velopackExePath is not null && File.Exists(_velopackExePath))
             {
                 System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
                 {
-                    FileName = winFormsPath,
+                    FileName = _velopackExePath,
                     UseShellExecute = true
                 });
             }

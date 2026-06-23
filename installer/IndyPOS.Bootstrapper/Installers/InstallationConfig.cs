@@ -1,4 +1,5 @@
 using System.Reflection;
+using System.Security.Cryptography;
 
 namespace IndyPOS.Bootstrapper.Installers;
 
@@ -16,9 +17,23 @@ public class InstallationConfig
     public required string StoreId { get; init; }
 
     /// <summary>
-    /// Password for the database application user.
+    /// Username for the initial SystemAdmin login (chosen in the wizard).
     /// </summary>
-    public required string AppPassword { get; init; }
+    public string AdminUsername { get; init; } = "admin";
+
+    /// <summary>
+    /// Password for the initial SystemAdmin login (chosen in the wizard).
+    /// This is the only human-facing credential the installer collects.
+    /// </summary>
+    public required string AdminPassword { get; init; }
+
+    /// <summary>
+    /// Password for the local database application user. This is a
+    /// machine-to-machine secret (Postgres listens only on 127.0.0.1), so it
+    /// is auto-generated rather than chosen — the person installing never needs
+    /// to know it. Alphanumeric to stay safe in connection strings and SQL.
+    /// </summary>
+    public string AppPassword { get; init; } = GenerateSecret();
 
     /// <summary>
     /// PostgreSQL bin directory (auto-detected after install).
@@ -42,10 +57,12 @@ public class InstallationConfig
     public string InstallVersion { get; init; } = DefaultInstallVersion;
 
     /// <summary>
-    /// Root directory for all v4 system-shared state. v3.7.0 lives next to
-    /// this under C:\ProgramData\IndyPOS\ but never inside this folder.
+    /// Root directory for all v4 system-shared state. Keyed off the MAJOR
+    /// version (e.g. "v4") so it stays stable across patch updates and lines
+    /// up with <see cref="ServiceName"/> / <see cref="VelopackAppId"/>. v3.7.0
+    /// lives next to this under C:\ProgramData\IndyPOS\ but never inside it.
     /// </summary>
-    public string SystemRoot => Path.Combine(@"C:\ProgramData\IndyPOS", $"v{InstallVersion}");
+    public string SystemRoot => Path.Combine(@"C:\ProgramData\IndyPOS", $"v{Major}");
 
     public string ConfigDirectory => Path.Combine(SystemRoot, "Config");
     public string KeysDirectory => Path.Combine(SystemRoot, "keys");
@@ -79,6 +96,19 @@ public class InstallationConfig
         return version is null
             ? "4.0.0"
             : $"{version.Major}.{version.Minor}.{version.Build}";
+    }
+
+    // 32 alphanumeric chars (~190 bits). Alphanumeric avoids any quoting/escaping
+    // hazard in the Npgsql connection string and the CREATE/ALTER ROLE SQL.
+    private static string GenerateSecret()
+    {
+        const string alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+        var chars = new char[32];
+        for (var i = 0; i < chars.Length; i++)
+        {
+            chars[i] = alphabet[RandomNumberGenerator.GetInt32(alphabet.Length)];
+        }
+        return new string(chars);
     }
 }
 
