@@ -145,25 +145,44 @@ public partial class InstallationWizard : Form
             BackColor = Color.FromArgb(240, 240, 240)
         };
 
+        // Primary action lives in the footer (bottom-left) so it shares a baseline
+        // with Cancel/Finish instead of floating inside the config panel.
+        _startButton = new Button
+        {
+            Text = "Install IndyPOS",
+            Size = new Size(150, 35),
+            Location = new Point(20, 12),
+            FlatStyle = FlatStyle.Flat,
+            BackColor = Color.FromArgb(0, 122, 204),
+            ForeColor = Color.White,
+            Font = new Font("Segoe UI", 10, FontStyle.Bold)
+        };
+        _startButton.FlatAppearance.BorderSize = 0;
+
+        // Cancel and Finish share the bottom-right slot: Cancel during config/install,
+        // Finish after a successful install.
         _cancelButton = new Button
         {
             Text = "Cancel",
             Size = new Size(100, 35),
-            Location = new Point(380, 12),
+            Location = new Point(480, 12),
             FlatStyle = FlatStyle.Flat
         };
+        _cancelButton.FlatAppearance.BorderColor = Color.FromArgb(200, 200, 200);
 
         _finishButton = new Button
         {
             Text = "Finish",
             Size = new Size(100, 35),
-            Location = new Point(485, 12),
+            Location = new Point(480, 12),
             FlatStyle = FlatStyle.Flat,
             BackColor = Color.FromArgb(0, 122, 204),
             ForeColor = Color.White,
-            Enabled = false
+            Visible = false
         };
+        _finishButton.FlatAppearance.BorderSize = 0;
 
+        _buttonPanel.Controls.Add(_startButton);
         _buttonPanel.Controls.Add(_cancelButton);
         _buttonPanel.Controls.Add(_finishButton);
 
@@ -265,33 +284,12 @@ public partial class InstallationWizard : Form
             PlaceholderText = "Confirm password"
         };
 
-        var passwordHint = new Label
-        {
-            Text = "Used to sign in to IndyPOS. The database password is generated automatically.",
-            Font = new Font("Segoe UI", 8),
-            ForeColor = Color.Gray,
-            Location = new Point(0, 292),
-            AutoSize = true
-        };
-
-        _startButton = new Button
-        {
-            Text = "Install IndyPOS",
-            Size = new Size(150, 40),
-            Location = new Point(0, 325),
-            FlatStyle = FlatStyle.Flat,
-            BackColor = Color.FromArgb(0, 122, 204),
-            ForeColor = Color.White,
-            Font = new Font("Segoe UI", 10, FontStyle.Bold)
-        };
-
         panel.Controls.AddRange(new Control[]
         {
             storeIdLabel, _storeIdTextBox, storeIdHint,
             adminUsernameLabel, _adminUsernameTextBox, adminUsernameHint,
             passwordLabel, _adminPasswordTextBox,
-            confirmLabel, _confirmPasswordTextBox, passwordHint,
-            _startButton
+            confirmLabel, _confirmPasswordTextBox
         });
 
         return panel;
@@ -354,7 +352,7 @@ public partial class InstallationWizard : Form
         _progressBar.Visible = true;
         _statusLabel.Visible = true;
         _logTextBox.Visible = true;
-        _startButton.Enabled = false;
+        _startButton.Visible = false;
         _installationStarted = true;
 
         var config = new InstallationConfig
@@ -378,8 +376,8 @@ public partial class InstallationWizard : Form
             _stepLabel.Text = "Installation Complete!";
             _statusLabel.Text = "IndyPOS has been successfully installed.";
             _progressBar.Value = 100;
-            _finishButton.Enabled = true;
-            _cancelButton.Enabled = false;
+            _cancelButton.Visible = false;
+            _finishButton.Visible = true;
 
             Log("Installation completed successfully!", Color.LightGreen);
             Log("Click 'Finish' to launch IndyPOS.", Color.White);
