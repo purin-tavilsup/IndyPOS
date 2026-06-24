@@ -4,6 +4,250 @@
 
 ---
 
+## 2026-06-24: Stage 7 closed — clean full install validated; Bug F + service-start timeout fixed ✅
+
+**Focus:** Validate the installer on a genuinely fresh VM install (not hot-swap), then fix what it surfaced.
+
+**VM tidy:** deleted stale `Clean-Windows-Ready-OLD` checkpoint (online-merged, +5 GB). End of session: reverted VM to `Clean-Windows-Ready` + powered Off → C: ~81 GB free, harness intact.
+
+**Clean full install validated:** restored `Clean-Windows-Ready`, ran wizard via vmconnect → **18/18 verifier PASS**. Pond confirmed wizard footer layout, app auto-launch on Finish, and `admin`/`myAdmin@101` login end-to-end. **Stage 7 done.**
+
+**Bug F — FIXED & DB-validated (`115777d`, systematic-debugging + TDD):** root cause was NOT "service ignores storeId" (handoff guess). Real cause: installer wrote `storeIdentity:storeId` but `StoreIdentityOptions` binds `Store:Id` → mismatch → `StoreIdentityService` fell back to `STORE-{MachineName}`. Fix: `DatabaseSetup.BuildStoreHubConfigJson` writes `Store:Id`; test now guards the binding. Proven by decrypting the DPAPI conn string in-guest + querying Postgres: seeded admin `store_id = Rungrat-001` (SystemAdmin, active).
+
+**Service-start timeout — FIXED & re-validated (`4a1996a`):** the fresh-install run surfaced StoreHub left **Stopped** (Event 7009 / error 1053). Root cause: EF migrations ran before `app.Run()` → host couldn't signal "Running" within the 30s SCM start timeout on a fresh DB. Fix: added `migrate` CLI mode to StoreHub (`Program.cs` — migrate+seed then return before `app.Run()`); bootstrapper runs `IndyPOS.StoreHub.exe migrate` as a console step (`StoreHubInstaller.ProvisionDatabaseAsync`) after DB setup, before starting the service (`InstallationOrchestrator` step 4b, fatal on failure). Re-validated: **18/18, service Running, health 200, store_id still Rungrat-001**. +1 guard test (43/43 bootstrapper).
+
+**Reusable techniques:** in-guest DB verification by decrypting DPAPI conn string (machine scope, entropy `SHA256("IndyPOS:"+key)`, marker `DPAPI:`; guest is **PS 5.1** → use `[SHA256]::Create().ComputeHash`, not static `HashData`). Snapshot restore skips autologon → **reboot guest** to trigger it. vmconnect blank = remembered multi-monitor layout (plug 2nd monitor / relaunch).
+
+**State:** both fixes committed on `indypos-overhaul`; installer rebuilt **189.9 MB (16:09)**. **NEXT:** admin-provisioning A–D decision (changes installer → needs another clean-install validation; VM ready) → whole-branch review → finishing-a-development-branch.
+
+---
+
+## 2026-06-23: Stage 7 — app logs in end-to-end; wizard UI polish + 3 more prod bugs fixed ✅
+
+**Focus:** Polish the installer wizard, run the Stage 7 VM smoke test, and drive the app to a working login.
+
+**Wizard UI polish (committed):** moved Install to footer bottom-left, Cancel bottom-right (single primary action; Finish reuses Cancel's slot on success), removed the password hint, fixed lopsided Cancel margin via `ClientSize` (not `Size`). `428e480`, `6298be8`. Verified visually in the VM.
+
+**VM smoke test:** 18/18 verifier PASS, filesystem all under `v4` (no `v1`), and the app **reached the login screen** → **Bugs A (version skew) & B (cash-drawer serial crash) proven fixed**.
+
+**Then debugged login to a working end-to-end POS sign-in (systematic-debugging, evidence from VM logs/event log/API + StoreHub config):**
+- **Bug D** — failed login crashed the app via re-entrant `ShowDialog` on the singleton `MessageForm`. Fix: disable login button during async login + `MessageForm.ShowDialog` early-returns when already `Visible`. `f363e71`. ✅ Graceful error now.
+- **Bug E** — `BuildAppConfiguration` used `Directory.GetCurrentDirectory()`; crashed when launched with a non-install CWD (wizard Finish inherits `C:\Test`). Fix: `AppContext.BaseDirectory`. `0267354`. ✅ Proven launching from `C:\Windows`.
+- **StoreHub port mismatch** — WinForms `appsettings.json` → `:5012` (Aspire dev) but installed StoreHub listens on `:5000`; every prod login failed as "wrong username/password". Fix: `appsettings.json` → `:5000`; AppHost injects `StoreHub__BaseUrl=:5012` for dev; env vars added last so dev override wins. `7f1ff02`. ✅ Login works (`admin`/`myAdmin@101`).
+- **Bug C was not a bug** — `/auth/login` returns 200 for the seeded admin; mismatch was the port + a mistyped password.
+
+**Efficiency note:** validated the app-layer fixes by **hot-swapping** the freshly-published WinForms binaries into the VM's Velopack `current\` folder (over PSDirect) instead of a 24-min reinstall — the VM already had a healthy StoreHub + Postgres + seeded admin. Fast loop for app-only changes.
+
+**State:** all committed on `indypos-overhaul`; installer rebuilt **189.9 MB (00:50)**. **NEXT:** clean full VM install to validate wizard UI + Finish-button launch on a fresh install; then Bug F (seeded `store_id` = machine name, not wizard Store ID); then admin-provisioning decision.
+
+---
+
+## 2026-06-21 (evening): DPAPI Vault — brainstorm → spec → plan → executed Tasks 1-3 ✅
+
+**Focus:** Realize the "at-rest secrets" decision as a real feature. Full superpowers flow: brainstorming → writing-plans → subagent-driven-development.
+
+**Design decisions locked (with Pond):**
+- New **`IndyPOS.Vault`** zero-dependency leaf project (not duplicated, not in Infrastructure) — Pond named it Vault. Stateless seal/unseal, NOT a secret store.
+- DPAPI **machine scope** (installer encrypts as admin, StoreHub decrypts as LocalSystem), `DPAPI:` marker prefix, **per-key SHA256 entropy** (binds each blob to its config key — prevents field-swap), UTF-8, fail-fast on decrypt failure.
+- **Decision 2a:** drop the redundant plaintext `storehub.key`; JWT key lives only in the DPAPI-protected `appsettings.json` (which now also gets the Administrators+LocalSystem ACL for defense-in-depth parity).
+- Spec pressure-tested by 3 review subagents (architect/engineer/QA) — caught: repo is xUnit (not MSTest), extension must live in StoreHub not ServiceDefaults (TFM clash), config-precedence + UTF-8 pinning, existing `DpapiSecretStorage` prior art (CurrentUser/swallow — deliberately NOT reused).
+
+**Executed (subagent-driven, fresh implementer+reviewer per task, all reviews clean):**
+- Task 1 `1fc928a` — Vault + SecretProtector, 17/17 tests.
+- Task 2 `23a6f4f` — StoreHub `UnprotectSecrets`, 7/7 tests.
+- Task 3 `a7e85c9` — installer encrypt + drop `storehub.key` + ACL appsettings, 3 new + 42/8 suite.
+
+**Stopped for the day after Task 3.** Tasks 4 (scripts/docs cleanup) + 5 (build + VM validation) remain. Ledger at `.superpowers/sdd/progress.md` is the durable resume map. Minor findings logged there for final-review triage. Prior-session installer work still uncommitted in the tree.
+
+---
+
+## 2026-06-21: Stage 7 — final VM run validated winget + Serilog fixes, surfaced 2 NEW prod bugs 🟡
+
+**Focus:** Run the final VM smoke test to validate the two pending fixes (#3 winget auto-install, #6 version-aware paths). Reached **18/18 verifier PASS** again — but the human-eyeball checks the verifier can't see surfaced **2 more prod bugs**. Root-caused both via in-guest log/event-log forensics (systematic-debugging). **No fixes written yet — Pond chose to fix tomorrow.**
+
+### Validated this run ✅
+- **Fix #3 (winget silent auto-install)** — Pond let the wizard run it (did NOT hand-install). Confirmed `.NET 10` (`Microsoft.NETCore.App 10.0.9`) installed via winget. **Now VM-proven.**
+- **Fix #5 (Serilog.AspNetCore removal)** — republished `runtimeconfig.json` shows only `Microsoft.NETCore.App` + `Microsoft.WindowsDesktop.App` (no AspNetCore). **No pop-up at Finish.** **Now VM-proven.**
+- Verifier 18/18 (filesystem under `v4`, `/health/ready`=200, manifest `v4.0.0`, Postgres 18 running, `IndyPOS.StoreHub.v4` service Running, Velopack `current` + shortcut present).
+
+### NEW bugs found — app crashes on launch (shortcut → no window)
+**Evidence:** `v4\logs` EMPTY + zero IndyPOS WER events, but app's REAL log landed in `C:\ProgramData\IndyPOS\v1\logs\log20260621.json` (33 KB, 6 crash loops). Fatal in every one:
+`System.IO.FileNotFoundException: Could not find file 'COM1'` → `SerialPort.Open()` → `CashDrawerService.InitializeSerialPort()` → `CashDrawerService..ctor` (thrown during DI resolution).
+
+**Bug A — version skew defeats `InstallPaths` (regression hiding inside fix #6).**
+- DLL versions in `current\`: `IndyPOS.Application.dll`=**1.0.0.0**, `IndyPOS.Infrastructure.dll`=**1.0.0.0**; `Windows.Forms`+`Domain`=4.0.0.
+- `InstallPaths` lives in **Application.dll**, so `ResolveMajorVersion()` reads `1` → app uses `...\IndyPOS\v1\...` while installer wrote `v4\`. A `v1` tree was auto-created at 3:45 (default `StoreConfiguration.json` 405 B + logs); installer's `v4\Config\StoreConfiguration.json` (283 B) ignored.
+- **Cause:** Application + Infrastructure csprojs set `<GenerateAssemblyInfo>false</GenerateAssemblyInfo>` AND keep legacy `Properties/AssemblyInfo.cs` hardcoding `1.0.0.0` → `Directory.Build.props` 4.0.0 never reaches them. (Domain has no override → correctly 4.0.0.) This is exactly the modernization follow-up STATUS.md flagged.
+
+**Bug B — `CashDrawerService` opens the serial port eagerly in its ctor → crashes app when port absent.**
+- `InitializeSerialPort()` calls `_serialPort.Open()` inside the constructor. No COM1 (VM, USB drawer, unplugged cable) → `FileNotFoundException` → DI fails → app dies before any window.
+- **Why dev box masked it:** `InitializeSerialPort()` is marked `[Conditional("RELEASE")]` → compiled OUT in Debug, so devs never open the port. The installer is Release → it runs.
+
+### Proposed fix plan (for tomorrow — NOT yet implemented)
+**Bug A (root fix):** delete `Properties/AssemblyInfo.cs` from Application + Infrastructure (and WinForms for uniformity) and drop `<GenerateAssemblyInfo>false>` so `Directory.Build.props` drives every assembly to 4.0.0. AssemblyInfo files only hold legacy template attrs (`AssemblyTitle`, `ComVisible(false)`, COM `Guid`) — almost certainly unused; if any matter, re-express via csproj props. (Defensive alt/also: `InstallPaths.ResolveMajorVersion()` → `Assembly.GetEntryAssembly()` version with fallback.)
+**Bug B:** wrap `_serialPort.Open()` in try/catch (log warning, continue — drawer unavailable is NOT fatal); **drop `[Conditional("RELEASE")]`** so Debug==Release; guard `OpenCashDrawer()` on `IsOpen`. Re-review `ReceiptPrinterService` for the same eager-ctor pattern (lower risk — it doesn't open hardware in ctor, but `GetStoreConfiguration` rethrows).
+**Then:** rebuild installer, re-run VM (clean snapshot wipes the stale `v1`+`v4.0.0` trees), expect app to open to login. Then commit the whole Stage 7 bundle.
+
+### State
+- **All changes still UNCOMMITTED.** No new code written this session — investigation only.
+- VM `IndyPOS-Test` left RUNNING with the broken install (fine; next run restores `Clean-Windows-Ready`). Can stop with `Stop-VM IndyPOS-Test -Force`.
+- Build/test unchanged: WinForms + bootstrapper clean; `Application.Tests` 219/219 (integration suites need Docker).
+
+---
+
+## 2026-05-31 (~01:00 AM): Stage 7 — VM test hit 18/18, then surfaced + fixed 3 prod bugs 🟢
+
+**Focus:** Resume the .NET-detection blocker, run the VM smoke test end-to-end, fix everything it surfaces. Big productive session — reached 18/18 verifier PASS and uncovered 3 real bugs the dev-box install had masked.
+
+### Fixes landed (all UNCOMMITTED)
+1. **`DotNetInstaller` detection rewritten** — `FindDotNetRoot()` (no stale PATH) → folder probe `shared\Microsoft.WindowsDesktop.App\10.*` → fallback absolute `dotnet.exe`. Dropped dead registry probe. **VM-validated.**
+2. **VCRedist** Step 1b — **VM-validated** (Postgres `initdb` succeeded).
+3. **winget silent auto-install** added to `DotNetInstaller` (`--exact --id Microsoft.DotNet.DesktopRuntime.10 --source winget --silent ...`, 5-min timeout, manual fallback extracted to `InstallManually()`). **Built, NOT yet VM-proven** — Pond hand-installed .NET both runs, confounding it.
+4. **Verifier exe-name** — looked for `IndyPOS.exe`; real `--mainExe` is `IndyPOS.Windows.Forms.exe`. Fixed → **18/18 PASS**.
+5. **`Serilog.AspNetCore` removed** from WinForms csproj — it pulled the `Microsoft.AspNetCore.App` FrameworkReference into a desktop app → "must install .NET / AspNetCore.App" launch pop-up. App only uses `.UseSerilog()` (from `Serilog.Extensions.Hosting`). **Proven** via republished `runtimeconfig.json`.
+6. **Version-aware app paths (major root `v4`)** — the 3rd bug: app hardcoded legacy `...\IndyPOS\Config\StoreConfiguration.json`, installer writes versioned root → `DirectoryNotFoundException` at startup. Pond chose major-root scheme: new `IndyPOS.Application.Common.InstallPaths`, `InstallationConfig.SystemRoot`→major, `StoreConfigurationService`/`Program.cs` use it, `JsonService` creates dir before write, stale `v4.0.0`→`v4` in scripts.
+
+### State
+- WinForms + bootstrapper build clean. `IndyPOS.Application.Tests` 219/219 PASS. Migration/StoreHub integration suites fail ONLY because Docker isn't running (Testcontainers — environmental).
+- Installer rebuilt **5/31 12:48 AM, 189.8 MB** with all fixes — ready for the final VM run.
+- VM `IndyPOS-Test` left RUNNING (old `v4.0.0` install from this session's run; next run restores fresh + writes `v4`).
+- Background pollers stopped.
+
+### Next session
+1. **One final VM run**: `.\scripts\vm-testing\Reset-AndInstall.ps1 -KeepRunning`. At .NET step **don't hand-install** — let the wizard winget it. Confirm: "via winget" log, no AspNetCore pop-up, **desktop shortcut opens app to login** (config now at `v4\Config`), 18/18.
+2. Then **commit the bundle** in logical groups (see STATUS.md TODO).
+
+### New Hyper-V gotchas (memory items 11-12)
+- vmconnect/Hyper-V Manager need Hyper-V Administrators group membership (`Add-LocalGroupMember ... + relog`); workaround = launch from privileged orchestrator context.
+- "Use all my monitors" spans only in full-screen → `Ctrl+Alt+Break` to single window.
+
+---
+
+## 2026-05-30 (cont.): Stage 7 — VCRedist wired, snapshot re-baked, .NET detection bug found 🟡
+
+**Focus:** Resume from the morning's first attempt — wire `VCRedistInstaller`, rebuild, re-bake the snapshot with the harness fixes, re-run. Got all the way to the wizard's .NET step before a new bug stopped the run.
+
+### Done (all UNCOMMITTED — review + commit next session)
+1. **Wired `VCRedistInstaller` into `InstallationOrchestrator`** — new "Step 1b" between .NET check and Postgres, progress band 5-10%, throws `InstallationException` on failure. Builds clean (0 warnings).
+2. **Removed dead `DotNetDownloadUrl` constant** from `DotNetInstaller.cs` (the malformed `dotnet-runtime-10.0-win-x64.exe` one) — it was never referenced; real code uses `DotNetDownloadPageUrl`. Replaced with an honest comment.
+3. **Rebuilt installer** via `installer\build-installer.ps1` — only the bootstrapper changed (payloads in `publish\Releases\` from 5/27 still current, source predates them). `publish\IndyPOS-Setup.exe` = 189.2 MB, 5/30 11:03.
+4. **Re-baked the snapshot** (Pond chose "bake both fixes" over a script fix-up phase). New canonical `Clean-Windows-Ready` now contains: vmicvmsession Automatic+Running + static DNS 8.8.8.8/1.1.1.1 + **Guest Service Interface (host + guest)** + **autologon/no-lock**. Tree: `Clean-Windows` → `Clean-Windows-Ready-OLD` (partial) → `Clean-Windows-Ready` (full). `VMTestConfig.psd1` points at it.
+5. **Hardened `Reset-AndInstall.ps1`** — asserts `Enable-VMIntegrationService 'Guest Service Interface'` after restore (idempotent, host-side).
+
+### New gaps surfaced
+- **Guest Service Interface disabled by default** → `Copy-VMFile` failed `0x80070015` on the first re-run. Fixed (host toggle + guest `vmicguestinterface` Automatic). See gotchas memory item 9.
+- **`DotNetInstaller` detection is broken on a clean machine** (the blocker we stopped on). .NET 10 Desktop Runtime 10.0.8 was correctly installed via winget, but the wizard couldn't see it because BOTH methods fail: (1) registry key `...\InstalledVersions\x64\sharedfx\Microsoft.WindowsDesktop.App` doesn't exist even on a legit install (wrong/stale path), (2) `dotnet --list-runtimes` relies on inherited PATH, which is stale because the wizard process started before winget updated PATH. **Fix:** detect via absolute `C:\Program Files\dotnet\dotnet.exe --list-runtimes` OR probe `shared\Microsoft.WindowsDesktop.App\10.*` folder — never inherited PATH or that registry key. Folds into the silent-.NET-install follow-up.
+- **Autologon only helps on cold boot, not Standard-checkpoint resume** — vmconnect reconnect re-locks the session, so Pond still types the password on restore. Known limitation, see gotchas memory item 10.
+
+### VM state at session close
+- VM `IndyPOS-Test` left RUNNING, restored from `Clean-Windows-Ready`, wizard open mid-.NET-step. Partial state — discard on next run (Reset-AndInstall restores fresh anyway).
+- Background pollers stopped cleanly.
+
+### Next session (priority order)
+1. **Unblock the in-progress wizard OR just re-run clean.** Cleanest: `.\scripts\vm-testing\Reset-AndInstall.ps1 -KeepRunning`, then in the VM relaunch the installer from a FRESH admin PowerShell (so `dotnet` is on PATH) after `winget install Microsoft.DotNet.DesktopRuntime.10`. Watch VC++ → Postgres `initdb` (should clear `-1073741515` now).
+2. **Fix `DotNetInstaller` detection** (absolute dotnet path / folder probe) so the .NET step stops being a manual papercut.
+3. Once green end-to-end: **commit** the bundle (VCRedist + orchestrator + DotNet cleanup + VM scaffolding + script hardening + docs).
+4. Stretch: silent `--store-id`/`--app-password` bootstrapper mode (kills the manual wizard entirely) + silent .NET auto-install.
+
+---
+
+## 2026-05-30: Stage 7 — first VM smoke test 🟡 (bugs caught, retry pending)
+
+**Focus:** Run `Reset-AndInstall.ps1` end-to-end against `Clean-Windows` snapshot. Surfaced 4 fresh gaps; one bootstrapper fix half-written, none committed.
+
+### Phase progression
+1. ✅ Preflight (installer + verifier + VM + snapshot all detected)
+2. ✅ Snapshot restored, VM started
+3. ⚠️ PSDirect probe **timed out (300s)** — root cause: `vmicvmsession` Stopped on the clean snapshot. Stage 6 only validated WinRM (`Enable-PSRemoting`), never VMBus (`Invoke-Command -VMName`). Manually started + set Automatic inside guest.
+4. ✅ Installer copied to `C:\Test\IndyPOS-Setup.exe` (after Guest Service Interface enabled on VM via `Enable-VMIntegrationService`)
+5. ✅ Wizard launched via vmconnect
+6. ⚠️ Wizard hit two prerequisite failures on clean Win11:
+   - **(a) .NET 10 download failed** — Default Switch's DNS forwarder is broken on this host; guest had connectivity (raw IP) but couldn't resolve names. Worked around in-guest by setting DNS to `8.8.8.8`,`1.1.1.1`. Also, bootstrapper's `DotNetInstaller.cs:13` URL (`dotnet-runtime-10.0-win-x64.exe`) is malformed — no patch version — would 404 even with DNS. Manually installed `Microsoft.DotNet.DesktopRuntime.10` via winget to unblock.
+   - **(b) Postgres initdb failed with exit `-1073741515` (STATUS_DLL_NOT_FOUND)** — Postgres 18 binaries need VC++ Redistributable 2015-2022 x64 which isn't on clean Win11. EDB installer is invoked with `--install_runtimes 0` (`PostgresInstaller.cs:204`) — explicit "assume VC++ is present", which doesn't hold on a clean machine.
+
+### Code written this session (uncommitted, not wired)
+- `installer/IndyPOS.Bootstrapper/Installers/VCRedistInstaller.cs` — new. Detects VC++ 2015-2022 (x64) via `HKLM\SOFTWARE\Microsoft\VisualStudio\14.0\VC\Runtimes\x64`, downloads from `https://aka.ms/vs/17/release/vc_redist.x64.exe`, silent-installs with `/install /quiet /norestart`, tolerates exit codes 0/1638/3010. Uses same `%LOCALAPPDATA%\IndyPOS.Bootstrapper\cache\` dir as `PostgresInstaller`.
+
+### Still TODO before next Stage 7 run
+1. **Wire `VCRedistInstaller` into `InstallationOrchestrator.InstallAsync`** — call it as a new step between the .NET check (current step 1) and Postgres install (current step 2). Pattern: identical to `_postgresInstaller.EnsureInstalledAsync` (progress reporter → log + step). Use a small progress band (e.g. 8-10%) since the install is fast (~30s).
+2. **Fix `DotNetInstaller.cs:13`** — malformed URL `dotnet-runtime-10.0-win-x64.exe`. Either remove the broken constant (the actual code uses `DotNetDownloadPageUrl` and prompts user) or replace with a working aka.ms permalink if MS publishes one. Worth a 30-min scan of MS docs.
+3. **Rebuild installer:** `.\scripts\build-installer.ps1` (or `.\scripts\publish.ps1` — check which is current). Verify Setup.exe gets the new VC++ step in the orchestrator.
+4. **Re-take `Clean-Windows` snapshot** (decision needed). Current snapshot is "vanilla Win11" — every restore loses the vmicvmsession + DNS fixes. Two options:
+   - (a) Bake the fixes into the snapshot: log into VM, run `Set-Service vmicvmsession -StartupType Automatic; Start-Service vmicvmsession; Set-DnsClientServerAddress -InterfaceAlias 'Ethernet' -ServerAddresses '8.8.8.8','1.1.1.1'`, uninstall the leftover Postgres + .NET 10 manually-installed bits, then `Checkpoint-VM -SnapshotName 'Clean-Windows'` overwriting the existing one. Cleanest, but the snapshot is now "workable clean" not "vanilla clean".
+   - (b) Leave snapshot vanilla, add a fix-up phase to `Reset-AndInstall.ps1` that runs after snapshot restore but before Phase 3. More honest test of bootstrapper UX (what a real customer hits) but slower per cycle.
+   - **Recommendation:** (b) for honesty — but flip it once we want fast iteration on Stage 7+.
+5. **Then re-run:** `.\scripts\vm-testing\Reset-AndInstall.ps1` (no flags). Expect to clear all phases this time.
+
+### VM state at session close
+- VM `IndyPOS-Test` left running (per orchestrator default), at desktop logged in as `IndyPOSAdmin`
+- Partial Postgres 18 install in `C:\Program Files\PostgreSQL\18\` (binaries unpacked but no data cluster — initdb failed)
+- .NET 10 Desktop Runtime 10.0.8 manually installed
+- `vmicvmsession` Running + Automatic (in-guest fix, NOT in snapshot)
+- DNS set to 8.8.8.8/1.1.1.1 on Ethernet interface (in-guest fix, NOT in snapshot)
+- Guest Service Interface enabled on VM (host-side; this DOES persist across snapshot restore — set via Hyper-V manager, not guest)
+- VM admin cred re-cached at `%LOCALAPPDATA%\IndyPOS\vm-test-cred.xml` with the *working* password (90 bytes — earlier 82-byte file was a fat-fingered/null cred from harness session, fixed by exporting from interactive pwsh)
+
+### Memorialized
+- 2 new gotchas added to `memory/reference_win11_hyperv_vm_gotchas.md` (items 7 + 8): `vmicvmsession` Stopped + Default Switch DNS flake. Both now bring the file to 8 gotchas total from the IndyPOS test VM workstream.
+
+### Bug tally so far on the Stage 3+7 cycle
+- Stage 3 (dev box): 7 prod bugs caught + fixed
+- Stage 7 (clean VM, this session): **3 more** — DotNet URL malformed, Postgres `--install_runtimes 0` assumption, no VC++ prereq check. Stage 7 is doing exactly what it's supposed to.
+
+---
+
+## 2026-05-27 EOD → 2026-05-28: Installer Side-by-Side — Stages 5 + 6 ✅
+
+**Focus:** Build VM smoke-test scaffolding (Stage 5) and the actual Hyper-V VM it targets (Stage 6).
+
+### Stage 5 — VM scripts landed (uncommitted)
+
+`scripts/vm-testing/` — 4 new files, semi-automated because the bootstrapper has no silent mode:
+
+- `VMTestConfig.psd1` — shared config (VM name, paths, timeouts, credential cache location)
+- `Test-IndyPOSInstallation.ps1` — in-VM verifier via PowerShell Direct; subset of `verify-install.ps1` (drops v3.7.0 side-by-side checks since VM is fresh); returns structured PSCustomObject
+- `Reset-AndInstall.ps1` — 8-phase host orchestrator (preflight → restore snapshot → start VM → wait PSDirect → copy installer → vmconnect handoff → poll manifest → run verifier → report)
+- `README.md` — one-time VM creation block + usage examples + troubleshooting
+
+Cred storage = DPAPI-encrypted SecureString at `%LOCALAPPDATA%\IndyPOS\vm-test-cred.xml`. `-RecreateCredential` to rotate.
+
+**Silent-mode follow-up filed:** add `--silent --store-id N --app-password X` to `IndyPOS.Bootstrapper/Program.cs` (~2-4h, `InstallationOrchestrator` already drives everything headlessly internally). Unblocks CI + customer-support unattended installs. Out of scope for v4.0.0.
+
+### Stage 6 — Hyper-V test VM live
+
+- `IndyPOS-Test` Gen2 VM at `C:\personal\VMs\IndyPOS-Test.vhdx` (60 GB dynamic, 4 vCPU, 4 GB startup / dynamic 2-8 GB, TPM + Secure Boot `MicrosoftWindows`)
+- Win11 Pro 25H2 from `C:\personal\ISOs\Win11_25H2_English_x64_v2.iso` — detached after install, HDD boot-first
+- Guest local user `IndyPOSAdmin`, network profile flipped Public→Private, PSRemoting enabled, TrustedHosts `*`, Tamper Protection off
+- `Clean-Windows` Standard checkpoint captured 2026-05-28 00:31
+
+**4 Win11/Hyper-V gotchas hit during VM build** (memorialized in `memory/reference_win11_hyperv_vm_gotchas.md`):
+1. Gen2 UEFI "press any key" prompt missed because vmconnect didn't have keyboard focus
+2. Win11 25H2 OOBE refused to skip the MSA flow; `Shift+F10` → `start ms-cxh:localonly` was the working bypass
+3. Default Switch put the guest network in Public profile → `Enable-PSRemoting` failed on the firewall step until `Set-NetConnectionProfile -NetworkCategory Private`
+4. Tamper Protection silently no-ops `Set-MpPreference -DisableRealtimeMonitoring`; only the Windows Security GUI toggle works
+
+Path overrides used: `C:\personal\VMs\` + `C:\personal\ISOs\` instead of the README's default `C:\VMs\` + `C:\ISOs\` (Pond's preference; README updated to reflect this).
+
+### Plan + STATUS docs updated
+
+- `.planning/indypos-overhaul/drafts/installer-side-by-side-plan.md` — Stage 5 + 6 sections added; stage table reflects current state
+- `.claude/STATUS.md` — Stage 7 boot instructions front-and-centre
+- Global `~/.claude/STATUS.md` — IndyPOS row points at Stage 7
+
+### Stage 7 — ready for next session
+
+One command:
+```powershell
+cd C:\personal\IndyPOS
+.\scripts\vm-testing\Reset-AndInstall.ps1
+```
+
+First run pops `Get-Credential` for `IndyPOSAdmin`. Click through wizard inside VM (Store ID + App Password ×2 + Start). Script polls for `install-manifest.json` and prints PASS/FAIL report.
+
+**Commits:** none yet — deliberately holding the Stage 5 scaffolding + plan/STATUS edits until Stage 7 validates the orchestrator end-to-end. Plan is one bundled "Stage 5+7 — VM smoke-test scaffolding + first-run fixes" commit once green.
+
+---
+
 ## 2026-05-02: Installer Side-by-Side — Stage 1 Refactor ✅
 
 **Focus:** Make `InstallationConfig` the version-aware source-of-truth so v4 paths/IDs/ports come from one place. All install surfaces refactored to read from config; legacy const paths gone.
