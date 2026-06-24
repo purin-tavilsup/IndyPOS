@@ -49,10 +49,10 @@ C:\ProgramData\IndyPOS\
 | 1 | Refactor `InstallationConfig` to carry version + computed paths | ✅ |
 | 2 | Build pipeline — install vpk, embed Setup.exe + StoreHub.zip into bootstrapper resources | ✅ |
 | 3 | Smoke-test runner + uninstall/cleanup script | ✅ |
-| 4 | Smoke-test on dev box, fix bugs as found | ⏳ (option A — real Postgres 18 install) |
-| 5 | Implement Phase 1 VM scripts (per `vm-installer-testing-plan.md`) | ⏳ |
+| 4 | Smoke-test on dev box, fix bugs as found | ✅ (Stage 3 above absorbed this — option A real Postgres 18 install) |
+| 5 | Implement Phase 1 VM scripts (per `vm-installer-testing-plan.md`) | ✅ (2026-05-27 — semi-auto, see Stage 5 below) |
 | 6 | Manual: Win11 ISO, Hyper-V VM, clean snapshot (Pond) | ⏳ |
-| 7 | VM run, fix bugs, repeat until green | ⏳ |
+| 7 | VM run, fix bugs, repeat until green | ⏳ (blocked on Stage 6) |
 
 ## Stage 1 Files Touched ✅ (2026-05-02)
 
@@ -134,6 +134,22 @@ C:\ProgramData\IndyPOS\
 - Postgres firewall rule + data directory on `--mode unattended` uninstall.
 - `$env:PGPASSWORD` parent-scope leak on Ctrl-C.
 - `smoke-test.ps1` reliability (hardcoded inventory `88`, stale pay-later accounts).
+
+## Stage 5 Files Touched ✅ (2026-05-27)
+
+VM smoke-test scaffolding landed. Semi-automated because the bootstrapper has
+no silent mode — Pond clicks through the wizard once per cycle inside the VM.
+
+- `scripts/vm-testing/VMTestConfig.psd1` — shared config (VM name, paths, timeouts, credential cache location).
+- `scripts/vm-testing/Test-IndyPOSInstallation.ps1` — in-VM verifier invoked via PowerShell Direct. Subset of `verify-install.ps1` (drops the v3.7.0 side-by-side invariants since a fresh test VM has no v3 footprint to protect). Returns a structured PSCustomObject the host orchestrator pretty-prints.
+- `scripts/vm-testing/Reset-AndInstall.ps1` — host orchestrator. 8 phases: preflight, restore snapshot, wait for PSDirect, copy installer, open vmconnect (manual wizard), poll for `install-manifest.json`, run verifier, report.
+- `scripts/vm-testing/README.md` — one-time VM creation block (Hyper-V + Win11 eval ISO), inside-VM setup (`Enable-PSRemoting`, disable Defender RT), snapshot capture, then `Reset-AndInstall.ps1` usage with example output.
+
+**Credential storage:** DPAPI-encrypted SecureString cached at `%LOCALAPPDATA%\IndyPOS\vm-test-cred.xml` (per Windows user). First run prompts via `Get-Credential`; subsequent runs read from cache. `-RecreateCredential` rotates.
+
+**Verified:** Both scripts parse cleanly (`[Parser]::ParseFile`); config imports without error. End-to-end run still pending Stage 6 (VM creation + ISO download).
+
+**Silent-mode follow-up (filed under PLAN.md):** add `--silent --store-id N --app-password X` flag to `IndyPOS.Bootstrapper/Program.cs` so the wizard step can be dropped. Estimated ~2-4h work since `InstallationOrchestrator` already drives everything headlessly internally. Unblocks future CI + customer-support unattended installs.
 
 ## Success Criteria
 
