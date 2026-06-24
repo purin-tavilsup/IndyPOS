@@ -331,9 +331,12 @@ public class DatabaseSetup
                 Audience = "IndyPOS.POS",
                 ExpiryHours = 12
             },
-            StoreIdentity = new
+            // Section/property must match StoreIdentityOptions (SectionName "Store",
+            // property "Id"). Writing "storeIdentity:storeId" leaves Store:Id unbound,
+            // so StoreIdentityService silently falls back to the machine name (Bug F).
+            Store = new
             {
-                StoreId = config.StoreId
+                Id = config.StoreId
             },
             // Plaintext by design: a human-chosen bootstrap credential consumed once by
             // SeedInitialAdminAsync, then stored only as a BCrypt hash in the DB. It is not
