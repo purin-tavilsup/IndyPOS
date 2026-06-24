@@ -151,17 +151,23 @@ builder.Services.AddOpenApi();
 
 var app = builder.Build();
 
-// Provision the database. Dev uses EnsureCreated + test data for speed;
-// production applies EF migrations and seeds the installer-provided admin.
+// Provision the database. Dev uses EnsureCreated + test data for speed.
+// Production provisioning (EF migrations + initial admin seed) runs ONLY when
+// the installer invokes "IndyPOS.StoreHub.exe migrate", then exits before
+// app.Run(). Doing schema work on the normal service-start path would block the
+// host's "Running" signal past the 30s SCM start timeout on a fresh DB
+// (error 1053); the installer runs this as a console step so the first real
+// service start is immediate.
 if (app.Environment.IsDevelopment())
 {
     await app.EnsureStoreHubDatabaseCreatedAsync();
     await app.SeedDevelopmentDataAsync();
 }
-else
+else if (Array.Exists(args, a => string.Equals(a, "migrate", StringComparison.OrdinalIgnoreCase)))
 {
     await app.MigrateStoreHubDatabaseAsync();
     await app.SeedInitialAdminAsync();
+    return;
 }
 
 // Map default endpoints (health, alive)

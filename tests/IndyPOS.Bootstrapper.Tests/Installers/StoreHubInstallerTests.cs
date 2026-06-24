@@ -71,6 +71,25 @@ public class StoreHubInstallerTests
         // Assert
         result.Success.Should().BeTrue();
     }
+
+    [Fact]
+    public async Task ProvisionDatabaseAsync_WhenExeMissing_ShouldReturnError()
+    {
+        // A non-existent install version points StoreHubInstallPath at a dir
+        // that cannot exist, so the migrate exe is missing.
+        var config = new InstallationConfig
+        {
+            StoreId = "STORE-001",
+            AdminPassword = "pw",
+            InstallVersion = "9999.0.0"
+        };
+        var installer = new StoreHubInstaller(config);
+
+        var result = await installer.ProvisionDatabaseAsync();
+
+        result.Success.Should().BeFalse();
+        result.ErrorMessage.Should().Contain("not found");
+    }
 }
 
 public class VelopackLauncherResultTests

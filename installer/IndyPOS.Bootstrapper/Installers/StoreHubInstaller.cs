@@ -11,6 +11,12 @@ public class StoreHubInstaller
 {
     private InstallationConfig? _config;
 
+    public StoreHubInstaller() { }
+
+    // Test seam: lets tests exercise post-configuration methods (e.g.
+    // ProvisionDatabaseAsync) without the heavyweight InstallAsync.
+    internal StoreHubInstaller(InstallationConfig config) => _config = config;
+
     private InstallationConfig Config =>
         _config ?? throw new InvalidOperationException(
             "StoreHubInstaller has not been configured. Call InstallAsync before StartServiceAsync.");
@@ -97,6 +103,72 @@ public class StoreHubInstaller
             {
                 Success = false,
                 ErrorMessage = $"Failed to start service: {ex.Message}"
+            };
+        }
+    }
+
+    /// <summary>
+    /// Provision the StoreHub database by running the app's one-shot "migrate"
+    /// command (applies EF migrations + seeds the initial admin, then exits).
+    /// Doing this as a console step BEFORE the service starts keeps the first
+    /// service start instant, so a fresh-DB schema build can't overrun the 30s
+    /// SCM start timeout (error 1053).
+    /// </summary>
+    public async Task<StoreHubInstallerResult> ProvisionDatabaseAsync(
+        IProgress<string>? log = null,
+        CancellationToken cancellationToken = default)
+    {
+        var exePath = Path.Combine(Config.StoreHubInstallPath, "IndyPOS.StoreHub.exe");
+        if (!File.Exists(exePath))
+        {
+            return new StoreHubInstallerResult
+            {
+                Success = false,
+                ErrorMessage = $"StoreHub executable not found at {exePath}"
+            };
+        }
+
+        try
+        {
+            log?.Report("Applying database migrations and seeding admin...");
+
+            var psi = new ProcessStartInfo
+            {
+                FileName = exePath,
+                Arguments = "migrate",
+                WorkingDirectory = Config.StoreHubInstallPath,
+                UseShellExecute = false,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+                CreateNoWindow = true
+            };
+            // Production is the host default when unset, but be explicit so a stray
+            // dev env var can't divert provisioning to the EnsureCreated path.
+            psi.Environment["ASPNETCORE_ENVIRONMENT"] = "Production";
+
+            using var process = new Process { StartInfo = psi };
+            process.Start();
+
+            var stderr = await process.StandardError.ReadToEndAsync(cancellationToken);
+            await process.WaitForExitAsync(cancellationToken);
+
+            if (process.ExitCode != 0)
+            {
+                return new StoreHubInstallerResult
+                {
+                    Success = false,
+                    ErrorMessage = $"Database provisioning failed (exit {process.ExitCode}): {stderr.Trim()}"
+                };
+            }
+
+            return new StoreHubInstallerResult { Success = true };
+        }
+        catch (Exception ex)
+        {
+            return new StoreHubInstallerResult
+            {
+                Success = false,
+                ErrorMessage = $"Database provisioning failed: {ex.Message}"
             };
         }
     }

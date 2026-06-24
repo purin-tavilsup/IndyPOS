@@ -160,6 +160,29 @@ public class InstallationOrchestrator
 
         cancellationToken.ThrowIfCancellationRequested();
 
+        // Step 4b: Provision schema (apply migrations + seed admin) as a one-shot
+        // console run BEFORE the service starts, so the first service start is
+        // instant and can't overrun the 30s SCM start timeout on a fresh DB.
+        progress.Report(InstallationProgress.Step(
+            "Configuring Database",
+            "Provisioning database schema...",
+            70));
+
+        progress.Report(InstallationProgress.Log("Provisioning database schema..."));
+
+        var provisionResult = await _storeHubInstaller.ProvisionDatabaseAsync(
+            new Progress<string>(msg => progress.Report(InstallationProgress.Log(msg))),
+            cancellationToken);
+
+        if (!provisionResult.Success)
+        {
+            throw new InstallationException($"Database provisioning failed: {provisionResult.ErrorMessage}");
+        }
+
+        progress.Report(InstallationProgress.Log("Database schema provisioned"));
+
+        cancellationToken.ThrowIfCancellationRequested();
+
         // Step 5: Install WinForms via Velopack (70-90%)
         progress.Report(InstallationProgress.Step(
             "Installing POS Application",
