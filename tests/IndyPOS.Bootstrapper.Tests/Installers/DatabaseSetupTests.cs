@@ -75,7 +75,9 @@ public class DatabaseSetupTests
 
         using var doc = JsonDocument.Parse(json);
         var root = doc.RootElement;
-        root.GetProperty("storeIdentity").GetProperty("storeId").GetString().Should().Be("STORE-001");
+        // Must match StoreIdentityOptions binding (SectionName "Store", property "Id");
+        // a "storeIdentity:storeId" shape silently falls back to the machine name (Bug F).
+        root.GetProperty("store").GetProperty("id").GetString().Should().Be("STORE-001");
         root.GetProperty("localToken").GetProperty("issuer").GetString().Should().Be("IndyPOS.StoreHub");
     }
 
