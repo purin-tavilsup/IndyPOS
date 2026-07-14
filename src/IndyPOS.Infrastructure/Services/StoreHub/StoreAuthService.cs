@@ -96,7 +96,8 @@ public class StoreAuthService : IStoreAuthService
             FirstName: user.FirstName,
             LastName: user.LastName,
             RoleId: user.RoleId,
-            StoreId: user.StoreId));
+            StoreId: user.StoreId),
+            mustChangePassword: user.MustChangePassword);
     }
 
     private bool VerifyLegacyPassword(string plainPassword, string storedHash)

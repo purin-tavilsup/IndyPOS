@@ -28,9 +28,10 @@ public record AuthResult
     public string? Token { get; init; }
     public AuthenticatedUser? User { get; init; }
     public string? ErrorMessage { get; init; }
+    public bool MustChangePassword { get; init; }
 
-    public static AuthResult Succeeded(string token, AuthenticatedUser user) =>
-        new() { Success = true, Token = token, User = user };
+    public static AuthResult Succeeded(string token, AuthenticatedUser user, bool mustChangePassword = false) =>
+        new() { Success = true, Token = token, User = user, MustChangePassword = mustChangePassword };
 
     public static AuthResult Failed(string errorMessage) =>
         new() { Success = false, ErrorMessage = errorMessage };
