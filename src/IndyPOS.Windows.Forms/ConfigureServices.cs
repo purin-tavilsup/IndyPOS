@@ -1,4 +1,5 @@
-﻿using IndyPOS.Windows.Forms;
+﻿using IndyPOS.Application.Common.Interfaces;
+using IndyPOS.Windows.Forms;
 using IndyPOS.Windows.Forms.Interfaces;
 using IndyPOS.Windows.Forms.Services;
 using IndyPOS.Windows.Forms.UI;
@@ -54,6 +55,9 @@ internal static class ConfigureServices
 		services.AddSingleton<IStoreHubUpdateService, StoreHubUpdateService>();
 
 		services.AddSingleton<IMachine, Machine>();
+
+		// Change-password prompt seam (consumed by the singleton FirstLoginCoordinator)
+		services.AddSingleton<IChangePasswordPrompt, ChangePasswordPrompt>();
 
 		return services;
     }

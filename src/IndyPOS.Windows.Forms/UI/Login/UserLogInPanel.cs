@@ -10,14 +10,14 @@ namespace IndyPOS.Windows.Forms.UI.Login;
 [ExcludeFromCodeCoverage]
 public partial class UserLogInPanel : UserControl
 {
-	private readonly IUserLogInService _userLogInService;
+	private readonly IFirstLoginCoordinator _coordinator;
 	private readonly MessageForm _messageForm;
 	private bool _isLoggedIn;
 
-	public UserLogInPanel(IUserLogInService userLogInService,
+	public UserLogInPanel(IFirstLoginCoordinator coordinator,
 						  MessageForm messageForm)
 	{
-		_userLogInService = userLogInService;
+		_coordinator = coordinator;
 		_messageForm = messageForm;
 
 		InitializeComponent();
@@ -52,12 +52,7 @@ public partial class UserLogInPanel : UserControl
 		var username = UsersComboBox.Texts?.Trim() ?? string.Empty;
 		var password = UserSecretTextBox.Texts.Trim();
 
-		var result = await _userLogInService.LogInAsync(username, password);
-
-		// TODO(admin-provisioning): once the must-change-password coordinator lands,
-		// result.MustChangePassword should route to a password-rotation dialog instead
-		// of treating it as a normal successful login.
-		_isLoggedIn = result.Success;
+		_isLoggedIn = await _coordinator.LogInAsync(username, password);
 
 		if (_isLoggedIn)
 		{
@@ -71,7 +66,7 @@ public partial class UserLogInPanel : UserControl
 
 	private void LogOut()
 	{
-		_userLogInService.LogOut();
+		_coordinator.LogOut();
 
 		_isLoggedIn = false;
 
