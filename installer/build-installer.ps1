@@ -109,6 +109,25 @@ Copy-Item -Path $storeHubZip.FullName -Destination "$resourcesDir\StoreHub.zip" 
 Write-Host "  Embedded: $velopackPackId-Setup.exe from $($velopackSetup.Name) ($([math]::Round($velopackSetup.Length / 1MB, 1)) MB)" -ForegroundColor Gray
 Write-Host "  Embedded: StoreHub.zip from $($storeHubZip.Name) ($([math]::Round($storeHubZip.Length / 1MB, 1)) MB)" -ForegroundColor Gray
 
+# Stage FC Subject UI fonts (Regular + Bold, .ttf) — FontInstaller enumerates
+# "…Resources.Fonts.*.ttf" at runtime and installs them system-wide.
+$fontsSrc  = "$RootDir\fonts\FC-Subject"
+$fontsDest = "$resourcesDir\Fonts"
+New-Item -ItemType Directory -Path $fontsDest -Force | Out-Null
+$fontMap = @{
+    "FC Subject [Non-commercial use] Regular ver 1.00.ttf" = "FC-Subject-Regular.ttf"
+    "FC Subject [Non-commercial use] Bold ver 1.00.ttf"    = "FC-Subject-Bold.ttf"
+}
+foreach ($src in $fontMap.Keys) {
+    $srcPath = Join-Path $fontsSrc $src
+    if (-not (Test-Path $srcPath)) {
+        Write-Error "Font not found: $srcPath. Expected under fonts\FC-Subject."
+        exit 1
+    }
+    Copy-Item -Path $srcPath -Destination (Join-Path $fontsDest $fontMap[$src]) -Force
+}
+Write-Host "  Embedded: 2 FC Subject fonts (Regular + Bold, .ttf)" -ForegroundColor Gray
+
 # Build and publish the bootstrapper
 Write-Host ""
 Write-Host "Building IndyPOS Bootstrapper..." -ForegroundColor Green
