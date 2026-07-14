@@ -1,9 +1,5 @@
 ﻿using IndyPOS.Application.Common.Enums;
 using IndyPOS.Application.Common.Models;
-using IndyPOS.Application.UseCases.InvoicePayments;
-using IndyPOS.Application.UseCases.InvoiceProducts;
-using IndyPOS.Application.UseCases.Invoices;
-using IndyPOS.Application.UseCases.PayLaterPayments;
 
 namespace IndyPOS.Application.Common.Interfaces;
 
@@ -32,10 +28,6 @@ public interface IReportService
 	Task<IEnumerable<InvoicePaymentDto>> GetPaymentsByInvoiceIdAsync(int invoiceId);
 
 	Task<IEnumerable<PayLaterPaymentDto>> GetPayLaterPaymentsAsync();
-
-	Task<SalesReport> CreateSalesReportByInvoiceIdAsync(int invoiceId, bool hasPayLaterPayment);
-
-	Task<PaymentsReport> CreatePaymentsReportByInvoiceIdAsync(int invoiceId);
 
 	Task<IInvoiceInfo> GetInvoiceInfoAsync(int invoiceId);
 }

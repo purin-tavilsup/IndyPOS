@@ -4,7 +4,15 @@ namespace IndyPOS.Application.Common.Interfaces;
 
 public interface IInvoiceInfo
 {
+	/// <summary>
+	/// Legacy SQLite invoice ID.
+	/// </summary>
 	int Id { get; }
+
+	/// <summary>
+	/// StoreHub invoice ID (UUID). Null for legacy SQLite-only invoices.
+	/// </summary>
+	Guid? StoreHubInvoiceId { get; }
 
 	IList<Product> Products { get; }
 
@@ -17,6 +25,6 @@ public interface IInvoiceInfo
 	decimal PaymentTotal { get; }
 
 	decimal Changes { get; }
-	
+
 	bool HasPayLaterPayment { get; }
 }

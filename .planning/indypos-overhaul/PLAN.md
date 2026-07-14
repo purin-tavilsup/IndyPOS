@@ -1,0 +1,676 @@
+# IndyPOS Overhaul - Implementation Plan
+
+**Last Updated:** 2026-04-27
+**Progress:** ~98% Complete (Local Ready, Cloud Infrastructure Pending)
+
+---
+
+## Epic Overview
+
+| Epic | Name | Status |
+|------|------|--------|
+| 0 | Extract Business Logic | Complete |
+| A | Prepare Codebase | Complete |
+| B | Remove Deprecated PG Report | Complete |
+| C | StoreHub Service + Aspire | Complete |
+| D | Schema Design | Complete |
+| E | Outbox + SyncWorker | Complete |
+| F | Cloud API | Complete |
+| G | Desktop Integration | Complete |
+| H | Testing & Rollout | Complete |
+| L | Local Deployment Readiness | Complete |
+| V | Velopack Integration | Complete |
+| I | Cloud Infrastructure | Not Started |
+| S | Security Hardening | 5/9 Complete |
+| M | Multi-Store Type Support | 🟢 Ready |
+
+> For detailed epic history, see `completed/` folder
+
+---
+
+## Recently Completed
+
+### Epic L: Local Deployment Readiness ✅
+
+**Goal:** Get the system ready for local machine deployment and testing
+
+| Task | Description | Priority | Status |
+|------|-------------|----------|--------|
+| L1 | Add StoreHub config to WinForms appsettings.json | HIGH | ✅ Complete |
+| L2 | Create StoreHub appsettings.Production.json | HIGH | ✅ Complete |
+| L3 | Create publish script (build release binaries) | MEDIUM | ✅ Complete |
+| L4 | Create install-config.ps1 script | MEDIUM | ✅ Complete |
+| L5 | End-to-end test: WinForms → StoreHub → PostgreSQL | HIGH | ✅ Complete |
+| L6 | Create setup guide: Local Machine Deployment | MEDIUM | ✅ Complete |
+
+**Bonus: Velopack Prep**
+| Task | Description | Status |
+|------|-------------|--------|
+| Version system | `Directory.Build.props`, `AppVersion.cs` | ✅ Complete |
+| Version endpoint | `GET /version` in StoreHub | ✅ Complete |
+| Bruno request | `get-version.bru` | ✅ Complete |
+| Versioning docs | `docs/versioning.md` | ✅ Complete |
+
+**Deployment Scenarios:**
+- **Dev/Test (Aspire):** `dotnet run --project src/IndyPOS.AppHost` - API testing with Bruno
+- **Local Production:** WinForms + StoreHub + PostgreSQL on same machine
+
+---
+
+#### L1: WinForms appsettings.json - StoreHub Config ✅
+
+**What was done:** Added StoreHub config section to WinForms appsettings.json. Removed the legacy `Enabled` flag since StoreHub is now the only option (SQLite removed). Also removed unused `Database` section.
+
+**Files modified:**
+- `src/IndyPOS.Windows.Forms/appsettings.json` - Added StoreHub config
+- `src/IndyPOS.Infrastructure/Services/StoreHub/StoreHubOptions.cs` - Removed `Enabled` property
+- `src/IndyPOS.Infrastructure/ConfigureServices.cs` - Removed conditional check
+- `src/IndyPOS.Windows.Forms/appsettings.README.md` - Created config documentation
+
+---
+
+#### L2: StoreHub appsettings.Production.json ✅
+
+**What was done:** Created production config template with all necessary settings and comprehensive documentation.
+
+**Files created:**
+- `src/IndyPOS.StoreHub/appsettings.Production.json` - Production config template
+- `src/IndyPOS.StoreHub/appsettings.Production.README.md` - Detailed property documentation
+
+---
+
+#### L3: Publish Script ✅
+
+**What was done:** Created comprehensive publish script that builds self-contained releases for all components.
+
+**Files created:**
+- `scripts/publish.ps1` - Builds StoreHub, WinForms, MigrationTool
+
+---
+
+#### L4: install-config.ps1 Script ✅
+
+**What was done:** Created installation script that automates PostgreSQL setup, directory creation, JWT key generation, and config file creation.
+
+**Files created:**
+- `scripts/install-config.ps1` - Full installation automation
+
+---
+
+#### L5: End-to-End Test ✅
+
+**What was done:** Created comprehensive smoke test script covering all major API flows.
+
+**Test Coverage:**
+| Category | Tests |
+|----------|-------|
+| **Health** | `/health/live`, `/health/ready`, `/version` |
+| **Auth** | Login (valid/invalid), `/auth/me` |
+| **Products** | Create, update, search, barcode lookup |
+| **Inventory** | Adjust quantity |
+| **Sales** | Complete sale, verify inventory deducted, verify in reports |
+| **Pay Later** | Create pay later sale, list accounts, record payment |
+| **Reports** | Sales summary, invoices, product sales, pay later report |
+| **Cleanup** | Delete test product |
+
+**Files created:**
+- `scripts/smoke-test.ps1` - Comprehensive E2E smoke test
+- `.bruno/StoreHub/health/get-version.bru` - Bruno request for version endpoint
+
+---
+
+#### L6: Setup Guide - Local Machine Deployment ✅
+
+**What was done:** Created comprehensive setup guide with architecture diagrams, step-by-step instructions, and troubleshooting sections.
+
+**Guide Sections:**
+1. Overview with architecture diagrams
+2. Prerequisites (hardware, software, network)
+3. PostgreSQL Setup
+4. StoreHub Service Setup (with Windows Service installation)
+5. Data Migration (SQLite → PostgreSQL)
+6. WinForms Client Setup
+7. Multi-Terminal Setup
+8. Backup Configuration
+9. Maintenance and Troubleshooting
+
+**Files created:**
+- `docs/operations/store-installation-guide.md` - Comprehensive store deployment guide
+
+---
+
+### Epic S: Security Hardening (Partial)
+
+**Completed:**
+- S1: POS offline authentication (BCrypt, JWT)
+- S2: Local user cache (sync from cloud)
+- S3: RBAC implementation (capability-based)
+- S4: CloudApi user management
+- S5: RSA key signing + DPAPI secrets
+
+**Remaining (LOW priority):**
+| Task | Description | Priority |
+|------|-------------|----------|
+| S6 | Key rotation support | LOW |
+| S7 | Security audit logging | LOW |
+| S8 | Rate limiting | LOW |
+| S9 | Secrets management | LOW (covered by S5) |
+
+### Epic M: Multi-Store Type Support 🟢 Ready
+
+**Goal:** Support multiple store types (GeneralHardware, Minimart, CoffeeShop) with different feature sets.
+
+**Key Decisions:**
+| Aspect | Decision |
+|--------|----------|
+| StoreHub Location | Local per store |
+| Offline Support | Local PostgreSQL required (offline-first) |
+| StoreId Generation | Manual UUID by System Admin |
+| Central Database | One DB per store type |
+| Migration | Migrate existing 1 store → `generalHardware` DB |
+
+**Tasks:**
+| Task | Description | Complexity |
+|------|-------------|------------|
+| M1 | Add `StoreType` enum and `StoreTypeFeatures` to Domain | Low |
+| M2 | Update `StoreConfiguration` schema | Low |
+| M3 | Add `StoreId` column to all entities | Medium |
+| M4 | Update repositories to filter by StoreId | Medium |
+| M5 | Update StoreHub API for StoreId | Low |
+| M6 | Add feature validation in Application | Medium |
+| M7 | Update First-Run Wizard | Medium |
+| M8 | Update WinForms UI for feature flags | Medium |
+| M9 | Update CloudApi store registry + DB routing | Medium |
+| M10 | Update Bootstrapper | Low |
+| M11 | Database migrations | Medium |
+| M12 | Migrate existing store | Medium |
+| M13 | Tests + Documentation | Medium |
+
+**Dependencies:** Requires Epic I (Cloud Infrastructure) for central database routing. M1-M8 can be done locally.
+
+**Full Plan:** `.planning/indypos-overhaul/drafts/epic-m-multi-store-type.md`
+
+---
+
+### Epic I: Cloud Infrastructure (Not Started) 🔴 BLOCKING FOR CLOUD TESTING
+
+**Prerequisites:** Epic L (Local Deployment) complete ✅
+
+**Goal:** Deploy CloudApi to DigitalOcean Singapore and enable store-to-cloud sync.
+
+| Task | Description | Priority | Status |
+|------|-------------|----------|--------|
+| I0 | Create Dockerfile for CloudApi | HIGH | ❌ |
+| I1 | Provision DigitalOcean Droplet | HIGH | ❌ |
+| I2 | Provision DO Managed PostgreSQL | HIGH | ❌ |
+| I3 | Deploy CloudApi to Droplet | HIGH | ❌ |
+| I4 | Configure SyncWorker with real CloudApi | HIGH | ❌ |
+| I5 | Multi-store sync testing | MEDIUM | ❌ |
+| I6 | Central reporting dashboard | LOW | ❌ |
+| I7 | Create setup guide: Cloud Deployment | MEDIUM | ❌ |
+
+**Cloud Specs:**
+- Droplet: Basic Premium AMD (2 GB RAM, 1 vCPU, 50 GB SSD) - ~$12/mo
+- Managed PostgreSQL: Smallest tier (1 GB RAM) - ~$15/mo
+- Region: Singapore (closest to Thailand stores)
+- Monthly cost: ~$27 USD
+
+---
+
+#### I0: Create Dockerfile for CloudApi ❌
+
+**Why:** Required for containerized deployment to DigitalOcean.
+
+**Deliverables:**
+- `src/IndyPOS.CloudApi/Dockerfile` - Multi-stage build
+- `docker-compose.cloudapi.yml` - CloudApi + PostgreSQL stack
+- Update `scripts/publish.ps1` to include CloudApi publishing
+
+**Dockerfile spec:**
+```dockerfile
+# Build stage
+FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
+WORKDIR /src
+COPY . .
+RUN dotnet publish src/IndyPOS.CloudApi -c Release -o /app
+
+# Runtime stage
+FROM mcr.microsoft.com/dotnet/aspnet:10.0
+WORKDIR /app
+COPY --from=build /app .
+EXPOSE 8080
+HEALTHCHECK CMD curl --fail http://localhost:8080/health/live || exit 1
+ENTRYPOINT ["dotnet", "IndyPOS.CloudApi.dll"]
+```
+
+---
+
+#### I1: Provision DigitalOcean Droplet ❌
+
+**Steps:**
+1. Create DO account (if needed) and project
+2. Create Droplet:
+   - Image: Ubuntu 24.04 LTS
+   - Plan: Basic Premium AMD ($12/mo)
+   - Datacenter: Singapore (SGP1)
+   - Add SSH key
+3. Configure firewall:
+   - Allow 22 (SSH) from admin IPs only
+   - Allow 443 (HTTPS) from anywhere
+   - Allow 5432 (PostgreSQL) from Droplet only
+4. Point domain/subdomain to Droplet IP (e.g., `api.indypos.app`)
+5. Install Docker + Docker Compose
+
+---
+
+#### I2: Provision DO Managed PostgreSQL ❌
+
+**Steps:**
+1. Create Managed PostgreSQL cluster:
+   - Plan: Basic ($15/mo, 1 GB RAM, 10 GB storage)
+   - Datacenter: Singapore (SGP1)
+   - Database name: `indypos_cloud`
+2. Configure trusted sources (Droplet IP only)
+3. Create database user for CloudApi
+4. Note connection string for I3
+
+---
+
+#### I3: Deploy CloudApi to Droplet ❌
+
+**Steps:**
+1. SSH to Droplet
+2. Clone repo or copy Docker image
+3. Create `appsettings.Production.json`:
+   ```json
+   {
+     "ConnectionStrings": {
+       "CloudDb": "Host=<managed-pg>;Database=indypos_cloud;Username=<user>;Password=<pass>;SSL Mode=Require"
+     },
+     "Jwt": {
+       "RsaSigningKey": "<base64-encoded-rsa-private-key>"
+     },
+     "OpenIddict": {
+       "EncryptionKey": "<base64-encoded-256-bit-key>"
+     }
+   }
+   ```
+4. Generate RSA key: `scripts/generate-rsa-key.ps1`
+5. Run with Docker Compose
+6. Set up SSL with Let's Encrypt (Caddy or nginx reverse proxy)
+7. Verify health: `curl https://api.indypos.app/health/ready`
+
+---
+
+#### I4: Configure SyncWorker with Real CloudApi ❌
+
+**Steps:**
+1. Register store as OAuth2 client in CloudApi:
+   ```bash
+   POST /admin/stores/register
+   {
+     "storeId": "550e8400-e29b-41d4-a716-446655440001",
+     "storeName": "Bangkok Store 1",
+     "storeType": "GeneralHardware"
+   }
+   ```
+   Response: `{ "clientId": "...", "clientSecret": "..." }`
+
+2. Update StoreHub `appsettings.Production.json`:
+   ```json
+   {
+     "CloudApi": {
+       "BaseUrl": "https://api.indypos.app",
+       "ClientId": "<from-step-1>",
+       "ClientSecret": "<from-step-1>"
+     },
+     "SyncWorker": {
+       "Enabled": true
+     }
+   }
+   ```
+
+3. Restart StoreHub and verify sync:
+   - Check logs for successful token acquisition
+   - Make a sale and verify event synced to CloudApi
+   - Check CloudApi logs for event ingestion
+
+---
+
+#### I5: Multi-Store Sync Testing ❌
+
+**Test scenarios:**
+- [ ] Two stores sync to same CloudApi independently
+- [ ] Events from Store A don't appear in Store B queries
+- [ ] Concurrent sync from multiple stores
+- [ ] Offline → Online sync recovery
+- [ ] Large batch sync (100+ events)
+
+---
+
+#### I6: Central Reporting Dashboard ❌
+
+**Low priority** - Can use direct SQL queries initially.
+
+**Future options:**
+- Grafana dashboard connected to CloudApi PostgreSQL
+- Custom admin UI in CloudApi
+- Metabase or similar BI tool
+
+---
+
+#### I7: Cloud Deployment Guide ❌
+
+**File:** `docs/operations/setup-cloud.md`
+
+**Sections:**
+1. Overview & Architecture
+2. DigitalOcean Infrastructure Setup
+3. CloudApi Deployment
+4. SSL/TLS Configuration
+5. OAuth2 Client Registration
+6. Store Configuration for Cloud Sync
+7. Monitoring & Maintenance
+8. Troubleshooting
+
+---
+
+#### I7: Setup Guide - Cloud Deployment
+
+**Why:** Document the cloud deployment process for future reference and handoff.
+
+**Audience:** Developer/IT admin setting up cloud infrastructure
+
+**Guide Structure:**
+```
+docs/operations/setup-cloud.md
+
+1. Overview
+   - Architecture diagram (Stores → CloudApi → Central PostgreSQL)
+   - Why cloud sync? (central reporting, backup, multi-store)
+   - Data flow: Outbox pattern + SyncWorker
+
+2. Cloud Infrastructure
+   - DigitalOcean Droplet setup (specs, region, OS)
+   - Managed PostgreSQL setup
+   - Firewall rules (ports 443, 5432)
+   - Domain + SSL certificate
+
+3. CloudApi Deployment
+   - Build and publish CloudApi
+   - Configure appsettings.Production.json
+   - Set up as systemd service (Linux)
+   - Health check verification
+
+4. OAuth2 Client Setup
+   - Register store clients in CloudApi
+   - Generate client credentials
+   - Distribute to stores securely
+
+5. Store Configuration for Cloud Sync
+   - Configure StoreHub with CloudApi credentials
+   - Enable SyncWorker
+   - Verify sync status
+
+6. Central Database
+   - Schema overview (multi-tenant with StoreId)
+   - Querying across stores
+   - Reporting queries
+
+7. Monitoring & Maintenance
+   - Health check endpoints
+   - Log aggregation
+   - Database backups (managed PostgreSQL snapshots)
+   - Scaling considerations
+
+8. Troubleshooting
+   - Sync failures
+   - Authentication issues
+   - Network connectivity
+```
+
+**Files:**
+- Create: `docs/operations/setup-cloud.md`
+
+---
+
+## Backlog
+
+| Item | Description | Priority |
+|------|-------------|----------|
+| Migration `--sync-to-cloud` | Create outbox events for migrated invoices | LOW |
+| **Auto-Update System** | Remote update capability for StoreHub + WinForms | Future |
+| MAUI Migration | Replace WinForms with MAUI | Future |
+| Legacy Report Cleanup | Remove int-based report methods | MAUI Migration |
+
+---
+
+## Future: Auto-Update System
+
+**Goal:** Enable remote updates for StoreHub and WinForms without manual intervention.
+
+### Why Auto-Update?
+
+- 3 stores × 1-2 terminals = 5-6 machines to update
+- Manual updates require physical access or remote desktop
+- Minimize downtime during business hours
+- Ensure all stores run consistent versions
+
+### Architecture Options
+
+#### Option A: CloudApi as Update Server (Recommended)
+
+```
+┌─────────────┐     Check for updates     ┌─────────────┐
+│  StoreHub   │ ──────────────────────────▶│  CloudApi   │
+│  WinForms   │                            │             │
+└─────────────┘                            │  /updates   │
+       │                                   │  /download  │
+       │         Download new version      └─────────────┘
+       ▼                                          │
+┌─────────────┐                            ┌──────▼──────┐
+│  Local      │                            │   Azure     │
+│  Installer  │                            │   Blob /    │
+└─────────────┘                            │   S3 / DO   │
+                                           └─────────────┘
+```
+
+**Pros:** Centralized control, version tracking per store, rollback support
+**Cons:** Requires CloudApi to be deployed first
+
+#### Option B: GitHub Releases + Squirrel
+
+```
+┌─────────────┐     Check releases        ┌─────────────┐
+│  StoreHub   │ ──────────────────────────▶│   GitHub    │
+│  WinForms   │                            │  Releases   │
+└─────────────┘                            └─────────────┘
+       │                                          │
+       │         Download .nupkg                  │
+       ▼                                          │
+┌─────────────┐                            ┌──────▼──────┐
+│  Squirrel   │◀───────────────────────────│   Assets    │
+│  Installer  │                            │  (.nupkg)   │
+└─────────────┘                            └─────────────┘
+```
+
+**Pros:** Simple, works without CloudApi, familiar tooling
+**Cons:** Less control over which stores get updates
+
+### Components Needed
+
+| Component | Description |
+|-----------|-------------|
+| **Version Endpoint** | CloudApi endpoint to check latest version |
+| **Update Package** | Signed .nupkg or .zip with new binaries |
+| **Update Service** | Background service in StoreHub to check/apply updates |
+| **Update UI** | WinForms notification + manual trigger option |
+| **Rollback** | Keep previous version, restore on failure |
+
+### Implementation Tasks (Epic U)
+
+| Task | Description | Complexity |
+|------|-------------|------------|
+| U1 | Add version endpoint to CloudApi (`GET /updates/latest`) | Low |
+| U2 | Add update check to StoreHub (background, configurable interval) | Medium |
+| U3 | Create update download + extract logic | Medium |
+| U4 | Handle StoreHub self-update (stop service, replace, restart) | High |
+| U5 | Add update notification to WinForms | Low |
+| U6 | Create signed update packages in CI/CD | Medium |
+| U7 | Add rollback capability | Medium |
+| U8 | Admin UI in CloudApi to manage rollouts | Medium |
+
+### Update Flow (StoreHub)
+
+```
+1. StoreHub checks CloudApi every N hours
+2. CloudApi returns: { version: "1.2.0", url: "...", hash: "sha256:..." }
+3. If newer version available:
+   a. Download to temp directory
+   b. Verify hash
+   c. Schedule update (next restart or off-hours)
+4. On scheduled update:
+   a. Stop StoreHub service
+   b. Backup current binaries
+   c. Extract new binaries
+   d. Start StoreHub service
+   e. Health check - if fails, rollback
+5. Report update status to CloudApi
+```
+
+### Update Flow (WinForms)
+
+```
+1. On startup, check StoreHub for available updates
+2. If update available:
+   a. Show notification to user
+   b. "Update available (v1.2.0) - Install now?"
+3. If user accepts:
+   a. Download update package
+   b. Close WinForms
+   c. Run installer/updater
+   d. Restart WinForms
+```
+
+### Configuration
+
+```json
+// StoreHub appsettings.json
+{
+  "AutoUpdate": {
+    "Enabled": true,
+    "CheckIntervalHours": 6,
+    "UpdateWindowStart": "02:00",
+    "UpdateWindowEnd": "05:00",
+    "AutoInstall": true
+  }
+}
+```
+
+### Security Considerations
+
+- [ ] Sign update packages (code signing certificate)
+- [ ] Verify package hash before applying
+- [ ] HTTPS only for downloads
+- [ ] Rate limiting on update endpoints
+- [ ] Audit log of all updates
+
+### Libraries to Consider
+
+| Library | Purpose |
+|---------|---------|
+| [Squirrel.Windows](https://github.com/Squirrel/Squirrel.Windows) | WinForms auto-updater (mature, widely used) |
+| [Velopack](https://github.com/velopack/velopack) | Modern Squirrel fork, cross-platform |
+| [NetSparkle](https://github.com/NetSparkleUpdater/NetSparkle) | .NET updater framework |
+| Custom | Roll your own for full control |
+
+### Rollout Strategy
+
+1. **Canary** - Update one store first, monitor for issues
+2. **Staged** - Roll out to remaining stores over days
+3. **Emergency** - Force update all stores (security patches)
+
+### Dependencies
+
+- Requires Epic I (Cloud Infrastructure) for Option A
+- Can start with Option B (GitHub) while waiting for CloudApi
+
+---
+
+## Technical Debt
+
+### StoreHubReportService Legacy Methods
+Stub implementations return empty collections. Address during MAUI migration:
+- `GetInvoicesByPeriodAsync()`, `GetInvoicesByDateRangeAsync()`
+- `GetPayLaterPaymentsByPeriodAsync()`, `GetPayLaterPaymentsAsync()`
+- `GetInvoiceProductsByDateAsync()`, `GetInvoiceProductsByDateRangeAsync()`
+- `GetInvoiceProductsByInvoiceIdAsync(int)`, `GetPaymentsByInvoiceIdAsync(int)`
+- `GetInvoiceInfoAsync(int)`
+
+---
+
+## Statistics
+
+| Metric | Value |
+|--------|-------|
+| Total Epics | 10 |
+| Completed Epics | 9 |
+| Total Tests | 306 |
+| Build Status | 0 Errors, 0 Warnings |
+
+---
+
+## Reference Documentation
+
+| Doc | Location |
+|-----|----------|
+| Current status | `.claude/STATUS.md` |
+| Session history | `.claude/session-log.md` |
+| Completed epics | `.planning/indypos-overhaul/completed/` |
+| Security spec | `.planning/indypos-overhaul/security/` |
+| Diagrams | `.planning/indypos-overhaul/diagrams/` |
+| Operations docs | `docs/operations/` |
+
+---
+
+## Solution Structure
+
+```
+src/
+  Core/
+    IndyPOS.Domain
+    IndyPOS.Application
+    IndyPOS.Infrastructure
+  DesktopApp/
+    IndyPOS.Windows.Forms
+  Services/
+    IndyPOS.StoreHub
+    IndyPOS.CloudApi
+  DevAppHost/
+    IndyPOS.AppHost
+    IndyPOS.ServiceDefaults
+  Tools/
+    IndyPOS.MigrationTool
+
+tests/
+  Core/ -> IndyPOS.Application.Tests
+  DesktopApp/ -> IndyPOS.Windows.Forms.Tests
+  Services/ -> IndyPOS.StoreHub.IntegrationTests
+  Tools/ -> IndyPOS.Migration.Tests, IndyPOS.MigrationTool.Tests
+```
+
+---
+
+## Quick Commands
+
+```bash
+# Run tests
+dotnet test
+
+# Build
+dotnet build
+
+# Run with Aspire (requires Docker)
+dotnet run --project src/IndyPOS.AppHost --launch-profile https
+# Dashboard: https://localhost:17222
+```

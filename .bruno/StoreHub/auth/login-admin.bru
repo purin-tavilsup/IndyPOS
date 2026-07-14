@@ -1,0 +1,46 @@
+meta {
+  name: Login (Admin)
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{baseUrl}}/auth/login
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "username": "admin",
+    "password": "admin123"
+  }
+}
+
+script:post-response {
+  if (res.body.success && res.body.token) {
+    bru.setVar("token", res.body.token);
+  }
+}
+
+docs {
+  # Login as System Admin
+
+  Logs in with admin credentials (roleId: 3).
+
+  **Capabilities (all):**
+  - products.read
+  - sales.complete
+  - sync.view_status
+  - users.read
+  - users.create
+  - users.update
+  - users.delete
+  - admin.stores.register
+
+  The token is automatically saved to the `token` variable for use in subsequent requests.
+}

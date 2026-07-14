@@ -1,0 +1,75 @@
+meta {
+  name: Complete Sale
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{baseUrl}}/sales/complete
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "userId": "{{userId}}",
+    "lines": [
+      {
+        "productId": "{{productId}}",
+        "quantity": 2,
+        "unitPrice": 7.00
+      }
+    ],
+    "payments": [
+      {
+        "method": "Cash",
+        "amount": 14.00
+      }
+    ]
+  }
+}
+
+vars:pre-request {
+  userId: 00000000-0000-0000-0000-000000000000
+  productId: 00000000-0000-0000-0000-000000000000
+}
+
+docs {
+  # Complete Sale
+
+  Creates a new sale with invoice, line items, and payments.
+
+  **Required capability:** `sales.complete`
+
+  **How to use:**
+  1. Login first (to set `token`)
+  2. Call "Get All Products" to get real `productId`
+  3. Update `userId` from login response
+  4. Update `productId` in the request body
+  5. Execute this request
+
+  **Payment methods:**
+  - `Cash`
+  - `Card`
+  - `PayLater`
+  - `Transfer`
+
+  **Response:**
+  ```json
+  {
+    "invoiceId": "guid",
+    "totalAmount": 14.00,
+    "createdUtc": "2024-01-01T12:00:00Z"
+  }
+  ```
+
+  **Note:** The sale is atomically committed with an outbox event for cloud sync.
+}

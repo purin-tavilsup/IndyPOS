@@ -1,0 +1,32 @@
+meta {
+  name: Get Product by Barcode
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{baseUrl}}/products/barcode/8850000000001
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+docs {
+  # Get Product by Barcode
+
+  Looks up a product by its barcode.
+
+  **Required capability:** `products.read`
+
+  **URL parameter:** barcode (e.g., `8850000000001`)
+
+  **Test barcodes (seeded in dev):**
+  - `8850000000001` - น้ำดื่ม 600ml (7 baht)
+  - `8850000000002` - โค้ก 325ml (15 baht)
+  - `8850000000003` - มาม่าหมูสับ (6 baht)
+  - `8850000000004` - ขนมปังปี๊บ (20 baht)
+  - `8850000000005` - นมจืด 200ml (12 baht)
+}

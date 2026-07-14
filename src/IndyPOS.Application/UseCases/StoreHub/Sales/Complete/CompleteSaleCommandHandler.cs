@@ -1,0 +1,173 @@
+using System.Text.Json;
+using IndyPOS.Application.Abstractions.StoreHub.Repositories;
+using IndyPOS.Application.Common.Interfaces;
+using IndyPOS.Application.UseCases.Cloud.Sync.Events;
+using IndyPOS.Domain.Entities.Core;
+using Microsoft.Extensions.Logging;
+using Nokpirab;
+
+namespace IndyPOS.Application.UseCases.StoreHub.Sales.Complete;
+
+public class CompleteSaleCommandHandler : ICommandHandler<CompleteSaleCommand, CompleteSaleResponse>
+{
+    private readonly ISaleRepository _saleRepository;
+    private readonly IProductRepository _productRepository;
+    private readonly IStoreIdentityService _storeIdentity;
+    private readonly ILogger<CompleteSaleCommandHandler> _logger;
+
+    public CompleteSaleCommandHandler(
+        ISaleRepository saleRepository,
+        IProductRepository productRepository,
+        IStoreIdentityService storeIdentity,
+        ILogger<CompleteSaleCommandHandler> logger)
+    {
+        _saleRepository = saleRepository;
+        _productRepository = productRepository;
+        _storeIdentity = storeIdentity;
+        _logger = logger;
+    }
+
+    public async Task<CompleteSaleResponse> HandleAsync(
+        CompleteSaleCommand command,
+        CancellationToken cancellationToken = default)
+    {
+        _logger.LogDebug(
+            "Processing sale: StoreId={StoreId}, UserId={UserId}, Lines={LineCount}, Payments={PaymentCount}",
+            command.StoreId, command.UserId, command.Lines.Count, command.Payments.Count);
+
+        // Validate PayLater is allowed for this store type
+        var features = _storeIdentity.Features;
+        var hasPayLater = command.Payments.Any(p => p.Method.Equals("PayLater", StringComparison.OrdinalIgnoreCase));
+        if (hasPayLater && !features.PayLaterEnabled)
+        {
+            _logger.LogWarning(
+                "PayLater rejected: StoreType={StoreType}, UserId={UserId}",
+                _storeIdentity.StoreType, command.UserId);
+            throw new InvalidOperationException(
+                $"PayLater payment is not available for {_storeIdentity.StoreType} stores.");
+        }
+
+        var now = DateTime.UtcNow;
+        var invoiceId = Guid.NewGuid();
+
+        // Build invoice
+        var invoice = new Invoice
+        {
+            Id = invoiceId,
+            StoreId = command.StoreId,
+            UserId = command.UserId,
+            TotalAmount = command.Lines.Sum(l => l.Quantity * l.UnitPrice),
+            CreatedUtc = now,
+            LastModifiedUtc = now
+        };
+
+        // Build invoice lines with product name snapshot
+        var lines = new List<InvoiceLine>();
+        var inventoryMovements = new List<InventoryMovement>();
+
+        foreach (var lineRequest in command.Lines)
+        {
+            var product = await _productRepository.GetByIdAsync(lineRequest.ProductId, cancellationToken);
+            var productName = product?.Name ?? "Unknown Product";
+
+            var line = new InvoiceLine
+            {
+                Id = Guid.NewGuid(),
+                InvoiceId = invoiceId,
+                ProductId = lineRequest.ProductId,
+                ProductName = productName,
+                Quantity = lineRequest.Quantity,
+                UnitPrice = lineRequest.UnitPrice,
+                CreatedUtc = now
+            };
+            lines.Add(line);
+
+            // Create inventory movement (negative for sale)
+            var movement = new InventoryMovement
+            {
+                Id = Guid.NewGuid(),
+                StoreId = command.StoreId,
+                ProductId = lineRequest.ProductId,
+                QuantityDelta = -lineRequest.Quantity,
+                Reason = "Sale",
+                ReferenceId = invoiceId,
+                CreatedUtc = now
+            };
+            inventoryMovements.Add(movement);
+        }
+
+        // Build payments
+        var payments = command.Payments.Select(p => new Payment
+        {
+            Id = Guid.NewGuid(),
+            InvoiceId = invoiceId,
+            Method = p.Method,
+            Amount = p.Amount,
+            Note = p.Note,
+            CreatedUtc = now
+        }).ToList();
+
+        // Build rich event payload (transaction snapshot)
+        var eventId = Guid.NewGuid();
+        var invoiceCompletedEvent = new InvoiceCompletedEvent
+        {
+            EventId = eventId,
+            InvoiceId = invoiceId,
+            StoreId = command.StoreId,
+            UserId = command.UserId,
+            TotalAmount = invoice.TotalAmount,
+            CreatedAtUtc = now,
+            Lines = lines.Select(l => new InvoiceLineSnapshot
+            {
+                LineId = l.Id,
+                ProductId = l.ProductId,
+                ProductName = l.ProductName,
+                Quantity = l.Quantity,
+                UnitPrice = l.UnitPrice
+            }).ToList(),
+            Payments = payments.Select(p => new PaymentSnapshot
+            {
+                PaymentId = p.Id,
+                Method = p.Method,
+                Amount = p.Amount,
+                Note = p.Note
+            }).ToList(),
+            InventoryMovements = inventoryMovements.Select(m => new InventoryMovementSnapshot
+            {
+                MovementId = m.Id,
+                ProductId = m.ProductId,
+                QuantityDelta = m.QuantityDelta,
+                Reason = m.Reason
+            }).ToList()
+        };
+
+        // Build outbox event for cloud sync
+        var outboxEvent = new OutboxEvent
+        {
+            Id = eventId,
+            StoreId = command.StoreId,
+            Type = "InvoiceCompleted",
+            PayloadJson = JsonSerializer.Serialize(invoiceCompletedEvent),
+            CreatedUtc = now,
+            Status = "Pending"
+        };
+
+        // Complete the sale atomically
+        await _saleRepository.CompleteSaleAsync(
+            invoice,
+            lines,
+            payments,
+            inventoryMovements,
+            outboxEvent,
+            cancellationToken);
+
+        _logger.LogInformation(
+            "Sale completed: InvoiceId={InvoiceId}, Total={TotalAmount:C}, Lines={LineCount}, UserId={UserId}",
+            invoice.Id, invoice.TotalAmount, lines.Count, command.UserId);
+
+        return new CompleteSaleResponse(
+            InvoiceId: invoice.Id,
+            TotalAmount: invoice.TotalAmount,
+            CreatedUtc: invoice.CreatedUtc);
+    }
+}

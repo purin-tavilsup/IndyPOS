@@ -1,0 +1,36 @@
+meta {
+  name: Get Invoices
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{baseUrl}}/reports/invoices?fromDate={{fromDate}}&toDate={{toDate}}&page=1&pageSize=20
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+vars:pre-request {
+  fromDate: 2024-01-01
+  toDate: 2024-12-31
+}
+
+docs {
+  Get paginated list of invoices for a date range.
+
+  Returns:
+  - Invoice summaries with ID, total, payment method, line count
+  - Pagination info (total count, page, hasNext, hasPrevious)
+
+  Query params:
+  - fromDate: Start date (required)
+  - toDate: End date (required)
+  - page: Page number (default: 1)
+  - pageSize: Items per page (default: 50)
+
+  Required role: StoreManager or SystemAdmin
+}

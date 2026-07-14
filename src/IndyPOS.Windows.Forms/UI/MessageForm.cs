@@ -20,6 +20,17 @@ public partial class MessageForm : Form
 								   string? acceptButtonText = null, 
 								   string? cancelButtonText = null)
 	{
+		// This form is a reused singleton shown modally and hidden (not closed)
+		// between uses. If it is already on screen, calling ShowDialog again
+		// throws "Form that is already visible cannot be displayed as a modal
+		// dialog box". Surface the existing dialog instead of crashing the app.
+		if (Visible)
+		{
+			BringToFront();
+
+			return _response;
+		}
+
 		if (caption is not null)
 			CaptionLabel.Text = caption;
 

@@ -1,0 +1,64 @@
+meta {
+  name: Create Product
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{baseUrl}}/products
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:json {
+  {
+    "barcode": "1234567890123",
+    "description": "Test Product",
+    "category": "General",
+    "unitPrice": 100.00,
+    "groupPrice": 90.00,
+    "groupPriceQuantity": 10,
+    "isTrackable": true,
+    "initialQuantity": 50
+  }
+}
+
+docs {
+  # Create Product
+
+  Creates a new product in the inventory.
+
+  ## Request Body
+
+  | Field | Type | Required | Description |
+  |-------|------|----------|-------------|
+  | barcode | string | Yes | Product barcode (unique) |
+  | description | string | Yes | Product name/description |
+  | category | string | No | Product category |
+  | unitPrice | decimal | Yes | Regular unit price |
+  | groupPrice | decimal | No | Discounted price for bulk |
+  | groupPriceQuantity | int | No | Quantity threshold for group price |
+  | isTrackable | bool | No | Whether to track inventory (default: true) |
+  | initialQuantity | int | No | Initial stock quantity (default: 0) |
+
+  ## Response
+
+  Returns the created product with its ID.
+
+  ```json
+  {
+    "id": "guid",
+    "barcode": "1234567890123",
+    "description": "Test Product",
+    ...
+  }
+  ```
+
+  ## Authorization
+
+  Requires `products.manage` capability (Manager, Admin).
+}

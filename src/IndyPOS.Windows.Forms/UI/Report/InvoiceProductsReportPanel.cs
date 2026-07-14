@@ -1,8 +1,9 @@
 ﻿using IndyPOS.Application.Common.Enums;
 using IndyPOS.Application.Common.Extensions;
 using IndyPOS.Application.Common.Interfaces;
+using IndyPOS.Application.Common.Models;
 using System.Diagnostics.CodeAnalysis;
-using IndyPOS.Application.UseCases.InvoiceProducts;
+using IndyPOS.Windows.Forms.UI;
 
 namespace IndyPOS.Windows.Forms.UI.Report;
 
@@ -10,6 +11,7 @@ namespace IndyPOS.Windows.Forms.UI.Report;
 public partial class InvoiceProductsReportPanel : UserControl
 {
 	private readonly IReportService _reportService;
+	private readonly MessageForm _messageForm;
 	private IEnumerable<InvoiceProductDto> _products;
 
 	private enum ProductColumn
@@ -25,9 +27,10 @@ public partial class InvoiceProductsReportPanel : UserControl
 		Note
 	}
 
-	public InvoiceProductsReportPanel(IReportService reportService)
+	public InvoiceProductsReportPanel(IReportService reportService, MessageForm messageForm)
 	{
 		_reportService = reportService;
+		_messageForm = messageForm;
 		_products = Enumerable.Empty<InvoiceProductDto>();
 
 		InitializeComponent();
@@ -89,7 +92,7 @@ public partial class InvoiceProductsReportPanel : UserControl
 	{
 		var columnCount = InvoiceProductsDataView.ColumnCount;
 		var productRow = new object[columnCount];
-		var total = !product.IsGroupProduct ? product.UnitPrice * product.Quantity : product.GroupPrice;
+		var total = product.GetTotal();
 
 		productRow[(int) ProductColumn.InvoiceId] = product.InvoiceId;
 		productRow[(int) ProductColumn.ProductCode] = product.Barcode;
@@ -135,51 +138,60 @@ public partial class InvoiceProductsReportPanel : UserControl
 		return await _reportService.GetInvoiceProductsByDateRangeAsync(startDate, endDate);
 	}
 
+	private async Task ShowCachedProductsAsync(Func<IEnumerable<InvoiceProductDto>, IEnumerable<InvoiceProductDto>> filter)
+	{
+		try
+		{
+			if (!_products.Any())
+			{
+				_products = await GetInvoiceProductsAsync();
+			}
+
+			ShowInvoiceProducts(filter(_products));
+		}
+		catch (Exception ex)
+		{
+			ReportErrorHandler.Show(_messageForm, ex);
+		}
+	}
+
 	private async void GeneralProductsOnlyButton_Click(object sender, EventArgs e)
 	{
-		if (!_products.Any())
-		{
-			_products = await GetInvoiceProductsAsync();
-		}
-
-		ShowInvoiceProducts(_products.Where(IsGeneralProductGroup));
+		await ShowCachedProductsAsync(products => products.Where(IsGeneralProductGroup));
 	}
 
 	private async void HardwareProductsOnlyButton_Click(object sender, EventArgs e)
 	{
-		if (!_products.Any())
-		{
-			_products = await GetInvoiceProductsAsync();
-		}
-
-		ShowInvoiceProducts(_products.Where(IsHardwareProductGroup));
+		await ShowCachedProductsAsync(products => products.Where(IsHardwareProductGroup));
 	}
 
 	private async void AllProductGroupsButton_Click(object sender, EventArgs e)
 	{
-		if (!_products.Any())
-		{
-			_products = await GetInvoiceProductsAsync();
-		}
-
-		ShowInvoiceProducts(_products);
+		await ShowCachedProductsAsync(products => products);
 	}
 
 	private async void ShowProductsByDateRangeButton_Click(object sender, EventArgs e)
 	{
-		_products = await GetInvoiceProductsAsync();
+		try
+		{
+			_products = await GetInvoiceProductsAsync();
 
-		if (AllProductGroupsButton.Checked)
-		{
-			ShowInvoiceProducts(_products);
+			if (AllProductGroupsButton.Checked)
+			{
+				ShowInvoiceProducts(_products);
+			}
+			else if (HardwareProductsOnlyButton.Checked)
+			{
+				ShowInvoiceProducts(_products.Where(IsHardwareProductGroup));
+			}
+			else
+			{
+				ShowInvoiceProducts(_products.Where(IsGeneralProductGroup));
+			}
 		}
-		else if (HardwareProductsOnlyButton.Checked)
+		catch (Exception ex)
 		{
-			ShowInvoiceProducts(_products.Where(IsHardwareProductGroup));
-		}
-		else
-		{
-			ShowInvoiceProducts(_products.Where(IsGeneralProductGroup));
+			ReportErrorHandler.Show(_messageForm, ex);
 		}
 	}
 }

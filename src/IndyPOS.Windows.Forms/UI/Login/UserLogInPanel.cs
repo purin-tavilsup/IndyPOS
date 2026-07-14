@@ -1,53 +1,26 @@
-﻿using IndyPOS.Application.Common.Interfaces;
 using System.Diagnostics.CodeAnalysis;
-using IndyPOS.Application.UseCases.Users;
-using IndyPOS.Application.UseCases.Users.Get;
-using Nokpirab;
+using IndyPOS.Application.Common.Interfaces;
 
 namespace IndyPOS.Windows.Forms.UI.Login;
 
+/// <summary>
+/// User login panel.
+/// In StoreHub mode, user list is not pre-populated - users type their username directly.
+/// </summary>
 [ExcludeFromCodeCoverage]
 public partial class UserLogInPanel : UserControl
 {
-	private readonly IUserLogInService _userLogInService;
-	private readonly INokpirab _nokpirab;
-	private readonly ICryptographyService _cryptographyService;
+	private readonly IFirstLoginCoordinator _coordinator;
 	private readonly MessageForm _messageForm;
 	private bool _isLoggedIn;
-		
-	public UserLogInPanel(IUserLogInService userLogInService,
-						  ICryptographyService cryptographyService,
-						  MessageForm messageForm,
-						  INokpirab nokpirab)
+
+	public UserLogInPanel(IFirstLoginCoordinator coordinator,
+						  MessageForm messageForm)
 	{
-		_userLogInService = userLogInService;
-		_cryptographyService = cryptographyService;
+		_coordinator = coordinator;
 		_messageForm = messageForm;
-		_nokpirab = nokpirab;
 
 		InitializeComponent();
-		InitializeUsers();
-	}
-
-	private void InitializeUsers()
-	{
-		UsersComboBox.Items.Clear();
-
-		var users = GetUsers();
-
-		foreach (var user in users)
-		{
-			var username = $"{user.FirstName.ToLower()}.{user.LastName.ToLower()}";
-
-			UsersComboBox.Items.Add(username);
-		}
-	}
-
-	private IEnumerable<UserDto> GetUsers()
-	{
-		return _nokpirab.SendAsync(new GetUsersQuery())
-						.GetAwaiter()
-						.GetResult();
 	}
 
 	private async void LogInButton_Click(object sender, EventArgs e)
@@ -59,15 +32,27 @@ public partial class UserLogInPanel : UserControl
 			return;
 		}
 
-		await TryLogInAsync();
+		// Disable while the async login is in flight so a second click or
+		// Enter press can't re-enter and show a second modal on the shared
+		// MessageForm (which would throw "Form that is already visible").
+		LogInButton.Enabled = false;
+
+		try
+		{
+			await TryLogInAsync();
+		}
+		finally
+		{
+			LogInButton.Enabled = true;
+		}
 	}
 
 	private async Task TryLogInAsync()
 	{
-		var username = UsersComboBox.SelectedItem?.ToString() ?? string.Empty;
-		var password = _cryptographyService.Encrypt(UserSecretTextBox.Texts.Trim());
+		var username = UsersComboBox.Texts?.Trim() ?? string.Empty;
+		var password = UserSecretTextBox.Texts.Trim();
 
-		_isLoggedIn = await _userLogInService.LogInAsync(username, password);
+		_isLoggedIn = await _coordinator.LogInAsync(username, password);
 
 		if (_isLoggedIn)
 		{
@@ -81,7 +66,7 @@ public partial class UserLogInPanel : UserControl
 
 	private void LogOut()
 	{
-		_userLogInService.LogOut();
+		_coordinator.LogOut();
 
 		_isLoggedIn = false;
 
@@ -92,8 +77,8 @@ public partial class UserLogInPanel : UserControl
 	{
 		UserSecretTextBox.PasswordChar = !UserSecretTextBox.PasswordChar;
 
-		PasswordVisibilityButton.Image = UserSecretTextBox.PasswordChar 
-											 ? Properties.Resources.Visible_25 
+		PasswordVisibilityButton.Image = UserSecretTextBox.PasswordChar
+											 ? Properties.Resources.Visible_25
 											 : Properties.Resources.Hidden_25;
 	}
 

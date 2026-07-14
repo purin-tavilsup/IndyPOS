@@ -105,4 +105,40 @@ public class CashFlowData
 
 	[Name("ยอดรวม เหรียญ 1")]
 	public decimal Coin1Total => Coin1Count;
+
+	/// <summary>
+	/// Calculates the expected cash in drawer based on sales and adjustments.
+	/// Formula: Cash Sales + PayLater Received + Changes - Transfers - Welfare - Payouts
+	/// </summary>
+	public decimal CalculateExpectedCash()
+	{
+		return SalesTotalWithoutPayLaterPayments
+			 + ReceivedPayLaterPaymentsTotal
+			 + ChangesTotal
+			 - MoneyTransferTotal
+			 - WelfareCardTotal
+			 - PayoutsTotal;
+	}
+
+	/// <summary>
+	/// Calculates the actual cash counted in drawer (all denominations).
+	/// </summary>
+	public decimal CalculateActualCash()
+	{
+		return BankNote1000Total
+			 + BankNote500Total
+			 + BankNote100Total
+			 + BankNote50Total
+			 + BankNote20Total
+			 + Coin10Total
+			 + Coin5Total
+			 + Coin2Total
+			 + Coin1Total;
+	}
+
+	/// <summary>
+	/// Calculates the difference between actual and expected cash.
+	/// Positive = overage, Negative = shortage, Zero = balanced.
+	/// </summary>
+	public decimal CalculateCashDifference() => CalculateActualCash() - CalculateExpectedCash();
 }

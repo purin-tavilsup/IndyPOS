@@ -51,9 +51,6 @@
             label7 = new Label();
             label8 = new Label();
             BarcodeScannerDeviceNameTextBox = new ModernUI.ModernTextBox();
-            panel4 = new Panel();
-            EnableCloudDatabaseCheckBox = new CheckBox();
-            label11 = new Label();
             panel5 = new Panel();
             CashDrawerButton = new ModernUI.ModernButton();
             label14 = new Label();
@@ -64,7 +61,6 @@
             panel1.SuspendLayout();
             panel2.SuspendLayout();
             panel3.SuspendLayout();
-            panel4.SuspendLayout();
             panel5.SuspendLayout();
             SuspendLayout();
             // 
@@ -432,42 +428,7 @@
             BarcodeScannerDeviceNameTextBox.TextAlign = HorizontalAlignment.Left;
             BarcodeScannerDeviceNameTextBox.Texts = "";
             BarcodeScannerDeviceNameTextBox.UnderlinedStyle = true;
-            // 
-            // panel4
-            // 
-            panel4.BackColor = Color.FromArgb(38, 38, 38);
-            panel4.Controls.Add(EnableCloudDatabaseCheckBox);
-            panel4.Controls.Add(label11);
-            panel4.Location = new Point(405, 480);
-            panel4.Name = "panel4";
-            panel4.Size = new Size(207, 121);
-            panel4.TabIndex = 85;
-            // 
-            // EnableCloudDatabaseCheckBox
-            // 
-            EnableCloudDatabaseCheckBox.AutoSize = true;
-            EnableCloudDatabaseCheckBox.Font = new Font("FC Subject [Non-commercial] Reg", 11.9999981F, FontStyle.Regular, GraphicsUnit.Point, 0);
-            EnableCloudDatabaseCheckBox.ForeColor = Color.Gainsboro;
-            EnableCloudDatabaseCheckBox.Location = new Point(63, 59);
-            EnableCloudDatabaseCheckBox.Name = "EnableCloudDatabaseCheckBox";
-            EnableCloudDatabaseCheckBox.Size = new Size(88, 28);
-            EnableCloudDatabaseCheckBox.TabIndex = 85;
-            EnableCloudDatabaseCheckBox.Text = "Enabled";
-            EnableCloudDatabaseCheckBox.UseVisualStyleBackColor = true;
-            // 
-            // label11
-            // 
-            label11.BackColor = Color.FromArgb(38, 38, 38);
-            label11.Dock = DockStyle.Top;
-            label11.Font = new Font("FC Subject [Non-commercial] Reg", 12F);
-            label11.ForeColor = Color.Gainsboro;
-            label11.Location = new Point(0, 0);
-            label11.Name = "label11";
-            label11.Size = new Size(207, 39);
-            label11.TabIndex = 84;
-            label11.Text = "Cloud Database";
-            label11.TextAlign = ContentAlignment.MiddleCenter;
-            // 
+            //
             // panel5
             // 
             panel5.BackColor = Color.FromArgb(38, 38, 38);
@@ -587,7 +548,6 @@
             AutoScaleMode = AutoScaleMode.Font;
             BackColor = Color.FromArgb(30, 30, 30);
             Controls.Add(panel5);
-            Controls.Add(panel4);
             Controls.Add(panel3);
             Controls.Add(SaveSettingsButton);
             Controls.Add(panel2);
@@ -598,8 +558,6 @@
             panel1.ResumeLayout(false);
             panel2.ResumeLayout(false);
             panel3.ResumeLayout(false);
-            panel4.ResumeLayout(false);
-            panel4.PerformLayout();
             panel5.ResumeLayout(false);
             ResumeLayout(false);
         }
@@ -629,9 +587,6 @@
         private ModernUI.ModernTextBox StoreFullNameTextBox;
         private ModernUI.ModernButton AddBarcodeScannerButton;
         private Label AddNewScannerHintLabel;
-        private Panel panel4;
-        private CheckBox EnableCloudDatabaseCheckBox;
-        private Label label11;
         private Panel panel5;
         private Label label14;
         private ModernUI.ModernTextBox CashDrawerCodeTextBox;

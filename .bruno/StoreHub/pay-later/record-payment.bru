@@ -1,0 +1,62 @@
+meta {
+  name: Record Payment
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{baseUrl}}/pay-later/{{payLaterId}}/record-payment
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:json {
+  {
+    "amount": 100.00
+  }
+}
+
+docs {
+  # Record Pay Later Payment
+
+  Records a payment against a pay-later (credit) record.
+
+  ## Path Parameters
+
+  | Parameter | Type | Description |
+  |-----------|------|-------------|
+  | payLaterId | GUID | The pay-later record ID |
+
+  ## Request Body
+
+  | Field | Type | Required | Description |
+  |-------|------|----------|-------------|
+  | amount | decimal | Yes | Payment amount |
+
+  ## Behavior
+
+  1. Adds `amount` to `paidAmount`
+  2. If `paidAmount >= payLaterAmount`, sets `isCompleted = true`
+  3. Updates `lastModifiedUtc`
+
+  ## Response
+
+  Returns the updated pay-later record.
+
+  ```json
+  {
+    "id": "guid",
+    "paidAmount": 300.00,
+    "remainingAmount": 200.00,
+    "isCompleted": false
+  }
+  ```
+
+  ## Authorization
+
+  Requires `sales.complete` capability (Cashier, Manager, Admin).
+}

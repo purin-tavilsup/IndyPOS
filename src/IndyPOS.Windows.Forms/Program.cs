@@ -1,4 +1,5 @@
-﻿using IndyPOS.Windows.Forms.Interfaces;
+﻿using IndyPOS.Application.Common;
+using IndyPOS.Windows.Forms.Interfaces;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -9,6 +10,8 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Runtime.Versioning;
+using Velopack;
+using Velopack.Sources;
 
 namespace IndyPOS.Windows.Forms;
 
@@ -17,11 +20,22 @@ namespace IndyPOS.Windows.Forms;
 internal static class Program
 {
 	private const string ProcessName = "IndyPOS";
-	private const string LogDirectory = @"C:\\ProgramData\\IndyPOS\\Logs";
+
+	/// <summary>
+	/// Flag indicating this is the first run after Velopack installation.
+	/// Checked by Machine.cs to trigger first-run wizard.
+	/// </summary>
+	public static bool IsFirstRun { get; private set; }
 
 	[STAThread]
 	private static void Main()
 	{
+		// IMPORTANT: VelopackApp.Build().Run() MUST be the first line in Main()
+		// It handles Velopack hooks (install, update, uninstall) and exits early if needed
+		VelopackApp.Build()
+			.OnFirstRun(OnFirstRun)
+			.Run();
+
 		// To customize application configuration such as set high DPI settings or default font,
 		// see https://aka.ms/applicationconfiguration.
 		ApplicationConfiguration.Initialize();
@@ -52,12 +66,14 @@ internal static class Program
 
 	private static void ConfigureLogger()
 	{
-		if (!Directory.Exists(LogDirectory))
+		var logDirectory = InstallPaths.LogsDirectory;
+
+		if (!Directory.Exists(logDirectory))
 		{
-			Directory.CreateDirectory(LogDirectory);
+			Directory.CreateDirectory(logDirectory);
 		}
 
-		const string logFilePath = $"{LogDirectory}\\log.json";
+		var logFilePath = Path.Combine(logDirectory, "log.json");
 
 		Log.Logger = new LoggerConfiguration().MinimumLevel.Debug()
 											  .MinimumLevel.Override("Microsoft", LogEventLevel.Information)
@@ -77,16 +93,23 @@ internal static class Program
 
 	private static void BuildAppConfiguration(HostBuilderContext context, IConfigurationBuilder configBuilder)
 	{
-		configBuilder.SetBasePath(Directory.GetCurrentDirectory())
+		// Base on the executable's own directory, not the current working
+		// directory — the app can be launched with an arbitrary CWD (the
+		// installer's Finish button inherits the bootstrapper's CWD), and
+		// appsettings.json always ships next to the exe.
+		// Environment variables are added last so the Aspire AppHost can override
+		// StoreHub__BaseUrl in dev without changing the shipped appsettings.json.
+		configBuilder.SetBasePath(AppContext.BaseDirectory)
 					 .AddJsonFile("appsettings.json")
-					 .Build();
+					 .AddEnvironmentVariables();
 	}
 
 	private static void AddServices(HostBuilderContext context, IServiceCollection services)
 	{
 		services.AddApplicationServices()
 				.AddUIServices()
-				.AddInfrastructureServices();
+				.AddInfrastructureServices(context.Configuration)
+				.AddStoreHubClientServices(context.Configuration); // Epic G: StoreHub integration
 	}
 
 	private static void ClosePreviousProcesses()
@@ -97,7 +120,7 @@ internal static class Program
 							   .ToList();
 
 		// Verify if either Process or DebugProcess has more than one instance
-		if (!processes.Any()) 
+		if (!processes.Any())
 			return;
 
 		// Kill all previous processes
@@ -106,11 +129,21 @@ internal static class Program
 			process.CloseMainWindow();
 			process.WaitForExit(4000);
 
-			if (process.HasExited) 
+			if (process.HasExited)
 				continue;
-					
+
 			process.Kill();
 			process.WaitForExit(4000);
 		}
+	}
+
+	/// <summary>
+	/// Called by Velopack on first run after installation.
+	/// Sets the IsFirstRun flag to trigger the first-run wizard.
+	/// </summary>
+	private static void OnFirstRun(NuGet.Versioning.SemanticVersion version)
+	{
+		Log.Information("First run after Velopack installation: {Version}", version);
+		IsFirstRun = true;
 	}
 }

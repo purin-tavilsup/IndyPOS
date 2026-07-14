@@ -2,11 +2,14 @@
 
 public interface ILoggedInUser
 {
-	int UserId { get; }
+	/// <summary>
+	/// User ID (UUID from StoreHub).
+	/// </summary>
+	Guid UserId { get; }
 
 	string FirstName { get; }
 
-	string LastName { get;}
+	string LastName { get; }
 
 	int RoleId { get; }
 }

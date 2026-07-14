@@ -1,0 +1,44 @@
+meta {
+  name: Get Sync Status
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/sync/status
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+docs {
+  # Get Sync Status
+
+  Returns the current cloud sync status.
+
+  **Required capability:** `sync.view_status`
+
+  **Who can access:**
+  - Manager (roleId: 2) ✓
+  - Admin (roleId: 3) ✓
+  - Cashier (roleId: 1) ✗ → 403 Forbidden
+
+  **Response:**
+  ```json
+  {
+    "status": "synced",
+    "pending": 0,
+    "failed": 0,
+    "timestamp": "2024-01-01T12:00:00Z"
+  }
+  ```
+
+  **Status values:**
+  - `synced` - All events synced to cloud
+  - `pending` - Events waiting to sync
+  - `failed` - Some events failed (will retry)
+  - `offline` - Cannot reach cloud API
+}

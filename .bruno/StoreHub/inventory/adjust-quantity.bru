@@ -1,0 +1,61 @@
+meta {
+  name: Adjust Product Quantity
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{baseUrl}}/products/{{productId}}/adjust-quantity
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:json {
+  {
+    "quantityChange": 10,
+    "reason": "Stock replenishment"
+  }
+}
+
+docs {
+  # Adjust Product Quantity
+
+  Adjusts the quantity of a product by creating an inventory movement record.
+
+  ## Path Parameters
+
+  | Parameter | Type | Description |
+  |-----------|------|-------------|
+  | productId | GUID | The product ID |
+
+  ## Request Body
+
+  | Field | Type | Required | Description |
+  |-------|------|----------|-------------|
+  | quantityChange | int | Yes | Amount to adjust (positive = add, negative = subtract) |
+  | reason | string | No | Reason for adjustment |
+
+  ## Examples
+
+  **Add stock:**
+  ```json
+  { "quantityChange": 50, "reason": "New shipment received" }
+  ```
+
+  **Remove stock (damaged):**
+  ```json
+  { "quantityChange": -5, "reason": "Damaged items removed" }
+  ```
+
+  ## Response
+
+  Returns the updated product with new quantity.
+
+  ## Authorization
+
+  Requires `inventory.adjust` capability (Manager, Admin).
+}

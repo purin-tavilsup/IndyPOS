@@ -1,0 +1,39 @@
+meta {
+  name: Get All Products
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/products
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+docs {
+  # Get All Products
+
+  Returns all active products in the store.
+
+  **Required capability:** `products.read`
+
+  **Response example:**
+  ```json
+  [
+    {
+      "id": "guid",
+      "barcode": "8850000000001",
+      "name": "น้ำดื่ม 600ml",
+      "category": "เครื่องดื่ม",
+      "unitPrice": 7.00,
+      "isActive": true
+    }
+  ]
+  ```
+
+  **Note:** Login first to set the `token` variable.
+}
