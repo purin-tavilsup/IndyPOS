@@ -178,7 +178,7 @@ else if (Array.Exists(args, a => string.Equals(a, "reset-admin", StringCompariso
 {
     await app.MigrateStoreHubDatabaseAsync();
     var newPassword = await app.ResetAdminAsync();
-    Console.WriteLine($"ADMIN_RESET=true");
+    Console.WriteLine("ADMIN_RESET=true");
     Console.WriteLine($"New admin password (change it on next sign-in): {newPassword}");
     return;
 }
