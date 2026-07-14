@@ -1,4 +1,5 @@
-﻿using IndyPOS.Application.Common.Interfaces;
+﻿using IndyPOS.Application.Common;
+using IndyPOS.Application.Common.Interfaces;
 using IndyPOS.Application.Common.Models;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
@@ -37,7 +38,9 @@ public class StoreConfigurationService : IStoreConfigurationService
 	{
 		var path = configuration.GetValue<string>("Store:ConfigPath");
 
-		return path ?? "C:\\ProgramData\\IndyPOS\\Config\\StoreConfiguration.json";
+		// Default to the versioned install root (C:\ProgramData\IndyPOS\v4\...).
+		// appsettings may still override via Store:ConfigPath if needed.
+		return string.IsNullOrWhiteSpace(path) ? InstallPaths.StoreConfigPath : path;
 	}
 
 	private async Task SaveToFileAsync(StoreConfiguration configuration)
@@ -74,16 +77,16 @@ public class StoreConfigurationService : IStoreConfigurationService
 				return await _jsonService.ReadFromFileAsync<StoreConfiguration>(_storeConfigPath);
 
 			var configuration = CreateNewUserConfiguration();
-
-			await SaveToFileAsync(configuration);
-
-			return await _jsonService.ReadFromFileAsync<StoreConfiguration>(_storeConfigPath);
+			await TryPersistDefaultAsync(configuration);
+			return configuration;
 		}
 		catch (Exception ex)
 		{
-			var errorMessage = $"Failed to get User Configuration from file. {ex.Message}";
-			_logger.LogWarning(ex, errorMessage);
-			throw;
+			// Store configuration must never be fatal: a POS terminal should still
+			// reach the login screen even if the config is unreadable. Fall back to
+			// in-memory defaults; the cashier can correct them in Settings.
+			_logger.LogWarning(ex, "Failed to read store configuration from '{Path}'. Falling back to defaults.", _storeConfigPath);
+			return CreateNewUserConfiguration();
 		}
 	}
 
@@ -95,16 +98,39 @@ public class StoreConfigurationService : IStoreConfigurationService
 				return _jsonService.ReadFromFile<StoreConfiguration>(_storeConfigPath);
 
 			var configuration = CreateNewUserConfiguration();
-
-			SaveToFile(configuration);
-
-			return _jsonService.ReadFromFile<StoreConfiguration>(_storeConfigPath);
+			TryPersistDefault(configuration);
+			return configuration;
 		}
 		catch (Exception ex)
 		{
-			var errorMessage = $"Failed to get User Configuration from file. {ex.Message}";
-			_logger.LogWarning(ex, errorMessage);
-			throw;
+			_logger.LogWarning(ex, "Failed to read store configuration from '{Path}'. Falling back to defaults.", _storeConfigPath);
+			return CreateNewUserConfiguration();
+		}
+	}
+
+	// Best-effort: seed the config file on a fresh machine, but never let a write
+	// failure (e.g. a locked-down install dir) crash startup — defaults still work.
+	private async Task TryPersistDefaultAsync(StoreConfiguration configuration)
+	{
+		try
+		{
+			await _jsonService.SaveToFileAsync(configuration, _storeConfigPath);
+		}
+		catch (Exception ex)
+		{
+			_logger.LogWarning(ex, "Failed to persist default store configuration to '{Path}'. Using in-memory defaults.", _storeConfigPath);
+		}
+	}
+
+	private void TryPersistDefault(StoreConfiguration configuration)
+	{
+		try
+		{
+			_jsonService.SaveToFile(configuration, _storeConfigPath);
+		}
+		catch (Exception ex)
+		{
+			_logger.LogWarning(ex, "Failed to persist default store configuration to '{Path}'. Using in-memory defaults.", _storeConfigPath);
 		}
 	}
 

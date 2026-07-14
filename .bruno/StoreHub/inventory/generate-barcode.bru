@@ -1,0 +1,45 @@
+meta {
+  name: Generate Next Barcode
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{baseUrl}}/products/next-barcode
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+docs {
+  # Generate Next Barcode
+
+  Generates the next available barcode for a new product.
+
+  ## How It Works
+
+  1. Reads current barcode counter from StoreSettings
+  2. Increments counter
+  3. Returns formatted barcode: `{storeCode}{counter:D10}`
+
+  ## Response
+
+  ```json
+  {
+    "barcode": "10000000001"
+  }
+  ```
+
+  ## Notes
+
+  - Each store has its own barcode counter
+  - Store code is prefixed to ensure uniqueness across stores
+  - Counter is auto-incremented on each call
+
+  ## Authorization
+
+  Requires `products.manage` capability (Manager, Admin).
+}

@@ -1,24 +1,22 @@
 ﻿using IndyPOS.Application.Common.Interfaces;
 using System.Diagnostics.CodeAnalysis;
-using IndyPOS.Application.UseCases.InventoryProducts.Create;
-using Nokpirab;
 
 namespace IndyPOS.Windows.Forms.UI.Inventory;
 
 [ExcludeFromCodeCoverage]
 public partial class AddNewInventoryProductForm : Form
 {
-	private readonly INokpirab _nokpirab;
+	private readonly IInventoryProductService _inventoryProductService;
 	private readonly IReadOnlyDictionary<int, string> _productCategoryDictionary;
 	private readonly MessageForm _messageForm;
 
 	public AddNewInventoryProductForm(IStoreConstants storeConstants,
-									  MessageForm messageForm, 
-									  INokpirab nokpirab)
+									  MessageForm messageForm,
+									  IInventoryProductService inventoryProductService)
 	{
 		_productCategoryDictionary = storeConstants.ProductCategories;
 		_messageForm = messageForm;
-		_nokpirab = nokpirab;
+		_inventoryProductService = inventoryProductService;
 
 		InitializeComponent();
 		InitializeProductCategories();
@@ -130,9 +128,9 @@ public partial class AddNewInventoryProductForm : Form
 
 		try
 		{
-			var command = CreateCommandForCreateProduct();
+			var request = CreateRequestForCreateProduct();
 
-			await _nokpirab.SendAsync(command);
+			await _inventoryProductService.CreateAsync(request);
 
 			Close();
 		}
@@ -142,7 +140,7 @@ public partial class AddNewInventoryProductForm : Form
 		}
 	}
 
-	private CreateInventoryProductCommand CreateCommandForCreateProduct()
+	private CreateInventoryProductRequest CreateRequestForCreateProduct()
 	{
 		// Required Attributes
 		var quantity = int.Parse(QuantityTextBox.Texts.Trim());
@@ -150,30 +148,23 @@ public partial class AddNewInventoryProductForm : Form
 		var category = _productCategoryDictionary.FirstOrDefault(x => x.Value == CategoryComboBox.Texts);
 		var categoryId = category.Key;
 
-		var command = new CreateInventoryProductCommand
+		// Optional Attributes
+		decimal? groupPrice = decimal.TryParse(GroupPriceTextBox.Texts.Trim(), out var gp) ? gp : null;
+		int? groupPriceQuantity = int.TryParse(GroupPriceQuantityTextBox.Texts.Trim(), out var gpq) ? gpq : null;
+
+		return new CreateInventoryProductRequest
 		{
 			Barcode = ProductCodeTextBox.Texts.Trim(),
 			Description = DescriptionTextBox.Texts.Trim(),
 			QuantityInStock = quantity,
 			UnitPrice = unitPrice,
 			Category = categoryId,
-			IsTrackable = IsTrackableCheckBox.Checked
+			IsTrackable = IsTrackableCheckBox.Checked,
+			Manufacturer = string.IsNullOrWhiteSpace(ManufacturerTextBox.Texts) ? null : ManufacturerTextBox.Texts.Trim(),
+			Brand = string.IsNullOrWhiteSpace(BrandTextBox.Texts) ? null : BrandTextBox.Texts.Trim(),
+			GroupPrice = groupPrice,
+			GroupPriceQuantity = groupPriceQuantity
 		};
-
-		// Optional Attributes
-		if (!string.IsNullOrWhiteSpace(ManufacturerTextBox.Texts))
-			command.Manufacturer = ManufacturerTextBox.Texts;
-
-		if (!string.IsNullOrWhiteSpace(BrandTextBox.Texts))
-			command.Brand = BrandTextBox.Texts;
-
-		if (decimal.TryParse(GroupPriceTextBox.Texts.Trim(), out var groupPrice))
-			command.GroupPrice = groupPrice;
-
-		if (int.TryParse(GroupPriceQuantityTextBox.Texts.Trim(), out var groupPriceQuantity))
-			command.GroupPriceQuantity = groupPriceQuantity;
-
-		return command;
 	}
 
 	private void CancelProductEntryButton_Click(object sender, EventArgs e)

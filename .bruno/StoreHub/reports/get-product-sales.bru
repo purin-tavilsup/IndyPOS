@@ -1,0 +1,39 @@
+meta {
+  name: Get Product Sales
+  type: http
+  seq: 5
+}
+
+get {
+  url: {{baseUrl}}/reports/product-sales?fromDate={{fromDate}}&toDate={{toDate}}&page=1&pageSize=20
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+vars:pre-request {
+  fromDate: 2024-01-01
+  toDate: 2024-12-31
+}
+
+docs {
+  Get product sales report for a date range.
+
+  Returns paginated list of products with:
+  - Product ID, barcode, name, category
+  - Quantity sold
+  - Total revenue
+  - Average unit price
+
+  Query params:
+  - fromDate: Start date (required)
+  - toDate: End date (required)
+  - category: Filter by category (optional)
+  - page: Page number (default: 1)
+  - pageSize: Items per page (default: 50)
+
+  Required role: StoreManager or SystemAdmin
+}

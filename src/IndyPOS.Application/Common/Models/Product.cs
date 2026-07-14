@@ -5,7 +5,16 @@ namespace IndyPOS.Application.Common.Models;
 [ExcludeFromCodeCoverage]
 public class Product
 {
-	public int InventoryProductId { get; init; }
+    /// <summary>
+    /// Primary product ID (StoreHub UUID).
+    /// </summary>
+    public required Guid Id { get; init; }
+
+    /// <summary>
+    /// Legacy SQLite product ID. Zero for StoreHub-only products.
+    /// </summary>
+    [Obsolete("Use Id (Guid) instead. Kept for legacy SQLite compatibility.")]
+    public int InventoryProductId { get; init; }
 
     public string Barcode { get; init; } = string.Empty;
 
@@ -34,4 +43,10 @@ public class Product
     public bool IsGroupProduct { get; set; }
     
     public decimal OriginalUnitPrice { get; set; }
+
+    /// <summary>
+    /// Calculates the total price for this product line.
+    /// Uses GroupPrice if IsGroupProduct, otherwise UnitPrice * Quantity.
+    /// </summary>
+    public decimal GetTotal() => IsGroupProduct ? GroupPrice : UnitPrice * Quantity;
 }

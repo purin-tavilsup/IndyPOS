@@ -1,0 +1,28 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <Sdk Name="Aspire.AppHost.Sdk" Version="9.3.0" />
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <IsAspireHost>true</IsAspireHost>
+    <UserSecretsId>e89fccc0-7f9e-4d4c-b9f1-indypos-apphost</UserSecretsId>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Aspire.Hosting.AppHost" Version="9.3.0" />
+    <PackageReference Include="Aspire.Hosting.PostgreSQL" Version="9.3.0" />
+    <PackageReference Include="CommunityToolkit.Aspire.Hosting.PostgreSQL.Extensions" Version="9.3.0" />
+    <!-- Override KubernetesClient to fix vulnerability GHSA-w7r3-mgwf-4mqq -->
+    <PackageReference Include="KubernetesClient" Version="17.0.14" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\IndyPOS.StoreHub\IndyPOS.StoreHub.csproj" />
+    <ProjectReference Include="..\IndyPOS.CloudApi\IndyPOS.CloudApi.csproj" />
+    <ProjectReference Include="..\IndyPOS.Windows.Forms\IndyPOS.Windows.Forms.csproj" />
+  </ItemGroup>
+
+</Project>

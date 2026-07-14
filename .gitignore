@@ -477,3 +477,12 @@ fabric.properties
 # Android studio 3.1+ serialized cache file
 .idea/caches/build_file_checksums.ser
 .idea/.idea.IndyPOS/.idea/
+
+# Claude Code workspace (session logs and local settings are personal)
+.claude/sessions/
+.claude/settings.local.json
+*/.claude/settings.local.json
+*.db
+
+# Installer payloads — embedded at build time by build-installer.ps1
+installer/IndyPOS.Bootstrapper/Resources/

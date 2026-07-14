@@ -1,8 +1,10 @@
-﻿namespace IndyPOS.Application.Common.Interfaces;
+namespace IndyPOS.Application.Common.Interfaces;
 
 public interface IUserLogInService
 {
-	Task<bool> LogInAsync(string username, string password);
+    Task<LogInResult> LogInAsync(string username, string password);
 
-	void LogOut();
+    Task<ChangePasswordResult> ChangePasswordAsync(string currentPassword, string newPassword);
+
+    void LogOut();
 }
