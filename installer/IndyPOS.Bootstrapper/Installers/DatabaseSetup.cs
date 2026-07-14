@@ -143,7 +143,7 @@ public class DatabaseSetup
         return Convert.ToBase64String(bytes);
     }
 
-    private static void RestrictFilePermissions(string filePath)
+    internal static void RestrictFilePermissions(string filePath)
     {
         try
         {
