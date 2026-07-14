@@ -35,6 +35,12 @@ public class ChangePasswordEndpointTests : IntegrationTestBase
             new { currentPassword = "WRONG", newPassword = "brandNew123" });
 
         Assert.False(resp.IsSuccessStatusCode);
+
+        await using var scope = Factory.Services.CreateAsyncScope();
+        var db = scope.ServiceProvider.GetRequiredService<StoreHubDbContext>();
+        var user = await db.StoreUsers.AsNoTracking().FirstAsync(u => u.Username == "changepw_wrong");
+        Assert.True(BCrypt.Net.BCrypt.Verify("Password123!", user.PasswordHash));
+        Assert.False(user.MustChangePassword);
     }
 
     [Fact]
