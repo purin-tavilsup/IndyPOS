@@ -152,7 +152,7 @@ The installer automatically creates an admin account and generates a one-time pa
 
 2. **Finish Screen** - At the end of installation, the finish screen displays:
    - **Username:** `admin`
-   - **One-time Password:** A randomly generated password (e.g., `Tmp_A1b2C3d4E5`)
+   - **One-time Password:** A random 14-character password (e.g., `xK7fQm2Vd9Pz3H`)
    - A note to save this password and delete `admin-credentials.txt` after first sign-in
 
 3. **Credential File** - The credentials are also written to:
@@ -164,7 +164,8 @@ The installer automatically creates an admin account and generates a one-time pa
 ### First Sign-In (Force Password Change)
 
 When `admin` logs in with the one-time password:
-- The WinForms app **forces a password change** before allowing access
+- The login token carries a `must_change` marker, and **StoreHub (the server) enforces it** — every request except the change-password call is rejected while the marker is set
+- The WinForms app shows the change-password prompt as the UX for this, but enforcement happens server-side, so a dismissed dialog or a different client cannot bypass it
 - Admin must enter a new, permanent password
 - The one-time password expires and cannot be used again
 
@@ -190,18 +191,17 @@ If the one-time password is lost or the admin needs to reset it, use the `reset-
 ```
 
 **What this command does:**
-- Generates a fresh one-time password
-- Re-arms the force-change on next sign-in
-- Prints the new one-time password to the console
-- Updates `C:\ProgramData\IndyPOS\v4\Config\admin-credentials.txt` with the new credential
+- Generates a fresh random 14-character password
+- Re-arms the force-change (`must_change`) marker for the next sign-in
+- Prints the new password to the console **only** — it does not write or update `admin-credentials.txt` or any other file
 
 **Example output:**
 ```
-Admin credential reset successful.
-Username: admin
-One-time Password: Tmp_X9y8Z7w6V5
-Next sign-in will require a password change.
+ADMIN_RESET=true
+New admin password (change it on next sign-in): xK7fQm2Vd9Pz3H
 ```
+
+> ⚠️ **Caution:** Copy the password from the console immediately. It is not saved anywhere — if you lose it before signing in, you'll need to run `reset-admin` again.
 
 ---
 
@@ -654,7 +654,8 @@ Get-Service IndyPOS.StoreHub
 |------|----------|
 | StoreHub binaries | `C:\Program Files\IndyPOS\StoreHub\` |
 | StoreHub config | `C:\Program Files\IndyPOS\StoreHub\appsettings.Production.json` |
-| Store config | `C:\ProgramData\IndyPOS\Config\StoreConfiguration.json` |
+| Store config | `C:\ProgramData\IndyPOS\v4\Config\StoreConfiguration.json` |
+| Admin credentials (initial install) | `C:\ProgramData\IndyPOS\v4\Config\admin-credentials.txt` |
 | JWT key | DPAPI-protected inside StoreHub `appsettings.json` (no separate file) |
 | Logs | `C:\ProgramData\IndyPOS\logs\` |
 | Backups | `C:\ProgramData\IndyPOS\backups\` |
