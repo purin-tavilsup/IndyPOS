@@ -36,42 +36,68 @@ public class InitialAdminSeeder
         _logger = logger;
     }
 
-    public async Task SeedAsync(CancellationToken cancellationToken = default)
+    public async Task<bool> SeedAsync(CancellationToken cancellationToken = default)
     {
         var username = _configuration["InitialAdmin:Username"];
         var password = _configuration["InitialAdmin:Password"];
 
         if (string.IsNullOrWhiteSpace(username) || string.IsNullOrWhiteSpace(password))
         {
-            // No initial admin configured (e.g. an upgrade over an existing DB
-            // that already has users). Nothing to do.
             _logger.LogInformation("No InitialAdmin configured; skipping admin seed.");
-            return;
+            return false;
         }
 
         var existing = await _userRepository.GetByUsernameAsync(username, cancellationToken);
         if (existing is not null)
         {
             _logger.LogInformation("Initial admin '{Username}' already exists; skipping seed.", username);
-            return;
+            return false;
         }
 
-        var admin = new StoreUser
-        {
-            Id = Guid.NewGuid(),
-            StoreId = _storeIdentity.StoreId,
-            Username = username,
-            PasswordHash = _passwordHasher.Hash(password),
-            PasswordHashVersion = 2, // BCrypt
-            FirstName = "Store",
-            LastName = "Administrator",
-            RoleId = (int)UserRole.SystemAdmin,
-            IsActive = true,
-            CreatedAtUtc = DateTime.UtcNow,
-            LastModifiedAtUtc = DateTime.UtcNow
-        };
-
-        await _userRepository.AddAsync(admin, cancellationToken);
-        _logger.LogInformation("Seeded initial admin user '{Username}' (SystemAdmin).", username);
+        await _userRepository.AddAsync(BuildAdmin(username, password), cancellationToken);
+        _logger.LogInformation("Seeded initial admin user '{Username}' (SystemAdmin, must-change=true).", username);
+        return true;
     }
+
+    /// <summary>
+    /// Recovery path: (re)sets the admin password to <paramref name="newPassword"/>
+    /// and re-arms must-change. Creates the admin if absent. Used by the
+    /// "reset-admin" CLI when the finish-screen credential is lost.
+    /// </summary>
+    public async Task ResetAsync(string newPassword, CancellationToken cancellationToken = default)
+    {
+        var username = _configuration["InitialAdmin:Username"];
+        if (string.IsNullOrWhiteSpace(username))
+        {
+            username = "admin";
+        }
+
+        var existing = await _userRepository.GetByUsernameAsync(username, cancellationToken);
+        if (existing is null)
+        {
+            await _userRepository.AddAsync(BuildAdmin(username, newPassword), cancellationToken);
+        }
+        else
+        {
+            await _userRepository.SetPasswordAsync(existing.Id, _passwordHasher.Hash(newPassword), mustChangePassword: true, cancellationToken);
+        }
+
+        _logger.LogInformation("Reset admin '{Username}' (must-change=true).", username);
+    }
+
+    private StoreUser BuildAdmin(string username, string password) => new()
+    {
+        Id = Guid.NewGuid(),
+        StoreId = _storeIdentity.StoreId,
+        Username = username,
+        PasswordHash = _passwordHasher.Hash(password),
+        PasswordHashVersion = 2, // BCrypt
+        FirstName = "Store",
+        LastName = "Administrator",
+        RoleId = (int)UserRole.SystemAdmin,
+        IsActive = true,
+        MustChangePassword = true,
+        CreatedAtUtc = DateTime.UtcNow,
+        LastModifiedAtUtc = DateTime.UtcNow
+    };
 }
