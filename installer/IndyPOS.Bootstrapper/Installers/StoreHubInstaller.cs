@@ -114,14 +114,14 @@ public class StoreHubInstaller
     /// service start instant, so a fresh-DB schema build can't overrun the 30s
     /// SCM start timeout (error 1053).
     /// </summary>
-    public async Task<StoreHubInstallerResult> ProvisionDatabaseAsync(
+    public async Task<ProvisionDatabaseResult> ProvisionDatabaseAsync(
         IProgress<string>? log = null,
         CancellationToken cancellationToken = default)
     {
         var exePath = Path.Combine(Config.StoreHubInstallPath, "IndyPOS.StoreHub.exe");
         if (!File.Exists(exePath))
         {
-            return new StoreHubInstallerResult
+            return new ProvisionDatabaseResult
             {
                 Success = false,
                 ErrorMessage = $"StoreHub executable not found at {exePath}"
@@ -149,29 +149,37 @@ public class StoreHubInstaller
             using var process = new Process { StartInfo = psi };
             process.Start();
 
+            var stdout = await process.StandardOutput.ReadToEndAsync(cancellationToken);
             var stderr = await process.StandardError.ReadToEndAsync(cancellationToken);
             await process.WaitForExitAsync(cancellationToken);
 
             if (process.ExitCode != 0)
             {
-                return new StoreHubInstallerResult
+                return new ProvisionDatabaseResult
                 {
                     Success = false,
                     ErrorMessage = $"Database provisioning failed (exit {process.ExitCode}): {stderr.Trim()}"
                 };
             }
 
-            return new StoreHubInstallerResult { Success = true };
+            return new ProvisionDatabaseResult
+            {
+                Success = true,
+                AdminSeeded = ParseAdminSeeded(stdout)
+            };
         }
         catch (Exception ex)
         {
-            return new StoreHubInstallerResult
+            return new ProvisionDatabaseResult
             {
                 Success = false,
                 ErrorMessage = $"Database provisioning failed: {ex.Message}"
             };
         }
     }
+
+    internal static bool ParseAdminSeeded(string stdout) =>
+        stdout.Contains("ADMIN_SEEDED=true", StringComparison.OrdinalIgnoreCase);
 
     private async Task<bool> ExtractStoreHubBinariesAsync(
         IProgress<string>? log,
@@ -370,4 +378,14 @@ public class StoreHubInstallerResult
 {
     public bool Success { get; init; }
     public string? ErrorMessage { get; init; }
+}
+
+/// <summary>
+/// Result of database provisioning (migrations + admin seeding).
+/// </summary>
+public class ProvisionDatabaseResult
+{
+    public bool Success { get; init; }
+    public string? ErrorMessage { get; init; }
+    public bool AdminSeeded { get; init; }
 }

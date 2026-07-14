@@ -15,7 +15,7 @@ public class InstallationOrchestrator
     /// <summary>
     /// Run the complete installation process.
     /// </summary>
-    public async Task InstallAsync(
+    public async Task<InstallationResult> InstallAsync(
         InstallationConfig config,
         IProgress<InstallationProgress> progress,
         CancellationToken cancellationToken = default)
@@ -181,6 +181,15 @@ public class InstallationOrchestrator
 
         progress.Report(InstallationProgress.Log("Database schema provisioned"));
 
+        // Remove the plaintext bootstrap admin credential now that it is seeded.
+        // Non-fatal: the DB is already provisioned; a failure only leaves the
+        // ACL-locked plaintext behind and is retryable on re-run.
+        progress.Report(InstallationProgress.Log("Removing bootstrap credential from configuration..."));
+        var cleared = await _databaseSetup.RemoveInitialAdminFromConfigAsync(cancellationToken);
+        progress.Report(cleared
+            ? InstallationProgress.Log("Bootstrap credential removed from configuration")
+            : InstallationProgress.Error("Warning: could not remove bootstrap credential from appsettings.json"));
+
         cancellationToken.ThrowIfCancellationRequested();
 
         // Step 5: Install WinForms via Velopack (70-90%)
@@ -265,6 +274,8 @@ public class InstallationOrchestrator
             "Installation Complete",
             "IndyPOS has been installed successfully!",
             100));
+
+        return new InstallationResult { AdminSeeded = provisionResult.AdminSeeded };
     }
 
     private static async Task<bool> VerifyStoreHubHealthAsync(int port, CancellationToken cancellationToken)
@@ -303,4 +314,10 @@ public class InstallationException : Exception
 {
     public InstallationException(string message) : base(message) { }
     public InstallationException(string message, Exception inner) : base(message, inner) { }
+}
+
+/// <summary>Outcome of a successful installation, surfaced to the wizard's finish screen.</summary>
+public class InstallationResult
+{
+    public bool AdminSeeded { get; init; }
 }
