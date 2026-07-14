@@ -73,6 +73,19 @@ public class InstallationOrchestratorTests
     }
 }
 
+public class StoreHubInstallerParseTests
+{
+    [Theory]
+    [InlineData("ADMIN_SEEDED=true", true)]
+    [InlineData("some log\nADMIN_SEEDED=true\nmore", true)]
+    [InlineData("ADMIN_SEEDED=false", false)]
+    [InlineData("no marker here", false)]
+    public void ParseAdminSeeded_ReadsMarkerFromStdout(string stdout, bool expected)
+    {
+        StoreHubInstaller.ParseAdminSeeded(stdout).Should().Be(expected);
+    }
+}
+
 public class ProgressReportingTests
 {
     [Fact]
