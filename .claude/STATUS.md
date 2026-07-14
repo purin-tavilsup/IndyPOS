@@ -8,8 +8,8 @@
 |-------|-------|
 | **Branch** | `indypos-overhaul` |
 | **Sprint** | Sprint 7 |
-| **Phase** | **Admin-provisioning (bootstrap + forced rotation) — CODE COMPLETE & REVIEWED (2026-07-14).** 18-task SDD plan executed via subagents; whole-branch review clean (must-fixes applied). Build 0 err, unit tests green. **PENDING: installer rebuild + VM clean-install validation matrix (needs Pond/vmconnect), then merge.** Prior: Installer Side-by-Side Stages 0–7 ✅. |
-| **Blocked?** | **VM VALIDATION PASSED (2026-07-14) — feature fully validated.** Verifier 18/18; admin-credentials.txt ACL-locked; initialAdmin removed + DPAPI secrets intact; force-change modal worked (DB: admin/Rungrat-001/must_change=f/logged-in); old bootstrap→401 (single-use). **Only remaining: mark PR #50 ready (`gh pr ready 50`) + merge to `development`** — Pond's call. |
+| **Phase** | ✅ **MERGED to `development` (2026-07-14 19:01, PR #50 "IndyPOS v4 Overhaul", merge commit).** Admin-provisioning (bootstrap password + server-enforced forced rotation) shipped as the final feature of the v4 overhaul. 18-task SDD plan, 3-perspective design review, whole-branch review, VM clean-install validated 18/18 + fonts + CWD fix + themed modal (Pond-approved). |
+| **Blocked?** | Not blocked — feature merged. **Optional follow-up:** rebuild distributable `IndyPOS-Setup.exe` to embed the refined modal (cosmetic gap vs the validated build; not merge-blocking). `indypos-overhaul` branch kept (not deleted). Deferred-Minors triage list in `.superpowers/sdd/progress.md`. |
 
 ## ⏯️ RESUME HERE (2026-07-14) — Admin-provisioning feature CODE COMPLETE + whole-branch reviewed; VM validation pending
 
