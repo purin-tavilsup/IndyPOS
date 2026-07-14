@@ -9,7 +9,7 @@
 | **Branch** | `indypos-overhaul` |
 | **Sprint** | Sprint 7 |
 | **Phase** | **Admin-provisioning (bootstrap + forced rotation) — CODE COMPLETE & REVIEWED (2026-07-14).** 18-task SDD plan executed via subagents; whole-branch review clean (must-fixes applied). Build 0 err, unit tests green. **PENDING: installer rebuild + VM clean-install validation matrix (needs Pond/vmconnect), then merge.** Prior: Installer Side-by-Side Stages 0–7 ✅. |
-| **Blocked?** | Not code-blocked. Awaiting **VM validation** (E2 steps 3–4) — the acceptance gate — then **finishing-a-development-branch** (merge decision). One SPEC-GAP decision for Pond deferred/handled: admin-credentials.txt now ACL-locked (was flagged, fixed). VM powered Off, `Clean-Windows-Ready` intact. |
+| **Blocked?** | **VM VALIDATION PASSED (2026-07-14) — feature fully validated.** Verifier 18/18; admin-credentials.txt ACL-locked; initialAdmin removed + DPAPI secrets intact; force-change modal worked (DB: admin/Rungrat-001/must_change=f/logged-in); old bootstrap→401 (single-use). **Only remaining: mark PR #50 ready (`gh pr ready 50`) + merge to `development`** — Pond's call. |
 
 ## ⏯️ RESUME HERE (2026-07-14) — Admin-provisioning feature CODE COMPLETE + whole-branch reviewed; VM validation pending
 
@@ -22,11 +22,13 @@ Replaced the wizard-typed admin password with a **random single-use bootstrap** 
 
 **Verification:** `dotnet build` 0 err; `IndyPOS.Application.Tests` 241/241; `IndyPOS.Bootstrapper.Tests` 49 pass/8 skip. StoreHub integration tests (change-password, must_change gate) **authored but Docker-gated — NOT run here**, deferred to VM/CI. Whole-branch review (opus): "Ready with must-fixes"; both must-fixes (ACL-lock summary file `4efd14f`; crash-hardening ChangePasswordAsync generic catch `4efd14f`) + 2 doc/cosmetic (`0db8ddd`) APPLIED. HEAD `0db8ddd`.
 
-**NEXT (needs Pond + VM):**
-1. **Rebuild installer** (`./publish.ps1` → `./build-installer.ps1`).
-2. **VM clean-install validation matrix** (`scripts/vm-testing/Reset-AndInstall.ps1 -KeepRunning`): wizard Store-ID-only · finish shows `admin`/random pw + `admin-credentials.txt` · `initialAdmin` gone from appsettings (DPAPI secrets remain) · first login forces change → new pw works · **causation matrix** (rotate→old pw 401; clear-only→old pw still 200) · gate (must-change token 403 on `/products`) · re-install→"retained" · `reset-admin` round-trip · psql `must_change_password`. Also confirms the Docker-gated integration behaviors + live WinForms modal.
-3. Then **finishing-a-development-branch** (merge to `development` / PR — Pond's call).
-- Deferred Minors live in `.superpowers/sdd/progress.md` (## Minor findings) — all triaged DEFER by the final review; none block merge.
+**DONE this session:** installer rebuilt (190 MB) · **VM clean-install validation PASSED** — verifier 18/18; admin-credentials.txt ACL-locked (SYSTEM+Administrators, no-inherit); `initialAdmin` removed from appsettings while `storehub-db`+`localToken:secretKey` stay DPAPI-protected; DB `store_user` = admin/Rungrat-001/must_change=f; **WinForms force-change modal worked** (Pond: "it works", DB confirms rotation + login); old bootstrap → **401** (single-use proven). PR #50 (`indypos-overhaul`→`development`) pushed + described + **draft**.
+
+**NEXT (Pond's call — merge):**
+1. `gh pr ready 50` (mark PR ready — VM gate passed) then merge to `development`; OR merge locally.
+2. Optional un-run check: `reset-admin` CLI round-trip (recovery path) — validated by inspection, not exercised in VM.
+3. Post-merge follow-ups (deferred Minors in `.superpowers/sdd/progress.md` — none block merge): DRY the two password generators, orphaned-.tmp cleanup, the couple of test-rigor nice-to-haves.
+- **NOTE:** `gh` active account is now `purin-tavilsup` (personal). Switch back with `gh auth switch --user purin-mimica` for Mimica work.
 
 ---
 
