@@ -43,6 +43,12 @@ public interface IStoreUserRepository
     Task UpdatePasswordHashAsync(Guid id, string newHash, int version, CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// Sets a new BCrypt password hash and the must-change flag in one atomic write.
+    /// Used by the change-password use case (clears the flag) and admin reset (sets it).
+    /// </summary>
+    Task SetPasswordAsync(Guid id, string newHash, bool mustChangePassword, CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// Updates the last login timestamp.
     /// </summary>
     Task UpdateLastLoginAsync(Guid id, DateTime loginTimeUtc, CancellationToken cancellationToken = default);
