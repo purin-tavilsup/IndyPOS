@@ -5,6 +5,7 @@ namespace IndyPOS.Bootstrapper.Installers;
 /// </summary>
 public class InstallationOrchestrator
 {
+    private readonly FontInstaller _fontInstaller = new();
     private readonly DotNetInstaller _dotNetInstaller = new();
     private readonly VCRedistInstaller _vcRedistInstaller = new();
     private readonly PostgresInstaller _postgresInstaller = new();
@@ -20,6 +21,22 @@ public class InstallationOrchestrator
         IProgress<InstallationProgress> progress,
         CancellationToken cancellationToken = default)
     {
+        // Step 0: Install bundled UI fonts (2%). Non-fatal — the app still runs
+        // with a fallback face if this fails; it just won't render as designed.
+        progress.Report(InstallationProgress.Step(
+            "Installing Fonts",
+            "Installing IndyPOS UI fonts...",
+            2));
+
+        var fontResult = _fontInstaller.Install(
+            new Progress<string>(msg => progress.Report(InstallationProgress.Log(msg))));
+
+        progress.Report(fontResult.Success
+            ? InstallationProgress.Log($"Fonts ready ({fontResult.Installed} installed, {fontResult.Skipped} already present)")
+            : InstallationProgress.Error($"Warning: font installation failed: {fontResult.ErrorMessage}"));
+
+        cancellationToken.ThrowIfCancellationRequested();
+
         // Step 1: Check/Install .NET Runtime (5%)
         progress.Report(InstallationProgress.Step(
             "Checking Prerequisites",
