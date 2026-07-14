@@ -6,6 +6,7 @@ using IndyPOS.Domain.Entities.Core;
 using IndyPOS.Infrastructure.Services.StoreHub;
 using Microsoft.Extensions.Options;
 using Moq;
+using System.IdentityModel.Tokens.Jwt;
 using Xunit;
 
 namespace IndyPOS.Application.Tests.StoreHub.Auth;
@@ -51,6 +52,9 @@ public class ChangePasswordCommandHandlerTests
         Assert.True(result.Success);
         Assert.NotNull(result.Token);
         _repo.Verify(r => r.SetPasswordAsync(user.Id, It.IsAny<string>(), false, It.IsAny<CancellationToken>()), Times.Once);
+
+        var jwt = new JwtSecurityTokenHandler().ReadJwtToken(result.Token);
+        Assert.DoesNotContain(jwt.Claims, c => c.Type == "must_change");
     }
 
     [Fact]
