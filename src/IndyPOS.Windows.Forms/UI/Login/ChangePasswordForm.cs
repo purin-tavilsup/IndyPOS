@@ -14,14 +14,18 @@ public class ChangePasswordForm : Form
 {
     private const int MinLength = 8;
 
+    // Layout
+    private const int LeftMargin = 40;
+    private const int FieldWidth = 380;
+    private const string ThemeFontName = "FC Subject [Non-commercial] Reg";
+
     // App dark-theme palette (mirrors MessageForm).
     private static readonly Color FormBack = Color.FromArgb(38, 38, 38);
     private static readonly Color PanelBack = Color.FromArgb(30, 30, 30);
     private static readonly Color LabelColor = Color.Gainsboro;
     private static readonly Color AccentTeal = Color.FromArgb(50, 190, 166);
     private static readonly Color AccentRed = Color.FromArgb(224, 79, 95);
-    private static readonly Color FieldUnderline = Color.FromArgb(90, 90, 90);
-    private const string ThemeFontName = "FC Subject [Non-commercial] Reg";
+    private static readonly Color FieldResting = Color.FromArgb(120, 120, 120);
 
     private readonly ModernTextBox _newPassword;
     private readonly ModernTextBox _confirmPassword;
@@ -38,7 +42,7 @@ public class ChangePasswordForm : Form
         MaximizeBox = false;
         MinimizeBox = false;
         BackColor = FormBack;
-        ClientSize = new Size(460, 300);
+        ClientSize = new Size(LeftMargin + FieldWidth + LeftMargin, 380); // 460 x 380
         TopMost = true;
         Font = new Font(ThemeFontName, 12F);
 
@@ -46,8 +50,7 @@ public class ChangePasswordForm : Form
         {
             Dock = DockStyle.Fill,
             BackColor = PanelBack,
-            BorderStyle = BorderStyle.FixedSingle,
-            Padding = new Padding(24)
+            BorderStyle = BorderStyle.FixedSingle
         };
 
         var title = new Label
@@ -56,7 +59,7 @@ public class ChangePasswordForm : Form
             Font = new Font(ThemeFontName, 15F, FontStyle.Bold),
             ForeColor = Color.White,
             AutoSize = true,
-            Location = new Point(24, 20)
+            Location = new Point(LeftMargin, 24)
         };
 
         var prompt = new Label
@@ -65,33 +68,47 @@ public class ChangePasswordForm : Form
             Font = new Font(ThemeFontName, 11F),
             ForeColor = LabelColor,
             AutoSize = false,
-            Size = new Size(410, 24),
-            Location = new Point(24, 58)
+            Size = new Size(FieldWidth, 24),
+            Location = new Point(LeftMargin, 60)
         };
 
-        var newLabel = MakeFieldLabel("New password:", new Point(24, 95));
-        _newPassword = MakeField(new Point(24, 120));
+        var newLabel = MakeFieldLabel("New password:", new Point(LeftMargin, 106));
+        _newPassword = MakeField(new Point(LeftMargin, 132));
         _newPassword.PasswordChar = true;
 
-        var confirmLabel = MakeFieldLabel("Confirm password:", new Point(24, 165));
-        _confirmPassword = MakeField(new Point(24, 190));
+        var confirmLabel = MakeFieldLabel("Confirm password:", new Point(LeftMargin, 188));
+        _confirmPassword = MakeField(new Point(LeftMargin, 214));
         _confirmPassword.PasswordChar = true;
+
+        // Teal underline on focus (matches the login field), reverting on blur.
+        // Wired per-field so the shared ModernTextBox control is untouched.
+        foreach (var field in new[] { _newPassword, _confirmPassword })
+        {
+            var f = field;
+            f.Enter += (_, _) => f.BorderColor = AccentTeal;
+            f.Leave += (_, _) => f.BorderColor = FieldResting;
+        }
 
         _error = new Label
         {
             ForeColor = AccentRed,
             Font = new Font(ThemeFontName, 10F),
             AutoSize = false,
-            Size = new Size(410, 22),
-            Location = new Point(24, 226),
+            Size = new Size(FieldWidth, 22),
+            Location = new Point(LeftMargin, 262),
             TextAlign = ContentAlignment.MiddleLeft
         };
+
+        // Right-aligned button pair on one baseline: primary rightmost, Cancel beside it.
+        // Well below the error row so nothing overlaps.
+        const int buttonY = 312;
+        var rightEdge = LeftMargin + FieldWidth; // 420
 
         var okButton = new ModernButton
         {
             Text = "Set Password",
-            Size = new Size(160, 44),
-            Location = new Point(276, 246),
+            Size = new Size(150, 44),
+            Location = new Point(rightEdge - 150, buttonY),
             BackColor = FormBack,
             BackgroundColor = FormBack,
             ForeColor = Color.White,
@@ -106,8 +123,8 @@ public class ChangePasswordForm : Form
         var cancelButton = new ModernButton
         {
             Text = "Cancel",
-            Size = new Size(120, 44),
-            Location = new Point(24, 246),
+            Size = new Size(110, 44),
+            Location = new Point(rightEdge - 150 - 12 - 110, buttonY),
             BackColor = FormBack,
             BackgroundColor = FormBack,
             ForeColor = Color.White,
@@ -142,11 +159,11 @@ public class ChangePasswordForm : Form
     private ModernTextBox MakeField(Point location) => new()
     {
         Location = location,
-        Size = new Size(410, 32),
+        Size = new Size(FieldWidth, 32),
         BackColor = PanelBack,
         ForeColor = LabelColor,
         Font = new Font(ThemeFontName, 12F),
-        BorderColor = FieldUnderline,
+        BorderColor = FieldResting,
         BorderSize = 2,
         UnderlinedStyle = true
     };
