@@ -8,10 +8,29 @@
 |-------|-------|
 | **Branch** | `indypos-overhaul` |
 | **Sprint** | Sprint 7 |
-| **Phase** | Installer Side-by-Side — Stages 0–7 ✅ DONE. **2026-06-24: clean full VM install 18/18; Bug F (store_id mismatch) + service-start timeout (1053) both FIXED, committed (`115777d`, `4a1996a`) & VM-validated. store_id=Rungrat-001 in DB, login end-to-end. Installer 189.9 MB.** |
-| **Blocked?** | Not blocked. Installer hardening complete. Next: **admin-provisioning model (A–D)** decision (changes installer → needs another clean-install validation; VM ready), then whole-branch review → finishing-a-development-branch. VM powered Off, C: ~81 GB free, `Clean-Windows-Ready` intact. |
+| **Phase** | **Admin-provisioning (bootstrap + forced rotation) — CODE COMPLETE & REVIEWED (2026-07-14).** 18-task SDD plan executed via subagents; whole-branch review clean (must-fixes applied). Build 0 err, unit tests green. **PENDING: installer rebuild + VM clean-install validation matrix (needs Pond/vmconnect), then merge.** Prior: Installer Side-by-Side Stages 0–7 ✅. |
+| **Blocked?** | Not code-blocked. Awaiting **VM validation** (E2 steps 3–4) — the acceptance gate — then **finishing-a-development-branch** (merge decision). One SPEC-GAP decision for Pond deferred/handled: admin-credentials.txt now ACL-locked (was flagged, fixed). VM powered Off, `Clean-Windows-Ready` intact. |
 
-## ⏯️ RESUME HERE (2026-06-24) — Stage 7 DONE; Bug F + service-start timeout FIXED, committed & VM-validated
+## ⏯️ RESUME HERE (2026-07-14) — Admin-provisioning feature CODE COMPLETE + whole-branch reviewed; VM validation pending
+
+**What shipped this session (branch `indypos-overhaul`, commits `bc0b908`..`0db8ddd`, 24 commits incl. spec+plan+fixes):**
+Replaced the wizard-typed admin password with a **random single-use bootstrap** credential that is **server-side force-rotated on first login**. Executed the 18-task plan (`docs/superpowers/plans/2026-07-14-admin-provisioning-bootstrap.md`) via subagent-driven-development (fresh implementer + task reviewer per task; ledger at `.superpowers/sdd/progress.md`). Spec: `docs/superpowers/specs/2026-07-14-admin-provisioning-bootstrap-design.md`.
+
+- **StoreHub:** `StoreUser.MustChangePassword` (+EF migration, defaultValue false) → `AuthResult`/`LoginResponse` → `must_change` JWT claim → middleware 403s all routes except `/auth/change-password` until rotated → `POST /auth/change-password` (identity from token, verify-then-atomic-set, fresh token w/o claim) → `reset-admin` CLI recovery.
+- **WinForms:** must-change login DEFERS session (no event/sync); `FirstLoginCoordinator` prompts (`ChangePasswordForm`) → change → re-login establishes real session.
+- **Installer:** Store-ID-only wizard; random 14-char `AdminPassword`; seed via `migrate` (prints `ADMIN_SEEDED=`); surgical removal of plaintext `initialAdmin` from appsettings (DPAPI secrets preserved byte-identical); finish screen shows one-time cred (or "retained") + ACL-locked `admin-credentials.txt`.
+
+**Verification:** `dotnet build` 0 err; `IndyPOS.Application.Tests` 241/241; `IndyPOS.Bootstrapper.Tests` 49 pass/8 skip. StoreHub integration tests (change-password, must_change gate) **authored but Docker-gated — NOT run here**, deferred to VM/CI. Whole-branch review (opus): "Ready with must-fixes"; both must-fixes (ACL-lock summary file `4efd14f`; crash-hardening ChangePasswordAsync generic catch `4efd14f`) + 2 doc/cosmetic (`0db8ddd`) APPLIED. HEAD `0db8ddd`.
+
+**NEXT (needs Pond + VM):**
+1. **Rebuild installer** (`./publish.ps1` → `./build-installer.ps1`).
+2. **VM clean-install validation matrix** (`scripts/vm-testing/Reset-AndInstall.ps1 -KeepRunning`): wizard Store-ID-only · finish shows `admin`/random pw + `admin-credentials.txt` · `initialAdmin` gone from appsettings (DPAPI secrets remain) · first login forces change → new pw works · **causation matrix** (rotate→old pw 401; clear-only→old pw still 200) · gate (must-change token 403 on `/products`) · re-install→"retained" · `reset-admin` round-trip · psql `must_change_password`. Also confirms the Docker-gated integration behaviors + live WinForms modal.
+3. Then **finishing-a-development-branch** (merge to `development` / PR — Pond's call).
+- Deferred Minors live in `.superpowers/sdd/progress.md` (## Minor findings) — all triaged DEFER by the final review; none block merge.
+
+---
+
+## ⏯️ Earlier checkpoint (2026-06-24) — Stage 7 DONE; Bug F + service-start timeout FIXED, committed & VM-validated
 
 **2026-06-24 — full arc:**
 1. **Clean full VM install validated 18/18** (restored `Clean-Windows-Ready`, fresh wizard install). Pond confirmed: wizard footer correct, app auto-launches on Finish, `admin`/`myAdmin@101` logs in end-to-end. **Stage 7 complete.**
