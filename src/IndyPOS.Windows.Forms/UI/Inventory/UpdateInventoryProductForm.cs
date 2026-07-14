@@ -1,27 +1,24 @@
 ﻿using IndyPOS.Application.Common.Interfaces;
 using System.Diagnostics.CodeAnalysis;
 using IndyPOS.Application.UseCases.InventoryProducts;
-using IndyPOS.Application.UseCases.InventoryProducts.Delete;
-using IndyPOS.Application.UseCases.InventoryProducts.Update;
-using Nokpirab;
 
 namespace IndyPOS.Windows.Forms.UI.Inventory;
 
 [ExcludeFromCodeCoverage]
 public partial class UpdateInventoryProductForm : Form
 {
-	private readonly INokpirab _nokpirab;
+	private readonly IInventoryProductService _inventoryProductService;
 	private readonly MessageForm _messageForm;
 	private readonly IReadOnlyDictionary<int, string> _productCategoryDictionary;
 	private InventoryProductDto? _product;
 
 	public UpdateInventoryProductForm(IStoreConstants storeConstants,
-									  MessageForm messageForm, 
-									  INokpirab nokpirab)
+									  MessageForm messageForm,
+									  IInventoryProductService inventoryProductService)
 	{
 		_productCategoryDictionary = storeConstants.ProductCategories;
 		_messageForm = messageForm;
-		_nokpirab = nokpirab;
+		_inventoryProductService = inventoryProductService;
 		_product = null;
 
 		InitializeComponent();
@@ -106,9 +103,9 @@ public partial class UpdateInventoryProductForm : Form
 
 		try
 		{
-			var command = CreateCommandForUpdateProduct(_product);
+			var request = CreateRequestForUpdateProduct(_product);
 
-			await _nokpirab.SendAsync(command);
+			await _inventoryProductService.UpdateAsync(request);
 
 			Close();
 		}
@@ -118,38 +115,27 @@ public partial class UpdateInventoryProductForm : Form
 		}
 	}
 
-	private UpdateInventoryProductCommand CreateCommandForUpdateProduct(InventoryProductDto product)
+	private UpdateInventoryProductRequest CreateRequestForUpdateProduct(InventoryProductDto product)
 	{
 		var category = _productCategoryDictionary.FirstOrDefault(x => x.Value == CategoryComboBox.Texts);
 		var categoryId = category.Key;
 
-		var command = new UpdateInventoryProductCommand
+		// Optional Attributes
+		decimal? groupPrice = decimal.TryParse(GroupPriceTextBox.Texts.Trim(), out var gp) ? gp : null;
+		int? groupPriceQuantity = int.TryParse(GroupPriceQuantityTextBox.Texts.Trim(), out var gpq) ? gpq : null;
+
+		return new UpdateInventoryProductRequest
 		{
-			Id = product.InventoryProductId,
+			Id = product.Id,
 			Description = DescriptionTextBox.Texts.Trim(),
 			QuantityInStock = int.Parse(QuantityLabel.Text.Trim()),
 			UnitPrice = decimal.Parse(UnitPriceTextBox.Texts.Trim()),
-			GroupPrice = decimal.Parse(GroupPriceTextBox.Texts.Trim()),
-			Category = categoryId
+			GroupPrice = groupPrice,
+			GroupPriceQuantity = groupPriceQuantity,
+			Category = categoryId,
+			Manufacturer = string.IsNullOrWhiteSpace(ManufacturerTextBox.Texts) ? null : ManufacturerTextBox.Texts.Trim(),
+			Brand = string.IsNullOrWhiteSpace(BrandTextBox.Texts) ? null : BrandTextBox.Texts.Trim()
 		};
-
-		// Optional Attributes
-		if (!string.IsNullOrWhiteSpace(ManufacturerTextBox.Texts))
-			command.Manufacturer = ManufacturerTextBox.Texts;
-
-		if (!string.IsNullOrWhiteSpace(BrandTextBox.Texts))
-			command.Brand = BrandTextBox.Texts;
-
-		if (int.TryParse(GroupPriceQuantityTextBox.Texts.Trim(), out var groupPriceQuantity))
-		{
-			command.GroupPriceQuantity = groupPriceQuantity;
-		}
-		else
-		{
-			command.GroupPriceQuantity = null;
-		}
-
-		return command;
 	}
 
 	private void CancelUpdateProductButton_Click(object sender, EventArgs e)
@@ -163,12 +149,10 @@ public partial class UpdateInventoryProductForm : Form
 		{
 			return;
 		}
-		
+
 		try
 		{
-			var command = new DeleteInventoryProductCommand(_product.InventoryProductId);
-
-			await _nokpirab.SendAsync(command);
+			await _inventoryProductService.DeleteAsync(_product.Id);
 
 			Close();
 		}

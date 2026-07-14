@@ -1,29 +1,27 @@
 ﻿using IndyPOS.Application.Common.Extensions;
 using IndyPOS.Application.Common.Interfaces;
 using System.Diagnostics.CodeAnalysis;
-using IndyPOS.Application.UseCases.UserCredentials.Create;
-using IndyPOS.Application.UseCases.Users.Create;
-using Nokpirab;
 
 namespace IndyPOS.Windows.Forms.UI.User;
 
+/// <summary>
+/// Form for adding new users.
+/// NOTE: This form is disabled in StoreHub mode - user management is done via CloudAPI.
+/// </summary>
 [ExcludeFromCodeCoverage]
 public partial class AddNewUserForm : Form
 {
-	private readonly INokpirab _nokpirab;
 	private readonly IReadOnlyDictionary<int, string> _userRoleDictionary;
 	private readonly ICryptographyService _cryptographyService;
 	private readonly MessageForm _messageForm;
 
 	public AddNewUserForm(IStoreConstants storeConstants,
 						  ICryptographyService cryptographyService,
-						  MessageForm messageForm, 
-						  INokpirab nokpirab)
+						  MessageForm messageForm)
 	{
 		_userRoleDictionary = storeConstants.UserRoles;
 		_cryptographyService = cryptographyService;
 		_messageForm = messageForm;
-		_nokpirab = nokpirab;
 
 		InitializeComponent();
 		InitializeUserRoles();
@@ -72,62 +70,11 @@ public partial class AddNewUserForm : Form
 		return true;
 	}
 
-	private async void SaveUserEntryButton_Click(object sender, EventArgs e)
+	private void SaveUserEntryButton_Click(object sender, EventArgs e)
 	{
-		if (!ValidateProductEntry())
-			return;
-
-		try
-		{
-			var userId = await CreateUserAsync();
-
-			await CreateUserCredentialAsync(userId);
-
-			ClearUserEntry();
-
-			Hide();
-		}
-		catch (Exception ex)
-		{
-			_messageForm.ShowDialog($"เกิดความผิดพลาดในขณะที่กำลังบันทึกผู้ใช้ใหม่ Error: {ex.Message}", "เกิดความผิดพลาดในขณะที่กำลังบันทึกผู้ใช้ใหม่");
-		}
-	}
-
-	private CreateUserCommand CreateCommandForCreateUser()
-	{
-		var selectedRole = UserRoleComboBox.SelectedItem.ToString();
-		var role = _userRoleDictionary.FirstOrDefault(x => x.Value == selectedRole);
-
-		return new CreateUserCommand
-		{
-			FirstName = FirstNameTextBox.Texts.Trim(),
-			LastName = LastNameTextBox.Texts.Trim(),
-			RoleId = role.Key
-		};
-	}
-
-	private CreateUserCredentialCommand CreateCommandForCreateUserCredential(int userId)
-	{
-		return new CreateUserCredentialCommand
-		{
-			UserId = userId,
-			Username = UsernameLabel.Text,
-			Password = _cryptographyService.Encrypt(UserSecretTextBox.Texts.Trim())
-		};
-	}
-
-	private async Task<int> CreateUserAsync()
-	{
-		var command = CreateCommandForCreateUser();
-
-		return await _nokpirab.SendAsync(command);
-	}
-
-	private async Task CreateUserCredentialAsync(int userId)
-	{
-		var command = CreateCommandForCreateUserCredential(userId);
-
-		await _nokpirab.SendAsync(command);
+		// StoreHub mode: User creation disabled
+		_messageForm.ShowDialog("การเพิ่มผู้ใช้ใหม่ถูกปิดในโหมด StoreHub กรุณาใช้ CloudAPI", "ฟังก์ชันนี้ไม่พร้อมใช้งาน");
+		Hide();
 	}
 
 	private void CancelUserEntryButton_Click(object sender, EventArgs e)
@@ -167,8 +114,8 @@ public partial class AddNewUserForm : Form
 	{
 		UserSecretTextBox.PasswordChar = !UserSecretTextBox.PasswordChar;
 
-		PasswordVisibilityButton.Image = UserSecretTextBox.PasswordChar 
-											 ? Properties.Resources.Visible_25 
+		PasswordVisibilityButton.Image = UserSecretTextBox.PasswordChar
+											 ? Properties.Resources.Visible_25
 											 : Properties.Resources.Hidden_25;
 	}
 }

@@ -46,7 +46,6 @@ public partial class SettingsPanel : UserControl
             StorePhoneTextBox.Texts = config.StorePhoneNumber ?? string.Empty;
             ReceiptPrinterNameTextBox.Texts = config.PrinterName ?? string.Empty;
             BarcodeScannerDeviceNameTextBox.Texts = config.BarcodeScannerDeviceName ?? string.Empty;
-            EnableCloudDatabaseCheckBox.Checked = config.CloudDatabaseEnabled ?? false;
             CashDrawerPortTextBox.Texts = config.SerialPortName ?? string.Empty;
             CashDrawerCodeTextBox.Texts = config.Code is not null ? $"{config.Code}" : string.Empty;
         }
@@ -70,7 +69,6 @@ public partial class SettingsPanel : UserControl
                 StorePhoneNumber = StorePhoneTextBox.Texts.Trim(),
                 PrinterName = ReceiptPrinterNameTextBox.Texts.Trim(),
                 BarcodeScannerDeviceName = BarcodeScannerDeviceNameTextBox.Texts.Trim(),
-                CloudDatabaseEnabled = EnableCloudDatabaseCheckBox.Checked,
                 SerialPortName = CashDrawerPortTextBox.Texts.Trim(),
                 Code = int.Parse(CashDrawerCodeTextBox.Texts.Trim())
             };

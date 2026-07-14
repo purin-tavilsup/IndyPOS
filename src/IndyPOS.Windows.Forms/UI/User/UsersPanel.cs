@@ -1,23 +1,21 @@
 ﻿using IndyPOS.Application.Common.Extensions;
 using IndyPOS.Application.Common.Interfaces;
+using IndyPOS.Application.Common.Models;
 using IndyPOS.Application.Events;
 using IndyPOS.Domain.Events;
 using System.Diagnostics.CodeAnalysis;
-using IndyPOS.Application.UseCases.UserCredentials;
-using IndyPOS.Application.UseCases.UserCredentials.Get;
-using IndyPOS.Application.UseCases.UserCredentials.Update;
-using IndyPOS.Application.UseCases.Users;
-using IndyPOS.Application.UseCases.Users.Delete;
-using IndyPOS.Application.UseCases.Users.Get;
-using Nokpirab;
 using UserRoleEnum = IndyPOS.Application.Common.Enums.UserRole;
 
 namespace IndyPOS.Windows.Forms.UI.User;
 
+/// <summary>
+/// User management panel.
+/// NOTE: This panel is disabled in StoreHub mode - user management is done via CloudAPI.
+/// The panel remains for backward compatibility but returns empty data.
+/// </summary>
 [ExcludeFromCodeCoverage]
 public partial class UsersPanel : UserControl
 {
-	private readonly INokpirab _nokpirab;
 	private readonly IEventAggregator _eventAggregator;
 	private readonly IReadOnlyDictionary<int, string> _userRoleDictionary;
 	private readonly ICryptographyService _cryptographyService;
@@ -42,15 +40,13 @@ public partial class UsersPanel : UserControl
 					  IStoreConstants storeConstants,
 					  ICryptographyService cryptographyService,
 					  AddNewUserForm addNewUserForm,
-					  MessageForm messageForm, 
-					  INokpirab nokpirab)
+					  MessageForm messageForm)
 	{
 		_eventAggregator = eventAggregator;
 		_userRoleDictionary = storeConstants.UserRoles;
 		_cryptographyService = cryptographyService;
 		_addNewUserForm = addNewUserForm;
 		_messageForm = messageForm;
-		_nokpirab = nokpirab;
 
 		InitializeComponent();
 		InitializeUserRoles();
@@ -124,77 +120,24 @@ public partial class UsersPanel : UserControl
 		userRow[(int)UserColumn.LastName] = user.LastName;
 		userRow[(int)UserColumn.UserRole] = userRole;
 		userRow[(int)UserColumn.DateCreated] = user.DateCreated;
-		userRow[(int)UserColumn.DateUpdated] = user.DateUpdated;
+		userRow[(int)UserColumn.DateUpdated] = "-";
 
 		UserDataView.Rows.Add(userRow);
 	}
 
-	private async Task ShowUsersByRoleId(int roleId)
+	private Task ShowUsersByRoleId(int roleId)
 	{
-		var users = await GetUsersByRoleId(roleId);
-
+		// StoreHub mode: User management disabled, return empty list
 		UserDataView.Rows.Clear();
-
-		if (users.Count == 0)
-			return;
-
-		foreach (var user in users)
-		{
-			AddUserToUserDataView(user);
-		}
+		_messageForm.ShowDialog("การจัดการผู้ใช้ถูกปิดในโหมด StoreHub กรุณาใช้ CloudAPI", "ฟังก์ชันนี้ไม่พร้อมใช้งาน");
+		return Task.CompletedTask;
 	}
 
-	private async Task<IList<UserDto>> GetUsersByRoleId(int roleId)
+	private void UserRoleComboBox_SelectedIndexChanged(object sender, EventArgs e)
 	{
-		if (_loggedInUser is null)
-			return new List<UserDto>();
+		var selectedRole = UserRoleComboBox.SelectedItem?.ToString();
+		if (string.IsNullOrEmpty(selectedRole)) return;
 
-		if (_loggedInUser.RoleId == (int) UserRoleEnum.Cashier)
-		{
-			var user = await GetUserByIdAsync(_loggedInUser.UserId);
-
-			return new List<UserDto> { user };
-		}
-
-		var users = await GetUsersAsync();
-
-		return users.Where(x => x.RoleId == roleId).ToList();
-	}
-
-	private async Task<IEnumerable<UserDto>> GetUsersAsync()
-	{
-		return await _nokpirab.SendAsync(new GetUsersQuery());
-	}
-
-	private async Task<UserCredentialDto> GetUserCredentialByIdAsync(int id)
-	{
-		return await _nokpirab.SendAsync(new GetUserCredentialByIdQuery(id));
-	}
-
-	private async Task<UserDto> GetUserByIdAsync(int id)
-	{
-		return await _nokpirab.SendAsync(new GetUserByIdQuery(id));
-	}
-
-	private async Task UpdateUserCredential(int userId, string encryptedPassword)
-	{
-		var command = new UpdateUserCredentialCommand
-		{
-			UserId = userId,
-			Password = encryptedPassword
-		};
-
-		await _nokpirab.SendAsync(command);
-	}
-
-	private async Task DeleteUserByIdAsync(int id)
-	{
-		await _nokpirab.SendAsync(new DeleteUserCommand(id));
-	}
-
-	private async void UserRoleComboBox_SelectedIndexChanged(object sender, EventArgs e)
-	{
-		var selectedRole = UserRoleComboBox.SelectedItem.ToString();
 		var role = _userRoleDictionary.FirstOrDefault(x => x.Value == selectedRole);
 		var roleId = role.Key;
 
@@ -202,91 +145,17 @@ public partial class UsersPanel : UserControl
 
 		ResetUserDetails();
 
-		try
-		{
-			await ShowUsersByRoleId(roleId);
-		}
-		catch (Exception ex)
-		{
-			_messageForm.ShowDialog($"เกิดความผิดพลาดในขณะที่กำลังค้นหาบัญชีผู้ใช้ (Role ID: {roleId}) ในระบบ Error: {ex.Message}", "เกิดความผิดพลาดในขณะที่กำลังค้นหาบัญชีผู้ใช้ในระบบ");
-		}
+		_ = ShowUsersByRoleId(roleId);
 	}
 
-	private int GetUserIdFromSelectedUser()
+	private void UserDataView_CellClick(object sender, DataGridViewCellEventArgs e)
 	{
-		if (UserDataView.SelectedCells.Count == 0)
-			return -1;
-
-		var selectedCell = UserDataView.SelectedCells[0];
-		var rowIndex  = selectedCell.RowIndex;
-		var selectedRow = UserDataView.Rows[rowIndex];
-		var userId = (int) selectedRow.Cells[(int)UserColumn.UserId].Value;
-
-		return userId;
+		// StoreHub mode: User details not available
 	}
 
-	private async void UserDataView_CellClick(object sender, DataGridViewCellEventArgs e)
+	private void UserChanged()
 	{
-		var userId = GetUserIdFromSelectedUser();
-
-		try
-		{
-			await ShowUserDetailsByIdAsync(userId);
-		}
-		catch (Exception ex)
-		{
-			_messageForm.ShowDialog($"เกิดความผิดพลาดในขณะที่กำลังค้นหาบัญชีผู้ใช้ (User ID: {userId}) ในระบบ Error: {ex.Message}", "เกิดความผิดพลาดในขณะที่กำลังค้นหาบัญชีผู้ใช้ในระบบ");
-		}
-	}
-
-	private async void UserChanged()
-	{
-		if (!_lastQueryRoleId.HasValue)
-			return;
-
-		ResetUserDetails();
-
-		var roleId = _lastQueryRoleId.GetValueOrDefault();
-
-		try
-		{
-			await ShowUsersByRoleId(roleId);
-		}
-		catch (Exception ex)
-		{
-			_messageForm.ShowDialog($"เกิดความผิดพลาดในขณะที่กำลังค้นหาบัญชีผู้ใช้ (Role ID: {roleId}) ในระบบ Error: {ex.Message}", "เกิดความผิดพลาดในขณะที่กำลังค้นหาบัญชีผู้ใช้ในระบบ");
-		}
-	}
-
-	private async Task ShowUserDetailsByIdAsync(int userId)
-	{
-		if (_loggedInUser is null)
-			return;
-
-		_selectedUser = await GetUserByIdAsync(userId);
-
-		var userCredential = await GetUserCredentialByIdAsync(userId);
-
-		var userRole = _userRoleDictionary.ContainsKey(_selectedUser.RoleId) 
-						   ? _userRoleDictionary[_selectedUser.RoleId] 
-						   : "Unknown";
-			
-		var isVisibleToLoggedInUser = userId                   == _loggedInUser.UserId;
-		var isVisibleToLoggedInUserRole = _loggedInUser.RoleId != (int) UserRoleEnum.Cashier;
-
-		PasswordLabel.Visible = isVisibleToLoggedInUser;
-		UserPasswordTextBox.Visible = isVisibleToLoggedInUser;
-		PasswordVisibilityButton.Visible = isVisibleToLoggedInUser;
-		UpdateUserButton.Visible = isVisibleToLoggedInUser;
-		DeleteUserButton.Visible = isVisibleToLoggedInUserRole;
-
-		FirstNameLabel.Text = _selectedUser.FirstName;
-		LastNameLabel.Text = _selectedUser.LastName;
-		UserRoleLabel.Text = userRole;
-		UsernameLabel.Text = userCredential.Username;
-
-		if (isVisibleToLoggedInUser) 
-			UserPasswordTextBox.Texts = _cryptographyService.Decrypt(userCredential.Password);
+		// StoreHub mode: User management disabled
 	}
 
 	private void ResetUserDetails()
@@ -304,54 +173,31 @@ public partial class UsersPanel : UserControl
 		DeleteUserButton.Visible = false;
 	}
 
-	private async void UpdateUserButton_Click(object sender, EventArgs e)
+	private void UpdateUserButton_Click(object sender, EventArgs e)
 	{
-		if (!UserPasswordTextBox.Texts.HasValue() || _selectedUser is null)
-			return;
-
-		var userId = _selectedUser.UserId;
-
-		try
-		{
-			var encryptedPassword = _cryptographyService.Encrypt(UserPasswordTextBox.Texts.Trim());
-
-			await UpdateUserCredential(userId, encryptedPassword);
-		}
-		catch (Exception ex)
-		{
-			_messageForm.ShowDialog($"เกิดความผิดพลาดในขณะที่กำลังอัพเดทบัญชีผู้ใช้ (User ID: {userId}) ในระบบ Error: {ex.Message}", "เกิดความผิดพลาดในขณะที่กำลังอัพเดทบัญชีผู้ใช้");
-		}
+		// StoreHub mode: User update disabled
+		_messageForm.ShowDialog("การอัพเดทผู้ใช้ถูกปิดในโหมด StoreHub", "ฟังก์ชันนี้ไม่พร้อมใช้งาน");
 	}
 
 	private void AddUserButton_Click(object sender, EventArgs e)
 	{
-		_addNewUserForm.ShowDialog();
+		// StoreHub mode: User creation disabled
+		_messageForm.ShowDialog("การเพิ่มผู้ใช้ใหม่ถูกปิดในโหมด StoreHub กรุณาใช้ CloudAPI", "ฟังก์ชันนี้ไม่พร้อมใช้งาน");
 	}
 
 	private void PasswordVisibilityButton_Click(object sender, EventArgs e)
 	{
 		UserPasswordTextBox.PasswordChar = !UserPasswordTextBox.PasswordChar;
 
-		PasswordVisibilityButton.Image = UserPasswordTextBox.PasswordChar 
-											 ? Properties.Resources.Visible_25 
+		PasswordVisibilityButton.Image = UserPasswordTextBox.PasswordChar
+											 ? Properties.Resources.Visible_25
 											 : Properties.Resources.Hidden_25;
 	}
 
-	private async void DeleteUserButton_Click(object sender, EventArgs e)
+	private void DeleteUserButton_Click(object sender, EventArgs e)
 	{
-		if (_selectedUser is null)
-			return;
-
-		var userId = _selectedUser.UserId;
-
-		try
-		{
-			await DeleteUserByIdAsync(userId);
-		}
-		catch (Exception ex)
-		{
-			_messageForm.ShowDialog($"เกิดความผิดพลาดในขณะที่กำลังลบบัญชีผู้ใช้ (User ID: {userId}) ในระบบ Error: {ex.Message}", "เกิดความผิดพลาดในขณะที่กำลังลบบัญชีผู้ใช้");
-		}
+		// StoreHub mode: User deletion disabled
+		_messageForm.ShowDialog("การลบผู้ใช้ถูกปิดในโหมด StoreHub", "ฟังก์ชันนี้ไม่พร้อมใช้งาน");
 	}
 
 	private void UsersPanel_VisibleChanged(object sender, EventArgs e)

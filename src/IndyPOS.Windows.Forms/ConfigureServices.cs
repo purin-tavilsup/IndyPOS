@@ -1,5 +1,7 @@
-﻿using IndyPOS.Windows.Forms;
+﻿using IndyPOS.Application.Common.Interfaces;
+using IndyPOS.Windows.Forms;
 using IndyPOS.Windows.Forms.Interfaces;
+using IndyPOS.Windows.Forms.Services;
 using IndyPOS.Windows.Forms.UI;
 using IndyPOS.Windows.Forms.UI.Inventory;
 using IndyPOS.Windows.Forms.UI.Login;
@@ -8,6 +10,7 @@ using IndyPOS.Windows.Forms.UI.Payment;
 using IndyPOS.Windows.Forms.UI.Report;
 using IndyPOS.Windows.Forms.UI.Sale;
 using IndyPOS.Windows.Forms.UI.Setting;
+using IndyPOS.Windows.Forms.UI.Setup;
 using IndyPOS.Windows.Forms.UI.User;
 using System.Runtime.Versioning;
 
@@ -41,9 +44,20 @@ internal static class ConfigureServices
 				.AddSingleton<UpdateInventoryProductForm>()
 				.AddSingleton<UpdateInvoiceProductForm>()
 				.AddSingleton<UserLogInPanel>()
-				.AddSingleton<UsersPanel>();
+				.AddSingleton<UsersPanel>()
+				.AddTransient<FirstRunWizard>();
+
+		// Factory for creating FirstRunWizard on demand
+		services.AddSingleton<Func<FirstRunWizard>>(sp => () => sp.GetRequiredService<FirstRunWizard>());
+
+		// Update services
+		services.AddSingleton<IUpdateService, UpdateService>();
+		services.AddSingleton<IStoreHubUpdateService, StoreHubUpdateService>();
 
 		services.AddSingleton<IMachine, Machine>();
+
+		// Change-password prompt seam (consumed by the singleton FirstLoginCoordinator)
+		services.AddSingleton<IChangePasswordPrompt, ChangePasswordPrompt>();
 
 		return services;
     }

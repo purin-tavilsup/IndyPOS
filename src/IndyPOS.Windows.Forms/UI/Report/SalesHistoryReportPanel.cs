@@ -2,10 +2,9 @@
 using IndyPOS.Application.Common.Enums;
 using IndyPOS.Application.Common.Extensions;
 using IndyPOS.Application.Common.Interfaces;
+using IndyPOS.Application.Common.Models;
 using System.Diagnostics.CodeAnalysis;
-using IndyPOS.Application.UseCases.InvoicePayments;
-using IndyPOS.Application.UseCases.InvoiceProducts;
-using IndyPOS.Application.UseCases.Invoices;
+using IndyPOS.Windows.Forms.UI;
 
 namespace IndyPOS.Windows.Forms.UI.Report;
 
@@ -15,6 +14,7 @@ public partial class SalesHistoryReportPanel : UserControl
     private readonly IReportService _reportService;
     private readonly IReadOnlyDictionary<int, string> _paymentTypeDictionary;
 	private readonly IReceiptPrinterService _receiptPrinterService;
+    private readonly MessageForm _messageForm;
 
     private enum SaleInvoiceColumn
     {
@@ -40,17 +40,23 @@ public partial class SalesHistoryReportPanel : UserControl
     }
 
     public SalesHistoryReportPanel(IReportService reportService,
-                                   IStoreConstants storeConstants, 
-								   IReceiptPrinterService receiptPrinterService)
+                                   IStoreConstants storeConstants,
+								   IReceiptPrinterService receiptPrinterService,
+                                   MessageForm messageForm)
     {
         _reportService = reportService;
 		_receiptPrinterService = receiptPrinterService;
+        _messageForm = messageForm;
 		_paymentTypeDictionary = storeConstants.PaymentTypes;
 
         InitializeComponent();
         InitializeSaleInvoiceDataView();
         InitializeInvoiceProductsDataView();
         InitializePaymentDataView();
+
+        // Initialize date pickers to today
+        StartDatePicker.Value = DateTime.Today;
+        EndDatePicker.Value = DateTime.Today;
     }
 
     private void InitializeSaleInvoiceDataView()
@@ -131,31 +137,49 @@ public partial class SalesHistoryReportPanel : UserControl
         #endregion
     }
 
+    private async Task ShowInvoicesByPeriodAsync(string periodText, TimePeriod period)
+    {
+        PeriodLabel.Text = periodText;
+
+        try
+        {
+            var invoices = await _reportService.GetInvoicesByPeriodAsync(period);
+            ShowInvoices(invoices);
+        }
+        catch (Exception ex)
+        {
+            ReportErrorHandler.Show(_messageForm, ex);
+        }
+    }
+
+    private async Task ShowInvoicesByDateRangeAsync(DateOnly startDate, DateOnly endDate)
+    {
+        PeriodLabel.Text = $"{startDate:yyyy MMMM dd} - {endDate:yyyy MMMM dd}";
+
+        try
+        {
+            var invoices = await _reportService.GetInvoicesByDateRangeAsync(startDate, endDate);
+            ShowInvoices(invoices);
+        }
+        catch (Exception ex)
+        {
+            ReportErrorHandler.Show(_messageForm, ex);
+        }
+    }
+
     private async void ShowReportByTodayButton_Click(object sender, EventArgs e)
     {
-        PeriodLabel.Text = ShowReportByTodayButton.Text;
-
-        var invoices = await _reportService.GetInvoicesByPeriodAsync(TimePeriod.Today);
-
-        ShowInvoices(invoices);
+        await ShowInvoicesByPeriodAsync(ShowReportByTodayButton.Text, TimePeriod.Today);
     }
 
     private async void ShowReportByThisMonthButton_Click(object sender, EventArgs e)
     {
-        PeriodLabel.Text = ShowReportByThisMonthButton.Text;
-
-        var invoices = await _reportService.GetInvoicesByPeriodAsync(TimePeriod.ThisMonth);
-
-        ShowInvoices(invoices);
+        await ShowInvoicesByPeriodAsync(ShowReportByThisMonthButton.Text, TimePeriod.ThisMonth);
     }
 
     private async void ShowReportByThisYearButton_Click(object sender, EventArgs e)
     {
-        PeriodLabel.Text = ShowReportByThisYearButton.Text;
-
-        var invoices = await _reportService.GetInvoicesByPeriodAsync(TimePeriod.ThisYear);
-
-        ShowInvoices(invoices);
+        await ShowInvoicesByPeriodAsync(ShowReportByThisYearButton.Text, TimePeriod.ThisYear);
     }
 
     private async void ShowReportByDateRangeButton_Click(object sender, EventArgs e)
@@ -163,11 +187,7 @@ public partial class SalesHistoryReportPanel : UserControl
         var startDate = StartDatePicker.Value.ToDateOnly();
         var endDate = EndDatePicker.Value.ToDateOnly();
 
-        PeriodLabel.Text = $"{startDate:yyyy MMMM dd} - {endDate:yyyy MMMM dd}";
-
-        var invoices = await _reportService.GetInvoicesByDateRangeAsync(startDate, endDate);
-
-        ShowInvoices(invoices);
+        await ShowInvoicesByDateRangeAsync(startDate, endDate);
     }
 
     private void ShowInvoices(IEnumerable<InvoiceDto> invoices)
@@ -234,7 +254,7 @@ public partial class SalesHistoryReportPanel : UserControl
     {
         var columnCount = InvoiceProductsDataView.ColumnCount;
         var row = new object[columnCount];
-        var total = !product.IsGroupProduct ? product.UnitPrice * product.Quantity : product.GroupPrice;
+        var total = product.GetTotal();
 
         row[(int)ProductColumn.ProductCode] = product.Barcode;
         row[(int)ProductColumn.Description] = product.Description;
@@ -269,18 +289,32 @@ public partial class SalesHistoryReportPanel : UserControl
         if (SaleInvoiceDataView.SelectedCells.Count == 0)
             return;
 
-        var invoiceId = GetInvoiceIdFromSelectedInvoice();
+        try
+        {
+            var invoiceId = GetInvoiceIdFromSelectedInvoice();
 
-        await ShowInvoiceProductsByInvoiceIdAsync(invoiceId);
-        await ShowInvoicePaymentsByInvoiceIdAsync(invoiceId);
+            await ShowInvoiceProductsByInvoiceIdAsync(invoiceId);
+            await ShowInvoicePaymentsByInvoiceIdAsync(invoiceId);
+        }
+        catch (Exception ex)
+        {
+            ReportErrorHandler.Show(_messageForm, ex);
+        }
     }
 
     private async void PrintReceiptButton_Click(object sender, EventArgs e)
     {
-		var invoiceId = GetInvoiceIdFromSelectedInvoice();
-        var invoiceInfo = await GetInvoiceInfoAsync(invoiceId);
+        try
+        {
+		    var invoiceId = GetInvoiceIdFromSelectedInvoice();
+            var invoiceInfo = await GetInvoiceInfoAsync(invoiceId);
         
-        PrintReceipt(invoiceInfo);
+            PrintReceipt(invoiceInfo);
+        }
+        catch (Exception ex)
+        {
+            ReportErrorHandler.Show(_messageForm, ex);
+        }
     }
 
 	[Conditional("RELEASE")]

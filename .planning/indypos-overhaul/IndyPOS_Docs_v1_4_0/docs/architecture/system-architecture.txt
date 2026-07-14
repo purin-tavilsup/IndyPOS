@@ -1,0 +1,32 @@
+# IndyPOS System Architecture
+Version: 1.5.1
+
+## ASCII Diagram
+
++----------------+       +------------------+       +--------------------+
+| POS Terminal 1 | ----> |                  |       |                    |
++----------------+       |                  |       |                    |
+                         |    StoreHub API  | ----> |  Local PostgreSQL  |
++----------------+       |                  |       |                    |
+| POS Terminal 2 | ----> |                  |       |                    |
++----------------+       +------------------+       +--------------------+
+                                  |
+                                  v
+                         +------------------+
+                         |   Sync Worker    |
+                         +------------------+
+                                  |
+                                  v
+                         +------------------+       +--------------------+
+                         |    Cloud API     | ----> |  Cloud PostgreSQL  |
+                         +------------------+       +--------------------+
+                                                            |
+                                                            v
+                                                   +------------------+
+                                                   | MCP / Reporting  |
+                                                   +------------------+
+
+## Notes
+- Terminals never write directly to the database.
+- StoreHub is the local source of truth.
+- Sync Worker retries safely using outbox events.

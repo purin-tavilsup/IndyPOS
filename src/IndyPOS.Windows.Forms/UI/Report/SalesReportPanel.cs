@@ -3,19 +3,26 @@ using IndyPOS.Application.Common.Interfaces;
 using System.Diagnostics.CodeAnalysis;
 using IndyPOS.Application.Common.Extensions;
 using IndyPOS.Application.Common.Models;
+using IndyPOS.Windows.Forms.UI;
 
 namespace IndyPOS.Windows.Forms.UI.Report;
 
 public partial class SalesReportPanel : UserControl
 {
     private readonly IReportService _reportService;
+    private readonly MessageForm _messageForm;
 
     [ExcludeFromCodeCoverage]
-    public SalesReportPanel(IReportService reportService)
+    public SalesReportPanel(IReportService reportService, MessageForm messageForm)
     {
         _reportService = reportService;
+        _messageForm = messageForm;
 
         InitializeComponent();
+
+        // Initialize date pickers to today
+        StartDatePicker.Value = DateTime.Today;
+        EndDatePicker.Value = DateTime.Today;
     }
 
     private void ShowSummary(SalesSummary salesSummary, PaymentsSummary paymentsSummary)
@@ -75,34 +82,53 @@ public partial class SalesReportPanel : UserControl
 		return await _reportService.CreatePaymentsSummaryByDateRangeAsync(startDate, endDate);
 	}
 
+    private async Task ShowReportByPeriodAsync(string periodText, TimePeriod period)
+    {
+        PeriodLabel.Text = periodText;
+
+        try
+        {
+            var salesReport = await GetSalesReportByPeriodAsync(period);
+            var paymentsReport = await GetPaymentsReportByPeriodAsync(period);
+
+            ShowSummary(salesReport, paymentsReport);
+        }
+        catch (Exception ex)
+        {
+            ReportErrorHandler.Show(_messageForm, ex);
+        }
+    }
+
+    private async Task ShowReportByDateRangeAsync(DateOnly startDate, DateOnly endDate)
+    {
+        PeriodLabel.Text = $"{startDate:yyyy MMMM dd} - {endDate:yyyy MMMM dd}";
+
+        try
+        {
+            var salesReport = await GetSalesReportByDateRangeAsync(startDate, endDate);
+            var paymentsReport = await GetPaymentsReportByDateRangeAsync(startDate, endDate);
+
+            ShowSummary(salesReport, paymentsReport);
+        }
+        catch (Exception ex)
+        {
+            ReportErrorHandler.Show(_messageForm, ex);
+        }
+    }
+
     private async void ShowReportByTodayButton_Click(object sender, EventArgs e)
     {
-        PeriodLabel.Text = ShowReportByTodayButton.Text;
-
-        var salesReport = await GetSalesReportByPeriodAsync(TimePeriod.Today);
-        var paymentsReport = await GetPaymentsReportByPeriodAsync(TimePeriod.Today);
-
-        ShowSummary(salesReport, paymentsReport);
+        await ShowReportByPeriodAsync(ShowReportByTodayButton.Text, TimePeriod.Today);
     }
 
     private async void ShowReportByThisMonthButton_Click(object sender, EventArgs e)
     {
-        PeriodLabel.Text = ShowReportByThisMonthButton.Text;
-
-        var salesReport = await GetSalesReportByPeriodAsync(TimePeriod.ThisMonth);
-        var paymentsReport = await GetPaymentsReportByPeriodAsync(TimePeriod.ThisMonth);
-
-        ShowSummary(salesReport, paymentsReport);
+        await ShowReportByPeriodAsync(ShowReportByThisMonthButton.Text, TimePeriod.ThisMonth);
     }
 
     private async void ShowReportByThisYearButton_Click(object sender, EventArgs e)
     {
-        PeriodLabel.Text = ShowReportByThisYearButton.Text;
-
-        var salesReport = await GetSalesReportByPeriodAsync(TimePeriod.ThisYear);
-        var paymentsReport = await GetPaymentsReportByPeriodAsync(TimePeriod.ThisYear);
-
-        ShowSummary(salesReport, paymentsReport);
+        await ShowReportByPeriodAsync(ShowReportByThisYearButton.Text, TimePeriod.ThisYear);
     }
 
     private void TestDataFeedButton_Click(object sender, EventArgs e)
@@ -114,11 +140,6 @@ public partial class SalesReportPanel : UserControl
 		var startDate = StartDatePicker.Value.ToDateOnly();
 		var endDate = EndDatePicker.Value.ToDateOnly();
 
-		PeriodLabel.Text = $"{startDate:yyyy MMMM dd} - {endDate:yyyy MMMM dd}";
-
-		var salesReport = await GetSalesReportByDateRangeAsync(startDate, endDate);
-		var paymentsReport = await GetPaymentsReportByDateRangeAsync(startDate, endDate);
-
-        ShowSummary(salesReport, paymentsReport);
+        await ShowReportByDateRangeAsync(startDate, endDate);
 	}
 }

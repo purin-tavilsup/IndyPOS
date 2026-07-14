@@ -1,0 +1,44 @@
+meta {
+  name: Login (Cashier)
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{baseUrl}}/auth/login
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "username": "cashier",
+    "password": "cashier123"
+  }
+}
+
+script:post-response {
+  if (res.body.success && res.body.token) {
+    bru.setVar("token", res.body.token);
+  }
+}
+
+docs {
+  # Login as Cashier
+
+  Logs in with cashier credentials (roleId: 1).
+
+  **Capabilities:**
+  - products.read
+  - sales.complete
+
+  **Cannot access:**
+  - sync.view_status
+  - admin.*
+
+  The token is automatically saved to the `token` variable for use in subsequent requests.
+}

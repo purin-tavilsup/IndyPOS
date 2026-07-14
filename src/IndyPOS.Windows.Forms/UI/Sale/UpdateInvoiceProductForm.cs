@@ -15,7 +15,7 @@ public partial class UpdateInvoiceProductForm : Form
 	{
 		_saleService = saleService;
 		_messageForm = messageForm;
-		_product = new Product();
+		_product = new Product { Id = Guid.Empty };
 
 		InitializeComponent();
 	}
@@ -83,14 +83,14 @@ public partial class UpdateInvoiceProductForm : Form
 				Hide();
 			}
 			
-			await _saleService.UpdateProductQuantityAsync(_product.InventoryProductId, _product.Priority, quantity);
+			await _saleService.UpdateProductQuantityAsync(_product.Id, _product.Priority, quantity);
 
 			if (!_product.IsTrackable)
 			{
 				var unitPrice = decimal.Parse(UnitPriceTextBox.Texts.Trim());
 				var note = NoteTextBox.Texts.Trim();
 
-				_saleService.UpdateProductUnitPrice(_product.InventoryProductId, _product.Priority, unitPrice, note);
+				_saleService.UpdateProductUnitPrice(_product.Id, _product.Priority, unitPrice, note);
 			}
 			
 			Hide();
