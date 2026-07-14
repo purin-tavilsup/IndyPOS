@@ -119,12 +119,14 @@ $fontMap = @{
     "FC Subject [Non-commercial use] Bold ver 1.00.ttf"    = "FC-Subject-Bold.ttf"
 }
 foreach ($src in $fontMap.Keys) {
+    # -LiteralPath: the font filenames contain [square brackets], which PowerShell
+    # otherwise treats as wildcard character classes (making Test-Path/Copy-Item miss them).
     $srcPath = Join-Path $fontsSrc $src
-    if (-not (Test-Path $srcPath)) {
+    if (-not (Test-Path -LiteralPath $srcPath)) {
         Write-Error "Font not found: $srcPath. Expected under fonts\FC-Subject."
         exit 1
     }
-    Copy-Item -Path $srcPath -Destination (Join-Path $fontsDest $fontMap[$src]) -Force
+    Copy-Item -LiteralPath $srcPath -Destination (Join-Path $fontsDest $fontMap[$src]) -Force
 }
 Write-Host "  Embedded: 2 FC Subject fonts (Regular + Bold, .ttf)" -ForegroundColor Gray
 
