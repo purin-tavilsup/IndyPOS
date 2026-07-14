@@ -22,10 +22,12 @@ public class InstallationConfig
     public string AdminUsername { get; init; } = "admin";
 
     /// <summary>
-    /// Password for the initial SystemAdmin login (chosen in the wizard).
-    /// This is the only human-facing credential the installer collects.
+    /// Password for the initial SystemAdmin login. Generated (not user-chosen):
+    /// a random, single-use BOOTSTRAP credential shown once on the finish screen
+    /// and force-rotated on first login. Evaluated once so the seeded value and
+    /// the displayed value never diverge.
     /// </summary>
-    public required string AdminPassword { get; init; }
+    public string AdminPassword { get; init; } = GenerateAdminPassword();
 
     /// <summary>
     /// Password for the local database application user. This is a
@@ -104,6 +106,19 @@ public class InstallationConfig
     {
         const string alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
         var chars = new char[32];
+        for (var i = 0; i < chars.Length; i++)
+        {
+            chars[i] = alphabet[RandomNumberGenerator.GetInt32(alphabet.Length)];
+        }
+        return new string(chars);
+    }
+
+    // 14 chars from a 56-char alphabet with ambiguous glyphs (0/O/1/l/I) removed
+    // so it is easy to read off the finish screen and type once. Single-use.
+    private static string GenerateAdminPassword()
+    {
+        const string alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789";
+        var chars = new char[14];
         for (var i = 0; i < chars.Length; i++)
         {
             chars[i] = alphabet[RandomNumberGenerator.GetInt32(alphabet.Length)];
