@@ -1,5 +1,6 @@
 using IndyPOS.Application.Common.Models;
 using IndyPOS.Application.UseCases.StoreHub.Auth;
+using IndyPOS.Application.UseCases.StoreHub.Auth.ChangePassword;
 using IndyPOS.Application.UseCases.StoreHub.PayLater;
 using IndyPOS.Application.UseCases.StoreHub.Products;
 using IndyPOS.Application.UseCases.StoreHub.Products.AdjustQuantity;
@@ -19,6 +20,12 @@ public interface IStoreHubClient
     /// Authenticate user and get JWT token.
     /// </summary>
     Task<LoginResponse> LoginAsync(string username, string password, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Change the authenticated user's password. On success the returned token is
+    /// a fresh JWT without the must_change claim.
+    /// </summary>
+    Task<ChangePasswordResponse> ChangePasswordAsync(string currentPassword, string newPassword, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Get all products from StoreHub.

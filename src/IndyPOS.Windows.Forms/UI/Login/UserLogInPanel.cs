@@ -52,7 +52,12 @@ public partial class UserLogInPanel : UserControl
 		var username = UsersComboBox.Texts?.Trim() ?? string.Empty;
 		var password = UserSecretTextBox.Texts.Trim();
 
-		_isLoggedIn = await _userLogInService.LogInAsync(username, password);
+		var result = await _userLogInService.LogInAsync(username, password);
+
+		// TODO(admin-provisioning): once the must-change-password coordinator lands,
+		// result.MustChangePassword should route to a password-rotation dialog instead
+		// of treating it as a normal successful login.
+		_isLoggedIn = result.Success;
 
 		if (_isLoggedIn)
 		{
