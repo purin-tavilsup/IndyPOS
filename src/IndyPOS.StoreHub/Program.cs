@@ -1,9 +1,11 @@
+using System.Security.Claims;
 using System.Text;
 using IndyPOS.Application.Abstractions.StoreHub.Repositories;
 using IndyPOS.Application.Common.Authorization;
 using IndyPOS.Application.Common.Exceptions;
 using IndyPOS.Application.Common.Interfaces;
 using IndyPOS.Application.UseCases.StoreHub.Auth;
+using IndyPOS.Application.UseCases.StoreHub.Auth.ChangePassword;
 using IndyPOS.Application.UseCases.StoreHub.Auth.Login;
 using IndyPOS.Application.UseCases.StoreHub.Products;
 using IndyPOS.Application.UseCases.StoreHub.Products.AdjustQuantity;
@@ -77,6 +79,7 @@ builder.Services.AddStoreHubAuthServices(builder.Configuration);
 builder.Services.AddTransient<IQueryHandler<GetProductsQuery, IReadOnlyList<ProductDto>>, GetProductsQueryHandler>();
 builder.Services.AddTransient<ICommandHandler<CompleteSaleCommand, CompleteSaleResponse>, CompleteSaleCommandHandler>();
 builder.Services.AddTransient<ICommandHandler<LoginCommand, LoginResponse>, LoginCommandHandler>();
+builder.Services.AddTransient<ICommandHandler<ChangePasswordCommand, ChangePasswordResponse>, ChangePasswordCommandHandler>();
 
 // Product write handlers
 builder.Services.AddTransient<ICommandHandler<CreateProductCommand, ProductDto>, CreateProductCommandHandler>();
@@ -210,13 +213,35 @@ app.MapGet("/auth/me", (HttpContext context) =>
 
     return Results.Ok(new
     {
-        userId = user.FindFirst("sub")?.Value,
+        userId = user.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? user.FindFirst("sub")?.Value,
         username = user.FindFirst("unique_name")?.Value,
         roleId = user.FindFirst("role_id")?.Value,
         storeId = user.FindFirst("store_id")?.Value,
         firstName = user.FindFirst("first_name")?.Value,
         lastName = user.FindFirst("last_name")?.Value
     });
+}).RequireAuthorization();
+
+app.MapPost("/auth/change-password", async (
+    ICommandHandler<ChangePasswordCommand, ChangePasswordResponse> handler,
+    HttpContext context,
+    ChangePasswordRequest request,
+    CancellationToken cancellationToken) =>
+{
+    var idValue = context.User.FindFirst(ClaimTypes.NameIdentifier)?.Value
+                  ?? context.User.FindFirst("sub")?.Value;
+
+    if (!Guid.TryParse(idValue, out var userId))
+    {
+        return Results.Unauthorized();
+    }
+
+    var command = new ChangePasswordCommand(userId, request.CurrentPassword, request.NewPassword);
+    var response = await handler.HandleAsync(command, cancellationToken);
+
+    return response.Success
+        ? Results.Ok(response)
+        : Results.BadRequest(new { error = response.ErrorMessage });
 }).RequireAuthorization();
 
 // /health/ready is now served by ServiceDefaults.MapDefaultEndpoints (tag
