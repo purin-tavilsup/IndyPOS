@@ -149,8 +149,11 @@ public class StoreHubInstaller
             using var process = new Process { StartInfo = psi };
             process.Start();
 
-            var stdout = await process.StandardOutput.ReadToEndAsync(cancellationToken);
-            var stderr = await process.StandardError.ReadToEndAsync(cancellationToken);
+            var stdoutTask = process.StandardOutput.ReadToEndAsync(cancellationToken);
+            var stderrTask = process.StandardError.ReadToEndAsync(cancellationToken);
+            await Task.WhenAll(stdoutTask, stderrTask);
+            var stdout = await stdoutTask;
+            var stderr = await stderrTask;
             await process.WaitForExitAsync(cancellationToken);
 
             if (process.ExitCode != 0)
