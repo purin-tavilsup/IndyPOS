@@ -43,6 +43,7 @@ public class LoginCommandHandler : ICommandHandler<LoginCommand, LoginResponse>
             Success: true,
             Token: result.Token,
             User: userDto,
-            ErrorMessage: null);
+            ErrorMessage: null,
+            MustChangePassword: result.MustChangePassword);
     }
 }
