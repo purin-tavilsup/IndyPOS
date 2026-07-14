@@ -57,6 +57,19 @@ public class InstallationConfigTests
         config.DatabaseName.Should().Be("indypos_bangkok");
         config.AppUser.Should().Be("indypos_bkk");
     }
+
+    [Fact]
+    public void AdminPassword_IsGenerated_StableAcrossReads_AndUnambiguous()
+    {
+        var config = new InstallationConfig { StoreId = "STORE-001" };
+
+        var first = config.AdminPassword;
+
+        first.Should().NotBeNullOrWhiteSpace();
+        first.Should().HaveLength(14);
+        first.IndexOfAny("0O1lI".ToCharArray()).Should().Be(-1);
+        config.AdminPassword.Should().Be(first); // single evaluation, stable
+    }
 }
 
 public class InstallationProgressTests
