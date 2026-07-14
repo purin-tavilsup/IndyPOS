@@ -1,3 +1,4 @@
+using System.IdentityModel.Tokens.Jwt;
 using IndyPOS.Application.Common.Models;
 using IndyPOS.Domain.Entities.Core;
 using IndyPOS.Infrastructure.Services.StoreHub;
@@ -43,6 +44,36 @@ public class LocalTokenServiceTests
     {
         // Act & Assert
         Assert.Throws<ArgumentNullException>(() => _sut.GenerateToken(null!));
+    }
+
+    [Fact]
+    public void GenerateToken_WhenMustChangePassword_IncludesMustChangeClaim()
+    {
+        // Arrange
+        var user = CreateTestUser();
+        user.MustChangePassword = true;
+
+        // Act
+        var token = _sut.GenerateToken(user);
+
+        // Assert
+        var jwt = new JwtSecurityTokenHandler().ReadJwtToken(token);
+        Assert.Contains(jwt.Claims, c => c.Type == "must_change" && c.Value == "true");
+    }
+
+    [Fact]
+    public void GenerateToken_WhenNotMustChange_OmitsMustChangeClaim()
+    {
+        // Arrange
+        var user = CreateTestUser();
+        user.MustChangePassword = false;
+
+        // Act
+        var token = _sut.GenerateToken(user);
+
+        // Assert
+        var jwt = new JwtSecurityTokenHandler().ReadJwtToken(token);
+        Assert.DoesNotContain(jwt.Claims, c => c.Type == "must_change");
     }
 
     [Fact]

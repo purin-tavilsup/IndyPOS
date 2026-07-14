@@ -45,16 +45,21 @@ public class LocalTokenService : ILocalTokenService
     {
         ArgumentNullException.ThrowIfNull(user);
 
-        var claims = new[]
+        var claims = new List<Claim>
         {
-            new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
-            new Claim(JwtRegisteredClaimNames.UniqueName, user.Username),
-            new Claim("role_id", user.RoleId.ToString()),
-            new Claim("store_id", user.StoreId),
-            new Claim("first_name", user.FirstName),
-            new Claim("last_name", user.LastName),
-            new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
+            new(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
+            new(JwtRegisteredClaimNames.UniqueName, user.Username),
+            new("role_id", user.RoleId.ToString()),
+            new("store_id", user.StoreId),
+            new("first_name", user.FirstName),
+            new("last_name", user.LastName),
+            new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
         };
+
+        if (user.MustChangePassword)
+        {
+            claims.Add(new Claim("must_change", "true"));
+        }
 
         var token = new JwtSecurityToken(
             issuer: _options.Issuer,
