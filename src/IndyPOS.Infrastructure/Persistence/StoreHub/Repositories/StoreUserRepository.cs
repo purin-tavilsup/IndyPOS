@@ -68,6 +68,18 @@ public class StoreUserRepository : IStoreUserRepository
                             cancellationToken);
     }
 
+    public async Task SetPasswordAsync(Guid id, string newHash, bool mustChangePassword, CancellationToken cancellationToken = default)
+    {
+        await _dbContext.StoreUsers
+                        .Where(u => u.Id == id)
+                        .ExecuteUpdateAsync(s => s
+                            .SetProperty(u => u.PasswordHash, newHash)
+                            .SetProperty(u => u.PasswordHashVersion, 2)
+                            .SetProperty(u => u.MustChangePassword, mustChangePassword)
+                            .SetProperty(u => u.LastModifiedAtUtc, DateTime.UtcNow),
+                            cancellationToken);
+    }
+
     public async Task UpdateLastLoginAsync(Guid id, DateTime loginTimeUtc, CancellationToken cancellationToken = default)
     {
         await _dbContext.StoreUsers
