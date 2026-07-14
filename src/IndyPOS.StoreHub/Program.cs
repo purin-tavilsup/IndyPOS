@@ -180,6 +180,22 @@ app.MapDefaultEndpoints();
 app.UseAuthentication();
 app.UseAuthorization();
 
+// Force-rotation gate: a token carrying must_change may reach ONLY the
+// change-password endpoint. This is the server-side teeth behind the WinForms
+// first-login flow — a dismissed dialog or a rogue client cannot bypass it.
+app.Use(async (context, next) =>
+{
+    var mustChange = context.User.FindFirst("must_change")?.Value == "true";
+    if (mustChange && !context.Request.Path.StartsWithSegments("/auth/change-password"))
+    {
+        context.Response.StatusCode = StatusCodes.Status403Forbidden;
+        await context.Response.WriteAsJsonAsync(new { error = "Password change required before continuing." });
+        return;
+    }
+
+    await next();
+});
+
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
