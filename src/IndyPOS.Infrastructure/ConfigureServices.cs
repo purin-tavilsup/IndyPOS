@@ -191,6 +191,7 @@ public static class ConfigureServices
 		// StoreHub service implementations
 		services.AddSingleton<ISaleService, StoreHubSaleService>();
 		services.AddSingleton<IUserLogInService, StoreHubUserLogInService>();
+		services.AddSingleton<IFirstLoginCoordinator, FirstLoginCoordinator>();
 		services.AddSingleton<IPayLaterService, StoreHubPayLaterService>();
 		services.AddSingleton<IStoreConstants, HardcodedStoreConstants>();
 		services.AddSingleton<IReportService, StoreHubReportService>();
