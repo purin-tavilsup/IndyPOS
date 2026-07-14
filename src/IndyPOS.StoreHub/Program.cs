@@ -169,7 +169,17 @@ if (app.Environment.IsDevelopment())
 else if (Array.Exists(args, a => string.Equals(a, "migrate", StringComparison.OrdinalIgnoreCase)))
 {
     await app.MigrateStoreHubDatabaseAsync();
-    await app.SeedInitialAdminAsync();
+    var seeded = await app.SeedInitialAdminAsync();
+    // Marker consumed by the bootstrapper to decide the finish-screen credential text.
+    Console.WriteLine($"ADMIN_SEEDED={(seeded ? "true" : "false")}");
+    return;
+}
+else if (Array.Exists(args, a => string.Equals(a, "reset-admin", StringComparison.OrdinalIgnoreCase)))
+{
+    await app.MigrateStoreHubDatabaseAsync();
+    var newPassword = await app.ResetAdminAsync();
+    Console.WriteLine($"ADMIN_RESET=true");
+    Console.WriteLine($"New admin password (change it on next sign-in): {newPassword}");
     return;
 }
 

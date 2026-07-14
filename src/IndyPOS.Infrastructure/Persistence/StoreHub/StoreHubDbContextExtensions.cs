@@ -43,11 +43,26 @@ public static class StoreHubDbContextExtensions
     /// <summary>
     /// Seeds the initial admin login from the InitialAdmin configuration
     /// section. Idempotent — safe to run on every start.
+    /// Returns true if seeding occurred; false if admin already existed.
     /// </summary>
-    public static async Task SeedInitialAdminAsync(this IHost app)
+    public static async Task<bool> SeedInitialAdminAsync(this IHost app)
     {
         using var scope = app.Services.CreateScope();
         var seeder = scope.ServiceProvider.GetRequiredService<InitialAdminSeeder>();
-        await seeder.SeedAsync();
+        return await seeder.SeedAsync();
+    }
+
+    /// <summary>
+    /// Recovery entry point for the "reset-admin" CLI: generates a fresh random
+    /// password, (re)sets the admin with must-change, and returns the password
+    /// so the caller can print it once.
+    /// </summary>
+    public static async Task<string> ResetAdminAsync(this IHost app)
+    {
+        using var scope = app.Services.CreateScope();
+        var seeder = scope.ServiceProvider.GetRequiredService<InitialAdminSeeder>();
+        var password = IndyPOS.Infrastructure.Services.StoreHub.AdminPasswordGenerator.Generate();
+        await seeder.ResetAsync(password);
+        return password;
     }
 }
