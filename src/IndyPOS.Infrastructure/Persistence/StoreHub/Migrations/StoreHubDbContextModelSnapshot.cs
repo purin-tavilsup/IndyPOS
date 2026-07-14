@@ -478,6 +478,12 @@ namespace IndyPOS.Infrastructure.Persistence.StoreHub.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("legacy_user_id");
 
+                    b.Property<bool>("MustChangePassword")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false)
+                        .HasColumnName("must_change_password");
+
                     b.Property<string>("PasswordHash")
                         .IsRequired()
                         .HasMaxLength(255)
