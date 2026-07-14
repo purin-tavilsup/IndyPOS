@@ -21,10 +21,12 @@ The installer automatically handles:
 - ✅ Database configuration
 - ✅ WinForms installation (with auto-updates via Velopack)
 - ✅ First-run wizard for store configuration
+- ✅ Admin credential generation (see [Admin Bootstrap Credentials](#admin-bootstrap-credentials) below)
 
 **After installation:**
 - WinForms auto-updates via GitHub Releases
 - StoreHub updates can be managed from WinForms Settings
+- Admin must change one-time password on first sign-in
 
 For manual installation or troubleshooting, follow the detailed steps below.
 
@@ -35,16 +37,17 @@ For manual installation or troubleshooting, follow the detailed steps below.
 1. [Overview](#overview)
 2. [Architecture](#architecture)
 3. [Prerequisites](#prerequisites)
-4. [Step 1: Install PostgreSQL](#step-1-install-postgresql)
-5. [Step 2: Build Release Binaries](#step-2-build-release-binaries)
-6. [Step 3: Configure the System](#step-3-configure-the-system)
-7. [Step 4: Install StoreHub Service](#step-4-install-storehub-service)
-8. [Step 5: Migrate Data](#step-5-migrate-data)
-9. [Step 6: Configure WinForms](#step-6-configure-winforms)
-10. [Step 7: Verify Installation](#step-7-verify-installation)
-11. [Step 8: Set Up Backups](#step-8-set-up-backups)
-12. [Multi-Terminal Setup](#multi-terminal-setup)
-13. [Troubleshooting](#troubleshooting)
+4. [Admin Bootstrap Credentials](#admin-bootstrap-credentials)
+5. [Step 1: Install PostgreSQL](#step-1-install-postgresql)
+6. [Step 2: Build Release Binaries](#step-2-build-release-binaries)
+7. [Step 3: Configure the System](#step-3-configure-the-system)
+8. [Step 4: Install StoreHub Service](#step-4-install-storehub-service)
+9. [Step 5: Migrate Data](#step-5-migrate-data)
+10. [Step 6: Configure WinForms](#step-6-configure-winforms)
+11. [Step 7: Verify Installation](#step-7-verify-installation)
+12. [Step 8: Set Up Backups](#step-8-set-up-backups)
+13. [Multi-Terminal Setup](#multi-terminal-setup)
+14. [Troubleshooting](#troubleshooting)
 
 ---
 
@@ -136,6 +139,69 @@ One Store Hub PC, multiple POS terminals:
 - Store Hub PC needs a **static IP address** (for multi-terminal setup)
 - Firewall must allow port **5000** (StoreHub API) and **5432** (PostgreSQL)
 - All terminals must be on the same LAN
+
+---
+
+## Admin Bootstrap Credentials
+
+The installer automatically creates an admin account and generates a one-time password. This section explains the bootstrap flow and how to recover credentials if needed.
+
+### Initial Setup (First Installation)
+
+1. **Installer Wizard** - The wizard asks for the **Store ID only**. No admin username or password is requested.
+
+2. **Finish Screen** - At the end of installation, the finish screen displays:
+   - **Username:** `admin`
+   - **One-time Password:** A randomly generated password (e.g., `Tmp_A1b2C3d4E5`)
+   - A note to save this password and delete `admin-credentials.txt` after first sign-in
+
+3. **Credential File** - The credentials are also written to:
+   ```
+   C:\ProgramData\IndyPOS\v4\Config\admin-credentials.txt
+   ```
+   This file contains the username and one-time password for reference.
+
+### First Sign-In (Force Password Change)
+
+When `admin` logs in with the one-time password:
+- The WinForms app **forces a password change** before allowing access
+- Admin must enter a new, permanent password
+- The one-time password expires and cannot be used again
+
+**After first sign-in, delete the credential file:**
+```powershell
+Remove-Item "C:\ProgramData\IndyPOS\v4\Config\admin-credentials.txt"
+```
+
+### Reinstalling Over Existing Database
+
+If you run the installer on a machine with an existing IndyPOS database:
+- The installer **retains the existing admin** account
+- **No new credential is generated**
+- The finish screen indicates that the existing admin was kept
+- Use the current admin password to sign in
+
+### Admin Credential Recovery
+
+If the one-time password is lost or the admin needs to reset it, use the `reset-admin` command:
+
+```powershell
+"%ProgramData%\IndyPOS\v4\StoreHub\IndyPOS.StoreHub.exe" reset-admin
+```
+
+**What this command does:**
+- Generates a fresh one-time password
+- Re-arms the force-change on next sign-in
+- Prints the new one-time password to the console
+- Updates `C:\ProgramData\IndyPOS\v4\Config\admin-credentials.txt` with the new credential
+
+**Example output:**
+```
+Admin credential reset successful.
+Username: admin
+One-time Password: Tmp_X9y8Z7w6V5
+Next sign-in will require a password change.
+```
 
 ---
 
