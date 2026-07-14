@@ -40,6 +40,12 @@ public class StoreUser
 
     public bool IsActive { get; set; } = true;
 
+    /// <summary>
+    /// When true, the user must rotate their password before any other action.
+    /// Set on the seeded bootstrap admin; cleared on first successful change.
+    /// </summary>
+    public bool MustChangePassword { get; set; }
+
     public DateTime CreatedAtUtc { get; set; }
     public DateTime LastModifiedAtUtc { get; set; }
     public DateTime? LastLoginAtUtc { get; set; }

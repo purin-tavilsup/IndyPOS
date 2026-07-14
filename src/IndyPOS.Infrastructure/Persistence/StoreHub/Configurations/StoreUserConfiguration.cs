@@ -58,6 +58,11 @@ public class StoreUserConfiguration : IEntityTypeConfiguration<StoreUser>
                .HasDefaultValue(true)
                .IsRequired();
 
+        builder.Property(e => e.MustChangePassword)
+               .HasColumnName("must_change_password")
+               .HasDefaultValue(false)
+               .IsRequired();
+
         builder.Property(e => e.CreatedAtUtc)
                .HasColumnName("created_at_utc")
                .IsRequired();
