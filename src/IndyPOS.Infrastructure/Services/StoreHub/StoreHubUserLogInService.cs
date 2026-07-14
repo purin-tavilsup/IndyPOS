@@ -99,6 +99,11 @@ public class StoreHubUserLogInService : IUserLogInService
             _logger.LogError(ex, "StoreHub connection error during change-password");
             return new ChangePasswordResult(false, "Cannot connect to StoreHub.");
         }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Unexpected error during change-password");
+            return new ChangePasswordResult(false, "An unexpected error occurred while changing the password.");
+        }
     }
 
     public void LogOut()
