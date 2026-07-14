@@ -377,6 +377,7 @@ public partial class InstallationWizard : Form
 
             Directory.CreateDirectory(config.ConfigDirectory);
             File.WriteAllText(path, contents);
+            DatabaseSetup.RestrictFilePermissions(path);
         }
         catch
         {
