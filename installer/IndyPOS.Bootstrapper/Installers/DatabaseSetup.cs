@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using System.Security.Cryptography;
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using IndyPOS.Vault;
 
 namespace IndyPOS.Bootstrapper.Installers;
@@ -311,6 +312,39 @@ public class DatabaseSetup
         RestrictFilePermissions(configPath);
     }
 
+    /// <summary>
+    /// Removes the plaintext bootstrap admin credential from appsettings.json after
+    /// the admin has been seeded. Atomic (temp + move) so a crash cannot corrupt the
+    /// file that the service reads on start. Re-applies the Administrators/LocalSystem ACL.
+    /// Returns false (and leaves the file intact) on any failure — non-fatal.
+    /// </summary>
+    public async Task<bool> RemoveInitialAdminFromConfigAsync(CancellationToken cancellationToken = default)
+    {
+        var configPath = Path.Combine(Config.StoreHubInstallPath, "appsettings.json");
+
+        try
+        {
+            if (!File.Exists(configPath))
+            {
+                return false;
+            }
+
+            var original = await File.ReadAllTextAsync(configPath, cancellationToken);
+            var stripped = RemoveInitialAdminNode(original);
+
+            var tempPath = configPath + ".tmp";
+            await File.WriteAllTextAsync(tempPath, stripped, cancellationToken);
+            File.Move(tempPath, configPath, overwrite: true);
+
+            RestrictFilePermissions(configPath);
+            return true;
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
     internal static string BuildStoreHubConfigJson(InstallationConfig config, string jwtSecret)
     {
         var connectionString =
@@ -382,6 +416,21 @@ public class DatabaseSetup
         json = json.Replace("\"Microsoft_EntityFrameworkCore\"", "\"Microsoft.EntityFrameworkCore\"");
 
         return json;
+    }
+
+    /// <summary>
+    /// Returns <paramref name="json"/> with the top-level "initialAdmin" node removed.
+    /// All other nodes (including the DPAPI-protected connection string and JWT key)
+    /// are preserved exactly. Pure function for testability.
+    /// </summary>
+    internal static string RemoveInitialAdminNode(string json)
+    {
+        var root = JsonNode.Parse(json)?.AsObject()
+            ?? throw new InvalidOperationException("appsettings.json is not a JSON object.");
+
+        root.Remove("initialAdmin");
+
+        return root.ToJsonString(new JsonSerializerOptions { WriteIndented = true });
     }
 
     private async Task CreateStoreConfigTemplateAsync(CancellationToken cancellationToken)

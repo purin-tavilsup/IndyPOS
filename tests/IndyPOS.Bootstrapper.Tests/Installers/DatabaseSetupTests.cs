@@ -89,6 +89,28 @@ public class DatabaseSetupTests
         Convert.FromBase64String(secret).Length.Should().Be(64);
     }
 
+    [Fact]
+    public void RemoveInitialAdminNode_RemovesOnlyInitialAdmin_PreservesProtectedSecrets()
+    {
+        var config = new InstallationConfig { StoreId = "STORE-001" };
+        var original = DatabaseSetup.BuildStoreHubConfigJson(config, "jwt-secret-value");
+
+        var stripped = DatabaseSetup.RemoveInitialAdminNode(original);
+
+        using var doc = JsonDocument.Parse(stripped);
+        var root = doc.RootElement;
+
+        root.TryGetProperty("initialAdmin", out _).Should().BeFalse();
+
+        // storehub-db + localToken.secretKey preserved byte-identical.
+        using var originalDoc = JsonDocument.Parse(original);
+        var originalConn = originalDoc.RootElement.GetProperty("connectionStrings").GetProperty("storehub-db").GetString();
+        var originalKey = originalDoc.RootElement.GetProperty("localToken").GetProperty("secretKey").GetString();
+
+        root.GetProperty("connectionStrings").GetProperty("storehub-db").GetString().Should().Be(originalConn);
+        root.GetProperty("localToken").GetProperty("secretKey").GetString().Should().Be(originalKey);
+    }
+
     // These tests require a running PostgreSQL instance
     // They are marked as integration tests
     [Fact(Skip = "Integration test - requires PostgreSQL")]
