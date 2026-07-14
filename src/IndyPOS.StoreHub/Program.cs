@@ -37,7 +37,17 @@ using Microsoft.IdentityModel.Tokens;
 using Nokpirab;
 using Scalar.AspNetCore;
 
-var builder = WebApplication.CreateBuilder(args);
+// Anchor the content root to the exe directory (not the current working
+// directory) so appsettings.json — and its DPAPI-protected connection string —
+// load no matter where the process is launched from. The Windows service and
+// the installer's "migrate" step already run from the install dir, but the
+// operator-facing "reset-admin" recovery command can be run from any CWD;
+// without this it fails with "ConnectionString is missing".
+var builder = WebApplication.CreateBuilder(new WebApplicationOptions
+{
+    Args = args,
+    ContentRootPath = AppContext.BaseDirectory
+});
 
 // Decrypt DPAPI-protected secrets before any consumer reads them. No-op in dev:
 // Aspire injects an unmarked connection string. See IndyPOS.Vault.
