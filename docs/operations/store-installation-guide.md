@@ -652,7 +652,7 @@ Get-Service IndyPOS.StoreHub
 
 | File | Location |
 |------|----------|
-| StoreHub binaries | `C:\Program Files\IndyPOS\StoreHub\` |
+| StoreHub binaries | `C:\ProgramData\IndyPOS\v4\StoreHub\` |
 | StoreHub config | `C:\Program Files\IndyPOS\StoreHub\appsettings.Production.json` |
 | Store config | `C:\ProgramData\IndyPOS\v4\Config\StoreConfiguration.json` |
 | Admin credentials (initial install) | `C:\ProgramData\IndyPOS\v4\Config\admin-credentials.txt` |
