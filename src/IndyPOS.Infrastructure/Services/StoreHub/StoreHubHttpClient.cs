@@ -5,6 +5,7 @@ using System.Text.Json;
 using IndyPOS.Application.Abstractions.StoreHub;
 using IndyPOS.Application.Common.Models;
 using IndyPOS.Application.UseCases.StoreHub.Auth;
+using IndyPOS.Application.UseCases.StoreHub.Auth.ChangePassword;
 using IndyPOS.Application.UseCases.StoreHub.PayLater;
 using IndyPOS.Application.UseCases.StoreHub.Products;
 using IndyPOS.Application.UseCases.StoreHub.Products.AdjustQuantity;
@@ -88,6 +89,37 @@ public class StoreHubHttpClient : IStoreHubClient
         {
             _logger.LogError(ex, "Unexpected error during login");
             return new LoginResponse(false, null, null, $"Unexpected error: {ex.Message}");
+        }
+    }
+
+    public async Task<ChangePasswordResponse> ChangePasswordAsync(
+        string currentPassword,
+        string newPassword,
+        CancellationToken cancellationToken = default)
+    {
+        EnsureAuthenticated();
+
+        try
+        {
+            using var request = CreateAuthenticatedRequest(HttpMethod.Post, "/auth/change-password");
+            request.Content = JsonContent.Create(
+                new ChangePasswordRequest(currentPassword, newPassword), options: JsonOptions);
+
+            var response = await _httpClient.SendAsync(request, cancellationToken);
+
+            if (response.IsSuccessStatusCode)
+            {
+                var body = await response.Content.ReadFromJsonAsync<ChangePasswordResponse>(JsonOptions, cancellationToken);
+                return body ?? new ChangePasswordResponse(false, null, "Invalid response from server");
+            }
+
+            var errorBody = await ReadResponseBodyAsync(response, cancellationToken);
+            return new ChangePasswordResponse(false, null, $"Change password failed: {response.StatusCode}. {errorBody}");
+        }
+        catch (HttpRequestException ex)
+        {
+            _logger.LogError(ex, "Network error during change-password");
+            return new ChangePasswordResponse(false, null, "Cannot connect to StoreHub.");
         }
     }
 
