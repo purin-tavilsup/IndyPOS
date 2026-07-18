@@ -214,6 +214,23 @@ public class StoreAuthServiceTests
         Assert.True(result.MustChangePassword);
     }
 
+    [Fact]
+    public async Task AuthenticateAsync_WhenUserNeedNotChangePassword_ReturnsFlagFalse()
+    {
+        var password = "SecurePassword123!";
+        var user = CreateTestUser(_passwordHasher.Hash(password), passwordVersion: 2);
+        user.MustChangePassword = false;
+
+        _userRepositoryMock
+            .Setup(x => x.GetByUsernameAsync("testuser", It.IsAny<CancellationToken>()))
+            .ReturnsAsync(user);
+
+        var result = await _sut.AuthenticateAsync("testuser", password);
+
+        Assert.True(result.Success);
+        Assert.False(result.MustChangePassword);
+    }
+
     private static StoreUser CreateTestUser(string passwordHash, int passwordVersion) => new()
     {
         Id = Guid.NewGuid(),
