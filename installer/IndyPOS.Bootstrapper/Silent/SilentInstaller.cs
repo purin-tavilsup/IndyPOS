@@ -20,7 +20,7 @@ public static class SilentInstaller
             return Emit(new NotElevatedOutcome(), logger: null);
 
         var options = parse.Options!;
-        var config = new InstallationConfig { StoreId = options.StoreId };
+        var config = new InstallationConfig { StoreId = options.StoreId, Interactive = false };
 
         string logPath;
         TextWriter writer;

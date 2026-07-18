@@ -17,6 +17,13 @@ public class InstallationConfig
     public required string StoreId { get; init; }
 
     /// <summary>
+    /// True for the interactive wizard; false for the headless --silent path.
+    /// When false, prerequisite installers must never block on UI (e.g. the
+    /// .NET manual-install dialog) — they fail fast so the run can't hang.
+    /// </summary>
+    public bool Interactive { get; init; } = true;
+
+    /// <summary>
     /// Username for the initial SystemAdmin login (chosen in the wizard).
     /// </summary>
     public string AdminUsername { get; init; } = "admin";

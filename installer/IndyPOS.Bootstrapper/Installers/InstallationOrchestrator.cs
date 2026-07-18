@@ -47,7 +47,8 @@ public class InstallationOrchestrator
 
         var dotNetResult = await _dotNetInstaller.EnsureInstalledAsync(
             new Progress<string>(msg => progress.Report(InstallationProgress.Log(msg))),
-            cancellationToken);
+            cancellationToken,
+            config.Interactive);
 
         if (!dotNetResult.Success)
         {
