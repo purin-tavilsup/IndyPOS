@@ -28,7 +28,7 @@ public static class SilentOutcomeMapper
         InstallSucceeded s => (0, SuccessMarkers(s)),
         InstallFailed => (2, [Prefix + "RESULT=failed"]),
         InstallTimedOut => (4, [Prefix + "RESULT=timeout"]),
-        UsageErrorOutcome => (1, [Prefix + "RESULT=failed"]),
+        UsageErrorOutcome u => (1, [Prefix + "RESULT=failed", Prefix + $"REASON={u.Message}"]),
         NotElevatedOutcome => (3, [Prefix + "RESULT=failed"]),
         _ => throw new ArgumentOutOfRangeException(nameof(outcome))
     };
