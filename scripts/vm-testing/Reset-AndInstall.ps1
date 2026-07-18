@@ -235,11 +235,21 @@ function Invoke-SilentInstall {
 
     Write-Info "Running (in guest): $guestInstaller --silent --store-id $storeId"
 
-    $run = Invoke-Command -VMName $Config.VMName -Credential $Credential -ScriptBlock {
+    $timeoutSec = $Config.InstallTimeoutMinutes * 60
+    $job = Invoke-Command -VMName $Config.VMName -Credential $Credential -AsJob -ScriptBlock {
         param($exe, $id)
         $p = Start-Process -FilePath $exe -ArgumentList '--silent', '--store-id', $id -Wait -PassThru
         [pscustomobject]@{ ExitCode = $p.ExitCode }
     } -ArgumentList $guestInstaller, $storeId
+
+    if (-not (Wait-Job -Job $job -Timeout $timeoutSec)) {
+        Stop-Job -Job $job
+        Remove-Job -Job $job -Force
+        throw "Silent install exceeded the $($Config.InstallTimeoutMinutes)-min harness watchdog (in-guest install hung). See $latestLog in the guest."
+    }
+
+    $run = Receive-Job -Job $job
+    Remove-Job -Job $job
 
     Write-Info "Installer exit code: $($run.ExitCode)"
 
