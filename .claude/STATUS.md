@@ -6,22 +6,32 @@
 
 | Field | Value |
 |-------|-------|
-| **Branch** | `indypos-overhaul` |
+| **Branch** | `payment-methods-catalog` (off `development`; `indypos-overhaul` retired) |
 | **Sprint** | Sprint 7 |
-| **Phase** | ✅ **MERGED to `development` (2026-07-14 19:01, PR #50 "IndyPOS v4 Overhaul", merge commit).** Admin-provisioning (bootstrap password + server-enforced forced rotation) shipped as the final feature of the v4 overhaul. 18-task SDD plan, 3-perspective design review, whole-branch review, VM clean-install validated 18/18 + fonts + CWD fix + themed modal (Pond-approved). |
-| **Blocked?** | Not blocked. **2026-07-18: SILENT INSTALLER MODE COMPLETE + VM-VALIDATED** (see resume block below). Branch `indypos-overhaul` is **22 commits ahead of `origin/development`** (which already has #50 `9547e68`); local `development` is stale (176 behind origin). Awaiting Pond's merge/PR call. |
+| **Phase** | ✅ **Silent Installer Mode MERGED (PR #51, 2026-07-18).** Now: **Epic M — data-driven payment methods + store-type gating** brainstormed → spec'd → planned. Ready to EXECUTE the 12-task plan. |
+| **Blocked?** | Not blocked. Silent installer shipped + merged. Epic M payment-methods **spec + plan committed** on `payment-methods-catalog`; awaiting execution (subagent-driven-development). |
 
-## ⏯️ RESUME HERE (2026-07-18) — Silent Installer Mode: FEATURE COMPLETE, VM-VALIDATED, ready to merge
+## ⏯️ RESUME HERE (2026-07-18 PM) — Epic M "data-driven payment methods": SPEC + PLAN READY, execute next
 
-**Shipped this session (branch `indypos-overhaul`, silent-installer plan `02c0716`..`08a0f63`, 9-task SDD):**
-`IndyPOS-Setup.exe --silent --store-id <ID>` — headless install, no wizard. Reuses `InstallationOrchestrator` unchanged; authoritative ACL-locked log + `INDYPOS_MARKER` result lines; exit codes 0/1/2/3/4. VM harness now drives it (no vmconnect). Plan: `docs/superpowers/plans/2026-07-18-silent-installer-mode.md`. Spec: `docs/superpowers/specs/2026-07-18-silent-installer-mode-design.md`. Ledger: `.superpowers/sdd/progress.md`.
+**Branch:** `payment-methods-catalog` (off freshly-synced `development`). Nothing implemented yet — spec + plan only.
 
-- **New (`installer/IndyPOS.Bootstrapper/Silent/`):** `SilentArgs` (parser), `SilentOutcomeMapper` (outcome→exit/markers), `SecretScrubber`, `ConsoleAttach` (LibraryImport→needs `AllowUnsafeBlocks`), `SilentInstallLogger` (thread-safe IProgress sink), `Elevation`, `SilentInstaller` (driver). Extracted shared `Installers/AdminCredentialFile`. Additive `InstallationResult.ServiceStarted`/`HealthOk`. `Program.Main` → `int` + `--silent` branch.
-- **Critical fix (final whole-branch review caught it — lived in unchanged `DotNetInstaller.cs`):** headless path could hit `InstallManually`'s blocking `MessageBox` loop when .NET 10 absent + winget fails → hang. Fix: `InstallationConfig.Interactive` (silent=false) → `EnsureInstalledAsync` fails fast (exit 2) instead of the dialog. + restored harness outer watchdog (`InstallTimeoutMinutes` 30→50).
+**What & why:** Payment methods are a hardcoded `PaymentType` enum, so each new Thai government campaign (~1yr, e.g. M33WeLove/FiftyFifty/WeWin) needs a **redeploy**. Redesign → **data-driven `payment_method` catalog** (new campaign = a DB row, no redeploy; dead campaigns kept as disabled rows for history). Also gates methods by **StoreType** (PayLater = GeneralHardware-only, a **code invariant** — rural credit culture makes PayLater the most troublesome method) and **fixes the silent-GeneralHardware bug** (installer never writes `Store:Type` today, so every store defaults GeneralHardware and gating never bites). See memory `project_indypos_payment_methods_domain`.
 
-**Verification:** build 0 err; `IndyPOS.Bootstrapper.Tests` **83 pass/8 skip/0 fail**. Every task per-task reviewed; **final whole-branch review PASSED (Ready to merge: YES)**. Installer rebuilt **190.3 MB (2026-07-18 07:15)**. **UNATTENDED VM clean-install PASSED** (9m27s, fully headless): markers `RESULT=success/ADMIN_SEEDED=true/CRED_FILE=…v4\Config\admin-credentials.txt/CRED_LOCKED=true/SERVICE_STARTED=true/HEALTH=ok`; verifier **18/18**. **Force-change modal confirmed live by Pond** ("it works"; cred file needs an *elevated* prompt to read — ACL working as intended). HEAD `08a0f63`.
+- **Spec:** `docs/superpowers/specs/2026-07-18-data-driven-payment-methods-design.md` (`059afad` + `a6c45fc`).
+- **Plan:** `docs/superpowers/plans/2026-07-18-data-driven-payment-methods.md` (`184c9da`) — 12 tasks, 3 phases (A backend foundation / B API+client / C UI+installer). Placeholder-free, grounded in real code shapes.
+- **Key decisions (Pond-approved):** manual `IsEnabled` on/off is authoritative (dates optional/informational — exact campaign dates unknown); go-forward storage = stable `Code` **string** on `Payment.Method`; new `IndyPOS.Domain.Tests` project for the pure `PaymentMethodPolicy`; admin screen edits DisplayName+DisplayOrder too. Toggle mechanism = **in-app SystemAdmin "Payment Methods" screen** (config-file/DB-edit rejected).
+- **Code-shape gotchas baked into the plan:** mediator is **Nokpirab** (register handlers individually via `AddTransient`); auth is **capability-based** (`CapabilityRequirement` + named policy, NOT role names) — add `Capability.ManagePaymentMethods` + `RoleCapabilities` grant; WinForms & StoreHub are **separate processes** (POS gates buttons by rendering `GET /payment-methods`).
+- **Deferred (own follow-up specs):** product-type restriction (`MultipleProductTypesEnabled`); cloud/central catalog distribution (needs Epic I).
 
-**NEXT (Pond's call — finishing-a-development-branch):** push `indypos-overhaul` (20 unpushed) + open PR vs `development` (recommended; #50 went via PR), OR merge locally. gh account = `purin-tavilsup` (owns this personal repo). Deferred minors (DEFER/WONTFIX triaged) in `.superpowers/sdd/progress.md` — none block merge.
+**NEXT:** execute the plan via `superpowers:subagent-driven-development` (fresh implementer + task reviewer per task; new ledger section in `.superpowers/sdd/progress.md`). Task 12 needs a read-only `SELECT DISTINCT method FROM payment;` to decide if a data-migration mapping is required.
+
+**Epic I (Cloud Infra) deliberately deferred** — CloudApi already exists as single-DB-with-StoreId; the April "DB-per-store-type" premise is superseded. Epic I only unblocks central reporting, not the local store-type UX.
+
+---
+
+## ⏯️ Earlier checkpoint (2026-07-18 AM) — Silent Installer Mode: MERGED (PR #51)
+
+`IndyPOS-Setup.exe --silent --store-id <ID>` — headless install, no wizard. Reuses `InstallationOrchestrator` unchanged; ACL-locked log + `INDYPOS_MARKER` lines; exit codes 0/1/2/3/4. VM harness drives it (no vmconnect). **Merged to `development` via PR #51** (2026-07-18 14:54). Unattended VM clean-install 18/18 PASS (9m27s); force-change modal confirmed live. Final whole-branch review caught a Critical hang (headless `.NET`-absent → blocking `MessageBox` in `DotNetInstaller`) — fixed via `InstallationConfig.Interactive`. Plan: `docs/superpowers/plans/2026-07-18-silent-installer-mode.md`. Ledger detail: `.superpowers/sdd/progress.md`.
 
 ---
 
