@@ -281,7 +281,7 @@ function Invoke-SilentInstall {
 function Invoke-Verifier {
     param($Credential)
 
-    Write-Section '7. In-VM verification'
+    Write-Section '6. In-VM verification'
 
     Write-Info 'Running Test-IndyPOSInstallation.ps1 inside guest...'
     $result = Invoke-Command -VMName $Config.VMName -Credential $Credential `
@@ -292,7 +292,7 @@ function Invoke-Verifier {
 function Format-Report {
     param($Result)
 
-    Write-Section '8. Results'
+    Write-Section '7. Results'
 
     $byCategory = $Result.Checks | Group-Object Category
     foreach ($g in $byCategory) {
