@@ -4,14 +4,15 @@
     "verified IndyPOS install".
 
 .DESCRIPTION
-    Semi-automated: the IndyPOS bootstrapper is a WinForms wizard with no
-    silent mode (yet), so this script handles everything around the wizard:
+    Fully automated VM smoke-test orchestrator. Takes a clean VM from snapshot
+    to verified IndyPOS install via headless silent installer:
 
         1. Restore VM to Clean-Windows snapshot
         2. Start VM, wait for PowerShell Direct readiness
         3. Copy the installer into the guest (C:\Test\IndyPOS-Setup.exe)
-        4. Open vmconnect.exe so you can click through the wizard
-        5. Poll inside the VM for install-manifest.json (up to 30 min)
+        4. Run installer in guest: IndyPOS-Setup.exe --silent --store-id <TestStoreId>
+        5. Poll for success markers in C:\ProgramData\IndyPOS\v4\logs\install-latest.log
+           (RESULT=success and SERVICE_STARTED != false gate the flow)
         6. Run Test-IndyPOSInstallation.ps1 in the guest
         7. Pretty-print the report; exit non-zero if any check failed
 
