@@ -333,8 +333,20 @@ public class DatabaseSetup
             var stripped = RemoveInitialAdminNode(original);
 
             var tempPath = configPath + ".tmp";
-            await File.WriteAllTextAsync(tempPath, stripped, cancellationToken);
-            File.Move(tempPath, configPath, overwrite: true);
+            try
+            {
+                await File.WriteAllTextAsync(tempPath, stripped, cancellationToken);
+                File.Move(tempPath, configPath, overwrite: true);
+            }
+            finally
+            {
+                // A successful Move consumes the temp file; this only runs on a
+                // mid-write/move failure, where we must not leave a stray .tmp behind.
+                if (File.Exists(tempPath))
+                {
+                    File.Delete(tempPath);
+                }
+            }
 
             RestrictFilePermissions(configPath);
             return true;
