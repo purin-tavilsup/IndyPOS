@@ -49,11 +49,12 @@ Clean Architecture, following existing IndyPOS layering. New/changed units:
 ```
 Domain
   PaymentMethod (entity)            NEW  — catalog row
+  PaymentMethodPolicy (domain svc)  NEW  — PURE "offerable for StoreType" rule + PayLater invariant (no I/O)
   StoreType (enum)                  EXISTS
-  StoreTypeFeatures (VO)            EXISTS (PayLater rule moves to catalog+invariant)
+  StoreTypeFeatures (VO)            EXISTS (PayLater no longer flows through it)
 Application
   IPaymentMethodRepository          NEW
-  IPaymentMethodCatalogService      NEW  — "offerable for this store" + admin ops
+  IPaymentMethodCatalogService      NEW  — loads catalog via repo, applies PaymentMethodPolicy, + admin ops
   GetOfferablePaymentMethodsQuery   NEW
   Payment-method admin commands     NEW  — TogglePaymentMethod, AddCampaignPaymentMethod
   CompleteSaleCommandHandler        CHANGED — generic offerable check (replaces PayLater-only)
@@ -95,7 +96,9 @@ Installer
 **Store-type allowance** is *not* a free column for PayLater (see §5). For non-PayLater methods, all store types are allowed. If per-method store-type allow-lists are needed later, a `payment_method_store_type` join can be added; **YAGNI for now** — the only real per-type difference today is PayLater, and that is code-enforced.
 
 ### Offerable rule (single source of truth)
-`IPaymentMethodCatalogService.GetOfferable(StoreType)` returns enabled methods, minus PayLater when `StoreType != GeneralHardware`, ordered by `DisplayOrder`. Both the POS UI (§7) and server enforcement (§8) call this — no duplicated logic.
+The pure rule is a **Domain** unit — `PaymentMethodPolicy.Offerable(methods, storeType)` — that takes a set of catalog rows + a `StoreType` and returns the offerable subset: `IsEnabled` rows, minus PayLater when `storeType != GeneralHardware` (the §5 invariant), ordered by `DisplayOrder`. No I/O, so it is fully unit-testable in the Domain layer.
+
+`IPaymentMethodCatalogService.GetOfferable(storeType)` (Application) loads the catalog via `IPaymentMethodRepository` and applies `PaymentMethodPolicy`. Both the POS UI (§7) and server enforcement (§8) call the service — no duplicated logic.
 
 ### Seed
 An EF migration seeds the seven known methods with the Kinds/enabled-states in §2. Dead campaigns are seeded `IsEnabled = false`.
@@ -104,9 +107,9 @@ An EF migration seeds the seven known methods with the Kinds/enabled-states in �
 
 ## 5. PayLater: hard invariant
 
-Because PayLater is a hard business rule (not a preference) and the most damaging to get wrong, its "GeneralHardware only" restriction is enforced **in code**, independent of catalog data:
+Because PayLater is a hard business rule (not a preference) and the most damaging to get wrong, its "GeneralHardware only" restriction is enforced **in code** (in `PaymentMethodPolicy`, the Domain rule), independent of catalog data:
 
-- `GetOfferable(storeType)` filters PayLater out unless `storeType == GeneralHardware`, regardless of the PayLater row's `IsEnabled`.
+- `PaymentMethodPolicy.Offerable` filters PayLater out unless `storeType == GeneralHardware`, regardless of the PayLater row's `IsEnabled`.
 - The admin screen (§9) cannot present PayLater as offerable for a non-GeneralHardware store; toggling its `IsEnabled` only affects GeneralHardware.
 - Server enforcement (§8) rejects a PayLater payment on any non-GeneralHardware store even if data were tampered with.
 
@@ -116,11 +119,11 @@ So even a hand-edited catalog row cannot enable PayLater for a Minimart.
 
 ## 6. Retiring the `PaymentType` enum + data migration
 
-- New code paths reference catalog `Code` strings, not the enum. `Payment.Method` (already a `string`) stores the `Code`.
+- **Decided (Q1):** go-forward storage is the stable **`Code` string** on `Payment.Method` (already a `string`) — the type best suited to a data-driven catalog keyed by `Code`. No new enum/int.
 - The legacy `PaymentType` enum is removed from active use. If any code still needs a typed handle to *permanent* methods, a small internal constants class (`PaymentMethodCodes.Cash` etc.) provides stable strings without reintroducing a closed enum.
-- **Existing data migration:** existing `payment` rows carry method values (int-from-enum and/or string, to be confirmed at implementation time by inspecting current stored values). The migration maps each existing value to its catalog `Code`. Reports that grouped by the old enum must group by `Code` after migration; report output stays equivalent because the Codes match the old enum names.
+- **Existing data migration:** the migration maps each existing stored payment value to its catalog `Code`. Because the chosen Codes match the old enum names, the mapping is 1:1. Reports that grouped by the old enum group by `Code` afterward with equivalent output.
 
-> Implementation must first confirm how payment method values are physically stored today (enum int vs. string) before writing the data-migration step. This is the one place the spec defers to a code check.
+> Implementation confirms how payment values are physically stored today (enum int vs. string) purely to write the *mapping* in the data-migration step; the go-forward decision (store `Code`) is settled.
 
 ---
 
@@ -150,11 +153,12 @@ This removes the hardcoded per-method UI and makes new campaigns appear automati
 
 **Recommendation: an in-app, SystemAdmin-gated "Payment Methods" settings screen** (`PaymentMethodsSettingsPanel`) backed by StoreHub admin endpoints.
 
-Capabilities (minimal):
+Capabilities:
 - List catalog rows with their `IsEnabled` state.
 - **Toggle** `IsEnabled` (enable a launching campaign; retire an ended one).
 - **Add** a new `GovernmentCampaign` method: `Code`, `DisplayName`, optional `ValidFrom/To`, `DisplayOrder`.
-- Permanent methods' core attributes are read-only; PayLater's store-type restriction is not editable (§5).
+- **Edit `DisplayName` and `DisplayOrder`** for any method (permanent or campaign) — decided (Q3): helpful for tuning the POS button labels/layout over time.
+- Not editable: a method's `Code` (stable key, referenced by invoices/reports), its `Kind`, and PayLater's store-type restriction (§5, code invariant).
 
 Backed by `POST /admin/payment-methods` (add) and `PATCH /admin/payment-methods/{code}` (toggle), gated to the SystemAdmin role via the existing auth middleware.
 
@@ -211,16 +215,18 @@ Admin (campaign):  PaymentMethodsSettingsPanel -> POST/PATCH /admin/payment-meth
 
 ## 13. Testing Strategy
 
-- **Domain/Application unit tests** (reuse `MockStoreIdentityService.GeneralHardware()/Minimart()/CoffeeShop()`):
-  - `GetOfferable`: PayLater present for GeneralHardware, absent for Minimart/CoffeeShop; disabled methods excluded; ordering by `DisplayOrder`.
+- **Domain tests — new `IndyPOS.Domain.Tests` project (decided, Q2):** the pure `PaymentMethodPolicy` rule and `StoreTypeFeatures` live in Domain, so they are tested there.
+  - `PaymentMethodPolicy.Offerable`: PayLater present for GeneralHardware, absent for Minimart/CoffeeShop; disabled methods excluded; ordering by `DisplayOrder`.
   - PayLater invariant: PayLater not offerable for non-GeneralHardware **even when its row is enabled**.
+- **Application tests (`IndyPOS.Application.Tests`)** (reuse `MockStoreIdentityService.GeneralHardware()/Minimart()/CoffeeShop()`):
+  - `IPaymentMethodCatalogService.GetOfferable`: composes repo + policy correctly.
   - `CompleteSale`: accepts an offerable method; rejects a disabled method; rejects PayLater on Minimart (the currently-untested path).
-  - Add-campaign / toggle command behavior, including duplicate-Code rejection.
+  - Add-campaign / toggle / edit-display command behavior, including duplicate-Code rejection.
 - **Migration test:** existing payment values map to the correct catalog `Code`s; dead campaigns seed disabled; seven rows seeded.
 - **StoreType round-trip:** installer writes `Store:Type` → options bind → `StoreIdentityService.StoreType` returns it. Missing-Type → GeneralHardware + warning.
 - **StoreHub integration** (Docker-gated, deferred to CI/VM as usual): `/payment-methods` returns the store-type-correct set; `/admin/payment-methods` gated to SystemAdmin.
 
-A `IndyPOS.Domain.Tests` project does not exist yet; host the `GetOfferable`/invariant tests in `IndyPOS.Application.Tests` (where the catalog service lives) unless the plan opts to add a Domain test project.
+`IndyPOS.Domain.Tests` does not exist yet — this slice **adds it** (Q2 decision) as the home for `PaymentMethodPolicy` + `StoreTypeFeatures` tests. Its first task is scaffolding the project (xUnit + FluentAssertions, matching the other test projects' conventions).
 
 ---
 
@@ -240,8 +246,8 @@ Product-type restriction; cloud/central catalog distribution; PayLater receivabl
 
 ---
 
-## 16. Open Questions for Planning
+## 16. Resolved Decisions
 
-1. Exact current physical storage of payment method values (enum int vs. string) — confirm before writing the data migration (§6).
-2. Whether to add a `IndyPOS.Domain.Tests` project or host catalog tests in `IndyPOS.Application.Tests` (§13).
-3. Whether the admin screen also allows editing `DisplayOrder`/`DisplayName` of permanent methods (nice-to-have) or only campaigns (minimal). Default: minimal.
+1. **Payment value storage (Q1):** go-forward = stable `Code` **string** on `Payment.Method`. The data migration still inspects current physical storage only to write the value→`Code` mapping (§6).
+2. **Test location (Q2):** add a new `IndyPOS.Domain.Tests` project for the domain-level `PaymentMethodPolicy` + `StoreTypeFeatures`; the catalog service, handlers, and migration are tested in `IndyPOS.Application.Tests` (§13).
+3. **Admin screen scope (Q3):** allows editing `DisplayName` + `DisplayOrder` for any method (not campaigns-only), plus toggle + add-campaign. `Code`/`Kind`/PayLater-restriction are not editable (§9).
