@@ -47,7 +47,8 @@ public class InstallationOrchestrator
 
         var dotNetResult = await _dotNetInstaller.EnsureInstalledAsync(
             new Progress<string>(msg => progress.Report(InstallationProgress.Log(msg))),
-            cancellationToken);
+            cancellationToken,
+            config.Interactive);
 
         if (!dotNetResult.Success)
         {
@@ -292,7 +293,12 @@ public class InstallationOrchestrator
             "IndyPOS has been installed successfully!",
             100));
 
-        return new InstallationResult { AdminSeeded = provisionResult.AdminSeeded };
+        return new InstallationResult
+        {
+            AdminSeeded = provisionResult.AdminSeeded,
+            ServiceStarted = startResult.Success,
+            HealthOk = healthOk
+        };
     }
 
     private static async Task<bool> VerifyStoreHubHealthAsync(int port, CancellationToken cancellationToken)
@@ -337,4 +343,6 @@ public class InstallationException : Exception
 public class InstallationResult
 {
     public bool AdminSeeded { get; init; }
+    public bool ServiceStarted { get; init; }
+    public bool HealthOk { get; init; }
 }

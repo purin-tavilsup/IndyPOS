@@ -143,7 +143,9 @@ public class DatabaseSetup
         return Convert.ToBase64String(bytes);
     }
 
-    internal static void RestrictFilePermissions(string filePath)
+    internal static void RestrictFilePermissions(string filePath) => TryRestrictFilePermissions(filePath);
+
+    internal static bool TryRestrictFilePermissions(string filePath)
     {
         try
         {
@@ -171,10 +173,12 @@ public class DatabaseSetup
                 System.Security.AccessControl.AccessControlType.Allow));
 
             fileInfo.SetAccessControl(security);
+            return true;
         }
         catch
         {
             // Ignore permission errors - file is still created
+            return false;
         }
     }
 
@@ -333,8 +337,20 @@ public class DatabaseSetup
             var stripped = RemoveInitialAdminNode(original);
 
             var tempPath = configPath + ".tmp";
-            await File.WriteAllTextAsync(tempPath, stripped, cancellationToken);
-            File.Move(tempPath, configPath, overwrite: true);
+            try
+            {
+                await File.WriteAllTextAsync(tempPath, stripped, cancellationToken);
+                File.Move(tempPath, configPath, overwrite: true);
+            }
+            finally
+            {
+                // A successful Move consumes the temp file; this only runs on a
+                // mid-write/move failure, where we must not leave a stray .tmp behind.
+                if (File.Exists(tempPath))
+                {
+                    File.Delete(tempPath);
+                }
+            }
 
             RestrictFilePermissions(configPath);
             return true;

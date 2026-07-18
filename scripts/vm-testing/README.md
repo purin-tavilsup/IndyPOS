@@ -1,11 +1,14 @@
 # VM Smoke-Test (Stage 4)
 
-Semi-automated installer smoke-test on a Hyper-V VM. One command from a
-clean Windows snapshot to a verified IndyPOS v4 install + report.
+Fully automated installer smoke-test on a Hyper-V VM. One command from a
+clean Windows snapshot to a verified IndyPOS v4 install + report — no manual
+wizard step.
 
-> Why "semi"? The bootstrapper is a WinForms wizard with no silent mode (yet).
-> These scripts handle every step *around* the wizard; you click through the
-> wizard once per cycle inside the VM.
+> The bootstrapper runs headlessly via
+> `IndyPOS-Setup.exe --silent --store-id <TestStoreId>`. The harness reads the
+> outcome from `INDYPOS_MARKER` lines in the guest's
+> `C:\ProgramData\IndyPOS\v4\logs\install-latest.log` (exit code + `RESULT` +
+> `SERVICE_STARTED` gate the run).
 
 ## Files
 
@@ -134,25 +137,25 @@ What you'll see:
 [ OK ] Installer staged in guest.
 
 ========================================
- 5. Run wizard (manual)
+ 5. Run installer (silent)
 ========================================
-[INFO] Opening vmconnect.exe — click through the wizard inside the VM.
-[INFO] Inside the VM, run as admin:  C:\Test\IndyPOS-Setup.exe
+[INFO] Running (in guest): C:\Test\IndyPOS-Setup.exe --silent --store-id Rungrat-001
+[INFO] Installer exit code: 0
+[INFO] marker RESULT=success
+[INFO] marker ADMIN_SEEDED=true
+[INFO] marker CRED_FILE=C:\ProgramData\IndyPOS\v4\Config\admin-credentials.txt
+[INFO] marker CRED_LOCKED=true
+[INFO] marker SERVICE_STARTED=true
+[INFO] marker HEALTH=ok
+[ OK ] Silent install completed (RESULT=success).
 
 ========================================
- 6. Wait for install-manifest.json (timeout 30 min)
-========================================
-[INFO] Polling guest for C:\ProgramData\IndyPOS\v4.0.0\install-manifest.json every 15s...
-............................
-[ OK ] install-manifest.json detected — wizard finished.
-
-========================================
- 7. In-VM verification
+ 6. In-VM verification
 ========================================
 [INFO] Running Test-IndyPOSInstallation.ps1 inside guest...
 
 ========================================
- 8. Results
+ 7. Results
 ========================================
 
 [Manifest]
@@ -187,10 +190,11 @@ What you'll see:
 ========================================
 ```
 
-Inside the VM during step 5: open File Explorer → `C:\Test\` → right-click
-`IndyPOS-Setup.exe` → Run as administrator → click through the wizard
-(Store ID, App Password ×2, Start). The host script picks up automatically
-when the bootstrapper writes the manifest.
+Step 5 runs unattended: the host launches `IndyPOS-Setup.exe --silent
+--store-id <TestStoreId>` in the guest via PowerShell Direct, waits for it to
+exit (bounded by the outer `InstallTimeoutMinutes` watchdog), then reads the
+`INDYPOS_MARKER` result lines from the guest's `install-latest.log`. No manual
+interaction inside the VM.
 
 ## Common switches
 
@@ -203,9 +207,6 @@ when the bootstrapper writes the manifest.
 
 # Refresh stored creds
 .\Reset-AndInstall.ps1 -RecreateCredential
-
-# Already have vmconnect open from a previous run
-.\Reset-AndInstall.ps1 -Headless
 
 # Test a non-default installer build
 .\Reset-AndInstall.ps1 -InstallerPath 'C:\some\other\IndyPOS-Setup.exe'
@@ -227,9 +228,13 @@ when the bootstrapper writes the manifest.
 - **Snapshot drift** — If you patched Windows / changed config inside the
   Clean-Windows snapshot, delete the old checkpoint and re-`Checkpoint-VM`
   after another clean boot.
-- **Postgres install timeout** — Bump `InstallTimeoutMinutes` in
-  `VMTestConfig.psd1`. Defender RT scan is the usual culprit; step 3's
-  `Set-MpPreference -DisableRealtimeMonitoring $true` is recommended.
+- **Install taking longer than expected** — `InstallTimeoutMinutes` in
+  `VMTestConfig.psd1` (default 50) is the *outer* harness watchdog, set above
+  the installer's own 45-min in-process watchdog so the in-guest install
+  fails first with proper markers/exit codes and this one only catches a true
+  hang. Bump it if you also raise the in-process watchdog. Defender RT scan is
+  the usual culprit; step 3's `Set-MpPreference -DisableRealtimeMonitoring
+  $true` is recommended.
 - **"Multiple manifests found"** — Verifier saw both `v4.0.0\` and another
   `v*\` install. Clean the VM and re-snapshot, or pass `-ManifestPath`.
 

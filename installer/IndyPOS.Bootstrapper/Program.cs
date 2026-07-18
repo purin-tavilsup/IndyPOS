@@ -1,3 +1,4 @@
+using IndyPOS.Bootstrapper.Silent;
 using IndyPOS.Bootstrapper.UI;
 
 namespace IndyPOS.Bootstrapper;
@@ -5,12 +6,18 @@ namespace IndyPOS.Bootstrapper;
 internal static class Program
 {
     [STAThread]
-    static void Main(string[] args)
+    static int Main(string[] args)
     {
+        var parse = SilentArgs.Parse(args);
+        if (parse.Status != ParseStatus.NotSilent)
+        {
+            // Headless path: no message loop, no ApplicationConfiguration.Initialize.
+            return SilentInstaller.Run(parse);
+        }
+
         ApplicationConfiguration.Initialize();
 
-        // Check if running as admin
-        if (!IsRunningAsAdmin())
+        if (!Elevation.IsElevated())
         {
             MessageBox.Show(
                 "IndyPOS Setup requires administrator privileges.\n\n" +
@@ -18,16 +25,10 @@ internal static class Program
                 "Administrator Required",
                 MessageBoxButtons.OK,
                 MessageBoxIcon.Warning);
-            return;
+            return 0;
         }
 
         Application.Run(new InstallationWizard());
-    }
-
-    private static bool IsRunningAsAdmin()
-    {
-        using var identity = System.Security.Principal.WindowsIdentity.GetCurrent();
-        var principal = new System.Security.Principal.WindowsPrincipal(identity);
-        return principal.IsInRole(System.Security.Principal.WindowsBuiltInRole.Administrator);
+        return 0;
     }
 }
