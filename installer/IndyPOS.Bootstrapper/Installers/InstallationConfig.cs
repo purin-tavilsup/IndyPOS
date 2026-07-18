@@ -102,23 +102,19 @@ public class InstallationConfig
 
     // 32 alphanumeric chars (~190 bits). Alphanumeric avoids any quoting/escaping
     // hazard in the Npgsql connection string and the CREATE/ALTER ROLE SQL.
-    private static string GenerateSecret()
-    {
-        const string alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-        var chars = new char[32];
-        for (var i = 0; i < chars.Length; i++)
-        {
-            chars[i] = alphabet[RandomNumberGenerator.GetInt32(alphabet.Length)];
-        }
-        return new string(chars);
-    }
+    private static string GenerateSecret() =>
+        GenerateRandomString("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789", 32);
 
-    // 14 chars from a 56-char alphabet with ambiguous glyphs (0/O/1/l/I) removed
+    // 14 chars from a 57-char alphabet with ambiguous glyphs (0/O/1/l/I) removed
     // so it is easy to read off the finish screen and type once. Single-use.
-    private static string GenerateAdminPassword()
+    private static string GenerateAdminPassword() =>
+        GenerateRandomString("ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789", 14);
+
+    // Cryptographically-random string drawn uniformly from the given alphabet.
+    // RandomNumberGenerator.GetInt32 is unbiased, so no modulo skew.
+    private static string GenerateRandomString(string alphabet, int length)
     {
-        const string alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789";
-        var chars = new char[14];
+        var chars = new char[length];
         for (var i = 0; i < chars.Length; i++)
         {
             chars[i] = alphabet[RandomNumberGenerator.GetInt32(alphabet.Length)];
