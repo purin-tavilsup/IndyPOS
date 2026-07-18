@@ -297,7 +297,7 @@ public partial class InstallationWizard : Form
                 Log($"  Password: {_config.AdminPassword}", Color.White);
                 Log("You will be asked to set a new password on first sign-in.", Color.White);
 
-                WriteAdminSummaryFile(_config);
+                AdminCredentialFile.Write(_config);
             }
             else
             {
@@ -360,29 +360,6 @@ public partial class InstallationWizard : Form
         _logTextBox.SelectionColor = color;
         _logTextBox.AppendText($"[{DateTime.Now:HH:mm:ss}] {message}\n");
         _logTextBox.ScrollToCaret();
-    }
-
-    private static void WriteAdminSummaryFile(InstallationConfig config)
-    {
-        try
-        {
-            var path = Path.Combine(config.ConfigDirectory, "admin-credentials.txt");
-            var contents =
-                "IndyPOS initial admin sign-in\r\n" +
-                "================================\r\n" +
-                $"Username: {config.AdminUsername}\r\n" +
-                $"Password: {config.AdminPassword}\r\n\r\n" +
-                "This is a one-time password. You will be required to set a new one\r\n" +
-                "on first sign-in. Delete this file after you have signed in.\r\n";
-
-            Directory.CreateDirectory(config.ConfigDirectory);
-            File.WriteAllText(path, contents);
-            DatabaseSetup.RestrictFilePermissions(path);
-        }
-        catch
-        {
-            // Non-fatal — the password is also shown on screen.
-        }
     }
 
     private void CancelButton_Click(object? sender, EventArgs e)

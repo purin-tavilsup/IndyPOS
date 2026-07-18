@@ -143,7 +143,9 @@ public class DatabaseSetup
         return Convert.ToBase64String(bytes);
     }
 
-    internal static void RestrictFilePermissions(string filePath)
+    internal static void RestrictFilePermissions(string filePath) => TryRestrictFilePermissions(filePath);
+
+    internal static bool TryRestrictFilePermissions(string filePath)
     {
         try
         {
@@ -171,10 +173,12 @@ public class DatabaseSetup
                 System.Security.AccessControl.AccessControlType.Allow));
 
             fileInfo.SetAccessControl(security);
+            return true;
         }
         catch
         {
             // Ignore permission errors - file is still created
+            return false;
         }
     }
 
