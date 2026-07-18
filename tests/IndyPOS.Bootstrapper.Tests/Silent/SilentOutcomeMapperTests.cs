@@ -67,9 +67,13 @@ public class SilentOutcomeMapperTests
     }
 
     [Fact]
-    public void Map_WithUsageError_ShouldReturnOne()
+    public void Map_WithUsageError_ShouldReturnOneAndReasonMarker()
     {
-        SilentOutcomeMapper.Map(new UsageErrorOutcome("bad")).ExitCode.Should().Be(1);
+        var (exit, markers) = SilentOutcomeMapper.Map(new UsageErrorOutcome("bad"));
+
+        exit.Should().Be(1);
+        markers.Should().Contain("INDYPOS_MARKER RESULT=failed");
+        markers.Should().Contain("INDYPOS_MARKER REASON=bad");
     }
 
     [Fact]
