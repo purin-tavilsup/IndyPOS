@@ -35,10 +35,6 @@
 .PARAMETER RecreateCredential
     Forget the cached SecureString and re-prompt for the VM admin password.
 
-.PARAMETER Headless
-    Don't launch vmconnect.exe. Use when you already have the console open
-    or are running the wizard via another remote channel.
-
 .EXAMPLE
     .\Reset-AndInstall.ps1
 
@@ -55,8 +51,7 @@ param(
     [string]$InstallerPath,
     [switch]$SkipRestore,
     [switch]$KeepRunning,
-    [switch]$RecreateCredential,
-    [switch]$Headless
+    [switch]$RecreateCredential
 )
 
 $ErrorActionPreference = 'Stop'
