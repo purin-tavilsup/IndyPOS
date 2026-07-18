@@ -22,7 +22,18 @@ public static class SilentInstaller
         var options = parse.Options!;
         var config = new InstallationConfig { StoreId = options.StoreId };
 
-        var (logPath, writer) = OpenLog(config);
+        string logPath;
+        TextWriter writer;
+        try
+        {
+            (logPath, writer) = OpenLog(config);
+        }
+        catch (Exception ex)
+        {
+            var message = SecretScrubber.Scrub(ex.Message);
+            return Emit(new InstallFailed(message), logger: null);
+        }
+
         var logger = new SilentInstallLogger(writer);
 
         var outcome = RunInstall(config, options, logger);
