@@ -227,44 +227,47 @@ function Copy-Installer {
     Write-OK 'Installer staged in guest.'
 }
 
-function Invoke-WizardHandoff {
+function Invoke-SilentInstall {
     param($Credential)
 
-    Write-Section '5. Run wizard (manual)'
+    Write-Section '5. Run installer (silent)'
 
     $guestInstaller = Join-Path $Config.GuestStagingDir $Config.GuestInstallerName
+    $storeId        = $Config.TestStoreId
+    $logDir         = "C:\ProgramData\IndyPOS\v4\logs"
+    $latestLog      = Join-Path $logDir 'install-latest.log'
 
-    if ($Headless) {
-        Write-Info '-Headless set; not launching vmconnect. Drive the wizard yourself.'
-    } else {
-        Write-Info 'Opening vmconnect.exe — click through the wizard inside the VM.'
-        Write-Info "Inside the VM, run as admin:  $guestInstaller"
-        Start-Process 'vmconnect.exe' -ArgumentList 'localhost', $Config.VMName | Out-Null
+    Write-Info "Running (in guest): $guestInstaller --silent --store-id $storeId"
+
+    $run = Invoke-Command -VMName $Config.VMName -Credential $Credential -ScriptBlock {
+        param($exe, $id)
+        $p = Start-Process -FilePath $exe -ArgumentList '--silent', '--store-id', $id -Wait -PassThru
+        [pscustomobject]@{ ExitCode = $p.ExitCode }
+    } -ArgumentList $guestInstaller, $storeId
+
+    Write-Info "Installer exit code: $($run.ExitCode)"
+
+    $markers = Invoke-Command -VMName $Config.VMName -Credential $Credential -ScriptBlock {
+        param($p)
+        if (Test-Path $p) { Get-Content $p | Where-Object { $_ -like 'INDYPOS_MARKER *' } } else { @() }
+    } -ArgumentList $latestLog
+
+    # Parse the LAST occurrence of each marker key (D9).
+    $marker = @{}
+    foreach ($line in $markers) {
+        if ($line -match '^INDYPOS_MARKER\s+([A-Z_]+)=(.*)$') { $marker[$Matches[1]] = $Matches[2] }
     }
+    foreach ($k in $marker.Keys) { Write-Info "marker $k=$($marker[$k])" }
 
-    Write-Section "6. Wait for install-manifest.json (timeout $($Config.InstallTimeoutMinutes) min)"
-    Write-Info "Polling guest for $($Config.GuestManifestPath) every $($Config.InstallPollIntervalSec)s..."
-
-    $deadline = (Get-Date).AddMinutes($Config.InstallTimeoutMinutes)
-    $lastDots = 0
-    while ((Get-Date) -lt $deadline) {
-        $exists = Invoke-Command -VMName $Config.VMName -Credential $Credential -ScriptBlock {
-            param($p)
-            Test-Path $p
-        } -ArgumentList $Config.GuestManifestPath -ErrorAction SilentlyContinue
-
-        if ($exists) {
-            Write-Host ''
-            Write-OK 'install-manifest.json detected — wizard finished.'
-            return
-        }
-
-        Write-Host '.' -NoNewline -ForegroundColor DarkGray
-        $lastDots++
-        if ($lastDots % 60 -eq 0) { Write-Host '' }
-        Start-Sleep -Seconds $Config.InstallPollIntervalSec
+    # Authoritative gating rule: exit code + RESULT + service.
+    $failed = ($run.ExitCode -ne 0) -or ($marker['RESULT'] -ne 'success') -or ($marker['SERVICE_STARTED'] -eq 'false')
+    if ($failed) {
+        throw "Silent install failed (exit=$($run.ExitCode), RESULT=$($marker['RESULT']), SERVICE_STARTED=$($marker['SERVICE_STARTED'])). See $latestLog in the guest."
     }
-    throw "Timed out after $($Config.InstallTimeoutMinutes) min. Check the wizard window for errors."
+    if ($marker['CRED_LOCKED'] -eq 'false') {
+        Write-Warn2 "Credential file could not be ACL-locked (CRED_LOCKED=false)."
+    }
+    Write-OK "Silent install completed (RESULT=success)."
 }
 
 # --- Verification + report --------------------------------------------------
@@ -323,7 +326,7 @@ try {
     Restore-CleanVM
     Wait-PowerShellDirect -Credential $cred
     Copy-Installer -Credential $cred
-    Invoke-WizardHandoff -Credential $cred
+    Invoke-SilentInstall -Credential $cred
     $result = Invoke-Verifier -Credential $cred
     Format-Report -Result $result
 
