@@ -17,6 +17,7 @@
     # Host -> guest staging path. Bootstrapper writes manifest, scripts poll it.
     GuestStagingDir     = 'C:\Test'
     GuestInstallerName  = 'IndyPOS-Setup.exe'
+    TestStoreId         = 'Rungrat-001'
     GuestManifestPath   = 'C:\ProgramData\IndyPOS\v4\install-manifest.json'
 
     # Credential storage. SecureString XML, DPAPI-encrypted per Windows user.
