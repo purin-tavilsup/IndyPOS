@@ -204,9 +204,6 @@ when the bootstrapper writes the manifest.
 # Refresh stored creds
 .\Reset-AndInstall.ps1 -RecreateCredential
 
-# Already have vmconnect open from a previous run
-.\Reset-AndInstall.ps1 -Headless
-
 # Test a non-default installer build
 .\Reset-AndInstall.ps1 -InstallerPath 'C:\some\other\IndyPOS-Setup.exe'
 ```
