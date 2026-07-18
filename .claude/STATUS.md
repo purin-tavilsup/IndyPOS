@@ -9,7 +9,7 @@
 | **Branch** | `indypos-overhaul` |
 | **Sprint** | Sprint 7 |
 | **Phase** | ✅ **MERGED to `development` (2026-07-14 19:01, PR #50 "IndyPOS v4 Overhaul", merge commit).** Admin-provisioning (bootstrap password + server-enforced forced rotation) shipped as the final feature of the v4 overhaul. 18-task SDD plan, 3-perspective design review, whole-branch review, VM clean-install validated 18/18 + fonts + CWD fix + themed modal (Pond-approved). |
-| **Blocked?** | Not blocked — feature merged. **Optional follow-up:** rebuild distributable `IndyPOS-Setup.exe` to embed the refined modal (cosmetic gap vs the validated build; not merge-blocking). `indypos-overhaul` branch kept (not deleted). Deferred-Minors triage list in `.superpowers/sdd/progress.md`. |
+| **Blocked?** | Not blocked — feature merged. **2026-07-17:** (1) distributable `IndyPOS-Setup.exe` rebuilt to embed the refined modal — `publish\IndyPOS-Setup.exe` 190.3 MB, v4.0.0.0, ProductVersion `4.0.0+b598cf3` (cosmetic-only, not VM-re-validated; prior build was 18/18). (2) **Tier-2 cleanup batch DONE** (commits `6246a01`,`d5990ac`,`836ddfb`): DRY password gens + 57-char comment, orphaned-`.tmp` cleanup, 5 test-rigor assertions. Bootstrapper 52p/8s, Application 243/243. `indypos-overhaul` branch kept. Remaining deferred-Minors (D3-m2/m3, C1-m1, D5-m1/m2, B5-m1, E1-m1) in `.superpowers/sdd/progress.md`. |
 
 ## ⏯️ RESUME HERE (2026-07-14) — Admin-provisioning feature CODE COMPLETE + whole-branch reviewed; VM validation pending
 
