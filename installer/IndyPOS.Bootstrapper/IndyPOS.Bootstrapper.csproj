@@ -6,6 +6,7 @@
     <UseWindowsForms>true</UseWindowsForms>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <!-- <ApplicationIcon>indypos-installer.ico</ApplicationIcon> -->
     <StartupObject>IndyPOS.Bootstrapper.Program</StartupObject>
 
