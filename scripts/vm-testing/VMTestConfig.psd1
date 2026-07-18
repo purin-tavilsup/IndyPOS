@@ -18,7 +18,6 @@
     GuestStagingDir     = 'C:\Test'
     GuestInstallerName  = 'IndyPOS-Setup.exe'
     TestStoreId         = 'Rungrat-001'
-    GuestManifestPath   = 'C:\ProgramData\IndyPOS\v4\install-manifest.json'
 
     # Credential storage. SecureString XML, DPAPI-encrypted per Windows user.
     # First run prompts for VM admin password and caches here. Path is relative
@@ -28,8 +27,7 @@
     # Timeouts (seconds unless suffixed)
     VMStartTimeoutSec       = 180
     PSDirectReadyTimeoutSec = 300
-    InstallPollIntervalSec  = 15
-    InstallTimeoutMinutes   = 30   # Postgres extraction alone is ~9m on host
+    InstallTimeoutMinutes   = 50   # Outer harness watchdog; must exceed the installer's 45-min in-process watchdog
     HealthProbeTimeoutSec   = 60
     HealthCheckPort         = 5000
 }
