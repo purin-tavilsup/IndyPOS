@@ -74,6 +74,7 @@ public class ChangePasswordCommandHandlerTests
         var result = await _sut.HandleAsync(new ChangePasswordCommand(user.Id, "oldPass123", "short7!"));
 
         Assert.False(result.Success);
+        _repo.Verify(r => r.SetPasswordAsync(It.IsAny<Guid>(), It.IsAny<string>(), It.IsAny<bool>(), It.IsAny<CancellationToken>()), Times.Never);
     }
 
     [Fact]
@@ -83,6 +84,7 @@ public class ChangePasswordCommandHandlerTests
         var result = await _sut.HandleAsync(new ChangePasswordCommand(user.Id, "samePass123", "samePass123"));
 
         Assert.False(result.Success);
+        _repo.Verify(r => r.SetPasswordAsync(It.IsAny<Guid>(), It.IsAny<string>(), It.IsAny<bool>(), It.IsAny<CancellationToken>()), Times.Never);
     }
 
     [Fact]
@@ -92,5 +94,6 @@ public class ChangePasswordCommandHandlerTests
         var result = await _sut.HandleAsync(new ChangePasswordCommand(Guid.NewGuid(), "x", "brandNew123"));
 
         Assert.False(result.Success);
+        _repo.Verify(r => r.SetPasswordAsync(It.IsAny<Guid>(), It.IsAny<string>(), It.IsAny<bool>(), It.IsAny<CancellationToken>()), Times.Never);
     }
 }
