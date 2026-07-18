@@ -4,6 +4,29 @@
 
 ---
 
+## 2026-07-14: Admin-provisioning feature built + v4 overhaul MERGED to `development` (PR #50) 🎉
+
+**Focus:** The last open branch item — the admin-provisioning model — taken from decision all the way to merged.
+
+**Design (brainstorming → spec → review):** Chose **random single-use bootstrap password + server-enforced forced rotation on first login**. (Pond first proposed a `greatSales@ddmmyy` template; walked through why a derived password is only safe as a *rotated single-use bootstrap*, then landed on random-shown-once + a `reset-admin` recovery path, and **server-side** enforcement.) Spec: `docs/superpowers/specs/2026-07-14-admin-provisioning-bootstrap-design.md`. A 3-perspective design review (Architect/Engineer/QA subagents) caught, pre-code: the cosmetic-only client gate, a latent `/auth/me` `sub`-claim bug, the re-install dead-credential case, and the EF-migration-on-populated-DB risk.
+
+**Execution (subagent-driven, 18 tasks):** Plan `docs/superpowers/plans/2026-07-14-admin-provisioning-bootstrap.md`, executed via `superpowers:subagent-driven-development` — fresh implementer + task reviewer per task, ledger at `.superpowers/sdd/progress.md`. StoreHub: `MustChangePassword` flag (+migration `defaultValue:false`) → `must_change` JWT claim → middleware 403s all routes except `/auth/change-password` → `POST /auth/change-password` (token identity, verify-then-atomic-set, fresh token) → `reset-admin` CLI. WinForms: deferred session + `FirstLoginCoordinator` + themed `ChangePasswordForm`. Installer: Store-ID-only wizard, random bootstrap, surgical `initialAdmin` removal (DPAPI secrets preserved), ACL-locked `admin-credentials.txt`. Whole-branch review (opus): "Ready with must-fixes" → 2 applied (ACL-lock summary file; change-password generic-catch crash-hardening).
+
+**VM validation (clean install):** verifier **18/18**; DB `admin/Rungrat-001/must_change`; **single-use proven** (old bootstrap→401 after rotation); appsettings `initialAdmin` gone + DPAPI secrets intact.
+
+**Three field-driven follow-ups this session:**
+1. **Themed modal** — the stock light-gray dialog clashed with the dark POS theme; restyled to match `MessageForm` (ModernTextBox/ModernButton, `#262626`/`#1E1E1E`, Gainsboro, teal/red accents), then refined (right-aligned button pair, inset fields + teal focus underline, spacing fix). Validated live via **WinForms DLL hot-swap** into the VM; Pond approved.
+2. **`reset-admin` CWD bug** — found during hot-swap: the exe loaded `appsettings.json` from the CWD, so the documented recovery command crashed ("ConnectionString is missing") from any dir but the install folder. Fix: `WebApplicationOptions.ContentRootPath = AppContext.BaseDirectory`. Proven in VM (`migrate` from `C:\` → exit 0).
+3. **FC Subject fonts** — the app references family `FC Subject [Non-commercial] Reg` by name in 304 places; fresh machines lacked it (fallback font). Added `FontInstaller` (Step 0, non-fatal): bundles Reg+Bold `.ttf` as embedded resources, installs to `Windows\Fonts` + HKLM + `WM_FONTCHANGE`. Confirmed installed + GDI-visible in VM. (Gotcha: font filenames have `[brackets]` → `-LiteralPath` needed in the build script.)
+
+**Merge:** `IndyPOS-Setup.exe` rebuilt 3× (theme+CWD, then fonts). PR #50 "IndyPOS v4 Overhaul" → out of draft → **merged to `development`** (merge commit, full history). `indypos-overhaul` branch kept.
+
+**Reusable techniques:** WinForms DLL hot-swap into Velopack `current\` over PSDirect for fast UI iteration (no reinstall); in-guest DPAPI conn-string decrypt + psql for DB checks; non-destructive `migrate`-from-arbitrary-CWD probe to validate content-root fixes without mutating admin state.
+
+**NEXT (all optional):** rebuild distributable installer to embed the refined modal (cosmetic gap vs validated build); Tier-2 code-cleanup minors (DRY password generators, orphaned-`.tmp` cleanup, a few test-rigor items — see `.superpowers/sdd/progress.md`); Tier-3 epics: **Epic I (Cloud Infra)**, **Epic M (multi-store-type M7–M13)**, silent installer mode. `gh` active account is now `purin-tavilsup` — `gh auth switch --user purin-mimica` for Mimica work.
+
+---
+
 ## 2026-06-24: Stage 7 closed — clean full install validated; Bug F + service-start timeout fixed ✅
 
 **Focus:** Validate the installer on a genuinely fresh VM install (not hot-swap), then fix what it surfaced.

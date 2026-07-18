@@ -73,4 +73,16 @@ public class InitialAdminSeederTests
 
         _repo.Verify(r => r.SetPasswordAsync(existing.Id, It.IsAny<string>(), true, It.IsAny<CancellationToken>()), Times.Once);
     }
+
+    [Fact]
+    public async Task ResetAsync_WhenAdminAbsent_CreatesAdminWithMustChange()
+    {
+        _repo.Setup(r => r.GetByUsernameAsync("admin", It.IsAny<CancellationToken>())).ReturnsAsync((StoreUser?)null);
+        var sut = Build("admin", "ignored");
+
+        await sut.ResetAsync("newBootstrap123");
+
+        _repo.Verify(r => r.AddAsync(It.Is<StoreUser>(u => u.Username == "admin" && u.MustChangePassword), It.IsAny<CancellationToken>()), Times.Once);
+        _repo.Verify(r => r.SetPasswordAsync(It.IsAny<Guid>(), It.IsAny<string>(), It.IsAny<bool>(), It.IsAny<CancellationToken>()), Times.Never);
+    }
 }

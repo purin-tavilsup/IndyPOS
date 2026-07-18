@@ -4,14 +4,15 @@
     "verified IndyPOS install".
 
 .DESCRIPTION
-    Semi-automated: the IndyPOS bootstrapper is a WinForms wizard with no
-    silent mode (yet), so this script handles everything around the wizard:
+    Fully automated VM smoke-test orchestrator. Takes a clean VM from snapshot
+    to verified IndyPOS install via headless silent installer:
 
         1. Restore VM to Clean-Windows snapshot
         2. Start VM, wait for PowerShell Direct readiness
         3. Copy the installer into the guest (C:\Test\IndyPOS-Setup.exe)
-        4. Open vmconnect.exe so you can click through the wizard
-        5. Poll inside the VM for install-manifest.json (up to 30 min)
+        4. Run installer in guest: IndyPOS-Setup.exe --silent --store-id <TestStoreId>
+        5. Poll for success markers in C:\ProgramData\IndyPOS\v4\logs\install-latest.log
+           (RESULT=success and SERVICE_STARTED != false gate the flow)
         6. Run Test-IndyPOSInstallation.ps1 in the guest
         7. Pretty-print the report; exit non-zero if any check failed
 
@@ -34,10 +35,6 @@
 .PARAMETER RecreateCredential
     Forget the cached SecureString and re-prompt for the VM admin password.
 
-.PARAMETER Headless
-    Don't launch vmconnect.exe. Use when you already have the console open
-    or are running the wizard via another remote channel.
-
 .EXAMPLE
     .\Reset-AndInstall.ps1
 
@@ -54,8 +51,7 @@ param(
     [string]$InstallerPath,
     [switch]$SkipRestore,
     [switch]$KeepRunning,
-    [switch]$RecreateCredential,
-    [switch]$Headless
+    [switch]$RecreateCredential
 )
 
 $ErrorActionPreference = 'Stop'
@@ -227,44 +223,57 @@ function Copy-Installer {
     Write-OK 'Installer staged in guest.'
 }
 
-function Invoke-WizardHandoff {
+function Invoke-SilentInstall {
     param($Credential)
 
-    Write-Section '5. Run wizard (manual)'
+    Write-Section '5. Run installer (silent)'
 
     $guestInstaller = Join-Path $Config.GuestStagingDir $Config.GuestInstallerName
+    $storeId        = $Config.TestStoreId
+    $logDir         = "C:\ProgramData\IndyPOS\v4\logs"
+    $latestLog      = Join-Path $logDir 'install-latest.log'
 
-    if ($Headless) {
-        Write-Info '-Headless set; not launching vmconnect. Drive the wizard yourself.'
-    } else {
-        Write-Info 'Opening vmconnect.exe — click through the wizard inside the VM.'
-        Write-Info "Inside the VM, run as admin:  $guestInstaller"
-        Start-Process 'vmconnect.exe' -ArgumentList 'localhost', $Config.VMName | Out-Null
+    Write-Info "Running (in guest): $guestInstaller --silent --store-id $storeId"
+
+    $timeoutSec = $Config.InstallTimeoutMinutes * 60
+    $job = Invoke-Command -VMName $Config.VMName -Credential $Credential -AsJob -ScriptBlock {
+        param($exe, $id)
+        $p = Start-Process -FilePath $exe -ArgumentList '--silent', '--store-id', $id -Wait -PassThru
+        [pscustomobject]@{ ExitCode = $p.ExitCode }
+    } -ArgumentList $guestInstaller, $storeId
+
+    if (-not (Wait-Job -Job $job -Timeout $timeoutSec)) {
+        Stop-Job -Job $job
+        Remove-Job -Job $job -Force
+        throw "Silent install exceeded the $($Config.InstallTimeoutMinutes)-min harness watchdog (in-guest install hung). See $latestLog in the guest."
     }
 
-    Write-Section "6. Wait for install-manifest.json (timeout $($Config.InstallTimeoutMinutes) min)"
-    Write-Info "Polling guest for $($Config.GuestManifestPath) every $($Config.InstallPollIntervalSec)s..."
+    $run = Receive-Job -Job $job
+    Remove-Job -Job $job
 
-    $deadline = (Get-Date).AddMinutes($Config.InstallTimeoutMinutes)
-    $lastDots = 0
-    while ((Get-Date) -lt $deadline) {
-        $exists = Invoke-Command -VMName $Config.VMName -Credential $Credential -ScriptBlock {
-            param($p)
-            Test-Path $p
-        } -ArgumentList $Config.GuestManifestPath -ErrorAction SilentlyContinue
+    Write-Info "Installer exit code: $($run.ExitCode)"
 
-        if ($exists) {
-            Write-Host ''
-            Write-OK 'install-manifest.json detected — wizard finished.'
-            return
-        }
+    $markers = Invoke-Command -VMName $Config.VMName -Credential $Credential -ScriptBlock {
+        param($p)
+        if (Test-Path $p) { Get-Content $p | Where-Object { $_ -like 'INDYPOS_MARKER *' } } else { @() }
+    } -ArgumentList $latestLog
 
-        Write-Host '.' -NoNewline -ForegroundColor DarkGray
-        $lastDots++
-        if ($lastDots % 60 -eq 0) { Write-Host '' }
-        Start-Sleep -Seconds $Config.InstallPollIntervalSec
+    # Parse the LAST occurrence of each marker key (D9).
+    $marker = @{}
+    foreach ($line in $markers) {
+        if ($line -match '^INDYPOS_MARKER\s+([A-Z_]+)=(.*)$') { $marker[$Matches[1]] = $Matches[2] }
     }
-    throw "Timed out after $($Config.InstallTimeoutMinutes) min. Check the wizard window for errors."
+    foreach ($k in $marker.Keys) { Write-Info "marker $k=$($marker[$k])" }
+
+    # Authoritative gating rule: exit code + RESULT + service.
+    $failed = ($run.ExitCode -ne 0) -or ($marker['RESULT'] -ne 'success') -or ($marker['SERVICE_STARTED'] -eq 'false')
+    if ($failed) {
+        throw "Silent install failed (exit=$($run.ExitCode), RESULT=$($marker['RESULT']), SERVICE_STARTED=$($marker['SERVICE_STARTED'])). See $latestLog in the guest."
+    }
+    if ($marker['CRED_LOCKED'] -eq 'false') {
+        Write-Warn2 "Credential file could not be ACL-locked (CRED_LOCKED=false)."
+    }
+    Write-OK "Silent install completed (RESULT=success)."
 }
 
 # --- Verification + report --------------------------------------------------
@@ -272,7 +281,7 @@ function Invoke-WizardHandoff {
 function Invoke-Verifier {
     param($Credential)
 
-    Write-Section '7. In-VM verification'
+    Write-Section '6. In-VM verification'
 
     Write-Info 'Running Test-IndyPOSInstallation.ps1 inside guest...'
     $result = Invoke-Command -VMName $Config.VMName -Credential $Credential `
@@ -283,7 +292,7 @@ function Invoke-Verifier {
 function Format-Report {
     param($Result)
 
-    Write-Section '8. Results'
+    Write-Section '7. Results'
 
     $byCategory = $Result.Checks | Group-Object Category
     foreach ($g in $byCategory) {
@@ -323,7 +332,7 @@ try {
     Restore-CleanVM
     Wait-PowerShellDirect -Credential $cred
     Copy-Installer -Credential $cred
-    Invoke-WizardHandoff -Credential $cred
+    Invoke-SilentInstall -Credential $cred
     $result = Invoke-Verifier -Credential $cred
     Format-Report -Result $result
 

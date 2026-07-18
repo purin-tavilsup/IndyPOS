@@ -8,10 +8,24 @@
 |-------|-------|
 | **Branch** | `indypos-overhaul` |
 | **Sprint** | Sprint 7 |
-| **Phase** | **Admin-provisioning (bootstrap + forced rotation) — CODE COMPLETE & REVIEWED (2026-07-14).** 18-task SDD plan executed via subagents; whole-branch review clean (must-fixes applied). Build 0 err, unit tests green. **PENDING: installer rebuild + VM clean-install validation matrix (needs Pond/vmconnect), then merge.** Prior: Installer Side-by-Side Stages 0–7 ✅. |
-| **Blocked?** | **VM VALIDATION PASSED (2026-07-14) — feature fully validated.** Verifier 18/18; admin-credentials.txt ACL-locked; initialAdmin removed + DPAPI secrets intact; force-change modal worked (DB: admin/Rungrat-001/must_change=f/logged-in); old bootstrap→401 (single-use). **Only remaining: mark PR #50 ready (`gh pr ready 50`) + merge to `development`** — Pond's call. |
+| **Phase** | ✅ **MERGED to `development` (2026-07-14 19:01, PR #50 "IndyPOS v4 Overhaul", merge commit).** Admin-provisioning (bootstrap password + server-enforced forced rotation) shipped as the final feature of the v4 overhaul. 18-task SDD plan, 3-perspective design review, whole-branch review, VM clean-install validated 18/18 + fonts + CWD fix + themed modal (Pond-approved). |
+| **Blocked?** | Not blocked. **2026-07-18: SILENT INSTALLER MODE COMPLETE + VM-VALIDATED** (see resume block below). Branch `indypos-overhaul` is **22 commits ahead of `origin/development`** (which already has #50 `9547e68`); local `development` is stale (176 behind origin). Awaiting Pond's merge/PR call. |
 
-## ⏯️ RESUME HERE (2026-07-14) — Admin-provisioning feature CODE COMPLETE + whole-branch reviewed; VM validation pending
+## ⏯️ RESUME HERE (2026-07-18) — Silent Installer Mode: FEATURE COMPLETE, VM-VALIDATED, ready to merge
+
+**Shipped this session (branch `indypos-overhaul`, silent-installer plan `02c0716`..`08a0f63`, 9-task SDD):**
+`IndyPOS-Setup.exe --silent --store-id <ID>` — headless install, no wizard. Reuses `InstallationOrchestrator` unchanged; authoritative ACL-locked log + `INDYPOS_MARKER` result lines; exit codes 0/1/2/3/4. VM harness now drives it (no vmconnect). Plan: `docs/superpowers/plans/2026-07-18-silent-installer-mode.md`. Spec: `docs/superpowers/specs/2026-07-18-silent-installer-mode-design.md`. Ledger: `.superpowers/sdd/progress.md`.
+
+- **New (`installer/IndyPOS.Bootstrapper/Silent/`):** `SilentArgs` (parser), `SilentOutcomeMapper` (outcome→exit/markers), `SecretScrubber`, `ConsoleAttach` (LibraryImport→needs `AllowUnsafeBlocks`), `SilentInstallLogger` (thread-safe IProgress sink), `Elevation`, `SilentInstaller` (driver). Extracted shared `Installers/AdminCredentialFile`. Additive `InstallationResult.ServiceStarted`/`HealthOk`. `Program.Main` → `int` + `--silent` branch.
+- **Critical fix (final whole-branch review caught it — lived in unchanged `DotNetInstaller.cs`):** headless path could hit `InstallManually`'s blocking `MessageBox` loop when .NET 10 absent + winget fails → hang. Fix: `InstallationConfig.Interactive` (silent=false) → `EnsureInstalledAsync` fails fast (exit 2) instead of the dialog. + restored harness outer watchdog (`InstallTimeoutMinutes` 30→50).
+
+**Verification:** build 0 err; `IndyPOS.Bootstrapper.Tests` **83 pass/8 skip/0 fail**. Every task per-task reviewed; **final whole-branch review PASSED (Ready to merge: YES)**. Installer rebuilt **190.3 MB (2026-07-18 07:15)**. **UNATTENDED VM clean-install PASSED** (9m27s, fully headless): markers `RESULT=success/ADMIN_SEEDED=true/CRED_FILE=…v4\Config\admin-credentials.txt/CRED_LOCKED=true/SERVICE_STARTED=true/HEALTH=ok`; verifier **18/18**. **Force-change modal confirmed live by Pond** ("it works"; cred file needs an *elevated* prompt to read — ACL working as intended). HEAD `08a0f63`.
+
+**NEXT (Pond's call — finishing-a-development-branch):** push `indypos-overhaul` (20 unpushed) + open PR vs `development` (recommended; #50 went via PR), OR merge locally. gh account = `purin-tavilsup` (owns this personal repo). Deferred minors (DEFER/WONTFIX triaged) in `.superpowers/sdd/progress.md` — none block merge.
+
+---
+
+## ⏯️ Earlier checkpoint (2026-07-14) — Admin-provisioning feature CODE COMPLETE + whole-branch reviewed; VM validation pending
 
 **What shipped this session (branch `indypos-overhaul`, commits `bc0b908`..`0db8ddd`, 24 commits incl. spec+plan+fixes):**
 Replaced the wizard-typed admin password with a **random single-use bootstrap** credential that is **server-side force-rotated on first login**. Executed the 18-task plan (`docs/superpowers/plans/2026-07-14-admin-provisioning-bootstrap.md`) via subagent-driven-development (fresh implementer + task reviewer per task; ledger at `.superpowers/sdd/progress.md`). Spec: `docs/superpowers/specs/2026-07-14-admin-provisioning-bootstrap-design.md`.
