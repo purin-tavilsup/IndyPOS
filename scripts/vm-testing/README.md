@@ -224,9 +224,13 @@ when the bootstrapper writes the manifest.
 - **Snapshot drift** — If you patched Windows / changed config inside the
   Clean-Windows snapshot, delete the old checkpoint and re-`Checkpoint-VM`
   after another clean boot.
-- **Postgres install timeout** — Bump `InstallTimeoutMinutes` in
-  `VMTestConfig.psd1`. Defender RT scan is the usual culprit; step 3's
-  `Set-MpPreference -DisableRealtimeMonitoring $true` is recommended.
+- **Install taking longer than expected** — `InstallTimeoutMinutes` in
+  `VMTestConfig.psd1` (default 50) is the *outer* harness watchdog, set above
+  the installer's own 45-min in-process watchdog so the in-guest install
+  fails first with proper markers/exit codes and this one only catches a true
+  hang. Bump it if you also raise the in-process watchdog. Defender RT scan is
+  the usual culprit; step 3's `Set-MpPreference -DisableRealtimeMonitoring
+  $true` is recommended.
 - **"Multiple manifests found"** — Verifier saw both `v4.0.0\` and another
   `v*\` install. Clean the VM and re-snapshot, or pass `-ManifestPath`.
 
