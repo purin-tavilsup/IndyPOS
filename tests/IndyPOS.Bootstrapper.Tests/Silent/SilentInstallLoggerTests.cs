@@ -39,4 +39,15 @@ public class SilentInstallLoggerTests
         var lines = sink.ToString().Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries);
         lines.Should().Contain("INDYPOS_MARKER RESULT=success");
     }
+
+    [Fact]
+    public void Report_WithStepProgress_ShouldWriteBracketedStepLine()
+    {
+        var sink = new StringWriter();
+        using var logger = new SilentInstallLogger(sink);
+
+        logger.Report(InstallationProgress.Step("PostgreSQL", "Installing PostgreSQL 18", 10));
+
+        sink.ToString().Should().Contain("[PostgreSQL] Installing PostgreSQL 18");
+    }
 }

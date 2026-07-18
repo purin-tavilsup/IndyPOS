@@ -26,7 +26,8 @@ public class DotNetInstaller
     /// </summary>
     public async Task<DotNetInstallerResult> EnsureInstalledAsync(
         IProgress<string>? log = null,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default,
+        bool interactive = true)
     {
         log?.Report("Checking installed .NET runtimes...");
 
@@ -43,6 +44,17 @@ public class DotNetInstaller
         {
             log?.Report(".NET 10 Desktop Runtime installed via winget");
             return new DotNetInstallerResult { Success = true, WasInstalled = true };
+        }
+
+        if (!interactive)
+        {
+            log?.Report(".NET 10 Desktop Runtime missing and could not be installed automatically (winget unavailable).");
+            return new DotNetInstallerResult
+            {
+                Success = false,
+                WasInstalled = false,
+                ErrorMessage = ".NET 10 Desktop Runtime is required but is missing and winget could not install it automatically."
+            };
         }
 
         log?.Report("Silent install unavailable; switching to manual install");
