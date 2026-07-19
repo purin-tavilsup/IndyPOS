@@ -17,6 +17,13 @@ public class MustChangeGateTests : IntegrationTestBase
 
     private async Task<string> LoginAsMustChangeAdminAsync()
     {
+        // Unique username per call — the shared test DB is not reset between the
+        // two test methods in this class (Respawn cleanup is intentionally not run
+        // so the seeded payment-method catalog survives), so a fixed username would
+        // violate IX_store_user_store_id_username on the second insert. Mirrors the
+        // Guid-suffixed pattern used by AuthenticateAs*Async / SalesEndpointTests.
+        var username = $"mc_admin_{Guid.NewGuid():N}";
+
         await using (var scope = Factory.Services.CreateAsyncScope())
         {
             var db = scope.ServiceProvider.GetRequiredService<StoreHubDbContext>();
@@ -24,7 +31,7 @@ public class MustChangeGateTests : IntegrationTestBase
             {
                 Id = Guid.NewGuid(), StoreId = "test-store",
                 LegacyUserId = Random.Shared.Next(1000, 9999),
-                Username = "mc_admin", PasswordHash = BCrypt.Net.BCrypt.HashPassword("Password123!"),
+                Username = username, PasswordHash = BCrypt.Net.BCrypt.HashPassword("Password123!"),
                 PasswordHashVersion = 2, FirstName = "MC", LastName = "Admin",
                 RoleId = (int)UserRole.SystemAdmin, IsActive = true,
                 MustChangePassword = true,
@@ -33,7 +40,7 @@ public class MustChangeGateTests : IntegrationTestBase
             await db.SaveChangesAsync();
         }
 
-        var login = await Client.PostAsJsonAsync("/auth/login", new { username = "mc_admin", password = "Password123!" });
+        var login = await Client.PostAsJsonAsync("/auth/login", new { username, password = "Password123!" });
         login.EnsureSuccessStatusCode();
         var body = await login.Content.ReadFromJsonAsync<LoginResponse>(JsonOptions);
         Assert.True(body!.MustChangePassword);
