@@ -5,6 +5,7 @@ using IndyPOS.Application.Abstractions.StoreHub.Repositories;
 using IndyPOS.Application.Abstractions.StoreHub.Services;
 using IndyPOS.Application.Common.Interfaces;
 using IndyPOS.Application.Common.Models;
+using IndyPOS.Application.UseCases.StoreHub.PaymentMethods;
 using IndyPOS.Infrastructure.Constants;
 using IndyPOS.Infrastructure.Persistence.StoreHub.Repositories;
 using IndyPOS.Infrastructure.Persistence.StoreHub.Seeders;
@@ -68,7 +69,8 @@ public static class ConfigureServices
 		        .AddScoped<IInventoryMovementRepository, InventoryMovementRepository>()
 		        .AddScoped<IStoreSettingRepository, StoreSettingRepository>()
 		        .AddScoped<IPayLaterRepository, IndyPOS.Infrastructure.Persistence.StoreHub.Repositories.PayLaterRepository>()
-		        .AddScoped<IPaymentMethodRepository, PaymentMethodRepository>();
+		        .AddScoped<IPaymentMethodRepository, PaymentMethodRepository>()
+		        .AddScoped<IPaymentMethodCatalogService, PaymentMethodCatalogService>();
 
 		// SyncWorker configuration
 		services.Configure<SyncWorkerOptions>(configuration.GetSection(SyncWorkerOptions.SectionName));
