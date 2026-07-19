@@ -257,7 +257,7 @@ public partial class InventoryPanel : UserControl
         {
             var product = await GetInventoryProductsByByBarcodeAsync(barcode);
 
-            _updateProductForm.ShowDialog(product);
+            await _updateProductForm.ShowDialog(product);
         }
         catch (Exception ex)
         {

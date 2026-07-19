@@ -1,4 +1,6 @@
-﻿using IndyPOS.Application.Common.Interfaces;
+﻿using IndyPOS.Application.Abstractions.StoreHub;
+using IndyPOS.Application.Common.Enums;
+using IndyPOS.Application.Common.Interfaces;
 using System.Diagnostics.CodeAnalysis;
 using IndyPOS.Application.UseCases.InventoryProducts;
 
@@ -8,34 +10,37 @@ namespace IndyPOS.Windows.Forms.UI.Inventory;
 public partial class UpdateInventoryProductForm : Form
 {
 	private readonly IInventoryProductService _inventoryProductService;
+	private readonly IStoreHubClient _storeHubClient;
 	private readonly MessageForm _messageForm;
 	private readonly IReadOnlyDictionary<int, string> _productCategoryDictionary;
 	private InventoryProductDto? _product;
 
 	public UpdateInventoryProductForm(IStoreConstants storeConstants,
 									  MessageForm messageForm,
-									  IInventoryProductService inventoryProductService)
+									  IInventoryProductService inventoryProductService,
+									  IStoreHubClient storeHubClient)
 	{
 		_productCategoryDictionary = storeConstants.ProductCategories;
 		_messageForm = messageForm;
 		_inventoryProductService = inventoryProductService;
+		_storeHubClient = storeHubClient;
 		_product = null;
 
 		InitializeComponent();
-		InitializeProductCategories();
 	}
 
-	public void ShowDialog(InventoryProductDto product)
+	public async Task ShowDialog(InventoryProductDto product)
 	{
 		_product = product;
 
 		BarcodeTextBox.Texts = _product.Barcode;
 
+		await PopulateProductCategoryComboBoxAsync();
 		PopulateProductProperties();
 
 		RemoveProductButton.Enabled = product.IsTrackable;
 
-		ShowDialog();
+		base.ShowDialog();
 	}
 
 	private void PopulateProductProperties()
@@ -86,12 +91,19 @@ public partial class UpdateInventoryProductForm : Form
 		return true;
 	}
 
-	private void InitializeProductCategories()
+	private async Task PopulateProductCategoryComboBoxAsync()
 	{
+		bool multipleTypes = true;
+		try { multipleTypes = (await _storeHubClient.GetStoreFeaturesAsync()).MultipleProductTypesEnabled; }
+		catch { /* on failure, fall back to showing all categories; server still guards updates */ }
+
 		CategoryComboBox.Items.Clear();
 
 		foreach (var item in _productCategoryDictionary)
 		{
+			if (!multipleTypes && item.Key == (int)ProductCategory.Hardware)
+				continue; // Hardware hidden on general-only stores
+
 			CategoryComboBox.Items.Add(item.Value);
 		}
 	}
