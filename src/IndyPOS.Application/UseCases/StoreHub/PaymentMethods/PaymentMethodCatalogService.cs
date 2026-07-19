@@ -52,11 +52,12 @@ public class PaymentMethodCatalogService : IPaymentMethodCatalogService
         await _repository.UpdateAsync(method, cancellationToken);
     }
 
-    public async Task UpdateDisplayAsync(string code, string displayName, int displayOrder, CancellationToken cancellationToken = default)
+    public async Task UpdateDisplayAsync(string code, string displayName, int? displayOrder, CancellationToken cancellationToken = default)
     {
         var method = await Require(code, cancellationToken);
         method.DisplayName = displayName;
-        method.DisplayOrder = displayOrder;
+        if (displayOrder is int order)
+            method.DisplayOrder = order;
         method.LastModifiedUtc = DateTime.UtcNow;
         await _repository.UpdateAsync(method, cancellationToken);
     }

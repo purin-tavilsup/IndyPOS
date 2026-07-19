@@ -51,4 +51,30 @@ public class PaymentMethodCatalogServiceTests
 
         await act.Should().ThrowAsync<InvalidOperationException>();
     }
+
+    [Fact]
+    public async Task UpdateDisplayAsync_WithNullOrder_ShouldPreserveExistingDisplayOrder()
+    {
+        var repo = new Mock<IPaymentMethodRepository>();
+        repo.Setup(r => r.GetByCodeAsync("Cash", It.IsAny<CancellationToken>())).ReturnsAsync(M("Cash", order: 5));
+        var sut = new PaymentMethodCatalogService(repo.Object, new MockStoreIdentityService());
+
+        await sut.UpdateDisplayAsync("Cash", "New Name", null, default);
+
+        repo.Verify(r => r.UpdateAsync(It.Is<PaymentMethod>(m =>
+            m.DisplayName == "New Name" && m.DisplayOrder == 5), It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task UpdateDisplayAsync_WithOrder_ShouldOverwriteDisplayOrder()
+    {
+        var repo = new Mock<IPaymentMethodRepository>();
+        repo.Setup(r => r.GetByCodeAsync("Cash", It.IsAny<CancellationToken>())).ReturnsAsync(M("Cash", order: 5));
+        var sut = new PaymentMethodCatalogService(repo.Object, new MockStoreIdentityService());
+
+        await sut.UpdateDisplayAsync("Cash", "New Name", 9, default);
+
+        repo.Verify(r => r.UpdateAsync(It.Is<PaymentMethod>(m =>
+            m.DisplayName == "New Name" && m.DisplayOrder == 9), It.IsAny<CancellationToken>()), Times.Once);
+    }
 }
