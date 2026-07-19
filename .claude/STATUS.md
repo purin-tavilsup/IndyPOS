@@ -6,20 +6,26 @@
 
 | Field | Value |
 |-------|-------|
-| **Branch** | `payment-methods-catalog` (off `development`; `indypos-overhaul` retired) |
+| **Branch** | `development` @ `405e007` (pushed to origin). Feature/cleanup branches merged + deleted. |
 | **Sprint** | Sprint 7 |
-| **Phase** | ✅ **Epic M — data-driven payment methods + store-type gating: IMPLEMENTED + reviewed + MERGED to `development` locally (merge commit 191a635, 2026-07-18).** All 12 tasks done via subagent-driven-development; final whole-branch review passed (2 Important fixed). `payment-methods-catalog` branch deleted. |
-| **Blocked?** | Not blocked. **NOT pushed** — `development` merged locally only (gh active = `purin-tavilsup` for this personal repo; push when ready). Pre-ship: rebuild installer + VM live-UI smoke. |
+| **Phase** | ✅ **Epic M — data-driven payment methods + store-type gating: SHIPPED + VM-VALIDATED (2026-07-19).** 12 tasks (subagent-driven), final review passed, cleanup + test-fix + seeder-term-fix landed. Installer rebuilt; VM clean-install 18/18 + live-UI smoke confirmed. |
+| **Blocked?** | Not blocked. Merged + pushed to `origin/development`. Only cosmetic Minors + deferred follow-up specs remain. |
 
-## ⏯️ RESUME HERE (2026-07-18 PM) — Epic M "data-driven payment methods": DONE + MERGED (local)
+## ⏯️ RESUME HERE (2026-07-19) — Epic M "data-driven payment methods": SHIPPED + VM-VALIDATED ✅
 
-**State:** All 12 tasks implemented via subagent-driven-development (per-task TDD + review), final whole-branch review passed (2 Important fixed: SalePanel→offerable endpoint for cashiers; refund re-asserts Cash/MoneyTransfer-only). Merged `--no-ff` to `development` (191a635); feature branch deleted. Release build 0 err. Tests: Domain 5/5, Application 259/259, Bootstrapper 94/8-skip, StoreHub sales integration 7/7 green (real Postgres via Docker). Ledger: `.superpowers/sdd/progress.md`.
+**State:** Fully done and on `origin/development` @ `405e007`. 12 tasks via subagent-driven-development (per-task TDD + review) → final whole-branch review (2 Important fixed) → merged. Then landed on `development`: cleanup batch (6 Minors), `MustChangeGateTests` isolation fix (integration suite now **62/62**), and PayLater seeder term → `ลงบัญชี`. Installer rebuilt (`publish/IndyPOS-Setup.exe`, embeds Epic M).
 
-**NEXT (pre-ship, none epic-blocking):**
-1. **Push** `development` to origin when ready (currently local-only; gh active `purin-tavilsup`).
-2. **Rebuild `IndyPOS-Setup.exe` + VM/Aspire live-UI smoke** (no automated WinForms UI harness): dynamic payment buttons render/click; SystemAdmin "Manage Payment Methods" screen toggle/add/edit; **refund with a disabled method** (FR-2 guard); fresh-DB seeds 7 methods; Minimart excludes PayLater (offerable gating). Installer now writes `Store:Type` (wizard picker + `--store-type` silent arg).
-3. **Separate pre-existing bug (NOT this epic — track):** `MustChangeGateTests.MustChangeToken_IsAllowedOnChangePassword` fails in isolation — duplicate `store_user` (admin-provisioning tests, PR#50; two methods insert the same must-change admin, no DB reset between). Docker-gated so never run before now.
-4. **Deferred Minors (follow-ups):** delete dead enum `AddPayment(PaymentType)`/`MapPaymentType` "Transfer" trap (no callers); UI-role-gate the admin button; broaden T10 async-void catch; Prism `DialogResult` → project `GlobalUsings.cs`; reject `--store-type` numeric strings; remove orphaned sln "src" folder; DB unique index on `payment_method(Code)` (atomic add).
+**VM validation (Docker + Hyper-V, 2026-07-19) — all green:**
+- Silent clean-install **18/18** verifier (7m48s); service Running, health 200; `Store:Type=GeneralHardware` written; `payment_method` table seeded 7 rows (4 enabled permanent / 3 disabled campaigns, correct kind+order).
+- **Live UI (Pond, via vmconnect):** admin "จัดการวิธีการชำระเงิน" screen renders all 7; **edit persisted** (Pond renamed PayLater → ลงบัญชี, DB `last_modified_utc` bumped); dynamic payment buttons render from offerable catalog (campaigns excluded); **refund gate = Cash + MoneyTransfer only** (FR-2 confirmed). VM now **Off**.
+- NOT separately live-run (server side covered by integration 7/7): a normal non-refund Cash sale completion; the Minimart-excludes-PayLater store-type gate (would need a `--store-type Minimart` install).
+
+**Test state:** Domain 5/5, Application 259/259, Bootstrapper 96/8-skip, StoreHub integration **62/62** (real Postgres). Release build 0 err. Ledger: `.superpowers/sdd/progress.md`.
+
+**Remaining (none blocking):**
+- **Cosmetic Minors (follow-ups):** dynamic payment buttons lost per-method icons (T9b-m2); Kind column shows raw enum name; grid no-refresh-on-toggle-success. See ledger "Minor findings".
+- **Deferred follow-up specs (new work when wanted):** product-type restriction (`MultipleProductTypesEnabled`, the Epic M sibling — gate product types by StoreType); cloud/central catalog distribution (needs Epic I).
+- If distributing to the 3 real stores: copy `publish/IndyPOS-Setup.exe`; per-store run wizard (or `--silent --store-id <ID> [--store-type Minimart|CoffeeShop]`).
 
 ---
 
