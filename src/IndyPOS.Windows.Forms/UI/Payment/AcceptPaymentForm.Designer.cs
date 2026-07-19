@@ -30,24 +30,11 @@
         {
             var resources = new System.ComponentModel.ComponentResourceManager(typeof(AcceptPaymentForm));
             label1 = new Label();
-            panel20 = new Panel();
-            PayByMoneyTransferButton = new Button();
-            panel21 = new Panel();
-            PayBy5050Button = new Button();
-            panel22 = new Panel();
-            PayByWelfareCardButton = new Button();
-            panel24 = new Panel();
-            PayByWeLoveButton = new Button();
-            panel25 = new Panel();
-            PayByWeWinButton = new Button();
-            panel26 = new Panel();
-            PayByCashButton = new Button();
             panel27 = new Panel();
             label2 = new Label();
             PaymentAmountLabel = new Label();
             label3 = new Label();
             PaymentTypePanel = new Panel();
-            PayByPayLaterButton = new ModernUI.ModernButton();
             PaymentTypeLabel = new Label();
             label4 = new Label();
             KeypadPanel = new Panel();
@@ -82,12 +69,6 @@
             RefundButton = new ModernUI.ModernButton();
             CancelAcceptPaymentButton = new ModernUI.ModernButton();
             AcceptPaymentButton = new ModernUI.ModernButton();
-            panel20.SuspendLayout();
-            panel21.SuspendLayout();
-            panel22.SuspendLayout();
-            panel24.SuspendLayout();
-            panel25.SuspendLayout();
-            panel26.SuspendLayout();
             panel27.SuspendLayout();
             PaymentTypePanel.SuspendLayout();
             KeypadPanel.SuspendLayout();
@@ -109,157 +90,7 @@
             label1.TabIndex = 4;
             label1.Text = "รับเงิน";
             label1.TextAlign = ContentAlignment.MiddleCenter;
-            // 
-            // panel20
-            // 
-            panel20.BackColor = Color.Silver;
-            panel20.BorderStyle = BorderStyle.FixedSingle;
-            panel20.Controls.Add(PayByMoneyTransferButton);
-            panel20.Location = new Point(211, 16);
-            panel20.Name = "panel20";
-            panel20.Size = new Size(195, 129);
-            panel20.TabIndex = 40;
-            // 
-            // PayByMoneyTransferButton
-            // 
-            PayByMoneyTransferButton.BackColor = Color.FromArgb(80, 80, 80);
-            PayByMoneyTransferButton.FlatStyle = FlatStyle.Flat;
-            PayByMoneyTransferButton.Font = new Font("Leelawadee UI", 15.75F, FontStyle.Regular, GraphicsUnit.Point);
-            PayByMoneyTransferButton.Image = Properties.Resources.Payment_MoneyTransfer_100;
-            PayByMoneyTransferButton.Location = new Point(3, 3);
-            PayByMoneyTransferButton.Name = "PayByMoneyTransferButton";
-            PayByMoneyTransferButton.Size = new Size(187, 121);
-            PayByMoneyTransferButton.TabIndex = 7;
-            PayByMoneyTransferButton.TextAlign = ContentAlignment.MiddleRight;
-            PayByMoneyTransferButton.TextImageRelation = TextImageRelation.ImageBeforeText;
-            PayByMoneyTransferButton.UseVisualStyleBackColor = false;
-            PayByMoneyTransferButton.Click += PayByMoneyTransferButton_Click;
-            // 
-            // panel21
-            // 
-            panel21.BackColor = Color.Silver;
-            panel21.BorderStyle = BorderStyle.FixedSingle;
-            panel21.Controls.Add(PayBy5050Button);
-            panel21.Location = new Point(10, 151);
-            panel21.Name = "panel21";
-            panel21.Size = new Size(195, 129);
-            panel21.TabIndex = 41;
-            // 
-            // PayBy5050Button
-            // 
-            PayBy5050Button.BackColor = Color.FromArgb(80, 80, 80);
-            PayBy5050Button.FlatStyle = FlatStyle.Flat;
-            PayBy5050Button.Font = new Font("Leelawadee UI", 15.75F, FontStyle.Regular, GraphicsUnit.Point);
-            PayBy5050Button.Image = Properties.Resources.Payment_KLK_100;
-            PayBy5050Button.Location = new Point(3, 3);
-            PayBy5050Button.Name = "PayBy5050Button";
-            PayBy5050Button.Size = new Size(187, 121);
-            PayBy5050Button.TabIndex = 7;
-            PayBy5050Button.TextAlign = ContentAlignment.MiddleRight;
-            PayBy5050Button.TextImageRelation = TextImageRelation.ImageBeforeText;
-            PayBy5050Button.UseVisualStyleBackColor = false;
-            PayBy5050Button.Click += PayBy5050Button_Click;
-            // 
-            // panel22
-            // 
-            panel22.BackColor = Color.Silver;
-            panel22.BorderStyle = BorderStyle.FixedSingle;
-            panel22.Controls.Add(PayByWelfareCardButton);
-            panel22.Location = new Point(10, 286);
-            panel22.Name = "panel22";
-            panel22.Size = new Size(195, 129);
-            panel22.TabIndex = 42;
-            // 
-            // PayByWelfareCardButton
-            // 
-            PayByWelfareCardButton.BackColor = Color.FromArgb(80, 80, 80);
-            PayByWelfareCardButton.FlatStyle = FlatStyle.Flat;
-            PayByWelfareCardButton.Font = new Font("Leelawadee UI", 15.75F, FontStyle.Regular, GraphicsUnit.Point);
-            PayByWelfareCardButton.Image = Properties.Resources.Payment_PracharatCard_100;
-            PayByWelfareCardButton.Location = new Point(3, 3);
-            PayByWelfareCardButton.Name = "PayByWelfareCardButton";
-            PayByWelfareCardButton.Size = new Size(187, 121);
-            PayByWelfareCardButton.TabIndex = 7;
-            PayByWelfareCardButton.TextAlign = ContentAlignment.MiddleRight;
-            PayByWelfareCardButton.TextImageRelation = TextImageRelation.ImageBeforeText;
-            PayByWelfareCardButton.UseVisualStyleBackColor = false;
-            PayByWelfareCardButton.Click += PayByWelfareCardButton_Click;
-            // 
-            // panel24
-            // 
-            panel24.BackColor = Color.Silver;
-            panel24.BorderStyle = BorderStyle.FixedSingle;
-            panel24.Controls.Add(PayByWeLoveButton);
-            panel24.Location = new Point(211, 286);
-            panel24.Name = "panel24";
-            panel24.Size = new Size(195, 129);
-            panel24.TabIndex = 44;
-            // 
-            // PayByWeLoveButton
-            // 
-            PayByWeLoveButton.BackColor = Color.FromArgb(80, 80, 80);
-            PayByWeLoveButton.FlatStyle = FlatStyle.Flat;
-            PayByWeLoveButton.Font = new Font("Leelawadee UI", 15.75F, FontStyle.Regular, GraphicsUnit.Point);
-            PayByWeLoveButton.Image = Properties.Resources.Payment_WeLove_100;
-            PayByWeLoveButton.Location = new Point(3, 3);
-            PayByWeLoveButton.Name = "PayByWeLoveButton";
-            PayByWeLoveButton.Size = new Size(187, 121);
-            PayByWeLoveButton.TabIndex = 7;
-            PayByWeLoveButton.TextAlign = ContentAlignment.MiddleRight;
-            PayByWeLoveButton.TextImageRelation = TextImageRelation.ImageBeforeText;
-            PayByWeLoveButton.UseVisualStyleBackColor = false;
-            PayByWeLoveButton.Click += PayByWeLoveButton_Click;
-            // 
-            // panel25
-            // 
-            panel25.BackColor = Color.Silver;
-            panel25.BorderStyle = BorderStyle.FixedSingle;
-            panel25.Controls.Add(PayByWeWinButton);
-            panel25.Location = new Point(211, 151);
-            panel25.Name = "panel25";
-            panel25.Size = new Size(195, 129);
-            panel25.TabIndex = 45;
-            // 
-            // PayByWeWinButton
-            // 
-            PayByWeWinButton.BackColor = Color.FromArgb(80, 80, 80);
-            PayByWeWinButton.FlatStyle = FlatStyle.Flat;
-            PayByWeWinButton.Font = new Font("Leelawadee UI", 15.75F, FontStyle.Regular, GraphicsUnit.Point);
-            PayByWeWinButton.Image = Properties.Resources.Payment_WeWin_100;
-            PayByWeWinButton.Location = new Point(3, 3);
-            PayByWeWinButton.Name = "PayByWeWinButton";
-            PayByWeWinButton.Size = new Size(187, 121);
-            PayByWeWinButton.TabIndex = 7;
-            PayByWeWinButton.TextAlign = ContentAlignment.MiddleRight;
-            PayByWeWinButton.TextImageRelation = TextImageRelation.ImageBeforeText;
-            PayByWeWinButton.UseVisualStyleBackColor = false;
-            PayByWeWinButton.Click += PayByWeWinButton_Click;
-            // 
-            // panel26
-            // 
-            panel26.BackColor = Color.Silver;
-            panel26.BorderStyle = BorderStyle.FixedSingle;
-            panel26.Controls.Add(PayByCashButton);
-            panel26.Location = new Point(10, 16);
-            panel26.Name = "panel26";
-            panel26.Size = new Size(195, 129);
-            panel26.TabIndex = 46;
-            // 
-            // PayByCashButton
-            // 
-            PayByCashButton.BackColor = Color.FromArgb(80, 80, 80);
-            PayByCashButton.FlatStyle = FlatStyle.Flat;
-            PayByCashButton.Font = new Font("Leelawadee UI", 15.75F, FontStyle.Regular, GraphicsUnit.Point);
-            PayByCashButton.Image = Properties.Resources.Money_80;
-            PayByCashButton.Location = new Point(3, 3);
-            PayByCashButton.Name = "PayByCashButton";
-            PayByCashButton.Size = new Size(187, 121);
-            PayByCashButton.TabIndex = 7;
-            PayByCashButton.TextAlign = ContentAlignment.MiddleRight;
-            PayByCashButton.TextImageRelation = TextImageRelation.ImageBeforeText;
-            PayByCashButton.UseVisualStyleBackColor = false;
-            PayByCashButton.Click += PayByCashButton_Click;
-            // 
+            //
             // panel27
             // 
             panel27.BackColor = Color.FromArgb(30, 30, 30);
@@ -312,42 +143,12 @@
             // 
             PaymentTypePanel.BackColor = Color.FromArgb(30, 30, 30);
             PaymentTypePanel.BorderStyle = BorderStyle.FixedSingle;
-            PaymentTypePanel.Controls.Add(PayByPayLaterButton);
-            PaymentTypePanel.Controls.Add(panel20);
-            PaymentTypePanel.Controls.Add(panel21);
-            PaymentTypePanel.Controls.Add(panel26);
-            PaymentTypePanel.Controls.Add(panel24);
-            PaymentTypePanel.Controls.Add(panel22);
-            PaymentTypePanel.Controls.Add(panel25);
             PaymentTypePanel.ForeColor = Color.Black;
             PaymentTypePanel.Location = new Point(116, 178);
             PaymentTypePanel.Name = "PaymentTypePanel";
             PaymentTypePanel.Size = new Size(419, 556);
             PaymentTypePanel.TabIndex = 48;
-            // 
-            // PayByPayLaterButton
-            // 
-            PayByPayLaterButton.BackColor = Color.FromArgb(38, 38, 38);
-            PayByPayLaterButton.BackgroundColor = Color.FromArgb(38, 38, 38);
-            PayByPayLaterButton.BorderColor = Color.PeachPuff;
-            PayByPayLaterButton.BorderRadius = 5;
-            PayByPayLaterButton.BorderSize = 1;
-            PayByPayLaterButton.FlatAppearance.BorderSize = 0;
-            PayByPayLaterButton.FlatStyle = FlatStyle.Flat;
-            PayByPayLaterButton.Font = new Font("FC Subject [Non-commercial] Reg", 12F, FontStyle.Regular, GraphicsUnit.Point);
-            PayByPayLaterButton.ForeColor = Color.White;
-            PayByPayLaterButton.Image = Properties.Resources.Customer_Acounts_50;
-            PayByPayLaterButton.Location = new Point(10, 421);
-            PayByPayLaterButton.Name = "PayByPayLaterButton";
-            PayByPayLaterButton.Size = new Size(195, 118);
-            PayByPayLaterButton.TabIndex = 52;
-            PayByPayLaterButton.Text = "ลงบัญชี";
-            PayByPayLaterButton.TextAlign = ContentAlignment.BottomCenter;
-            PayByPayLaterButton.TextColor = Color.White;
-            PayByPayLaterButton.TextImageRelation = TextImageRelation.ImageAboveText;
-            PayByPayLaterButton.UseVisualStyleBackColor = false;
-            PayByPayLaterButton.Click += PayByPayLaterButton_Click;
-            // 
+            //
             // PaymentTypeLabel
             // 
             PaymentTypeLabel.BackColor = Color.FromArgb(30, 30, 30);
@@ -886,12 +687,6 @@
             Padding = new Padding(1);
             StartPosition = FormStartPosition.CenterScreen;
             WindowState = FormWindowState.Maximized;
-            panel20.ResumeLayout(false);
-            panel21.ResumeLayout(false);
-            panel22.ResumeLayout(false);
-            panel24.ResumeLayout(false);
-            panel25.ResumeLayout(false);
-            panel26.ResumeLayout(false);
             panel27.ResumeLayout(false);
             PaymentTypePanel.ResumeLayout(false);
             KeypadPanel.ResumeLayout(false);
@@ -905,18 +700,6 @@
         #endregion
 
         private System.Windows.Forms.Label label1;
-		private System.Windows.Forms.Panel panel20;
-		private System.Windows.Forms.Button PayByMoneyTransferButton;
-		private System.Windows.Forms.Panel panel21;
-		private System.Windows.Forms.Button PayBy5050Button;
-		private System.Windows.Forms.Panel panel22;
-		private System.Windows.Forms.Button PayByWelfareCardButton;
-		private System.Windows.Forms.Panel panel24;
-		private System.Windows.Forms.Button PayByWeLoveButton;
-		private System.Windows.Forms.Panel panel25;
-		private System.Windows.Forms.Button PayByWeWinButton;
-		private System.Windows.Forms.Panel panel26;
-		private System.Windows.Forms.Button PayByCashButton;
 		private System.Windows.Forms.Panel panel27;
 		private System.Windows.Forms.Label label2;
 		private System.Windows.Forms.Label PaymentAmountLabel;
@@ -948,7 +731,6 @@
 		private System.Windows.Forms.Panel panel1;
         private ModernUI.ModernButton AcceptPaymentButton;
         private ModernUI.ModernButton CancelAcceptPaymentButton;
-        private ModernUI.ModernButton PayByPayLaterButton;
         private ModernUI.ModernButton RefundButton;
         private System.Windows.Forms.Panel NotePanel;
         private ModernUI.ModernTextBox NoteTextBox;
