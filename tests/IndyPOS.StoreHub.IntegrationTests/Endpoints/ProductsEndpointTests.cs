@@ -133,7 +133,7 @@ public class ProductsEndpointTests : IntegrationTestBase
     }
 
     [Fact]
-    public async Task CreateProduct_WithDuplicateBarcode_ThrowsError()
+    public async Task CreateProduct_WithDuplicateBarcode_ReturnsConflict()
     {
         // Arrange
         await AuthenticateAsManagerAsync();
@@ -146,13 +146,20 @@ public class ProductsEndpointTests : IntegrationTestBase
             UnitPrice = 50m
         };
 
-        // Act & Assert
-        // API throws InvalidOperationException for duplicate barcode
-        // TODO: Improve API to return proper 409 Conflict instead of throwing
-        var act = async () => await Client.PostAsJsonAsync("/products", command);
-        await act.Should().ThrowAsync<InvalidOperationException>()
-            .WithMessage("*already exists*");
+        // Act
+        var response = await Client.PostAsJsonAsync("/products", command);
+
+        // Assert
+        // InvalidOperationException from the handler is mapped to 409 Conflict
+        // (not an unhandled 500 Internal Server Error).
+        response.StatusCode.Should().Be(HttpStatusCode.Conflict);
+
+        var body = await response.Content.ReadFromJsonAsync<ErrorResponse>(JsonOptions);
+        body.Should().NotBeNull();
+        body!.Error.Should().Contain("already exists");
     }
+
+    private record ErrorResponse(string Error);
 
     [Fact]
     public async Task UpdateProduct_WithValidData_ReturnsUpdatedProduct()
