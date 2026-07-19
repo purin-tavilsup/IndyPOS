@@ -244,9 +244,9 @@ public partial class InventoryPanel : UserControl
         }
     }
 
-    private void AddProductButton_Click(object sender, EventArgs e)
+    private async void AddProductButton_Click(object sender, EventArgs e)
     {
-        _addNewProductWithCustomBarcodeForm.ShowDialog();
+        await _addNewProductWithCustomBarcodeForm.ShowDialog();
     }
 
     private async void ProductDataView_DoubleClick(object sender, EventArgs e)
@@ -334,11 +334,11 @@ public partial class InventoryPanel : UserControl
     {
         ClearLastQueryHistory();
 
-        ProductDataView.UiThread(delegate
+        ProductDataView.UiThread(async delegate
         {
             ProductDataView.Rows.Clear();
 
-            _addNewProductForm.ShowDialog(barcode);
+            await _addNewProductForm.ShowDialog(barcode);
         });
     }
 
@@ -388,9 +388,9 @@ public partial class InventoryPanel : UserControl
         await ShowProductsByCategoryId(categoryId);
     }
 
-    private void AddProductWithBarcodeButton_Click(object sender, EventArgs e)
+    private async void AddProductWithBarcodeButton_Click(object sender, EventArgs e)
     {
-        _addNewProductForm.ShowDialog();
+        await _addNewProductForm.ShowDialog();
     }
 
     private async void SearchByKeywordButton_Click(object sender, EventArgs e)
