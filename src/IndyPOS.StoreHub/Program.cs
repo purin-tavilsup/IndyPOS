@@ -175,6 +175,7 @@ if (app.Environment.IsDevelopment())
 {
     await app.EnsureStoreHubDatabaseCreatedAsync();
     await app.SeedDevelopmentDataAsync();
+    await app.SeedPaymentMethodsAsync();
 }
 else if (Array.Exists(args, a => string.Equals(a, "migrate", StringComparison.OrdinalIgnoreCase)))
 {

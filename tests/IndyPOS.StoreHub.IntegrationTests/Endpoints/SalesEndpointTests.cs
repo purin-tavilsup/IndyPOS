@@ -63,7 +63,7 @@ public class SalesEndpointTests : IntegrationTestBase
             Payments:
             [
                 new SalePaymentRequest("Cash", Amount: 200m),
-                new SalePaymentRequest("Card", Amount: 100m)
+                new SalePaymentRequest("MoneyTransfer", Amount: 100m)
             ]);
 
         // Act
