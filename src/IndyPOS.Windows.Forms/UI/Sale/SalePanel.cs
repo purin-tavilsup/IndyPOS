@@ -238,7 +238,10 @@ public partial class SalePanel : UserControl
 
         try
         {
-            var methods = await _storeHubClient.GetAllPaymentMethodsAsync();
+            // Cashiers only have CanReadProducts, not CanManagePaymentMethods, so this must use the
+            // offerable endpoint (GET /payment-methods). In-progress payments are only ever added via
+            // the offerable buttons in AcceptPaymentForm, so every Code shown here is covered.
+            var methods = await _storeHubClient.GetOfferablePaymentMethodsAsync();
 
             _paymentMethodNamesByCode = methods.ToDictionary(m => m.Code, m => m.DisplayName, StringComparer.OrdinalIgnoreCase);
         }
