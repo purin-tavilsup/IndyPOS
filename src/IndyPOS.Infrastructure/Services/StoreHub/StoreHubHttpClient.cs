@@ -7,6 +7,7 @@ using IndyPOS.Application.Common.Models;
 using IndyPOS.Application.UseCases.StoreHub.Auth;
 using IndyPOS.Application.UseCases.StoreHub.Auth.ChangePassword;
 using IndyPOS.Application.UseCases.StoreHub.PayLater;
+using IndyPOS.Application.UseCases.StoreHub.PaymentMethods;
 using IndyPOS.Application.UseCases.StoreHub.Products;
 using IndyPOS.Application.UseCases.StoreHub.Products.AdjustQuantity;
 using IndyPOS.Application.UseCases.StoreHub.Products.Create;
@@ -290,6 +291,52 @@ public class StoreHubHttpClient : IStoreHubClient
     }
 
     // ========================
+    // Payment method catalog methods
+    // ========================
+
+    public Task<IReadOnlyList<PaymentMethodDto>> GetOfferablePaymentMethodsAsync(
+        CancellationToken cancellationToken = default) =>
+        SendAuthenticatedAsync<IReadOnlyList<PaymentMethodDto>>(
+            HttpMethod.Get, "/payment-methods", content: null, cancellationToken);
+
+    public Task<IReadOnlyList<PaymentMethodDto>> GetAllPaymentMethodsAsync(
+        CancellationToken cancellationToken = default) =>
+        SendAuthenticatedAsync<IReadOnlyList<PaymentMethodDto>>(
+            HttpMethod.Get, "/admin/payment-methods", content: null, cancellationToken);
+
+    public Task AddCampaignPaymentMethodAsync(
+        string code,
+        string displayName,
+        int displayOrder,
+        CancellationToken cancellationToken = default) =>
+        SendAuthenticatedAsync(
+            HttpMethod.Post,
+            "/admin/payment-methods",
+            new AddCampaignPaymentMethodRequest(code, displayName, displayOrder),
+            cancellationToken);
+
+    public Task SetPaymentMethodEnabledAsync(
+        string code,
+        bool enabled,
+        CancellationToken cancellationToken = default) =>
+        SendAuthenticatedAsync(
+            HttpMethod.Patch,
+            $"/admin/payment-methods/{Uri.EscapeDataString(code)}",
+            new UpdatePaymentMethodRequest(IsEnabled: enabled, DisplayName: null, DisplayOrder: null),
+            cancellationToken);
+
+    public Task UpdatePaymentMethodDisplayAsync(
+        string code,
+        string displayName,
+        int displayOrder,
+        CancellationToken cancellationToken = default) =>
+        SendAuthenticatedAsync(
+            HttpMethod.Patch,
+            $"/admin/payment-methods/{Uri.EscapeDataString(code)}",
+            new UpdatePaymentMethodRequest(IsEnabled: null, DisplayName: displayName, DisplayOrder: displayOrder),
+            cancellationToken);
+
+    // ========================
     // Report methods (legacy format)
     // ========================
 
@@ -375,6 +422,38 @@ public class StoreHubHttpClient : IStoreHubClient
         try
         {
             using var request = CreateAuthenticatedRequest(method, url);
+            var response = await _httpClient.SendAsync(request, cancellationToken);
+            await EnsureSuccessfulResponseAsync(response, method, url, cancellationToken);
+        }
+        catch (HttpRequestException ex)
+        {
+            _logger.LogError(ex, "HTTP request failed: {Method} {Url}", method, url);
+            throw new StoreHubClientException("Cannot connect to StoreHub", ex);
+        }
+    }
+
+    /// <summary>
+    /// Send an authenticated request with a JSON body, without expecting a response body.
+    /// Use this when the endpoint returns an empty <c>Ok()</c> (e.g. PATCH) so
+    /// <see cref="SendAuthenticatedAsync{T}"/>'s empty-body-throws behavior doesn't apply.
+    /// </summary>
+    private async Task SendAuthenticatedAsync(
+        HttpMethod method,
+        string url,
+        object? content,
+        CancellationToken cancellationToken)
+    {
+        EnsureAuthenticated();
+
+        try
+        {
+            using var request = CreateAuthenticatedRequest(method, url);
+
+            if (content is not null)
+            {
+                request.Content = JsonContent.Create(content, options: JsonOptions);
+            }
+
             var response = await _httpClient.SendAsync(request, cancellationToken);
             await EnsureSuccessfulResponseAsync(response, method, url, cancellationToken);
         }

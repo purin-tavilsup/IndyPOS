@@ -5,6 +5,7 @@ using IndyPOS.Application.Abstractions.StoreHub.Repositories;
 using IndyPOS.Application.Abstractions.StoreHub.Services;
 using IndyPOS.Application.Common.Interfaces;
 using IndyPOS.Application.Common.Models;
+using IndyPOS.Application.UseCases.StoreHub.PaymentMethods;
 using IndyPOS.Infrastructure.Constants;
 using IndyPOS.Infrastructure.Persistence.StoreHub.Repositories;
 using IndyPOS.Infrastructure.Persistence.StoreHub.Seeders;
@@ -67,7 +68,9 @@ public static class ConfigureServices
 		        .AddScoped<IOutboxRepository, OutboxRepository>()
 		        .AddScoped<IInventoryMovementRepository, InventoryMovementRepository>()
 		        .AddScoped<IStoreSettingRepository, StoreSettingRepository>()
-		        .AddScoped<IPayLaterRepository, IndyPOS.Infrastructure.Persistence.StoreHub.Repositories.PayLaterRepository>();
+		        .AddScoped<IPayLaterRepository, IndyPOS.Infrastructure.Persistence.StoreHub.Repositories.PayLaterRepository>()
+		        .AddScoped<IPaymentMethodRepository, PaymentMethodRepository>()
+		        .AddScoped<IPaymentMethodCatalogService, PaymentMethodCatalogService>();
 
 		// SyncWorker configuration
 		services.Configure<SyncWorkerOptions>(configuration.GetSection(SyncWorkerOptions.SectionName));
@@ -157,6 +160,9 @@ public static class ConfigureServices
 
 		// Production seeder: initial admin login from the installer wizard
 		services.AddScoped<InitialAdminSeeder>();
+
+		// Production seeder: payment method catalog (idempotent, per store)
+		services.AddScoped<PaymentMethodSeeder>();
 
 		return services;
 	}

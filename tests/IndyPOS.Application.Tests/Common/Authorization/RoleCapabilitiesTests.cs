@@ -261,7 +261,8 @@ public class RoleCapabilitiesTests
         Assert.Contains(Capability.UsersUpdate, capabilities);
         Assert.Contains(Capability.UsersDeactivate, capabilities);
         Assert.Contains(Capability.ReportsView, capabilities);
-        Assert.Equal(11, capabilities.Count);
+        Assert.Contains(Capability.PaymentMethodsManage, capabilities);
+        Assert.Equal(12, capabilities.Count);
     }
 
     [Fact]

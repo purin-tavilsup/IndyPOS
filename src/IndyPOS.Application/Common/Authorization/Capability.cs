@@ -13,6 +13,9 @@ public static class Capability
     public const string ProductsRead = "products.read";
     public const string ProductsManage = "products.manage";
 
+    // Payment method operations
+    public const string PaymentMethodsManage = "payment_methods.manage";
+
     // Inventory operations
     public const string InventoryAdjust = "inventory.adjust";
 

@@ -7,6 +7,9 @@ public class Payment
 {
     public int PaymentTypeId { get; init; }
 
+    /// <summary>Catalog payment-method Code (e.g. "MoneyTransfer"). Null for legacy enum-path payments.</summary>
+    public string? Method { get; init; }
+
     public decimal Amount { get; init; }
 
     public int Priority { get; init; }

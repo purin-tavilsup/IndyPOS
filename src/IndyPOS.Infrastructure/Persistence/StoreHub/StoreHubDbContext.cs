@@ -22,6 +22,7 @@ public class StoreHubDbContext : DbContext
     public DbSet<OutboxEvent> OutboxEvents => Set<OutboxEvent>();
     public DbSet<StoreUser> StoreUsers => Set<StoreUser>();
     public DbSet<StoreSetting> StoreSettings => Set<StoreSetting>();
+    public DbSet<PaymentMethod> PaymentMethods => Set<PaymentMethod>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

@@ -17,6 +17,12 @@ public class InstallationConfig
     public required string StoreId { get; init; }
 
     /// <summary>
+    /// Type of store, determines which features (e.g. PayLater, payment methods)
+    /// are available. Chosen once, at install time; immutable afterward.
+    /// </summary>
+    public IndyPOS.Domain.Enums.StoreType StoreType { get; init; } = IndyPOS.Domain.Enums.StoreType.GeneralHardware;
+
+    /// <summary>
     /// True for the interactive wizard; false for the headless --silent path.
     /// When false, prerequisite installers must never block on UI (e.g. the
     /// .NET manual-install dialog) — they fail fast so the run can't hang.

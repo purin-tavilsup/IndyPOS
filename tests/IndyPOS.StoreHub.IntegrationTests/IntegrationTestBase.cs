@@ -5,6 +5,7 @@ using IndyPOS.Application.Common.Enums;
 using IndyPOS.Application.UseCases.StoreHub.Auth;
 using IndyPOS.Domain.Entities.Core;
 using IndyPOS.Infrastructure.Persistence.StoreHub;
+using IndyPOS.Infrastructure.Persistence.StoreHub.Seeders;
 using Microsoft.Extensions.DependencyInjection;
 using Npgsql;
 using Respawn;
@@ -40,6 +41,14 @@ public abstract class IntegrationTestBase : IClassFixture<StoreHubWebApplication
         await using var scope = Factory.Services.CreateAsyncScope();
         var db = scope.ServiceProvider.GetRequiredService<StoreHubDbContext>();
         await db.Database.EnsureCreatedAsync();
+
+        // Seed the payment-method catalog for the test store (mirrors production's
+        // SeedPaymentMethodsAsync). Without this, CompleteSaleCommandHandler's offerable-set
+        // check rejects every payment — including Cash — because the catalog is empty.
+        // Resolved from the same scope so it seeds under the test host's
+        // TestStoreIdentityService (StoreId "test-store"); idempotent, safe per-test.
+        var paymentMethodSeeder = scope.ServiceProvider.GetRequiredService<PaymentMethodSeeder>();
+        await paymentMethodSeeder.SeedAsync();
 
         // Initialize Respawner for database cleanup between tests
         // For PostgreSQL, we need to pass an open connection, not a connection string
