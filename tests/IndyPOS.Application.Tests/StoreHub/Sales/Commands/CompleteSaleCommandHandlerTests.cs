@@ -263,12 +263,15 @@ public class CompleteSaleCommandHandlerTests
     [CustomAutoData]
     public async Task HandleAsync_WhenPaymentMethodNotOfferable_ShouldReject(
         [Frozen] Mock<IPaymentMethodCatalogService> catalog,
-        [Frozen] Mock<ISaleRepository> saleRepository,
         CompleteSaleCommandHandler sut)
     {
         // Arrange
         var productId = Guid.NewGuid();
 
+        // "M33WeLove" is a real-but-disabled campaign code, deliberately absent from the
+        // stubbed offerable set below (only "Cash" is offerable). PayLater used to be the only
+        // rejected method under the old handler, which wouldn't discriminate this generalized
+        // catalog-membership check.
         catalog.Setup(c => c.GetOfferableAsync(It.IsAny<CancellationToken>()))
                .ReturnsAsync(OfferableWith("Cash"));
 
@@ -281,7 +284,7 @@ public class CompleteSaleCommandHandlerTests
             },
             Payments: new List<SalePaymentRequest>
             {
-                new(Method: "PayLater", Amount: 200m)
+                new(Method: "M33WeLove", Amount: 200m)
             });
 
         // Act
