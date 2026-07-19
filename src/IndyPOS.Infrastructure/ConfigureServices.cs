@@ -159,6 +159,9 @@ public static class ConfigureServices
 		// Production seeder: initial admin login from the installer wizard
 		services.AddScoped<InitialAdminSeeder>();
 
+		// Production seeder: payment method catalog (idempotent, per store)
+		services.AddScoped<PaymentMethodSeeder>();
+
 		return services;
 	}
 
