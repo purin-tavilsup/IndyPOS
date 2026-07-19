@@ -1,5 +1,6 @@
 using FluentAssertions;
 using IndyPOS.Bootstrapper.Silent;
+using IndyPOS.Domain.Enums;
 using Xunit;
 
 namespace IndyPOS.Bootstrapper.Tests.Silent;
@@ -22,6 +23,36 @@ public class SilentArgsTests
         result.Status.Should().Be(ParseStatus.Silent);
         result.Options!.StoreId.Should().Be("ABC");
         result.Options.TimeoutMinutes.Should().Be(45);
+    }
+
+    [Fact]
+    public void Parse_WithoutStoreType_ShouldDefaultToGeneralHardware()
+    {
+        var result = SilentArgs.Parse(new[] { "--silent", "--store-id", "ABC" });
+
+        result.Options!.StoreType.Should().Be(StoreType.GeneralHardware);
+    }
+
+    [Theory]
+    [InlineData("Minimart", StoreType.Minimart)]
+    [InlineData("minimart", StoreType.Minimart)]
+    [InlineData("CoffeeShop", StoreType.CoffeeShop)]
+    [InlineData("GeneralHardware", StoreType.GeneralHardware)]
+    public void Parse_WithStoreType_ShouldParseCaseInsensitively(string value, StoreType expected)
+    {
+        var result = SilentArgs.Parse(new[] { "--silent", "--store-id", "ABC", "--store-type", value });
+
+        result.Status.Should().Be(ParseStatus.Silent);
+        result.Options!.StoreType.Should().Be(expected);
+    }
+
+    [Fact]
+    public void Parse_WithBogusStoreType_ShouldReturnUsageError()
+    {
+        var result = SilentArgs.Parse(new[] { "--silent", "--store-id", "ABC", "--store-type", "Bogus" });
+
+        result.Status.Should().Be(ParseStatus.UsageError);
+        result.ErrorMessage.Should().Contain("--store-type");
     }
 
     [Fact]
@@ -48,6 +79,7 @@ public class SilentArgsTests
         new[] { "--silent", "--store-id", "A", "--timeout-minutes", "0" },
         new[] { "--silent", "--store-id", "A", "--timeout-minutes", "notanumber" },
         new[] { "--silent", "--store-id", "A", "--bogus" },
+        new[] { "--silent", "--store-id", "A", "--store-type", "Bogus" },
     };
 
     [Theory]
