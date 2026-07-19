@@ -209,6 +209,16 @@ namespace IndyPOS.Windows.Forms.UI.Payment
 				return false;
 			}
 
+			if (_saleService.IsRefundInvoice()
+				&& !string.Equals(_selectedMethodCode, PaymentMethodCodes.Cash, StringComparison.OrdinalIgnoreCase)
+				&& !string.Equals(_selectedMethodCode, PaymentMethodCodes.MoneyTransfer, StringComparison.OrdinalIgnoreCase))
+			{
+				_messageForm.BringToFront();
+				_messageForm.ShowDialog("การคืนเงินรองรับเฉพาะเงินสดหรือเงินโอนเท่านั้น กรุณาเลือกวิธีการชำระเงินใหม่", "วิธีการชำระเงินไม่ถูกต้อง");
+
+				return false;
+			}
+
 			return true;
 		}
 
