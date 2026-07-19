@@ -407,8 +407,15 @@ app.MapPost("/products", async (
     CreateProductCommand command,
     CancellationToken cancellationToken) =>
 {
-    var result = await handler.HandleAsync(command, cancellationToken);
-    return Results.Created($"/products/{result.Id}", result);
+    try
+    {
+        var result = await handler.HandleAsync(command, cancellationToken);
+        return Results.Created($"/products/{result.Id}", result);
+    }
+    catch (InvalidOperationException ex)
+    {
+        return Results.Conflict(new { error = ex.Message });
+    }
 }).RequireAuthorization("CanManageProducts");
 
 // Update product
