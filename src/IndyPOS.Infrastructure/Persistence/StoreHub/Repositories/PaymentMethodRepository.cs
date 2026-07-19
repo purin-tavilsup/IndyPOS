@@ -34,13 +34,30 @@ public class PaymentMethodRepository : IPaymentMethodRepository
 
     public async Task AddAsync(PaymentMethod method, CancellationToken cancellationToken = default)
     {
+        // Force the current store's identity — never trust the caller's StoreId.
+        method.StoreId = _storeIdentity.StoreId;
+
         _dbContext.PaymentMethods.Add(method);
         await _dbContext.SaveChangesAsync(cancellationToken);
     }
 
     public async Task UpdateAsync(PaymentMethod method, CancellationToken cancellationToken = default)
     {
-        _dbContext.PaymentMethods.Update(method);
+        var storeId = _storeIdentity.StoreId;
+
+        // Verify PaymentMethod belongs to this store
+        var existing = await _dbContext.PaymentMethods
+            .FirstOrDefaultAsync(m => m.StoreId == storeId && m.Code == method.Code, cancellationToken)
+            ?? throw new InvalidOperationException($"PaymentMethod with Code '{method.Code}' not found for store '{storeId}'");
+
+        existing.DisplayName = method.DisplayName;
+        existing.Kind = method.Kind;
+        existing.IsEnabled = method.IsEnabled;
+        existing.DisplayOrder = method.DisplayOrder;
+        existing.ValidFrom = method.ValidFrom;
+        existing.ValidTo = method.ValidTo;
+        existing.LastModifiedUtc = DateTime.UtcNow;
+
         await _dbContext.SaveChangesAsync(cancellationToken);
     }
 }
