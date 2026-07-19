@@ -56,7 +56,7 @@ public static class SilentArgs
 
                 case "--store-type":
                     if (!TryReadValue(args, ref i, inlineValue, out var storeTypeRaw)
-                        || !Enum.TryParse(storeTypeRaw, ignoreCase: true, out storeType))
+                        || !TryParseStoreTypeName(storeTypeRaw, out storeType))
                         return ParseResult.Usage(
                             "--store-type must be one of: GeneralHardware, Minimart, CoffeeShop.");
                     break;
@@ -71,6 +71,26 @@ public static class SilentArgs
             return ParseResult.Usage("--silent requires --store-id <ID>.");
 
         return ParseResult.Silent(new SilentInstallOptions(storeId, timeoutMinutes, storeType));
+    }
+
+    // Enum.TryParse<StoreType> also accepts defined underlying numeric values (e.g.
+    // "2" -> Minimart), which is not a valid --store-type token. Only accept a
+    // case-insensitive match against a defined enum NAME.
+    private static bool TryParseStoreTypeName(string? value, out StoreType storeType)
+    {
+        storeType = StoreType.GeneralHardware;
+
+        if (value is null)
+            return false;
+
+        var matchedName = Enum.GetNames<StoreType>()
+            .FirstOrDefault(n => n.Equals(value, StringComparison.OrdinalIgnoreCase));
+
+        if (matchedName is null)
+            return false;
+
+        storeType = Enum.Parse<StoreType>(matchedName);
+        return true;
     }
 
     private static string NameOf(string arg)
