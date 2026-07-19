@@ -197,4 +197,14 @@ public interface IStoreHubClient
         string displayName,
         int displayOrder,
         CancellationToken cancellationToken = default);
+
+    // ========================
+    // Store feature flags
+    // ========================
+
+    /// <summary>
+    /// Get the current store's feature flags (store-type gating).
+    /// Requires authentication.
+    /// </summary>
+    Task<StoreFeaturesDto> GetStoreFeaturesAsync(CancellationToken cancellationToken = default);
 }
