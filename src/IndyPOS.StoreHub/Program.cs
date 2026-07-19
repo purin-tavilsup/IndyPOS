@@ -14,6 +14,7 @@ using IndyPOS.Application.UseCases.StoreHub.Products.Delete;
 using IndyPOS.Application.UseCases.StoreHub.Products.GenerateBarcode;
 using IndyPOS.Application.UseCases.StoreHub.Products.Get;
 using IndyPOS.Application.UseCases.StoreHub.Products.Update;
+using IndyPOS.Application.UseCases.StoreHub.PaymentMethods;
 using IndyPOS.Application.UseCases.StoreHub.Reports;
 using IndyPOS.Application.UseCases.StoreHub.Reports.GetInvoiceDetail;
 using IndyPOS.Application.UseCases.StoreHub.Reports.GetInvoices;
@@ -98,6 +99,13 @@ builder.Services.AddTransient<ICommandHandler<DeleteProductCommand>, DeleteProdu
 builder.Services.AddTransient<ICommandHandler<AdjustProductQuantityCommand, int>, AdjustProductQuantityCommandHandler>();
 builder.Services.AddTransient<IQueryHandler<GenerateBarcodeQuery, string>, GenerateBarcodeQueryHandler>();
 
+// Payment methods handlers
+builder.Services.AddTransient<IQueryHandler<GetOfferablePaymentMethodsQuery, IReadOnlyList<PaymentMethodDto>>, GetOfferablePaymentMethodsQueryHandler>();
+builder.Services.AddTransient<IQueryHandler<GetAllPaymentMethodsQuery, IReadOnlyList<PaymentMethodDto>>, GetAllPaymentMethodsQueryHandler>();
+builder.Services.AddTransient<ICommandHandler<AddCampaignPaymentMethodCommand, PaymentMethodMutationResponse>, AddCampaignPaymentMethodCommandHandler>();
+builder.Services.AddTransient<ICommandHandler<TogglePaymentMethodCommand, PaymentMethodMutationResponse>, TogglePaymentMethodCommandHandler>();
+builder.Services.AddTransient<ICommandHandler<EditPaymentMethodDisplayCommand, PaymentMethodMutationResponse>, EditPaymentMethodDisplayCommandHandler>();
+
 // Register Report query handlers (in Infrastructure layer)
 builder.Services.AddTransient<IQueryHandler<GetSalesSummaryQuery, SalesSummaryDto>, GetSalesSummaryQueryHandler>();
 builder.Services.AddTransient<IQueryHandler<GetInvoicesQuery, PagedResult<InvoiceSummaryDto>>, GetInvoicesQueryHandler>();
@@ -157,7 +165,10 @@ builder.Services.AddAuthorizationBuilder()
               .AddRequirements(new CapabilityRequirement(Capability.ProductsManage)))
     .AddPolicy("CanAdjustInventory", policy =>
         policy.RequireAuthenticatedUser()
-              .AddRequirements(new CapabilityRequirement(Capability.InventoryAdjust)));
+              .AddRequirements(new CapabilityRequirement(Capability.InventoryAdjust)))
+    .AddPolicy("CanManagePaymentMethods", policy =>
+        policy.RequireAuthenticatedUser()
+              .AddRequirements(new CapabilityRequirement(Capability.PaymentMethodsManage)));
 
 // Add OpenAPI
 builder.Services.AddOpenApi();
@@ -175,11 +186,13 @@ if (app.Environment.IsDevelopment())
 {
     await app.EnsureStoreHubDatabaseCreatedAsync();
     await app.SeedDevelopmentDataAsync();
+    await app.SeedPaymentMethodsAsync();
 }
 else if (Array.Exists(args, a => string.Equals(a, "migrate", StringComparison.OrdinalIgnoreCase)))
 {
     await app.MigrateStoreHubDatabaseAsync();
     var seeded = await app.SeedInitialAdminAsync();
+    await app.SeedPaymentMethodsAsync();
     // Marker consumed by the bootstrapper to decide the finish-screen credential text.
     Console.WriteLine($"ADMIN_SEEDED={(seeded ? "true" : "false")}");
     return;
@@ -314,6 +327,72 @@ app.MapGet("/products", async (
     var products = await handler.HandleAsync(query, cancellationToken);
     return Results.Ok(products);
 }).RequireAuthorization("CanReadProducts");
+
+// Payment methods endpoint (offerable methods for this store)
+app.MapGet("/payment-methods", async (
+    IQueryHandler<GetOfferablePaymentMethodsQuery, IReadOnlyList<PaymentMethodDto>> handler,
+    CancellationToken cancellationToken) =>
+{
+    var methods = await handler.HandleAsync(new GetOfferablePaymentMethodsQuery(), cancellationToken);
+    return Results.Ok(methods);
+}).RequireAuthorization("CanReadProducts");
+
+// Admin: list all payment methods (enabled + disabled)
+app.MapGet("/admin/payment-methods", async (
+    IQueryHandler<GetAllPaymentMethodsQuery, IReadOnlyList<PaymentMethodDto>> handler,
+    CancellationToken cancellationToken) =>
+{
+    var methods = await handler.HandleAsync(new GetAllPaymentMethodsQuery(), cancellationToken);
+    return Results.Ok(methods);
+}).RequireAuthorization("CanManagePaymentMethods");
+
+// Admin: add a government-campaign payment method
+app.MapPost("/admin/payment-methods", async (
+    ICommandHandler<AddCampaignPaymentMethodCommand, PaymentMethodMutationResponse> handler,
+    AddCampaignPaymentMethodRequest request,
+    CancellationToken cancellationToken) =>
+{
+    try
+    {
+        var command = new AddCampaignPaymentMethodCommand(request.Code, request.DisplayName, request.DisplayOrder);
+        var result = await handler.HandleAsync(command, cancellationToken);
+        return Results.Ok(result);
+    }
+    catch (InvalidOperationException ex)
+    {
+        return Results.Conflict(new { error = ex.Message });
+    }
+}).RequireAuthorization("CanManagePaymentMethods");
+
+// Admin: toggle enabled state and/or edit display of a payment method
+app.MapPatch("/admin/payment-methods/{code}", async (
+    ICommandHandler<TogglePaymentMethodCommand, PaymentMethodMutationResponse> toggleHandler,
+    ICommandHandler<EditPaymentMethodDisplayCommand, PaymentMethodMutationResponse> editHandler,
+    string code,
+    UpdatePaymentMethodRequest request,
+    CancellationToken cancellationToken) =>
+{
+    try
+    {
+        if (request.IsEnabled is bool enabled)
+        {
+            await toggleHandler.HandleAsync(new TogglePaymentMethodCommand(code, enabled), cancellationToken);
+        }
+
+        if (request.DisplayName is not null)
+        {
+            await editHandler.HandleAsync(
+                new EditPaymentMethodDisplayCommand(code, request.DisplayName, request.DisplayOrder),
+                cancellationToken);
+        }
+
+        return Results.Ok();
+    }
+    catch (InvalidOperationException ex)
+    {
+        return Results.NotFound(new { error = ex.Message });
+    }
+}).RequireAuthorization("CanManagePaymentMethods");
 
 // Create product
 app.MapPost("/products", async (
