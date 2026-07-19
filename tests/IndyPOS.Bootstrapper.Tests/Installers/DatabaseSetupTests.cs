@@ -1,5 +1,6 @@
 using FluentAssertions;
 using IndyPOS.Bootstrapper.Installers;
+using IndyPOS.Domain.Enums;
 using IndyPOS.Vault;
 using System.Text.Json;
 
@@ -79,6 +80,33 @@ public class DatabaseSetupTests
         // a "storeIdentity:storeId" shape silently falls back to the machine name (Bug F).
         root.GetProperty("store").GetProperty("id").GetString().Should().Be("STORE-001");
         root.GetProperty("localToken").GetProperty("issuer").GetString().Should().Be("IndyPOS.StoreHub");
+    }
+
+    [Fact]
+    public void BuildStoreHubConfigJson_ShouldWriteStoreTypeDefault_WhenNotSpecified()
+    {
+        var config = new InstallationConfig { StoreId = "STORE-001", AdminPassword = "pw" };
+
+        var json = DatabaseSetup.BuildStoreHubConfigJson(config, "jwt-secret-value");
+
+        using var doc = JsonDocument.Parse(json);
+        doc.RootElement.GetProperty("store").GetProperty("type").GetString().Should().Be("GeneralHardware");
+    }
+
+    [Fact]
+    public void BuildStoreHubConfigJson_ShouldWriteStoreTypeMinimart_WhenConfigured()
+    {
+        var config = new InstallationConfig
+        {
+            StoreId = "STORE-001",
+            AdminPassword = "pw",
+            StoreType = StoreType.Minimart
+        };
+
+        var json = DatabaseSetup.BuildStoreHubConfigJson(config, "jwt-secret-value");
+
+        using var doc = JsonDocument.Parse(json);
+        doc.RootElement.GetProperty("store").GetProperty("type").GetString().Should().Be("Minimart");
     }
 
     [Fact]

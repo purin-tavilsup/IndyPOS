@@ -386,7 +386,8 @@ public class DatabaseSetup
             // so StoreIdentityService silently falls back to the machine name (Bug F).
             Store = new
             {
-                Id = config.StoreId
+                Id = config.StoreId,
+                Type = config.StoreType.ToString()
             },
             // Plaintext by design: a human-chosen bootstrap credential consumed once by
             // SeedInitialAdminAsync, then stored only as a BCrypt hash in the DB. It is not

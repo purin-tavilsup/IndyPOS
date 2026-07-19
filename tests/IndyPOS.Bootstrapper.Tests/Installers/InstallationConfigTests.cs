@@ -1,10 +1,27 @@
 using FluentAssertions;
 using IndyPOS.Bootstrapper.Installers;
+using IndyPOS.Domain.Enums;
 
 namespace IndyPOS.Bootstrapper.Tests.Installers;
 
 public class InstallationConfigTests
 {
+    [Fact]
+    public void StoreType_DefaultsTo_GeneralHardware()
+    {
+        var config = new InstallationConfig { StoreId = "STORE-001" };
+
+        config.StoreType.Should().Be(StoreType.GeneralHardware);
+    }
+
+    [Fact]
+    public void StoreType_CanBeOverridden()
+    {
+        var config = new InstallationConfig { StoreId = "STORE-001", StoreType = StoreType.Minimart };
+
+        config.StoreType.Should().Be(StoreType.Minimart);
+    }
+
     [Fact]
     public void InstallationConfig_ShouldHaveRequiredProperties()
     {
