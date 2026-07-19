@@ -210,6 +210,21 @@ public class StoreHubSaleService : ISaleService
 
     #region Payment Management
 
+    public void AddPayment(string methodCode, decimal paymentAmount, string note)
+    {
+        var payment = new Payment
+        {
+            Method = methodCode,
+            Priority = GetNextPaymentPriority(),
+            Amount = paymentAmount,
+            Note = note
+        };
+
+        Payments.Add(payment);
+        _eventAggregator.GetEvent<InvoicePaymentAddedEvent>().Publish();
+    }
+
+    [Obsolete("Use AddPayment(string methodCode, decimal, string). Enum overload retained for legacy callers until the UI migrates (Task 9b).")]
     public void AddPayment(PaymentType paymentType, decimal paymentAmount, string note)
     {
         var payment = new Payment
@@ -326,7 +341,7 @@ public class StoreHubSaleService : ISaleService
         )).ToList();
 
         var payments = Payments.Select(p => new SalePaymentRequest(
-            Method: MapPaymentType((PaymentType)p.PaymentTypeId),
+            Method: p.Method ?? MapPaymentType((PaymentType)p.PaymentTypeId),
             Amount: p.Amount,
             Note: string.IsNullOrEmpty(p.Note) ? null : p.Note
         )).ToList();
