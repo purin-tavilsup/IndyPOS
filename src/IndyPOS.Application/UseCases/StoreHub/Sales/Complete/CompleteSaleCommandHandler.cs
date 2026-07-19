@@ -2,6 +2,7 @@ using System.Text.Json;
 using IndyPOS.Application.Abstractions.StoreHub.Repositories;
 using IndyPOS.Application.Common.Interfaces;
 using IndyPOS.Application.UseCases.Cloud.Sync.Events;
+using IndyPOS.Application.UseCases.StoreHub.PaymentMethods;
 using IndyPOS.Domain.Entities.Core;
 using Microsoft.Extensions.Logging;
 using Nokpirab;
@@ -13,17 +14,20 @@ public class CompleteSaleCommandHandler : ICommandHandler<CompleteSaleCommand, C
     private readonly ISaleRepository _saleRepository;
     private readonly IProductRepository _productRepository;
     private readonly IStoreIdentityService _storeIdentity;
+    private readonly IPaymentMethodCatalogService _catalog;
     private readonly ILogger<CompleteSaleCommandHandler> _logger;
 
     public CompleteSaleCommandHandler(
         ISaleRepository saleRepository,
         IProductRepository productRepository,
         IStoreIdentityService storeIdentity,
+        IPaymentMethodCatalogService catalog,
         ILogger<CompleteSaleCommandHandler> logger)
     {
         _saleRepository = saleRepository;
         _productRepository = productRepository;
         _storeIdentity = storeIdentity;
+        _catalog = catalog;
         _logger = logger;
     }
 
@@ -35,16 +39,16 @@ public class CompleteSaleCommandHandler : ICommandHandler<CompleteSaleCommand, C
             "Processing sale: StoreId={StoreId}, UserId={UserId}, Lines={LineCount}, Payments={PaymentCount}",
             command.StoreId, command.UserId, command.Lines.Count, command.Payments.Count);
 
-        // Validate PayLater is allowed for this store type
-        var features = _storeIdentity.Features;
-        var hasPayLater = command.Payments.Any(p => p.Method.Equals("PayLater", StringComparison.OrdinalIgnoreCase));
-        if (hasPayLater && !features.PayLaterEnabled)
+        // Validate all payment methods are offerable for this store (catalog is the single source of truth)
+        var offerable = await _catalog.GetOfferableAsync(cancellationToken);
+        var offerableCodes = offerable.Select(m => m.Code).ToHashSet(StringComparer.OrdinalIgnoreCase);
+        var rejected = command.Payments.FirstOrDefault(p => !offerableCodes.Contains(p.Method));
+        if (rejected is not null)
         {
-            _logger.LogWarning(
-                "PayLater rejected: StoreType={StoreType}, UserId={UserId}",
-                _storeIdentity.StoreType, command.UserId);
+            _logger.LogWarning("Payment method rejected: Method={Method}, StoreType={StoreType}, UserId={UserId}",
+                rejected.Method, _storeIdentity.StoreType, command.UserId);
             throw new InvalidOperationException(
-                $"PayLater payment is not available for {_storeIdentity.StoreType} stores.");
+                $"Payment method '{rejected.Method}' is not available for {_storeIdentity.StoreType} stores.");
         }
 
         var now = DateTime.UtcNow;

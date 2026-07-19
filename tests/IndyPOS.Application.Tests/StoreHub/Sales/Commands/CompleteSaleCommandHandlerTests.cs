@@ -2,6 +2,7 @@ using AutoFixture.Xunit2;
 using FluentAssertions;
 using IndyPOS.Application.Abstractions.StoreHub.Repositories;
 using IndyPOS.Application.Tests.Mocks.Attributes;
+using IndyPOS.Application.UseCases.StoreHub.PaymentMethods;
 using IndyPOS.Application.UseCases.StoreHub.Sales;
 using IndyPOS.Application.UseCases.StoreHub.Sales.Complete;
 using IndyPOS.Domain.Entities.Core;
@@ -24,11 +25,23 @@ public class CompleteSaleCommandHandlerTests
         };
     }
 
+    private static List<PaymentMethod> OfferableWith(params string[] codes)
+    {
+        return codes.Select(code => new PaymentMethod
+        {
+            Code = code,
+            DisplayName = code,
+            IsEnabled = true,
+            StoreId = "STORE-001"
+        }).ToList();
+    }
+
     [Theory]
     [CustomAutoData]
     public async Task HandleAsync_ShouldCreateInvoiceWithCorrectTotal(
         [Frozen] Mock<ISaleRepository> saleRepository,
         [Frozen] Mock<IProductRepository> productRepository,
+        [Frozen] Mock<IPaymentMethodCatalogService> catalog,
         CompleteSaleCommandHandler sut)
     {
         // Arrange
@@ -37,6 +50,9 @@ public class CompleteSaleCommandHandlerTests
 
         productRepository.Setup(x => x.GetByIdAsync(productId, It.IsAny<CancellationToken>()))
                          .ReturnsAsync(product);
+
+        catalog.Setup(c => c.GetOfferableAsync(It.IsAny<CancellationToken>()))
+               .ReturnsAsync(OfferableWith("Cash"));
 
         saleRepository.Setup(x => x.CompleteSaleAsync(
                 It.IsAny<Invoice>(),
@@ -73,6 +89,7 @@ public class CompleteSaleCommandHandlerTests
     public async Task HandleAsync_ShouldCreateInventoryMovementsForEachLine(
         [Frozen] Mock<ISaleRepository> saleRepository,
         [Frozen] Mock<IProductRepository> productRepository,
+        [Frozen] Mock<IPaymentMethodCatalogService> catalog,
         CompleteSaleCommandHandler sut)
     {
         // Arrange
@@ -83,6 +100,9 @@ public class CompleteSaleCommandHandlerTests
                          .ReturnsAsync(CreateTestProduct(product1Id));
         productRepository.Setup(x => x.GetByIdAsync(product2Id, It.IsAny<CancellationToken>()))
                          .ReturnsAsync(CreateTestProduct(product2Id));
+
+        catalog.Setup(c => c.GetOfferableAsync(It.IsAny<CancellationToken>()))
+               .ReturnsAsync(OfferableWith("Cash"));
 
         IReadOnlyList<InventoryMovement>? capturedMovements = null;
         saleRepository.Setup(x => x.CompleteSaleAsync(
@@ -129,12 +149,16 @@ public class CompleteSaleCommandHandlerTests
     public async Task HandleAsync_ShouldCreateOutboxEvent(
         [Frozen] Mock<ISaleRepository> saleRepository,
         [Frozen] Mock<IProductRepository> productRepository,
+        [Frozen] Mock<IPaymentMethodCatalogService> catalog,
         CompleteSaleCommandHandler sut)
     {
         // Arrange
         var productId = Guid.NewGuid();
         productRepository.Setup(x => x.GetByIdAsync(productId, It.IsAny<CancellationToken>()))
                          .ReturnsAsync(CreateTestProduct(productId));
+
+        catalog.Setup(c => c.GetOfferableAsync(It.IsAny<CancellationToken>()))
+               .ReturnsAsync(OfferableWith("Cash"));
 
         OutboxEvent? capturedOutbox = null;
         saleRepository.Setup(x => x.CompleteSaleAsync(
@@ -180,6 +204,7 @@ public class CompleteSaleCommandHandlerTests
     public async Task HandleAsync_ShouldSnapshotProductName(
         [Frozen] Mock<ISaleRepository> saleRepository,
         [Frozen] Mock<IProductRepository> productRepository,
+        [Frozen] Mock<IPaymentMethodCatalogService> catalog,
         CompleteSaleCommandHandler sut)
     {
         // Arrange
@@ -194,6 +219,9 @@ public class CompleteSaleCommandHandlerTests
 
         productRepository.Setup(x => x.GetByIdAsync(productId, It.IsAny<CancellationToken>()))
                          .ReturnsAsync(product);
+
+        catalog.Setup(c => c.GetOfferableAsync(It.IsAny<CancellationToken>()))
+               .ReturnsAsync(OfferableWith("Cash"));
 
         IReadOnlyList<InvoiceLine>? capturedLines = null;
         saleRepository.Setup(x => x.CompleteSaleAsync(
@@ -229,5 +257,87 @@ public class CompleteSaleCommandHandlerTests
         // Assert
         capturedLines.Should().NotBeNull();
         capturedLines![0].ProductName.Should().Be("Special Product Name");
+    }
+
+    [Theory]
+    [CustomAutoData]
+    public async Task HandleAsync_WhenPaymentMethodNotOfferable_ShouldReject(
+        [Frozen] Mock<IPaymentMethodCatalogService> catalog,
+        CompleteSaleCommandHandler sut)
+    {
+        // Arrange
+        var productId = Guid.NewGuid();
+
+        // "M33WeLove" is a real-but-disabled campaign code, deliberately absent from the
+        // stubbed offerable set below (only "Cash" is offerable). PayLater used to be the only
+        // rejected method under the old handler, which wouldn't discriminate this generalized
+        // catalog-membership check.
+        catalog.Setup(c => c.GetOfferableAsync(It.IsAny<CancellationToken>()))
+               .ReturnsAsync(OfferableWith("Cash"));
+
+        var command = new CompleteSaleCommand(
+            StoreId: "STORE-001",
+            UserId: Guid.NewGuid(),
+            Lines: new List<SaleLineRequest>
+            {
+                new(ProductId: productId, Quantity: 2, UnitPrice: 100m)
+            },
+            Payments: new List<SalePaymentRequest>
+            {
+                new(Method: "M33WeLove", Amount: 200m)
+            });
+
+        // Act
+        var act = () => sut.HandleAsync(command);
+
+        // Assert
+        await act.Should().ThrowAsync<InvalidOperationException>();
+    }
+
+    [Theory]
+    [CustomAutoData]
+    public async Task HandleAsync_WhenAllPaymentMethodsOfferable_ShouldComplete(
+        [Frozen] Mock<IPaymentMethodCatalogService> catalog,
+        [Frozen] Mock<ISaleRepository> saleRepository,
+        [Frozen] Mock<IProductRepository> productRepository,
+        CompleteSaleCommandHandler sut)
+    {
+        // Arrange
+        var productId = Guid.NewGuid();
+        var product = CreateTestProduct(productId);
+
+        productRepository.Setup(x => x.GetByIdAsync(productId, It.IsAny<CancellationToken>()))
+                         .ReturnsAsync(product);
+
+        catalog.Setup(c => c.GetOfferableAsync(It.IsAny<CancellationToken>()))
+               .ReturnsAsync(OfferableWith("Cash"));
+
+        saleRepository.Setup(x => x.CompleteSaleAsync(
+                It.IsAny<Invoice>(),
+                It.IsAny<IReadOnlyList<InvoiceLine>>(),
+                It.IsAny<IReadOnlyList<Payment>>(),
+                It.IsAny<IReadOnlyList<InventoryMovement>>(),
+                It.IsAny<OutboxEvent>(),
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync((Invoice inv, IReadOnlyList<InvoiceLine> _, IReadOnlyList<Payment> _,
+                IReadOnlyList<InventoryMovement> _, OutboxEvent _, CancellationToken _) => inv);
+
+        var command = new CompleteSaleCommand(
+            StoreId: "STORE-001",
+            UserId: Guid.NewGuid(),
+            Lines: new List<SaleLineRequest>
+            {
+                new(ProductId: productId, Quantity: 2, UnitPrice: 100m)
+            },
+            Payments: new List<SalePaymentRequest>
+            {
+                new(Method: "Cash", Amount: 200m)
+            });
+
+        // Act
+        var result = await sut.HandleAsync(command);
+
+        // Assert
+        result.Should().NotBeNull();
     }
 }

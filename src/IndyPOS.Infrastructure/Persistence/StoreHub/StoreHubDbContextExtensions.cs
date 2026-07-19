@@ -53,6 +53,18 @@ public static class StoreHubDbContextExtensions
     }
 
     /// <summary>
+    /// Seeds the known payment methods for this store (Cash, MoneyTransfer,
+    /// WelfareCard, PayLater, and dead government campaigns disabled).
+    /// Idempotent — safe to run on every start.
+    /// </summary>
+    public static async Task SeedPaymentMethodsAsync(this IHost app)
+    {
+        using var scope = app.Services.CreateScope();
+        var seeder = scope.ServiceProvider.GetRequiredService<PaymentMethodSeeder>();
+        await seeder.SeedAsync();
+    }
+
+    /// <summary>
     /// Recovery entry point for the "reset-admin" CLI: generates a fresh random
     /// password, (re)sets the admin with must-change, and returns the password
     /// so the caller can print it once.

@@ -13,16 +13,19 @@ public partial class SettingsPanel : UserControl
     private readonly IEventAggregator _eventAggregator;
     private readonly IRawInputDeviceService _rawInputDeviceService;
 	private readonly ICashDrawerService _cashDrawerService;
+	private readonly PaymentMethodsSettingsForm _paymentMethodsSettingsForm;
 
     public SettingsPanel(IStoreConfigurationService storeConfigurationService,
                          IEventAggregator eventAggregator,
-                         IRawInputDeviceService rawInputDeviceService, 
-						 ICashDrawerService cashDrawerService)
+                         IRawInputDeviceService rawInputDeviceService,
+						 ICashDrawerService cashDrawerService,
+						 PaymentMethodsSettingsForm paymentMethodsSettingsForm)
     {
         _storeConfigurationService = storeConfigurationService;
         _eventAggregator = eventAggregator;
         _rawInputDeviceService = rawInputDeviceService;
 		_cashDrawerService = cashDrawerService;
+		_paymentMethodsSettingsForm = paymentMethodsSettingsForm;
 
 		InitializeComponent();
         SubscribeEvents();
@@ -124,5 +127,10 @@ public partial class SettingsPanel : UserControl
 
         _cashDrawerService.Configure(serialPortName, code);
         _cashDrawerService.OpenCashDrawer();
+    }
+
+    private async void ManagePaymentMethodsButton_Click(object sender, EventArgs e)
+    {
+        await _paymentMethodsSettingsForm.ShowDialog();
     }
 }

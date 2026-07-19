@@ -41,6 +41,7 @@ public static class RoleCapabilities
             Capability.UsersUpdate,
             Capability.UsersDeactivate,
             Capability.ReportsView,
+            Capability.PaymentMethodsManage,
         ]
     };
 
