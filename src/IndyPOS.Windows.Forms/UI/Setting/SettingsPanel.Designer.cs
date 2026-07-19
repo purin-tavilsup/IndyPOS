@@ -58,10 +58,14 @@
             label12 = new Label();
             label13 = new Label();
             CashDrawerPortTextBox = new ModernUI.ModernTextBox();
+            panel6 = new Panel();
+            label15 = new Label();
+            ManagePaymentMethodsButton = new ModernUI.ModernButton();
             panel1.SuspendLayout();
             panel2.SuspendLayout();
             panel3.SuspendLayout();
             panel5.SuspendLayout();
+            panel6.SuspendLayout();
             SuspendLayout();
             // 
             // StoreNameTextBox
@@ -541,12 +545,56 @@
             CashDrawerPortTextBox.TextAlign = HorizontalAlignment.Center;
             CashDrawerPortTextBox.Texts = "COM1";
             CashDrawerPortTextBox.UnderlinedStyle = true;
-            // 
+            //
+            // panel6
+            //
+            panel6.BackColor = Color.FromArgb(38, 38, 38);
+            panel6.Controls.Add(ManagePaymentMethodsButton);
+            panel6.Controls.Add(label15);
+            panel6.Location = new Point(618, 338);
+            panel6.Name = "panel6";
+            panel6.Size = new Size(269, 136);
+            panel6.TabIndex = 88;
+            //
+            // label15
+            //
+            label15.BackColor = Color.FromArgb(38, 38, 38);
+            label15.Dock = DockStyle.Top;
+            label15.Font = new Font("FC Subject [Non-commercial] Reg", 12F);
+            label15.ForeColor = Color.Gainsboro;
+            label15.Location = new Point(0, 0);
+            label15.Name = "label15";
+            label15.Size = new Size(269, 39);
+            label15.TabIndex = 84;
+            label15.Text = "วิธีการชำระเงิน";
+            label15.TextAlign = ContentAlignment.MiddleCenter;
+            //
+            // ManagePaymentMethodsButton
+            //
+            ManagePaymentMethodsButton.BackColor = Color.FromArgb(38, 38, 38);
+            ManagePaymentMethodsButton.BackgroundColor = Color.FromArgb(38, 38, 38);
+            ManagePaymentMethodsButton.BorderColor = Color.FromArgb(37, 182, 210);
+            ManagePaymentMethodsButton.BorderRadius = 18;
+            ManagePaymentMethodsButton.BorderSize = 1;
+            ManagePaymentMethodsButton.FlatAppearance.BorderSize = 0;
+            ManagePaymentMethodsButton.FlatStyle = FlatStyle.Flat;
+            ManagePaymentMethodsButton.Font = new Font("FC Subject [Non-commercial] Reg", 12F, FontStyle.Regular, GraphicsUnit.Point, 0);
+            ManagePaymentMethodsButton.ForeColor = Color.White;
+            ManagePaymentMethodsButton.Location = new Point(17, 51);
+            ManagePaymentMethodsButton.Name = "ManagePaymentMethodsButton";
+            ManagePaymentMethodsButton.Size = new Size(233, 51);
+            ManagePaymentMethodsButton.TabIndex = 87;
+            ManagePaymentMethodsButton.Text = "จัดการวิธีการชำระเงิน";
+            ManagePaymentMethodsButton.TextColor = Color.White;
+            ManagePaymentMethodsButton.UseVisualStyleBackColor = false;
+            ManagePaymentMethodsButton.Click += ManagePaymentMethodsButton_Click;
+            //
             // SettingsPanel
-            // 
+            //
             AutoScaleDimensions = new SizeF(6F, 13F);
             AutoScaleMode = AutoScaleMode.Font;
             BackColor = Color.FromArgb(30, 30, 30);
+            Controls.Add(panel6);
             Controls.Add(panel5);
             Controls.Add(panel3);
             Controls.Add(SaveSettingsButton);
@@ -559,6 +607,7 @@
             panel2.ResumeLayout(false);
             panel3.ResumeLayout(false);
             panel5.ResumeLayout(false);
+            panel6.ResumeLayout(false);
             ResumeLayout(false);
         }
 
@@ -594,5 +643,8 @@
         private Label label13;
         private ModernUI.ModernTextBox CashDrawerPortTextBox;
         private ModernUI.ModernButton CashDrawerButton;
+        private Panel panel6;
+        private Label label15;
+        private ModernUI.ModernButton ManagePaymentMethodsButton;
     }
 }
