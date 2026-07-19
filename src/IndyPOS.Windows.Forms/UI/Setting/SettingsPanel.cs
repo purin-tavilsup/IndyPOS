@@ -14,6 +14,7 @@ public partial class SettingsPanel : UserControl
     private readonly IRawInputDeviceService _rawInputDeviceService;
 	private readonly ICashDrawerService _cashDrawerService;
 	private readonly PaymentMethodsSettingsForm _paymentMethodsSettingsForm;
+	private ILoggedInUser? _loggedInUser;
 
     public SettingsPanel(IStoreConfigurationService storeConfigurationService,
                          IEventAggregator eventAggregator,
@@ -34,6 +35,20 @@ public partial class SettingsPanel : UserControl
     private void SubscribeEvents()
     {
         _eventAggregator.GetEvent<RawInputDeviceNameReceivedEvent>().Subscribe(RawInputDeviceNameReceived);
+        _eventAggregator.GetEvent<UserLoggedInEvent>().Subscribe(OnUserLoggedIn);
+        _eventAggregator.GetEvent<UserLoggedOutEvent>().Subscribe(OnUserLoggedOut);
+    }
+
+    private void OnUserLoggedIn(ILoggedInUser loggedInUser)
+    {
+        _loggedInUser = loggedInUser;
+        ManagePaymentMethodsButton.Visible = _loggedInUser.RoleId == (int)UserRole.SystemAdmin;
+    }
+
+    private void OnUserLoggedOut()
+    {
+        _loggedInUser = null;
+        ManagePaymentMethodsButton.Visible = false;
     }
 
     private async Task LoadSettingsAsync()
