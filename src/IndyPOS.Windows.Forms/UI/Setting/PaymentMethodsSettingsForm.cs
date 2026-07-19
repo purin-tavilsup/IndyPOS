@@ -170,6 +170,13 @@ public partial class PaymentMethodsSettingsForm : Form
 
             await LoadPaymentMethodsAsync();
         }
+        catch (Exception ex)
+        {
+            _messageForm.BringToFront();
+            _messageForm.ShowDialog($"เกิดข้อผิดพลาดที่ไม่คาดคิด Error: {ex.Message}", "เกิดข้อผิดพลาด");
+
+            await LoadPaymentMethodsAsync();
+        }
     }
 
     private async void PaymentMethodsGrid_CellContentClick(object? sender, DataGridViewCellEventArgs e)
@@ -213,6 +220,11 @@ public partial class PaymentMethodsSettingsForm : Form
             _messageForm.BringToFront();
             _messageForm.ShowDialog($"ไม่สามารถบันทึกข้อมูลได้ Error: {ex.Message}", "เกิดข้อผิดพลาด");
         }
+        catch (Exception ex)
+        {
+            _messageForm.BringToFront();
+            _messageForm.ShowDialog($"เกิดข้อผิดพลาดที่ไม่คาดคิด Error: {ex.Message}", "เกิดข้อผิดพลาด");
+        }
     }
 
     private async void AddCampaignButton_Click(object sender, EventArgs e)
@@ -251,6 +263,11 @@ public partial class PaymentMethodsSettingsForm : Form
         {
             _messageForm.BringToFront();
             _messageForm.ShowDialog($"ไม่สามารถเพิ่มวิธีการชำระเงินได้ Error: {ex.Message}", "เกิดข้อผิดพลาด");
+        }
+        catch (Exception ex)
+        {
+            _messageForm.BringToFront();
+            _messageForm.ShowDialog($"เกิดข้อผิดพลาดที่ไม่คาดคิด Error: {ex.Message}", "เกิดข้อผิดพลาด");
         }
     }
 
