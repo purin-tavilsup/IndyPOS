@@ -382,7 +382,7 @@ app.MapPatch("/admin/payment-methods/{code}", async (
         if (request.DisplayName is not null)
         {
             await editHandler.HandleAsync(
-                new EditPaymentMethodDisplayCommand(code, request.DisplayName, request.DisplayOrder ?? 0),
+                new EditPaymentMethodDisplayCommand(code, request.DisplayName, request.DisplayOrder),
                 cancellationToken);
         }
 
