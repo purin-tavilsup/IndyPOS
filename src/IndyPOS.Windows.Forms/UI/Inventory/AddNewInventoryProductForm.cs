@@ -1,4 +1,6 @@
-﻿using IndyPOS.Application.Common.Interfaces;
+﻿using IndyPOS.Application.Abstractions.StoreHub;
+using IndyPOS.Application.Common.Enums;
+using IndyPOS.Application.Common.Interfaces;
 using System.Diagnostics.CodeAnalysis;
 
 namespace IndyPOS.Windows.Forms.UI.Inventory;
@@ -7,23 +9,26 @@ namespace IndyPOS.Windows.Forms.UI.Inventory;
 public partial class AddNewInventoryProductForm : Form
 {
 	private readonly IInventoryProductService _inventoryProductService;
+	private readonly IStoreHubClient _storeHubClient;
 	private readonly IReadOnlyDictionary<int, string> _productCategoryDictionary;
 	private readonly MessageForm _messageForm;
 
 	public AddNewInventoryProductForm(IStoreConstants storeConstants,
 									  MessageForm messageForm,
-									  IInventoryProductService inventoryProductService)
+									  IInventoryProductService inventoryProductService,
+									  IStoreHubClient storeHubClient)
 	{
 		_productCategoryDictionary = storeConstants.ProductCategories;
 		_messageForm = messageForm;
 		_inventoryProductService = inventoryProductService;
+		_storeHubClient = storeHubClient;
 
 		InitializeComponent();
-		InitializeProductCategories();
 	}
 
-	public void ShowDialog(string? productBarcode = null)
+	public async Task ShowDialog(string? productBarcode = null)
 	{
+		await PopulateProductCategoryComboBoxAsync();
 		ResetProductEntry();
 
 		if (string.IsNullOrWhiteSpace(productBarcode))
@@ -111,12 +116,19 @@ public partial class AddNewInventoryProductForm : Form
 		return true;
 	}
 
-	private void InitializeProductCategories()
+	private async Task PopulateProductCategoryComboBoxAsync()
 	{
+		bool multipleTypes = true;
+		try { multipleTypes = (await _storeHubClient.GetStoreFeaturesAsync()).MultipleProductTypesEnabled; }
+		catch { /* on failure, fall back to showing all categories; server still guards creation */ }
+
 		CategoryComboBox.Items.Clear();
 
 		foreach (var item in _productCategoryDictionary)
 		{
+			if (!multipleTypes && item.Key == (int)ProductCategory.Hardware)
+				continue; // Hardware hidden on general-only stores
+
 			CategoryComboBox.Items.Add(item.Value);
 		}
 	}
