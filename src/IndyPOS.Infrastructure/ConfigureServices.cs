@@ -67,7 +67,8 @@ public static class ConfigureServices
 		        .AddScoped<IOutboxRepository, OutboxRepository>()
 		        .AddScoped<IInventoryMovementRepository, InventoryMovementRepository>()
 		        .AddScoped<IStoreSettingRepository, StoreSettingRepository>()
-		        .AddScoped<IPayLaterRepository, IndyPOS.Infrastructure.Persistence.StoreHub.Repositories.PayLaterRepository>();
+		        .AddScoped<IPayLaterRepository, IndyPOS.Infrastructure.Persistence.StoreHub.Repositories.PayLaterRepository>()
+		        .AddScoped<IPaymentMethodRepository, PaymentMethodRepository>();
 
 		// SyncWorker configuration
 		services.Configure<SyncWorkerOptions>(configuration.GetSection(SyncWorkerOptions.SectionName));
