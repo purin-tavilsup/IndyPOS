@@ -1,6 +1,9 @@
+using IndyPOS.Domain.Enums;
+
 namespace IndyPOS.Bootstrapper.Silent;
 
-public sealed record SilentInstallOptions(string StoreId, int TimeoutMinutes);
+public sealed record SilentInstallOptions(
+    string StoreId, int TimeoutMinutes, StoreType StoreType = StoreType.GeneralHardware);
 
 public enum ParseStatus { Silent, NotSilent, UsageError }
 
@@ -27,6 +30,7 @@ public static class SilentArgs
 
         string? storeId = null;
         var timeoutMinutes = DefaultTimeoutMinutes;
+        var storeType = StoreType.GeneralHardware;
 
         for (var i = 0; i < args.Length; i++)
         {
@@ -50,6 +54,13 @@ public static class SilentArgs
                         return ParseResult.Usage("--timeout-minutes requires a positive integer.");
                     break;
 
+                case "--store-type":
+                    if (!TryReadValue(args, ref i, inlineValue, out var storeTypeRaw)
+                        || !Enum.TryParse(storeTypeRaw, ignoreCase: true, out storeType))
+                        return ParseResult.Usage(
+                            "--store-type must be one of: GeneralHardware, Minimart, CoffeeShop.");
+                    break;
+
                 default:
                     return ParseResult.Usage($"Unknown argument: {args[i]}");
             }
@@ -59,7 +70,7 @@ public static class SilentArgs
         if (string.IsNullOrWhiteSpace(storeId))
             return ParseResult.Usage("--silent requires --store-id <ID>.");
 
-        return ParseResult.Silent(new SilentInstallOptions(storeId, timeoutMinutes));
+        return ParseResult.Silent(new SilentInstallOptions(storeId, timeoutMinutes, storeType));
     }
 
     private static string NameOf(string arg)
