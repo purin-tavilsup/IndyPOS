@@ -180,6 +180,7 @@ else if (Array.Exists(args, a => string.Equals(a, "migrate", StringComparison.Or
 {
     await app.MigrateStoreHubDatabaseAsync();
     var seeded = await app.SeedInitialAdminAsync();
+    await app.SeedPaymentMethodsAsync();
     // Marker consumed by the bootstrapper to decide the finish-screen credential text.
     Console.WriteLine($"ADMIN_SEEDED={(seeded ? "true" : "false")}");
     return;
