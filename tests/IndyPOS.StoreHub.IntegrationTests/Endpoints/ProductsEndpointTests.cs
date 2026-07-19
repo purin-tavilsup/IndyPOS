@@ -189,7 +189,7 @@ public class ProductsEndpointTests : IntegrationTestBase
     }
 
     [Fact]
-    public async Task UpdateProduct_NonExistent_ThrowsError()
+    public async Task UpdateProduct_NonExistent_ReturnsConflict()
     {
         // Arrange
         await AuthenticateAsManagerAsync();
@@ -203,12 +203,18 @@ public class ProductsEndpointTests : IntegrationTestBase
             UnitPrice = 1m
         };
 
-        // Act & Assert
-        // API throws InvalidOperationException for non-existent product
-        // TODO: Improve API to return proper 404 NotFound instead of throwing
-        var act = async () => await Client.PutAsJsonAsync($"/products/{nonExistentId}", command);
-        await act.Should().ThrowAsync<InvalidOperationException>()
-            .WithMessage("*not found*");
+        // Act
+        var response = await Client.PutAsJsonAsync($"/products/{nonExistentId}", command);
+
+        // Assert
+        // InvalidOperationException from the handler is mapped to 409 Conflict
+        // (not an unhandled 500 Internal Server Error).
+        // TODO: Improve API to return proper 404 NotFound instead of a coarse Conflict.
+        response.StatusCode.Should().Be(HttpStatusCode.Conflict);
+
+        var body = await response.Content.ReadFromJsonAsync<ErrorResponse>(JsonOptions);
+        body.Should().NotBeNull();
+        body!.Error.Should().Contain("not found");
     }
 
     [Fact]
