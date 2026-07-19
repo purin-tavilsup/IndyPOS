@@ -6,12 +6,26 @@
 
 | Field | Value |
 |-------|-------|
-| **Branch** | `development` @ `405e007` (pushed to origin). Feature/cleanup branches merged + deleted. |
+| **Branch** | `development` @ `202f48d` (pushed to origin). Feature/cleanup branches merged + deleted. |
 | **Sprint** | Sprint 7 |
-| **Phase** | ✅ **Epic M — data-driven payment methods + store-type gating: SHIPPED + VM-VALIDATED (2026-07-19).** 12 tasks (subagent-driven), final review passed, cleanup + test-fix + seeder-term-fix landed. Installer rebuilt; VM clean-install 18/18 + live-UI smoke confirmed. |
-| **Blocked?** | Not blocked. Merged + pushed to `origin/development`. Only cosmetic Minors + deferred follow-up specs remain. |
+| **Phase** | ✅ **Epic M (data-driven payment methods) SHIPPED + VM-VALIDATED**, and ✅ **Product-type restriction by store type SHIPPED (2026-07-19)** — both merged to `development`. |
+| **Blocked?** | Not blocked. Merged + pushed to `origin/development`. Only cosmetic Minors + a live Minimart VM smoke remain. |
 
-## ⏯️ RESUME HERE (2026-07-19) — Epic M "data-driven payment methods": SHIPPED + VM-VALIDATED ✅
+## ⏯️ RESUME HERE (2026-07-19) — Product-type restriction by store type: SHIPPED ✅
+
+**State:** Merged to `origin/development` @ `202f48d`. Enforces `StoreTypeFeatures.MultipleProductTypesEnabled` → **Minimart = General Goods only**; GeneralHardware unchanged. 7 tasks via subagent-driven-development (per-task TDD + review) → final whole-branch review (1 Important closed: the update path was initially unguarded). Spec: `docs/superpowers/specs/2026-07-19-product-type-restriction-design.md`; plan: `docs/superpowers/plans/2026-07-19-product-type-restriction.md`. Ledger: `.superpowers/sdd/progress.md`.
+
+**What shipped:** new `GET /store/features` endpoint; `CreateProduct` + `UpdateProduct` handlers reject Hardware on general-only stores (server = real boundary; independent of the UI); `/products` POST+PUT map `InvalidOperationException` → 409 Conflict; WinForms hides the Add Hardware button (SalePanel) and drops Hardware from the product create/update category pickers; WinForms fails OPEN on a features-fetch error (server still guards). **CoffeeShop = future separate app** (Pond's call — made-to-order + add-ons don't fit barcode retail); supported store types = **GeneralHardware + Minimart**. No Domain changes (the flag pre-existed).
+
+**Test state:** Domain 8/8, Application 265/265, StoreHub integration 64/64 (real Postgres via Docker), Release build 0 err.
+
+**Remaining (none blocking):**
+- **Live Minimart VM smoke** (owed — no WinForms UI harness): `IndyPOS-Setup.exe --silent --store-id <ID> --store-type Minimart`, then confirm the sale screen shows no Add Hardware button and product create/update category pickers offer only General Goods; a GeneralHardware install still shows both. Do this alongside the Epic M smoke.
+- **Minor follow-ups (ledger):** stale Hardware category text if editing a legacy Hardware product on a general-only store (cosmetic; server still blocks persist); not-found on `/products` PUT returns 409 not 404 (coarse, TODO-noted); `SalePanel` features-fetch error dialog re-fires per Sales visit on sustained outage.
+
+---
+
+## ⏯️ Earlier checkpoint (2026-07-19) — Epic M "data-driven payment methods": SHIPPED + VM-VALIDATED ✅
 
 **State:** Fully done and on `origin/development` @ `405e007`. 12 tasks via subagent-driven-development (per-task TDD + review) → final whole-branch review (2 Important fixed) → merged. Then landed on `development`: cleanup batch (6 Minors), `MustChangeGateTests` isolation fix (integration suite now **62/62**), and PayLater seeder term → `ลงบัญชี`. Installer rebuilt (`publish/IndyPOS-Setup.exe`, embeds Epic M).
 
