@@ -431,8 +431,15 @@ app.MapPut("/products/{id:guid}", async (
         return Results.BadRequest("Product ID in URL does not match body");
     }
 
-    var result = await handler.HandleAsync(command, cancellationToken);
-    return Results.Ok(result);
+    try
+    {
+        var result = await handler.HandleAsync(command, cancellationToken);
+        return Results.Ok(result);
+    }
+    catch (InvalidOperationException ex)
+    {
+        return Results.Conflict(new { error = ex.Message });
+    }
 }).RequireAuthorization("CanManageProducts");
 
 // Delete product (soft delete)
