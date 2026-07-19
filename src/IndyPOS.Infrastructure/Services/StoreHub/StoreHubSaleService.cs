@@ -1,5 +1,4 @@
 using IndyPOS.Application.Abstractions.StoreHub;
-using IndyPOS.Application.Common.Enums;
 using IndyPOS.Application.Common.Exceptions;
 using IndyPOS.Application.Common.Extensions;
 using IndyPOS.Application.Common.Interfaces;
@@ -224,21 +223,6 @@ public class StoreHubSaleService : ISaleService
         _eventAggregator.GetEvent<InvoicePaymentAddedEvent>().Publish();
     }
 
-    [Obsolete("Use AddPayment(string methodCode, decimal, string). Enum overload retained for legacy callers until the UI migrates (Task 9b).")]
-    public void AddPayment(PaymentType paymentType, decimal paymentAmount, string note)
-    {
-        var payment = new Payment
-        {
-            PaymentTypeId = (int)paymentType,
-            Priority = GetNextPaymentPriority(),
-            Amount = paymentAmount,
-            Note = note
-        };
-
-        Payments.Add(payment);
-        _eventAggregator.GetEvent<InvoicePaymentAddedEvent>().Publish();
-    }
-
     #endregion
 
     #region Calculations
@@ -341,7 +325,7 @@ public class StoreHubSaleService : ISaleService
         )).ToList();
 
         var payments = Payments.Select(p => new SalePaymentRequest(
-            Method: p.Method ?? MapPaymentType((PaymentType)p.PaymentTypeId),
+            Method: p.Method ?? throw new InvalidOperationException($"Payment has no method code (priority {p.Priority})"),
             Amount: p.Amount,
             Note: string.IsNullOrEmpty(p.Note) ? null : p.Note
         )).ToList();
@@ -351,18 +335,6 @@ public class StoreHubSaleService : ISaleService
             Lines: lines,
             Payments: payments);
     }
-
-    private static string MapPaymentType(PaymentType paymentType) => paymentType switch
-    {
-        PaymentType.Cash => "Cash",
-        PaymentType.PayLater => "PayLater",
-        PaymentType.WelfareCard => "WelfareCard",
-        PaymentType.M33WeLove => "M33WeLove",
-        PaymentType.MoneyTransfer => "Transfer",
-        PaymentType.FiftyFifty => "FiftyFifty",
-        PaymentType.WeWin => "WeWin",
-        _ => paymentType.ToString()
-    };
 
     private IInvoiceInfo CreateInvoiceInfo(CompleteSaleResponse response)
     {

@@ -1,5 +1,4 @@
-﻿using IndyPOS.Application.Common.Enums;
-using IndyPOS.Application.Common.Models;
+﻿using IndyPOS.Application.Common.Models;
 using IndyPOS.Application.UseCases.InventoryProducts;
 
 namespace IndyPOS.Application.Common.Interfaces;
@@ -41,9 +40,6 @@ public interface ISaleService
 	void RemoveProduct(Product product);
 
 	void AddPayment(string methodCode, decimal paymentAmount, string note);
-
-	[Obsolete("Use AddPayment(string methodCode, decimal, string). Enum overload retained for legacy callers until the UI migrates (Task 9b).")]
-	void AddPayment(PaymentType paymentType, decimal paymentAmount, string note);
 
 	Task UpdateProductQuantityAsync(Guid productId, int priority, int quantity);
 
