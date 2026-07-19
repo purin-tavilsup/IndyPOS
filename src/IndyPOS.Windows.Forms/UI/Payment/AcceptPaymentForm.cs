@@ -1,6 +1,8 @@
-﻿using IndyPOS.Application.Common.Enums;
+﻿using IndyPOS.Application.Abstractions.StoreHub;
+using IndyPOS.Application.Common.Constants;
 using IndyPOS.Application.Common.Extensions;
 using IndyPOS.Application.Common.Interfaces;
+using IndyPOS.Application.UseCases.StoreHub.PaymentMethods;
 using System.Diagnostics.CodeAnalysis;
 
 namespace IndyPOS.Windows.Forms.UI.Payment
@@ -9,39 +11,62 @@ namespace IndyPOS.Windows.Forms.UI.Payment
 	public partial class AcceptPaymentForm : Form
     {
         private readonly ISaleService _saleService;
+        private readonly IStoreHubClient _storeHubClient;
         private readonly IList<decimal> _values;
 		private readonly MessageForm _messageForm;
-        private readonly IReadOnlyDictionary<int, string> _paymentTypeDictionary;
-        private PaymentType _selectedPaymentType;
+        private readonly List<Button> _paymentMethodButtons;
+        private IReadOnlyList<PaymentMethodDto> _offerableMethods;
+        private string _selectedMethodCode;
         private bool _isPaymentTypeSelected;
         private decimal _amount;
         private string _pendingStringValue;
-		
-        public AcceptPaymentForm(IStoreConstants storeConstants,
-								 ISaleService saleService,
+
+        public AcceptPaymentForm(ISaleService saleService,
+								 IStoreHubClient storeHubClient,
 								 MessageForm messageForm)
         {
 			_saleService = saleService;
-            _paymentTypeDictionary = storeConstants.PaymentTypes;
+            _storeHubClient = storeHubClient;
 			_messageForm = messageForm;
 
             InitializeComponent();
 
 			_pendingStringValue = string.Empty;
             _values = new List<decimal>();
+            _paymentMethodButtons = new List<Button>();
+            _offerableMethods = Array.Empty<PaymentMethodDto>();
+            _selectedMethodCode = string.Empty;
         }
 
         private void ResetPaymentTypeSelection()
 		{
-            // Default to cash
-            _selectedPaymentType = PaymentType.Cash;
-            _isPaymentTypeSelected = true;
+            // Default to Cash if offered, otherwise the first method by DisplayOrder.
+            var defaultMethod = _offerableMethods
+                                .FirstOrDefault(m => string.Equals(m.Code, PaymentMethodCodes.Cash, StringComparison.OrdinalIgnoreCase))
+                                ?? _offerableMethods.OrderBy(m => m.DisplayOrder).FirstOrDefault();
 
-            PaymentTypeLabel.Text = _paymentTypeDictionary[(int)_selectedPaymentType];
+            if (defaultMethod is null)
+                return;
+
+            ChangePaymentType(defaultMethod.Code);
         }
 
-        public new void ShowDialog()
+        public new async Task ShowDialog()
         {
+            try
+            {
+                _offerableMethods = await _storeHubClient.GetOfferablePaymentMethodsAsync();
+            }
+            catch (Exception ex)
+            {
+                _messageForm.BringToFront();
+                _messageForm.ShowDialog($"ไม่สามารถโหลดวิธีการชำระเงินได้ Error: {ex.Message}", "เกิดความผิดพลาด");
+
+                return;
+            }
+
+            BuildPaymentMethodButtons();
+
             _pendingStringValue = string.Empty;
             _values.Clear();
 			NoteTextBox.Texts = string.Empty;
@@ -62,8 +87,61 @@ namespace IndyPOS.Windows.Forms.UI.Payment
 			{
 				ConfigureFormForRefund(balanceRemaining);
 			}
-			
+
 			base.ShowDialog();
+        }
+
+        private void BuildPaymentMethodButtons()
+        {
+            foreach (var button in _paymentMethodButtons)
+            {
+                button.Click -= PaymentMethodButton_Click;
+                PaymentTypePanel.Controls.Remove(button);
+                button.Dispose();
+            }
+
+            _paymentMethodButtons.Clear();
+
+            var orderedMethods = _offerableMethods.OrderBy(m => m.DisplayOrder).ToList();
+
+            for (var index = 0; index < orderedMethods.Count; index++)
+            {
+                var button = CreatePaymentMethodButton(orderedMethods[index], index);
+
+                button.Click += PaymentMethodButton_Click;
+
+                _paymentMethodButtons.Add(button);
+                PaymentTypePanel.Controls.Add(button);
+            }
+        }
+
+        private static Button CreatePaymentMethodButton(PaymentMethodDto method, int index)
+        {
+            const int columnCount = 2;
+            var column = index % columnCount;
+            var row = index / columnCount;
+
+            var button = new Button
+            {
+                Tag = method.Code,
+                Text = method.DisplayName,
+                Size = new Size(195, 129),
+                Location = new Point(10 + column * 201, 16 + row * 135),
+                BackColor = Color.FromArgb(80, 80, 80),
+                ForeColor = Color.White,
+                FlatStyle = FlatStyle.Flat,
+                Font = new Font("Leelawadee UI", 12F, FontStyle.Regular, GraphicsUnit.Point),
+                TextAlign = ContentAlignment.MiddleCenter,
+                UseVisualStyleBackColor = false
+            };
+
+            return button;
+        }
+
+        private void PaymentMethodButton_Click(object? sender, EventArgs e)
+        {
+            if (sender is Button { Tag: string code })
+                ChangePaymentType(code);
         }
 
 		private void ConfigureFormForRegularPayment()
@@ -97,20 +175,20 @@ namespace IndyPOS.Windows.Forms.UI.Payment
 
 		private void DisableNonAcceptablePaymentTypeSForRefund()
 		{
-			PayBy5050Button.Enabled = false;
-			PayByWeLoveButton.Enabled = false;
-			PayByWeWinButton.Enabled = false;
-			PayByWelfareCardButton.Enabled = false;
-			PayByPayLaterButton.Enabled = false;
+			// Refund allows only Cash + MoneyTransfer.
+			foreach (var button in _paymentMethodButtons)
+			{
+				var code = (string)button.Tag!;
+
+				button.Enabled = string.Equals(code, PaymentMethodCodes.Cash, StringComparison.OrdinalIgnoreCase)
+							  || string.Equals(code, PaymentMethodCodes.MoneyTransfer, StringComparison.OrdinalIgnoreCase);
+			}
 		}
 
 		private void EnableAcceptablePaymentTypesForRegularPayment()
 		{
-			PayBy5050Button.Enabled = true;
-			PayByWeLoveButton.Enabled = true;
-			PayByWeWinButton.Enabled = true;
-			PayByWelfareCardButton.Enabled = true;
-			PayByPayLaterButton.Enabled = true;
+			foreach (var button in _paymentMethodButtons)
+				button.Enabled = true;
 		}
 
         private bool ValidatePaymentType()
@@ -123,7 +201,7 @@ namespace IndyPOS.Windows.Forms.UI.Payment
 				return false;
 			}
 
-			if (_selectedPaymentType == PaymentType.PayLater && !NoteTextBox.Texts.HasValue())
+			if (string.Equals(_selectedMethodCode, PaymentMethodCodes.PayLater, StringComparison.OrdinalIgnoreCase) && !NoteTextBox.Texts.HasValue())
 			{
 				_messageForm.BringToFront();
 				_messageForm.ShowDialog("กรุณาใส่ Note สำหรับการลงบัญชี", "Note ไม่ถูกต้อง");
@@ -143,8 +221,8 @@ namespace IndyPOS.Windows.Forms.UI.Payment
 
 			var note = NoteTextBox.Texts.Trim();
 
-            _saleService.AddPayment(_selectedPaymentType, _amount, note);
-			
+            _saleService.AddPayment(_selectedMethodCode, _amount, note);
+
             Hide();
         }
 
@@ -155,8 +233,8 @@ namespace IndyPOS.Windows.Forms.UI.Payment
 
 			var note = NoteTextBox.Texts.Trim();
 
-			_saleService.AddPayment(_selectedPaymentType, _amount, note);
-			
+			_saleService.AddPayment(_selectedMethodCode, _amount, note);
+
 			Hide();
 		}
 
@@ -165,54 +243,24 @@ namespace IndyPOS.Windows.Forms.UI.Payment
 			Hide();
         }
 
-		private void PayByCashButton_Click(object sender, EventArgs e)
+		private void ChangePaymentType(string methodCode)
 		{
-			ChangePaymentType(PaymentType.Cash);
-        }
-
-		private void PayByMoneyTransferButton_Click(object sender, EventArgs e)
-		{
-			ChangePaymentType(PaymentType.MoneyTransfer);
-        }
-
-		private void PayBy5050Button_Click(object sender, EventArgs e)
-		{
-			ChangePaymentType(PaymentType.FiftyFifty);
-        }
-
-		private void PayByWeWinButton_Click(object sender, EventArgs e)
-		{
-			ChangePaymentType(PaymentType.WeWin);
-        }
-
-		private void PayByWelfareCardButton_Click(object sender, EventArgs e)
-		{
-			ChangePaymentType(PaymentType.WelfareCard);
-        }
-
-		private void PayByWeLoveButton_Click(object sender, EventArgs e)
-		{
-			ChangePaymentType(PaymentType.M33WeLove);
-        }
-        
-		private void PayByPayLaterButton_Click(object sender, EventArgs e)
-		{
-			ChangePaymentType(PaymentType.PayLater);
-
-			DisplayValue(_saleService.CalculateBalanceRemaining());
-		}
-
-		private void ChangePaymentType(PaymentType type)
-		{
-			_selectedPaymentType = type;
+			_selectedMethodCode = methodCode;
 			_isPaymentTypeSelected = true;
 
-			PaymentTypeLabel.Text = _paymentTypeDictionary[(int) type];
+			var selectedMethod = _offerableMethods
+								 .FirstOrDefault(m => string.Equals(m.Code, methodCode, StringComparison.OrdinalIgnoreCase));
 
+			PaymentTypeLabel.Text = selectedMethod?.DisplayName ?? methodCode;
+
+			var isPayLater = string.Equals(methodCode, PaymentMethodCodes.PayLater, StringComparison.OrdinalIgnoreCase);
 			var isRefundInvoice = _saleService.IsRefundInvoice();
 
-			AcceptPaymentButton.Visible = type != PaymentType.PayLater && !isRefundInvoice;
-			AcceptPayLaterPaymentButton.Visible = type == PaymentType.PayLater && !isRefundInvoice;
+			AcceptPaymentButton.Visible = !isPayLater && !isRefundInvoice;
+			AcceptPayLaterPaymentButton.Visible = isPayLater && !isRefundInvoice;
+
+			if (isPayLater)
+				DisplayValue(_saleService.CalculateBalanceRemaining());
 		}
 
         private void AddByBankNoteValue(decimal value)
@@ -385,8 +433,8 @@ namespace IndyPOS.Windows.Forms.UI.Payment
 
 			_amount = _saleService.CalculateBalanceRemaining();
 
-			_saleService.AddPayment(_selectedPaymentType, _amount, note);
-			
+			_saleService.AddPayment(_selectedMethodCode, _amount, note);
+
 			Hide();
         }
     }

@@ -1,6 +1,8 @@
-﻿using IndyPOS.Application.Common.Extensions;
+﻿using IndyPOS.Application.Abstractions.StoreHub;
+using IndyPOS.Application.Common.Extensions;
 using IndyPOS.Application.Common.Interfaces;
 using IndyPOS.Application.Common.Models;
+using IndyPOS.Application.UseCases.StoreHub.PaymentMethods;
 using IndyPOS.Application.Events;
 using IndyPOS.Domain.Events;
 using IndyPOS.Windows.Forms.Enums;
@@ -20,10 +22,12 @@ public partial class SalePanel : UserControl
     private readonly AddInvoiceProductForm _addInvoiceProductForm;
     private readonly UpdateInvoiceProductForm _updateProductForm;
     private readonly IReadOnlyDictionary<int, string> _paymentTypeDictionary;
+    private readonly IStoreHubClient _storeHubClient;
     private SubPanel _activeSubPanel;
     private readonly MessageForm _messageForm;
     private readonly PrintReceiptForm _printReceiptForm;
 	private readonly ICashDrawerService _cashDrawerService;
+    private IReadOnlyDictionary<string, string>? _paymentMethodNamesByCode;
 
     private const string GeneralGoodsBarcode = "2001000000012";
     private const string HardwareBarcode = "2005000000027";
@@ -54,8 +58,9 @@ public partial class SalePanel : UserControl
                      AddInvoiceProductForm addInvoiceProductForm,
                      UpdateInvoiceProductForm updateProductForm,
                      MessageForm messageForm,
-                     PrintReceiptForm printReceiptForm, 
-					 ICashDrawerService cashDrawerService)
+                     PrintReceiptForm printReceiptForm,
+					 ICashDrawerService cashDrawerService,
+					 IStoreHubClient storeHubClient)
     {
         InitializeComponent();
         InitializeInvoiceDataView();
@@ -70,6 +75,7 @@ public partial class SalePanel : UserControl
         _messageForm = messageForm;
         _printReceiptForm = printReceiptForm;
 		_cashDrawerService = cashDrawerService;
+		_storeHubClient = storeHubClient;
 
 		SubscribeEvents();
     }
@@ -205,7 +211,7 @@ public partial class SalePanel : UserControl
         var paymentRow = new object[columnCount];
 
         paymentRow[(int)PaymentColumn.PaymentPriority] = payment.Priority;
-        paymentRow[(int)PaymentColumn.PaymentType] = _paymentTypeDictionary[payment.PaymentTypeId];
+        paymentRow[(int)PaymentColumn.PaymentType] = ResolvePaymentTypeDisplay(payment);
         paymentRow[(int)PaymentColumn.PaymentAmount] = payment.Amount;
         paymentRow[(int)PaymentColumn.Note] = payment.Note;
 
@@ -216,7 +222,34 @@ public partial class SalePanel : UserControl
         PaymentDataView.CurrentCell = PaymentDataView.Rows[rowIndex].Cells[0];
     }
 
-    private void GetPaymentButton_Click(object sender, EventArgs e)
+    private string ResolvePaymentTypeDisplay(Application.Common.Models.Payment payment)
+    {
+        // Code-based payments carry a catalog Code (PaymentTypeId is 0 → never index the legacy dict with it).
+        if (payment.Method is not null)
+            return _paymentMethodNamesByCode?.GetValueOrDefault(payment.Method, payment.Method) ?? payment.Method;
+
+        return _paymentTypeDictionary[payment.PaymentTypeId];
+    }
+
+    private async Task EnsurePaymentMethodNamesLoadedAsync()
+    {
+        if (_paymentMethodNamesByCode is not null)
+            return;
+
+        try
+        {
+            var methods = await _storeHubClient.GetAllPaymentMethodsAsync();
+
+            _paymentMethodNamesByCode = methods.ToDictionary(m => m.Code, m => m.DisplayName, StringComparer.OrdinalIgnoreCase);
+        }
+        catch
+        {
+            // Fall back to raw codes if the catalog can't be loaded.
+            _paymentMethodNamesByCode = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        }
+    }
+
+    private async void GetPaymentButton_Click(object sender, EventArgs e)
     {
         if (!_saleService.IsPendingPayment())
         {
@@ -230,7 +263,9 @@ public partial class SalePanel : UserControl
             _acceptPaymentForm.Hide();
         }
 
-        _acceptPaymentForm.ShowDialog();
+        await EnsurePaymentMethodNamesLoadedAsync();
+
+        await _acceptPaymentForm.ShowDialog();
     }
 
     private async void SaveSaleInvoiceButton_Click(object sender, EventArgs e)
