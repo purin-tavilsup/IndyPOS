@@ -56,6 +56,17 @@ public class SilentArgsTests
     }
 
     [Fact]
+    public void Parse_WithNumericStoreType_ShouldReturnUsageError()
+    {
+        // Enum.TryParse<StoreType> also accepts defined underlying numeric values
+        // (e.g. "2" -> Minimart). Only a defined enum NAME is a valid token.
+        var result = SilentArgs.Parse(new[] { "--silent", "--store-id", "ABC", "--store-type", "2" });
+
+        result.Status.Should().Be(ParseStatus.UsageError);
+        result.ErrorMessage.Should().Contain("--store-type");
+    }
+
+    [Fact]
     public void Parse_WithStoreIdValue_ShouldPreserveCaseAndTrim()
     {
         var result = SilentArgs.Parse(new[] { "--silent", "--store-id", "  Rungrat-001  " });
@@ -80,6 +91,7 @@ public class SilentArgsTests
         new[] { "--silent", "--store-id", "A", "--timeout-minutes", "notanumber" },
         new[] { "--silent", "--store-id", "A", "--bogus" },
         new[] { "--silent", "--store-id", "A", "--store-type", "Bogus" },
+        new[] { "--silent", "--store-id", "A", "--store-type", "2" },
     };
 
     [Theory]
