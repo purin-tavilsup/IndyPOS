@@ -2,6 +2,7 @@ using IndyPOS.Application.Common.Models;
 using IndyPOS.Application.UseCases.StoreHub.Auth;
 using IndyPOS.Application.UseCases.StoreHub.Auth.ChangePassword;
 using IndyPOS.Application.UseCases.StoreHub.PayLater;
+using IndyPOS.Application.UseCases.StoreHub.PaymentMethods;
 using IndyPOS.Application.UseCases.StoreHub.Products;
 using IndyPOS.Application.UseCases.StoreHub.Products.AdjustQuantity;
 using IndyPOS.Application.UseCases.StoreHub.Products.Create;
@@ -148,5 +149,52 @@ public interface IStoreHubClient
     Task<PaymentsSummary> GetLegacyPaymentsSummaryAsync(
         DateOnly fromDate,
         DateOnly toDate,
+        CancellationToken cancellationToken = default);
+
+    // ========================
+    // Payment method catalog endpoints
+    // ========================
+
+    /// <summary>
+    /// Get payment methods offerable at this store (enabled + gated by store type).
+    /// Requires authentication.
+    /// </summary>
+    Task<IReadOnlyList<PaymentMethodDto>> GetOfferablePaymentMethodsAsync(
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Get all payment methods (enabled and disabled) for the admin catalog screen.
+    /// Requires authentication and CanManagePaymentMethods capability.
+    /// </summary>
+    Task<IReadOnlyList<PaymentMethodDto>> GetAllPaymentMethodsAsync(
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Add a new government-campaign payment method to the catalog.
+    /// Requires authentication and CanManagePaymentMethods capability.
+    /// </summary>
+    Task AddCampaignPaymentMethodAsync(
+        string code,
+        string displayName,
+        int displayOrder,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Enable or disable an existing payment method.
+    /// Requires authentication and CanManagePaymentMethods capability.
+    /// </summary>
+    Task SetPaymentMethodEnabledAsync(
+        string code,
+        bool enabled,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Update an existing payment method's display name and display order.
+    /// Requires authentication and CanManagePaymentMethods capability.
+    /// </summary>
+    Task UpdatePaymentMethodDisplayAsync(
+        string code,
+        string displayName,
+        int displayOrder,
         CancellationToken cancellationToken = default);
 }
