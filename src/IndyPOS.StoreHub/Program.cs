@@ -14,6 +14,7 @@ using IndyPOS.Application.UseCases.StoreHub.Products.Delete;
 using IndyPOS.Application.UseCases.StoreHub.Products.GenerateBarcode;
 using IndyPOS.Application.UseCases.StoreHub.Products.Get;
 using IndyPOS.Application.UseCases.StoreHub.Products.Update;
+using IndyPOS.Application.UseCases.StoreHub.PaymentMethods;
 using IndyPOS.Application.UseCases.StoreHub.Reports;
 using IndyPOS.Application.UseCases.StoreHub.Reports.GetInvoiceDetail;
 using IndyPOS.Application.UseCases.StoreHub.Reports.GetInvoices;
@@ -97,6 +98,9 @@ builder.Services.AddTransient<ICommandHandler<UpdateProductCommand, ProductDto>,
 builder.Services.AddTransient<ICommandHandler<DeleteProductCommand>, DeleteProductCommandHandler>();
 builder.Services.AddTransient<ICommandHandler<AdjustProductQuantityCommand, int>, AdjustProductQuantityCommandHandler>();
 builder.Services.AddTransient<IQueryHandler<GenerateBarcodeQuery, string>, GenerateBarcodeQueryHandler>();
+
+// Payment methods handlers
+builder.Services.AddTransient<IQueryHandler<GetOfferablePaymentMethodsQuery, IReadOnlyList<PaymentMethodDto>>, GetOfferablePaymentMethodsQueryHandler>();
 
 // Register Report query handlers (in Infrastructure layer)
 builder.Services.AddTransient<IQueryHandler<GetSalesSummaryQuery, SalesSummaryDto>, GetSalesSummaryQueryHandler>();
@@ -315,6 +319,15 @@ app.MapGet("/products", async (
 
     var products = await handler.HandleAsync(query, cancellationToken);
     return Results.Ok(products);
+}).RequireAuthorization("CanReadProducts");
+
+// Payment methods endpoint (offerable methods for this store)
+app.MapGet("/payment-methods", async (
+    IQueryHandler<GetOfferablePaymentMethodsQuery, IReadOnlyList<PaymentMethodDto>> handler,
+    CancellationToken cancellationToken) =>
+{
+    var methods = await handler.HandleAsync(new GetOfferablePaymentMethodsQuery(), cancellationToken);
+    return Results.Ok(methods);
 }).RequireAuthorization("CanReadProducts");
 
 // Create product
