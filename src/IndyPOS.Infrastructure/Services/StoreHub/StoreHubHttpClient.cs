@@ -337,6 +337,13 @@ public class StoreHubHttpClient : IStoreHubClient
             cancellationToken);
 
     // ========================
+    // Store feature flags
+    // ========================
+
+    public Task<StoreFeaturesDto> GetStoreFeaturesAsync(CancellationToken cancellationToken = default) =>
+        SendAuthenticatedAsync<StoreFeaturesDto>(HttpMethod.Get, "/store/features", content: null, cancellationToken);
+
+    // ========================
     // Report methods (legacy format)
     // ========================
 
