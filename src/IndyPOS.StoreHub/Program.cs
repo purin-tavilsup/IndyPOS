@@ -337,6 +337,13 @@ app.MapGet("/payment-methods", async (
     return Results.Ok(methods);
 }).RequireAuthorization("CanReadProducts");
 
+// Store feature flags (store-type gating for WinForms clients)
+app.MapGet("/store/features", (IStoreIdentityService storeIdentity) =>
+{
+    var f = storeIdentity.Features;
+    return Results.Ok(new StoreFeaturesDto(f.PayLaterEnabled, f.MultipleProductTypesEnabled));
+}).RequireAuthorization();
+
 // Admin: list all payment methods (enabled + disabled)
 app.MapGet("/admin/payment-methods", async (
     IQueryHandler<GetAllPaymentMethodsQuery, IReadOnlyList<PaymentMethodDto>> handler,
