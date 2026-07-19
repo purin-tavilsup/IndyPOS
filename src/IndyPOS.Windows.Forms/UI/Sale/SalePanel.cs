@@ -28,6 +28,7 @@ public partial class SalePanel : UserControl
     private readonly PrintReceiptForm _printReceiptForm;
 	private readonly ICashDrawerService _cashDrawerService;
     private IReadOnlyDictionary<string, string>? _paymentMethodNamesByCode;
+    private bool _storeFeaturesApplied;
 
     private const string GeneralGoodsBarcode = "2001000000012";
     private const string HardwareBarcode = "2005000000027";
@@ -90,6 +91,12 @@ public partial class SalePanel : UserControl
         _eventAggregator.GetEvent<NewSaleStartedEvent>().Subscribe(ResetSaleInvoiceScreen);
         _eventAggregator.GetEvent<BarcodeReceivedEvent>().Subscribe(BarcodeReceived);
         _eventAggregator.GetEvent<ActiveSubPanelChangedEvent>().Subscribe(ActiveSubPanelChanged);
+
+        VisibleChanged += async (_, _) =>
+        {
+            if (Visible)
+                await EnsureStoreFeaturesAppliedAsync();
+        };
     }
 
     private void InitializeInvoiceDataView()
@@ -249,6 +256,25 @@ public partial class SalePanel : UserControl
         {
             // Fall back to raw codes if the catalog can't be loaded.
             _paymentMethodNamesByCode = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        }
+    }
+
+    private async Task EnsureStoreFeaturesAppliedAsync()
+    {
+        if (_storeFeaturesApplied)
+            return;
+
+        try
+        {
+            var features = await _storeHubClient.GetStoreFeaturesAsync();
+
+            AddHardwareProductButton.Visible = features.MultipleProductTypesEnabled;
+            _storeFeaturesApplied = true;
+        }
+        catch (Exception ex)
+        {
+            _messageForm.ShowDialog($"ไม่สามารถโหลดการตั้งค่าร้านค้าได้ Error: {ex.Message}", "ข้อผิดพลาด");
+            // Leave the button as designed (visible) on failure — server guard still blocks Hardware creation.
         }
     }
 
