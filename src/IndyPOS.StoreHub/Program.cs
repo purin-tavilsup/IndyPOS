@@ -337,6 +337,13 @@ app.MapGet("/payment-methods", async (
     return Results.Ok(methods);
 }).RequireAuthorization("CanReadProducts");
 
+// Store feature flags (store-type gating for WinForms clients)
+app.MapGet("/store/features", (IStoreIdentityService storeIdentity) =>
+{
+    var f = storeIdentity.Features;
+    return Results.Ok(new StoreFeaturesDto(f.PayLaterEnabled, f.MultipleProductTypesEnabled));
+}).RequireAuthorization();
+
 // Admin: list all payment methods (enabled + disabled)
 app.MapGet("/admin/payment-methods", async (
     IQueryHandler<GetAllPaymentMethodsQuery, IReadOnlyList<PaymentMethodDto>> handler,
@@ -400,8 +407,15 @@ app.MapPost("/products", async (
     CreateProductCommand command,
     CancellationToken cancellationToken) =>
 {
-    var result = await handler.HandleAsync(command, cancellationToken);
-    return Results.Created($"/products/{result.Id}", result);
+    try
+    {
+        var result = await handler.HandleAsync(command, cancellationToken);
+        return Results.Created($"/products/{result.Id}", result);
+    }
+    catch (InvalidOperationException ex)
+    {
+        return Results.Conflict(new { error = ex.Message });
+    }
 }).RequireAuthorization("CanManageProducts");
 
 // Update product
@@ -417,8 +431,15 @@ app.MapPut("/products/{id:guid}", async (
         return Results.BadRequest("Product ID in URL does not match body");
     }
 
-    var result = await handler.HandleAsync(command, cancellationToken);
-    return Results.Ok(result);
+    try
+    {
+        var result = await handler.HandleAsync(command, cancellationToken);
+        return Results.Ok(result);
+    }
+    catch (InvalidOperationException ex)
+    {
+        return Results.Conflict(new { error = ex.Message });
+    }
 }).RequireAuthorization("CanManageProducts");
 
 // Delete product (soft delete)

@@ -1,4 +1,6 @@
 using IndyPOS.Application.Abstractions.StoreHub.Repositories;
+using IndyPOS.Application.Common.Enums;
+using IndyPOS.Application.Common.Interfaces;
 using IndyPOS.Domain.Entities.Core;
 using Microsoft.Extensions.Logging;
 using Nokpirab;
@@ -11,13 +13,16 @@ namespace IndyPOS.Application.UseCases.StoreHub.Products.Update;
 public class UpdateProductCommandHandler : ICommandHandler<UpdateProductCommand, ProductDto>
 {
     private readonly IProductRepository _productRepository;
+    private readonly IStoreIdentityService _storeIdentityService;
     private readonly ILogger<UpdateProductCommandHandler> _logger;
 
     public UpdateProductCommandHandler(
         IProductRepository productRepository,
+        IStoreIdentityService storeIdentityService,
         ILogger<UpdateProductCommandHandler> logger)
     {
         _productRepository = productRepository;
+        _storeIdentityService = storeIdentityService;
         _logger = logger;
     }
 
@@ -40,6 +45,16 @@ public class UpdateProductCommandHandler : ICommandHandler<UpdateProductCommand,
         if (barcodeExists)
         {
             throw new InvalidOperationException($"Product with barcode '{command.Barcode}' already exists");
+        }
+
+        // Store-type gating: a general-only store (e.g. Minimart) may not carry Hardware products.
+        var isHardware = string.Equals(command.Category, nameof(ProductCategory.Hardware), StringComparison.OrdinalIgnoreCase);
+        if (isHardware && !_storeIdentityService.Features.MultipleProductTypesEnabled)
+        {
+            _logger.LogWarning("Hardware product update rejected: StoreType={StoreType}, ProductId={ProductId}",
+                _storeIdentityService.StoreType, command.Id);
+            throw new InvalidOperationException(
+                $"Hardware products are not available for {_storeIdentityService.StoreType} stores.");
         }
 
         // Update product
