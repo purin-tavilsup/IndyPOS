@@ -59,8 +59,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IndyPOS.Vault.Tests", "test
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IndyPOS.Domain.Tests", "tests\IndyPOS.Domain.Tests\IndyPOS.Domain.Tests.csproj", "{F5327D9D-5D8A-44DF-9050-C78E1909EAAC}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{827E0CD3-B72D-47B6-A68D-7590B98EB39B}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
