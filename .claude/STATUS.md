@@ -6,12 +6,39 @@
 
 | Field | Value |
 |-------|-------|
-| **Branch** | `development` @ `202f48d` (pushed to origin). Feature/cleanup branches merged + deleted. |
+| **Branch** | `cleanup/cosmetic-minors` @ `df1e06e` (6 commits, NOT pushed). Off `development` @ `d7b2998` (pushed). |
 | **Sprint** | Sprint 7 |
 | **Phase** | ✅ **Epic M (data-driven payment methods) SHIPPED + VM-VALIDATED**, and ✅ **Product-type restriction by store type SHIPPED (2026-07-19)** — both merged to `development`. |
 | **Blocked?** | Not blocked. Merged + pushed to `origin/development`. Only cosmetic Minors + a live Minimart VM smoke remain. |
 
-## ⏯️ RESUME HERE (2026-07-19) — Product-type restriction by store type: SHIPPED ✅
+## ⏯️ RESUME HERE (2026-07-25) — Cosmetic-minors cleanup batch: CODE COMPLETE, one gate left
+
+**State:** Branch `cleanup/cosmetic-minors` @ `df1e06e`, 6 commits, not pushed. Closes every
+deferred cosmetic Minor from Epic M + the product-type restriction. Ledger detail:
+`.superpowers/sdd/progress.md` (last section).
+
+**What shipped:** payment-method **Kind taxonomy re-specced** by Pond mid-batch — `Standard`(1,
+was `Permanent`) / `GovernmentCampaign`(2) / `Special`(3, new); Cash+MoneyTransfer=Standard,
+PayLater=Special, WelfareCard=GovernmentCampaign (stays enabled), with a reversible WHERE-guarded
+data migration for the 3 live stores. Plus: Thai Kind labels (มาตรฐาน/พิเศษ/โครงการรัฐ), grid
+refresh on successful toggle, payment-button icons restored (unknown campaign codes → text-only),
+`PUT /products/{id}` → **404** for a missing id via the existing `ProductNotFoundException` (409
+now means only a real conflict), and the SalePanel features-error dialog warns once per session.
+
+**Test state:** Release build of the solution 0 err. Domain 8/8, Application **274/274** (+9 new),
+Bootstrapper 96 pass/8 skip.
+
+**⏳ THE ONE GATE — StoreHub integration suite (64) not run: Docker daemon is down on this box.**
+It covers the `UpdateProduct_NonExistent_ReturnsNotFound` flip. Start Docker Desktop, then:
+`dotnet test tests\IndyPOS.StoreHub.IntegrationTests`. After that → whole-branch review →
+`finishing-a-development-branch` (merge to `development`).
+
+**Skipped deliberately:** T7-m1 (stale Hardware category text on a legacy Hardware product) — not
+reachable today, server guard blocks the persist anyway.
+
+---
+
+## ⏯️ Earlier checkpoint (2026-07-19) — Product-type restriction by store type: SHIPPED ✅
 
 **State:** Merged to `origin/development` @ `202f48d`. Enforces `StoreTypeFeatures.MultipleProductTypesEnabled` → **Minimart = General Goods only**; GeneralHardware unchanged. 7 tasks via subagent-driven-development (per-task TDD + review) → final whole-branch review (1 Important closed: the update path was initially unguarded). Spec: `docs/superpowers/specs/2026-07-19-product-type-restriction-design.md`; plan: `docs/superpowers/plans/2026-07-19-product-type-restriction.md`. Ledger: `.superpowers/sdd/progress.md`.
 
