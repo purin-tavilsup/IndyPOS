@@ -6,12 +6,58 @@
 
 | Field | Value |
 |-------|-------|
-| **Branch** | `development` @ `7c7c5cf` (pushed). Feature/cleanup branches merged + deleted. |
+| **Branch** | `development` @ `351d400` (pushed). Live branch: `spec/installer-upgrade-support` (3 commits, local, rebased). |
 | **Sprint** | Sprint 7 |
-| **Phase** | ✅ **Epic M SHIPPED + VM-VALIDATED**, ✅ **Product-type restriction SHIPPED (2026-07-19)**, ✅ **Cosmetic-minors cleanup batch MERGED (PR #52, 2026-07-25)**. |
-| **Blocked?** | Not blocked. All code merged + pushed. **Only the VM smoke remains** (4-item checklist below). |
+| **Phase** | ✅ **Epic M SHIPPED + VM-VALIDATED**, ✅ **Product-type restriction SHIPPED (2026-07-19)**, ✅ **Cosmetic-minors batch MERGED (PR #52)**, ✅ **Installer/cleanup fixes MERGED (PR #53)**. Next: installer upgrade-support epic (spec awaiting Pond's review). |
+| **Blocked?** | Not blocked. Awaiting Pond's spec review before `writing-plans`. |
 
-## ⏯️ RESUME HERE (2026-07-25) — Cosmetic-minors cleanup batch: MERGED ✅ · VM smoke owed
+## ⏯️ RESUME HERE (2026-07-25 PM) — Installer is FRESH-INSTALL-ONLY; upgrade spec ready for review
+
+**Discovered by running the upgrade smoke on a real store image** (VM `IndyPOS-Test`, store
+`Rungrat-001`). Two failures, both diagnosed, both destructive:
+1. Extraction ran **before** the service stop → running service held its own DLLs open. **FIXED** in PR #53.
+2. `DatabaseSetup` then refused: an existing PostgreSQL has no known superuser password. **This is a
+   design gap, not a bug** — the installer is fresh-install-only. Hence the epic below.
+
+Both runs also destroyed the store's `appsettings.json` (extraction writes the package template;
+`DatabaseSetup` only rewrites real values afterwards). PR #53's `ConfigSnapshot` covers the
+extraction-failure window; the broader rollback is specced.
+
+**⚠️ There is no automated upgrade path to the 3 live stores, and never was** — every validation to
+date is clean-install. Not urgent: **all 3 stores are still on v3.7.0; v4 has never been
+distributed**, so fresh install ships first and is the higher-stakes path.
+
+**SPEC READY FOR REVIEW:** `docs/superpowers/specs/2026-07-25-installer-upgrade-support-design.md`
+on branch `spec/installer-upgrade-support`. Reviewed by two subagents (correctness returned "not
+safe as written" with 4 Criticals — all folded in; scope returned "trim and re-sequence"). Records 4
+Pond decisions: scope = StoreHub + DB + POS app; auto-detect mode with a `MODE` marker; back up
+(pg_dump + files) and roll back files on failure; **superuser password stays unpersisted**.
+NEXT: Pond reviews → `writing-plans` (~11 tasks). **First task is a 30-min Velopack spike** — nothing
+establishes what `Setup.exe --silent` does where the app is already installed, and 2 design points
+depend on it.
+
+**VM baseline REBUILT without an ISO** (the Win11 ISO and both snapshots were deleted in the
+2026-07-25 disk cleanup). Two snapshots now, `Clean-Windows-Ready` a child of the other:
+
+| Snapshot | What | For |
+|---|---|---|
+| `Pre-Upgrade-2026-07-25` | real store: `PayLater kind=1`, `WelfareCard kind=1`, `Store:Id=Rungrat-001` | upgrade VM cases 1 & 2 |
+| `Clean-Windows-Ready` | teardown complete, `.NET 10` retained (matches historical baseline) | fresh-install case 3 |
+
+Rebuilt by running `cleanup-v4.ps1 -Force -RemovePostgres` in-guest, then removing the leftover
+Postgres data dir and the FC Subject fonts — so the from-scratch Postgres and font-install paths are
+exercised again, which the old snapshot had lost. **Fresh-install smoke on it: 18/18 PASS in 3m09s**
+(also the regression proof for PR #53). VM parked **Off** at `Clean-Windows-Ready`.
+
+**Host vs guest gotchas (cost real time today):** guest is **PowerShell 5.1 / Windows-1252**, host is
+**7.6 / UTF-8**. Any repo script sent to the guest must be ASCII or BOM-encoded. `psql` needs SQL via
+stdin (native-arg quoting strips double quotes). To read store DB state in-guest, decrypt the
+connection string with DPAPI LocalMachine + entropy `SHA256("IndyPOS:ConnectionStrings:storehub-db")`,
+using `SHA256.Create().ComputeHash` (not static `HashData` — .NET 5+ only).
+
+---
+
+## ⏯️ Earlier checkpoint (2026-07-25) — Cosmetic-minors cleanup batch: MERGED ✅ · VM smoke owed
 
 **State:** **Merged via PR #52** → `origin/development` @ merge commit `7c7c5cf` (11 commits;
 branch deleted both sides). Verified again ON the merged result: Release build 0 err, Domain 8/8,
