@@ -302,6 +302,10 @@ But double-clicking the shortcut → no window. Root-caused via in-guest forensi
 - [ ] I1-I2: Provision DigitalOcean (Droplet + PostgreSQL)
 - [ ] I3-I4: Deploy CloudApi, configure SyncWorker
 - Full plan in `.planning/indypos-overhaul/PLAN.md`
+- **Target architecture: `docs/architecture/IndyPOS_Production_Infrastructure_Guide.md`** — sizing
+  (2 GB / 1 vCPU Premium AMD Droplet + smallest Managed PostgreSQL, private VPC), firewall ports,
+  a 4-phase scaling roadmap, and the rejected alternatives (self-hosted PG, App Platform). Read
+  this before I1-I2.
 
 ### 3. Continue Epic M (M7-M13)
 - M7: Update First-Run Wizard (store type selection)
@@ -316,6 +320,7 @@ But double-clicking the shortcut → no window. Root-caused via in-guest forensi
 | Installer side-by-side plan | `.planning/indypos-overhaul/drafts/installer-side-by-side-plan.md` |
 | VM testing plan | `.planning/indypos-overhaul/drafts/vm-installer-testing-plan.md` |
 | Epic M draft | `.planning/indypos-overhaul/drafts/epic-m-multi-store-type.md` |
+| **Epic I target infrastructure** | `docs/architecture/IndyPOS_Production_Infrastructure_Guide.md` |
 | Session log | `.claude/session-log.md` |
 
 ## Quick Commands
