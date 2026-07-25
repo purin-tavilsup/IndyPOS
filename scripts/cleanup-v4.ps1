@@ -19,10 +19,13 @@
     DATABASE CREDENTIALS:
     The Postgres superuser password is generated randomly during install and
     not persisted, so we recover the v4 app-user credentials from
-    appsettings.json. The app user owns the database, so it can
-    DROP DATABASE on its own. The role itself is preserved (installer is
-    idempotent on existing roles). Pass -PostgresPassword to also DROP ROLE,
-    or pass -SkipDatabase to leave the DB intact.
+    appsettings.json - DPAPI-unsealing the connection string first, since the
+    installer stores it as "DPAPI:<base64>" (LocalMachine scope, per-key
+    entropy). Decryption only works on the machine that installed it. The app
+    user owns the database, so it can DROP DATABASE on its own. The role itself
+    is preserved (installer is idempotent on existing roles). Pass
+    -PostgresPassword to also DROP ROLE, or pass -SkipDatabase to leave the DB
+    intact.
 
     REQUIRES ADMINISTRATOR PRIVILEGES.
 
@@ -303,11 +306,61 @@ function Remove-VelopackApp {
 }
 
 # --- Step 3: database ---
+function Unprotect-ConfigValue {
+    # Mirror of IndyPOS.Vault SecretProtector.Unprotect (see src/IndyPOS.Vault/
+    # SecretProtector.cs): DPAPI at LocalMachine scope, with per-key entropy
+    # SHA256("IndyPOS:<configKey>") binding each ciphertext to its config key.
+    #
+    # Needed because the installer DPAPI-seals the connection string in
+    # appsettings.json. Feeding "DPAPI:<base64>" straight to a connection-string
+    # builder throws, which used to make this script silently skip the database
+    # drop - so a smoke-test loop without -RemovePostgres left the old database
+    # in place and the next install quietly reused stale data.
+    param(
+        [Parameter(Mandatory)] [string]$Key,
+        [Parameter(Mandatory)] [string]$Value
+    )
+
+    if (-not $Value.StartsWith('DPAPI:', [System.StringComparison]::Ordinal)) {
+        return $Value   # unprotected (dev/Aspire) values pass through, as the C# does
+    }
+
+    # PowerShell 5.1 needs System.Security loaded; on 7.x ProtectedData already resolves.
+    try { Add-Type -AssemblyName System.Security -ErrorAction SilentlyContinue } catch { }
+
+    try {
+        # SHA256.Create().ComputeHash, not the static HashData - the latter is
+        # .NET 5+ only and the Hyper-V guest runs PowerShell 5.1.
+        $sha = [System.Security.Cryptography.SHA256]::Create()
+        try {
+            $entropy = $sha.ComputeHash([System.Text.Encoding]::UTF8.GetBytes("IndyPOS:$Key"))
+        } finally {
+            $sha.Dispose()
+        }
+
+        $cipher = [Convert]::FromBase64String($Value.Substring('DPAPI:'.Length))
+        $plain = [System.Security.Cryptography.ProtectedData]::Unprotect(
+            $cipher, $entropy, [System.Security.Cryptography.DataProtectionScope]::LocalMachine)
+
+        return [System.Text.Encoding]::UTF8.GetString($plain)
+    } catch {
+        # Wrong machine, corrupt value, or ProtectedData unavailable. Caller degrades
+        # to the superuser path rather than failing the whole teardown.
+        Write-Warn "Could not decrypt '$Key' - $($_.Exception.Message)"
+        return $null
+    }
+}
+
 function Get-AppPasswordFromConfig {
     if (-not (Test-Path $AppsettingsPath)) { return $null }
     try {
         $json = Get-Content $AppsettingsPath -Raw | ConvertFrom-Json
         $connStr = $json.connectionStrings.'storehub-db'
+        if (-not $connStr) { return $null }
+
+        # The installer seals this value; unprotect before parsing. Key must match
+        # what StoreHub's UnprotectSecrets uses, or the entropy won't line up.
+        $connStr = Unprotect-ConfigValue -Key 'ConnectionStrings:storehub-db' -Value $connStr
         if (-not $connStr) { return $null }
 
         # Use DbConnectionStringBuilder for correct handling of escaped/quoted
