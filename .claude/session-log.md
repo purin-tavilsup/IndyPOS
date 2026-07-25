@@ -653,3 +653,52 @@ Implemented RSA signing, DPAPI secrets, StoreHub client integration, and Report 
 ---
 
 *For older sessions, see `session-log-archive.md`*
+
+---
+
+## 2026-07-25 — Cosmetic minors shipped; installer found to be fresh-install-only
+
+**Merged: PR #52** (cosmetic-minors cleanup batch, 11 commits). Closed every deferred cosmetic Minor
+from Epic M + the product-type restriction. Pond re-specced the payment-method `Kind` taxonomy
+mid-batch: `Standard = 1` (rename of `Permanent`, same backing value) / `GovernmentCampaign = 2` /
+`Special = 3`, with PayLater -> Special and WelfareCard -> GovernmentCampaign, plus a WHERE-guarded
+reversible data migration. Also Thai kind labels, grid refresh on toggle, payment-button icons
+restored, `PUT /products/{id}` -> 404 via the existing `ProductNotFoundException`, warn-once
+features dialog.
+
+Whole-branch review (subagent) found 1 Important: the migration's row-flip branch had **zero**
+coverage, because `IntegrationTestBase` provisions with `EnsureCreatedAsync` - so no migration in
+this repo has ever been exercised by any test, and a fresh install runs migrations against an empty
+table. Closed with `ReclassifyPaymentMethodKindsMigrationTests`, which drives `IMigrator` to the
+prior revision on its own Postgres container, plants pre-change rows, migrates, and asserts the
+transition (with a before-snapshot so it proves the flip rather than agreeing with the end state).
+The reviewer also empirically disproved a suspected shared-`Image` disposal bug by building a probe.
+
+**Merged: PR #53** (installer + tooling fixes). Found by running the upgrade smoke against a real
+store image. Extraction ran before the service stop -> locked DLLs; and worse, it destroyed the
+store's `appsettings.json` (extraction writes the package template, `DatabaseSetup` only rewrites
+real values afterwards). Fixed both, with `ConfigSnapshot` covering the exception path. Plus three
+latent `cleanup-v4.ps1` bugs: a safety guard still demanding `v<Major>.<Minor>.<Patch>` after the May
+move to a major-only root, em-dashes making it unparseable under the guest's Windows-1252 codepage,
+and the DPAPI-sealed connection string silently skipping the database drop.
+
+**Key finding: the installer is fresh-install-only by design.** `DatabaseSetup` refuses when
+PostgreSQL already exists with an unknown superuser password. So there is no automated upgrade path
+to the 3 stores and never was - every validation to date is clean-install. Not urgent: all 3 stores
+are still on v3.7.0.
+
+Brainstormed -> spec'd upgrade support (separate `UpgradeOrchestrator`, 3-outcome mode detector,
+backup + file rollback, superuser password deliberately NOT persisted). Two subagent reviews:
+correctness returned "not safe as written" with 4 Criticals (all folded in - `Store:Type` loss
+silently making a Minimart permissive, a missing `Store:Id` forking store identity, world-readable
+backup artifacts, and a v5-over-v4 install routing the operator to a command that drops the sales
+database); scope returned "trim and re-sequence". They disagreed on the wizard; reconciled as
+detect-and-refuse. Spec on `spec/installer-upgrade-support`, awaiting Pond's review.
+
+**VM baseline rebuilt without the deleted ISO** by running the project's own teardown in-guest, then
+removing the leftover Postgres data dir and installer-added fonts (restoring coverage the old
+snapshot had lost). Two snapshots now, both restorable. Fresh-install smoke 18/18 in 3m09s, which
+also served as the regression proof for PR #53.
+
+**Verification at wrap-up:** Release build 0 err; Domain 8/8, Application 274/274, Bootstrapper 101
+pass/8 skip, StoreHub integration 76/76 (real Postgres) - all re-run on merged `development`.
