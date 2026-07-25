@@ -11,7 +11,7 @@
 | **Phase** | ✅ **Epic M (data-driven payment methods) SHIPPED + VM-VALIDATED**, and ✅ **Product-type restriction by store type SHIPPED (2026-07-19)** — both merged to `development`. |
 | **Blocked?** | Not blocked. Merged + pushed to `origin/development`. Only cosmetic Minors + a live Minimart VM smoke remain. |
 
-## ⏯️ RESUME HERE (2026-07-25) — Cosmetic-minors cleanup batch: CODE COMPLETE, one gate left
+## ⏯️ RESUME HERE (2026-07-25) — Cosmetic-minors cleanup batch: CODE COMPLETE + fully verified
 
 **State:** Branch `cleanup/cosmetic-minors` @ `df1e06e`, 6 commits, not pushed. Closes every
 deferred cosmetic Minor from Epic M + the product-type restriction. Ledger detail:
@@ -26,12 +26,12 @@ refresh on successful toggle, payment-button icons restored (unknown campaign co
 now means only a real conflict), and the SalePanel features-error dialog warns once per session.
 
 **Test state:** Release build of the solution 0 err. Domain 8/8, Application **274/274** (+9 new),
-Bootstrapper 96 pass/8 skip.
+Bootstrapper 96 pass/8 skip, StoreHub integration **64/64** (real Postgres via Docker, 52s) —
+covers the `UpdateProduct_NonExistent_ReturnsNotFound` flip. All gates green.
 
-**⏳ THE ONE GATE — StoreHub integration suite (64) not run: Docker daemon is down on this box.**
-It covers the `UpdateProduct_NonExistent_ReturnsNotFound` flip. Start Docker Desktop, then:
-`dotnet test tests\IndyPOS.StoreHub.IntegrationTests`. After that → whole-branch review →
-`finishing-a-development-branch` (merge to `development`).
+**NEXT:** whole-branch review → `finishing-a-development-branch` (merge to `development`).
+Live-UI items still owed (no WinForms harness, fold into the pending VM smoke): payment buttons
+render with icons again, admin grid Kind column reads Thai + refreshes after a toggle.
 
 **Skipped deliberately:** T7-m1 (stale Hardware category text on a legacy Hardware product) — not
 reachable today, server guard blocks the persist anyway.
