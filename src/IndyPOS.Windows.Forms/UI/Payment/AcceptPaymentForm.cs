@@ -135,6 +135,14 @@ namespace IndyPOS.Windows.Forms.UI.Payment
                 UseVisualStyleBackColor = false
             };
 
+            var icon = PaymentMethodIcons.For(method.Code);
+
+            if (icon is not null)
+            {
+                button.Image = icon;
+                button.TextImageRelation = TextImageRelation.ImageAboveText;
+            }
+
             return button;
         }
 
