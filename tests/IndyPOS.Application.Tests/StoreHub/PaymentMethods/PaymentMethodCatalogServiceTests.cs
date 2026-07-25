@@ -12,7 +12,7 @@ namespace IndyPOS.Application.Tests.StoreHub.PaymentMethods;
 public class PaymentMethodCatalogServiceTests
 {
     private static PaymentMethod M(string code, bool enabled = true, int order = 0) => new()
-    { Code = code, DisplayName = code, Kind = PaymentMethodKind.Permanent, IsEnabled = enabled, DisplayOrder = order, StoreId = "s" };
+    { Code = code, DisplayName = code, Kind = PaymentMethodKind.Standard, IsEnabled = enabled, DisplayOrder = order, StoreId = "s" };
 
     [Fact]
     public async Task GetOfferableAsync_OnMinimart_ShouldApplyPolicyAndExcludePayLater()

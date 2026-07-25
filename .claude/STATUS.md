@@ -6,12 +6,48 @@
 
 | Field | Value |
 |-------|-------|
-| **Branch** | `development` @ `202f48d` (pushed to origin). Feature/cleanup branches merged + deleted. |
+| **Branch** | `cleanup/cosmetic-minors` (9 commits, NOT pushed). Off `development` @ `d7b2998` (pushed). |
 | **Sprint** | Sprint 7 |
 | **Phase** | ✅ **Epic M (data-driven payment methods) SHIPPED + VM-VALIDATED**, and ✅ **Product-type restriction by store type SHIPPED (2026-07-19)** — both merged to `development`. |
 | **Blocked?** | Not blocked. Merged + pushed to `origin/development`. Only cosmetic Minors + a live Minimart VM smoke remain. |
 
-## ⏯️ RESUME HERE (2026-07-19) — Product-type restriction by store type: SHIPPED ✅
+## ⏯️ RESUME HERE (2026-07-25) — Cosmetic-minors cleanup batch: CODE COMPLETE + fully verified
+
+**State:** Branch `cleanup/cosmetic-minors` @ `df1e06e`, 6 commits, not pushed. Closes every
+deferred cosmetic Minor from Epic M + the product-type restriction. Ledger detail:
+`.superpowers/sdd/progress.md` (last section).
+
+**What shipped:** payment-method **Kind taxonomy re-specced** by Pond mid-batch — `Standard`(1,
+was `Permanent`) / `GovernmentCampaign`(2) / `Special`(3, new); Cash+MoneyTransfer=Standard,
+PayLater=Special, WelfareCard=GovernmentCampaign (stays enabled), with a reversible WHERE-guarded
+data migration for the 3 live stores. Plus: Thai Kind labels (มาตรฐาน/พิเศษ/โครงการรัฐ), grid
+refresh on successful toggle, payment-button icons restored (unknown campaign codes → text-only),
+`PUT /products/{id}` → **404** for a missing id via the existing `ProductNotFoundException` (409
+now means only a real conflict), and the SalePanel features-error dialog warns once per session.
+
+**Whole-branch review: DONE** (opus subagent) — no Critical, 1 Important **fixed**: the data
+migration's row-flip branch had zero coverage, because `IntegrationTestBase` provisions via
+`EnsureCreatedAsync` (no migration in this repo is exercised by any test) and a fresh install runs
+the migration against an empty table. Added `ReclassifyPaymentMethodKindsMigrationTests` — own
+Postgres container, drives `IMigrator` to the prior revision, plants pre-change rows, migrates to
+latest, asserts the flip **plus a before-snapshot** proving the transition. 4 Minors applied
+(test-precision guard, T3-m1 fully closed, a real `Font` handle leak, spec-drift note); 5 deferred
+with reasons. Reviewer independently disproved the shared-`Image` disposal concern by probe.
+
+**Test state:** Release build 0 err. Domain 8/8, Application **274/274**, Bootstrapper 96 pass/8
+skip, StoreHub integration **76/76** (real Postgres; 64 + 12 new migration tests). All gates green.
+
+**NEXT:** `finishing-a-development-branch` → merge to `development`. Then the VM smoke — see the
+tightened 4-item checklist at the end of the ledger's cleanup-batch section (long Thai labels on
+the icon buttons is the one real runtime risk; plus `SELECT code, kind FROM payment_method` on an
+upgraded store).
+
+**Skipped deliberately:** T7-m1 (stale Hardware category text on a legacy Hardware product) — not
+reachable today, server guard blocks the persist anyway.
+
+---
+
+## ⏯️ Earlier checkpoint (2026-07-19) — Product-type restriction by store type: SHIPPED ✅
 
 **State:** Merged to `origin/development` @ `202f48d`. Enforces `StoreTypeFeatures.MultipleProductTypesEnabled` → **Minimart = General Goods only**; GeneralHardware unchanged. 7 tasks via subagent-driven-development (per-task TDD + review) → final whole-branch review (1 Important closed: the update path was initially unguarded). Spec: `docs/superpowers/specs/2026-07-19-product-type-restriction-design.md`; plan: `docs/superpowers/plans/2026-07-19-product-type-restriction.md`. Ledger: `.superpowers/sdd/progress.md`.
 

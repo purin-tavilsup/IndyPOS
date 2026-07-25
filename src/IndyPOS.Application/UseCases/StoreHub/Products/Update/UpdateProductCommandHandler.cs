@@ -1,5 +1,6 @@
 using IndyPOS.Application.Abstractions.StoreHub.Repositories;
 using IndyPOS.Application.Common.Enums;
+using IndyPOS.Application.Common.Exceptions;
 using IndyPOS.Application.Common.Interfaces;
 using IndyPOS.Domain.Entities.Core;
 using Microsoft.Extensions.Logging;
@@ -34,7 +35,7 @@ public class UpdateProductCommandHandler : ICommandHandler<UpdateProductCommand,
         var existingProduct = await _productRepository.GetByIdAsync(command.Id, cancellationToken);
         if (existingProduct is null)
         {
-            throw new InvalidOperationException($"Product with ID {command.Id} not found");
+            throw new ProductNotFoundException($"Product with ID {command.Id} not found");
         }
 
         // Validate barcode uniqueness (excluding this product)
