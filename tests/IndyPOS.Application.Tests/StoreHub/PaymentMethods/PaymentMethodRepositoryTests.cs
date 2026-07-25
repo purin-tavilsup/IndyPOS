@@ -20,8 +20,8 @@ public class PaymentMethodRepositoryTests
     {
         await using var ctx = NewContext();
         ctx.Set<PaymentMethod>().AddRange(
-            new PaymentMethod { Code = "Cash", DisplayName = "Cash", Kind = PaymentMethodKind.Permanent, IsEnabled = true, StoreId = "store-A" },
-            new PaymentMethod { Code = "Cash", DisplayName = "Cash", Kind = PaymentMethodKind.Permanent, IsEnabled = true, StoreId = "store-B" });
+            new PaymentMethod { Code = "Cash", DisplayName = "Cash", Kind = PaymentMethodKind.Standard, IsEnabled = true, StoreId = "store-A" },
+            new PaymentMethod { Code = "Cash", DisplayName = "Cash", Kind = PaymentMethodKind.Standard, IsEnabled = true, StoreId = "store-B" });
         await ctx.SaveChangesAsync();
         var identity = new MockStoreIdentityService { StoreId = "store-A" };
         var sut = new PaymentMethodRepository(ctx, identity);
@@ -36,11 +36,11 @@ public class PaymentMethodRepositoryTests
     {
         await using var ctx = NewContext();
         ctx.Set<PaymentMethod>().Add(
-            new PaymentMethod { Code = "GCash", DisplayName = "GCash", Kind = PaymentMethodKind.Permanent, IsEnabled = true, StoreId = "store-B" });
+            new PaymentMethod { Code = "GCash", DisplayName = "GCash", Kind = PaymentMethodKind.Standard, IsEnabled = true, StoreId = "store-B" });
         await ctx.SaveChangesAsync();
         var identity = new MockStoreIdentityService { StoreId = "store-A" };
         var sut = new PaymentMethodRepository(ctx, identity);
-        var tamperedUpdate = new PaymentMethod { Code = "GCash", DisplayName = "Tampered", Kind = PaymentMethodKind.Permanent, IsEnabled = false, StoreId = "store-B" };
+        var tamperedUpdate = new PaymentMethod { Code = "GCash", DisplayName = "Tampered", Kind = PaymentMethodKind.Standard, IsEnabled = false, StoreId = "store-B" };
 
         var act = async () => await sut.UpdateAsync(tamperedUpdate, default);
 

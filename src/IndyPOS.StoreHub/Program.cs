@@ -436,8 +436,13 @@ app.MapPut("/products/{id:guid}", async (
         var result = await handler.HandleAsync(command, cancellationToken);
         return Results.Ok(result);
     }
+    catch (ProductNotFoundException ex)
+    {
+        return Results.NotFound(new { error = ex.Message });
+    }
     catch (InvalidOperationException ex)
     {
+        // Duplicate barcode or a store-type violation — both genuine conflicts.
         return Results.Conflict(new { error = ex.Message });
     }
 }).RequireAuthorization("CanManageProducts");

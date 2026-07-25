@@ -27,10 +27,10 @@ public class PaymentMethodSeeder
 
     private static readonly Seed[] Defaults =
     [
-        new(PaymentMethodCodes.Cash, "เงินสด", PaymentMethodKind.Permanent, true, 1),
-        new(PaymentMethodCodes.MoneyTransfer, "เงินโอน", PaymentMethodKind.Permanent, true, 2),
-        new(PaymentMethodCodes.WelfareCard, "บัตรสวัสดิการแห่งรัฐ", PaymentMethodKind.Permanent, true, 3),
-        new(PaymentMethodCodes.PayLater, "ลงบัญชี", PaymentMethodKind.Permanent, true, 4),
+        new(PaymentMethodCodes.Cash, "เงินสด", PaymentMethodKind.Standard, true, 1),
+        new(PaymentMethodCodes.MoneyTransfer, "เงินโอน", PaymentMethodKind.Standard, true, 2),
+        new(PaymentMethodCodes.WelfareCard, "บัตรสวัสดิการแห่งรัฐ", PaymentMethodKind.GovernmentCampaign, true, 3),
+        new(PaymentMethodCodes.PayLater, "ลงบัญชี", PaymentMethodKind.Special, true, 4),
         new(PaymentMethodCodes.M33WeLove, "ม33เรารักกัน", PaymentMethodKind.GovernmentCampaign, false, 5),
         new(PaymentMethodCodes.FiftyFifty, "คนละครึ่ง", PaymentMethodKind.GovernmentCampaign, false, 6),
         new(PaymentMethodCodes.WeWin, "เราชนะ", PaymentMethodKind.GovernmentCampaign, false, 7),

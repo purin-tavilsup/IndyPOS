@@ -189,7 +189,7 @@ public class ProductsEndpointTests : IntegrationTestBase
     }
 
     [Fact]
-    public async Task UpdateProduct_NonExistent_ReturnsConflict()
+    public async Task UpdateProduct_NonExistent_ReturnsNotFound()
     {
         // Arrange
         await AuthenticateAsManagerAsync();
@@ -207,10 +207,9 @@ public class ProductsEndpointTests : IntegrationTestBase
         var response = await Client.PutAsJsonAsync($"/products/{nonExistentId}", command);
 
         // Assert
-        // InvalidOperationException from the handler is mapped to 409 Conflict
-        // (not an unhandled 500 Internal Server Error).
-        // TODO: Improve API to return proper 404 NotFound instead of a coarse Conflict.
-        response.StatusCode.Should().Be(HttpStatusCode.Conflict);
+        // ProductNotFoundException maps to 404; 409 stays reserved for real conflicts
+        // (duplicate barcode, store-type violation).
+        response.StatusCode.Should().Be(HttpStatusCode.NotFound);
 
         var body = await response.Content.ReadFromJsonAsync<ErrorResponse>(JsonOptions);
         body.Should().NotBeNull();

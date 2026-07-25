@@ -29,12 +29,19 @@ The store also runs multiple **store types** (`GeneralHardware`, `Minimart`, `Co
 
 ## 2. Business Rules
 
+> **Superseded 2026-07-25 (Kind column only).** The `Kind` domain is now
+> `{ Standard = 1, GovernmentCampaign = 2, Special = 3 }` — `Standard` is a rename of
+> `Permanent` (same backing value). Reclassified: **PayLater → Special** (a store credit
+> arrangement, not tender) and **WelfareCard → GovernmentCampaign** (it is a government
+> scheme; still seeded enabled). Cash/MoneyTransfer are `Standard`. `Kind` remains display
+> metadata only and drives no behaviour. Everything else in this table still holds.
+
 | Method | Kind | Stores | Notes |
 |---|---|---|---|
-| Cash | Permanent | All | |
-| MoneyTransfer | Permanent | All | |
-| WelfareCard | Permanent | All | Government welfare card (ongoing program) |
-| PayLater | Permanent | **GeneralHardware only** | Hard invariant (see §5); most troublesome method |
+| Cash | Standard | All | |
+| MoneyTransfer | Standard | All | |
+| WelfareCard | GovernmentCampaign | All | Government welfare card (ongoing program) — enabled |
+| PayLater | Special | **GeneralHardware only** | Hard invariant (see §5); most troublesome method |
 | M33WeLove, FiftyFifty, WeWin | GovernmentCampaign | (were: all) | Dead — seeded **disabled** so history resolves |
 | *future campaigns* | GovernmentCampaign | configurable | Added as data rows at runtime, no redeploy |
 
@@ -85,7 +92,7 @@ Installer
 |---|---|---|
 | `Code` | string (PK) | Stable key stored on payments + used in reports. PascalCase, matches legacy enum names for migration continuity (`Cash`, `MoneyTransfer`, `WelfareCard`, `PayLater`, `M33WeLove`, `FiftyFifty`, `WeWin`). |
 | `DisplayName` | string | Shown on the POS button (Thai). |
-| `Kind` | enum `PaymentMethodKind { Permanent, GovernmentCampaign }` | |
+| `Kind` | enum `PaymentMethodKind { Standard = 1, GovernmentCampaign = 2, Special = 3 }` | Display metadata only — see the §2 note. Was `{ Permanent, GovernmentCampaign }`. |
 | `IsEnabled` | bool | **Authoritative on/off.** Admin toggles when a campaign starts/ends. |
 | `DisplayOrder` | int | Button ordering in the POS. |
 | `ValidFrom` | DateTime? | **Optional, informational only.** Not enforced. |

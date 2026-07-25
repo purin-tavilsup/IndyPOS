@@ -10,7 +10,7 @@ public class PaymentMethodPolicyTests
 {
     private static PaymentMethod Method(string code, bool enabled = true, int order = 0) => new()
     {
-        Code = code, DisplayName = code, Kind = PaymentMethodKind.Permanent,
+        Code = code, DisplayName = code, Kind = PaymentMethodKind.Standard,
         IsEnabled = enabled, DisplayOrder = order, StoreId = "s"
     };
 
