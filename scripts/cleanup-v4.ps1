@@ -9,7 +9,7 @@
       1. Stop + delete Windows service 'IndyPOS.StoreHub.v4'
       2. Uninstall the Velopack WinForms app
       3. Drop the v4 PostgreSQL database
-      4. Remove C:\ProgramData\IndyPOS\v4.0.0\
+      4. Remove C:\ProgramData\IndyPOS\v4\ (major-only root; see Assert-V4Path)
       5. Remove %LOCALAPPDATA%\IndyPOS.POS.v4\
       6. (Opt-in) uninstall PostgreSQL 18 itself
 
@@ -19,10 +19,13 @@
     DATABASE CREDENTIALS:
     The Postgres superuser password is generated randomly during install and
     not persisted, so we recover the v4 app-user credentials from
-    appsettings.json. The app user owns the database, so it can
-    DROP DATABASE on its own. The role itself is preserved (installer is
-    idempotent on existing roles). Pass -PostgresPassword to also DROP ROLE,
-    or pass -SkipDatabase to leave the DB intact.
+    appsettings.json - DPAPI-unsealing the connection string first, since the
+    installer stores it as "DPAPI:<base64>" (LocalMachine scope, per-key
+    entropy). Decryption only works on the machine that installed it. The app
+    user owns the database, so it can DROP DATABASE on its own. The role itself
+    is preserved (installer is idempotent on existing roles). Pass
+    -PostgresPassword to also DROP ROLE, or pass -SkipDatabase to leave the DB
+    intact.
 
     REQUIRES ADMINISTRATOR PRIVILEGES.
 
@@ -80,7 +83,7 @@ $ManifestSource  = "defaults"
 function Read-InstallManifest {
     # Glob for install-manifest.json under any v*\ subdir of $ProgramDataRoot.
     # Each install version gets its own folder, so we can't assume which one
-    # is present — discovery lets cleanup work for v4.0.0, v4.0.1, etc.
+    # is present - discovery lets cleanup work for v4.0.0, v4.0.1, etc.
     # If none found, keep the baked-in defaults so cleanup still copes with
     # a half-installed system.
     if (-not (Test-Path $ProgramDataRoot)) { return }
@@ -141,9 +144,14 @@ function Test-IsAdmin {
 }
 
 function Assert-V4Path {
-    # Refuse anything that isn't a v<Major>.<Minor>.<Patch> subdirectory of
-    # the shared parent. Catches accidental SystemRoot collapses, typos, and
-    # future-version drift.
+    # Refuse anything that isn't a v-and-digits subdirectory of the shared
+    # parent. Catches accidental SystemRoot collapses, typos, and version drift.
+    #
+    # Accepts both the current major-only root (v4) and the legacy
+    # v<Major>.<Minor>.<Patch> form (v4.0.0). InstallationConfig.SystemRoot moved
+    # to major-only so the path survives Velopack patch updates; this guard was
+    # left demanding three parts, which made the script refuse to clean the very
+    # layout the installer produces.
     param([Parameter(Mandatory)] [string]$Path)
     $resolved = [System.IO.Path]::GetFullPath($Path).TrimEnd('\').ToLowerInvariant()
     $parentResolved = [System.IO.Path]::GetFullPath($ProgramDataRoot).TrimEnd('\').ToLowerInvariant()
@@ -152,8 +160,8 @@ function Assert-V4Path {
         throw "Safety guard: '$Path' is not a v-prefixed subdirectory of '$ProgramDataRoot'."
     }
     $suffix = $resolved.Substring($parentResolved.Length + 1)
-    if ($suffix -notmatch '^v\d+\.\d+\.\d+(\\|$)') {
-        throw "Safety guard: '$Path' does not match v<Major>.<Minor>.<Patch> pattern."
+    if ($suffix -notmatch '^v\d+(\.\d+\.\d+)?(\\|$)') {
+        throw "Safety guard: '$Path' does not match v<Major> or v<Major>.<Minor>.<Patch> pattern."
     }
 }
 
@@ -167,7 +175,7 @@ function Assert-SafetyGuards {
 
 # --- Step 1: service ---
 function Wait-ServiceGone {
-    # sc.exe delete is async — SCM marks for deletion but the entry survives
+    # sc.exe delete is async - SCM marks for deletion but the entry survives
     # until all handles close. A follow-up install would then see the stale
     # entry and skip recreation. Poll until Get-Service stops finding it.
     param([string]$Name, [int]$TimeoutSeconds = 30)
@@ -195,7 +203,7 @@ function Remove-StoreHubService {
             Stop-Service -Name $ServiceName -Force -ErrorAction Stop
             $svc.WaitForStatus('Stopped', '00:00:30')
         } catch {
-            Write-Warn "Stop-Service failed: $($_.Exception.Message). Continuing — sc.exe delete will try anyway."
+            Write-Warn "Stop-Service failed: $($_.Exception.Message). Continuing - sc.exe delete will try anyway."
         }
     }
 
@@ -298,11 +306,61 @@ function Remove-VelopackApp {
 }
 
 # --- Step 3: database ---
+function Unprotect-ConfigValue {
+    # Mirror of IndyPOS.Vault SecretProtector.Unprotect (see src/IndyPOS.Vault/
+    # SecretProtector.cs): DPAPI at LocalMachine scope, with per-key entropy
+    # SHA256("IndyPOS:<configKey>") binding each ciphertext to its config key.
+    #
+    # Needed because the installer DPAPI-seals the connection string in
+    # appsettings.json. Feeding "DPAPI:<base64>" straight to a connection-string
+    # builder throws, which used to make this script silently skip the database
+    # drop - so a smoke-test loop without -RemovePostgres left the old database
+    # in place and the next install quietly reused stale data.
+    param(
+        [Parameter(Mandatory)] [string]$Key,
+        [Parameter(Mandatory)] [string]$Value
+    )
+
+    if (-not $Value.StartsWith('DPAPI:', [System.StringComparison]::Ordinal)) {
+        return $Value   # unprotected (dev/Aspire) values pass through, as the C# does
+    }
+
+    # PowerShell 5.1 needs System.Security loaded; on 7.x ProtectedData already resolves.
+    try { Add-Type -AssemblyName System.Security -ErrorAction SilentlyContinue } catch { }
+
+    try {
+        # SHA256.Create().ComputeHash, not the static HashData - the latter is
+        # .NET 5+ only and the Hyper-V guest runs PowerShell 5.1.
+        $sha = [System.Security.Cryptography.SHA256]::Create()
+        try {
+            $entropy = $sha.ComputeHash([System.Text.Encoding]::UTF8.GetBytes("IndyPOS:$Key"))
+        } finally {
+            $sha.Dispose()
+        }
+
+        $cipher = [Convert]::FromBase64String($Value.Substring('DPAPI:'.Length))
+        $plain = [System.Security.Cryptography.ProtectedData]::Unprotect(
+            $cipher, $entropy, [System.Security.Cryptography.DataProtectionScope]::LocalMachine)
+
+        return [System.Text.Encoding]::UTF8.GetString($plain)
+    } catch {
+        # Wrong machine, corrupt value, or ProtectedData unavailable. Caller degrades
+        # to the superuser path rather than failing the whole teardown.
+        Write-Warn "Could not decrypt '$Key' - $($_.Exception.Message)"
+        return $null
+    }
+}
+
 function Get-AppPasswordFromConfig {
     if (-not (Test-Path $AppsettingsPath)) { return $null }
     try {
         $json = Get-Content $AppsettingsPath -Raw | ConvertFrom-Json
         $connStr = $json.connectionStrings.'storehub-db'
+        if (-not $connStr) { return $null }
+
+        # The installer seals this value; unprotect before parsing. Key must match
+        # what StoreHub's UnprotectSecrets uses, or the entropy won't line up.
+        $connStr = Unprotect-ConfigValue -Key 'ConnectionStrings:storehub-db' -Value $connStr
         if (-not $connStr) { return $null }
 
         # Use DbConnectionStringBuilder for correct handling of escaped/quoted

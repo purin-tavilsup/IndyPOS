@@ -31,6 +31,8 @@ public class StoreHubInstaller
     {
         _config = config;
 
+        ConfigSnapshot? configSnapshot = null;
+
         try
         {
             log?.Report("Creating installation directory...");
@@ -39,19 +41,30 @@ public class StoreHubInstaller
                 Directory.CreateDirectory(Config.StoreHubInstallPath);
             }
 
+            // Must precede extraction: on an in-place upgrade the running service holds
+            // its own DLLs open, so extracting over them throws "being used by another
+            // process". A clean install has no service and this is a no-op.
+            log?.Report("Checking for existing service...");
+            await StopExistingServiceAsync(cancellationToken);
+
+            // Extraction overwrites appsettings.json with the package template and
+            // DatabaseSetup only rewrites the real values later, so a failure in between
+            // would strand an upgraded store on a config it cannot start from.
+            configSnapshot = ConfigSnapshot.Capture(
+                Path.Combine(Config.StoreHubInstallPath, "appsettings.json"));
+
             log?.Report("Extracting StoreHub binaries...");
             var extractResult = await ExtractStoreHubBinariesAsync(log, cancellationToken);
             if (!extractResult)
             {
+                configSnapshot.Restore();
+
                 return new StoreHubInstallerResult
                 {
                     Success = false,
                     ErrorMessage = "Failed to extract StoreHub binaries"
                 };
             }
-
-            log?.Report("Checking for existing service...");
-            await StopExistingServiceAsync(cancellationToken);
 
             log?.Report("Registering Windows Service...");
             var serviceResult = await CreateWindowsServiceAsync(log, cancellationToken);
@@ -68,6 +81,10 @@ public class StoreHubInstaller
         }
         catch (Exception ex)
         {
+            // The locked-DLL failure arrives here as an IOException, so this is the path
+            // that actually protects a live store's config.
+            configSnapshot?.Restore();
+
             return new StoreHubInstallerResult
             {
                 Success = false,
