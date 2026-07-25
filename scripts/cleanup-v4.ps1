@@ -9,7 +9,7 @@
       1. Stop + delete Windows service 'IndyPOS.StoreHub.v4'
       2. Uninstall the Velopack WinForms app
       3. Drop the v4 PostgreSQL database
-      4. Remove C:\ProgramData\IndyPOS\v4.0.0\
+      4. Remove C:\ProgramData\IndyPOS\v4\ (major-only root; see Assert-V4Path)
       5. Remove %LOCALAPPDATA%\IndyPOS.POS.v4\
       6. (Opt-in) uninstall PostgreSQL 18 itself
 
@@ -80,7 +80,7 @@ $ManifestSource  = "defaults"
 function Read-InstallManifest {
     # Glob for install-manifest.json under any v*\ subdir of $ProgramDataRoot.
     # Each install version gets its own folder, so we can't assume which one
-    # is present — discovery lets cleanup work for v4.0.0, v4.0.1, etc.
+    # is present - discovery lets cleanup work for v4.0.0, v4.0.1, etc.
     # If none found, keep the baked-in defaults so cleanup still copes with
     # a half-installed system.
     if (-not (Test-Path $ProgramDataRoot)) { return }
@@ -141,9 +141,14 @@ function Test-IsAdmin {
 }
 
 function Assert-V4Path {
-    # Refuse anything that isn't a v<Major>.<Minor>.<Patch> subdirectory of
-    # the shared parent. Catches accidental SystemRoot collapses, typos, and
-    # future-version drift.
+    # Refuse anything that isn't a v-and-digits subdirectory of the shared
+    # parent. Catches accidental SystemRoot collapses, typos, and version drift.
+    #
+    # Accepts both the current major-only root (v4) and the legacy
+    # v<Major>.<Minor>.<Patch> form (v4.0.0). InstallationConfig.SystemRoot moved
+    # to major-only so the path survives Velopack patch updates; this guard was
+    # left demanding three parts, which made the script refuse to clean the very
+    # layout the installer produces.
     param([Parameter(Mandatory)] [string]$Path)
     $resolved = [System.IO.Path]::GetFullPath($Path).TrimEnd('\').ToLowerInvariant()
     $parentResolved = [System.IO.Path]::GetFullPath($ProgramDataRoot).TrimEnd('\').ToLowerInvariant()
@@ -152,8 +157,8 @@ function Assert-V4Path {
         throw "Safety guard: '$Path' is not a v-prefixed subdirectory of '$ProgramDataRoot'."
     }
     $suffix = $resolved.Substring($parentResolved.Length + 1)
-    if ($suffix -notmatch '^v\d+\.\d+\.\d+(\\|$)') {
-        throw "Safety guard: '$Path' does not match v<Major>.<Minor>.<Patch> pattern."
+    if ($suffix -notmatch '^v\d+(\.\d+\.\d+)?(\\|$)') {
+        throw "Safety guard: '$Path' does not match v<Major> or v<Major>.<Minor>.<Patch> pattern."
     }
 }
 
@@ -167,7 +172,7 @@ function Assert-SafetyGuards {
 
 # --- Step 1: service ---
 function Wait-ServiceGone {
-    # sc.exe delete is async — SCM marks for deletion but the entry survives
+    # sc.exe delete is async - SCM marks for deletion but the entry survives
     # until all handles close. A follow-up install would then see the stale
     # entry and skip recreation. Poll until Get-Service stops finding it.
     param([string]$Name, [int]$TimeoutSeconds = 30)
@@ -195,7 +200,7 @@ function Remove-StoreHubService {
             Stop-Service -Name $ServiceName -Force -ErrorAction Stop
             $svc.WaitForStatus('Stopped', '00:00:30')
         } catch {
-            Write-Warn "Stop-Service failed: $($_.Exception.Message). Continuing — sc.exe delete will try anyway."
+            Write-Warn "Stop-Service failed: $($_.Exception.Message). Continuing - sc.exe delete will try anyway."
         }
     }
 
