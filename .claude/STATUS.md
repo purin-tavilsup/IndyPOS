@@ -6,16 +6,28 @@
 
 | Field | Value |
 |-------|-------|
-| **Branch** | `cleanup/cosmetic-minors` (9 commits, NOT pushed). Off `development` @ `d7b2998` (pushed). |
+| **Branch** | `development` @ `7c7c5cf` (pushed). Feature/cleanup branches merged + deleted. |
 | **Sprint** | Sprint 7 |
-| **Phase** | ✅ **Epic M (data-driven payment methods) SHIPPED + VM-VALIDATED**, and ✅ **Product-type restriction by store type SHIPPED (2026-07-19)** — both merged to `development`. |
-| **Blocked?** | Not blocked. Merged + pushed to `origin/development`. Only cosmetic Minors + a live Minimart VM smoke remain. |
+| **Phase** | ✅ **Epic M SHIPPED + VM-VALIDATED**, ✅ **Product-type restriction SHIPPED (2026-07-19)**, ✅ **Cosmetic-minors cleanup batch MERGED (PR #52, 2026-07-25)**. |
+| **Blocked?** | Not blocked. All code merged + pushed. **Only the VM smoke remains** (4-item checklist below). |
 
-## ⏯️ RESUME HERE (2026-07-25) — Cosmetic-minors cleanup batch: CODE COMPLETE + fully verified
+## ⏯️ RESUME HERE (2026-07-25) — Cosmetic-minors cleanup batch: MERGED ✅ · VM smoke owed
 
-**State:** Branch `cleanup/cosmetic-minors` @ `df1e06e`, 6 commits, not pushed. Closes every
-deferred cosmetic Minor from Epic M + the product-type restriction. Ledger detail:
+**State:** **Merged via PR #52** → `origin/development` @ merge commit `7c7c5cf` (11 commits;
+branch deleted both sides). Verified again ON the merged result: Release build 0 err, Domain 8/8,
+Application 274/274, Bootstrapper 96 pass/8 skip, StoreHub integration 76/76. Closes every deferred
+cosmetic Minor from Epic M + the product-type restriction. Ledger detail:
 `.superpowers/sdd/progress.md` (last section).
+
+**⚠️ NOTE:** `development` has a branch-protection ruleset ("Changes must be made through a pull
+request"). Direct pushes succeed for Pond only, as repo owner bypassing the rule — use PRs.
+
+**⏭️ THE ONLY THING LEFT — VM smoke.** 4-item checklist at the end of the ledger's cleanup-batch
+section. Highest-risk item: `บัตรสวัสดิการแห่งรัฐ` on a 195×129 button with a ~100px icon and
+`ImageAboveText` leaves <30px for the caption → check for clipped text. Also verify on an
+**upgraded** store: `SELECT code, kind, is_enabled FROM payment_method ORDER BY code` → PayLater=3,
+WelfareCard=2 **still enabled**, Cash/MoneyTransfer=1. Fold in with the owed Minimart smoke.
+Installer needs a rebuild first to embed this batch.
 
 **What shipped:** payment-method **Kind taxonomy re-specced** by Pond mid-batch — `Standard`(1,
 was `Permanent`) / `GovernmentCampaign`(2) / `Special`(3, new); Cash+MoneyTransfer=Standard,
@@ -36,11 +48,6 @@ with reasons. Reviewer independently disproved the shared-`Image` disposal conce
 
 **Test state:** Release build 0 err. Domain 8/8, Application **274/274**, Bootstrapper 96 pass/8
 skip, StoreHub integration **76/76** (real Postgres; 64 + 12 new migration tests). All gates green.
-
-**NEXT:** `finishing-a-development-branch` → merge to `development`. Then the VM smoke — see the
-tightened 4-item checklist at the end of the ledger's cleanup-batch section (long Thai labels on
-the icon buttons is the one real runtime risk; plus `SELECT code, kind FROM payment_method` on an
-upgraded store).
 
 **Skipped deliberately:** T7-m1 (stale Hardware category text on a legacy Hardware product) — not
 reachable today, server guard blocks the persist anyway.
