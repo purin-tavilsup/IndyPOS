@@ -6,7 +6,7 @@
 
 | Field | Value |
 |-------|-------|
-| **Branch** | `cleanup/cosmetic-minors` @ `df1e06e` (6 commits, NOT pushed). Off `development` @ `d7b2998` (pushed). |
+| **Branch** | `cleanup/cosmetic-minors` (9 commits, NOT pushed). Off `development` @ `d7b2998` (pushed). |
 | **Sprint** | Sprint 7 |
 | **Phase** | ✅ **Epic M (data-driven payment methods) SHIPPED + VM-VALIDATED**, and ✅ **Product-type restriction by store type SHIPPED (2026-07-19)** — both merged to `development`. |
 | **Blocked?** | Not blocked. Merged + pushed to `origin/development`. Only cosmetic Minors + a live Minimart VM smoke remain. |
@@ -25,13 +25,22 @@ refresh on successful toggle, payment-button icons restored (unknown campaign co
 `PUT /products/{id}` → **404** for a missing id via the existing `ProductNotFoundException` (409
 now means only a real conflict), and the SalePanel features-error dialog warns once per session.
 
-**Test state:** Release build of the solution 0 err. Domain 8/8, Application **274/274** (+9 new),
-Bootstrapper 96 pass/8 skip, StoreHub integration **64/64** (real Postgres via Docker, 52s) —
-covers the `UpdateProduct_NonExistent_ReturnsNotFound` flip. All gates green.
+**Whole-branch review: DONE** (opus subagent) — no Critical, 1 Important **fixed**: the data
+migration's row-flip branch had zero coverage, because `IntegrationTestBase` provisions via
+`EnsureCreatedAsync` (no migration in this repo is exercised by any test) and a fresh install runs
+the migration against an empty table. Added `ReclassifyPaymentMethodKindsMigrationTests` — own
+Postgres container, drives `IMigrator` to the prior revision, plants pre-change rows, migrates to
+latest, asserts the flip **plus a before-snapshot** proving the transition. 4 Minors applied
+(test-precision guard, T3-m1 fully closed, a real `Font` handle leak, spec-drift note); 5 deferred
+with reasons. Reviewer independently disproved the shared-`Image` disposal concern by probe.
 
-**NEXT:** whole-branch review → `finishing-a-development-branch` (merge to `development`).
-Live-UI items still owed (no WinForms harness, fold into the pending VM smoke): payment buttons
-render with icons again, admin grid Kind column reads Thai + refreshes after a toggle.
+**Test state:** Release build 0 err. Domain 8/8, Application **274/274**, Bootstrapper 96 pass/8
+skip, StoreHub integration **76/76** (real Postgres; 64 + 12 new migration tests). All gates green.
+
+**NEXT:** `finishing-a-development-branch` → merge to `development`. Then the VM smoke — see the
+tightened 4-item checklist at the end of the ledger's cleanup-batch section (long Thai labels on
+the icon buttons is the one real runtime risk; plus `SELECT code, kind FROM payment_method` on an
+upgraded store).
 
 **Skipped deliberately:** T7-m1 (stale Hardware category text on a legacy Hardware product) — not
 reachable today, server guard blocks the persist anyway.
