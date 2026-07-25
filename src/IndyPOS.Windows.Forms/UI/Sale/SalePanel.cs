@@ -29,6 +29,7 @@ public partial class SalePanel : UserControl
 	private readonly ICashDrawerService _cashDrawerService;
     private IReadOnlyDictionary<string, string>? _paymentMethodNamesByCode;
     private bool _storeFeaturesApplied;
+    private bool _storeFeaturesErrorShown;
 
     private const string GeneralGoodsBarcode = "2001000000012";
     private const string HardwareBarcode = "2005000000027";
@@ -273,7 +274,14 @@ public partial class SalePanel : UserControl
         }
         catch (Exception ex)
         {
-            _messageForm.ShowDialog($"ไม่สามารถโหลดการตั้งค่าร้านค้าได้ Error: {ex.Message}", "ข้อผิดพลาด");
+            // Warn once per session: the fetch retries on every visit to Sales, so a sustained
+            // outage would otherwise pop this dialog in the cashier's face all shift.
+            if (!_storeFeaturesErrorShown)
+            {
+                _storeFeaturesErrorShown = true;
+                _messageForm.ShowDialog($"ไม่สามารถโหลดการตั้งค่าร้านค้าได้ Error: {ex.Message}", "ข้อผิดพลาด");
+            }
+
             // Leave the button as designed (visible) on failure — server guard still blocks Hardware creation.
         }
     }
