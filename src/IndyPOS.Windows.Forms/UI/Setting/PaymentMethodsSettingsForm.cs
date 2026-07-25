@@ -172,6 +172,10 @@ public partial class PaymentMethodsSettingsForm : Form
         try
         {
             await _storeHubClient.SetPaymentMethodEnabledAsync(code, enabled);
+
+            // Re-read so the grid shows persisted state, mirroring SaveRowAsync. Safe to
+            // rebuild rows here: the await above lets the grid finish its edit cycle first.
+            await LoadPaymentMethodsAsync();
         }
         catch (StoreHubClientException ex)
         {
