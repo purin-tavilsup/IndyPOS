@@ -115,6 +115,11 @@ namespace IndyPOS.Windows.Forms.UI.Payment
             }
         }
 
+        // Shared: the buttons are rebuilt on every ShowDialog and nothing disposes their Font,
+        // so a per-button instance would leak one handle per method per open.
+        private static readonly Font PaymentMethodButtonFont =
+            new("Leelawadee UI", 12F, FontStyle.Regular, GraphicsUnit.Point);
+
         private static Button CreatePaymentMethodButton(PaymentMethodDto method, int index)
         {
             const int columnCount = 2;
@@ -130,7 +135,7 @@ namespace IndyPOS.Windows.Forms.UI.Payment
                 BackColor = Color.FromArgb(80, 80, 80),
                 ForeColor = Color.White,
                 FlatStyle = FlatStyle.Flat,
-                Font = new Font("Leelawadee UI", 12F, FontStyle.Regular, GraphicsUnit.Point),
+                Font = PaymentMethodButtonFont,
                 TextAlign = ContentAlignment.MiddleCenter,
                 UseVisualStyleBackColor = false
             };
