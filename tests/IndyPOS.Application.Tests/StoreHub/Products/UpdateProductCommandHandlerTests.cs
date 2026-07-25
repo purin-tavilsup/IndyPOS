@@ -1,6 +1,7 @@
 using FluentAssertions;
 using IndyPOS.Application.Abstractions.StoreHub.Repositories;
 using IndyPOS.Application.Common.Enums;
+using IndyPOS.Application.Common.Exceptions;
 using IndyPOS.Application.UseCases.StoreHub.Products;
 using IndyPOS.Application.UseCases.StoreHub.Products.Update;
 using IndyPOS.Domain.Enums;
@@ -43,6 +44,33 @@ public class UpdateProductCommandHandlerTests
         products.Setup(r => r.GetByIdAsync(ProductId, It.IsAny<CancellationToken>())).ReturnsAsync(ExistingProduct());
         products.Setup(r => r.ExistsByBarcodeAsync(It.IsAny<string>(), It.IsAny<Guid?>(), It.IsAny<CancellationToken>())).ReturnsAsync(false);
         return products;
+    }
+
+    [Fact]
+    public async Task HandleAsync_UnknownProductId_ShouldThrowProductNotFound()
+    {
+        var products = NewProductsMock();
+        products.Setup(r => r.GetByIdAsync(ProductId, It.IsAny<CancellationToken>()))
+                .ReturnsAsync((Domain.Entities.Core.Product?)null);
+        var sut = NewSut(products, StoreType.GeneralHardware);
+
+        var act = () => sut.HandleAsync(Command(nameof(ProductCategory.GeneralGoods)));
+
+        await act.Should().ThrowAsync<ProductNotFoundException>();
+    }
+
+    [Fact]
+    public async Task HandleAsync_DuplicateBarcode_ShouldThrowInvalidOperation()
+    {
+        var products = NewProductsMock();
+        products.Setup(r => r.ExistsByBarcodeAsync(It.IsAny<string>(), It.IsAny<Guid?>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(true);
+        var sut = NewSut(products, StoreType.GeneralHardware);
+
+        var act = () => sut.HandleAsync(Command(nameof(ProductCategory.GeneralGoods)));
+
+        // Stays InvalidOperationException (409) — only the not-found case becomes a 404.
+        await act.Should().ThrowAsync<InvalidOperationException>();
     }
 
     [Fact]
