@@ -57,6 +57,7 @@ public class UpdateProductCommandHandlerTests
         var act = () => sut.HandleAsync(Command(nameof(ProductCategory.GeneralGoods)));
 
         await act.Should().ThrowAsync<ProductNotFoundException>();
+        products.Verify(r => r.UpdateAsync(It.IsAny<Domain.Entities.Core.Product>(), It.IsAny<CancellationToken>()), Times.Never);
     }
 
     [Fact]
@@ -69,8 +70,11 @@ public class UpdateProductCommandHandlerTests
 
         var act = () => sut.HandleAsync(Command(nameof(ProductCategory.GeneralGoods)));
 
-        // Stays InvalidOperationException (409) — only the not-found case becomes a 404.
-        await act.Should().ThrowAsync<InvalidOperationException>();
+        // Stays InvalidOperationException (409) — only the not-found case becomes a 404. The
+        // NotBeOfType guard keeps this honest if ProductNotFoundException is ever re-parented
+        // under InvalidOperationException, which would silently restore the 409.
+        var thrown = await act.Should().ThrowAsync<InvalidOperationException>();
+        thrown.Which.Should().NotBeOfType<ProductNotFoundException>();
     }
 
     [Fact]
