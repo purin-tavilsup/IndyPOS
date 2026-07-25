@@ -273,6 +273,8 @@ Both entry points consume **one** detection result from a single router — if `
 
 ## 13. Prerequisite already landed
 
-The stop-before-extract reorder plus the `ConfigSnapshot` guard shipped as commit `d74cfda` on branch `fix/installer-upgrade-path` (5 tests; bootstrapper suite 101 pass / 8 skip). It is a strict improvement to the fresh path too — any extraction failure now leaves config intact — and this design builds on it. Its guard covers extraction failure only; §5's rollback supersedes it for the upgrade path.
+The stop-before-extract reorder plus the `ConfigSnapshot` guard ship in **PR #53** (`fix/installer-upgrade-robustness`), with 5 tests and the bootstrapper suite at 101 pass / 8 skip, plus a fresh-install VM regression at 18/18. It is a strict improvement to the fresh path too — any extraction failure now leaves config intact — and this design builds on it. Its guard covers extraction failure only; §5's rollback supersedes it for the upgrade path.
 
-Two unrelated tooling bugs were found and fixed while rebuilding the VM baseline, both from the May move to a major-only install root being only half-applied: `cleanup-v4.ps1`'s `Assert-V4Path` still demanded `v<Major>.<Minor>.<Patch>` and so refused to clean the layout the installer produces, and three em-dashes made the script unparseable under the guest's Windows-1252 codepage.
+**This spec assumes PR #53 has merged.** If it has not, the upgrade path's first failure is still the locked-DLL error from §1.
+
+That PR also carries three `cleanup-v4.ps1` bugs found while rebuilding the VM baseline — two from the May move to a major-only install root being only half-applied (the safety guard still demanded `v<Major>.<Minor>.<Patch>`, and three em-dashes made the script unparseable under the guest's Windows-1252 codepage), plus one where the DPAPI-sealed connection string was fed to a connection-string builder, so the teardown silently skipped the database drop.
