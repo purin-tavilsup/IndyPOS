@@ -1,6 +1,7 @@
 using IndyPOS.Application.Abstractions.StoreHub;
 using IndyPOS.Application.Common.Extensions;
 using IndyPOS.Application.UseCases.StoreHub.PaymentMethods;
+using IndyPOS.Domain.Enums;
 using IndyPOS.Infrastructure.Services.StoreHub;
 using System.Diagnostics.CodeAnalysis;
 
@@ -129,7 +130,7 @@ public partial class PaymentMethodsSettingsForm : Form
 
                 row.Cells[(int)PaymentMethodColumn.Code].Value = method.Code;
                 row.Cells[(int)PaymentMethodColumn.DisplayName].Value = method.DisplayName;
-                row.Cells[(int)PaymentMethodColumn.Kind].Value = method.Kind.ToString();
+                row.Cells[(int)PaymentMethodColumn.Kind].Value = DescribeKind(method.Kind);
                 row.Cells[(int)PaymentMethodColumn.Enabled].Value = method.IsEnabled;
                 row.Cells[(int)PaymentMethodColumn.DisplayOrder].Value = method.DisplayOrder;
             }
@@ -139,6 +140,15 @@ public partial class PaymentMethodsSettingsForm : Form
             _isPopulatingGrid = false;
         }
     }
+
+    /// <summary>Thai label for the Kind column — store staff cannot read the raw enum name.</summary>
+    private static string DescribeKind(PaymentMethodKind kind) => kind switch
+    {
+        PaymentMethodKind.Standard => "มาตรฐาน",
+        PaymentMethodKind.Special => "พิเศษ",
+        PaymentMethodKind.GovernmentCampaign => "โครงการรัฐ",
+        _ => kind.ToString()
+    };
 
     private void PaymentMethodsGrid_CurrentCellDirtyStateChanged(object? sender, EventArgs e)
     {
