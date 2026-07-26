@@ -1,5 +1,4 @@
 using System.Diagnostics;
-using System.IO.Compression;
 using System.ServiceProcess;
 
 namespace IndyPOS.Bootstrapper.Installers;
@@ -45,7 +44,8 @@ public class StoreHubInstaller
             // its own DLLs open, so extracting over them throws "being used by another
             // process". A clean install has no service and this is a no-op.
             log?.Report("Checking for existing service...");
-            await StopExistingServiceAsync(cancellationToken);
+            await new ServiceControl(Config.ServiceName)
+                .StopAsync(TimeSpan.FromSeconds(30), cancellationToken);
 
             // Extraction overwrites appsettings.json with the package template and
             // DatabaseSetup only rewrites the real values later, so a failure in between
@@ -54,7 +54,8 @@ public class StoreHubInstaller
                 Path.Combine(Config.StoreHubInstallPath, "appsettings.json"));
 
             log?.Report("Extracting StoreHub binaries...");
-            var extractResult = await ExtractStoreHubBinariesAsync(log, cancellationToken);
+            var extractResult = await StoreHubPayload.ExtractAsync(
+                Config.StoreHubInstallPath, log, cancellationToken);
             if (!extractResult)
             {
                 configSnapshot.Restore();
@@ -98,30 +99,16 @@ public class StoreHubInstaller
     /// </summary>
     public async Task<StoreHubInstallerResult> StartServiceAsync(CancellationToken cancellationToken = default)
     {
-        try
-        {
-            using var sc = new ServiceController(Config.ServiceName);
+        var started = await new ServiceControl(Config.ServiceName)
+            .StartAsync(TimeSpan.FromSeconds(60), cancellationToken);
 
-            if (sc.Status == ServiceControllerStatus.Running)
-            {
-                return new StoreHubInstallerResult { Success = true };
-            }
-
-            sc.Start();
-
-            var timeout = TimeSpan.FromSeconds(60);
-            await Task.Run(() => sc.WaitForStatus(ServiceControllerStatus.Running, timeout), cancellationToken);
-
-            return new StoreHubInstallerResult { Success = true };
-        }
-        catch (Exception ex)
-        {
-            return new StoreHubInstallerResult
+        return started
+            ? new StoreHubInstallerResult { Success = true }
+            : new StoreHubInstallerResult
             {
                 Success = false,
-                ErrorMessage = $"Failed to start service: {ex.Message}"
+                ErrorMessage = $"Failed to start service: {Config.ServiceName}"
             };
-        }
     }
 
     /// <summary>
@@ -200,118 +187,6 @@ public class StoreHubInstaller
 
     internal static bool ParseAdminSeeded(string stdout) =>
         stdout.Contains("ADMIN_SEEDED=true", StringComparison.OrdinalIgnoreCase);
-
-    private async Task<bool> ExtractStoreHubBinariesAsync(
-        IProgress<string>? log,
-        CancellationToken cancellationToken)
-    {
-        var assembly = typeof(StoreHubInstaller).Assembly;
-        var resourceName = "IndyPOS.Bootstrapper.Resources.StoreHub.zip";
-
-        using var resourceStream = assembly.GetManifestResourceStream(resourceName);
-
-        if (resourceStream != null)
-        {
-            log?.Report("Extracting from embedded resources...");
-
-            using var archive = new ZipArchive(resourceStream, ZipArchiveMode.Read);
-            foreach (var entry in archive.Entries)
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-
-                if (string.IsNullOrEmpty(entry.Name))
-                {
-                    continue;
-                }
-
-                var destPath = Path.Combine(Config.StoreHubInstallPath, entry.FullName);
-                var destDir = Path.GetDirectoryName(destPath);
-
-                if (!string.IsNullOrEmpty(destDir) && !Directory.Exists(destDir))
-                {
-                    Directory.CreateDirectory(destDir);
-                }
-
-                entry.ExtractToFile(destPath, overwrite: true);
-            }
-
-            return true;
-        }
-
-        var externalZip = Path.Combine(AppContext.BaseDirectory, "StoreHub.zip");
-
-        if (File.Exists(externalZip))
-        {
-            log?.Report("Extracting from external package...");
-            ZipFile.ExtractToDirectory(externalZip, Config.StoreHubInstallPath, overwriteFiles: true);
-            return true;
-        }
-
-        var externalFolder = Path.Combine(AppContext.BaseDirectory, "StoreHub");
-
-        if (Directory.Exists(externalFolder))
-        {
-            log?.Report("Copying from external folder...");
-            await CopyDirectoryAsync(externalFolder, Config.StoreHubInstallPath, cancellationToken);
-            return true;
-        }
-
-        log?.Report("ERROR: StoreHub binaries not found!");
-        log?.Report("Expected locations:");
-        log?.Report($"  - Embedded resource: {resourceName}");
-        log?.Report($"  - External zip: {externalZip}");
-        log?.Report($"  - External folder: {externalFolder}");
-
-        return false;
-    }
-
-    private static async Task CopyDirectoryAsync(
-        string sourceDir,
-        string destDir,
-        CancellationToken cancellationToken)
-    {
-        if (!Directory.Exists(destDir))
-        {
-            Directory.CreateDirectory(destDir);
-        }
-
-        foreach (var file in Directory.GetFiles(sourceDir))
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-
-            var destFile = Path.Combine(destDir, Path.GetFileName(file));
-            await using var sourceStream = File.OpenRead(file);
-            await using var destStream = File.Create(destFile);
-            await sourceStream.CopyToAsync(destStream, cancellationToken);
-        }
-
-        foreach (var dir in Directory.GetDirectories(sourceDir))
-        {
-            var destSubDir = Path.Combine(destDir, Path.GetFileName(dir));
-            await CopyDirectoryAsync(dir, destSubDir, cancellationToken);
-        }
-    }
-
-    private async Task StopExistingServiceAsync(CancellationToken cancellationToken)
-    {
-        try
-        {
-            using var sc = new ServiceController(Config.ServiceName);
-
-            if (sc.Status == ServiceControllerStatus.Running ||
-                sc.Status == ServiceControllerStatus.StartPending)
-            {
-                sc.Stop();
-                await Task.Run(() => sc.WaitForStatus(
-                    ServiceControllerStatus.Stopped,
-                    TimeSpan.FromSeconds(30)), cancellationToken);
-            }
-        }
-        catch (InvalidOperationException)
-        {
-            // Service doesn't exist - that's fine
-        }
-    }
 
     private async Task<bool> CreateWindowsServiceAsync(
         IProgress<string>? log,
