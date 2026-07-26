@@ -170,6 +170,35 @@ public class DatabaseSetupTests
         result.JwtSecret.Should().NotBeNullOrEmpty();
         logs.Should().Contain(msg => msg.Contains("Creating database"));
     }
+
+    [Fact]
+    public void BuildSuperuserGuardMessage_WhenAStoreDatabaseExists_ShouldNeverRecommendTheCleanupScript()
+    {
+        // cleanup-v4.ps1 drops indypos_storehub unconditionally unless -SkipDatabase.
+        // Recommending it to a live store destroys every sale ever recorded.
+        var message = DatabaseSetup.BuildSuperuserGuardMessage(storeDatabaseExists: true);
+
+        message.Should().NotContain("cleanup-v4");
+        message.Should().NotContain("-RemovePostgres");
+    }
+
+    [Fact]
+    public void BuildSuperuserGuardMessage_WhenAStoreDatabaseExists_ShouldPointAtTheUpgradeCommand()
+    {
+        var message = DatabaseSetup.BuildSuperuserGuardMessage(storeDatabaseExists: true);
+
+        message.Should().Contain("--silent");
+        message.Should().Contain("existing IndyPOS database");
+    }
+
+    [Fact]
+    public void BuildSuperuserGuardMessage_OnABareMachine_ShouldStillOfferTheCleanupScript()
+    {
+        // No store data to lose here, so the fast path stays available.
+        var message = DatabaseSetup.BuildSuperuserGuardMessage(storeDatabaseExists: false);
+
+        message.Should().Contain("cleanup-v4.ps1");
+    }
 }
 
 public class JwtSecretGenerationTests
