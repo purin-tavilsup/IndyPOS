@@ -44,8 +44,20 @@ public class StoreHubInstaller
             // its own DLLs open, so extracting over them throws "being used by another
             // process". A clean install has no service and this is a no-op.
             log?.Report("Checking for existing service...");
-            await new ServiceControl(Config.ServiceName)
+            var serviceStopped = await new ServiceControl(Config.ServiceName)
                 .StopAsync(TimeSpan.FromSeconds(30), cancellationToken);
+            if (!serviceStopped)
+            {
+                // Not yet captured at this point in the sequence - nothing to restore -
+                // but call it defensively so this stays correct if the ordering ever changes.
+                configSnapshot?.Restore();
+
+                return new StoreHubInstallerResult
+                {
+                    Success = false,
+                    ErrorMessage = $"Failed to stop existing service '{Config.ServiceName}' within 30s timeout"
+                };
+            }
 
             // Extraction overwrites appsettings.json with the package template and
             // DatabaseSetup only rewrites the real values later, so a failure in between
