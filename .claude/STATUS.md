@@ -6,12 +6,71 @@
 
 | Field | Value |
 |-------|-------|
-| **Branch** | `development` @ `351d400` (pushed). Live branch: `spec/installer-upgrade-support` (3 commits, local, rebased). |
+| **Branch** | `development` @ `67ab997` (**2 doc commits UNPUSHED**). Live branch: **`feat/installer-upgrade-support`** (local only) — spec + plan + Tasks 1–4 of 14. |
 | **Sprint** | Sprint 7 |
-| **Phase** | ✅ **Epic M SHIPPED + VM-VALIDATED**, ✅ **Product-type restriction SHIPPED (2026-07-19)**, ✅ **Cosmetic-minors batch MERGED (PR #52)**, ✅ **Installer/cleanup fixes MERGED (PR #53)**. Next: installer upgrade-support epic (spec awaiting Pond's review). |
-| **Blocked?** | Not blocked. Awaiting Pond's spec review before `writing-plans`. |
+| **Phase** | ✅ Epic M · ✅ Product-type restriction · ✅ PR #52 · ✅ PR #53. 🟡 **Installer upgrade-support epic IN PROGRESS — 4 of 14 tasks done** (paused for a break, not blocked). |
+| **Blocked?** | Not blocked. Paused after Task 4 at Pond's call (2026-07-26 ~02:50). Resume at Task 5. |
 
-## ⏯️ RESUME HERE (2026-07-25 PM) — Installer is FRESH-INSTALL-ONLY; upgrade spec ready for review
+## ⏯️ RESUME HERE (2026-07-26 ~02:50) — Upgrade epic: Velopack spike done, plan written, Tasks 1–4 of 14 landed
+
+**Branch `feat/installer-upgrade-support`** (off `spec/installer-upgrade-support`, both local only).
+HEAD = `c4525cb`. Release build 0 err / 0 warn; bootstrapper suite **133 pass / 8 skip**.
+
+**Ledger (authoritative, read this first on resume):**
+`.superpowers/sdd/2026-07-26-installer-upgrade-support/progress.md` — names every commit, every
+fix round, every deferred minor, and the exact resume command. Trust it over recollection.
+
+**§12 Velopack spike RESOLVED** (2026-07-26, both cases on `Pre-Upgrade-2026-07-25`):
+4.0.1-over-4.0.0 upgrades in place, exit 0, 7.5 s, prunes the old package, service and
+`ProgramData` untouched, nothing launched. Same-version-over-itself is a safe 2.5 s **repair**,
+also exit 0. So step 8 stands as designed, but **`POS_UPDATED` cannot come from the exit code** —
+it is derived by comparing `current\sq.version` before/after (binaries keep their own build stamp).
+Setup also sweeps foreign files from the install root; IndyPOS keeps no state there, now written down.
+
+**Plan:** `docs/superpowers/plans/2026-07-26-installer-upgrade-support.md` — 14 tasks, 87 steps.
+Being executed via `superpowers:subagent-driven-development` (fresh implementer + task review per task).
+
+| Task | State |
+|---|---|
+| 1 `StoreHubConfigReader` | ✅ complete, 13 tests |
+| 2 superuser-guard message + FRESH-INSTALL-ONLY banner | ✅ complete, 4 tests |
+| 3 `InstallModeDetector` + `WindowsInstallProbe` | ✅ complete, 13 tests |
+| 4 extract `ServiceControl` + `StoreHubPayload` | ✅ complete, 2 tests, refactor gate held |
+| 5–14 | ⏳ not started |
+
+**RESUME:** Task 5 (extract `MigrationRunner` + `HealthProbe`). BASE = `c4525cb`, baseline to quote
+the implementer = 133 pass / 8 skip. Task 5 edits `InstallationOrchestrator.cs`, which **Task 6 then
+renames** to `FreshInstallOrchestrator.cs` and gates with a `git diff` check — keep those in order.
+
+**Every one of the 4 tasks needed a fix round, and every finding was a plan defect, not implementer
+error.** All four were folded back into the plan text so the remaining tasks don't inherit them:
+1. **T1** — `GetValue<string>()` sat outside the try/catch, so a hand-edited `"id": 12345` crashed a
+   reader whose documented contract is to degrade.
+2. **T2** — the guard branched on `ConnectionStringUsable`, which is `false` for a store whose DPAPI
+   value was sealed on **another machine** (a swapped POS terminal). That routed a live store to
+   `cleanup-v4.ps1 -Force -RemovePostgres`, reopening the exact data-loss path the task closes.
+   Now branches on `.Exists`, which fails safe.
+3. **T3** — `DetectStoreDatabase` inspected *our own* major's config, so a same-major install that
+   crashed between `DatabaseSetup` and the manifest tripped rule 1 and told the operator to go run a
+   different installer. Rule 4 is the correct diagnosis; the probe now looks only at other majors.
+4. **T4** — `ServiceControl.StopAsync` swallowed a `TimeoutException` the original propagated and the
+   call site discarded the bool, so a service that failed to stop proceeded into extraction and hit
+   locked DLLs. Also, the delegating `StartServiceAsync` dropped `ex.Message` — the only lead in a
+   store's install log after a failed start.
+
+**Deferred minors are in the ledger** and must be handed to the final whole-branch review for triage.
+
+**⚠️ Test-suite trap now fixed, worth remembering:** `installer/build-installer.ps1` stages
+`Resources/StoreHub.zip` into the source tree and never cleans it up, and the csproj embeds
+`Resources\**\*` conditionally — so on any machine that has built the installer, that zip is embedded.
+`StoreHubPayload.ExtractAsync` gained defaulted `resourceName` / `probeDirectory` seams so the payload
+tests no longer depend on it. Verified green both with the 70 MB zip staged and absent.
+
+**Not yet done on this branch:** nothing pushed; no PR; installer not rebuilt; no VM run since the spike.
+
+---
+
+## Earlier checkpoint (2026-07-25 PM) — Installer is FRESH-INSTALL-ONLY; upgrade spec ready for review
 
 **Discovered by running the upgrade smoke on a real store image** (VM `IndyPOS-Test`, store
 `Rungrat-001`). Two failures, both diagnosed, both destructive:
