@@ -5,6 +5,12 @@ namespace IndyPOS.Bootstrapper.Tests.Installers;
 
 public class StoreHubPayloadTests : IDisposable
 {
+    // A resource name guaranteed not to exist and an empty probe directory (distinct
+    // from the destination folder), so these tests exercise the "binaries not found"
+    // branch deterministically - regardless of whether this machine has ever run
+    // build-installer.ps1, which stages a real Resources/StoreHub.zip that gets embedded.
+    private const string MissingResourceName = "IndyPOS.Bootstrapper.Tests.NoSuchResource.zip";
+
     private readonly string _dir =
         Path.Combine(Path.GetTempPath(), "indypos-payload-" + Guid.NewGuid().ToString("N"));
 
@@ -21,12 +27,11 @@ public class StoreHubPayloadTests : IDisposable
     [Fact]
     public async Task ExtractAsync_WithNoPayloadAvailable_ShouldReturnFalse()
     {
-        // The test host has no embedded StoreHub.zip and no sibling folder, so this
-        // exercises the "binaries not found" branch without a 67 MB fixture.
-        var dest = Path.Combine(_dir, "StoreHub");
+        var dest = Path.Combine(_dir, "Dest");
         Directory.CreateDirectory(dest);
 
-        var result = await StoreHubPayload.ExtractAsync(dest, log: null, CancellationToken.None);
+        var result = await StoreHubPayload.ExtractAsync(
+            dest, log: null, CancellationToken.None, MissingResourceName, probeDirectory: _dir);
 
         result.Should().BeFalse();
     }
@@ -35,11 +40,11 @@ public class StoreHubPayloadTests : IDisposable
     public async Task ExtractAsync_WithNoPayloadAvailable_ShouldReportEveryLocationItTried()
     {
         var messages = new List<string>();
-        var dest = Path.Combine(_dir, "StoreHub");
+        var dest = Path.Combine(_dir, "Dest");
         Directory.CreateDirectory(dest);
 
         await StoreHubPayload.ExtractAsync(
-            dest, new Progress<string>(messages.Add), CancellationToken.None);
+            dest, new Progress<string>(messages.Add), CancellationToken.None, MissingResourceName, probeDirectory: _dir);
 
         // Progress<T> marshals asynchronously; drain before asserting.
         await Task.Delay(50);
