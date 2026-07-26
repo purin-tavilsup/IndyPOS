@@ -172,20 +172,20 @@ public class DatabaseSetupTests
     }
 
     [Fact]
-    public void BuildSuperuserGuardMessage_WhenAStoreDatabaseExists_ShouldNeverRecommendTheCleanupScript()
+    public void BuildSuperuserGuardMessage_WhenStoreInstallExists_ShouldNeverRecommendTheCleanupScript()
     {
         // cleanup-v4.ps1 drops indypos_storehub unconditionally unless -SkipDatabase.
         // Recommending it to a live store destroys every sale ever recorded.
-        var message = DatabaseSetup.BuildSuperuserGuardMessage(storeDatabaseExists: true);
+        var message = DatabaseSetup.BuildSuperuserGuardMessage(storeInstallExists: true);
 
         message.Should().NotContain("cleanup-v4");
         message.Should().NotContain("-RemovePostgres");
     }
 
     [Fact]
-    public void BuildSuperuserGuardMessage_WhenAStoreDatabaseExists_ShouldPointAtTheUpgradeCommand()
+    public void BuildSuperuserGuardMessage_WhenStoreInstallExists_ShouldPointAtTheUpgradeCommand()
     {
-        var message = DatabaseSetup.BuildSuperuserGuardMessage(storeDatabaseExists: true);
+        var message = DatabaseSetup.BuildSuperuserGuardMessage(storeInstallExists: true);
 
         message.Should().Contain("--silent");
         message.Should().Contain("existing IndyPOS database");
@@ -195,9 +195,32 @@ public class DatabaseSetupTests
     public void BuildSuperuserGuardMessage_OnABareMachine_ShouldStillOfferTheCleanupScript()
     {
         // No store data to lose here, so the fast path stays available.
-        var message = DatabaseSetup.BuildSuperuserGuardMessage(storeDatabaseExists: false);
+        // Assert the full message to catch accidental wording drift.
+        var message = DatabaseSetup.BuildSuperuserGuardMessage(storeInstallExists: false);
 
-        message.Should().Contain("cleanup-v4.ps1");
+        var expectedMessage = "PostgreSQL 18 is already installed, but its superuser password is unknown " +
+                              "(the installer doesn't persist it across runs). To proceed, either:\n" +
+                              "  - Uninstall PostgreSQL: scripts\\cleanup-v4.ps1 -Force -RemovePostgres\n" +
+                              "  - Or remove C:\\Program Files\\PostgreSQL\\18 manually,\n" +
+                              "then re-run this installer for a clean Postgres install.";
+
+        message.Should().Be(expectedMessage);
+    }
+
+    [Fact]
+    public void BuildSuperuserGuardMessage_WhenConfigExistsButConnectionStringUnusable_ShouldStillGuardTheStore()
+    {
+        // The config file exists (Exists: true) but the DPAPI-protected connection string
+        // cannot be unprotected (ConnectionStringUsable: false). This happens when:
+        // - The file is malformed JSON, or
+        // - The DPAPI blob is sealed on another machine (e.g., restored POS terminal).
+        // Both are real-world cases. We must NOT recommend cleanup-v4.ps1 because it
+        // would destroy the store's sales history. Branch on .Exists, not .ConnectionStringUsable.
+        var message = DatabaseSetup.BuildSuperuserGuardMessage(storeInstallExists: true);
+
+        message.Should().NotContain("cleanup-v4");
+        message.Should().NotContain("-RemovePostgres");
+        message.Should().Contain("--silent");
     }
 }
 
