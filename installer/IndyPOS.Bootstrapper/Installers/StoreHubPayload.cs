@@ -13,14 +13,28 @@ public static class StoreHubPayload
 {
     public const string ResourceName = "IndyPOS.Bootstrapper.Resources.StoreHub.zip";
 
+    /// <param name="resourceName">
+    /// Overridable for tests only - production always uses the default. Lets tests point
+    /// at a resource name guaranteed not to exist, so the "not found" branch is
+    /// deterministic regardless of whether this assembly happens to have a
+    /// StoreHub.zip embedded (e.g. after running build-installer.ps1).
+    /// </param>
+    /// <param name="probeDirectory">
+    /// Overridable for tests only - null means the production default, <see cref="AppContext.BaseDirectory"/>.
+    /// Lets tests point the external-zip/external-folder probes at an empty temp
+    /// directory instead of the real test-bin output directory.
+    /// </param>
     public static async Task<bool> ExtractAsync(
         string destinationPath,
         IProgress<string>? log = null,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default,
+        string resourceName = ResourceName,
+        string? probeDirectory = null)
     {
+        var baseDirectory = probeDirectory ?? AppContext.BaseDirectory;
         var assembly = typeof(StoreHubPayload).Assembly;
 
-        using var resourceStream = assembly.GetManifestResourceStream(ResourceName);
+        using var resourceStream = assembly.GetManifestResourceStream(resourceName);
 
         if (resourceStream != null)
         {
@@ -50,7 +64,7 @@ public static class StoreHubPayload
             return true;
         }
 
-        var externalZip = Path.Combine(AppContext.BaseDirectory, "StoreHub.zip");
+        var externalZip = Path.Combine(baseDirectory, "StoreHub.zip");
 
         if (File.Exists(externalZip))
         {
@@ -59,7 +73,7 @@ public static class StoreHubPayload
             return true;
         }
 
-        var externalFolder = Path.Combine(AppContext.BaseDirectory, "StoreHub");
+        var externalFolder = Path.Combine(baseDirectory, "StoreHub");
 
         if (Directory.Exists(externalFolder))
         {
@@ -70,7 +84,7 @@ public static class StoreHubPayload
 
         log?.Report("ERROR: StoreHub binaries not found!");
         log?.Report("Expected locations:");
-        log?.Report($"  - Embedded resource: {ResourceName}");
+        log?.Report($"  - Embedded resource: {resourceName}");
         log?.Report($"  - External zip: {externalZip}");
         log?.Report($"  - External folder: {externalFolder}");
 
