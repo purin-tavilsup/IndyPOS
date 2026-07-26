@@ -2,6 +2,9 @@ using System.ServiceProcess;
 
 namespace IndyPOS.Bootstrapper.Installers;
 
+/// <summary>Result of a start/stop attempt, carrying the failure reason for diagnostics.</summary>
+public sealed record ServiceControlResult(bool Success, string? ErrorMessage);
+
 /// <summary>
 /// Stop / start / query the StoreHub Windows service.
 /// <para>USED BY BOTH INSTALL PATHS — fresh install and in-place upgrade. A change here
@@ -27,8 +30,8 @@ public sealed class ServiceControl(string serviceName)
         }
     }
 
-    /// <summary>Returns true when the service is stopped afterwards, including when absent.</summary>
-    public async Task<bool> StopAsync(TimeSpan timeout, CancellationToken cancellationToken = default)
+    /// <summary>Succeeds when the service is stopped afterwards, including when absent.</summary>
+    public async Task<ServiceControlResult> StopAsync(TimeSpan timeout, CancellationToken cancellationToken = default)
     {
         try
         {
@@ -42,20 +45,20 @@ public sealed class ServiceControl(string serviceName)
                     cancellationToken);
             }
 
-            return true;
+            return new ServiceControlResult(true, null);
         }
         catch (InvalidOperationException)
         {
             // Service doesn't exist - that's fine.
-            return true;
+            return new ServiceControlResult(true, null);
         }
-        catch (System.ServiceProcess.TimeoutException)
+        catch (System.ServiceProcess.TimeoutException ex)
         {
-            return false;
+            return new ServiceControlResult(false, ex.Message);
         }
     }
 
-    public async Task<bool> StartAsync(TimeSpan timeout, CancellationToken cancellationToken = default)
+    public async Task<ServiceControlResult> StartAsync(TimeSpan timeout, CancellationToken cancellationToken = default)
     {
         try
         {
@@ -63,7 +66,7 @@ public sealed class ServiceControl(string serviceName)
 
             if (sc.Status == ServiceControllerStatus.Running)
             {
-                return true;
+                return new ServiceControlResult(true, null);
             }
 
             sc.Start();
@@ -71,11 +74,11 @@ public sealed class ServiceControl(string serviceName)
                 () => sc.WaitForStatus(ServiceControllerStatus.Running, timeout),
                 cancellationToken);
 
-            return true;
+            return new ServiceControlResult(true, null);
         }
-        catch (Exception)
+        catch (Exception ex)
         {
-            return false;
+            return new ServiceControlResult(false, ex.Message);
         }
     }
 }
