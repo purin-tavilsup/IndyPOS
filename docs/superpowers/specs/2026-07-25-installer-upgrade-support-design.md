@@ -1,8 +1,9 @@
 # In-Place Upgrade Support for the IndyPOS Installer — Design
 
-**Status:** 🟢 Ready for planning
+**Status:** 🟢 Ready for planning — no open questions
 **Created:** 2026-07-25
 **Revised:** 2026-07-25 after two independent spec reviews (correctness; scope/buildability)
+**Revised:** 2026-07-26 — §12 Velopack spike run on the VM; step 8 confirmed, no design change
 **Trigger:** VM upgrade smoke test on `IndyPOS-Test` (two failed runs, both diagnosed)
 
 ---
@@ -144,7 +145,8 @@ Rules are evaluated **in order**; the first match wins.
 6  Migrate       MigrationRunner: StoreHub.exe migrate
 7  Start service + HealthProbe
 --- server upgrade complete ---
-8  POS app       re-run embedded Velopack setup
+8  POS app       re-run embedded Velopack setup; read current\sq.version
+                 before and after to derive POS_UPDATED (verified, §12)
 9  Manifest      InstallManifestWriter.WriteAsync (new version, same paths)
 10 Markers       MODE, RESULT, SERVICE_STARTED, HEALTH, BACKUP_DIR,
                  BACKUP_LOCKED, POS_UPDATED, ROLLED_BACK
@@ -168,7 +170,7 @@ Connection-string parsing uses `NpgsqlConnectionStringBuilder`, not string split
 |---|---|
 | 0–3 | Nothing mutated. Report and exit. |
 | 4–7 | **Roll back:** delete `StoreHubInstallPath`, copy the backup tree back, `ConfigSnapshot.Restore()`, start the service, **run `HealthProbe`**, emit `ROLLED_BACK=true` with post-rollback `SERVICE_STARTED` / `HEALTH`, report the backup path. |
-| 8 | **No rollback.** The server is upgraded and serving. `RESULT=failed` with `SERVICE_STARTED=true, POS_UPDATED=false`. |
+| 8 | **No rollback.** The server is upgraded and serving. `RESULT=failed` with `SERVICE_STARTED=true, POS_UPDATED=false`. The spike confirms step 8 cannot disturb the service (§12), so the two are genuinely independent. |
 | 9–10 | Non-fatal. A stale manifest is cosmetic and the next run repairs it. |
 
 **Rollback is delete-then-copy, not copy-over.** Extraction is per-entry `ExtractToFile(overwrite: true)` with no clean step (`StoreHubInstaller.cs:227-235`), so after step 4 the tree is `old ∪ new`. Copying the backup over that would leave new-version files behind, violating goal 2.
@@ -259,15 +261,38 @@ Both entry points consume **one** detection result from a single router — if `
 4. **No PostgreSQL version management.**
 5. **Single machine per run.**
 6. **`LocalToken:SecretKey` is preserved**, so existing POS sessions survive an upgrade — a real benefit, but it also means the key is never rotated over the product's lifetime.
-7. **A release version bump is a precondition.** `Directory.Build.props` pins the version and requires a manual edit; without a bump, downgrade protection always takes the same-version repair branch, `InstalledVersion` is decorative, and step 8 has nothing newer to install so `POS_UPDATED=true` would be a lie. Define step 8's behaviour when Velopack has nothing newer.
+7. **A release version bump is a precondition.** `Directory.Build.props` pins the version and requires a manual edit; without a bump, downgrade protection always takes the same-version repair branch and `InstalledVersion` is decorative. Step 8 itself is safe without a bump — the spike measured a 2.5 s repair exiting 0 (§12) — and reports `POS_UPDATED=false` because it compares `sq.version` rather than trusting the exit code.
 8. **`StoreConfiguration.json` is create-if-absent on the fresh path**, so skipping `DatabaseSetup` loses nothing — but an upgrade of a store missing that file will not create it either.
 9. **`migrate` inherits Npgsql's 30s command timeout.** A future long DDL migration over a multi-year invoice table would time out and trigger a rollback for no real reason. Consider raising it on the migrate path.
 
 ---
 
-## 12. Open question for planning
+## 12. Step 8 — resolved by spike (2026-07-26)
 
-**Step 8's behaviour is unverified.** Nothing in the codebase establishes what the embedded Velopack `Setup.exe --silent` does on a machine where the app is already installed — `VelopackLauncher` just runs it and checks the exit code. This should be settled by a 30-minute spike on the existing VM *before* the orchestrator is written: if Velopack refuses or reinstalls destructively, step 8 and §5 row 8 both change.
+**Question:** what does the embedded Velopack `Setup.exe --silent` do on a machine where the POS app is already installed? Step 8 and §5 row 8 both depended on the answer.
+
+**Method.** Both cases were run against checkpoint `Pre-Upgrade-2026-07-25` (a real store image with `IndyPOS.POS.v4` 4.0.0 installed and the StoreHub service Running), restoring the snapshot between them. A 4.0.1 package was produced with `vpk pack` from the existing `publish\WinForms` output; the shipping 4.0.0 `Setup.exe` served the same-version case. Canary files were planted at the install root and inside `current\` to detect sweeping. This invoked the Velopack `Setup.exe` directly rather than through `VelopackLauncher`, which is the same executable with the same `--silent` argument.
+
+| | 4.0.1 over 4.0.0 | 4.0.0 over 4.0.0 |
+|---|---|---|
+| Exit code | 0 | 0 |
+| Elapsed | 7.5 s | 2.5 s |
+| `current\sq.version` | 4.0.0 → **4.0.1** | 4.0.0 → 4.0.0 |
+| `packages\` | old `.nupkg` pruned, 4.0.1 written | unchanged |
+| StoreHub service | untouched | **Running → Running** |
+| `C:\ProgramData\IndyPOS\v4` | untouched | untouched |
+| Shortcuts | preserved, same two paths | preserved, same two paths |
+| POS process after | none launched | none launched |
+
+**Conclusions:**
+
+1. **Step 8 stands as designed.** Velopack upgrades in place, prunes the superseded package, and reports 0. No refusal, no destructive reinstall — so §5 row 8 ("no rollback; the server is already serving") remains correct.
+2. **Nothing newer is a safe repair, not a failure.** The same-version run rebuilt `current\` from the existing package and exited 0 in 2.5 s. This closes the §11.7 open item: step 8 needs no special case, but `POS_UPDATED` must not be inferred from the exit code.
+3. **`POS_UPDATED` is derived by reading `current\sq.version` before and after** and comparing. The exit code cannot distinguish an upgrade from a repair, and the binaries keep their own build stamp — Velopack's `sq.version` (a nuspec document carrying `<version>`) is the only truthful record of what is installed.
+4. **Setup sweeps foreign files from the install root.** Both canaries were deleted, at the root as well as inside `current\`. IndyPOS keeps no state there — its data lives under `C:\ProgramData\IndyPOS\v4` — so nothing is at risk today, but the install root must never be used for store state.
+5. **The POS-app step cannot disturb the server.** The service stayed Running across a full package swap, confirming steps 7 and 8 are independent and that step 8's failure genuinely does not warrant rollback.
+
+Untested and still a limitation, not a blocker: running setup as a *different* admin than the one that installed (§11.1) — the spike ran as the installing user throughout.
 
 ---
 
