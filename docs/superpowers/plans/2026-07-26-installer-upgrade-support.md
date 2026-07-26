@@ -310,9 +310,11 @@ public static class StoreHubConfigReader
         {
             root = JsonNode.Parse(File.ReadAllText(appSettingsPath))?.AsObject();
         }
-        catch (Exception ex) when (ex is JsonException or IOException or InvalidOperationException)
+        catch (Exception ex) when (ex is JsonException or IOException
+                                         or UnauthorizedAccessException or InvalidOperationException)
         {
             // The file is there but unreadable — that is an Unusable store, not a fresh one.
+            // UnauthorizedAccessException is what a locked or ACL-denied file actually throws.
             return new StoreHubConfigFacts(Exists: true, false, null, null);
         }
 
@@ -360,9 +362,17 @@ public static class StoreHubConfigReader
         root.FirstOrDefault(p => string.Equals(p.Key, name, StringComparison.OrdinalIgnoreCase))
             .Value as JsonObject;
 
-    private static string? Value(JsonObject? section, string name) =>
-        section?.FirstOrDefault(p => string.Equals(p.Key, name, StringComparison.OrdinalIgnoreCase))
-               .Value?.GetValue<string>();
+    // Tolerant by design: a hand-edited `"id": 12345` is a wrong-typed node, not a crash.
+    // GetValue<string>() would throw InvalidOperationException on any non-string token,
+    // and this reader's contract is that a bad config degrades rather than throws.
+    private static string? Value(JsonObject? section, string name)
+    {
+        var node = section?
+            .FirstOrDefault(p => string.Equals(p.Key, name, StringComparison.OrdinalIgnoreCase))
+            .Value;
+
+        return node is JsonValue value && value.TryGetValue<string>(out var text) ? text : null;
+    }
 
     private static string? NonBlank(string? value) =>
         string.IsNullOrWhiteSpace(value) ? null : value;
@@ -823,9 +833,15 @@ public sealed class WindowsInstallProbe : IInstallProbe
         try
         {
             using var doc = JsonDocument.Parse(File.ReadAllText(manifestPath));
-            return doc.RootElement.TryGetProperty("installVersion", out var v) ? v.GetString() : null;
+
+            // ValueKind check, not a bare GetString(): that throws on a non-string token,
+            // and a hand-edited manifest must degrade to "unknown version", never crash.
+            return doc.RootElement.TryGetProperty("installVersion", out var v)
+                   && v.ValueKind == JsonValueKind.String
+                ? v.GetString()
+                : null;
         }
-        catch (Exception ex) when (ex is JsonException or IOException)
+        catch (Exception ex) when (ex is JsonException or IOException or UnauthorizedAccessException)
         {
             return null;
         }
