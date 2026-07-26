@@ -1339,11 +1339,22 @@ public static class StoreHubPayload
 In `installer/IndyPOS.Bootstrapper/Installers/StoreHubInstaller.cs`:
 
 - Delete the private `ExtractStoreHubBinariesAsync`, `CopyDirectoryAsync`, and `StopExistingServiceAsync` methods.
-- Replace the `StopExistingServiceAsync(cancellationToken)` call inside `InstallAsync` with:
+- Replace the `StopExistingServiceAsync(cancellationToken)` call inside `InstallAsync` with the version below. **Do not discard the returned bool.** Originally a stop timeout threw and failed the install; `ServiceControl.StopAsync` swallows it and returns `false` instead (the upgrade path needs a non-throwing stop it can branch on), so the fresh path must fail explicitly or a still-running service silently proceeds into extraction — holding its own DLLs open, which is the exact locked-DLL failure the stop-before-extract ordering exists to prevent:
 
 ```csharp
-            await new ServiceControl(Config.ServiceName)
+            var stopped = await new ServiceControl(Config.ServiceName)
                 .StopAsync(TimeSpan.FromSeconds(30), cancellationToken);
+
+            if (!stopped)
+            {
+                return new StoreHubInstallerResult
+                {
+                    Success = false,
+                    ErrorMessage =
+                        $"Service '{Config.ServiceName}' did not stop within 30 seconds. " +
+                        "Extracting over a running service would fail on locked files."
+                };
+            }
 ```
 
 - Replace the `ExtractStoreHubBinariesAsync(log, cancellationToken)` call with:
