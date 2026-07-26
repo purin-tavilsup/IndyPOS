@@ -45,7 +45,7 @@ public static class StoreHubConfigReader
         {
             root = JsonNode.Parse(File.ReadAllText(appSettingsPath))?.AsObject();
         }
-        catch (Exception ex) when (ex is JsonException or IOException or InvalidOperationException)
+        catch (Exception ex) when (ex is JsonException or IOException or InvalidOperationException or UnauthorizedAccessException)
         {
             // The file is there but unreadable — that is an Unusable store, not a fresh one.
             return new StoreHubConfigFacts(Exists: true, false, null, null);
@@ -95,9 +95,26 @@ public static class StoreHubConfigReader
         root.FirstOrDefault(p => string.Equals(p.Key, name, StringComparison.OrdinalIgnoreCase))
             .Value as JsonObject;
 
-    private static string? Value(JsonObject? section, string name) =>
-        section?.FirstOrDefault(p => string.Equals(p.Key, name, StringComparison.OrdinalIgnoreCase))
-               .Value?.GetValue<string>();
+    private static string? Value(JsonObject? section, string name)
+    {
+        var node = section?.FirstOrDefault(p => string.Equals(p.Key, name, StringComparison.OrdinalIgnoreCase))
+                          .Value;
+
+        if (node is null)
+        {
+            return null;
+        }
+
+        try
+        {
+            return node.GetValue<string>();
+        }
+        catch (InvalidOperationException)
+        {
+            // JSON value is not a string (e.g., numeric or object). Return null gracefully.
+            return null;
+        }
+    }
 
     private static string? NonBlank(string? value) =>
         string.IsNullOrWhiteSpace(value) ? null : value;

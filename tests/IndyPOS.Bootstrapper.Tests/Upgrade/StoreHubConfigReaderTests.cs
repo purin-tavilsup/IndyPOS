@@ -157,4 +157,30 @@ public class StoreHubConfigReaderTests : IDisposable
         facts.ConnectionStringUsable.Should().BeFalse();
         facts.StoreId.Should().BeNull();
     }
+
+    [Fact]
+    public void Read_WithNonStringStoreId_ShouldDegradeGracefully()
+    {
+        // Hand-edited config with numeric store ID instead of string.
+        var path = Write("""{ "store": { "id": 12345, "type": "Minimart" } }""");
+
+        var facts = StoreHubConfigReader.Read(path, PassThrough);
+
+        facts.Exists.Should().BeTrue();
+        facts.StoreId.Should().BeNull();
+        facts.StoreType.Should().Be(StoreType.Minimart);
+    }
+
+    [Fact]
+    public void Read_WithNonStringStoreType_ShouldDegradeGracefully()
+    {
+        // Hand-edited config with numeric store type instead of string enum name.
+        var path = Write("""{ "store": { "id": "Rungrat-001", "type": 2 } }""");
+
+        var facts = StoreHubConfigReader.Read(path, PassThrough);
+
+        facts.Exists.Should().BeTrue();
+        facts.StoreId.Should().Be("Rungrat-001");
+        facts.StoreType.Should().BeNull();
+    }
 }
