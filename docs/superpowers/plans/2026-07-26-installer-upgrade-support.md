@@ -17,7 +17,7 @@
 - **The PostgreSQL superuser password is never persisted.** Decided 2026-07-25. No task may add storage for it.
 - **Migrations are forward-only.** Every migration in a release must be old-binary-compatible: additive only, new columns nullable or defaulted, no renames, no drops. Rollback restores binaries and config, not schema.
 - **Secrets never reach markers or logs.** All outbound text passes through `SecretScrubber.Scrub`. Markers are the `INDYPOS_MARKER <KEY>=<value>` format only.
-- **`RESULT` keeps exactly two values**, `success` and `failed`, so the existing harness gating rule is unchanged. Other markers say *what* succeeded.
+- **No new `RESULT` values.** The existing set is `success` / `failed` / `timeout` (`InstallTimedOut` already emits the third — the spec's "keeps its two values" predates checking the code). Every upgrade outcome reuses `success` or `failed`, so the harness gating rule is unchanged. Other markers say *what* succeeded.
 - **Exit codes are a frozen contract for 0–4**: `0` success, `1` usage error, `2` failed, `3` not elevated, `4` timeout. New outcomes take `5` and `6`.
 - **Config path constants:** StoreHub config lives at `<StoreHubInstallPath>\appsettings.json`. Its JSON is camelCase: `connectionStrings["storehub-db"]`, `store.id`, `store.type`. Read keys **case-insensitively** — ASP.NET config binding is case-insensitive and a hand-edited file may use PascalCase.
 - **DPAPI entropy** is `SHA256("IndyPOS:" + key)` at `LocalMachine` scope; the connection-string key is exactly `ConnectionStrings:storehub-db`.
@@ -3289,11 +3289,12 @@ public sealed class UpgradeOrchestrator(IUpgradeSteps steps, UpgradeStage? simul
 
         if (!backup.Success)
         {
-            // Nothing has been mutated, but the service is stopped — put it back.
-            await steps.StartServiceAsync(cancellationToken);
+            // Nothing has been mutated, but the service is stopped — put it back, and
+            // report what actually happened rather than assuming it came up.
+            var restarted = await steps.StartServiceAsync(cancellationToken);
             return new UpgradeFailed(backup.ErrorMessage ?? "Backup failed.",
-                RolledBack: false, ServiceStarted: true,
-                HealthOk: await steps.HealthAsync(cancellationToken), BackupDir: null);
+                RolledBack: false, ServiceStarted: restarted,
+                HealthOk: restarted && await steps.HealthAsync(cancellationToken), BackupDir: null);
         }
 
         // ============ EVERYTHING BELOW THIS LINE MUTATES THE INSTALL ============
@@ -3727,14 +3728,7 @@ In `installer/IndyPOS.Bootstrapper/Silent/SilentInstaller.cs`, add `using IndyPO
         return exit;
 ```
 
-Add the three helpers. `RunInstall` keeps its current body, renamed `RunFreshInstall`:
-
-```csharp
-    private static SilentOutcome BuildFreshConfig(SilentInstallOptions options) =>
-        throw new InvalidOperationException("placeholder — see below");
-```
-
-Replace that placeholder with the real pair:
+Rename the existing `RunInstall` to `RunFreshInstall`, changing only its first parameter from `InstallationConfig config` built inline to one passed in; its body is otherwise unchanged. Then add these two helpers:
 
 ```csharp
     // A fresh install still requires an explicit store id: there is nothing to adopt.
