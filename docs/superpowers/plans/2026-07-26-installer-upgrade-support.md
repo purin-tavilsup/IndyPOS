@@ -1063,13 +1063,21 @@ Spec §2. Both paths stop the service and lay down the payload, but in a differe
 **Interfaces:**
 - Consumes: `InstallationConfig.ServiceName`, `InstallationConfig.StoreHubInstallPath`
 - Produces:
+  - `sealed record ServiceControlResult(bool Success, string? ErrorMessage)` — a bare `bool` would
+    discard the Win32 text ("Access is denied.", "Time out has expired...") that the original
+    `StartServiceAsync` surfaced, and that text is the only lead in a store's install log after a
+    failed start
   - `sealed class ServiceControl(string serviceName)` with
-    `Task<bool> StopAsync(TimeSpan timeout, CancellationToken ct)`,
-    `Task<bool> StartAsync(TimeSpan timeout, CancellationToken ct)`,
+    `Task<ServiceControlResult> StopAsync(TimeSpan timeout, CancellationToken ct)`,
+    `Task<ServiceControlResult> StartAsync(TimeSpan timeout, CancellationToken ct)`,
     `bool Exists()`,
     `bool IsRunning()`
   - `static class StoreHubPayload` with
-    `static Task<bool> ExtractAsync(string destinationPath, IProgress<string>? log, CancellationToken ct)`
+    `static Task<bool> ExtractAsync(string destinationPath, IProgress<string>? log = null, CancellationToken ct = default, string resourceName = ResourceName, string? probeDirectory = null)` —
+    the last two are optional test seams whose defaults reproduce production behaviour exactly.
+    Without them the "no payload available" tests fail on any machine that has run
+    `build-installer.ps1`, because it stages `Resources/StoreHub.zip` into the source tree and
+    never cleans it up, and the csproj embeds `Resources\**\*` conditionally.
 
 - [ ] **Step 1: Write the failing test for the extractable seam**
 
@@ -3569,8 +3577,8 @@ public sealed class WindowsUpgradeSteps(InstallationConfig config, IProgress<str
         }
     }
 
-    public Task<bool> StopServiceAsync(CancellationToken ct) =>
-        _service.StopAsync(TimeSpan.FromSeconds(60), ct);
+    public async Task<bool> StopServiceAsync(CancellationToken ct) =>
+        (await _service.StopAsync(TimeSpan.FromSeconds(60), ct)).Success;
 
     public Task<BackupResult> BackupAsync(string pgDumpPath, string connectionString, CancellationToken ct) =>
         _backup.CreateAsync(pgDumpPath, connectionString, ct);
@@ -3587,8 +3595,8 @@ public sealed class WindowsUpgradeSteps(InstallationConfig config, IProgress<str
     public Task<MigrationRunResult> MigrateAsync(CancellationToken ct) =>
         MigrationRunner.RunAsync(config.StoreHubInstallPath, log, ct);
 
-    public Task<bool> StartServiceAsync(CancellationToken ct) =>
-        _service.StartAsync(TimeSpan.FromSeconds(60), ct);
+    public async Task<bool> StartServiceAsync(CancellationToken ct) =>
+        (await _service.StartAsync(TimeSpan.FromSeconds(60), ct)).Success;
 
     public Task<bool> HealthAsync(CancellationToken ct) =>
         HealthProbe.IsReadyAsync(config.HealthCheckPort, cancellationToken: ct);
