@@ -1,4 +1,3 @@
-using System.ServiceProcess;
 using System.Text.Json;
 using Microsoft.Win32;
 using IndyPOS.Bootstrapper.Installers;
@@ -54,9 +53,12 @@ public sealed class WindowsInstallProbe : IInstallProbe
         {
             using var doc = JsonDocument.Parse(File.ReadAllText(manifestPath));
 
-            // ValueKind check, not a bare GetString(): that throws on a non-string token,
-            // and a hand-edited manifest must degrade to "unknown version", never crash.
-            return doc.RootElement.TryGetProperty("installVersion", out var v)
+            // ValueKind checks, not a bare GetString()/TryGetProperty(): TryGetProperty
+            // throws InvalidOperationException when the root isn't an object (a bare
+            // string/number/array manifest), and GetString() throws on a non-string
+            // token. A hand-edited manifest must degrade to "unknown version", never crash.
+            return doc.RootElement.ValueKind == JsonValueKind.Object
+                   && doc.RootElement.TryGetProperty("installVersion", out var v)
                    && v.ValueKind == JsonValueKind.String
                 ? v.GetString()
                 : null;
@@ -83,40 +85,33 @@ public sealed class WindowsInstallProbe : IInstallProbe
     }
 
     // No superuser credential is available here, so this is a filesystem-and-config
-    // inference rather than a query: a usable connection string means a provisioned
-    // database, and a Postgres data directory means one could exist for another major.
-    private static bool DetectStoreDatabase(InstallationConfig config)
-    {
-        var appSettings = Path.Combine(config.StoreHubInstallPath, "appsettings.json");
-        if (StoreHubConfigReader.Read(appSettings).ConnectionStringUsable)
-        {
-            return true;
-        }
+    // inference rather than a query: a usable connection string in ANOTHER major's
+    // StoreHub config means a database already exists for that major. This major's
+    // own config is already captured in probe.Config and must be excluded here, or a
+    // same-major partial install (config written by DatabaseSetup, manifest not yet
+    // written by InstallManifestWriter -- the exact state a crashed run leaves behind)
+    // would misread as "belongs to another major" instead of "this install is incomplete".
+    private static bool DetectStoreDatabase(InstallationConfig config) =>
+        OtherMajorStoreConfigExists(config.SystemRoot);
 
-        foreach (var major in new[] { "18", "17", "16" })
+    private static bool OtherMajorStoreConfigExists(string ownSystemRoot)
+    {
+        const string root = @"C:\ProgramData\IndyPOS";
+        try
         {
-            var dataDir = $@"C:\Program Files\PostgreSQL\{major}\data\base";
-            if (Directory.Exists(dataDir) && OtherMajorStoreConfigExists())
+            if (!Directory.Exists(root))
             {
-                return true;
+                return false;
             }
+
+            return Directory.EnumerateDirectories(root, "v*")
+                .Where(d => !string.Equals(d, ownSystemRoot, StringComparison.OrdinalIgnoreCase))
+                .Select(d => Path.Combine(d, "StoreHub", "appsettings.json"))
+                .Any(p => StoreHubConfigReader.Read(p).ConnectionStringUsable);
         }
-
-        return false;
-    }
-
-    // C:\ProgramData\IndyPOS\v{N}\StoreHub\appsettings.json for a major other than ours
-    // is the v5-installer-on-a-v4-store case that rule 1 exists to catch.
-    private static bool OtherMajorStoreConfigExists()
-    {
-        var root = @"C:\ProgramData\IndyPOS";
-        if (!Directory.Exists(root))
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
         {
             return false;
         }
-
-        return Directory.EnumerateDirectories(root, "v*")
-            .Select(d => Path.Combine(d, "StoreHub", "appsettings.json"))
-            .Any(p => StoreHubConfigReader.Read(p).ConnectionStringUsable);
     }
 }

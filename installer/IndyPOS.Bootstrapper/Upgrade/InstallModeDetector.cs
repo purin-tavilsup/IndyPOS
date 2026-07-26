@@ -94,6 +94,12 @@ public static class InstallModeDetector
 
         var trimmed = imagePath.Trim().Trim('"');
 
-        return trimmed.StartsWith(installPath, StringComparison.OrdinalIgnoreCase);
+        // Trailing separator turns this into a directory-boundary check, not a bare
+        // string prefix -- otherwise a sibling like "...\v4\StoreHubOLD\..." would
+        // satisfy a plain StartsWith(installPath) even though it is a different folder.
+        var boundary = installPath.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar)
+                       + Path.DirectorySeparatorChar;
+
+        return trimmed.StartsWith(boundary, StringComparison.OrdinalIgnoreCase);
     }
 }

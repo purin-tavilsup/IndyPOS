@@ -146,6 +146,19 @@ public class InstallModeDetectorTests
     }
 
     [Fact]
+    public void Detect_WhenTheServicePointsToASiblingDirectoryWithASimilarName_ShouldReturnUnusable()
+    {
+        // "StoreHub" is a string prefix of "StoreHubOLD" -- a bare StartsWith(installPath)
+        // would wrongly treat this sibling folder as resolving under the install path.
+        var probe = HealthyUpgrade() with
+        {
+            ServiceImagePath = InstallPath + @"OLD\IndyPOS.StoreHub.exe"
+        };
+
+        InstallModeDetector.Detect(probe, InstallPath).Mode.Should().Be(InstallMode.Unusable);
+    }
+
+    [Fact]
     public void Detect_WithAManifestButNoConfig_ShouldReturnUnusable()
     {
         // Rule 4. This is the exact state the second failed VM run left behind.
