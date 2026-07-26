@@ -44,14 +44,14 @@ public class DatabaseSetup
         // PGPASSWORD is empty, even with stdin redirected).
         if (string.IsNullOrEmpty(postgresPassword))
         {
-            var storeDatabaseExists = StoreHubConfigReader
+            var storeInstallExists = StoreHubConfigReader
                 .Read(Path.Combine(config.StoreHubInstallPath, "appsettings.json"))
-                .ConnectionStringUsable;
+                .Exists;
 
             return new DatabaseSetupResult
             {
                 Success = false,
-                ErrorMessage = BuildSuperuserGuardMessage(storeDatabaseExists)
+                ErrorMessage = BuildSuperuserGuardMessage(storeInstallExists)
             };
         }
 
@@ -152,10 +152,11 @@ public class DatabaseSetup
     /// <summary>
     /// The superuser password is deliberately not persisted (spec section 1), so an existing
     /// PostgreSQL cannot be provisioned into. What the operator should do next depends
-    /// entirely on whether there is a store database to protect.
+    /// entirely on whether IndyPOS was ever installed on this machine (which means a store's
+    /// sales history is at risk).
     /// </summary>
-    internal static string BuildSuperuserGuardMessage(bool storeDatabaseExists) =>
-        storeDatabaseExists
+    internal static string BuildSuperuserGuardMessage(bool storeInstallExists) =>
+        storeInstallExists
             ? "PostgreSQL 18 is already installed and this machine has an existing IndyPOS database.\n" +
               "Do NOT remove PostgreSQL — that would destroy the store's sales history.\n" +
               "Upgrade in place instead:\n" +
