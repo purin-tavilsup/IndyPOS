@@ -427,20 +427,20 @@ Append to `tests/IndyPOS.Bootstrapper.Tests/Installers/DatabaseSetupTests.cs` (k
 
 ```csharp
     [Fact]
-    public void BuildSuperuserGuardMessage_WhenAStoreDatabaseExists_ShouldNeverRecommendTheCleanupScript()
+    public void BuildSuperuserGuardMessage_WhenAnIndyPOSInstallExists_ShouldNeverRecommendTheCleanupScript()
     {
         // cleanup-v4.ps1 drops indypos_storehub unconditionally unless -SkipDatabase.
         // Recommending it to a live store destroys every sale ever recorded.
-        var message = DatabaseSetup.BuildSuperuserGuardMessage(storeDatabaseExists: true);
+        var message = DatabaseSetup.BuildSuperuserGuardMessage(storeInstallExists: true);
 
         message.Should().NotContain("cleanup-v4");
         message.Should().NotContain("-RemovePostgres");
     }
 
     [Fact]
-    public void BuildSuperuserGuardMessage_WhenAStoreDatabaseExists_ShouldPointAtTheUpgradeCommand()
+    public void BuildSuperuserGuardMessage_WhenAnIndyPOSInstallExists_ShouldPointAtTheUpgradeCommand()
     {
-        var message = DatabaseSetup.BuildSuperuserGuardMessage(storeDatabaseExists: true);
+        var message = DatabaseSetup.BuildSuperuserGuardMessage(storeInstallExists: true);
 
         message.Should().Contain("--silent");
         message.Should().Contain("existing IndyPOS database");
@@ -450,7 +450,7 @@ Append to `tests/IndyPOS.Bootstrapper.Tests/Installers/DatabaseSetupTests.cs` (k
     public void BuildSuperuserGuardMessage_OnABareMachine_ShouldStillOfferTheCleanupScript()
     {
         // No store data to lose here, so the fast path stays available.
-        var message = DatabaseSetup.BuildSuperuserGuardMessage(storeDatabaseExists: false);
+        var message = DatabaseSetup.BuildSuperuserGuardMessage(storeInstallExists: false);
 
         message.Should().Contain("cleanup-v4.ps1");
     }
@@ -482,14 +482,19 @@ Replace the guard block at lines 38-50 with:
 ```csharp
         if (string.IsNullOrEmpty(postgresPassword))
         {
-            var storeDatabaseExists = StoreHubConfigReader
+            // .Exists, NOT .ConnectionStringUsable. The latter is false for a store whose
+            // DPAPI value was sealed on another machine (a swapped POS terminal) or whose
+            // JSON is malformed — both real installs with real sales history. Branching on
+            // it would route exactly those stores to the destructive recommendation. This
+            // fails safe: the worst case is a manual PostgreSQL removal on a dead machine.
+            var storeInstallExists = StoreHubConfigReader
                 .Read(Path.Combine(config.StoreHubInstallPath, "appsettings.json"))
-                .ConnectionStringUsable;
+                .Exists;
 
             return new DatabaseSetupResult
             {
                 Success = false,
-                ErrorMessage = BuildSuperuserGuardMessage(storeDatabaseExists)
+                ErrorMessage = BuildSuperuserGuardMessage(storeInstallExists)
             };
         }
 ```
@@ -500,10 +505,11 @@ Add the message builder next to `GenerateJwtSecret`:
     /// <summary>
     /// The superuser password is deliberately not persisted (spec section 1), so an existing
     /// PostgreSQL cannot be provisioned into. What the operator should do next depends
-    /// entirely on whether there is a store database to protect.
+    /// entirely on whether IndyPOS was ever installed here — if it was, there is sales
+    /// history to protect and the cleanup script must not be named.
     /// </summary>
-    internal static string BuildSuperuserGuardMessage(bool storeDatabaseExists) =>
-        storeDatabaseExists
+    internal static string BuildSuperuserGuardMessage(bool storeInstallExists) =>
+        storeInstallExists
             ? "PostgreSQL 18 is already installed and this machine has an existing IndyPOS database.\n" +
               "Do NOT remove PostgreSQL — that would destroy the store's sales history.\n" +
               "Upgrade in place instead:\n" +
