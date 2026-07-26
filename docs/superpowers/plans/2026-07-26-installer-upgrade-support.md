@@ -570,7 +570,8 @@ public class InstallModeDetectorTests
 {
     private const string InstallPath = @"C:\ProgramData\IndyPOS\v4\StoreHub";
 
-    private sealed class FakeProbe : IInstallProbe
+    // A record, not a class: the tests below use `with { ... }` to vary one fact at a time.
+    private sealed record FakeProbe : IInstallProbe
     {
         public bool ManifestExists { get; init; }
         public string? ManifestInstallVersion { get; init; }
@@ -784,7 +785,6 @@ public sealed record DetectedInstall(
 Create `installer/IndyPOS.Bootstrapper/Upgrade/IInstallProbe.cs`:
 
 ```csharp
-using System.ServiceProcess;
 using System.Text.Json;
 using Microsoft.Win32;
 using IndyPOS.Bootstrapper.Installers;
@@ -842,6 +842,15 @@ public sealed class WindowsInstallProbe : IInstallProbe
 
             // ValueKind check, not a bare GetString(): that throws on a non-string token,
             // and a hand-edited manifest must degrade to "unknown version", never crash.
+            // TryGetProperty is the one that bites first: it throws InvalidOperationException
+            // when the root is not an object (a manifest whose top-level JSON is a bare
+            // string or array). A hand-edited manifest must degrade to "unknown version",
+            // never crash the probe's constructor.
+            if (doc.RootElement.ValueKind != JsonValueKind.Object)
+            {
+                return null;
+            }
+
             return doc.RootElement.TryGetProperty("installVersion", out var v)
                    && v.ValueKind == JsonValueKind.String
                 ? v.GetString()
@@ -868,32 +877,22 @@ public sealed class WindowsInstallProbe : IInstallProbe
         }
     }
 
-    // No superuser credential is available here, so this is a filesystem-and-config
-    // inference rather than a query: a usable connection string means a provisioned
-    // database, and a Postgres data directory means one could exist for another major.
-    private static bool DetectStoreDatabase(InstallationConfig config)
-    {
-        var appSettings = Path.Combine(config.StoreHubInstallPath, "appsettings.json");
-        if (StoreHubConfigReader.Read(appSettings).ConnectionStringUsable)
-        {
-            return true;
-        }
-
-        foreach (var major in new[] { "18", "17", "16" })
-        {
-            var dataDir = $@"C:\Program Files\PostgreSQL\{major}\data\base";
-            if (Directory.Exists(dataDir) && OtherMajorStoreConfigExists())
-            {
-                return true;
-            }
-        }
-
-        return false;
-    }
+    // Rule 1's question is narrow: does a store install belonging to a DIFFERENT IndyPOS
+    // major exist here? This major's own config is already captured in Config, and rules
+    // 2-4 consume it from there. Answering "yes" for our own leftover config would let
+    // rule 1 intercept a same-major partial install — one that crashed after DatabaseSetup
+    // wrote appsettings.json but before the manifest — and tell the operator to go run a
+    // different installer, which is wrong and hides rule 4's correct diagnosis.
+    //
+    // No superuser credential is available here, so this is a config inference rather than
+    // a query: a usable connection string under another major's root means a provisioned
+    // database that our non-version-scoped DatabaseName would collide with.
+    private static bool DetectStoreDatabase(InstallationConfig config) =>
+        OtherMajorStoreConfigExists(config.SystemRoot);
 
     // C:\ProgramData\IndyPOS\v{N}\StoreHub\appsettings.json for a major other than ours
     // is the v5-installer-on-a-v4-store case that rule 1 exists to catch.
-    private static bool OtherMajorStoreConfigExists()
+    private static bool OtherMajorStoreConfigExists(string ourSystemRoot)
     {
         var root = @"C:\ProgramData\IndyPOS";
         if (!Directory.Exists(root))
@@ -901,10 +900,26 @@ public sealed class WindowsInstallProbe : IInstallProbe
             return false;
         }
 
-        return Directory.EnumerateDirectories(root, "v*")
-            .Select(d => Path.Combine(d, "StoreHub", "appsettings.json"))
-            .Any(p => StoreHubConfigReader.Read(p).ConnectionStringUsable);
+        try
+        {
+            // Lazy enumeration throws mid-iteration on an ACL-restricted subdirectory, so
+            // this needs the same guard every other probe member has.
+            return Directory.EnumerateDirectories(root, "v*")
+                .Where(d => !SamePath(d, ourSystemRoot))
+                .Select(d => Path.Combine(d, "StoreHub", "appsettings.json"))
+                .Any(p => StoreHubConfigReader.Read(p).ConnectionStringUsable);
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+            return false;
+        }
     }
+
+    private static bool SamePath(string left, string right) =>
+        string.Equals(
+            Path.GetFullPath(left).TrimEnd(Path.DirectorySeparatorChar),
+            Path.GetFullPath(right).TrimEnd(Path.DirectorySeparatorChar),
+            StringComparison.OrdinalIgnoreCase);
 }
 ```
 
@@ -1011,7 +1026,11 @@ public static class InstallModeDetector
 
         var trimmed = imagePath.Trim().Trim('"');
 
-        return trimmed.StartsWith(installPath, StringComparison.OrdinalIgnoreCase);
+        // The trailing separator matters: a bare StartsWith would also accept a sibling
+        // like ...\v4\StoreHubOLD\IndyPOS.StoreHub.exe.
+        var prefix = installPath.TrimEnd(Path.DirectorySeparatorChar) + Path.DirectorySeparatorChar;
+
+        return trimmed.StartsWith(prefix, StringComparison.OrdinalIgnoreCase);
     }
 }
 ```
