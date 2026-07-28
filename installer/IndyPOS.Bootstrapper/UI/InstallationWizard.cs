@@ -8,7 +8,7 @@ namespace IndyPOS.Bootstrapper.UI;
 /// </summary>
 public partial class InstallationWizard : Form
 {
-    private readonly InstallationOrchestrator _orchestrator;
+    private readonly FreshInstallOrchestrator _orchestrator;
     private readonly CancellationTokenSource _cts = new();
 
     // UI Controls
@@ -38,7 +38,7 @@ public partial class InstallationWizard : Form
 
     public InstallationWizard()
     {
-        _orchestrator = new InstallationOrchestrator();
+        _orchestrator = new FreshInstallOrchestrator();
         InitializeComponents();
         WireEvents();
     }

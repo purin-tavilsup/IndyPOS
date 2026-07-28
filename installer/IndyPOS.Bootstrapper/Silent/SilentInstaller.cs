@@ -4,7 +4,7 @@ namespace IndyPOS.Bootstrapper.Silent;
 
 /// <summary>
 /// Headless entry point for `--silent --store-id <ID>`. Reuses
-/// InstallationOrchestrator unchanged; the durable log file is the authoritative
+/// FreshInstallOrchestrator unchanged; the durable log file is the authoritative
 /// result/marker channel and the exit code is the automation contract.
 /// </summary>
 public static class SilentInstaller
@@ -58,7 +58,7 @@ public static class SilentInstaller
         InstallationResult result;
         try
         {
-            result = new InstallationOrchestrator()
+            result = new FreshInstallOrchestrator()
                 .InstallAsync(config, logger, cts.Token)
                 .GetAwaiter().GetResult();
         }
