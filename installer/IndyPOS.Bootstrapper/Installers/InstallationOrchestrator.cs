@@ -261,7 +261,7 @@ public class InstallationOrchestrator
 
         // Verify health
         progress.Report(InstallationProgress.Log("Verifying StoreHub health..."));
-        var healthOk = await VerifyStoreHubHealthAsync(config.HealthCheckPort, cancellationToken);
+        var healthOk = await HealthProbe.IsReadyAsync(config.HealthCheckPort, cancellationToken: cancellationToken);
 
         if (healthOk)
         {
@@ -301,33 +301,6 @@ public class InstallationOrchestrator
         };
     }
 
-    private static async Task<bool> VerifyStoreHubHealthAsync(int port, CancellationToken cancellationToken)
-    {
-        using var client = new HttpClient { Timeout = TimeSpan.FromSeconds(10) };
-        // /health/ready is StoreHub's DB-aware readiness probe. /health and
-        // /alive are dev-only (Aspire's IsDevelopment() guard in ServiceDefaults).
-        var healthUrl = $"http://localhost:{port}/health/ready";
-
-        for (var i = 0; i < 5; i++)
-        {
-            try
-            {
-                var response = await client.GetAsync(healthUrl, cancellationToken);
-                if (response.IsSuccessStatusCode)
-                {
-                    return true;
-                }
-            }
-            catch
-            {
-                // Retry
-            }
-
-            await Task.Delay(2000, cancellationToken);
-        }
-
-        return false;
-    }
 }
 
 /// <summary>

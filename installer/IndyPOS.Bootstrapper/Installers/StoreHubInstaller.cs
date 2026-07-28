@@ -134,71 +134,18 @@ public class StoreHubInstaller
         IProgress<string>? log = null,
         CancellationToken cancellationToken = default)
     {
-        var exePath = Path.Combine(Config.StoreHubInstallPath, "IndyPOS.StoreHub.exe");
-        if (!File.Exists(exePath))
+        var result = await MigrationRunner.RunAsync(Config.StoreHubInstallPath, log, cancellationToken);
+
+        return new ProvisionDatabaseResult
         {
-            return new ProvisionDatabaseResult
-            {
-                Success = false,
-                ErrorMessage = $"StoreHub executable not found at {exePath}"
-            };
-        }
-
-        try
-        {
-            log?.Report("Applying database migrations and seeding admin...");
-
-            var psi = new ProcessStartInfo
-            {
-                FileName = exePath,
-                Arguments = "migrate",
-                WorkingDirectory = Config.StoreHubInstallPath,
-                UseShellExecute = false,
-                RedirectStandardOutput = true,
-                RedirectStandardError = true,
-                CreateNoWindow = true
-            };
-            // Production is the host default when unset, but be explicit so a stray
-            // dev env var can't divert provisioning to the EnsureCreated path.
-            psi.Environment["ASPNETCORE_ENVIRONMENT"] = "Production";
-
-            using var process = new Process { StartInfo = psi };
-            process.Start();
-
-            var stdoutTask = process.StandardOutput.ReadToEndAsync(cancellationToken);
-            var stderrTask = process.StandardError.ReadToEndAsync(cancellationToken);
-            await Task.WhenAll(stdoutTask, stderrTask);
-            var stdout = await stdoutTask;
-            var stderr = await stderrTask;
-            await process.WaitForExitAsync(cancellationToken);
-
-            if (process.ExitCode != 0)
-            {
-                return new ProvisionDatabaseResult
-                {
-                    Success = false,
-                    ErrorMessage = $"Database provisioning failed (exit {process.ExitCode}): {stderr.Trim()}"
-                };
-            }
-
-            return new ProvisionDatabaseResult
-            {
-                Success = true,
-                AdminSeeded = ParseAdminSeeded(stdout)
-            };
-        }
-        catch (Exception ex)
-        {
-            return new ProvisionDatabaseResult
-            {
-                Success = false,
-                ErrorMessage = $"Database provisioning failed: {ex.Message}"
-            };
-        }
+            Success = result.Success,
+            AdminSeeded = result.AdminSeeded,
+            ErrorMessage = result.ErrorMessage
+        };
     }
 
     internal static bool ParseAdminSeeded(string stdout) =>
-        stdout.Contains("ADMIN_SEEDED=true", StringComparison.OrdinalIgnoreCase);
+        MigrationRunner.ParseAdminSeeded(stdout);
 
     private async Task<bool> CreateWindowsServiceAsync(
         IProgress<string>? log,
