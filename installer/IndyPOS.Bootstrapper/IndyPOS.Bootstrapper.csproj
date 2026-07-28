@@ -21,6 +21,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <!-- Connection-string parsing for the upgrade path's pg_dump invocation. Splitting the
+         string by hand would mis-handle a password containing ';' or '=' and silently dump
+         the wrong database. Version tracks the Npgsql that Infrastructure's EF provider pulls. -->
+    <PackageReference Include="Npgsql" Version="10.0.0" />
     <PackageReference Include="System.ServiceProcess.ServiceController" Version="9.0.1" />
   </ItemGroup>
 
