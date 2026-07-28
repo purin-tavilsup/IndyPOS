@@ -7,6 +7,7 @@
 | Field | Value |
 |-------|-------|
 | **Branch** | `development` @ `7c7c5cf` (pushed). Feature/cleanup branches merged + deleted. |
+| **Commit identity** | `Purin Tavilsup <purin.tavilsup@gmail.com>`, set in `.git/config` 2026-07-27 — IndyPOS is a personal repo, so it no longer commits as `purin-mimica`. History was **not** rewritten. A fresh clone reverts to the work identity from global config. |
 | **Sprint** | Sprint 7 |
 | **Phase** | ✅ **Epic M SHIPPED + VM-VALIDATED**, ✅ **Product-type restriction SHIPPED (2026-07-19)**, ✅ **Cosmetic-minors cleanup batch MERGED (PR #52, 2026-07-25)**. |
 | **Blocked?** | Not blocked. All code merged + pushed. **Only the VM smoke remains** (4-item checklist below). |
