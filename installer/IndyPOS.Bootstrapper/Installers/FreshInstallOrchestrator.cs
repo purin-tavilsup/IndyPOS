@@ -1,9 +1,15 @@
 namespace IndyPOS.Bootstrapper.Installers;
 
 /// <summary>
-/// Orchestrates the complete IndyPOS installation process.
+/// Orchestrates a FRESH IndyPOS installation onto a machine with no existing install.
+/// <para>An in-place upgrade is a different algorithm with different safety requirements,
+/// not a variation on this one — see <c>UpgradeOrchestrator</c>. Forcing both through one
+/// flow is what produced the locked-DLL failure this design exists to fix.</para>
+/// <para>FROZEN: this is the only production-validated path, and its fresh-only branches
+/// (sc create, first-time directory creation, DatabaseSetup, the Postgres install) never
+/// execute on the upgrade VM snapshot. Change it only for a fresh-install reason.</para>
 /// </summary>
-public class InstallationOrchestrator
+public class FreshInstallOrchestrator
 {
     private readonly FontInstaller _fontInstaller = new();
     private readonly DotNetInstaller _dotNetInstaller = new();
@@ -300,7 +306,6 @@ public class InstallationOrchestrator
             HealthOk = healthOk
         };
     }
-
 }
 
 /// <summary>
