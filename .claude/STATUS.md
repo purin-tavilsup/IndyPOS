@@ -105,6 +105,43 @@ Application **274/274**. Frozen-fresh-path gate re-confirmed: `FreshInstallOrche
 differs from `development` only by the rename, the doc comment, and the `HealthProbe`
 delegation — no reordering, no new conditionals.
 
+### 🛑 BLOCKER for the store rollout — MigrationTool payment mapping is scrambled (2026-07-29)
+
+Found while checking SQLite→Postgres drift, using the **real store DB** at
+`.planning/indypos-overhaul/sqlite_database/Store.db` (66 MB). Its `PaymentType` lookup vs
+`SqliteMigrationService.MapPaymentType` (line ~507):
+
+| legacy id | Thai label | actually means | tool maps to | correct code | real rows | real ฿ |
+|---|---|---|---|---|---|---|
+| 1 | เงินสด | Cash | `Cash` ✅ | `Cash` | 121,669 | 18,021,632.50 |
+| 2 | ลงบัญชี | **PayLater** | `Card` ❌ | `PayLater` | 5,182 | 836,083 |
+| 3 | บัตรสวัสดิการแห่งรัฐ | **WelfareCard** | `Transfer` ❌ | `WelfareCard` | 887 | 254,990 |
+| 4 | ม.33 | **M33WeLove** | `PayLater` ❌ | `M33WeLove` | 0 | 0 |
+| 5 | โอนเข้าบัญชี | **MoneyTransfer** | `WelfareCard` ❌ | `MoneyTransfer` | 12,458 | 1,834,823 |
+| 6 | ผ่อนชำระ | Installments | `Other` ❌ | (none exists) | 0 | 0 |
+| 7 | คนละครึ่ง | **FiftyFifty** | `Other` ❌ | `FiftyFifty` | 1,272 | 226,538 |
+| 8 | เราชนะ | **WeWin** | `Other` ❌ | `WeWin` | 4 | 940 |
+
+**Only id=1 is correct.** ~19,800 payments / **฿3.15M of ฿21.2M (15%)** would be attributed to the
+wrong method, and `Card`/`Transfer`/`Other` are not catalogue codes at all
+(`PaymentMethodCodes` = Cash, MoneyTransfer, WelfareCard, PayLater, M33WeLove, FiftyFifty, WeWin).
+Worst case is **PayLater**: ฿836k of customer credit lands as `Card`, invisible to PayLater tracking
+— the most operationally sensitive method in these stores.
+
+Corroborated by the project's own records, not just translation: STATUS notes Pond renaming
+PayLater → `ลงบัญชี` in the v4 admin screen, and `บัตรสวัสดิการแห่งรัฐ` is the WelfareCard button caption.
+
+**The verifier cannot catch this** — `MigrationVerifier` compares only row COUNTs and
+`SUM(Invoice.Total)`, so a scrambled migration reports success.
+
+Also note the reconciliation EF migration `20260719051546_MapLegacyPaymentValuesToCodes`
+(`Transfer`→`MoneyTransfer`) runs **during install**, i.e. BEFORE the tool imports data, so it
+cannot fix tool-written rows either.
+
+**NOT fixed — separate epic, needs Pond's confirmation of the id→method semantics.** Fix is small
+(rewrite `MapPaymentType` to `PaymentMethodCodes`, decide `ผ่อนชำระ`, add per-method count/sum
+assertions to the verifier, re-run against the real DB).
+
 ### Whole-branch review: DONE (2026-07-29) — 6 findings, all fixed
 
 1. **`fcdddc2` — a timeout inside the mutating region skipped rollback entirely.** Cancellation was
