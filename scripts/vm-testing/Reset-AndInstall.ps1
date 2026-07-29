@@ -269,7 +269,28 @@ function Invoke-SilentInstall {
     $latestLog      = Join-Path $logDir 'install-latest.log'
 
     $arguments = if ($InstallerArgs) { $InstallerArgs } else { @('--silent', '--store-id', $Config.TestStoreId) }
+
+    # A single element holding "--silent,--simulate-failure=deploy" reaches the installer as
+    # ONE unrecognised argument, which silently falls through to the interactive wizard and
+    # crashes headless. Caught once for real on 2026-07-29; never diagnose that twice.
+    foreach ($a in $arguments) {
+        if ($a -match '[,\s]') {
+            throw ("-InstallerArgs element '$a' contains a comma or whitespace, so it would " +
+                   "reach the installer as one malformed argument. Pass each flag as its own " +
+                   "element: -InstallerArgs '--silent','--simulate-failure=deploy'")
+        }
+    }
+
     Write-Info "Running (in guest): $guestInstaller $($arguments -join ' ')"
+
+    # Log names carry a timestamp and pid, so anything not in this set was written by THIS
+    # run. Required because a crash before the first log write leaves the snapshot's own
+    # 2026-07-19 install log as the newest one - which reads as RESULT=success.
+    $preExistingLogs = @(Invoke-Command -VMName $Config.VMName -Credential $Credential -ScriptBlock {
+        param($dir)
+        Get-ChildItem -Path $dir -Filter 'install-2*.log' -ErrorAction SilentlyContinue |
+            Select-Object -ExpandProperty Name
+    } -ArgumentList $logDir)
 
     $timeoutSec = $Config.InstallTimeoutMinutes * 60
     $job = Invoke-Command -VMName $Config.VMName -Credential $Credential -AsJob -ScriptBlock {
@@ -289,14 +310,28 @@ function Invoke-SilentInstall {
 
     Write-Info "Installer exit code: $($run.ExitCode)"
 
-    # Newest install-<stamp>-<pid>.log, NOT install-latest.log: on a re-run the latter can
-    # still carry the previous run's RESULT=success.
-    $markers = Invoke-Command -VMName $Config.VMName -Credential $Credential -ScriptBlock {
-        param($dir)
+    # THIS run's log only - never install-latest.log (can hold a previous RESULT=success) and
+    # never merely the newest (a snapshot ships with its own install log).
+    $fresh = Invoke-Command -VMName $Config.VMName -Credential $Credential -ScriptBlock {
+        param($dir, $before)
         $log = Get-ChildItem -Path $dir -Filter 'install-2*.log' -ErrorAction SilentlyContinue |
+               Where-Object { $_.Name -notin $before } |
                Sort-Object LastWriteTime -Descending | Select-Object -First 1
-        if ($log) { Get-Content $log.FullName | Where-Object { $_ -like 'INDYPOS_MARKER *' } } else { @() }
-    } -ArgumentList $logDir
+        if (-not $log) { return $null }
+        [pscustomobject]@{
+            Name    = $log.Name
+            Markers = @(Get-Content $log.FullName | Where-Object { $_ -like 'INDYPOS_MARKER *' })
+        }
+    } -ArgumentList $logDir, $preExistingLogs
+
+    if (-not $fresh) {
+        throw ("The installer wrote no log for this run (exit=$($run.ExitCode)), so it died " +
+               "before logging anything - a malformed argument list falling through to the " +
+               "wizard does exactly this. Refusing to grade the run against a stale log.")
+    }
+
+    Write-Info "Log: $($fresh.Name)"
+    $markers = $fresh.Markers
 
     # Parse the LAST occurrence of each marker key (D9).
     $marker = @{}
