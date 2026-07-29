@@ -138,9 +138,24 @@ Also note the reconciliation EF migration `20260719051546_MapLegacyPaymentValues
 (`Transfer`→`MoneyTransfer`) runs **during install**, i.e. BEFORE the tool imports data, so it
 cannot fix tool-written rows either.
 
-**NOT fixed — separate epic, needs Pond's confirmation of the id→method semantics.** Fix is small
-(rewrite `MapPaymentType` to `PaymentMethodCodes`, decide `ผ่อนชำระ`, add per-method count/sum
-assertions to the verifier, re-run against the real DB).
+**✅ FIXED (`6c63a6d`)** — mapping confirmed by Pond; ids 4 and 6 were never used and are deprecated.
+- `LegacyPaymentTypeMap` — one shared table (migrator + verifier), documented against the real
+  lookup, returns `null` for ids with no equivalent instead of guessing.
+- Migrator **refuses** an unmapped row and records an error → `MigrationResult.IsSuccess` false.
+  No more `"Other"`.
+- `MigrationVerifier` compares **count AND amount per catalogue method**, and flags a method
+  present in PostgreSQL that no legacy type maps to. PayLater uses `>=` because it also migrates
+  from its own legacy table.
+- Real-DB guards: every id in use must map; the Thai labels must still sit at the assumed ids.
+- **`MoneyTransfer` = the CASHLESS bucket** (debit tap, Apple Pay, Google Pay) per Pond — a
+  Standard method, not a government campaign. v4's catalogue already had this right; the campaign
+  group is WelfareCard / M33WeLove / FiftyFifty / WeWin (legacy ids 3, 4, 7, 8). No change needed.
+
+**⚠️ Related smell, NOT addressed:** `tests/IndyPOS.Migration.Tests` builds a SQLite schema
+(`InvoicePayment`, `AccountsReceivablePayment`, no `PaymentType`) that does **not** match any real
+store (`Payment`, `PayLater`, `PaymentType`), and carries its own `MigrationService.cs` — it appears
+to test an older parallel implementation. Its 15 tests pass but validate a schema no store has, so
+the invoice/product paths may rest on the same sand. Worth a look before the cutover.
 
 ### Whole-branch review: DONE (2026-07-29) — 6 findings, all fixed
 
