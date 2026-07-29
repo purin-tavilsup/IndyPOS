@@ -46,7 +46,9 @@ public static class InstallModeDetector
                     "Store:Type is missing from appsettings.json (stores installed before " +
                     "2026-07-18 have no such key). It cannot be defaulted: the default is the most " +
                     "permissive store type and would silently re-enable restricted features. " +
-                    "Re-run with --store-type <GeneralHardware|Minimart> to set it.");
+                    "Add \"type\": \"GeneralHardware\" (or \"Minimart\") to the \"store\" section " +
+                    "and re-run - see docs\\operations\\upgrade-procedure.md. Note --store-type " +
+                    "does NOT fix this: the run is refused before arguments are consulted.");
             }
 
             if (!ImagePathResolvesUnder(probe.ServiceImagePath, storeHubInstallPath))
