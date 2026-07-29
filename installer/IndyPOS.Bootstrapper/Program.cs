@@ -1,5 +1,7 @@
+using IndyPOS.Bootstrapper.Installers;
 using IndyPOS.Bootstrapper.Silent;
 using IndyPOS.Bootstrapper.UI;
+using IndyPOS.Bootstrapper.Upgrade;
 
 namespace IndyPOS.Bootstrapper;
 
@@ -25,6 +27,24 @@ internal static class Program
                 "Administrator Required",
                 MessageBoxButtons.OK,
                 MessageBoxIcon.Warning);
+            return 0;
+        }
+
+        // One detection result, one router. If the wizard and the silent path each called
+        // the detector, the two forks would drift.
+        var probeConfig = new InstallationConfig { StoreId = "pending", Interactive = true };
+        var detected = InstallModeDetector.Detect(
+            new WindowsInstallProbe(probeConfig), probeConfig.StoreHubInstallPath);
+
+        if (detected.Mode != InstallMode.Fresh)
+        {
+            MessageBox.Show(
+                detected.Mode == InstallMode.Upgrade
+                    ? InstallationWizard.BuildExistingInstallMessage(detected)
+                    : detected.Reason,
+                "Existing Installation Detected",
+                MessageBoxButtons.OK,
+                MessageBoxIcon.Information);
             return 0;
         }
 

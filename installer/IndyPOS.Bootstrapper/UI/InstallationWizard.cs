@@ -1,4 +1,5 @@
 using IndyPOS.Bootstrapper.Installers;
+using IndyPOS.Bootstrapper.Upgrade;
 using IndyPOS.Domain.Enums;
 
 namespace IndyPOS.Bootstrapper.UI;
@@ -10,6 +11,20 @@ public partial class InstallationWizard : Form
 {
     private readonly FreshInstallOrchestrator _orchestrator;
     private readonly CancellationTokenSource _cts = new();
+
+    /// <summary>
+    /// The wizard deliberately gains no upgrade UI: it collects StoreId and StoreType up
+    /// front (both already fixed on an upgrade) and its finish screen is built around
+    /// bootstrap credentials that do not exist on one. But it must not silently proceed —
+    /// a double-clicked Setup.exe on a live store reproduces both original failures.
+    /// </summary>
+    internal static string BuildExistingInstallMessage(DetectedInstall detected) =>
+        $"IndyPOS {detected.InstalledVersion ?? "(unknown version)"} is already installed on " +
+        $"this machine (store {detected.StoreId ?? "unknown"}).\n\n" +
+        "The wizard only performs new installations. To upgrade in place, open an " +
+        "administrator command prompt and run:\n\n" +
+        "    IndyPOS-Setup.exe --silent\n\n" +
+        "See docs\\operations\\upgrade-procedure.md.";
 
     // UI Controls
     private Panel _headerPanel = null!;
