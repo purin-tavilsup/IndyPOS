@@ -65,7 +65,19 @@ public sealed class UpgradeOrchestrator(IUpgradeSteps steps, UpgradeStage? simul
         // Above the mutation line: stopping is reversible, and dumping a live database
         // would silently discard any sale completed before the restart.
         progress.Report(InstallationProgress.Step("Upgrading", "Stopping StoreHub...", 10));
-        await steps.StopServiceAsync(cancellationToken);
+
+        // Terminal, not advisory: deploying while StoreHub still holds its own DLLs is
+        // exactly how the original upgrade attempt died. The store is untouched and still
+        // serving here, so refusing costs nothing.
+        if (!await steps.StopServiceAsync(cancellationToken))
+        {
+            return new UpgradeFailed(
+                "StoreHub could not be stopped, so its binaries are still locked and cannot " +
+                "be replaced. Stop the service manually and re-run.",
+                RolledBack: false, ServiceStarted: true,
+                HealthOk: await steps.HealthAsync(cancellationToken), BackupDir: null);
+        }
+
         Fault(UpgradeStage.Stop);
 
         // --- Step 3: back up --------------------------------------------------

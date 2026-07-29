@@ -22,6 +22,7 @@ public class UpgradeOrchestratorTests
         public bool PreflightOk { get; init; } = true;
         public string PreflightReason { get; init; } = "preflight failed";
         public bool IsDowngrade { get; init; }
+        public bool StopOk { get; init; } = true;
         public bool BackupOk { get; init; } = true;
         public bool DeployOk { get; init; } = true;
         public bool MigrateOk { get; init; } = true;
@@ -47,7 +48,7 @@ public class UpgradeOrchestratorTests
         public Task<bool> StopServiceAsync(CancellationToken ct)
         {
             Calls.Add("stop");
-            return Task.FromResult(true);
+            return Task.FromResult(StopOk);
         }
 
         public Task<BackupResult> BackupAsync(string pgDump, string conn, CancellationToken ct)
@@ -181,6 +182,22 @@ public class UpgradeOrchestratorTests
         var outcome = await Run(new FakeSteps { PreflightOk = false, IsDowngrade = true });
 
         outcome.Should().BeOfType<DowngradeRefused>();
+    }
+
+    [Fact]
+    public async Task RunAsync_WhenTheServiceWillNotStop_ShouldNotDeployOverLockedBinaries()
+    {
+        // The locked-DLL failure this whole design exists to fix. Deploying while StoreHub
+        // still holds its own DLLs is precisely how the original upgrade attempt died, so a
+        // failed stop has to be terminal, not advisory.
+        var steps = new FakeSteps { StopOk = false };
+
+        var failure = (UpgradeFailed)await Run(steps);
+
+        failure.RolledBack.Should().BeFalse();
+        failure.ServiceStarted.Should().BeTrue();
+        steps.Calls.Should().NotContain("backup");
+        steps.Calls.Should().NotContain("deploy");
     }
 
     [Fact]
