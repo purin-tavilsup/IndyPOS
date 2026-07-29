@@ -176,6 +176,32 @@ public class SilentOutcomeMapperTests
     }
 
     [Fact]
+    public void Map_WithAnUpgradeFailure_ShouldReportTheReason()
+    {
+        // Without this the log records THAT an upgrade failed and nothing about why -- the
+        // 2026-07-29 VM run failed in the backup step and said nothing at all.
+        var outcome = new UpgradeFailed("pg_dump failed (exit 1): could not connect",
+            RolledBack: false, ServiceStarted: true, HealthOk: true, BackupDir: null);
+
+        var (_, markers) = SilentOutcomeMapper.Map(outcome);
+
+        markers.Should().Contain("INDYPOS_MARKER REASON=pg_dump failed (exit 1): could not connect");
+    }
+
+    [Fact]
+    public void Map_WithAReasonContainingAPassword_ShouldRedactIt()
+    {
+        // Npgsql and pg_dump both quote the connection string back on failure, and this
+        // line is read by whoever is standing at the till.
+        var outcome = new UpgradeFailed("failed for Host=127.0.0.1;Password=hunter2;Database=x",
+            RolledBack: false, ServiceStarted: true, HealthOk: true, BackupDir: null);
+
+        var (_, markers) = SilentOutcomeMapper.Map(outcome);
+
+        markers.Should().Contain(m => m.StartsWith("INDYPOS_MARKER REASON=") && !m.Contains("hunter2"));
+    }
+
+    [Fact]
     public void Map_WithAnUnusableInstall_ShouldReturnFive()
     {
         var (exit, markers) = SilentOutcomeMapper.Map(new UnusableInstall("service missing"));

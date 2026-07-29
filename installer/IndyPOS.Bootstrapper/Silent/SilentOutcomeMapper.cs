@@ -87,6 +87,9 @@ public static class SilentOutcomeMapper
         var markers = new List<string>
         {
             Prefix + "RESULT=failed",
+            // Scrubbed: a pg_dump or Npgsql error can quote the connection string, and this
+            // line lands in a log file that is read by whoever is standing at the till.
+            Prefix + $"REASON={SecretScrubber.Scrub(u.Message)}",
             Prefix + $"ROLLED_BACK={Lower(u.RolledBack)}",
             Prefix + $"SERVICE_STARTED={Lower(u.ServiceStarted)}",
             Prefix + $"HEALTH={(u.HealthOk ? "ok" : "failed")}",
