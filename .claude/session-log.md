@@ -4,6 +4,75 @@
 
 ---
 
+## 2026-07-26: Velopack spike answered, upgrade plan written, Tasks 1–4 of 14 landed
+
+**Focus:** close the last open question in the installer-upgrade spec, turn it into a plan, then start executing.
+
+**The spike (§12).** Nothing in the codebase established what the embedded Velopack `Setup.exe --silent`
+does on a machine where the POS app is already installed, and step 8 plus the failure table depended on it.
+Ran both cases against checkpoint `Pre-Upgrade-2026-07-25` (a real store image, 4.0.0 installed, service
+Running), restoring the snapshot between them. Built a 4.0.1 package with `vpk pack` from the existing
+`publish\WinForms` output rather than touching `publish/` (note: `scripts/publish.ps1` deletes that whole
+directory on start).
+
+Result: **4.0.1 over 4.0.0** → exit 0, 7.5 s, `sq.version` 4.0.0→4.0.1, old `.nupkg` pruned, service
+untouched, `ProgramData\IndyPOS\v4` untouched, shortcuts preserved, nothing launched. **4.0.0 over itself**
+→ exit 0, 2.5 s, a safe *repair*. So step 8 needed no design change, but one real consequence fell out:
+**`POS_UPDATED` cannot be inferred from the exit code**, which is 0 either way. It is derived by comparing
+`current\sq.version` before and after — the binaries keep their own build stamp regardless of package
+version (proved by packing 4.0.1 from 4.0.0-stamped binaries; the exe still reported 4.0.0). Also learned
+Setup sweeps foreign files from the install root, not just `current\`; IndyPOS keeps no state there, but
+that is now a written rule. Untested and still a documented limitation: running setup as a *different*
+admin than the installing one. Also closed §11.7 — no version bump is a safe repair, not a failure.
+
+**The plan.** `docs/superpowers/plans/2026-07-26-installer-upgrade-support.md` — 14 tasks, 87 steps, real
+code in every step. Two spec items deliberately deferred with reasons recorded in a self-review section:
+raising `migrate`'s 30 s Npgsql timeout (spec says "consider"; touches StoreHub's runtime, belongs with the
+first long DDL migration) and the `--store-type`-writes-one-key branch (took the other option the spec
+permits — refuse as `Unusable` — so the upgrade path never writes config).
+
+**Execution.** Branch `feat/installer-upgrade-support` off `spec/installer-upgrade-support`, driven by
+`superpowers:subagent-driven-development`: fresh implementer per task, independent task review, scoped
+re-review of every fix. Tasks 1–4 complete. Release build 0 err / 0 warn, bootstrapper suite 133 pass /
+8 skip. Ledger: `.superpowers/sdd/2026-07-26-installer-upgrade-support/progress.md`.
+
+**The useful part: all four tasks needed a fix round, and every finding was a defect in the plan, not
+implementer error.** The review loop earned its keep, and each fix was folded back into the plan text so
+the remaining ten tasks can't inherit the same shapes.
+
+- **T1** — the reference `Value()` helper called `GetValue<string>()` outside the try/catch, so a
+  hand-edited `"id": 12345` threw out of a reader whose own doc comment promises graceful degradation.
+- **T2** — the worst one. The superuser guard branched on `ConnectionStringUsable`, which is `false` for a
+  store whose DPAPI connection string was sealed on *another machine* — i.e. a replaced POS terminal. That
+  routed a live store with intact sales history to `cleanup-v4.ps1 -Force -RemovePostgres`, which drops
+  `indypos_storehub` unconditionally. Exactly the data-loss path the task exists to close, in the one
+  scenario where the store is already having a bad day. Now branches on `.Exists`, which fails safe.
+- **T3** — `DetectStoreDatabase` inspected our own major's config path, so a same-major install that
+  crashed between `DatabaseSetup` and the manifest tripped detection rule 1 and told the operator to run a
+  different installer. Rule 4 is the correct diagnosis. Also: `TryGetProperty` throws on a non-object
+  manifest root, the `v*` enumeration was unguarded, and `ImagePathResolvesUnder` matched sibling
+  directories like `StoreHubOLD`.
+- **T4** — implementer self-caught: `ServiceControl.StopAsync` swallows the `TimeoutException` the original
+  propagated, and the call site discarded the bool, so a service that failed to stop proceeded into
+  extraction and hit the locked DLLs the stop-before-extract order exists to prevent. Review then caught
+  that the delegating `StartServiceAsync` dropped `ex.Message` — the only lead in a store's install log
+  after a failed start — so `ServiceControl` now returns `ServiceControlResult(Success, ErrorMessage)`.
+
+**Test-suite trap found and fixed (worth remembering).** `installer/build-installer.ps1` stages
+`Resources/StoreHub.zip` into the source tree and never cleans it up, and the csproj embeds
+`Resources\**\*` conditionally — so on any machine that has ever built the installer, the payload is
+embedded and the new "no payload available" tests failed for purely environmental reasons on the next
+unrelated `dotnet test`. The first verdict was "unfixable without a design change"; the reviewer overruled
+it with a better middle option, and `StoreHubPayload.ExtractAsync` now takes defaulted `resourceName` /
+`probeDirectory` seams. Verified green both with the 70 MB zip staged and with it absent.
+
+**State at break (Pond's call, ~02:50):** HEAD `c4525cb`, nothing pushed, no PR, installer not rebuilt.
+VM parked **Off** at `Pre-Upgrade-2026-07-25`, both snapshots intact, spike mutations discarded.
+Resume at Task 5 (extract `MigrationRunner` + `HealthProbe`); Task 6 renames the orchestrator and carries
+the refactor diff gate, so keep 5 and 6 in order.
+
+---
+
 ## 2026-07-14: Admin-provisioning feature built + v4 overhaul MERGED to `development` (PR #50) 🎉
 
 **Focus:** The last open branch item — the admin-provisioning model — taken from decision all the way to merged.
@@ -653,3 +722,52 @@ Implemented RSA signing, DPAPI secrets, StoreHub client integration, and Report 
 ---
 
 *For older sessions, see `session-log-archive.md`*
+
+---
+
+## 2026-07-25 — Cosmetic minors shipped; installer found to be fresh-install-only
+
+**Merged: PR #52** (cosmetic-minors cleanup batch, 11 commits). Closed every deferred cosmetic Minor
+from Epic M + the product-type restriction. Pond re-specced the payment-method `Kind` taxonomy
+mid-batch: `Standard = 1` (rename of `Permanent`, same backing value) / `GovernmentCampaign = 2` /
+`Special = 3`, with PayLater -> Special and WelfareCard -> GovernmentCampaign, plus a WHERE-guarded
+reversible data migration. Also Thai kind labels, grid refresh on toggle, payment-button icons
+restored, `PUT /products/{id}` -> 404 via the existing `ProductNotFoundException`, warn-once
+features dialog.
+
+Whole-branch review (subagent) found 1 Important: the migration's row-flip branch had **zero**
+coverage, because `IntegrationTestBase` provisions with `EnsureCreatedAsync` - so no migration in
+this repo has ever been exercised by any test, and a fresh install runs migrations against an empty
+table. Closed with `ReclassifyPaymentMethodKindsMigrationTests`, which drives `IMigrator` to the
+prior revision on its own Postgres container, plants pre-change rows, migrates, and asserts the
+transition (with a before-snapshot so it proves the flip rather than agreeing with the end state).
+The reviewer also empirically disproved a suspected shared-`Image` disposal bug by building a probe.
+
+**Merged: PR #53** (installer + tooling fixes). Found by running the upgrade smoke against a real
+store image. Extraction ran before the service stop -> locked DLLs; and worse, it destroyed the
+store's `appsettings.json` (extraction writes the package template, `DatabaseSetup` only rewrites
+real values afterwards). Fixed both, with `ConfigSnapshot` covering the exception path. Plus three
+latent `cleanup-v4.ps1` bugs: a safety guard still demanding `v<Major>.<Minor>.<Patch>` after the May
+move to a major-only root, em-dashes making it unparseable under the guest's Windows-1252 codepage,
+and the DPAPI-sealed connection string silently skipping the database drop.
+
+**Key finding: the installer is fresh-install-only by design.** `DatabaseSetup` refuses when
+PostgreSQL already exists with an unknown superuser password. So there is no automated upgrade path
+to the 3 stores and never was - every validation to date is clean-install. Not urgent: all 3 stores
+are still on v3.7.0.
+
+Brainstormed -> spec'd upgrade support (separate `UpgradeOrchestrator`, 3-outcome mode detector,
+backup + file rollback, superuser password deliberately NOT persisted). Two subagent reviews:
+correctness returned "not safe as written" with 4 Criticals (all folded in - `Store:Type` loss
+silently making a Minimart permissive, a missing `Store:Id` forking store identity, world-readable
+backup artifacts, and a v5-over-v4 install routing the operator to a command that drops the sales
+database); scope returned "trim and re-sequence". They disagreed on the wizard; reconciled as
+detect-and-refuse. Spec on `spec/installer-upgrade-support`, awaiting Pond's review.
+
+**VM baseline rebuilt without the deleted ISO** by running the project's own teardown in-guest, then
+removing the leftover Postgres data dir and installer-added fonts (restoring coverage the old
+snapshot had lost). Two snapshots now, both restorable. Fresh-install smoke 18/18 in 3m09s, which
+also served as the regression proof for PR #53.
+
+**Verification at wrap-up:** Release build 0 err; Domain 8/8, Application 274/274, Bootstrapper 101
+pass/8 skip, StoreHub integration 76/76 (real Postgres) - all re-run on merged `development`.
