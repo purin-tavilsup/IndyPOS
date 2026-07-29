@@ -7,11 +7,16 @@
     -VMName) once the bootstrapper wizard has finished. Returns a structured
     PSCustomObject the host orchestrator (Reset-AndInstall.ps1) summarises.
 
-    Subset of scripts/verify-install.ps1 — drops the v3.7.0 side-by-side
+    Subset of scripts/verify-install.ps1 - drops the v3.7.0 side-by-side
     invariants (a fresh test VM has no v3 footprint to protect) and the deep
     DB auth checks (smoke-test.ps1 covers API behaviour separately).
 
     No elevation required; checks are read-only.
+
+.PARAMETER AssertDatabase
+    Also assert the live payment_method catalogue and that exactly one store id owns
+    it. Decrypts the DPAPI-sealed connection string in-guest and drives psql. Only
+    meaningful after an upgrade of a real store image.
 
 .PARAMETER ManifestPath
     Override the discovered install-manifest.json. Mirrors verify-install.ps1
@@ -30,6 +35,11 @@
 
 [CmdletBinding()]
 param(
+    # Position 0 so the host orchestrator can pass it through Invoke-Command -FilePath,
+    # which binds arguments positionally only.
+    [Parameter(Position = 0)]
+    [switch]$AssertDatabase,
+
     [string]$ManifestPath
 )
 
@@ -224,6 +234,88 @@ function Test-HealthEndpoint {
     }
 }
 
+# --- Database assertions (upgrade runs only) --------------------------------
+
+# Decrypt the DPAPI-sealed connection string in-guest. Machine scope, entropy =
+# SHA256("IndyPOS:ConnectionStrings:storehub-db"). The guest runs PowerShell 5.1, which
+# has no static SHA256.HashData, so use an instance.
+function Get-StoreHubConnectionString {
+    param([string]$AppSettingsPath)
+
+    $raw = (Get-Content $AppSettingsPath -Raw | ConvertFrom-Json).connectionStrings.'storehub-db'
+    if (-not $raw.StartsWith('DPAPI:')) { return $raw }
+
+    Add-Type -AssemblyName System.Security
+    $sha = [System.Security.Cryptography.SHA256]::Create()
+    $entropy = $sha.ComputeHash([Text.Encoding]::UTF8.GetBytes('IndyPOS:ConnectionStrings:storehub-db'))
+    $cipher = [Convert]::FromBase64String($raw.Substring(6))
+    $plain = [System.Security.Cryptography.ProtectedData]::Unprotect(
+        $cipher, $entropy, [System.Security.Cryptography.DataProtectionScope]::LocalMachine)
+
+    return [Text.Encoding]::UTF8.GetString($plain)
+}
+
+function Invoke-StoreHubQuery {
+    param([string]$ConnectionString, [string]$Sql, [string]$PsqlPath)
+
+    $parts = @{}
+    foreach ($kv in $ConnectionString.Split(';')) {
+        if ($kv -match '^\s*([^=]+)=(.*)$') { $parts[$Matches[1].Trim()] = $Matches[2].Trim() }
+    }
+
+    $env:PGPASSWORD = $parts['Password']
+    try {
+        # SQL via stdin: native-argument quoting strips the double quotes psql needs.
+        return $Sql | & $PsqlPath -h $parts['Host'] -p $parts['Port'] -U $parts['Username'] `
+                                  -d $parts['Database'] -w -t -A -F '|'
+    }
+    finally { Remove-Item Env:PGPASSWORD -ErrorAction SilentlyContinue }
+}
+
+function Test-Database {
+    $appSettings = Join-Path $ProgramDataRoot 'v4\StoreHub\appsettings.json'
+    $psql = 'C:\Program Files\PostgreSQL\18\bin\psql.exe'
+
+    if (-not (Test-Path $appSettings)) {
+        Add-Check 'Database' 'StoreHub appsettings.json present' $false -Detail $appSettings
+        return
+    }
+    if (-not (Test-Path $psql)) {
+        Add-Check 'Database' 'psql.exe available' $false -Detail $psql
+        return
+    }
+
+    try {
+        $conn = Get-StoreHubConnectionString -AppSettingsPath $appSettings
+    } catch {
+        Add-Check 'Database' 'Connection string decrypts on this machine' $false `
+            -Detail $_.Exception.Message
+        return
+    }
+
+    $rows = Invoke-StoreHubQuery -ConnectionString $conn -PsqlPath $psql `
+        -Sql 'SELECT code, kind, is_enabled FROM payment_method ORDER BY code;'
+
+    # The snapshot is a genuine PRE-reclassification store: PayLater kind=1, WelfareCard kind=1.
+    Add-Check 'Database' 'PayLater reclassified to Special (kind=3)' `
+        ([bool]($rows | Where-Object { $_ -like 'PayLater|3|*' }))
+
+    Add-Check 'Database' 'WelfareCard is GovernmentCampaign (kind=2) and still enabled' `
+        ([bool]($rows | Where-Object { $_ -eq 'WelfareCard|2|t' }))
+
+    Add-Check 'Database' 'Cash and MoneyTransfer are Standard (kind=1)' `
+        (@($rows | Where-Object { $_ -like 'Cash|1|*' -or $_ -like 'MoneyTransfer|1|*' }).Count -eq 2)
+
+    $storeIds = Invoke-StoreHubQuery -ConnectionString $conn -PsqlPath $psql `
+        -Sql 'SELECT DISTINCT store_id FROM payment_method;'
+
+    # A second catalogue under STORE-<MachineName> is the exact orphaning that detection
+    # rule 2's non-empty Store:Id check exists to prevent.
+    Add-Check 'Database' 'Exactly one store id in payment_method' `
+        (@($storeIds | Where-Object { $_ }).Count -eq 1) `
+        -Detail ($storeIds -join ', ')
+}
+
 # --- Run --------------------------------------------------------------------
 
 $manifest = Test-Manifest
@@ -234,6 +326,8 @@ if ($manifest) {
     Test-Filesystem -Manifest $manifest
     Test-VelopackApp -Manifest $manifest
     Test-HealthEndpoint -Manifest $manifest
+
+    if ($AssertDatabase) { Test-Database }
 }
 
 [PSCustomObject]@{
