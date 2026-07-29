@@ -151,6 +151,46 @@ cannot fix tool-written rows either.
   Standard method, not a government campaign. v4's catalogue already had this right; the campaign
   group is WelfareCard / M33WeLove / FiftyFifty / WeWin (legacy ids 3, 4, 7, 8). No change needed.
 
+### 🛑 FOUR MORE migration defects found 2026-07-29 (NOT fixed — need a decision)
+
+Audited the other entities against the real store DB after the payment finding. Roles are the
+only thing that checks out (legacy 1/2/3 = v4 `Cashier`/`StoreManager`/`SystemAdmin` ✅).
+
+**1. PayLater migration cannot run at all — it queries columns that do not exist.**
+`SELECT PayLaterId, InvoiceId, UserId, CustomerName, PaymentAmount, ...` but the real table is
+`PaymentId, Description, InvoiceId, IsCompleted, DateCreated, DateUpdated, PayLaterAmount, PaidAmount`.
+Four of eight names are wrong. The query sits **outside** any try, so it throws `SQLiteException`
+and aborts the whole migration. **5,181 rows / ฿836k of customer credit.** Also note the legacy
+table distinguishes `PayLaterAmount` from `PaidAmount` (partial repayments); the code models a
+single `PaymentAmount`, so the outstanding-balance semantics need designing, not just renaming.
+
+**2. Every migrated timestamp is 7 hours off.** Legacy writes `datetime('now','localtime')` —
+Thai local, UTC+7 (confirmed: latest invoice `2026-03-03 07:56:26`). `ParseDate` does
+`DateTime.SpecifyKind(result, DateTimeKind.Utc)`: it **relabels** local time as UTC without
+converting. Reports then convert UTC→SE Asia for day boundaries, so an 18:00 sale lands at 01:00
+the next day. Silent, affects **all 139,680 invoices** plus products/payments, and corrupts every
+daily/monthly total. Fix is `TimeZoneInfo.ConvertTimeToUtc(..., "SE Asia Standard Time")`.
+
+**3. Product `Category` is migrated as a raw numeric id, not a name.** `LegacyProduct.Category`
+is `long?` and the code does `Category = product.Category?.ToString()` → v4 stores `"10"`…`"54"`.
+The real `ProductCategory` table holds 16 Thai names (เบ็ดเตล็ด, เครื่องดื่ม, วัสดุก่อสร้าง…). Same class as
+the payment bug: an id written where a name belongs. **Worse than cosmetic** — the id ranges are
+meaningful (10–20 general goods, 50–54 hardware `วัสดุ*`), and Epic M's product-type restriction
+plus the category pickers gate on category, so all 10,590 products land uncategorised.
+
+**4. Discount history is dropped.** `InvoiceProduct` has 17 columns; the migrator selects 7,
+discarding `OriginalUnitPrice`, `GroupPrice`, `IsGroupProduct`, `Note`, `Priority`.
+**165,690 of 325,780 line items (51%) have `OriginalUnitPrice <> UnitPrice`** — i.e. they were
+discounted, and the record of that is lost.
+
+`Customers` and `Installments` are empty in this store, so skipping them is currently harmless —
+**verify per store** before each cutover.
+
+**Provenance note:** the real DB is `.planning/indypos-overhaul/sqlite_database/Store.db`, which is
+**gitignored** (`.gitignore:485 *.db`) — local to Pond's box, not committed. So
+`RealDatabaseSchemaTests` (and the two guards added in `6c63a6d`) silently `return` on any machine
+without it, including CI. Those guards protect Pond's machine only.
+
 **⚠️ Related smell, NOT addressed:** `tests/IndyPOS.Migration.Tests` builds a SQLite schema
 (`InvoicePayment`, `AccountsReceivablePayment`, no `PaymentType`) that does **not** match any real
 store (`Payment`, `PayLater`, `PaymentType`), and carries its own `MigrationService.cs` — it appears
