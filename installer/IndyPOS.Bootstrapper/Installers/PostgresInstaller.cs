@@ -274,6 +274,13 @@ public class PostgresInstaller
     }
 
     /// <summary>
+    /// The bin directory of the PostgreSQL install this machine actually has, or null.
+    /// Exposed for the upgrade path's pg_dump fallback: the manifest's PostgresBinPath
+    /// can be stale. Note this probes 18 -> 17 -> 16, so callers must assert the major.
+    /// </summary>
+    internal static string? FindPostgresBinPath() => FindPostgresInstallation()?.BinPath;
+
+    /// <summary>
     /// Find existing PostgreSQL installation. Requires BOTH psql.exe AND the
     /// matching Windows service to be registered — psql.exe alone is a half-
     /// installed state (e.g. installer killed during extraction) that would
