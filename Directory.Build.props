@@ -10,14 +10,14 @@
   -->
   <PropertyGroup>
     <!-- Semantic Version: MAJOR.MINOR.PATCH -->
-    <Version>4.0.0</Version>
+    <Version>4.1.0</Version>
 
     <!-- Assembly versioning (used by .NET runtime) -->
-    <AssemblyVersion>4.0.0.0</AssemblyVersion>
-    <FileVersion>4.0.0.0</FileVersion>
+    <AssemblyVersion>4.1.0.0</AssemblyVersion>
+    <FileVersion>4.1.0.0</FileVersion>
 
     <!-- Informational version (can include pre-release tags) -->
-    <InformationalVersion>4.0.0</InformationalVersion>
+    <InformationalVersion>4.1.0</InformationalVersion>
 
     <!-- Product info -->
     <Product>IndyPOS</Product>
