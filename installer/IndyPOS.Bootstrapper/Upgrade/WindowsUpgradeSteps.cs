@@ -55,12 +55,30 @@ public sealed class WindowsUpgradeSteps(InstallationConfig config, IProgress<str
                 "The StoreHub connection string could not be decrypted on this machine.", false);
         }
 
-        // Idempotent check-then-install. Omitting these delivers a UI-polish release that
-        // renders in a fallback face, or binaries the machine cannot run.
+        // Idempotent check-then-install, and the results are checked: the whole point of
+        // running these above the mutation line is that a missing runtime fails here, for
+        // free, instead of surfacing as a service that will not start after the swap.
         log.Report("Ensuring prerequisites (fonts, .NET 10, VC++ redistributable)...");
+
+        // The font is the one genuinely optional prerequisite - a missing FC Subject renders
+        // in a fallback face, which is a cosmetic regression, not a dead store.
         new FontInstaller().Install(log);
-        await new DotNetInstaller().EnsureInstalledAsync(log, ct, cfg.Interactive);
-        await new VCRedistInstaller().EnsureInstalledAsync(null, ct);
+
+        var dotNet = await new DotNetInstaller().EnsureInstalledAsync(log, ct, cfg.Interactive);
+        if (!dotNet.Success)
+        {
+            return new PreflightResult(false, null, null,
+                $"The .NET 10 Desktop Runtime is required but could not be installed: " +
+                $"{dotNet.ErrorMessage}", false);
+        }
+
+        var vcRedist = await new VCRedistInstaller().EnsureInstalledAsync(null, ct);
+        if (!vcRedist.Success)
+        {
+            return new PreflightResult(false, null, null,
+                $"The Visual C++ redistributable is required but could not be installed: " +
+                $"{vcRedist.ErrorMessage}", false);
+        }
 
         return new PreflightResult(true, pgDump, connectionString, null, false);
     }
