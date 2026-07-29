@@ -2,11 +2,115 @@
 
 > Quick checkpoint for session start / context handoff
 
+## ⏯️ RESUME HERE (2026-07-29) — Installer in-place upgrade: **14/14 + VM cases 1 & 2 PASS**
+
+**Branch:** `feat/installer-upgrade-support` @ `30393e7` (local only, not pushed).
+**Plan:** `docs/superpowers/plans/2026-07-26-installer-upgrade-support.md` (all 14 tasks done).
+
+### VM validation (2026-07-29)
+
+| Case | Result |
+|------|--------|
+| **1 — happy upgrade** (`--silent -AssertDatabase`) | ✅ **PASS 22/22, 82s.** `MODE=upgrade`, `RESULT=success`, `HEALTH=ok`, `BACKUP_LOCKED=true`. `Store:Id=Rungrat-001` + `Store:Type=GeneralHardware` **preserved**, conn still `DPAPI:`, `initialAdmin` absent. Dump 24,941 B + 483-file tree readable. Catalogue: PayLater kind=3, WelfareCard kind=2 enabled, exactly one store id. |
+| **2 — forced rollback** (`--simulate-failure=deploy -ExpectRollback`) | ✅ **PASS.** `ROLLED_BACK=true`, `SERVICE_STARTED=true`, `HEALTH=ok`. Independently verified: config restored, service Running, health 200, live tree 483 files, and `payment_method` still **pre-migration** (PayLater kind=1) — proving the migration is exactly what distinguishes the two cases. |
+| **3 — fresh regression** (`Clean-Windows-Ready`) | ✅ **PASS 18/18, 3m29s.** `MODE=fresh`, `RESULT=success`, `ADMIN_SEEDED=true`, `CRED_LOCKED=true`, `HEALTH=ok`. The frozen fresh path is unregressed by the whole branch. |
+
+**VM left RUNNING** on the case-3 fresh install (service Running, health 200, POS + desktop
+shortcut present, catalogue seeded) — deliberately, so the owed PR #52 visual smoke can be done
+without another cycle. Bootstrap admin credential:
+`C:\ProgramData\IndyPOS\v4\Config\admin-credentials.txt` in the guest (ACL-locked, single-use,
+force-rotated on first login). Park it with:
+`Stop-VM IndyPOS-Test -Force -TurnOff; Restore-VMSnapshot -VMName IndyPOS-Test -Name 'Pre-Upgrade-2026-07-25' -Confirm:$false`
+
+**⚠️ NOT yet proven — needs a version bump.** Cases 1/2 ran with `FROM_VERSION=TO_VERSION=4.0.0`
+because `Directory.Build.props` still pins 4.0.0, so they exercised the **same-version repair**
+path (spec-valid, exit 0, `POS_UPDATED=false` correctly reported). A real `FROM≠TO` upgrade and
+`POS_UPDATED=true` are still unexercised. **Bump the version and re-run case 1 before shipping
+to the 3 stores.**
+
+### 4 real bugs the VM gate caught (all fixed, all with tests)
+
+1. **`c49d481`..`4485ce8` → `7d6f2d8`: upgrade failures reported no reason.** `UpgradeFailed.Message`
+   reached neither log nor markers, so the first failure said only "failed". Now `REASON=`, scrubbed
+   (pg_dump and Npgsql quote the connection string back).
+2. **`7d6f2d8`: `StopServiceAsync`'s result was discarded** → a service that refuses to stop went on
+   to deploy over its own locked DLLs, the exact failure this design exists to prevent. Now terminal.
+3. **`184e102`: backup directories were locked with non-inheritable ACEs.** Guest SDDL proved it:
+   stamp `D:PAI(A;;FA;;;SY)(A;;FA;;;BA)` (no `OICI`), tree `D:AI` (**empty DACL**). Protecting a
+   directory drops its inherited ACEs and Windows recomputes its children's, so the freshly copied
+   483-file tree became readable by nobody — and `LockTree` then walked it. New
+   `DatabaseSetup.TryRestrictDirectoryPermissions` uses `ContainerInherit|ObjectInherit`; the
+   per-file walk is gone (failure site + 483 redundant ACL writes). Also fixes latent `Prune`
+   breakage — recursive delete could not traverse empty-DACL dirs.
+   **Lesson:** the plan predicted this risk but expected a *throw*; the real failure was silent.
+   The old tests faked the lock seam (`p => true`), which is why it reached the VM.
+4. **`30393e7`: the harness could report a green run that never happened.** A comma-joined
+   `-InstallerArgs` element reached the installer as one malformed argument → fell through to the
+   wizard → crashed headless (`0xE0434352`). The marker read then took the newest `install-*.log`,
+   but the snapshot **ships with its own 2026-07-19 log**, so a crashed run was graded
+   `RESULT=success, ADMIN_SEEDED=true`. Now: malformed args rejected up front, and only a log
+   absent before the run counts — its absence is a hard error.
+
+**Flagged follow-up (NOT done, needs Pond's call):** an unknown argument makes
+`IndyPOS-Setup.exe` silently launch the wizard; headless that is a bare CLR crash with **no log
+at all**. A try/catch in `Program.Main` writing to the log dir would close it. Outside the plan's
+14 tasks, so not silently added.
+
+**Why this branch exists:** running `IndyPOS-Setup.exe` on a live store reproduced two
+failures (locked DLLs, and `DatabaseSetup` clobbering the real config with the package
+template). Fix = a **separate upgrade algorithm**, not a variation on the fresh path.
+
+**What shipped (this session: Tasks 9-14, commits `c49d481`..`4485ce8`):**
+- **T9** `UpgradePreflight` — downgrade refusal, POS-running check, free space, pg_dump
+  major-asserted lookup. Added a `Func<>` seam so the Postgres probe isn't machine-dependent.
+- **T10** upgrade outcomes + markers: `UpgradeSucceeded` / `UpgradeFailed` / `UnusableInstall`
+  / `DowngradeRefused`, exit codes **5** (unusable) and **6** (downgrade), `MODE=` marker.
+  Fresh-path `ADMIN_SEEDED`/`RESET_HINT`/`CRED_FILE` deliberately suppressed on an upgrade.
+- **T11** `UpgradeOrchestrator` + `IUpgradeSteps` seam + `WindowsUpgradeSteps` + the
+  `--simulate-failure` hook. **Mutation line**: steps 0-3 touch nothing, 4-7 roll back,
+  step 8 (POS app) does not. Rollback re-probes health — starting the service is not
+  evidence it came back. Also added `StoreHubConfigReader.ReadConnectionString` rather
+  than a second, case-sensitive JSON parser.
+- **T12** one router in `SilentInstaller` (fresh / upgrade / unusable from ONE detection
+  result); `--store-id` now optional (an upgrade adopts the detected id, and a *mismatched*
+  one is refused); the **wizard now detects and refuses** instead of reproducing the bugs.
+- **T13** VM harness: `-SnapshotName`, `-InstallerArgs`, `-ExpectRollback`, `-AssertDatabase`.
+  Reads the **fresh timestamped log**, not `install-latest.log` (which can hold a prior
+  `RESULT=success`). Scripts are parse-clean and now pure ASCII.
+- **T14** `docs/operations/upgrade-procedure.md` (exit codes, marker table, per-rule
+  unusable recovery, `pg_restore` block) + forward-only-migration **release gate** in CLAUDE.md.
+
+**Verified:** Release build **0 errors**. Bootstrapper **209 pass / 8 skip**, Domain **8/8**,
+Application **274/274**. Frozen-fresh-path gate re-confirmed: `FreshInstallOrchestrator`
+differs from `development` only by the rename, the doc comment, and the `HealthProbe`
+delegation — no reordering, no new conditionals.
+
+**⏭️ NEXT:**
+1. **Case 3** result (running). Then park the VM:
+   `Stop-VM IndyPOS-Test -Force -TurnOff; Restore-VMSnapshot -VMName IndyPOS-Test -Name 'Pre-Upgrade-2026-07-25' -Confirm:$false`
+2. **Version-bump run** — bump `Directory.Build.props`, rebuild, re-run case 1, confirm
+   `FROM≠TO` and `POS_UPDATED=true`. Required before distributing to the 3 stores.
+3. **Owed PR #52 smoke — needs Pond at vmconnect** (visual): payment-button caption clipping on
+   `บัตรสวัสดิการแห่งรัฐ`, 195×129 button with ~100px icon + `ImageAboveText` leaves <30px for text.
+4. Whole-branch review → PR to `development` (branch protection: PRs only).
+5. Then **Epic I (Cloud)** — see the Epic I section below and
+   `docs/architecture/IndyPOS_Production_Infrastructure_Guide.md`.
+
+**Re-run commands** (note the `@(...)` — a comma-joined arg list is now rejected):
+```powershell
+# case 1
+./scripts/vm-testing/Reset-AndInstall.ps1 -SnapshotName 'Pre-Upgrade-2026-07-25' -InstallerArgs @('--silent') -AssertDatabase -KeepRunning
+# case 2
+./scripts/vm-testing/Reset-AndInstall.ps1 -SnapshotName 'Pre-Upgrade-2026-07-25' -InstallerArgs @('--silent','--simulate-failure=deploy') -ExpectRollback -KeepRunning
+```
+
+---
+
 ## Current State
 
 | Field | Value |
 |-------|-------|
-| **Branch** | `development` @ `7c7c5cf` (pushed). Feature/cleanup branches merged + deleted. |
+| **Branch** | `feat/installer-upgrade-support` @ `4485ce8` (local). Base: `development` @ `7c7c5cf` (pushed). |
 | **Commit identity** | `Purin Tavilsup <purin.tavilsup@gmail.com>`, set in `.git/config` 2026-07-27 — IndyPOS is a personal repo, so it no longer commits as `purin-mimica`. History was **not** rewritten. A fresh clone reverts to the work identity from global config. |
 | **Sprint** | Sprint 7 |
 | **Phase** | ✅ **Epic M SHIPPED + VM-VALIDATED**, ✅ **Product-type restriction SHIPPED (2026-07-19)**, ✅ **Cosmetic-minors cleanup batch MERGED (PR #52, 2026-07-25)**. |
