@@ -55,8 +55,12 @@ public class UpgradeBackupTests : IDisposable
         }
     }
 
+    // Both lock seams record into the same list; which helper ran is asserted separately by
+    // UpgradeBackupAclTests, which uses the real ACL code.
     private UpgradeBackup Build(IProcessRunner runner, string stamp = "20260726-010203") =>
-        new(_backups, _storeHub, runner, () => stamp, p => { _lockedPaths.Add(p); return true; });
+        new(_backups, _storeHub, runner, () => stamp,
+            p => { _lockedPaths.Add(p); return true; },
+            p => { _lockedPaths.Add(p); return true; });
 
     private const string Conn = "Host=127.0.0.1;Port=5432;Database=indypos_storehub;Username=indypos_app;Password=s3cret";
 
@@ -88,7 +92,12 @@ public class UpgradeBackupTests : IDisposable
         result.Locked.Should().BeTrue();
         _lockedPaths.Should().Contain(result.StampDirectory!);
         _lockedPaths.Should().Contain(Path.Combine(result.StampDirectory!, "storehub.dump"));
-        _lockedPaths.Should().Contain(Path.Combine(result.StampDirectory!, "StoreHub", "appsettings.json"));
+        _lockedPaths.Should().Contain(Path.Combine(result.StampDirectory!, "StoreHub"));
+
+        // Individual files inside the tree are covered by the stamp directory's inheritable
+        // ACEs. Walking them was not merely wasteful (483 files on a real store) - the walk
+        // itself was the 2026-07-29 failure, see UpgradeBackupAclTests.
+        _lockedPaths.Should().NotContain(Path.Combine(result.StampDirectory!, "StoreHub", "appsettings.json"));
     }
 
     [Fact]

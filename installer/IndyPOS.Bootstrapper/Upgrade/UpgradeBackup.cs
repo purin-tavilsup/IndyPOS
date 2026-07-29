@@ -15,7 +15,8 @@ public sealed class UpgradeBackup(
     string storeHubInstallPath,
     IProcessRunner processRunner,
     Func<string> stampFactory,
-    Func<string, bool>? lockPath = null)
+    Func<string, bool>? lockPath = null,
+    Func<string, bool>? lockDirectory = null)
 {
     public const string DumpFileName = "storehub.dump";
 
@@ -25,12 +26,13 @@ public sealed class UpgradeBackup(
     /// <summary>Roughly 130 MB per stamp, forever, on a small unattended retail PC.</summary>
     public const int RetainedStamps = 2;
 
-    // Verified 2026-07-28: this also works on a directory path — FileInfo's ACL extension
-    // resolves through SE_FILE_OBJECT, so no DirectoryInfo variant is needed. The resulting
-    // ACE carries no inheritance flags, which is why every artifact is locked explicitly
-    // below rather than relying on the stamp directory to propagate.
     private readonly Func<string, bool> _lockPath =
         lockPath ?? DatabaseSetup.TryRestrictFilePermissions;
+
+    // Directories need their own helper: a non-inheritable ACE on a protected directory
+    // leaves every child with an empty DACL. See TryRestrictDirectoryPermissions.
+    private readonly Func<string, bool> _lockDirectory =
+        lockDirectory ?? DatabaseSetup.TryRestrictDirectoryPermissions;
 
     public async Task<BackupResult> CreateAsync(
         string pgDumpPath,
@@ -101,16 +103,19 @@ public sealed class UpgradeBackup(
             : null;
     }
 
+    /// <summary>
+    /// Locks the stamp directory with inheritable ACEs, so the dump and the whole tree are
+    /// covered by inheritance rather than by walking hundreds of files.
+    /// <para>The tree is NOT enumerated here. It used to be, and that is what failed on
+    /// 2026-07-29: protecting the parent had already emptied the tree directory's DACL, so
+    /// the walk hit UnauthorizedAccessException on a backup it had just written perfectly.
+    /// Enumerating what you have deliberately made unreachable cannot work.</para>
+    /// </summary>
     private bool LockTree(string stampDir, string dumpPath, string treeDestination)
     {
-        var locked = _lockPath(stampDir) & _lockPath(dumpPath);
-
-        foreach (var file in Directory.EnumerateFiles(treeDestination, "*", SearchOption.AllDirectories))
-        {
-            locked &= _lockPath(file);
-        }
-
-        return locked;
+        // The dump is also locked explicitly: it is the whole sales history plus the BCrypt
+        // admin hashes, so it should not depend on inheritance alone.
+        return _lockDirectory(stampDir) & _lockPath(dumpPath) & _lockDirectory(treeDestination);
     }
 
     /// <summary>
