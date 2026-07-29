@@ -8,6 +8,7 @@
 |-----------|-----|
 | The store already runs IndyPOS v4 and you want a newer build | **This document** |
 | A brand-new machine with no IndyPOS on it | [Store Installation Guide](store-installation-guide.md) |
+| **The store still runs v3.7.0** | [Store Installation Guide](store-installation-guide.md) - v4 installs *alongside* v3.7.0, so this is a fresh install, not an upgrade. The installer detects that correctly and takes the fresh path |
 | Manual binary-swap / migration mechanics (background reading) | [Update Procedure](update-procedure.md) |
 
 The installer detects which case it is looking at and refuses to guess. A double-clicked
