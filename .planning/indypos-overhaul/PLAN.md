@@ -1,436 +1,216 @@
 # IndyPOS Overhaul - Implementation Plan
 
-**Last Updated:** 2026-04-27
-**Progress:** ~98% Complete (Local Ready, Cloud Infrastructure Pending)
+**Last Updated:** 2026-07-29
+**Where we actually are:** v4 is feature-complete and VM-validated, but **no store is running it yet**.
+All three stores still run v3.7.0 on SQLite. The critical path is getting them onto v4 with their
+history intact — not cloud infrastructure.
+
+> **This replaces the 2026-04-27 revision**, which claimed "~98% complete (Local Ready, Cloud
+> Infrastructure Pending)". That framing was wrong on the most important axis: local deployment had
+> never been exercised on a real store, and three months of installer, security and store-type work
+> has landed since.
 
 ---
 
-## Epic Overview
+## The critical path
 
-| Epic | Name | Status |
+| # | Epic | Status | Why this order |
+|---|------|--------|----------------|
+| 1 | **Product categories + MimyShop** | 📋 Spec pending | The migration needs a category model to map into. Blocks 2 |
+| 2 | **SQLite → PostgreSQL migration hardening** | 📋 Spec pending | 6 known defects + 3 divergent legacy schemas. The risky half of the rollout |
+| 3 | **Store rollout** (fresh v4 install + migrate, per store) | ⏳ Blocked by 2 | Where the business value lands: stores off a 3.7.0-era system |
+| 4 | **Epic I: Cloud infrastructure** | 🔴 Not started | Additive. No longer on the critical path — see "Legacy history" below |
+| 5 | **Epic MCP: agent-facing API** | 🔴 Not started | Depends on 4 |
+
+**Legacy history reaches the cloud for free.** After migration each store's own v4 PostgreSQL holds
+its full legacy history, so ordinary sync carries it upward. There is no separate legacy→cloud
+pipeline to build. The consequence is that "the cloud needs legacy history" is not a new component —
+it is a **correctness requirement on epic 2**.
+
+---
+
+## Shipped since the last revision (2026-05 → 2026-07)
+
+All merged to `development`. Specs in `docs/superpowers/specs/`, plans in `docs/superpowers/plans/`,
+per-task ledger in `.superpowers/sdd/progress.md`.
+
+| Epic | What | Merged |
 |------|------|--------|
-| 0 | Extract Business Logic | Complete |
-| A | Prepare Codebase | Complete |
-| B | Remove Deprecated PG Report | Complete |
-| C | StoreHub Service + Aspire | Complete |
-| D | Schema Design | Complete |
-| E | Outbox + SyncWorker | Complete |
-| F | Cloud API | Complete |
-| G | Desktop Integration | Complete |
-| H | Testing & Rollout | Complete |
-| L | Local Deployment Readiness | Complete |
-| V | Velopack Integration | Complete |
-| I | Cloud Infrastructure | Not Started |
-| S | Security Hardening | 5/9 Complete |
-| M | Multi-Store Type Support | 🟢 Ready |
+| **Vault (DPAPI)** | `IndyPOS.Vault` + `SecretProtector`; connection string and JWT key DPAPI-protected at rest, machine scope, `DPAPI:` marker; plaintext `storehub.key` dropped; `appsettings.json` ACL-locked | 2026-06 |
+| **Admin provisioning** | Random single-use bootstrap credential, server-side force-rotate on first login (`must_change` JWT claim + middleware gate), `POST /auth/change-password`, `reset-admin` CLI recovery | PR #50 |
+| **Silent installer** | `IndyPOS-Setup.exe --silent --store-id <ID>`; ACL-locked log, `INDYPOS_MARKER` lines, exit codes 0/1/2/3/4 | PR #51 |
+| **Epic M: data-driven payment methods** | `payment_method` catalogue replaces the hardcoded `PaymentType` enum; store-type gating; `PaymentMethodKind` taxonomy (`Standard`/`GovernmentCampaign`/`Special`); admin management screen; fixed the silent-GeneralHardware default | 2026-07-19 |
+| **Product-type restriction** | `GET /store/features`; server rejects Hardware products on general-only stores; WinForms hides Hardware affordances | 2026-07-19 |
+| **Cosmetic-minors batch** | Kind taxonomy re-spec, Thai Kind labels, grid refresh, payment-button icons, `PUT /products/{id}` → 404, one-shot features-error dialog | PR #52 |
+| **Installer upgrade support** | In-place upgrade with verified rollback. See below | PR #54 (open) |
 
-> For detailed epic history, see `completed/` folder
+### Installer upgrade support (PR #54, open)
 
----
+14 planned tasks plus 7 bugs found by the VM gate and whole-branch review. Design's load-bearing
+idea is a **mutation line**: steps 0–3 touch nothing, 4–7 roll back and *prove* recovery with a
+health probe, step 8 (POS app) does not roll back. `DatabaseSetup` never runs on an upgrade, which
+is what makes the config-clobbering bug disappear rather than be worked around.
 
-## Recently Completed
+VM-validated: happy upgrade 4.0.0 → 4.1.0 (22/22, `POS_UPDATED=true`), forced mid-upgrade rollback
+(store came back healthy), fresh-install regression (18/18). Version is now **4.1.0**.
 
-### Epic L: Local Deployment Readiness ✅
-
-**Goal:** Get the system ready for local machine deployment and testing
-
-| Task | Description | Priority | Status |
-|------|-------------|----------|--------|
-| L1 | Add StoreHub config to WinForms appsettings.json | HIGH | ✅ Complete |
-| L2 | Create StoreHub appsettings.Production.json | HIGH | ✅ Complete |
-| L3 | Create publish script (build release binaries) | MEDIUM | ✅ Complete |
-| L4 | Create install-config.ps1 script | MEDIUM | ✅ Complete |
-| L5 | End-to-end test: WinForms → StoreHub → PostgreSQL | HIGH | ✅ Complete |
-| L6 | Create setup guide: Local Machine Deployment | MEDIUM | ✅ Complete |
-
-**Bonus: Velopack Prep**
-| Task | Description | Status |
-|------|-------------|--------|
-| Version system | `Directory.Build.props`, `AppVersion.cs` | ✅ Complete |
-| Version endpoint | `GET /version` in StoreHub | ✅ Complete |
-| Bruno request | `get-version.bru` | ✅ Complete |
-| Versioning docs | `docs/versioning.md` | ✅ Complete |
-
-**Deployment Scenarios:**
-- **Dev/Test (Aspire):** `dotnet run --project src/IndyPOS.AppHost` - API testing with Bruno
-- **Local Production:** WinForms + StoreHub + PostgreSQL on same machine
+Notable finds worth remembering: locking a directory with non-inheritable ACEs leaves its children
+with an **empty DACL** (broke every backup silently); and the VM harness could report a green run
+that never happened, by grading a crashed run against an `install-*.log` baked into the snapshot.
 
 ---
 
-#### L1: WinForms appsettings.json - StoreHub Config ✅
+## Epic 1: Product categories + MimyShop 📋
 
-**What was done:** Added StoreHub config section to WinForms appsettings.json. Removed the legacy `Enabled` flag since StoreHub is now the only option (SQLite removed). Also removed unused `Database` section.
+**Problem.** `ProductCategory { GeneralGoods = 10, Hardware = 50 }` is hardcoded, and `Product.Category`
+stores the enum *name*. The real stores have 16 / 11 / 17 fine-grained Thai categories, and **the ids
+collide with different meanings across store types**:
 
-**Files modified:**
-- `src/IndyPOS.Windows.Forms/appsettings.json` - Added StoreHub config
-- `src/IndyPOS.Infrastructure/Services/StoreHub/StoreHubOptions.cs` - Removed `Enabled` property
-- `src/IndyPOS.Infrastructure/ConfigureServices.cs` - Removed conditional check
-- `src/IndyPOS.Windows.Forms/appsettings.README.md` - Created config documentation
+| id | GeneralHardware | MimyMart | MimyShop |
+|----|-----------------|----------|----------|
+| 10 | เบ็ดเตล็ด (misc) | เบ็ดเตล็ด | **ของขวัญ (gifts)** |
+| 11 | เครื่องดื่ม (drinks) | เครื่องดื่ม | **ของเล่น (toys)** |
+| 18 | ของเล่น (toys) | ของเล่น | **ของใช้ในบ้าน (household)** |
+| 50–54 | วัสดุ* (hardware) | — | — |
 
----
+So any global id→category mapping corrupts one store to fix another.
 
-#### L2: StoreHub appsettings.Production.json ✅
+**Approach (approved):** mirror Epic M. A store-scoped `product_category` table —
+`StoreId, Code, DisplayName, Kind, DisplayOrder, IsEnabled` — with readable English `Code`s
+(`Gifts`, `PlumbingMaterials`, `Services`), Thai `DisplayName`, and
+`Kind ∈ { GeneralGoods, Hardware, Service }`. `Kind` replaces the
+`string.Equals(category, nameof(ProductCategory.Hardware))` comparisons in the create/update handlers
+and the legacy sales-summary handler. The enum and `HardcodedStoreConstants.ProductCategories` go away.
 
-**What was done:** Created production config template with all necessary settings and comprehensive documentation.
+Shared codes where meanings genuinely match (`Toys`, `Household`, `Miscellaneous`) make cross-store
+reporting a plain `GROUP BY code` — which legacy-id codes would have made silently wrong.
 
-**Files created:**
-- `src/IndyPOS.StoreHub/appsettings.Production.json` - Production config template
-- `src/IndyPOS.StoreHub/appsettings.Production.README.md` - Detailed property documentation
+**Store types:** add `MimyShop = 4` with Minimart-equivalent flags (no PayLater, single product type).
+**Remove `CoffeeShop`** — Pond's call: its products and services differ enough to deserve a dedicated
+app. Check no persisted config or DB row carries `Type=CoffeeShop` before deleting; do not reuse `3`.
 
----
+**Out of scope (YAGNI):** an admin category screen (campaigns churn, categories don't), and any
+non-stock/service *behaviour* — `Kind=Service` is data only for now.
 
-#### L3: Publish Script ✅
-
-**What was done:** Created comprehensive publish script that builds self-contained releases for all components.
-
-**Files created:**
-- `scripts/publish.ps1` - Builds StoreHub, WinForms, MigrationTool
-
----
-
-#### L4: install-config.ps1 Script ✅
-
-**What was done:** Created installation script that automates PostgreSQL setup, directory creation, JWT key generation, and config file creation.
-
-**Files created:**
-- `scripts/install-config.ps1` - Full installation automation
+**Anticipated later divergence for MimyShop** (do not build now): it sells services, and its
+reporting/receipt needs differ. Payment methods will *converge* — MimyMart is expected to offer
+MimyShop's set eventually.
 
 ---
 
-#### L5: End-to-End Test ✅
+## Epic 2: SQLite → PostgreSQL migration hardening 📋
 
-**What was done:** Created comprehensive smoke test script covering all major API flows.
+**This is the risky half of the rollout.** The tool was written against an assumed schema and appears
+never to have been run end-to-end against a real store database.
 
-**Test Coverage:**
-| Category | Tests |
-|----------|-------|
-| **Health** | `/health/live`, `/health/ready`, `/version` |
-| **Auth** | Login (valid/invalid), `/auth/me` |
-| **Products** | Create, update, search, barcode lookup |
-| **Inventory** | Adjust quantity |
-| **Sales** | Complete sale, verify inventory deducted, verify in reports |
-| **Pay Later** | Create pay later sale, list accounts, record payment |
-| **Reports** | Sales summary, invoices, product sales, pay later report |
-| **Cleanup** | Delete test product |
+**Evidence base:** real store DBs now at `.planning/indypos-overhaul/sqlite_database/{GeneralHardware,MimyMart,MimyShop}/Store.db`
+(gitignored). Volumes: 139,680 / 97,293 / 15 invoices.
 
-**Files created:**
-- `scripts/smoke-test.ps1` - Comprehensive E2E smoke test
-- `.bruno/StoreHub/health/get-version.bru` - Bruno request for version endpoint
+### Legacy schema divergence — confirmed, not assumed
+
+All three share 11 tables. GeneralHardware alone adds `PayLater`, `Customers`, `Installments` —
+i.e. the divergence *is* the PayLater feature. `PaymentType` is identical in all three (8 rows), so
+the payment mapping is store-agnostic.
+
+`Customers` and `Installments` are **never used** (0 rows where present) — out of scope permanently.
+Legacy payment id 6 `ผ่อนชำระ` is dead with them.
+
+### Defects
+
+| # | Defect | Impact | Status |
+|---|--------|--------|--------|
+| 1 | Payment mapping **shifted**: PayLater→`"Card"`, WelfareCard→`"Transfer"`, MoneyTransfer→`"WelfareCard"`, campaigns→`"Other"` | ~15% of ฿21.2M attributed to the wrong method; ฿836k of PayLater credit invisible | ✅ Fixed `6c63a6d` |
+| 2 | `MigratePayLaterAsync` selects `PayLaterId, UserId, CustomerName, PaymentAmount` — **none exist** (real: `PaymentId, Description, PayLaterAmount, PaidAmount`) | Throws; aborts the whole migration. 5,181 rows / ฿836k | ❌ |
+| 3 | Same method queries `FROM PayLater` **unconditionally** | Throws "no such table" on MimyMart and MimyShop | ❌ |
+| 4 | `ParseDate` does `SpecifyKind(..., Utc)` on `datetime('now','localtime')` values | **Every timestamp 7h off**; corrupts all daily/monthly totals | ❌ |
+| 5 | `Category = product.Category?.ToString()` writes the raw numeric id | All products uncategorised; breaks the Hardware gate and pickers | ❌ (needs Epic 1) |
+| 6 | `InvoiceProduct` selects 7 of 17 columns, dropping `OriginalUnitPrice`, `GroupPrice`, `IsGroupProduct`, `Note`, `Priority` | **165,690 of 325,780 line items (51%)** were discounted; the record is lost | ❌ |
+| 7 | v4 `Core.Product` has no `IsTrackable`; legacy does (21/7/1 non-trackable products) | Services would be stock-tracked and inventory-deducted | ❌ |
+
+v4's `PayLater` entity is already a field-for-field match for the legacy table
+(`PaymentId, Description, PayLaterAmount, PaidAmount, IsCompleted` + calculated `RemainingAmount`),
+so defect 2 is a rename, not a redesign.
+
+### Why none of it was caught
+
+- `MigrationVerifier` compared only row **counts** and `SUM(Invoice.Total)` — both reconcile
+  perfectly under a scrambled mapping. Now compares count *and* amount **per method** (`6c63a6d`).
+- **No test anywhere creates a `Payment` table.** `tests/IndyPOS.Migration.Tests` builds
+  `InvoicePayment` / `AccountsReceivablePayment` and carries its own `MigrationService.cs` — it
+  appears to test an older parallel implementation. Its 15 tests pass while validating a schema no
+  store has. **The invoice and product paths may rest on the same sand.**
+- The real-DB tests skip silently when the `.db` files are absent — including in CI.
 
 ---
 
-#### L6: Setup Guide - Local Machine Deployment ✅
+## Epic 3: Store rollout ⏳
 
-**What was done:** Created comprehensive setup guide with architecture diagrams, step-by-step instructions, and troubleshooting sections.
+Per store: fresh v4 install (`--silent --store-id <ID> --store-type <T>`), then migrate, then verify.
+v4 installs **alongside** v3.7.0 — detection classifies a v3-only machine as `Fresh`
+(pinned by `Detect_OnAMachineRunningOnlyV3_ShouldReturnFresh`).
 
-**Guide Sections:**
-1. Overview with architecture diagrams
-2. Prerequisites (hardware, software, network)
-3. PostgreSQL Setup
-4. StoreHub Service Setup (with Windows Service installation)
-5. Data Migration (SQLite → PostgreSQL)
-6. WinForms Client Setup
-7. Multi-Terminal Setup
-8. Backup Configuration
-9. Maintenance and Troubleshooting
-
-**Files created:**
-- `docs/operations/store-installation-guide.md` - Comprehensive store deployment guide
+Owed before the first store: PR #52's visual smoke (payment-button caption clipping on
+`บัตรสวัสดิการแห่งรัฐ`), and one v3.7.0-coexistence check against a real v3 footprint.
 
 ---
 
-### Epic S: Security Hardening (Partial)
+## Epic I: Cloud Infrastructure 🔴
 
-**Completed:**
-- S1: POS offline authentication (BCrypt, JWT)
-- S2: Local user cache (sync from cloud)
-- S3: RBAC implementation (capability-based)
-- S4: CloudApi user management
-- S5: RSA key signing + DPAPI secrets
+**Goal (revised):** central reporting, an agent-facing API, and an off-site copy of all three stores'
+history — including migrated legacy data.
 
-**Remaining (LOW priority):**
+**Schema recommendation:** one managed PostgreSQL, **one schema shaped like StoreHub's, every row
+carrying `StoreId`**. Reasoning:
+
+- The StoreHub schema is *already* multi-store-shaped (`Product.StoreId`, `Invoice.StoreId`, store-scoped
+  `payment_method`), so sync is a row copy rather than a translation — and translation layers are where
+  the payment-mapping class of bug breeds.
+- ~237k invoices / ~600k lines total. Volume forces nothing exotic.
+- Store-type differences need no DDL divergence: PayLater is simply *absent rows*; category sets are
+  *rows* in a store-scoped table.
+- Cross-store reporting and MCP both want one table to `GROUP BY`, not a union of per-type tables.
+
+"Different tables" is right in one sense — the cloud will likely want **additional** denormalised
+rollups / materialised views alongside the synced tables. That is additive and later.
+
+Rejected: per-store-type tables or per-store PostgreSQL schemas. No entity-shape difference, one
+owner (no tenancy isolation need), and every cross-store report would become a cross-schema query.
+
 | Task | Description | Priority |
 |------|-------------|----------|
-| S6 | Key rotation support | LOW |
-| S7 | Security audit logging | LOW |
-| S8 | Rate limiting | LOW |
-| S9 | Secrets management | LOW (covered by S5) |
+| I0 | Dockerfile for CloudApi + compose stack | HIGH |
+| I1 | Provision DigitalOcean Droplet (Singapore) | HIGH |
+| I2 | Provision DO Managed PostgreSQL | HIGH |
+| I3 | Deploy CloudApi | HIGH |
+| I4 | Configure SyncWorker against the real CloudApi | HIGH |
+| I5 | Multi-store sync testing (3 store types) | MEDIUM |
+| I6 | Backfill migrated legacy history to cloud | MEDIUM |
+| I7 | Central reporting | LOW |
+| I8 | Cloud deployment guide | MEDIUM |
 
-### Epic M: Multi-Store Type Support 🟢 Ready
-
-**Goal:** Support multiple store types (GeneralHardware, Minimart, CoffeeShop) with different feature sets.
-
-**Key Decisions:**
-| Aspect | Decision |
-|--------|----------|
-| StoreHub Location | Local per store |
-| Offline Support | Local PostgreSQL required (offline-first) |
-| StoreId Generation | Manual UUID by System Admin |
-| Central Database | One DB per store type |
-| Migration | Migrate existing 1 store → `generalHardware` DB |
-
-**Tasks:**
-| Task | Description | Complexity |
-|------|-------------|------------|
-| M1 | Add `StoreType` enum and `StoreTypeFeatures` to Domain | Low |
-| M2 | Update `StoreConfiguration` schema | Low |
-| M3 | Add `StoreId` column to all entities | Medium |
-| M4 | Update repositories to filter by StoreId | Medium |
-| M5 | Update StoreHub API for StoreId | Low |
-| M6 | Add feature validation in Application | Medium |
-| M7 | Update First-Run Wizard | Medium |
-| M8 | Update WinForms UI for feature flags | Medium |
-| M9 | Update CloudApi store registry + DB routing | Medium |
-| M10 | Update Bootstrapper | Low |
-| M11 | Database migrations | Medium |
-| M12 | Migrate existing store | Medium |
-| M13 | Tests + Documentation | Medium |
-
-**Dependencies:** Requires Epic I (Cloud Infrastructure) for central database routing. M1-M8 can be done locally.
-
-**Full Plan:** `.planning/indypos-overhaul/drafts/epic-m-multi-store-type.md`
+**Specs:** sizing, firewall ports, scaling roadmap and rejected alternatives in
+`docs/architecture/IndyPOS_Production_Infrastructure_Guide.md` — read before I1–I2.
+Droplet ~$12/mo + managed PG ~$15/mo ≈ **$27/mo**.
 
 ---
 
-### Epic I: Cloud Infrastructure (Not Started) 🔴 BLOCKING FOR CLOUD TESTING
+## Epic MCP: agent-facing API 🔴
 
-**Prerequisites:** Epic L (Local Deployment) complete ✅
+**New requirement (2026-07-29).** An MCP server so an AI agent can query store data — sales,
+inventory, cross-store comparisons. Depends on Epic I.
 
-**Goal:** Deploy CloudApi to DigitalOcean Singapore and enable store-to-cloud sync.
-
-| Task | Description | Priority | Status |
-|------|-------------|----------|--------|
-| I0 | Create Dockerfile for CloudApi | HIGH | ❌ |
-| I1 | Provision DigitalOcean Droplet | HIGH | ❌ |
-| I2 | Provision DO Managed PostgreSQL | HIGH | ❌ |
-| I3 | Deploy CloudApi to Droplet | HIGH | ❌ |
-| I4 | Configure SyncWorker with real CloudApi | HIGH | ❌ |
-| I5 | Multi-store sync testing | MEDIUM | ❌ |
-| I6 | Central reporting dashboard | LOW | ❌ |
-| I7 | Create setup guide: Cloud Deployment | MEDIUM | ❌ |
-
-**Cloud Specs:**
-- Droplet: Basic Premium AMD (2 GB RAM, 1 vCPU, 50 GB SSD) - ~$12/mo
-- Managed PostgreSQL: Smallest tier (1 GB RAM) - ~$15/mo
-- Region: Singapore (closest to Thailand stores)
-- Monthly cost: ~$27 USD
+Not yet designed. Open questions when we get there: read-only or write-capable; per-store or
+cross-store scoping; auth model; whether it fronts CloudApi or the database directly.
 
 ---
 
-#### I0: Create Dockerfile for CloudApi ❌
+## Epic S: Security Hardening (5/9)
 
-**Why:** Required for containerized deployment to DigitalOcean.
+Landed via the Vault and admin-provisioning epics: DPAPI at-rest secrets, ACL-locked config and
+credential files, single-use bootstrap admin with forced rotation, capability-based authorization
+(`CapabilityRequirement` + named policies, not role names).
 
-**Deliverables:**
-- `src/IndyPOS.CloudApi/Dockerfile` - Multi-stage build
-- `docker-compose.cloudapi.yml` - CloudApi + PostgreSQL stack
-- Update `scripts/publish.ps1` to include CloudApi publishing
-
-**Dockerfile spec:**
-```dockerfile
-# Build stage
-FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
-WORKDIR /src
-COPY . .
-RUN dotnet publish src/IndyPOS.CloudApi -c Release -o /app
-
-# Runtime stage
-FROM mcr.microsoft.com/dotnet/aspnet:10.0
-WORKDIR /app
-COPY --from=build /app .
-EXPOSE 8080
-HEALTHCHECK CMD curl --fail http://localhost:8080/health/live || exit 1
-ENTRYPOINT ["dotnet", "IndyPOS.CloudApi.dll"]
-```
-
----
-
-#### I1: Provision DigitalOcean Droplet ❌
-
-**Steps:**
-1. Create DO account (if needed) and project
-2. Create Droplet:
-   - Image: Ubuntu 24.04 LTS
-   - Plan: Basic Premium AMD ($12/mo)
-   - Datacenter: Singapore (SGP1)
-   - Add SSH key
-3. Configure firewall:
-   - Allow 22 (SSH) from admin IPs only
-   - Allow 443 (HTTPS) from anywhere
-   - Allow 5432 (PostgreSQL) from Droplet only
-4. Point domain/subdomain to Droplet IP (e.g., `api.indypos.app`)
-5. Install Docker + Docker Compose
-
----
-
-#### I2: Provision DO Managed PostgreSQL ❌
-
-**Steps:**
-1. Create Managed PostgreSQL cluster:
-   - Plan: Basic ($15/mo, 1 GB RAM, 10 GB storage)
-   - Datacenter: Singapore (SGP1)
-   - Database name: `indypos_cloud`
-2. Configure trusted sources (Droplet IP only)
-3. Create database user for CloudApi
-4. Note connection string for I3
-
----
-
-#### I3: Deploy CloudApi to Droplet ❌
-
-**Steps:**
-1. SSH to Droplet
-2. Clone repo or copy Docker image
-3. Create `appsettings.Production.json`:
-   ```json
-   {
-     "ConnectionStrings": {
-       "CloudDb": "Host=<managed-pg>;Database=indypos_cloud;Username=<user>;Password=<pass>;SSL Mode=Require"
-     },
-     "Jwt": {
-       "RsaSigningKey": "<base64-encoded-rsa-private-key>"
-     },
-     "OpenIddict": {
-       "EncryptionKey": "<base64-encoded-256-bit-key>"
-     }
-   }
-   ```
-4. Generate RSA key: `scripts/generate-rsa-key.ps1`
-5. Run with Docker Compose
-6. Set up SSL with Let's Encrypt (Caddy or nginx reverse proxy)
-7. Verify health: `curl https://api.indypos.app/health/ready`
-
----
-
-#### I4: Configure SyncWorker with Real CloudApi ❌
-
-**Steps:**
-1. Register store as OAuth2 client in CloudApi:
-   ```bash
-   POST /admin/stores/register
-   {
-     "storeId": "550e8400-e29b-41d4-a716-446655440001",
-     "storeName": "Bangkok Store 1",
-     "storeType": "GeneralHardware"
-   }
-   ```
-   Response: `{ "clientId": "...", "clientSecret": "..." }`
-
-2. Update StoreHub `appsettings.Production.json`:
-   ```json
-   {
-     "CloudApi": {
-       "BaseUrl": "https://api.indypos.app",
-       "ClientId": "<from-step-1>",
-       "ClientSecret": "<from-step-1>"
-     },
-     "SyncWorker": {
-       "Enabled": true
-     }
-   }
-   ```
-
-3. Restart StoreHub and verify sync:
-   - Check logs for successful token acquisition
-   - Make a sale and verify event synced to CloudApi
-   - Check CloudApi logs for event ingestion
-
----
-
-#### I5: Multi-Store Sync Testing ❌
-
-**Test scenarios:**
-- [ ] Two stores sync to same CloudApi independently
-- [ ] Events from Store A don't appear in Store B queries
-- [ ] Concurrent sync from multiple stores
-- [ ] Offline → Online sync recovery
-- [ ] Large batch sync (100+ events)
-
----
-
-#### I6: Central Reporting Dashboard ❌
-
-**Low priority** - Can use direct SQL queries initially.
-
-**Future options:**
-- Grafana dashboard connected to CloudApi PostgreSQL
-- Custom admin UI in CloudApi
-- Metabase or similar BI tool
-
----
-
-#### I7: Cloud Deployment Guide ❌
-
-**File:** `docs/operations/setup-cloud.md`
-
-**Sections:**
-1. Overview & Architecture
-2. DigitalOcean Infrastructure Setup
-3. CloudApi Deployment
-4. SSL/TLS Configuration
-5. OAuth2 Client Registration
-6. Store Configuration for Cloud Sync
-7. Monitoring & Maintenance
-8. Troubleshooting
-
----
-
-#### I7: Setup Guide - Cloud Deployment
-
-**Why:** Document the cloud deployment process for future reference and handoff.
-
-**Audience:** Developer/IT admin setting up cloud infrastructure
-
-**Guide Structure:**
-```
-docs/operations/setup-cloud.md
-
-1. Overview
-   - Architecture diagram (Stores → CloudApi → Central PostgreSQL)
-   - Why cloud sync? (central reporting, backup, multi-store)
-   - Data flow: Outbox pattern + SyncWorker
-
-2. Cloud Infrastructure
-   - DigitalOcean Droplet setup (specs, region, OS)
-   - Managed PostgreSQL setup
-   - Firewall rules (ports 443, 5432)
-   - Domain + SSL certificate
-
-3. CloudApi Deployment
-   - Build and publish CloudApi
-   - Configure appsettings.Production.json
-   - Set up as systemd service (Linux)
-   - Health check verification
-
-4. OAuth2 Client Setup
-   - Register store clients in CloudApi
-   - Generate client credentials
-   - Distribute to stores securely
-
-5. Store Configuration for Cloud Sync
-   - Configure StoreHub with CloudApi credentials
-   - Enable SyncWorker
-   - Verify sync status
-
-6. Central Database
-   - Schema overview (multi-tenant with StoreId)
-   - Querying across stores
-   - Reporting queries
-
-7. Monitoring & Maintenance
-   - Health check endpoints
-   - Log aggregation
-   - Database backups (managed PostgreSQL snapshots)
-   - Scaling considerations
-
-8. Troubleshooting
-   - Sync failures
-   - Authentication issues
-   - Network connectivity
-```
-
-**Files:**
-- Create: `docs/operations/setup-cloud.md`
+Remaining items in `.planning/indypos-overhaul/security/`.
 
 ---
 
@@ -438,185 +218,45 @@ docs/operations/setup-cloud.md
 
 | Item | Description | Priority |
 |------|-------------|----------|
-| Migration `--sync-to-cloud` | Create outbox events for migrated invoices | LOW |
-| **Auto-Update System** | Remote update capability for StoreHub + WinForms | Future |
-| MAUI Migration | Replace WinForms with MAUI | Future |
-| Legacy Report Cleanup | Remove int-based report methods | MAUI Migration |
+| `Migration.Tests` schema audit | Its SQLite schema matches no real store; invoice/product coverage may be illusory | **HIGH** — see Epic 2 |
+| Headless installer crash | An unknown argument silently launches the wizard; headless that is a bare CLR crash with no log | MEDIUM |
+| Migration `--sync-to-cloud` | Outbox events for migrated invoices (folds into I6) | LOW |
+| **Auto-Update System (Epic U)** | Remote updates for StoreHub + WinForms. Superseded in part by the installer upgrade path — revisit scope | Future |
+| MAUI Migration | Replace WinForms | Future |
+| Legacy Report Cleanup | Remove int-based report methods | With MAUI |
 
----
+### Auto-Update (Epic U) — status note
 
-## Future: Auto-Update System
-
-**Goal:** Enable remote updates for StoreHub and WinForms without manual intervention.
-
-### Why Auto-Update?
-
-- 3 stores × 1-2 terminals = 5-6 machines to update
-- Manual updates require physical access or remote desktop
-- Minimize downtime during business hours
-- Ensure all stores run consistent versions
-
-### Architecture Options
-
-#### Option A: CloudApi as Update Server (Recommended)
-
-```
-┌─────────────┐     Check for updates     ┌─────────────┐
-│  StoreHub   │ ──────────────────────────▶│  CloudApi   │
-│  WinForms   │                            │             │
-└─────────────┘                            │  /updates   │
-       │                                   │  /download  │
-       │         Download new version      └─────────────┘
-       ▼                                          │
-┌─────────────┐                            ┌──────▼──────┐
-│  Local      │                            │   Azure     │
-│  Installer  │                            │   Blob /    │
-└─────────────┘                            │   S3 / DO   │
-                                           └─────────────┘
-```
-
-**Pros:** Centralized control, version tracking per store, rollback support
-**Cons:** Requires CloudApi to be deployed first
-
-#### Option B: GitHub Releases + Squirrel
-
-```
-┌─────────────┐     Check releases        ┌─────────────┐
-│  StoreHub   │ ──────────────────────────▶│   GitHub    │
-│  WinForms   │                            │  Releases   │
-└─────────────┘                            └─────────────┘
-       │                                          │
-       │         Download .nupkg                  │
-       ▼                                          │
-┌─────────────┐                            ┌──────▼──────┐
-│  Squirrel   │◀───────────────────────────│   Assets    │
-│  Installer  │                            │  (.nupkg)   │
-└─────────────┘                            └─────────────┘
-```
-
-**Pros:** Simple, works without CloudApi, familiar tooling
-**Cons:** Less control over which stores get updates
-
-### Components Needed
-
-| Component | Description |
-|-----------|-------------|
-| **Version Endpoint** | CloudApi endpoint to check latest version |
-| **Update Package** | Signed .nupkg or .zip with new binaries |
-| **Update Service** | Background service in StoreHub to check/apply updates |
-| **Update UI** | WinForms notification + manual trigger option |
-| **Rollback** | Keep previous version, restore on failure |
-
-### Implementation Tasks (Epic U)
-
-| Task | Description | Complexity |
-|------|-------------|------------|
-| U1 | Add version endpoint to CloudApi (`GET /updates/latest`) | Low |
-| U2 | Add update check to StoreHub (background, configurable interval) | Medium |
-| U3 | Create update download + extract logic | Medium |
-| U4 | Handle StoreHub self-update (stop service, replace, restart) | High |
-| U5 | Add update notification to WinForms | Low |
-| U6 | Create signed update packages in CI/CD | Medium |
-| U7 | Add rollback capability | Medium |
-| U8 | Admin UI in CloudApi to manage rollouts | Medium |
-
-### Update Flow (StoreHub)
-
-```
-1. StoreHub checks CloudApi every N hours
-2. CloudApi returns: { version: "1.2.0", url: "...", hash: "sha256:..." }
-3. If newer version available:
-   a. Download to temp directory
-   b. Verify hash
-   c. Schedule update (next restart or off-hours)
-4. On scheduled update:
-   a. Stop StoreHub service
-   b. Backup current binaries
-   c. Extract new binaries
-   d. Start StoreHub service
-   e. Health check - if fails, rollback
-5. Report update status to CloudApi
-```
-
-### Update Flow (WinForms)
-
-```
-1. On startup, check StoreHub for available updates
-2. If update available:
-   a. Show notification to user
-   b. "Update available (v1.2.0) - Install now?"
-3. If user accepts:
-   a. Download update package
-   b. Close WinForms
-   c. Run installer/updater
-   d. Restart WinForms
-```
-
-### Configuration
-
-```json
-// StoreHub appsettings.json
-{
-  "AutoUpdate": {
-    "Enabled": true,
-    "CheckIntervalHours": 6,
-    "UpdateWindowStart": "02:00",
-    "UpdateWindowEnd": "05:00",
-    "AutoInstall": true
-  }
-}
-```
-
-### Security Considerations
-
-- [ ] Sign update packages (code signing certificate)
-- [ ] Verify package hash before applying
-- [ ] HTTPS only for downloads
-- [ ] Rate limiting on update endpoints
-- [ ] Audit log of all updates
-
-### Libraries to Consider
-
-| Library | Purpose |
-|---------|---------|
-| [Squirrel.Windows](https://github.com/Squirrel/Squirrel.Windows) | WinForms auto-updater (mature, widely used) |
-| [Velopack](https://github.com/velopack/velopack) | Modern Squirrel fork, cross-platform |
-| [NetSparkle](https://github.com/NetSparkleUpdater/NetSparkle) | .NET updater framework |
-| Custom | Roll your own for full control |
-
-### Rollout Strategy
-
-1. **Canary** - Update one store first, monitor for issues
-2. **Staged** - Roll out to remaining stores over days
-3. **Emergency** - Force update all stores (security patches)
-
-### Dependencies
-
-- Requires Epic I (Cloud Infrastructure) for Option A
-- Can start with Option B (GitHub) while waiting for CloudApi
+PR #54 delivers in-place upgrade via `IndyPOS-Setup.exe --silent`, and the POS app already
+self-updates through Velopack. What Epic U would add is the **trigger**: stores checking a server
+rather than someone running the installer. Option A (CloudApi as update server) still stands and now
+depends only on Epic I. The U1–U8 task list in the previous revision remains broadly valid but
+should be re-scoped against what the installer now does.
 
 ---
 
 ## Technical Debt
 
-### StoreHubReportService Legacy Methods
-Stub implementations return empty collections. Address during MAUI migration:
-- `GetInvoicesByPeriodAsync()`, `GetInvoicesByDateRangeAsync()`
-- `GetPayLaterPaymentsByPeriodAsync()`, `GetPayLaterPaymentsAsync()`
-- `GetInvoiceProductsByDateAsync()`, `GetInvoiceProductsByDateRangeAsync()`
-- `GetInvoiceProductsByInvoiceIdAsync(int)`, `GetPaymentsByInvoiceIdAsync(int)`
-- `GetInvoiceInfoAsync(int)`
+### StoreHubReportService legacy methods
+Stubs returning empty collections; address during MAUI migration:
+`GetInvoicesByPeriodAsync`, `GetInvoicesByDateRangeAsync`, `GetPayLaterPaymentsByPeriodAsync`,
+`GetPayLaterPaymentsAsync`, `GetInvoiceProductsByDateAsync`, `GetInvoiceProductsByDateRangeAsync`,
+`GetInvoiceProductsByInvoiceIdAsync(int)`, `GetPaymentsByInvoiceIdAsync(int)`, `GetInvoiceInfoAsync(int)`.
 
 ---
 
-## Statistics
+## Test state (2026-07-29)
 
-| Metric | Value |
-|--------|-------|
-| Total Epics | 10 |
-| Completed Epics | 9 |
-| Total Tests | 306 |
-| Build Status | 0 Errors, 0 Warnings |
+| Suite | Count |
+|-------|-------|
+| IndyPOS.Bootstrapper.Tests | 223 pass / 8 skip (admin-required) |
+| IndyPOS.Application.Tests | 274 |
+| IndyPOS.StoreHub.IntegrationTests | 76 (real PostgreSQL) |
+| IndyPOS.MigrationTool.Tests | 36 / 1 skip |
+| IndyPOS.Migration.Tests | 15 ⚠️ *validates a schema no store has* |
+| IndyPOS.Domain.Tests | 8 |
+| IndyPOS.Vault.Tests | 17 |
+| Release build | 0 errors |
 
 ---
 
@@ -625,11 +265,14 @@ Stub implementations return empty collections. Address during MAUI migration:
 | Doc | Location |
 |-----|----------|
 | Current status | `.claude/STATUS.md` |
-| Session history | `.claude/session-log.md` |
-| Completed epics | `.planning/indypos-overhaul/completed/` |
+| Specs | `docs/superpowers/specs/` |
+| Plans | `docs/superpowers/plans/` |
+| SDD ledger | `.superpowers/sdd/progress.md` |
+| Completed epics (through H) | `.planning/indypos-overhaul/completed/` |
+| Cloud target infrastructure | `docs/architecture/IndyPOS_Production_Infrastructure_Guide.md` |
+| Upgrade procedure | `docs/operations/upgrade-procedure.md` |
 | Security spec | `.planning/indypos-overhaul/security/` |
 | Diagrams | `.planning/indypos-overhaul/diagrams/` |
-| Operations docs | `docs/operations/` |
 
 ---
 
@@ -637,26 +280,21 @@ Stub implementations return empty collections. Address during MAUI migration:
 
 ```
 src/
-  Core/
-    IndyPOS.Domain
-    IndyPOS.Application
-    IndyPOS.Infrastructure
-  DesktopApp/
-    IndyPOS.Windows.Forms
-  Services/
-    IndyPOS.StoreHub
-    IndyPOS.CloudApi
-  DevAppHost/
-    IndyPOS.AppHost
-    IndyPOS.ServiceDefaults
-  Tools/
-    IndyPOS.MigrationTool
+  IndyPOS.Domain            # Entities, value objects, domain logic
+  IndyPOS.Application       # Use cases, interfaces, DTOs
+  IndyPOS.Infrastructure    # Repositories, EF, external services
+  IndyPOS.Vault             # DPAPI secret protection
+  IndyPOS.Windows.Forms     # Desktop UI (legacy)
+  IndyPOS.StoreHub          # Local API service
+  IndyPOS.CloudApi          # Central cloud API
+  IndyPOS.AppHost           # Aspire orchestrator
+  IndyPOS.ServiceDefaults   # Health checks, OpenTelemetry
+  IndyPOS.MigrationTool     # SQLite -> PostgreSQL migration
 
-tests/
-  Core/ -> IndyPOS.Application.Tests
-  DesktopApp/ -> IndyPOS.Windows.Forms.Tests
-  Services/ -> IndyPOS.StoreHub.IntegrationTests
-  Tools/ -> IndyPOS.Migration.Tests, IndyPOS.MigrationTool.Tests
+installer/
+  IndyPOS.Bootstrapper      # Fresh install + in-place upgrade
+
+tests/                      # See test-state table above
 ```
 
 ---
@@ -664,13 +302,7 @@ tests/
 ## Quick Commands
 
 ```bash
-# Run tests
-dotnet test
-
-# Build
-dotnet build
-
-# Run with Aspire (requires Docker)
-dotnet run --project src/IndyPOS.AppHost --launch-profile https
-# Dashboard: https://localhost:17222
+dotnet test                 # all suites (Docker needed for integration/migration)
+dotnet build IndyPOS.sln -c Release
+dotnet run --project src/IndyPOS.AppHost --launch-profile https   # Aspire, needs Docker
 ```

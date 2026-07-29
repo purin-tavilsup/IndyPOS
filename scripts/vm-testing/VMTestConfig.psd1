@@ -7,6 +7,10 @@
     #   2. Static DNS 8.8.8.8/1.1.1.1 (Default Switch forwarder is flaky)
     # Parent 'Clean-Windows' retained as the pristine bare-OS fallback.
     CleanSnapshotName   = 'Clean-Windows-Ready'
+    # A real store image to upgrade FROM: v4.0.0 installed, service running, catalogue
+    # seeded pre-reclassification. Capture it once from a completed fresh install, then
+    # pass it as -SnapshotName for the upgrade cases.
+    PreUpgradeSnapshotName = 'Pre-Upgrade-2026-07-25'
     SwitchName          = 'Default Switch'
 
     # VM resource sizing (one-time New-VM block in README)

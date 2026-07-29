@@ -30,13 +30,13 @@ public class InstallationExceptionTests
     }
 }
 
-public class InstallationOrchestratorTests
+public class FreshInstallOrchestratorTests
 {
     [Fact]
-    public void InstallationOrchestrator_CanBeInstantiated()
+    public void FreshInstallOrchestrator_CanBeInstantiated()
     {
         // Act
-        var orchestrator = new InstallationOrchestrator();
+        var orchestrator = new FreshInstallOrchestrator();
 
         // Assert
         orchestrator.Should().NotBeNull();
@@ -54,7 +54,7 @@ public class InstallationOrchestratorTests
     public async Task InstallAsync_WithCancellation_ShouldThrow()
     {
         // Arrange
-        var orchestrator = new InstallationOrchestrator();
+        var orchestrator = new FreshInstallOrchestrator();
         var config = new InstallationConfig
         {
             StoreId = "TEST-001",

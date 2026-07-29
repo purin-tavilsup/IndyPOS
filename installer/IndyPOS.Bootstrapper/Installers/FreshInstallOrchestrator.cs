@@ -1,9 +1,15 @@
 namespace IndyPOS.Bootstrapper.Installers;
 
 /// <summary>
-/// Orchestrates the complete IndyPOS installation process.
+/// Orchestrates a FRESH IndyPOS installation onto a machine with no existing install.
+/// <para>An in-place upgrade is a different algorithm with different safety requirements,
+/// not a variation on this one — see <c>UpgradeOrchestrator</c>. Forcing both through one
+/// flow is what produced the locked-DLL failure this design exists to fix.</para>
+/// <para>FROZEN: this is the only production-validated path, and its fresh-only branches
+/// (sc create, first-time directory creation, DatabaseSetup, the Postgres install) never
+/// execute on the upgrade VM snapshot. Change it only for a fresh-install reason.</para>
 /// </summary>
-public class InstallationOrchestrator
+public class FreshInstallOrchestrator
 {
     private readonly FontInstaller _fontInstaller = new();
     private readonly DotNetInstaller _dotNetInstaller = new();
@@ -261,7 +267,7 @@ public class InstallationOrchestrator
 
         // Verify health
         progress.Report(InstallationProgress.Log("Verifying StoreHub health..."));
-        var healthOk = await VerifyStoreHubHealthAsync(config.HealthCheckPort, cancellationToken);
+        var healthOk = await HealthProbe.IsReadyAsync(config.HealthCheckPort, cancellationToken: cancellationToken);
 
         if (healthOk)
         {
@@ -299,34 +305,6 @@ public class InstallationOrchestrator
             ServiceStarted = startResult.Success,
             HealthOk = healthOk
         };
-    }
-
-    private static async Task<bool> VerifyStoreHubHealthAsync(int port, CancellationToken cancellationToken)
-    {
-        using var client = new HttpClient { Timeout = TimeSpan.FromSeconds(10) };
-        // /health/ready is StoreHub's DB-aware readiness probe. /health and
-        // /alive are dev-only (Aspire's IsDevelopment() guard in ServiceDefaults).
-        var healthUrl = $"http://localhost:{port}/health/ready";
-
-        for (var i = 0; i < 5; i++)
-        {
-            try
-            {
-                var response = await client.GetAsync(healthUrl, cancellationToken);
-                if (response.IsSuccessStatusCode)
-                {
-                    return true;
-                }
-            }
-            catch
-            {
-                // Retry
-            }
-
-            await Task.Delay(2000, cancellationToken);
-        }
-
-        return false;
     }
 }
 

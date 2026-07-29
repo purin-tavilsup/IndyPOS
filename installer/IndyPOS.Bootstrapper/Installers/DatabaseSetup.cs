@@ -2,12 +2,19 @@ using System.Diagnostics;
 using System.Security.Cryptography;
 using System.Text.Json;
 using System.Text.Json.Nodes;
+using IndyPOS.Bootstrapper.Upgrade;
 using IndyPOS.Vault;
 
 namespace IndyPOS.Bootstrapper.Installers;
 
 /// <summary>
 /// Handles database creation and configuration.
+/// <para>
+/// FRESH INSTALL ONLY. Never runs on an upgrade — the role, its password and the
+/// DPAPI-protected connection string already exist there, so asking the
+/// database-provisioning question at all is what produced the superuser-password
+/// failure this guard reports. See the upgrade design spec, sections 2 and 4.
+/// </para>
 /// </summary>
 public class DatabaseSetup
 {
@@ -37,15 +44,14 @@ public class DatabaseSetup
         // PGPASSWORD is empty, even with stdin redirected).
         if (string.IsNullOrEmpty(postgresPassword))
         {
+            var storeInstallExists = StoreHubConfigReader
+                .Read(Path.Combine(config.StoreHubInstallPath, "appsettings.json"))
+                .Exists;
+
             return new DatabaseSetupResult
             {
                 Success = false,
-                ErrorMessage =
-                    "PostgreSQL 18 is already installed, but its superuser password is unknown " +
-                    "(the installer doesn't persist it across runs). To proceed, either:\n" +
-                    "  - Uninstall PostgreSQL: scripts\\cleanup-v4.ps1 -Force -RemovePostgres\n" +
-                    "  - Or remove C:\\Program Files\\PostgreSQL\\18 manually,\n" +
-                    "then re-run this installer for a clean Postgres install."
+                ErrorMessage = BuildSuperuserGuardMessage(storeInstallExists)
             };
         }
 
@@ -143,7 +149,78 @@ public class DatabaseSetup
         return Convert.ToBase64String(bytes);
     }
 
+    /// <summary>
+    /// The superuser password is deliberately not persisted (spec section 1), so an existing
+    /// PostgreSQL cannot be provisioned into. What the operator should do next depends
+    /// entirely on whether IndyPOS was ever installed on this machine (which means a store's
+    /// sales history is at risk).
+    /// </summary>
+    internal static string BuildSuperuserGuardMessage(bool storeInstallExists) =>
+        storeInstallExists
+            ? "PostgreSQL 18 is already installed and this machine has an existing IndyPOS database.\n" +
+              "Do NOT remove PostgreSQL — that would destroy the store's sales history.\n" +
+              "Upgrade in place instead:\n" +
+              "  IndyPOS-Setup.exe --silent\n" +
+              "See docs\\operations\\upgrade-procedure.md."
+            : "PostgreSQL 18 is already installed, but its superuser password is unknown " +
+              "(the installer doesn't persist it across runs). To proceed, either:\n" +
+              "  - Uninstall PostgreSQL: scripts\\cleanup-v4.ps1 -Force -RemovePostgres\n" +
+              "  - Or remove C:\\Program Files\\PostgreSQL\\18 manually,\n" +
+              "then re-run this installer for a clean Postgres install.";
+
     internal static void RestrictFilePermissions(string filePath) => TryRestrictFilePermissions(filePath);
+
+    /// <summary>
+    /// Locks a DIRECTORY to Administrators + LocalSystem, with the ACEs marked inheritable
+    /// so everything inside stays reachable.
+    /// <para>Not a convenience overload of <see cref="TryRestrictFilePermissions"/>: that one
+    /// adds ACEs with no inheritance flags, which is correct for a file and catastrophic for a
+    /// directory. Protecting a directory drops its inherited ACEs and Windows recomputes its
+    /// children's, so non-inheritable ACEs leave every existing child with an EMPTY DACL -
+    /// readable by nobody, including Administrators. That is what broke the 2026-07-29 upgrade:
+    /// the freshly copied backup tree became unreadable the moment its parent was locked.</para>
+    /// </summary>
+    internal static bool TryRestrictDirectoryPermissions(string directoryPath)
+    {
+        try
+        {
+            var directoryInfo = new DirectoryInfo(directoryPath);
+            var security = directoryInfo.GetAccessControl();
+
+            security.SetAccessRuleProtection(isProtected: true, preserveInheritance: false);
+
+            var rules = security.GetAccessRules(true, true, typeof(System.Security.Principal.NTAccount));
+            foreach (System.Security.AccessControl.FileSystemAccessRule rule in rules)
+            {
+                security.RemoveAccessRule(rule);
+            }
+
+            const System.Security.AccessControl.InheritanceFlags inheritance =
+                System.Security.AccessControl.InheritanceFlags.ContainerInherit |
+                System.Security.AccessControl.InheritanceFlags.ObjectInherit;
+
+            foreach (var sid in new[]
+                     {
+                         System.Security.Principal.WellKnownSidType.BuiltinAdministratorsSid,
+                         System.Security.Principal.WellKnownSidType.LocalSystemSid
+                     })
+            {
+                security.AddAccessRule(new System.Security.AccessControl.FileSystemAccessRule(
+                    new System.Security.Principal.SecurityIdentifier(sid, null),
+                    System.Security.AccessControl.FileSystemRights.FullControl,
+                    inheritance,
+                    System.Security.AccessControl.PropagationFlags.None,
+                    System.Security.AccessControl.AccessControlType.Allow));
+            }
+
+            directoryInfo.SetAccessControl(security);
+            return true;
+        }
+        catch
+        {
+            return false;
+        }
+    }
 
     internal static bool TryRestrictFilePermissions(string filePath)
     {
