@@ -74,6 +74,19 @@ docs/                        # Architecture docs, operations
 - All new entities use `Guid Id` (UUID primary keys)
 - All entities: `DateTime CreatedUtc`, `DateTime LastModifiedUtc`
 
+### Database Migrations - Forward-Only (release gate)
+
+An upgrade rolls back binaries and config, **not schema**. Every migration in a release
+must therefore be runnable against the *previous* release's binaries:
+
+- Additive only. New columns nullable or with a default.
+- No renames, no drops, no type narrowing.
+- No new `NOT NULL` column without a default - the restored binaries' INSERT would fail
+  and the till could not complete a sale.
+
+A migration that breaks this makes the installer's rollback claim false.
+See `docs/operations/upgrade-procedure.md`.
+
 ### Method Chaining Style
 ```csharp
 // Good - dots vertically aligned

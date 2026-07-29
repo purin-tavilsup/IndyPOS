@@ -41,6 +41,58 @@ public class RealDatabaseSchemaTests
     }
 
     [Fact]
+    public async Task RealDatabase_EveryPaymentTypeInUse_ShouldMapToACatalogueCode()
+    {
+        // The guard the scrambled mapping needed. Reads the ids this store actually uses and
+        // requires each to resolve, so a store whose data contains an id the map does not know
+        // fails here rather than during a cutover - or worse, silently, as "Other".
+        if (!SampleDatabaseExists())
+        {
+            return;
+        }
+
+        await using var conn = new SQLiteConnection($"Data Source={RealDbPath};Version=3;");
+        await conn.OpenAsync();
+
+        var idsInUse = (await conn.QueryAsync<long>(
+            "SELECT DISTINCT PaymentTypeId FROM Payment ORDER BY PaymentTypeId")).ToList();
+
+        idsInUse.Should().NotBeEmpty("the sample store has payment history");
+
+        var unmapped = idsInUse
+            .Where(id => Services.LegacyPaymentTypeMap.ToCode((int)id) is null)
+            .ToList();
+
+        unmapped.Should().BeEmpty(
+            "every legacy payment type present in real store data must map to a catalogue code");
+    }
+
+    [Fact]
+    public async Task RealDatabase_PaymentTypeLabels_ShouldStillMatchTheAssumedMapping()
+    {
+        // Pins the mapping to the store's OWN lookup table rather than to a translation done
+        // once in a review. If a label ever moves to a different id, this fails loudly.
+        if (!SampleDatabaseExists())
+        {
+            return;
+        }
+
+        await using var conn = new SQLiteConnection($"Data Source={RealDbPath};Version=3;");
+        await conn.OpenAsync();
+
+        var labels = (await conn.QueryAsync<(long Id, string Type)>(
+                "SELECT Id, Type FROM PaymentType"))
+            .ToDictionary(r => (int)r.Id, r => r.Type);
+
+        labels[1].Should().Be("เงินสด");                    // Cash
+        labels[2].Should().Be("ลงบัญชี");                    // PayLater
+        labels[3].Should().Be("บัตรสวัสดิการแห่งรัฐ");        // WelfareCard
+        labels[5].Should().Be("โอนเข้าบัญชี");                // MoneyTransfer
+        labels[7].Should().Be("คนละครึ่ง");                  // FiftyFifty
+        labels[8].Should().Be("เราชนะ");                     // WeWin
+    }
+
+    [Fact]
     public async Task RealDatabase_HasData()
     {
         // Skip if sample database doesn't exist

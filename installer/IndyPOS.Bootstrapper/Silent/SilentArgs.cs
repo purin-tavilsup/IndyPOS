@@ -1,9 +1,18 @@
+using IndyPOS.Bootstrapper.Upgrade;
 using IndyPOS.Domain.Enums;
 
 namespace IndyPOS.Bootstrapper.Silent;
 
+/// <param name="StoreId">
+/// Null is legal: an upgrade adopts the detected store id. The router rejects a supplied
+/// value that conflicts with the detected one — silently rewriting store identity would
+/// orphan the store's sales history.
+/// </param>
 public sealed record SilentInstallOptions(
-    string StoreId, int TimeoutMinutes, StoreType StoreType = StoreType.GeneralHardware);
+    string? StoreId,
+    int TimeoutMinutes,
+    StoreType StoreType = StoreType.GeneralHardware,
+    UpgradeStage? SimulateFailure = null);
 
 public enum ParseStatus { Silent, NotSilent, UsageError }
 
@@ -31,6 +40,7 @@ public static class SilentArgs
         string? storeId = null;
         var timeoutMinutes = DefaultTimeoutMinutes;
         var storeType = StoreType.GeneralHardware;
+        UpgradeStage? simulateFailure = null;
 
         for (var i = 0; i < args.Length; i++)
         {
@@ -61,16 +71,25 @@ public static class SilentArgs
                             "--store-type must be one of: GeneralHardware, Minimart, CoffeeShop.");
                     break;
 
+                case SimulatedFailure.ArgumentName:
+                    if (!TryReadValue(args, ref i, inlineValue, out var stageRaw)
+                        || (simulateFailure = SimulatedFailure.Parse(stageRaw)) is null)
+                        return ParseResult.Usage(
+                            $"{SimulatedFailure.ArgumentName} must name a stage (test hook).");
+                    break;
+
                 default:
                     return ParseResult.Usage($"Unknown argument: {args[i]}");
             }
         }
 
-        storeId = storeId?.Trim();
-        if (string.IsNullOrWhiteSpace(storeId))
-            return ParseResult.Usage("--silent requires --store-id <ID>.");
+        // A supplied-but-blank value is still a usage error; an absent flag is not — the
+        // router decides, because an upgrade adopts the store id it detected.
+        if (storeId is not null && string.IsNullOrWhiteSpace(storeId))
+            return ParseResult.Usage("--store-id requires a non-empty value.");
 
-        return ParseResult.Silent(new SilentInstallOptions(storeId, timeoutMinutes, storeType));
+        return ParseResult.Silent(
+            new SilentInstallOptions(storeId?.Trim(), timeoutMinutes, storeType, simulateFailure));
     }
 
     // Enum.TryParse<StoreType> also accepts defined underlying numeric values (e.g.
