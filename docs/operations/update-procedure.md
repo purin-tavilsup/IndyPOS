@@ -1,5 +1,10 @@
 # IndyPOS StoreHub - Update Procedure
 
+> **For a store already running IndyPOS v4, use [upgrade-procedure.md](upgrade-procedure.md)
+> instead.** `IndyPOS-Setup.exe --silent` performs the whole sequence below - backup,
+> deploy, config restore, migrate, verify, and rollback on failure - and is the authoritative
+> in-place upgrade path. This document remains as background on the underlying mechanics.
+
 ## Overview
 This document describes the procedure for updating IndyPOS StoreHub to a new version.
 

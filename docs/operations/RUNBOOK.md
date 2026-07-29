@@ -226,7 +226,8 @@ powershell.exe -ExecutionPolicy Bypass -File "C:\ProgramData\IndyPOS\ops\health-
 | [Smoke Test Script](smoke-test.ps1) | Automated health verification |
 | [Post-Deployment Monitoring](post-deployment-monitoring.md) | Metrics and alerting |
 | [Troubleshooting Guide](troubleshooting-guide.md) | Common issues and fixes |
-| [Update Procedure](update-procedure.md) | How to apply updates |
+| [Upgrade Procedure](upgrade-procedure.md) | **In-place upgrade of a live v4 store** (`--silent`) + unusable-install recovery |
+| [Update Procedure](update-procedure.md) | Manual binary-swap / migration mechanics (background) |
 | [Rollback Plan](rollback-plan.md) | Emergency recovery |
 
 ---
