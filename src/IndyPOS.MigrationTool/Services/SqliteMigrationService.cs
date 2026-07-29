@@ -2,6 +2,7 @@ using System.Data.SQLite;
 using System.Net.Http.Json;
 using System.Text.Json;
 using Dapper;
+using IndyPOS.Application.Common.Constants;
 using IndyPOS.Application.UseCases.Cloud.Sync.BulkMigration;
 using IndyPOS.Domain.Entities.Core;
 using IndyPOS.Infrastructure.Persistence.StoreHub;
@@ -290,11 +291,25 @@ public class SqliteMigrationService
 
                     foreach (var payment in payments)
                     {
+                        var method = LegacyPaymentTypeMap.ToCode((int)payment.PaymentTypeId);
+                        if (method is null)
+                        {
+                            // Refused, never guessed. The previous fallback wrote "Other", which
+                            // is not a catalogue code, so the amount became unresolvable while
+                            // the row counts still reconciled.
+                            _result.Errors.Add(
+                                $"Invoice {invoice.InvoiceId} payment {payment.PaymentId}: legacy " +
+                                $"PaymentTypeId {payment.PaymentTypeId} has no payment-method code. " +
+                                $"Migrating it would misattribute {payment.Amount:N2}.");
+                            _result.Payments.Failed++;
+                            continue;
+                        }
+
                         context.Payments.Add(new Payment
                         {
                             Id = Guid.NewGuid(),
                             InvoiceId = newInvoice.Id,
-                            Method = MapPaymentType((int)payment.PaymentTypeId),
+                            Method = method,
                             Amount = (decimal)payment.Amount,
                             Note = payment.Note,
                             CreatedUtc = createdUtc
@@ -355,7 +370,7 @@ public class SqliteMigrationService
                     {
                         Id = paymentId,
                         InvoiceId = invoiceId,
-                        Method = "PayLater",
+                        Method = PaymentMethodCodes.PayLater,
                         Amount = (decimal)payLater.PaymentAmount,
                         Note = payLater.CustomerName,
                         CreatedUtc = createdUtc
@@ -503,16 +518,6 @@ public class SqliteMigrationService
 
     private static string Truncate(string value, int maxLength) =>
         value.Length <= maxLength ? value : value[..maxLength];
-
-    private static string MapPaymentType(int typeId) => typeId switch
-    {
-        1 => "Cash",
-        2 => "Card",
-        3 => "Transfer",
-        4 => "PayLater",
-        5 => "WelfareCard",
-        _ => "Other"
-    };
 
     // Legacy entity classes for Dapper
     private class LegacyUser
