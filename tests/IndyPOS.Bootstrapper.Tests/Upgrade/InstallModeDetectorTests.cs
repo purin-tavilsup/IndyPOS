@@ -27,6 +27,27 @@ public class InstallModeDetectorTests
     };
 
     [Fact]
+    public void Detect_OnAMachineRunningOnlyV3_ShouldReturnFresh()
+    {
+        // The real deployment case for all three live stores: they run v3.7.0, which predates
+        // this layout entirely - no v4 manifest, no versioned StoreHub config, SQLite rather
+        // than a Postgres store database. v4 installs alongside it, so this must be Fresh;
+        // Unusable would block every store, and Upgrade would be worse.
+        var v3Machine = new FakeProbe
+        {
+            ManifestExists = false,
+            ManifestInstallVersion = null,
+            PostgresStoreDatabaseExists = false,
+            ServiceImagePath = null,
+            Config = new StoreHubConfigFacts(Exists: false, false, null, null)
+        };
+
+        var result = InstallModeDetector.Detect(v3Machine, InstallPath);
+
+        result.Mode.Should().Be(InstallMode.Fresh);
+    }
+
+    [Fact]
     public void Detect_OnABareMachine_ShouldReturnFresh()
     {
         var result = InstallModeDetector.Detect(new FakeProbe(), InstallPath);
