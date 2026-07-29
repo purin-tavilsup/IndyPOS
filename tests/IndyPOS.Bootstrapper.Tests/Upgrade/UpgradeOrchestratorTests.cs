@@ -51,9 +51,17 @@ public class UpgradeOrchestratorTests
             return Task.FromResult(StopOk);
         }
 
+        public bool BackupThrowsCancellation { get; init; }
+
         public Task<BackupResult> BackupAsync(string pgDump, string conn, CancellationToken ct)
         {
             Calls.Add("backup");
+
+            if (BackupThrowsCancellation)
+            {
+                throw new OperationCanceledException("watchdog fired during pg_dump");
+            }
+
             return Task.FromResult(new BackupResult(BackupOk, BackupDir, true,
                 BackupOk ? null : "pg_dump failed"));
         }
@@ -64,9 +72,17 @@ public class UpgradeOrchestratorTests
             return new ConfigSnapshotHandle(() => Calls.Add("restore-config"));
         }
 
+        public bool DeployThrowsCancellation { get; init; }
+
         public Task<bool> DeployAsync(CancellationToken ct)
         {
             Calls.Add("deploy");
+
+            if (DeployThrowsCancellation)
+            {
+                throw new OperationCanceledException("watchdog fired mid-deploy");
+            }
+
             return Task.FromResult(DeployOk);
         }
 
@@ -226,6 +242,23 @@ public class UpgradeOrchestratorTests
     }
 
     [Fact]
+    public async Task RunAsync_WhenTheWatchdogFiresDuringTheBackup_ShouldPutTheStoreBackUp()
+    {
+        // Above the mutation line a failure is supposed to be a non-event, but the service is
+        // already stopped by this point. Letting the timeout escape leaves the till DOWN with
+        // nothing mutated and nothing restarted - the invariant broken for no benefit.
+        var steps = new FakeSteps { BackupThrowsCancellation = true };
+
+        var failure = (UpgradeFailed)await Run(steps);
+
+        failure.RolledBack.Should().BeFalse();
+        failure.ServiceStarted.Should().BeTrue();
+        steps.Calls.Should().Contain("start");
+        steps.Calls.Should().NotContain("deploy");
+        steps.Calls.Should().NotContain("restore-tree");
+    }
+
+    [Fact]
     public async Task RunAsync_WhenDeployFails_ShouldRollBackAndProbeHealth()
     {
         var steps = new FakeSteps { DeployOk = false };
@@ -268,6 +301,52 @@ public class UpgradeOrchestratorTests
 
         outcome.Should().BeOfType<UpgradeFailed>().Which.RolledBack.Should().BeTrue();
         steps.Calls.Take(steps.Calls.IndexOf("restore-tree")).Should().NotContain("health");
+    }
+
+    [Fact]
+    public async Task RunAsync_WhenTheWatchdogFiresMidDeploy_ShouldStillRollBack()
+    {
+        // The 45-minute watchdog can fire below the mutation line on a slow store PC. Letting
+        // cancellation escape leaves new binaries, a stopped service and no rollback - the
+        // worst state this design exists to prevent.
+        var steps = new FakeSteps { DeployThrowsCancellation = true };
+
+        var failure = (UpgradeFailed)await new UpgradeOrchestrator(steps).RunAsync(
+            Detected, Config(), new Progress<InstallationProgress>(_ => { }), CancellationToken.None);
+
+        failure.RolledBack.Should().BeTrue();
+        failure.Message.Should().Contain("timed out");
+        steps.Calls.Should().ContainInOrder("restore-tree", "restore-config", "start", "health");
+    }
+
+    [Fact]
+    public async Task RunAsync_WhenTheTokenIsAlreadyCancelled_ShouldStillCompleteTheRollback()
+    {
+        // Rolling back with the token that just fired cannot work: every await would abort
+        // immediately. The recovery has to be non-cancellable.
+        var steps = new FakeSteps { DeployThrowsCancellation = true };
+        using var cts = new CancellationTokenSource();
+        await cts.CancelAsync();
+
+        var failure = (UpgradeFailed)await new UpgradeOrchestrator(steps).RunAsync(
+            Detected, Config(), new Progress<InstallationProgress>(_ => { }), cts.Token);
+
+        failure.RolledBack.Should().BeTrue();
+        failure.ServiceStarted.Should().BeTrue();
+        failure.HealthOk.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task RunAsync_WhenPreflightFails_ShouldProveTheStoreIsStillServing()
+    {
+        // Every other failure path probes. Claiming HEALTH=ok without asking is exactly the
+        // unverified-recovery claim the rollback probe exists to prevent.
+        var steps = new FakeSteps { PreflightOk = false, HealthOk = false };
+
+        var failure = (UpgradeFailed)await Run(steps);
+
+        steps.Calls.Should().Contain("health");
+        failure.HealthOk.Should().BeFalse();
     }
 
     [Fact]
@@ -324,6 +403,20 @@ public class UpgradeOrchestratorTests
         var success = (UpgradeSucceeded)await Run(new FakeSteps { PosVersionAfter = "4.1.0" });
 
         success.PosUpdated.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task RunAsync_WithASimulatedStopFailure_ShouldLeaveTheStoreTrading()
+    {
+        // The fault hook exists to test recovery, so it must not itself strand a VM (or a real
+        // store, if anyone ever pastes the flag) with the service down.
+        var steps = new FakeSteps();
+
+        var failure = (UpgradeFailed)await Run(steps, UpgradeStage.Stop);
+
+        failure.ServiceStarted.Should().BeTrue();
+        steps.Calls.Should().Contain("start");
+        steps.Calls.Should().NotContain("deploy");
     }
 
     [Fact]
