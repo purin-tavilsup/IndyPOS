@@ -22,11 +22,31 @@ without another cycle. Bootstrap admin credential:
 force-rotated on first login). Park it with:
 `Stop-VM IndyPOS-Test -Force -TurnOff; Restore-VMSnapshot -VMName IndyPOS-Test -Name 'Pre-Upgrade-2026-07-25' -Confirm:$false`
 
-**⚠️ NOT yet proven — needs a version bump.** Cases 1/2 ran with `FROM_VERSION=TO_VERSION=4.0.0`
-because `Directory.Build.props` still pins 4.0.0, so they exercised the **same-version repair**
-path (spec-valid, exit 0, `POS_UPDATED=false` correctly reported). A real `FROM≠TO` upgrade and
-`POS_UPDATED=true` are still unexercised. **Bump the version and re-run case 1 before shipping
-to the 3 stores.**
+**✅ Real upgrade proven.** Version bumped to **4.1.0** (`Directory.Build.props`, commit on branch)
+and case 1 re-run: `FROM_VERSION=4.0.0 → TO_VERSION=4.1.0`, **`POS_UPDATED=true`**, 22/22 PASS in
+1m58s. The earlier 4.0.0→4.0.0 runs had only proven the same-version repair path.
+
+### ⚠️ DEPLOYMENT REFRAMED (Pond, 2026-07-29): the 3 live stores are on **v3.7.0**, not v4
+
+So rolling out to the stores is a **fresh v4 install** (v4 lives side-by-side with v3.7.0), NOT an
+upgrade. That means:
+
+- **What gates the store rollout is VM case 3** (fresh, 18/18 PASS), not cases 1/2.
+- **The upgrade path's value is future releases** (v4.1.0 → v4.2.0 …), which is exactly what the
+  4.0.0→4.1.0 run proved.
+- Detection classifies a v3.7.0-only machine as **Fresh** — pinned by
+  `Detect_OnAMachineRunningOnlyV3_ShouldReturnFresh` (`a658d77`). v3.7.0 predates the versioned
+  layout: no v4 manifest, no StoreHub config, SQLite not Postgres. Unusable would have blocked
+  every store.
+- **`--store-type` adoption on upgrade was NOT built** (and its `StoreHubConfigWriter` was dropped
+  unshipped). It only mattered for a v4 store installed before Epic M wrote `Store:Type`; with no
+  live v4 store anywhere, no such machine exists. The plan's strict refusal stands.
+
+**Remaining gap (low risk, worth one check):** v3.7.0 **coexistence** is covered by the unit test
+above plus the older Stage 3 dev-box run (31/31, v3 footprint untouched) — but has NOT been
+re-validated on this branch against a real v3.7.0 footprint. Detection reasoning: `v*` probing
+finds no `v3` dir (legacy layout is unversioned), so no false "foreign database". Worth confirming
+on one real store box, or by planting a v3-shaped footprint in the VM before a case-3 run.
 
 ### 4 real bugs the VM gate caught (all fixed, all with tests)
 
@@ -85,15 +105,35 @@ Application **274/274**. Frozen-fresh-path gate re-confirmed: `FreshInstallOrche
 differs from `development` only by the rename, the doc comment, and the `HealthProbe`
 delegation — no reordering, no new conditionals.
 
+### Whole-branch review: DONE (2026-07-29) — 6 findings, all fixed
+
+1. **`fcdddc2` — a timeout inside the mutating region skipped rollback entirely.** Cancellation was
+   excluded from the catch, so the 45-min watchdog firing during deploy/migrate left new binaries
+   on a stopped service reporting only `RESULT=timeout`. Recovery now runs on
+   `CancellationToken.None` (rolling back with the token that just fired cannot work).
+2. **`fcdddc2` — a timeout during the *backup* left the till DOWN.** Above the mutation line, but
+   the service was already stopped, so "a failure there is a non-event" was false. Both that and
+   the backup-failure path now go through `ResumeWithoutChangesAsync`.
+3. **`fcdddc2` — preflight asserted `HEALTH=ok` without probing.** Every other path probes; an
+   unverified recovery claim is what the rollback probe exists to rule out.
+4. **`fcdddc2` — `--simulate-failure=stop` stranded the store down.** A recovery-testing hook must
+   not itself leave a till dead.
+5. **`cb6a756` — prerequisite installs discarded `.Success`.** Threw away the stated reason they run
+   above the mutation line: a missing .NET 10 runtime would have surfaced as a service that will
+   not start *after* the swap. Font stays advisory (fallback face is cosmetic).
+6. **`52b5199` — the `Store:Type` recovery advised a flag that does nothing.** Both the detector
+   message and the operator doc said "re-run with `--store-type`"; detection refuses before
+   arguments are consulted. Corrected to the edit that works. (Now moot — see reframing above.)
+
 **⏭️ NEXT:**
-1. **Case 3** result (running). Then park the VM:
-   `Stop-VM IndyPOS-Test -Force -TurnOff; Restore-VMSnapshot -VMName IndyPOS-Test -Name 'Pre-Upgrade-2026-07-25' -Confirm:$false`
-2. **Version-bump run** — bump `Directory.Build.props`, rebuild, re-run case 1, confirm
-   `FROM≠TO` and `POS_UPDATED=true`. Required before distributing to the 3 stores.
-3. **Owed PR #52 smoke — needs Pond at vmconnect** (visual): payment-button caption clipping on
+1. **Owed PR #52 smoke — needs Pond at vmconnect** (visual): payment-button caption clipping on
    `บัตรสวัสดิการแห่งรัฐ`, 195×129 button with ~100px icon + `ImageAboveText` leaves <30px for text.
-4. Whole-branch review → PR to `development` (branch protection: PRs only).
-5. Then **Epic I (Cloud)** — see the Epic I section below and
+   VM is running a fresh 4.1.0 install; park it afterwards:
+   `Stop-VM IndyPOS-Test -Force -TurnOff; Restore-VMSnapshot -VMName IndyPOS-Test -Name 'Pre-Upgrade-2026-07-25' -Confirm:$false`
+2. **PR to `development`** (branch protection: PRs only). Review is done; 20+ commits.
+3. **Store rollout = fresh v4 installs** (`--silent --store-id <ID> [--store-type Minimart]`),
+   gated by case 3. Optionally plant a v3-shaped footprint first to confirm coexistence.
+4. Then **Epic I (Cloud)** — see the Epic I section below and
    `docs/architecture/IndyPOS_Production_Infrastructure_Guide.md`.
 
 **Re-run commands** (note the `@(...)` — a comma-joined arg list is now rejected):
