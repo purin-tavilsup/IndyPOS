@@ -11,7 +11,10 @@ namespace IndyPOS.MigrationTool.Services;
 /// <item><term>2</term><description>ลงบัญชี - PayLater (charged to the customer's account)</description></item>
 /// <item><term>3</term><description>บัตรสวัสดิการแห่งรัฐ - state WelfareCard</description></item>
 /// <item><term>4</term><description>ม.33 - the M33WeLove campaign</description></item>
-/// <item><term>5</term><description>โอนเข้าบัญชี - bank MoneyTransfer</description></item>
+/// <item><term>5</term><description>โอนเข้าบัญชี - MoneyTransfer. The legacy label says "transfer
+/// into account", but per Pond (2026-07-29) this is the store's CASHLESS bucket: debit tap,
+/// Apple Pay, Google Pay. It is a Standard method, NOT a government campaign - which is what
+/// the v4 catalogue already says, so no reclassification is needed.</description></item>
 /// <item><term>6</term><description>ผ่อนชำระ - instalments; NO catalogue equivalent (own table, zero Payment rows)</description></item>
 /// <item><term>7</term><description>คนละครึ่ง - the FiftyFifty campaign</description></item>
 /// <item><term>8</term><description>เราชนะ - the WeWin campaign</description></item>
