@@ -183,4 +183,51 @@ public class StoreHubConfigReaderTests : IDisposable
         facts.StoreId.Should().Be("Rungrat-001");
         facts.StoreType.Should().BeNull();
     }
+
+    [Fact]
+    public void ReadConnectionString_WithAProtectedValue_ShouldReturnThePlaintext()
+    {
+        // The upgrade's backup step needs the real value, not just "is it usable".
+        var path = Write("""{ "connectionStrings": { "storehub-db": "DPAPI:blob" } }""");
+
+        StoreHubConfigReader.ReadConnectionString(path, (key, _) =>
+        {
+            key.Should().Be(StoreHubConfigReader.ConnectionStringKey);
+            return "Host=127.0.0.1;Database=indypos_storehub";
+        }).Should().Be("Host=127.0.0.1;Database=indypos_storehub");
+    }
+
+    [Fact]
+    public void ReadConnectionString_WithAPlaintextValue_ShouldReturnItUnchanged()
+    {
+        // A dev-authored config is not DPAPI-wrapped; unprotect must not be invoked.
+        var path = Write("""{ "connectionStrings": { "storehub-db": "Host=127.0.0.1" } }""");
+
+        StoreHubConfigReader.ReadConnectionString(path, Fail).Should().Be("Host=127.0.0.1");
+    }
+
+    [Fact]
+    public void ReadConnectionString_WithPascalCaseKeys_ShouldStillFindIt()
+    {
+        // Config binding is case-insensitive, so a hand-edited file must not look like a
+        // machine whose connection string cannot be decrypted.
+        var path = Write("""{ "ConnectionStrings": { "Storehub-Db": "Host=127.0.0.1" } }""");
+
+        StoreHubConfigReader.ReadConnectionString(path, Fail).Should().Be("Host=127.0.0.1");
+    }
+
+    [Fact]
+    public void ReadConnectionString_WhenSealedToAnotherMachine_ShouldReturnNull()
+    {
+        var path = Write("""{ "connectionStrings": { "storehub-db": "DPAPI:blob" } }""");
+
+        StoreHubConfigReader.ReadConnectionString(path, Fail).Should().BeNull();
+    }
+
+    [Fact]
+    public void ReadConnectionString_WhenAbsent_ShouldReturnNull()
+    {
+        StoreHubConfigReader.ReadConnectionString(Path.Combine(_dir, "appsettings.json"), PassThrough)
+            .Should().BeNull();
+    }
 }
