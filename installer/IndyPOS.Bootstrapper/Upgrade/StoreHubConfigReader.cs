@@ -65,6 +65,44 @@ public static class StoreHubConfigReader
             StoreType: ParseStoreType(Value(store, "type")));
     }
 
+    /// <summary>
+    /// The plaintext connection string, or null when it is absent, unreadable, or sealed to
+    /// another machine. Shares <see cref="Read"/>'s case-insensitive lookup so the upgrade's
+    /// preflight and detection can never disagree about the same file.
+    /// </summary>
+    public static string? ReadConnectionString(
+        string appSettingsPath,
+        Func<string, string, string>? unprotect = null)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(appSettingsPath);
+
+        if (!File.Exists(appSettingsPath))
+        {
+            return null;
+        }
+
+        try
+        {
+            var root = JsonNode.Parse(File.ReadAllText(appSettingsPath))?.AsObject();
+            var value = root is null ? null : Value(Section(root, "connectionStrings"), "storehub-db");
+
+            if (string.IsNullOrWhiteSpace(value))
+            {
+                return null;
+            }
+
+            return SecretProtector.IsProtected(value)
+                ? (unprotect ?? SecretProtector.Unprotect)(ConnectionStringKey, value)
+                : value;
+        }
+        catch (Exception ex) when (ex is JsonException or IOException or InvalidOperationException
+                                      or UnauthorizedAccessException or CryptographicException
+                                      or FormatException)
+        {
+            return null;
+        }
+    }
+
     private static bool IsConnectionStringUsable(JsonObject root, Func<string, string, string> unprotect)
     {
         var value = Value(Section(root, "connectionStrings"), "storehub-db");
