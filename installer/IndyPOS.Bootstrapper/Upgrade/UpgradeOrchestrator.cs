@@ -55,8 +55,11 @@ public sealed class UpgradeOrchestrator(IUpgradeSteps steps, UpgradeStage? simul
         {
             return preflight.IsDowngrade
                 ? new DowngradeRefused(detected.InstalledVersion ?? "unknown", config.InstallVersion)
+                // Nothing was touched, but "still serving" is a claim, so prove it rather
+                // than assume it - the same reason the rollback probes.
                 : new UpgradeFailed(preflight.FailureReason ?? "Preflight failed.",
-                    RolledBack: false, ServiceStarted: true, HealthOk: true, BackupDir: null);
+                    RolledBack: false, ServiceStarted: true,
+                    HealthOk: await steps.HealthAsync(cancellationToken), BackupDir: null);
         }
 
         var posVersionBefore = steps.ReadPosVersion();
@@ -78,22 +81,33 @@ public sealed class UpgradeOrchestrator(IUpgradeSteps steps, UpgradeStage? simul
                 HealthOk: await steps.HealthAsync(cancellationToken), BackupDir: null);
         }
 
-        Fault(UpgradeStage.Stop);
-
         // --- Step 3: back up --------------------------------------------------
         progress.Report(InstallationProgress.Step("Upgrading", "Backing up database and binaries...", 20));
 
-        var backup = await steps.BackupAsync(preflight.PgDumpPath!, preflight.ConnectionString!, cancellationToken);
-        Fault(UpgradeStage.Backup);
+        BackupResult backup;
+        try
+        {
+            // Inside the try so the test hook cannot leave a VM store down either.
+            Fault(UpgradeStage.Stop);
+
+            backup = await steps.BackupAsync(preflight.PgDumpPath!, preflight.ConnectionString!, cancellationToken);
+            Fault(UpgradeStage.Backup);
+        }
+        catch (Exception ex)
+        {
+            // The service is already stopped, so an exception here - a fired watchdog on a
+            // large database, say - would otherwise leave the till DOWN with nothing mutated.
+            // "Above the mutation line" has to mean the store is still trading.
+            var reason = ex is OperationCanceledException
+                ? "The upgrade timed out while backing up."
+                : $"Backing up failed: {ex.Message}";
+
+            return await ResumeWithoutChangesAsync(reason);
+        }
 
         if (!backup.Success)
         {
-            // Nothing has been mutated, but the service is stopped — put it back, and
-            // report what actually happened rather than assuming it came up.
-            var restarted = await steps.StartServiceAsync(cancellationToken);
-            return new UpgradeFailed(backup.ErrorMessage ?? "Backup failed.",
-                RolledBack: false, ServiceStarted: restarted,
-                HealthOk: restarted && await steps.HealthAsync(cancellationToken), BackupDir: null);
+            return await ResumeWithoutChangesAsync(backup.ErrorMessage ?? "Backup failed.");
         }
 
         // ============ EVERYTHING BELOW THIS LINE MUTATES THE INSTALL ============
@@ -144,9 +158,18 @@ public sealed class UpgradeOrchestrator(IUpgradeSteps steps, UpgradeStage? simul
                     backup.StampDirectory!, snapshot, cancellationToken);
             }
         }
-        catch (Exception ex) when (ex is not OperationCanceledException)
+        catch (Exception ex)
         {
-            return await RollBackAsync(ex.Message, backup.StampDirectory!, snapshot, cancellationToken);
+            // Cancellation is NOT excluded here. The watchdog can fire below the mutation
+            // line on a slow store PC, and letting it escape leaves new binaries, a stopped
+            // service and no rollback - the worst state this design exists to prevent.
+            var reason = ex is OperationCanceledException
+                ? "The upgrade timed out."
+                : ex.Message;
+
+            // CancellationToken.None deliberately: recovery must not be cancellable by the
+            // token that just fired, or every await in the rollback aborts immediately.
+            return await RollBackAsync(reason, backup.StampDirectory!, snapshot, CancellationToken.None);
         }
 
         // ==================== SERVER UPGRADE COMPLETE ====================
@@ -185,6 +208,19 @@ public sealed class UpgradeOrchestrator(IUpgradeSteps steps, UpgradeStage? simul
             detected.InstalledVersion, config.InstallVersion,
             ServiceStarted: true, HealthOk: true,
             backup.StampDirectory!, backup.Locked, posUpdated);
+    }
+
+    /// <summary>
+    /// Nothing was mutated, but the service was stopped - restart it and report what actually
+    /// happened rather than assuming it came up. Non-cancellable: this runs on paths a fired
+    /// watchdog reaches, and the store must not be left down.
+    /// </summary>
+    private async Task<UpgradeFailed> ResumeWithoutChangesAsync(string reason)
+    {
+        var restarted = await steps.StartServiceAsync(CancellationToken.None);
+
+        return new UpgradeFailed(reason, RolledBack: false, ServiceStarted: restarted,
+            HealthOk: restarted && await steps.HealthAsync(CancellationToken.None), BackupDir: null);
     }
 
     /// <summary>

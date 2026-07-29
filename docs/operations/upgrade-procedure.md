@@ -47,7 +47,7 @@ The POS app on **other** terminals updates itself; it does not need the installe
 | 1 | Usage error | Fix the command line |
 | 2 | Failed | Read `ROLLED_BACK` in the log - it says whether the store came back |
 | 3 | Not elevated | Re-run as administrator |
-| 4 | Timed out | Read the log; the store may be mid-upgrade. Do not re-run blind |
+| 4 | Timed out | Only before the backup completes - nothing was changed and the service was restarted. Read `HEALTH` |
 | 5 | Unusable install | Read `REASON`, then see [Unusable-install recovery](#unusable-install-recovery) |
 | 6 | Downgrade refused | This installer is older than what is installed. Use the newer installer |
 
@@ -79,6 +79,11 @@ Lines beginning `INDYPOS_MARKER` are the machine-readable summary:
 **`POS_UPDATED=false` alongside `RESULT=success` is not a failure.** It means the POS app
 was already at this version, so Velopack had nothing to do. The installer reports it from
 the package version before and after, because the Velopack exit code is 0 either way.
+
+**A timeout is not a special case.** If the watchdog fires after the upgrade starts changing
+things, the run rolls back like any other failure and reports `RESULT=failed` with
+`ROLLED_BACK=true` (exit 2), not exit 4 - because what you need to know is whether the store came
+back, not which clock ran out. Exit 4 means it timed out before anything was changed.
 
 **`ROLLED_BACK=true` with `HEALTH=failed`** is the one line that needs immediate attention:
 the upgrade was undone but the store did not come back. Go to
