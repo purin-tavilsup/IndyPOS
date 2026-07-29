@@ -8,9 +8,14 @@ namespace IndyPOS.Bootstrapper.Silent;
 /// on threadpool continuation threads, so all writes are serialized under a lock
 /// and flushed per line — an early crash still leaves a diagnosable log.
 /// </summary>
-public sealed class SilentInstallLogger(TextWriter file) : IProgress<InstallationProgress>, IDisposable
+public sealed class SilentInstallLogger(TextWriter file)
+    : IProgress<InstallationProgress>, IProgress<string>, IDisposable
 {
     private readonly object _gate = new();
+
+    // The upgrade's step units log plain strings (WindowsUpgradeSteps), while the
+    // orchestrators report structured progress. One sink serves both.
+    public void Report(string value) => WriteLine(value);
 
     public void Report(InstallationProgress value)
     {

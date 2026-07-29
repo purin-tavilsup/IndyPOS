@@ -1,5 +1,6 @@
 using FluentAssertions;
 using IndyPOS.Bootstrapper.Silent;
+using IndyPOS.Bootstrapper.Upgrade;
 using IndyPOS.Domain.Enums;
 using Xunit;
 
@@ -84,7 +85,8 @@ public class SilentArgsTests
 
     public static TheoryData<string[]> BadSilentArgs => new()
     {
-        new[] { "--silent" },
+        // "--silent" alone is NOT here: an upgrade adopts the detected store id, so the
+        // router — not the parser — decides whether a missing one is fatal.
         new[] { "--silent", "--store-id" },
         new[] { "--silent", "--store-id", " " },
         new[] { "--silent", "--store-id", "A", "--timeout-minutes", "0" },
@@ -112,5 +114,53 @@ public class SilentArgsTests
     public void Parse_WithoutSilent_ShouldReturnNotSilent(string[] args)
     {
         SilentArgs.Parse(args).Status.Should().Be(ParseStatus.NotSilent);
+    }
+
+    [Fact]
+    public void Parse_WithSilentAndNoStoreId_ShouldSucceedWithANullStoreId()
+    {
+        // On an upgrade the store id is adopted from the detected config. Requiring it
+        // would force a comparison on every upgrade with no correct behaviour when the
+        // detected value is null.
+        var result = SilentArgs.Parse(["--silent"]);
+
+        result.Status.Should().Be(ParseStatus.Silent);
+        result.Options!.StoreId.Should().BeNull();
+    }
+
+    [Fact]
+    public void Parse_WithSilentAndAStoreId_ShouldStillCarryIt()
+    {
+        var result = SilentArgs.Parse(["--silent", "--store-id", "Rungrat-001"]);
+
+        result.Options!.StoreId.Should().Be("Rungrat-001");
+    }
+
+    [Fact]
+    public void Parse_WithAnEmptyStoreIdValue_ShouldStillBeAUsageError()
+    {
+        SilentArgs.Parse(["--silent", "--store-id", "   "]).Status.Should().Be(ParseStatus.UsageError);
+    }
+
+    [Fact]
+    public void Parse_WithSimulateFailure_ShouldCarryTheStage()
+    {
+        var result = SilentArgs.Parse(["--silent", "--simulate-failure=deploy"]);
+
+        result.Options!.SimulateFailure.Should().Be(UpgradeStage.Deploy);
+    }
+
+    [Fact]
+    public void Parse_WithoutSimulateFailure_ShouldLeaveTheHookOff()
+    {
+        // The hook must never arm itself: an unset stage is what every real run passes.
+        SilentArgs.Parse(["--silent", "--store-id", "A"]).Options!.SimulateFailure.Should().BeNull();
+    }
+
+    [Fact]
+    public void Parse_WithAnUnknownSimulateFailureStage_ShouldBeAUsageError()
+    {
+        SilentArgs.Parse(["--silent", "--simulate-failure=nonsense"]).Status
+            .Should().Be(ParseStatus.UsageError);
     }
 }
