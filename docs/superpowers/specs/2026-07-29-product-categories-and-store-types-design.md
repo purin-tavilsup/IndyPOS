@@ -35,7 +35,7 @@ across store types with different meanings** (from the real databases at
 | 12 | ขนม (snacks) | ขนม | **เครื่องเขียน (stationery)** |
 | 18 | ของเล่น (toys) | ของเล่น | **ของใช้ในบ้าน (household)** |
 | 50–54 | วัสดุ* (hardware) | — | — |
-| categories | 16 | 11 | 17 |
+| categories in the legacy table | 16 | 11 (one is a leftover — see §4) | 17 |
 
 Three consequences:
 
@@ -146,11 +146,17 @@ Codes below are the contract between this epic and the migration (Epic 2), which
 | 53 | วัสดุและอุปกรณ์ระบบไฟฟ้า | `ElectricalMaterials` | **Hardware** |
 | 54 | วัสดุก่อสร้างและอุปกรณ์การช่าง | `ConstructionMaterials` | **Hardware** |
 
-### Minimart / MimyMart (11)
+### Minimart / MimyMart (10)
 
-Legacy ids 10–20 with the same Thai labels and codes as GeneralHardware's 10–20, all `GeneralGoods`.
-Legacy id 20 (`การเกษตร`) has zero products in the real MimyMart database but is present in its
-`ProductCategory` table, so it is seeded.
+Legacy ids 10–19 with the same Thai labels and codes as GeneralHardware's 10–19, all `GeneralGoods`.
+
+**Legacy id 20 (`การเกษตร`) is deliberately NOT seeded.** MimyMart's category table was created by
+copying GeneralHardware's, and `การเกษตร` came along as a leftover (Pond, 2026-07-29). The data
+agrees: **0 products and 0 invoice lines**. Seeding it would propagate an accident into the clean
+model and put a category a minimart never sells in its picker.
+
+The migration therefore maps MimyMart legacy ids 10–19 only. Id 20 needs no mapping because nothing
+references it — verified, not assumed.
 
 ### MimyShop (17)
 
@@ -176,6 +182,20 @@ Legacy id 20 (`การเกษตร`) has zero products in the real MimyMart
 
 `Toys`, `Stationery`, `Household` and `Miscellaneous` deliberately repeat across store types — the
 key is `(StoreId, Code)`, and shared codes are what make cross-store reporting meaningful.
+
+**All 17 MimyShop categories are seeded, including the 12 with no products and no sales lines.**
+MimyShop is a new store (15 invoices, 100 products), so its unused categories are the catalogue the
+business intends to use, not detritus. Contrast MimyMart's `การเกษตร` above: identical evidence —
+zero products, zero lines — opposite meaning. "Unused" alone cannot distinguish a leftover from a
+plan, which is why this is recorded rather than derived by a rule. Do not "tidy up" MimyShop's empty
+categories later.
+
+### Category references in sales history — audited
+
+Every category id appearing in `InvoiceProduct` exists in that store's `ProductCategory` table, in
+all three databases. There are **no orphaned category references**, so the migration (Epic 2) cannot
+meet a historical line whose category it is unable to map. Verified 2026-07-29 against the real
+databases.
 
 ## 5. Store types
 
@@ -268,4 +288,5 @@ rather than silent. The §4 tables need Pond's review.
 | `MimyShop` as a real `StoreType` | Pond's call: services and reporting will diverge |
 | `CoffeeShop` removed, value 3 reserved | Deserves a dedicated app; reserving 3 avoids a future collision |
 | `Kind = Service` as data only | Non-stock behaviour needs `Product.IsTrackable`, which does not exist |
+| MimyMart's `การเกษตร` dropped, MimyShop's empty categories kept | Both are unused; one is a copy-paste leftover, the other a new shop's intended catalogue. Only Pond's context distinguishes them |
 | Rename legacy `ProductCategory` entity | Two entities with one name in sibling namespaces is a using-directive trap |
