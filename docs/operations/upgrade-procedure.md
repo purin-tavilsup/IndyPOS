@@ -139,13 +139,28 @@ orphan the store's history.
 ### `Store:Type` is missing
 
 Stores installed before 2026-07-18 have no such key. It cannot be defaulted: the default is
-the most permissive store type and would silently re-enable restricted features. Re-run:
+the most permissive store type and would silently re-enable restricted features.
+
+**`--store-type` does not currently fix this on an upgrade** - the run is refused before any
+argument is consulted. Add the key by hand, then re-run. `appsettings.json` is ACL-locked to
+Administrators, so use an elevated editor:
 
 ```
-IndyPOS-Setup.exe --silent --store-type GeneralHardware
+C:\ProgramData\IndyPOS\v4\StoreHub\appsettings.json
 ```
 
-(or `Minimart` - use the store's real type.)
+```json
+  "store": {
+    "id": "Rungrat-001",
+    "type": "GeneralHardware"
+  },
+```
+
+Use the store's real type (`GeneralHardware` or `Minimart`). Then:
+
+```
+IndyPOS-Setup.exe --silent
+```
 
 ### The service is not registered, or points elsewhere
 
