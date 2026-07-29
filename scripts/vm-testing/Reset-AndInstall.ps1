@@ -16,13 +16,32 @@
         6. Run Test-IndyPOSInstallation.ps1 in the guest
         7. Pretty-print the report; exit non-zero if any check failed
 
-    Prereqs (run once — see scripts/vm-testing/README.md):
+    Prereqs (run once - see scripts/vm-testing/README.md):
         - VM 'IndyPOS-Test' exists with Windows 11 + PSRemoting enabled
         - Checkpoint 'Clean-Windows' captured
         - VM admin credential cached (first run prompts you)
 
 .PARAMETER InstallerPath
     Path to IndyPOS-Setup.exe. Default: <repo>\publish\IndyPOS-Setup.exe.
+
+.PARAMETER SnapshotName
+    Snapshot to restore. Default: the clean baseline from VMTestConfig.psd1. Upgrade
+    cases need a real store image instead (e.g. 'Pre-Upgrade-2026-07-25').
+
+.PARAMETER InstallerArgs
+    Full argument list for the in-guest installer. Default:
+    --silent --store-id <TestStoreId>. An upgrade passes just --silent, because the
+    store id is adopted from the installed config.
+
+.PARAMETER ExpectRollback
+    Invert the gate: require RESULT=failed with ROLLED_BACK=true, SERVICE_STARTED=true
+    and HEALTH=ok. Use with --simulate-failure to prove a mid-upgrade failure leaves the
+    store serving its previous version. Skips the install verifier, which audits a
+    completed install.
+
+.PARAMETER AssertDatabase
+    Also run the verifier's payment_method / store-id assertions against the live
+    database. Only meaningful on an upgrade of a real store image.
 
 .PARAMETER SkipRestore
     Don't restore the snapshot or start the VM. Use when iterating on a VM
@@ -44,11 +63,25 @@
 .EXAMPLE
     # Iterate without restoring (faster but assumes you already cleaned up):
     .\Reset-AndInstall.ps1 -SkipRestore
+
+.EXAMPLE
+    # Upgrade case 1: in-place upgrade of a real store image, with DB assertions.
+    .\Reset-AndInstall.ps1 -SnapshotName 'Pre-Upgrade-2026-07-25' `
+                           -InstallerArgs '--silent' -AssertDatabase
+
+.EXAMPLE
+    # Upgrade case 2: force a mid-upgrade failure and require a verified rollback.
+    .\Reset-AndInstall.ps1 -SnapshotName 'Pre-Upgrade-2026-07-25' `
+                           -InstallerArgs '--silent','--simulate-failure=deploy' -ExpectRollback
 #>
 
 [CmdletBinding()]
 param(
     [string]$InstallerPath,
+    [string]$SnapshotName,
+    [switch]$ExpectRollback,
+    [string[]]$InstallerArgs,
+    [switch]$AssertDatabase,
     [switch]$SkipRestore,
     [switch]$KeepRunning,
     [switch]$RecreateCredential
@@ -65,6 +98,9 @@ $Config     = Import-PowerShellDataFile (Join-Path $ScriptRoot 'VMTestConfig.psd
 if (-not $InstallerPath) {
     $InstallerPath = Join-Path $RepoRoot 'publish\IndyPOS-Setup.exe'
 }
+
+# Upgrade cases 1/2 run from a real store image; the fresh case from the clean baseline.
+if (-not $SnapshotName) { $SnapshotName = $Config.CleanSnapshotName }
 $VerifierPath = Join-Path $ScriptRoot 'Test-IndyPOSInstallation.ps1'
 
 function Write-Section($title) {
@@ -129,15 +165,15 @@ function Test-Prerequisites {
     }
     Write-OK "VM:        $($Config.VMName) (State: $($vm.State))"
 
-    $snap = Get-VMSnapshot -VMName $Config.VMName -Name $Config.CleanSnapshotName -ErrorAction SilentlyContinue
+    $snap = Get-VMSnapshot -VMName $Config.VMName -Name $SnapshotName -ErrorAction SilentlyContinue
     if (-not $snap) {
         if ($SkipRestore) {
-            Write-Warn2 "Snapshot '$($Config.CleanSnapshotName)' missing — proceeding because -SkipRestore is set."
+            Write-Warn2 "Snapshot '$($SnapshotName)' missing - proceeding because -SkipRestore is set."
         } else {
-            throw "Snapshot '$($Config.CleanSnapshotName)' not found. Capture one after a clean Windows install (see README)."
+            throw "Snapshot '$($SnapshotName)' not found. Capture one after a clean Windows install (see README)."
         }
     } else {
-        Write-OK "Snapshot:  $($Config.CleanSnapshotName)"
+        Write-OK "Snapshot:  $($SnapshotName)"
     }
 }
 
@@ -149,14 +185,14 @@ function Restore-CleanVM {
     if ($SkipRestore) {
         Write-Info '-SkipRestore set; skipping snapshot restore.'
     } else {
-        Write-Info "Restoring snapshot '$($Config.CleanSnapshotName)'..."
-        Restore-VMSnapshot -VMName $Config.VMName -Name $Config.CleanSnapshotName -Confirm:$false
+        Write-Info "Restoring snapshot '$($SnapshotName)'..."
+        Restore-VMSnapshot -VMName $Config.VMName -Name $SnapshotName -Confirm:$false
         Write-OK 'Snapshot restored.'
     }
 
     # Guest Service Interface is the one integration service Hyper-V disables by
     # default, and Copy-VMFile (step 4) rides on it. Snapshots don't reliably
-    # carry the host-side toggle, so assert it here — idempotent, host-side only.
+    # carry the host-side toggle, so assert it here - idempotent, host-side only.
     if (-not (Get-VMIntegrationService -VMName $Config.VMName -Name 'Guest Service Interface').Enabled) {
         Write-Info "Enabling 'Guest Service Interface' integration service..."
         Enable-VMIntegrationService -VMName $Config.VMName -Name 'Guest Service Interface'
@@ -178,7 +214,7 @@ function Restore-CleanVM {
         Start-Sleep -Seconds 2
     }
     if ($vm.Heartbeat -notin 'OkApplicationsHealthy','OkApplicationsUnknown') {
-        Write-Warn2 "Heartbeat not 'Ok' yet ($($vm.Heartbeat)). Continuing — PSDirect probe is authoritative."
+        Write-Warn2 "Heartbeat not 'Ok' yet ($($vm.Heartbeat)). Continuing - PSDirect probe is authoritative."
     } else {
         Write-OK "Heartbeat: $($vm.Heartbeat)"
     }
@@ -229,18 +265,18 @@ function Invoke-SilentInstall {
     Write-Section '5. Run installer (silent)'
 
     $guestInstaller = Join-Path $Config.GuestStagingDir $Config.GuestInstallerName
-    $storeId        = $Config.TestStoreId
     $logDir         = "C:\ProgramData\IndyPOS\v4\logs"
     $latestLog      = Join-Path $logDir 'install-latest.log'
 
-    Write-Info "Running (in guest): $guestInstaller --silent --store-id $storeId"
+    $arguments = if ($InstallerArgs) { $InstallerArgs } else { @('--silent', '--store-id', $Config.TestStoreId) }
+    Write-Info "Running (in guest): $guestInstaller $($arguments -join ' ')"
 
     $timeoutSec = $Config.InstallTimeoutMinutes * 60
     $job = Invoke-Command -VMName $Config.VMName -Credential $Credential -AsJob -ScriptBlock {
-        param($exe, $id)
-        $p = Start-Process -FilePath $exe -ArgumentList '--silent', '--store-id', $id -Wait -PassThru
+        param($exe, $argList)
+        $p = Start-Process -FilePath $exe -ArgumentList $argList -Wait -PassThru
         [pscustomobject]@{ ExitCode = $p.ExitCode }
-    } -ArgumentList $guestInstaller, $storeId
+    } -ArgumentList $guestInstaller, $arguments
 
     if (-not (Wait-Job -Job $job -Timeout $timeoutSec)) {
         Stop-Job -Job $job
@@ -253,10 +289,14 @@ function Invoke-SilentInstall {
 
     Write-Info "Installer exit code: $($run.ExitCode)"
 
+    # Newest install-<stamp>-<pid>.log, NOT install-latest.log: on a re-run the latter can
+    # still carry the previous run's RESULT=success.
     $markers = Invoke-Command -VMName $Config.VMName -Credential $Credential -ScriptBlock {
-        param($p)
-        if (Test-Path $p) { Get-Content $p | Where-Object { $_ -like 'INDYPOS_MARKER *' } } else { @() }
-    } -ArgumentList $latestLog
+        param($dir)
+        $log = Get-ChildItem -Path $dir -Filter 'install-2*.log' -ErrorAction SilentlyContinue |
+               Sort-Object LastWriteTime -Descending | Select-Object -First 1
+        if ($log) { Get-Content $log.FullName | Where-Object { $_ -like 'INDYPOS_MARKER *' } } else { @() }
+    } -ArgumentList $logDir
 
     # Parse the LAST occurrence of each marker key (D9).
     $marker = @{}
@@ -264,6 +304,22 @@ function Invoke-SilentInstall {
         if ($line -match '^INDYPOS_MARKER\s+([A-Z_]+)=(.*)$') { $marker[$Matches[1]] = $Matches[2] }
     }
     foreach ($k in $marker.Keys) { Write-Info "marker $k=$($marker[$k])" }
+
+    if ($ExpectRollback) {
+        # A deliberate mid-upgrade failure. Success here means the store came BACK, which
+        # is the only claim the rollback design actually makes.
+        $ok = ($marker['RESULT'] -eq 'failed') -and
+              ($marker['ROLLED_BACK'] -eq 'true') -and
+              ($marker['SERVICE_STARTED'] -eq 'true') -and
+              ($marker['HEALTH'] -eq 'ok')
+        if (-not $ok) {
+            throw ("Expected a verified rollback but got RESULT=$($marker['RESULT']), " +
+                   "ROLLED_BACK=$($marker['ROLLED_BACK']), SERVICE_STARTED=$($marker['SERVICE_STARTED']), " +
+                   "HEALTH=$($marker['HEALTH']). See $latestLog in the guest.")
+        }
+        Write-OK 'Rollback verified: store is serving its previous version.'
+        return
+    }
 
     # Authoritative gating rule: exit code + RESULT + service.
     $failed = ($run.ExitCode -ne 0) -or ($marker['RESULT'] -ne 'success') -or ($marker['SERVICE_STARTED'] -eq 'false')
@@ -273,7 +329,7 @@ function Invoke-SilentInstall {
     if ($marker['CRED_LOCKED'] -eq 'false') {
         Write-Warn2 "Credential file could not be ACL-locked (CRED_LOCKED=false)."
     }
-    Write-OK "Silent install completed (RESULT=success)."
+    Write-OK "Silent install completed (RESULT=$($marker['RESULT']), MODE=$($marker['MODE']))."
 }
 
 # --- Verification + report --------------------------------------------------
@@ -284,8 +340,10 @@ function Invoke-Verifier {
     Write-Section '6. In-VM verification'
 
     Write-Info 'Running Test-IndyPOSInstallation.ps1 inside guest...'
+
+    # -FilePath binds positionally, so the verifier declares -AssertDatabase at Position 0.
     $result = Invoke-Command -VMName $Config.VMName -Credential $Credential `
-                             -FilePath $VerifierPath
+                             -FilePath $VerifierPath -ArgumentList $AssertDatabase.IsPresent
     return $result
 }
 
@@ -324,7 +382,7 @@ function Format-Report {
 
 $start = Get-Date
 Write-Host ''
-Write-Host '=== IndyPOS Stage 4 — VM smoke-test ===' -ForegroundColor Magenta
+Write-Host '=== IndyPOS Stage 4 - VM smoke-test ===' -ForegroundColor Magenta
 
 try {
     Test-Prerequisites
@@ -333,6 +391,13 @@ try {
     Wait-PowerShellDirect -Credential $cred
     Copy-Installer -Credential $cred
     Invoke-SilentInstall -Credential $cred
+
+    if ($ExpectRollback) {
+        # The verifier audits a COMPLETED install; a rolled-back store is not one.
+        Write-OK 'Expect-rollback run complete; skipping the install verifier.'
+        exit 0
+    }
+
     $result = Invoke-Verifier -Credential $cred
     Format-Report -Result $result
 
