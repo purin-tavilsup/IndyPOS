@@ -26,7 +26,7 @@ public class PaymentMethodPolicyTests
 
     [Theory]
     [InlineData(StoreType.Minimart)]
-    [InlineData(StoreType.CoffeeShop)]
+    [InlineData(StoreType.MimyShop)]
     public void Offerable_ForNonGeneralHardware_ShouldExcludePayLaterEvenWhenEnabled(StoreType storeType)
     {
         var methods = new[] { Method("Cash"), Method("PayLater", enabled: true) };

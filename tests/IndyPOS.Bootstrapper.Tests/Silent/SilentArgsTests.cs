@@ -37,7 +37,7 @@ public class SilentArgsTests
     [Theory]
     [InlineData("Minimart", StoreType.Minimart)]
     [InlineData("minimart", StoreType.Minimart)]
-    [InlineData("CoffeeShop", StoreType.CoffeeShop)]
+    [InlineData("MimyShop", StoreType.MimyShop)]
     [InlineData("GeneralHardware", StoreType.GeneralHardware)]
     public void Parse_WithStoreType_ShouldParseCaseInsensitively(string value, StoreType expected)
     {
