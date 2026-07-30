@@ -1,6 +1,7 @@
 using System.Net;
 using System.Net.Http.Json;
 using FluentAssertions;
+using IndyPOS.Application.Common.Constants;
 using IndyPOS.Application.UseCases.StoreHub.Products;
 using IndyPOS.Application.UseCases.StoreHub.Products.Create;
 using IndyPOS.Application.UseCases.StoreHub.Products.Update;
@@ -94,7 +95,7 @@ public class ProductsEndpointTests : IntegrationTestBase
             Barcode = $"BAR{Guid.NewGuid():N}"[..13],
             Name = "Test Product",
             Description = "A test product",
-            Category = "Test",
+            Category = ProductCategoryCodes.Miscellaneous,
             UnitPrice = 99.99m,
             InitialQuantity = 50
         };
@@ -173,6 +174,7 @@ public class ProductsEndpointTests : IntegrationTestBase
             Id = existingProduct.Id,
             Barcode = existingProduct.Barcode,
             Name = "Updated Product Name",
+            Category = ProductCategoryCodes.Miscellaneous,
             UnitPrice = 149.99m
         };
 

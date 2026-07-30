@@ -1,8 +1,8 @@
 using IndyPOS.Application.Abstractions.StoreHub.Repositories;
-using IndyPOS.Application.Common.Enums;
 using IndyPOS.Application.Common.Exceptions;
 using IndyPOS.Application.Common.Interfaces;
 using IndyPOS.Domain.Entities.Core;
+using IndyPOS.Domain.ValueObjects;
 using Microsoft.Extensions.Logging;
 using Nokpirab;
 
@@ -14,15 +14,18 @@ namespace IndyPOS.Application.UseCases.StoreHub.Products.Update;
 public class UpdateProductCommandHandler : ICommandHandler<UpdateProductCommand, ProductDto>
 {
     private readonly IProductRepository _productRepository;
+    private readonly IProductCategoryRepository _categoryRepository;
     private readonly IStoreIdentityService _storeIdentityService;
     private readonly ILogger<UpdateProductCommandHandler> _logger;
 
     public UpdateProductCommandHandler(
         IProductRepository productRepository,
+        IProductCategoryRepository categoryRepository,
         IStoreIdentityService storeIdentityService,
         ILogger<UpdateProductCommandHandler> logger)
     {
         _productRepository = productRepository;
+        _categoryRepository = categoryRepository;
         _storeIdentityService = storeIdentityService;
         _logger = logger;
     }
@@ -48,14 +51,19 @@ public class UpdateProductCommandHandler : ICommandHandler<UpdateProductCommand,
             throw new InvalidOperationException($"Product with barcode '{command.Barcode}' already exists");
         }
 
-        // Store-type gating: a general-only store (e.g. Minimart) may not carry Hardware products.
-        var isHardware = string.Equals(command.Category, nameof(Common.Enums.ProductCategory.Hardware), StringComparison.OrdinalIgnoreCase);
-        if (isHardware && !_storeIdentityService.Features.MultipleProductTypesEnabled)
+        // Store-type gating driven by the category's Kind. The category must exist: an unknown
+        // code would file the product under something no report or picker can resolve.
+        var category = await _categoryRepository.GetByCodeAsync(command.Category, cancellationToken)
+            ?? throw new UnknownProductCategoryException(
+                $"Product category '{command.Category}' is not in this store's catalogue.");
+
+        if (!ProductCategoryPolicy.IsUsable(category.Kind, _storeIdentityService.Features))
         {
-            _logger.LogWarning("Hardware product update rejected: StoreType={StoreType}, ProductId={ProductId}",
-                _storeIdentityService.StoreType, command.Id);
+            _logger.LogWarning(
+                "Product update rejected: Kind={Kind}, StoreType={StoreType}, ProductId={ProductId}",
+                category.Kind, _storeIdentityService.StoreType, command.Id);
             throw new InvalidOperationException(
-                $"Hardware products are not available for {_storeIdentityService.StoreType} stores.");
+                $"{category.DisplayName} products are not available for {_storeIdentityService.StoreType} stores.");
         }
 
         // Update product

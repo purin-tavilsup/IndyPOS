@@ -425,6 +425,10 @@ app.MapPost("/products", async (
         var result = await handler.HandleAsync(command, cancellationToken);
         return Results.Created($"/products/{result.Id}", result);
     }
+    catch (UnknownProductCategoryException ex)
+    {
+        return Results.BadRequest(new { error = ex.Message });
+    }
     catch (InvalidOperationException ex)
     {
         return Results.Conflict(new { error = ex.Message });
@@ -452,6 +456,10 @@ app.MapPut("/products/{id:guid}", async (
     catch (ProductNotFoundException ex)
     {
         return Results.NotFound(new { error = ex.Message });
+    }
+    catch (UnknownProductCategoryException ex)
+    {
+        return Results.BadRequest(new { error = ex.Message });
     }
     catch (InvalidOperationException ex)
     {
