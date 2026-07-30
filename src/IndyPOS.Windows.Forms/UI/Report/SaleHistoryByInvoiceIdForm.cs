@@ -1,6 +1,7 @@
-﻿using IndyPOS.Application.Common.Enums;
+﻿using IndyPOS.Application.Abstractions.StoreHub;
 using IndyPOS.Application.Common.Interfaces;
 using IndyPOS.Application.Common.Models;
+using IndyPOS.Domain.Enums;
 using System.Diagnostics.CodeAnalysis;
 
 namespace IndyPOS.Windows.Forms.UI.Report;
@@ -9,7 +10,15 @@ namespace IndyPOS.Windows.Forms.UI.Report;
 public partial class SaleHistoryByInvoiceIdForm : Form
 {
 	private readonly IReportService _reportService;
+	private readonly IStoreHubClient _storeHubClient;
 	private readonly IReadOnlyDictionary<int, string> _paymentTypeDictionary;
+
+	/// <summary>
+	/// Catalogue codes classified as Hardware, refreshed each time an invoice is opened. This
+	/// form reports on HISTORICAL rows, so it classifies by looking the stored code up rather
+	/// than by an id range — the legacy ranges collide across store types.
+	/// </summary>
+	private HashSet<string> _hardwareCodes = new(StringComparer.OrdinalIgnoreCase);
 
 	private enum ProductColumn
 	{
@@ -30,9 +39,11 @@ public partial class SaleHistoryByInvoiceIdForm : Form
 	}
 
 	public SaleHistoryByInvoiceIdForm(IReportService reportService,
+									  IStoreHubClient storeHubClient,
 									  IStoreConstants storeConstants)
 	{
 		_reportService = reportService;
+		_storeHubClient = storeHubClient;
 		_paymentTypeDictionary = storeConstants.PaymentTypes;
 
 		InitializeComponent();
@@ -114,6 +125,9 @@ public partial class SaleHistoryByInvoiceIdForm : Form
 	{
 		var hardwareProductsTotal = 0m;
 		var generalProductsTotal = 0m;
+
+		await RefreshHardwareCodesAsync();
+
 		var products = await _reportService.GetInvoiceProductsByInvoiceIdAsync(invoiceId);
 
 		InvoiceProductsDataView.Rows.Clear();
@@ -185,9 +199,26 @@ public partial class SaleHistoryByInvoiceIdForm : Form
 		PaymentDataView.Rows[rowIndex].DefaultCellStyle.BackColor = rowBackColor;
 	}
 
-	private static bool IsHardwareProduct(InvoiceProductDto product)
+	private bool IsHardwareProduct(InvoiceProductDto product)
 	{
-		return product.Category >= (int) ProductCategory.Hardware;
+		return _hardwareCodes.Contains(product.Category);
+	}
+
+	private async Task RefreshHardwareCodesAsync()
+	{
+		try
+		{
+			var categories = await _storeHubClient.GetProductCategoriesAsync();
+
+			_hardwareCodes = categories
+				.Where(c => c.Kind == ProductCategoryKind.Hardware)
+				.Select(c => c.Code)
+				.ToHashSet(StringComparer.OrdinalIgnoreCase);
+		}
+		catch
+		{
+			// Keep the last known set rather than reclassifying every line as general.
+		}
 	}
 
 	private void CloseButton_Click(object sender, EventArgs e)

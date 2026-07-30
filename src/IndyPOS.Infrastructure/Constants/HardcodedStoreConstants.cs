@@ -28,17 +28,9 @@ public class HardcodedStoreConstants : IStoreConstants
             [(int)Enums.PaymentType.FiftyFifty] = nameof(Enums.PaymentType.FiftyFifty),
             [(int)Enums.PaymentType.WeWin] = nameof(Enums.PaymentType.WeWin)
         };
-
-        ProductCategories = new Dictionary<int, string>
-        {
-            [(int)Enums.ProductCategory.GeneralGoods] = nameof(Enums.ProductCategory.GeneralGoods),
-            [(int)Enums.ProductCategory.Hardware] = nameof(Enums.ProductCategory.Hardware)
-        };
     }
 
     public IReadOnlyDictionary<int, string> UserRoles { get; }
 
     public IReadOnlyDictionary<int, string> PaymentTypes { get; }
-
-    public IReadOnlyDictionary<int, string> ProductCategories { get; }
 }

@@ -1,6 +1,7 @@
 ﻿using IndyPOS.Application.Abstractions.StoreHub;
-using IndyPOS.Application.Common.Enums;
 using IndyPOS.Application.Common.Interfaces;
+using IndyPOS.Application.UseCases.StoreHub.ProductCategories;
+using IndyPOS.Domain.Enums;
 using System.Diagnostics.CodeAnalysis;
 
 namespace IndyPOS.Windows.Forms.UI.Inventory;
@@ -10,15 +11,16 @@ public partial class AddNewInventoryProductForm : Form
 {
 	private readonly IInventoryProductService _inventoryProductService;
 	private readonly IStoreHubClient _storeHubClient;
-	private readonly IReadOnlyDictionary<int, string> _productCategoryDictionary;
 	private readonly MessageForm _messageForm;
 
-	public AddNewInventoryProductForm(IStoreConstants storeConstants,
-									  MessageForm messageForm,
+	/// <summary>The store's catalogue, fetched when the dialog opens. The combo shows DisplayName;
+	/// the server expects Code, so every save looks the code back up from here.</summary>
+	private IReadOnlyList<ProductCategoryDto> _categories = [];
+
+	public AddNewInventoryProductForm(MessageForm messageForm,
 									  IInventoryProductService inventoryProductService,
 									  IStoreHubClient storeHubClient)
 	{
-		_productCategoryDictionary = storeConstants.ProductCategories;
 		_messageForm = messageForm;
 		_inventoryProductService = inventoryProductService;
 		_storeHubClient = storeHubClient;
@@ -106,7 +108,7 @@ public partial class AddNewInventoryProductForm : Form
 			return false;
 		}
 
-		if (!_productCategoryDictionary.Values.Contains(CategoryComboBox.Texts.Trim()))
+		if (SelectedCategoryCode() is null)
 		{
 			_messageForm.ShowDialog("กรุณาเลือกประเภทสินค้าให้ถูกต้อง", "ประเภทสินค้าไม่ถูกต้อง");
                 
@@ -118,20 +120,38 @@ public partial class AddNewInventoryProductForm : Form
 
 	private async Task PopulateProductCategoryComboBoxAsync()
 	{
-		bool multipleTypes = true;
-		try { multipleTypes = (await _storeHubClient.GetStoreFeaturesAsync()).MultipleProductTypesEnabled; }
-		catch { /* on failure, fall back to showing all categories; server still guards creation */ }
-
 		CategoryComboBox.Items.Clear();
+		_categories = [];
 
-		foreach (var item in _productCategoryDictionary)
+		IReadOnlyList<ProductCategoryDto> categories;
+		bool multipleTypes;
+		try
 		{
-			if (!multipleTypes && item.Key == (int)ProductCategory.Hardware)
-				continue; // Hardware hidden on general-only stores
+			categories = await _storeHubClient.GetProductCategoriesAsync();
+			multipleTypes = (await _storeHubClient.GetStoreFeaturesAsync()).MultipleProductTypesEnabled;
+		}
+		catch
+		{
+			// The server still guards creation, so a fetch failure must not offer a wrong set.
+			// Leave the picker empty and let the operator retry.
+			return;
+		}
 
-			CategoryComboBox.Items.Add(item.Value);
+		_categories = categories;
+
+		foreach (var category in categories.Where(c => c.IsEnabled))
+		{
+			// Hide kinds this store may not use; the server rejects them anyway.
+			if (!multipleTypes && category.Kind != ProductCategoryKind.GeneralGoods)
+				continue;
+
+			CategoryComboBox.Items.Add(category.DisplayName);
 		}
 	}
+
+	/// <summary>The catalogue Code behind the selected DisplayName, or null if nothing matches.</summary>
+	private string? SelectedCategoryCode() =>
+		_categories.FirstOrDefault(c => c.DisplayName == CategoryComboBox.Texts.Trim())?.Code;
 
 	private async void SaveProductEntryButton_Click(object sender, EventArgs e)
 	{
@@ -157,8 +177,8 @@ public partial class AddNewInventoryProductForm : Form
 		// Required Attributes
 		var quantity = int.Parse(QuantityTextBox.Texts.Trim());
 		var unitPrice = decimal.Parse(UnitPriceTextBox.Texts.Trim());
-		var category = _productCategoryDictionary.FirstOrDefault(x => x.Value == CategoryComboBox.Texts);
-		var categoryId = category.Key;
+		// Validated before we get here, so a null code is unreachable.
+		var categoryCode = SelectedCategoryCode()!;
 
 		// Optional Attributes
 		decimal? groupPrice = decimal.TryParse(GroupPriceTextBox.Texts.Trim(), out var gp) ? gp : null;
@@ -170,7 +190,7 @@ public partial class AddNewInventoryProductForm : Form
 			Description = DescriptionTextBox.Texts.Trim(),
 			QuantityInStock = quantity,
 			UnitPrice = unitPrice,
-			Category = categoryId,
+			Category = categoryCode,
 			IsTrackable = IsTrackableCheckBox.Checked,
 			Manufacturer = string.IsNullOrWhiteSpace(ManufacturerTextBox.Texts) ? null : ManufacturerTextBox.Texts.Trim(),
 			Brand = string.IsNullOrWhiteSpace(BrandTextBox.Texts) ? null : BrandTextBox.Texts.Trim(),

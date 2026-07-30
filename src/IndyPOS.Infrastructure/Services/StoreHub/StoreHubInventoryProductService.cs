@@ -1,5 +1,4 @@
 using IndyPOS.Application.Abstractions.StoreHub;
-using IndyPOS.Application.Common.Enums;
 using IndyPOS.Application.Common.Interfaces;
 using IndyPOS.Application.UseCases.InventoryProducts;
 using IndyPOS.Application.UseCases.StoreHub.Products;
@@ -19,20 +18,17 @@ public class StoreHubInventoryProductService : IInventoryProductService
 {
     private readonly IStoreHubClient _storeHubClient;
     private readonly IProductCacheService _productCacheService;
-    private readonly IStoreConstants _storeConstants;
     private readonly IEventAggregator _eventAggregator;
     private readonly ILogger<StoreHubInventoryProductService> _logger;
 
     public StoreHubInventoryProductService(
         IStoreHubClient storeHubClient,
         IProductCacheService productCacheService,
-        IStoreConstants storeConstants,
         IEventAggregator eventAggregator,
         ILogger<StoreHubInventoryProductService> logger)
     {
         _storeHubClient = storeHubClient;
         _productCacheService = productCacheService;
-        _storeConstants = storeConstants;
         _eventAggregator = eventAggregator;
         _logger = logger;
     }
@@ -48,7 +44,7 @@ public class StoreHubInventoryProductService : IInventoryProductService
             Barcode = request.Barcode,
             Name = request.Description, // StoreHub uses "Name", WinForms uses "Description"
             Description = request.Description,
-            Category = GetCategoryName(request.Category),
+            Category = request.Category,
             Brand = request.Brand,
             Manufacturer = request.Manufacturer,
             UnitPrice = request.UnitPrice,
@@ -86,7 +82,7 @@ public class StoreHubInventoryProductService : IInventoryProductService
             Barcode = barcode,
             Name = request.Description,
             Description = request.Description,
-            Category = GetCategoryName(request.Category),
+            Category = request.Category,
             Brand = request.Brand,
             Manufacturer = request.Manufacturer,
             UnitPrice = request.UnitPrice,
@@ -141,7 +137,7 @@ public class StoreHubInventoryProductService : IInventoryProductService
 
         _logger.LogInformation("Product quantity adjusted: {Id}, Target: {Quantity}", result.Id, targetQuantity);
 
-        return MapToInventoryProductDto(result, GetCategoryId(result.Category), isTrackable: true, targetQuantity);
+        return MapToInventoryProductDto(result, result.Category, isTrackable: true, targetQuantity);
     }
 
     public async Task<string> GenerateBarcodeAsync(CancellationToken cancellationToken = default)
@@ -164,28 +160,25 @@ public class StoreHubInventoryProductService : IInventoryProductService
             throw new KeyNotFoundException($"Product not found with barcode: {barcode}");
         }
 
-        return Task.FromResult(MapToInventoryProductDto(product, GetCategoryId(product.Category), isTrackable: true));
+        return Task.FromResult(MapToInventoryProductDto(product, product.Category, isTrackable: true));
     }
 
     public Task<IReadOnlyList<InventoryProductDto>> GetAllAsync(CancellationToken cancellationToken = default)
     {
         var result = _productCacheService.GetAll()
-            .Select(p => MapToInventoryProductDto(p, GetCategoryId(p.Category), isTrackable: true))
+            .Select(p => MapToInventoryProductDto(p, p.Category, isTrackable: true))
             .ToList();
 
         return Task.FromResult<IReadOnlyList<InventoryProductDto>>(result);
     }
 
-    public Task<IReadOnlyList<InventoryProductDto>> GetByCategoryIdAsync(
-        int categoryId,
+    public Task<IReadOnlyList<InventoryProductDto>> GetByCategoryAsync(
+        string categoryCode,
         CancellationToken cancellationToken = default)
     {
-        var products = _productCacheService.GetAll()
-            .Where(p => GetCategoryId(p.Category) == categoryId)
-            .ToList();
-
-        var result = products
-            .Select(p => MapToInventoryProductDto(p, categoryId, isTrackable: true))
+        var result = _productCacheService.GetAll()
+            .Where(p => string.Equals(p.Category, categoryCode, StringComparison.OrdinalIgnoreCase))
+            .Select(p => MapToInventoryProductDto(p, categoryCode, isTrackable: true))
             .ToList();
 
         return Task.FromResult<IReadOnlyList<InventoryProductDto>>(result);
@@ -198,7 +191,7 @@ public class StoreHubInventoryProductService : IInventoryProductService
         var products = _productCacheService.Search(keyword);
 
         var result = products
-            .Select(p => MapToInventoryProductDto(p, GetCategoryId(p.Category), isTrackable: true))
+            .Select(p => MapToInventoryProductDto(p, p.Category, isTrackable: true))
             .ToList();
 
         return Task.FromResult<IReadOnlyList<InventoryProductDto>>(result);
@@ -213,7 +206,7 @@ public class StoreHubInventoryProductService : IInventoryProductService
             .ToList();
 
         var result = products
-            .Select(p => MapToInventoryProductDto(p, GetCategoryId(p.Category), isTrackable: true))
+            .Select(p => MapToInventoryProductDto(p, p.Category, isTrackable: true))
             .ToList();
 
         return Task.FromResult<IReadOnlyList<InventoryProductDto>>(result);
@@ -223,7 +216,7 @@ public class StoreHubInventoryProductService : IInventoryProductService
 
     private InventoryProductDto MapToInventoryProductDto(
         ProductDto product,
-        int categoryId,
+        string categoryCode,
         bool isTrackable,
         int? quantityOverride = null)
     {
@@ -234,7 +227,7 @@ public class StoreHubInventoryProductService : IInventoryProductService
             Description = product.Name,
             Manufacturer = product.Manufacturer ?? string.Empty,
             Brand = product.Brand ?? string.Empty,
-            Category = categoryId,
+            Category = categoryCode,
             UnitPrice = product.UnitPrice,
             QuantityInStock = quantityOverride ?? 0, // TODO: Get from StoreHub when available
             GroupPrice = product.GroupPrice ?? 0m,
@@ -243,24 +236,6 @@ public class StoreHubInventoryProductService : IInventoryProductService
             DateCreated = DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss"),
             DateUpdated = DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss")
         };
-    }
-
-    private string? GetCategoryName(int categoryId)
-    {
-        return _storeConstants.ProductCategories.TryGetValue(categoryId, out var name) ? name : null;
-    }
-
-    private int GetCategoryId(string? categoryName)
-    {
-        if (string.IsNullOrEmpty(categoryName))
-            return (int)ProductCategory.GeneralGoods;
-
-        var category = _storeConstants.ProductCategories
-            .FirstOrDefault(x => x.Value.Equals(categoryName, StringComparison.OrdinalIgnoreCase));
-
-        return category.Key == 0
-            ? (int)ProductCategory.GeneralGoods
-            : category.Key;
     }
 
     #endregion

@@ -1,5 +1,6 @@
 using FluentAssertions;
 using IndyPOS.Application.Abstractions.StoreHub;
+using IndyPOS.Application.Common.Constants;
 using IndyPOS.Application.Common.Interfaces;
 using IndyPOS.Application.UseCases.StoreHub.Products;
 using IndyPOS.Application.UseCases.StoreHub.Products.AdjustQuantity;
@@ -26,18 +27,8 @@ public class StoreHubInventoryProductServiceTests
     {
         _storeHubClientMock = new Mock<IStoreHubClient>();
         _productCacheServiceMock = new Mock<IProductCacheService>();
-        _storeConstantsMock = new Mock<IStoreConstants>();
         _eventAggregatorMock = new Mock<IEventAggregator>();
         _loggerMock = new Mock<ILogger<StoreHubInventoryProductService>>();
-
-        // Setup default category dictionary
-        var categories = new Dictionary<int, string>
-        {
-            { 1, "เครื่องดื่ม" },
-            { 2, "อาหาร" },
-            { 3, "ขนม" }
-        };
-        _storeConstantsMock.Setup(x => x.ProductCategories).Returns(categories);
 
         // Setup event aggregator
         _eventAggregatorMock.Setup(x => x.GetEvent<InventoryProductAddedEvent>())
@@ -50,7 +41,6 @@ public class StoreHubInventoryProductServiceTests
         _sut = new StoreHubInventoryProductService(
             _storeHubClientMock.Object,
             _productCacheServiceMock.Object,
-            _storeConstantsMock.Object,
             _eventAggregatorMock.Object,
             _loggerMock.Object);
     }
@@ -63,7 +53,7 @@ public class StoreHubInventoryProductServiceTests
         {
             Barcode = "1234567890123",
             Description = "Test Product",
-            Category = 1,
+            Category = ProductCategoryCodes.Beverages,
             UnitPrice = 100m,
             QuantityInStock = 10,
             IsTrackable = true
@@ -115,7 +105,7 @@ public class StoreHubInventoryProductServiceTests
         {
             Id = productId,
             Description = "Updated Product",
-            Category = 2,
+            Category = ProductCategoryCodes.Food,
             UnitPrice = 150m,
             QuantityInStock = 20
         };
@@ -288,24 +278,23 @@ public class StoreHubInventoryProductServiceTests
     public async Task GetByCategoryIdAsync_ShouldReturnFilteredProducts()
     {
         // Arrange
-        var categoryId = 1;
-        var categoryName = "เครื่องดื่ม";
+        var categoryCode = ProductCategoryCodes.Beverages;
 
         var products = new List<ProductDto>
         {
-            new(Guid.NewGuid(), "123", "Product 1", "Desc 1", categoryName, null, null, 10m, null, null, true),
-            new(Guid.NewGuid(), "456", "Product 2", "Desc 2", categoryName, null, null, 20m, null, null, true),
-            new(Guid.NewGuid(), "789", "Product 3", "Desc 3", "อาหาร", null, null, 30m, null, null, true)
+            new(Guid.NewGuid(), "123", "Product 1", "Desc 1", categoryCode, null, null, 10m, null, null, true),
+            new(Guid.NewGuid(), "456", "Product 2", "Desc 2", categoryCode, null, null, 20m, null, null, true),
+            new(Guid.NewGuid(), "789", "Product 3", "Desc 3", ProductCategoryCodes.Food, null, null, 30m, null, null, true)
         };
 
         _productCacheServiceMock.Setup(x => x.GetAll()).Returns(products);
 
         // Act
-        var result = await _sut.GetByCategoryIdAsync(categoryId);
+        var result = await _sut.GetByCategoryAsync(categoryCode);
 
         // Assert
         result.Should().HaveCount(2);
-        result.All(p => p.Category == categoryId).Should().BeTrue();
+        result.All(p => p.Category == categoryCode).Should().BeTrue();
     }
 
     [Fact]

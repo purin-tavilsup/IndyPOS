@@ -1,5 +1,7 @@
-﻿using IndyPOS.Application.Common.Interfaces;
+﻿using IndyPOS.Application.Abstractions.StoreHub;
+using IndyPOS.Application.Common.Interfaces;
 using IndyPOS.Application.Events;
+using IndyPOS.Application.UseCases.StoreHub.ProductCategories;
 using IndyPOS.Domain.Events;
 using IndyPOS.Windows.Forms.Enums;
 using IndyPOS.Windows.Forms.Events;
@@ -14,16 +16,20 @@ public partial class InventoryPanel : UserControl
 {
     private readonly IEventAggregator _eventAggregator;
     private readonly IInventoryProductService _inventoryProductService;
-    private readonly IReadOnlyDictionary<int, string> _productCategoryDictionary;
+    private readonly IStoreHubClient _storeHubClient;
     private readonly AddNewInventoryProductForm _addNewProductForm;
     private readonly UpdateInventoryProductForm _updateProductForm;
     private readonly AddNewInventoryProductWithCustomBarcodeForm _addNewProductWithCustomBarcodeForm;
     private readonly MessageForm _messageForm;
-    private int? _lastQueryCategoryId;
+
+    /// <summary>The store's catalogue, refreshed on login. Empty until then.</summary>
+    private IReadOnlyList<ProductCategoryDto> _categories = [];
+
+    /// <summary>Catalogue code of the current filter; null means "all products".</summary>
+    private string? _lastQueryCategoryCode;
     private SubPanel _activeSubPanel;
     private bool _suppressCategorySelectionChanged;
 
-    private const int AllProductsCategoryId = 0;
     private const string AllProductsCategoryText = "ทั้งหมด";
 
     private enum ProductColumn
@@ -42,7 +48,7 @@ public partial class InventoryPanel : UserControl
     }
 
     public InventoryPanel(IEventAggregator eventAggregator,
-                          IStoreConstants storeConstants,
+                          IStoreHubClient storeHubClient,
                           AddNewInventoryProductForm addNewProductForm,
                           UpdateInventoryProductForm updateProductForm,
                           AddNewInventoryProductWithCustomBarcodeForm addNewProductWithCustomBarcodeForm,
@@ -51,14 +57,13 @@ public partial class InventoryPanel : UserControl
     {
         _eventAggregator = eventAggregator;
         _inventoryProductService = inventoryProductService;
-        _productCategoryDictionary = storeConstants.ProductCategories;
+        _storeHubClient = storeHubClient;
         _addNewProductForm = addNewProductForm;
         _updateProductForm = updateProductForm;
         _addNewProductWithCustomBarcodeForm = addNewProductWithCustomBarcodeForm;
         _messageForm = messageForm;
 
         InitializeComponent();
-        InitializeProductCategories();
         InitializeProductDataView();
 
         SubscribeEvents();
@@ -74,15 +79,32 @@ public partial class InventoryPanel : UserControl
         _eventAggregator.GetEvent<UserLoggedInEvent>().Subscribe(UserLoggedIn);
     }
 
-    private void InitializeProductCategories()
+    /// <summary>
+    /// Fills the filter from the store's catalogue. Called on login rather than in the
+    /// constructor: the catalogue is fetched over an authenticated endpoint.
+    /// </summary>
+    private async Task InitializeProductCategoriesAsync()
     {
-        CategoryComboBox.Items.Clear();
-        CategoryComboBox.Items.Add(AllProductsCategoryText);
-
-        foreach (var item in _productCategoryDictionary)
+        try
         {
-            CategoryComboBox.Items.Add(item.Value);
+            _categories = await _storeHubClient.GetProductCategoriesAsync();
         }
+        catch
+        {
+            // Leave the filter at "all products" rather than blocking the inventory view.
+            return;
+        }
+
+        CategoryComboBox.UiThread(delegate
+        {
+            CategoryComboBox.Items.Clear();
+            CategoryComboBox.Items.Add(AllProductsCategoryText);
+
+            foreach (var category in _categories.Where(c => c.IsEnabled))
+            {
+                CategoryComboBox.Items.Add(category.DisplayName);
+            }
+        });
     }
 
     private void InitializeProductDataView()
@@ -153,32 +175,33 @@ public partial class InventoryPanel : UserControl
 
     private async void UserLoggedIn(ILoggedInUser loggedInUser)
     {
+        await InitializeProductCategoriesAsync();
         await ShowAllProductsAsync();
     }
 
     private async Task RefreshCurrentProductViewAsync()
     {
-        if (_lastQueryCategoryId is null or AllProductsCategoryId)
+        if (_lastQueryCategoryCode is null)
         {
             await ShowAllProductsAsync();
             return;
         }
 
-        await ShowProductsByCategoryId(_lastQueryCategoryId.Value);
+        await ShowProductsByCategoryAsync(_lastQueryCategoryCode);
     }
 
     private async Task ShowAllProductsAsync()
     {
-        _lastQueryCategoryId = AllProductsCategoryId;
+        _lastQueryCategoryCode = null;
         SelectAllProductsCategory();
 
         var products = await _inventoryProductService.GetAllAsync();
         ShowProducts(products);
     }
 
-    private async Task ShowProductsByCategoryId(int id)
+    private async Task ShowProductsByCategoryAsync(string categoryCode)
     {
-        var products = await GetInventoryProductsByCategoryIdAsync(id);
+        var products = await _inventoryProductService.GetByCategoryAsync(categoryCode);
 
         ShowProducts(products);
     }
@@ -204,9 +227,10 @@ public partial class InventoryPanel : UserControl
         var columnCount = ProductDataView.ColumnCount;
         var productRow = new object[columnCount];
 
-        var category = _productCategoryDictionary.ContainsKey(product.Category) ?
-                           _productCategoryDictionary[product.Category] :
-                           "Unknown";
+        // A product may reference a category this store no longer offers; show the raw code
+        // rather than "Unknown" so the row stays traceable.
+        var category = _categories.FirstOrDefault(c => c.Code == product.Category)?.DisplayName
+                       ?? product.Category;
 
         productRow[(int)ProductColumn.ProductCode] = product.Barcode;
         productRow[(int)ProductColumn.Description] = product.Description;
@@ -298,11 +322,6 @@ public partial class InventoryPanel : UserControl
         AddNewProduct(barcode);
     }
 
-    private async Task<IReadOnlyList<InventoryProductDto>> GetInventoryProductsByCategoryIdAsync(int id)
-    {
-        return await _inventoryProductService.GetByCategoryIdAsync(id);
-    }
-
     private async Task<InventoryProductDto> GetInventoryProductsByByBarcodeAsync(string barcode)
     {
         return await _inventoryProductService.GetByBarcodeAsync(barcode);
@@ -364,7 +383,7 @@ public partial class InventoryPanel : UserControl
 
     private void ClearLastQueryHistory()
     {
-        _lastQueryCategoryId = null;
+        _lastQueryCategoryCode = null;
     }
 
     private async void CategoryComboBox_SelectedIndexChanged(object sender, EventArgs e)
@@ -380,12 +399,17 @@ public partial class InventoryPanel : UserControl
             return;
         }
 
-        var category = _productCategoryDictionary.FirstOrDefault(x => x.Value == selectedCategoryValue);
-        var categoryId = category.Key;
+        var categoryCode = _categories.FirstOrDefault(c => c.DisplayName == selectedCategoryValue)?.Code;
 
-        _lastQueryCategoryId = categoryId;
+        if (categoryCode is null)
+        {
+            await ShowAllProductsAsync();
+            return;
+        }
 
-        await ShowProductsByCategoryId(categoryId);
+        _lastQueryCategoryCode = categoryCode;
+
+        await ShowProductsByCategoryAsync(categoryCode);
     }
 
     private async void AddProductWithBarcodeButton_Click(object sender, EventArgs e)
