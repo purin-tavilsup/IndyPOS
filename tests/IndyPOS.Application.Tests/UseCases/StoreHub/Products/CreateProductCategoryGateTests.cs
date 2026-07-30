@@ -14,10 +14,10 @@ namespace IndyPOS.Application.Tests.UseCases.StoreHub.Products;
 
 public class CreateProductCategoryGateTests
 {
-    private static ProductCategory Category(string code, ProductCategoryKind kind) => new()
+    private static ProductCategory Category(string code, ProductCategoryKind kind, bool isEnabled = true) => new()
     {
         StoreId = "STORE-A", Code = code, DisplayName = code, Kind = kind,
-        IsEnabled = true, DisplayOrder = 1,
+        IsEnabled = isEnabled, DisplayOrder = 1,
         CreatedUtc = DateTime.UtcNow, LastModifiedUtc = DateTime.UtcNow
     };
 
@@ -57,6 +57,40 @@ public class CreateProductCategoryGateTests
             CommandWithCategory("NoSuchCategory"), CancellationToken.None);
 
         await act.Should().ThrowAsync<UnknownProductCategoryException>();
+    }
+
+    [Fact]
+    public async Task HandleAsync_WithADisabledCategory_ShouldThrowUnknownProductCategory()
+    {
+        // Spec section 7: a disabled category is treated exactly as an unknown one on a NEW
+        // product. The picker hides it too, but the server is the boundary — enforcing this only
+        // in the UI would rebuild the client-trusting guard this epic set out to remove.
+        var handler = BuildHandler(StoreType.GeneralHardware,
+            Category(ProductCategoryCodes.Beverages, ProductCategoryKind.GeneralGoods, isEnabled: false));
+
+        var act = async () => await handler.HandleAsync(
+            CommandWithCategory(ProductCategoryCodes.Beverages), CancellationToken.None);
+
+        await act.Should().ThrowAsync<UnknownProductCategoryException>();
+    }
+
+    [Fact]
+    public async Task HandleAsync_WithALegacyCategoryValue_ShouldThrowRatherThanAccept()
+    {
+        // Guard for the migration epic. Products written before this epic carried "Hardware" or
+        // "GeneralGoods", and the SQLite migration writes raw legacy ids like "50". None of those
+        // are catalogue codes. No v4 store has ever run, so no such row exists today — this test
+        // exists so the migration cannot start writing them without a red build.
+        foreach (var legacyValue in new[] { "Hardware", "GeneralGoods", "50", "10" })
+        {
+            var handler = BuildHandler(StoreType.GeneralHardware, category: null);
+
+            var act = async () => await handler.HandleAsync(
+                CommandWithCategory(legacyValue), CancellationToken.None);
+
+            await act.Should().ThrowAsync<UnknownProductCategoryException>(
+                $"'{legacyValue}' is a legacy value, not a catalogue code");
+        }
     }
 
     [Fact]

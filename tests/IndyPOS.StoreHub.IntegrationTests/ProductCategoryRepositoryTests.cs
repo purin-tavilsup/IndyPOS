@@ -29,11 +29,11 @@ public class ProductCategoryRepositoryTests : IntegrationTestBase
     [Fact]
     public async Task GetAllAsync_ShouldReturnOnlyThisStoreOrderedByDisplayOrder()
     {
-        var mine = CreateRepository("STORE-MINE");
+        var mine = CreateRepository("STORE-REPO-MINE");
         await mine.AddAsync(Category("Toys", 2, ProductCategoryKind.GeneralGoods));
         await mine.AddAsync(Category("Gifts", 1, ProductCategoryKind.GeneralGoods));
 
-        var theirs = CreateRepository("STORE-THEIRS");
+        var theirs = CreateRepository("STORE-REPO-THEIRS");
         await theirs.AddAsync(Category("PlumbingMaterials", 1, ProductCategoryKind.Hardware));
 
         var result = await mine.GetAllAsync();
@@ -45,7 +45,7 @@ public class ProductCategoryRepositoryTests : IntegrationTestBase
     public async Task AddAsync_ShouldOverwriteACallerSuppliedStoreId()
     {
         // Never trust the caller's store id - the same guard PaymentMethodRepository applies.
-        var repository = CreateRepository("STORE-REAL");
+        var repository = CreateRepository("STORE-REPO-REAL");
         var category = Category("Toys", 1, ProductCategoryKind.GeneralGoods);
         category.StoreId = "STORE-SOMEONE-ELSE";
 
@@ -57,8 +57,10 @@ public class ProductCategoryRepositoryTests : IntegrationTestBase
     [Fact]
     public async Task GetByCodeAsync_ForAnotherStoresCode_ShouldReturnNull()
     {
-        await CreateRepository("STORE-A").AddAsync(Category("Gifts", 1, ProductCategoryKind.GeneralGoods));
+        // Store ids are prefixed so they cannot collide with ProductCategorySeederTests, which
+        // seeds "Gifts" under its own ids against this same shared container.
+        await CreateRepository("STORE-REPO-A").AddAsync(Category("Gifts", 1, ProductCategoryKind.GeneralGoods));
 
-        (await CreateRepository("STORE-B").GetByCodeAsync("Gifts")).Should().BeNull();
+        (await CreateRepository("STORE-REPO-B").GetByCodeAsync("Gifts")).Should().BeNull();
     }
 }
