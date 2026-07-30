@@ -15,6 +15,7 @@ using IndyPOS.Application.UseCases.StoreHub.Products.GenerateBarcode;
 using IndyPOS.Application.UseCases.StoreHub.Products.Get;
 using IndyPOS.Application.UseCases.StoreHub.Products.Update;
 using IndyPOS.Application.UseCases.StoreHub.PaymentMethods;
+using IndyPOS.Application.UseCases.StoreHub.ProductCategories;
 using IndyPOS.Application.UseCases.StoreHub.Reports;
 using IndyPOS.Application.UseCases.StoreHub.Reports.GetInvoiceDetail;
 using IndyPOS.Application.UseCases.StoreHub.Reports.GetInvoices;
@@ -102,6 +103,7 @@ builder.Services.AddTransient<IQueryHandler<GenerateBarcodeQuery, string>, Gener
 // Payment methods handlers
 builder.Services.AddTransient<IQueryHandler<GetOfferablePaymentMethodsQuery, IReadOnlyList<PaymentMethodDto>>, GetOfferablePaymentMethodsQueryHandler>();
 builder.Services.AddTransient<IQueryHandler<GetAllPaymentMethodsQuery, IReadOnlyList<PaymentMethodDto>>, GetAllPaymentMethodsQueryHandler>();
+builder.Services.AddTransient<IQueryHandler<GetProductCategoriesQuery, IReadOnlyList<ProductCategoryDto>>, GetProductCategoriesQueryHandler>();
 builder.Services.AddTransient<ICommandHandler<AddCampaignPaymentMethodCommand, PaymentMethodMutationResponse>, AddCampaignPaymentMethodCommandHandler>();
 builder.Services.AddTransient<ICommandHandler<TogglePaymentMethodCommand, PaymentMethodMutationResponse>, TogglePaymentMethodCommandHandler>();
 builder.Services.AddTransient<ICommandHandler<EditPaymentMethodDisplayCommand, PaymentMethodMutationResponse>, EditPaymentMethodDisplayCommandHandler>();
@@ -337,6 +339,15 @@ app.MapGet("/payment-methods", async (
 {
     var methods = await handler.HandleAsync(new GetOfferablePaymentMethodsQuery(), cancellationToken);
     return Results.Ok(methods);
+}).RequireAuthorization("CanReadProducts");
+
+// Product categories for this store (the POS renders pickers from this)
+app.MapGet("/product-categories", async (
+    IQueryHandler<GetProductCategoriesQuery, IReadOnlyList<ProductCategoryDto>> handler,
+    CancellationToken cancellationToken) =>
+{
+    var categories = await handler.HandleAsync(new GetProductCategoriesQuery(), cancellationToken);
+    return Results.Ok(categories);
 }).RequireAuthorization("CanReadProducts");
 
 // Store feature flags (store-type gating for WinForms clients)
