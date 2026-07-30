@@ -123,6 +123,7 @@ public class ProductsEndpointTests : IntegrationTestBase
         {
             Barcode = $"BAR{Guid.NewGuid():N}"[..13],
             Name = "Test Product",
+            Category = ProductCategoryCodes.Miscellaneous,
             UnitPrice = 99.99m
         };
 
@@ -144,6 +145,7 @@ public class ProductsEndpointTests : IntegrationTestBase
         {
             Barcode = existingProduct.Barcode, // Same barcode as existing
             Name = "Duplicate Product",
+            Category = ProductCategoryCodes.Miscellaneous,
             UnitPrice = 50m
         };
 
@@ -202,6 +204,7 @@ public class ProductsEndpointTests : IntegrationTestBase
             Id = nonExistentId,
             Barcode = "NONEXIST123",
             Name = "Ghost Product",
+            Category = ProductCategoryCodes.Miscellaneous,
             UnitPrice = 1m
         };
 
