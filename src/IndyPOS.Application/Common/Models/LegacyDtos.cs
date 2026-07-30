@@ -29,7 +29,7 @@ public record InvoiceProductDto(
     string Description,
     string Manufacturer,
     string Brand,
-    int Category,
+    string Category,
     decimal UnitPrice,
     int Quantity,
     string DateCreated,

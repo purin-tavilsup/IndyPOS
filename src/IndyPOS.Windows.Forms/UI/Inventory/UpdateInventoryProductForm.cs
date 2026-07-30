@@ -1,6 +1,7 @@
 ﻿using IndyPOS.Application.Abstractions.StoreHub;
-using IndyPOS.Application.Common.Enums;
 using IndyPOS.Application.Common.Interfaces;
+using IndyPOS.Application.UseCases.StoreHub.ProductCategories;
+using IndyPOS.Domain.Enums;
 using System.Diagnostics.CodeAnalysis;
 using IndyPOS.Application.UseCases.InventoryProducts;
 
@@ -12,15 +13,16 @@ public partial class UpdateInventoryProductForm : Form
 	private readonly IInventoryProductService _inventoryProductService;
 	private readonly IStoreHubClient _storeHubClient;
 	private readonly MessageForm _messageForm;
-	private readonly IReadOnlyDictionary<int, string> _productCategoryDictionary;
 	private InventoryProductDto? _product;
 
-	public UpdateInventoryProductForm(IStoreConstants storeConstants,
-									  MessageForm messageForm,
+	/// <summary>The store's catalogue, fetched when the dialog opens. The combo shows DisplayName;
+	/// the server expects Code, so every save looks the code back up from here.</summary>
+	private IReadOnlyList<ProductCategoryDto> _categories = [];
+
+	public UpdateInventoryProductForm(MessageForm messageForm,
 									  IInventoryProductService inventoryProductService,
 									  IStoreHubClient storeHubClient)
 	{
-		_productCategoryDictionary = storeConstants.ProductCategories;
 		_messageForm = messageForm;
 		_inventoryProductService = inventoryProductService;
 		_storeHubClient = storeHubClient;
@@ -53,7 +55,10 @@ public partial class UpdateInventoryProductForm : Form
 		DescriptionTextBox.Texts = _product.Description;
 		QuantityLabel.Text = $"{_product.QuantityInStock}";
 		UnitPriceTextBox.Texts = $"{_product.UnitPrice:N}";
-		CategoryComboBox.Texts = _productCategoryDictionary[_product.Category];
+		// An existing product may sit in a category this store no longer offers; show its label
+		// rather than a blank, so editing an unrelated field does not silently retype it.
+		CategoryComboBox.Texts =
+			_categories.FirstOrDefault(c => c.Code == _product.Category)?.DisplayName ?? string.Empty;
 		GroupPriceTextBox.Texts = $"{_product.GroupPrice:N}";
 		GroupPriceQuantityTextBox.Texts = _product.GroupPriceQuantity.HasValue ? $"{_product.GroupPriceQuantity.Value}" : string.Empty;
 		ManufacturerTextBox.Texts = _product.Manufacturer;
@@ -82,7 +87,7 @@ public partial class UpdateInventoryProductForm : Form
 			return false;
 		}
 
-		if (!_productCategoryDictionary.Values.Contains(CategoryComboBox.Texts.Trim()))
+		if (SelectedCategoryCode() is null)
 		{
 			_messageForm.ShowDialog("กรุณาเลือกประเภทสินค้าให้ถูกต้อง", "ประเภทสินค้าไม่ถูกต้อง");
 			return false;
@@ -93,20 +98,38 @@ public partial class UpdateInventoryProductForm : Form
 
 	private async Task PopulateProductCategoryComboBoxAsync()
 	{
-		bool multipleTypes = true;
-		try { multipleTypes = (await _storeHubClient.GetStoreFeaturesAsync()).MultipleProductTypesEnabled; }
-		catch { /* on failure, fall back to showing all categories; server still guards updates */ }
-
 		CategoryComboBox.Items.Clear();
+		_categories = [];
 
-		foreach (var item in _productCategoryDictionary)
+		IReadOnlyList<ProductCategoryDto> categories;
+		bool multipleTypes;
+		try
 		{
-			if (!multipleTypes && item.Key == (int)ProductCategory.Hardware)
-				continue; // Hardware hidden on general-only stores
+			categories = await _storeHubClient.GetProductCategoriesAsync();
+			multipleTypes = (await _storeHubClient.GetStoreFeaturesAsync()).MultipleProductTypesEnabled;
+		}
+		catch
+		{
+			// The server still guards updates, so a fetch failure must not offer a wrong set.
+			// Leave the picker empty and let the operator retry.
+			return;
+		}
 
-			CategoryComboBox.Items.Add(item.Value);
+		_categories = categories;
+
+		foreach (var category in categories.Where(c => c.IsEnabled))
+		{
+			// Hide kinds this store may not use; the server rejects them anyway.
+			if (!multipleTypes && category.Kind != ProductCategoryKind.GeneralGoods)
+				continue;
+
+			CategoryComboBox.Items.Add(category.DisplayName);
 		}
 	}
+
+	/// <summary>The catalogue Code behind the selected DisplayName, or null if nothing matches.</summary>
+	private string? SelectedCategoryCode() =>
+		_categories.FirstOrDefault(c => c.DisplayName == CategoryComboBox.Texts.Trim())?.Code;
 
 	private async void UpdateProductButton_Click(object sender, EventArgs e)
 	{
@@ -129,8 +152,8 @@ public partial class UpdateInventoryProductForm : Form
 
 	private UpdateInventoryProductRequest CreateRequestForUpdateProduct(InventoryProductDto product)
 	{
-		var category = _productCategoryDictionary.FirstOrDefault(x => x.Value == CategoryComboBox.Texts);
-		var categoryId = category.Key;
+		// Validated before we get here, so a null code is unreachable.
+		var categoryCode = SelectedCategoryCode()!;
 
 		// Optional Attributes
 		decimal? groupPrice = decimal.TryParse(GroupPriceTextBox.Texts.Trim(), out var gp) ? gp : null;
@@ -144,7 +167,7 @@ public partial class UpdateInventoryProductForm : Form
 			UnitPrice = decimal.Parse(UnitPriceTextBox.Texts.Trim()),
 			GroupPrice = groupPrice,
 			GroupPriceQuantity = groupPriceQuantity,
-			Category = categoryId,
+			Category = categoryCode,
 			Manufacturer = string.IsNullOrWhiteSpace(ManufacturerTextBox.Texts) ? null : ManufacturerTextBox.Texts.Trim(),
 			Brand = string.IsNullOrWhiteSpace(BrandTextBox.Texts) ? null : BrandTextBox.Texts.Trim()
 		};

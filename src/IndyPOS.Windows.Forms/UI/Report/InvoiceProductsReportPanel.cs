@@ -1,7 +1,8 @@
-﻿using IndyPOS.Application.Common.Enums;
+﻿using IndyPOS.Application.Abstractions.StoreHub;
 using IndyPOS.Application.Common.Extensions;
 using IndyPOS.Application.Common.Interfaces;
 using IndyPOS.Application.Common.Models;
+using IndyPOS.Domain.Enums;
 using System.Diagnostics.CodeAnalysis;
 using IndyPOS.Windows.Forms.UI;
 
@@ -11,8 +12,16 @@ namespace IndyPOS.Windows.Forms.UI.Report;
 public partial class InvoiceProductsReportPanel : UserControl
 {
 	private readonly IReportService _reportService;
+	private readonly IStoreHubClient _storeHubClient;
 	private readonly MessageForm _messageForm;
 	private IEnumerable<InvoiceProductDto> _products;
+
+	/// <summary>
+	/// Catalogue codes classified as Hardware, refreshed alongside each report fetch. This panel
+	/// reports on HISTORICAL rows, so it classifies by looking the stored code up rather than by
+	/// an id range — the legacy ranges collide across store types.
+	/// </summary>
+	private HashSet<string> _hardwareCodes = new(StringComparer.OrdinalIgnoreCase);
 
 	private enum ProductColumn
 	{
@@ -27,9 +36,12 @@ public partial class InvoiceProductsReportPanel : UserControl
 		Note
 	}
 
-	public InvoiceProductsReportPanel(IReportService reportService, MessageForm messageForm)
+	public InvoiceProductsReportPanel(IReportService reportService,
+									  IStoreHubClient storeHubClient,
+									  MessageForm messageForm)
 	{
 		_reportService = reportService;
+		_storeHubClient = storeHubClient;
 		_messageForm = messageForm;
 		_products = Enumerable.Empty<InvoiceProductDto>();
 
@@ -110,14 +122,14 @@ public partial class InvoiceProductsReportPanel : UserControl
 		InvoiceProductsDataView.Rows[rowIndex].DefaultCellStyle.BackColor = rowBackColor;
 	}
 
-	private static bool IsHardwareProductGroup(InvoiceProductDto product)
+	private bool IsHardwareProductGroup(InvoiceProductDto product)
 	{
-		return product.Category >= (int) ProductCategory.Hardware;
+		return _hardwareCodes.Contains(product.Category);
 	}
 
-	private static bool IsGeneralProductGroup(InvoiceProductDto product)
+	private bool IsGeneralProductGroup(InvoiceProductDto product)
 	{
-		return product.Category < (int) ProductCategory.Hardware;
+		return !IsHardwareProductGroup(product);
 	}
 
 	private void ShowInvoiceProducts(IEnumerable<InvoiceProductDto> products)
@@ -135,7 +147,26 @@ public partial class InvoiceProductsReportPanel : UserControl
 		var startDate = StartDatePicker.Value.ToDateOnly();
 		var endDate = EndDatePicker.Value.ToDateOnly();
 
+		await RefreshHardwareCodesAsync();
+
 		return await _reportService.GetInvoiceProductsByDateRangeAsync(startDate, endDate);
+	}
+
+	private async Task RefreshHardwareCodesAsync()
+	{
+		try
+		{
+			var categories = await _storeHubClient.GetProductCategoriesAsync();
+
+			_hardwareCodes = categories
+				.Where(c => c.Kind == ProductCategoryKind.Hardware)
+				.Select(c => c.Code)
+				.ToHashSet(StringComparer.OrdinalIgnoreCase);
+		}
+		catch
+		{
+			// Keep the last known set rather than reclassifying every line as general.
+		}
 	}
 
 	private async Task ShowCachedProductsAsync(Func<IEnumerable<InvoiceProductDto>, IEnumerable<InvoiceProductDto>> filter)

@@ -1,5 +1,6 @@
 using IndyPOS.Application.Abstractions.StoreHub.Repositories;
 using IndyPOS.Application.Abstractions.StoreHub.Services;
+using IndyPOS.Application.Common.Constants;
 using IndyPOS.Application.Common.Enums;
 using IndyPOS.Application.Common.Interfaces;
 using IndyPOS.Domain.Entities.Core;
@@ -110,7 +111,7 @@ public class DevelopmentDataSeeder
     private async Task SeedProductsAsync(CancellationToken cancellationToken)
     {
         var storeId = _storeIdentity.StoreId;
-        var generalGoodsCategory = nameof(Application.Common.Enums.ProductCategory.GeneralGoods);
+        var generalGoodsCategory = ProductCategoryCodes.Miscellaneous;
         var testProducts = new[]
         {
             new { Barcode = "8850000000001", Name = "น้ำดื่ม 600ml", UnitPrice = 7m, Category = generalGoodsCategory },

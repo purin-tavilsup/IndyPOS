@@ -1,7 +1,8 @@
-using IndyPOS.Application.Common.Enums;
+using IndyPOS.Application.Abstractions.StoreHub.Repositories;
 using IndyPOS.Application.Common.Interfaces;
 using IndyPOS.Application.Common.Models;
 using IndyPOS.Application.UseCases.StoreHub.Reports.GetLegacySalesSummary;
+using IndyPOS.Domain.Enums;
 using IndyPOS.Infrastructure.Persistence.StoreHub;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -16,15 +17,18 @@ namespace IndyPOS.Infrastructure.QueryHandlers.Reports;
 public class GetLegacySalesSummaryQueryHandler : IQueryHandler<GetLegacySalesSummaryQuery, SalesSummary>
 {
     private readonly StoreHubDbContext _dbContext;
+    private readonly IProductCategoryRepository _categoryRepository;
     private readonly IStoreIdentityService _storeIdentity;
     private readonly ILogger<GetLegacySalesSummaryQueryHandler> _logger;
 
     public GetLegacySalesSummaryQueryHandler(
         StoreHubDbContext dbContext,
+        IProductCategoryRepository categoryRepository,
         IStoreIdentityService storeIdentity,
         ILogger<GetLegacySalesSummaryQueryHandler> logger)
     {
         _dbContext = dbContext;
+        _categoryRepository = categoryRepository;
         _storeIdentity = storeIdentity;
         _logger = logger;
     }
@@ -52,6 +56,14 @@ public class GetLegacySalesSummaryQueryHandler : IQueryHandler<GetLegacySalesSum
             .Select(p => new { p.Id, p.Category })
             .ToDictionaryAsync(p => p.Id, p => p.Category, cancellationToken);
 
+        // Which codes count as hardware, resolved once from the catalogue rather than per row.
+        // This reports on HISTORICAL rows, so it must classify by looking the stored code up
+        // rather than by an id range - the ranges collide across store types.
+        var hardwareCodes = (await _categoryRepository.GetAllAsync(cancellationToken))
+            .Where(c => c.Kind == ProductCategoryKind.Hardware)
+            .Select(c => c.Code)
+            .ToHashSet(StringComparer.OrdinalIgnoreCase);
+
         // Get PayLater records for this period
         var payLaters = await _dbContext.PayLaters
             .Where(pl => pl.CreatedUtc >= dateRange.StartUtc && pl.CreatedUtc < dateRange.EndExclusiveUtc)
@@ -74,7 +86,7 @@ public class GetLegacySalesSummaryQueryHandler : IQueryHandler<GetLegacySalesSum
             foreach (var line in invoice.Lines)
             {
                 var category = productCategories.GetValueOrDefault(line.ProductId);
-                var isHardware = IsHardwareCategory(category);
+                var isHardware = IsHardwareCategory(category, hardwareCodes);
                 var lineTotal = line.LineTotal;
 
                 if (isHardware)
@@ -126,12 +138,6 @@ public class GetLegacySalesSummaryQueryHandler : IQueryHandler<GetLegacySalesSum
         };
     }
 
-    private static bool IsHardwareCategory(string? category)
-    {
-        // Hardware category starts at 50 in the enum
-        // Categories < 50 are general goods
-        if (string.IsNullOrEmpty(category)) return false;
-
-        return category.Equals(nameof(ProductCategory.Hardware), StringComparison.OrdinalIgnoreCase);
-    }
+    private static bool IsHardwareCategory(string? category, HashSet<string> hardwareCodes) =>
+        !string.IsNullOrEmpty(category) && hardwareCodes.Contains(category);
 }
