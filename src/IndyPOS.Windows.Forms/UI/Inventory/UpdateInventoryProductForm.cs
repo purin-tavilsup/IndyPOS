@@ -15,9 +15,7 @@ public partial class UpdateInventoryProductForm : Form
 	private readonly MessageForm _messageForm;
 	private InventoryProductDto? _product;
 
-	/// <summary>The store's catalogue, fetched when the dialog opens. The combo shows DisplayName;
-	/// the server expects Code, so every save looks the code back up from here.</summary>
-	private IReadOnlyList<ProductCategoryDto> _categories = [];
+	private readonly ProductCategoryPicker _categoryPicker;
 
 	public UpdateInventoryProductForm(MessageForm messageForm,
 									  IInventoryProductService inventoryProductService,
@@ -26,6 +24,7 @@ public partial class UpdateInventoryProductForm : Form
 		_messageForm = messageForm;
 		_inventoryProductService = inventoryProductService;
 		_storeHubClient = storeHubClient;
+		_categoryPicker = new ProductCategoryPicker(storeHubClient);
 		_product = null;
 
 		InitializeComponent();
@@ -37,8 +36,24 @@ public partial class UpdateInventoryProductForm : Form
 
 		BarcodeTextBox.Texts = _product.Barcode;
 
-		await PopulateProductCategoryComboBoxAsync();
+		if (!await PopulateProductCategoryComboBoxAsync())
+		{
+			_messageForm.ShowDialog("ไม่สามารถโหลดประเภทสินค้าได้ กรุณาลองใหม่อีกครั้ง",
+									"ไม่สามารถโหลดประเภทสินค้าได้");
+			return;
+		}
+
 		PopulateProductProperties();
+
+		// A product filed under a category this store may no longer use cannot be saved at all -
+		// the server rejects the kind. Say so up front instead of letting the operator discover it
+		// by having every save fail.
+		if (_categoryPicker.IsStoredCodeUnselectable(product.Category))
+		{
+			_messageForm.ShowDialog(
+				"สินค้านี้อยู่ในประเภทที่ร้านนี้ใช้ไม่ได้แล้ว กรุณาเลือกประเภทสินค้าใหม่ก่อนบันทึก",
+				"ต้องเลือกประเภทสินค้าใหม่");
+		}
 
 		RemoveProductButton.Enabled = product.IsTrackable;
 
@@ -57,8 +72,7 @@ public partial class UpdateInventoryProductForm : Form
 		UnitPriceTextBox.Texts = $"{_product.UnitPrice:N}";
 		// An existing product may sit in a category this store no longer offers; show its label
 		// rather than a blank, so editing an unrelated field does not silently retype it.
-		CategoryComboBox.Texts =
-			_categories.FirstOrDefault(c => c.Code == _product.Category)?.DisplayName ?? string.Empty;
+		CategoryComboBox.Texts = _categoryPicker.DisplayNameFor(_product.Category) ?? string.Empty;
 		GroupPriceTextBox.Texts = $"{_product.GroupPrice:N}";
 		GroupPriceQuantityTextBox.Texts = _product.GroupPriceQuantity.HasValue ? $"{_product.GroupPriceQuantity.Value}" : string.Empty;
 		ManufacturerTextBox.Texts = _product.Manufacturer;
@@ -96,40 +110,22 @@ public partial class UpdateInventoryProductForm : Form
 		return true;
 	}
 
-	private async Task PopulateProductCategoryComboBoxAsync()
+	private async Task<bool> PopulateProductCategoryComboBoxAsync()
 	{
 		CategoryComboBox.Items.Clear();
-		_categories = [];
 
-		IReadOnlyList<ProductCategoryDto> categories;
-		bool multipleTypes;
-		try
+		if (!await _categoryPicker.LoadAsync())
+			return false;
+
+		foreach (var category in _categoryPicker.Selectable)
 		{
-			categories = await _storeHubClient.GetProductCategoriesAsync();
-			multipleTypes = (await _storeHubClient.GetStoreFeaturesAsync()).MultipleProductTypesEnabled;
-		}
-		catch
-		{
-			// The server still guards updates, so a fetch failure must not offer a wrong set.
-			// Leave the picker empty and let the operator retry.
-			return;
-		}
-
-		_categories = categories;
-
-		foreach (var category in categories.Where(c => c.IsEnabled))
-		{
-			// Hide kinds this store may not use; the server rejects them anyway.
-			if (!multipleTypes && category.Kind != ProductCategoryKind.GeneralGoods)
-				continue;
-
 			CategoryComboBox.Items.Add(category.DisplayName);
 		}
+
+		return true;
 	}
 
-	/// <summary>The catalogue Code behind the selected DisplayName, or null if nothing matches.</summary>
-	private string? SelectedCategoryCode() =>
-		_categories.FirstOrDefault(c => c.DisplayName == CategoryComboBox.Texts.Trim())?.Code;
+	private string? SelectedCategoryCode() => _categoryPicker.CodeFor(CategoryComboBox.Texts);
 
 	private async void UpdateProductButton_Click(object sender, EventArgs e)
 	{
