@@ -53,9 +53,16 @@ public class UpdateProductCommandHandler : ICommandHandler<UpdateProductCommand,
 
         // Store-type gating driven by the category's Kind. The category must exist: an unknown
         // code would file the product under something no report or picker can resolve.
-        var category = await _categoryRepository.GetByCodeAsync(command.Category, cancellationToken)
-            ?? throw new UnknownProductCategoryException(
-                $"Product category '{command.Category}' is not in this store's catalogue.");
+        var category = await _categoryRepository.GetByCodeAsync(command.Category, cancellationToken);
+
+        // A disabled category is treated exactly as an unknown one (spec section 7). The picker
+        // also hides it, but the server is the boundary — the whole point of this epic was to
+        // stop trusting the client's idea of what a valid category is.
+        if (category is null || !category.IsEnabled)
+        {
+            throw new UnknownProductCategoryException(
+                $"Product category '{command.Category}' is not available in this store's catalogue.");
+        }
 
         if (!ProductCategoryPolicy.IsUsable(category.Kind, _storeIdentityService.Features))
         {
