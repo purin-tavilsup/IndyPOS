@@ -165,6 +165,9 @@ public static class ConfigureServices
 		// Production seeder: payment method catalog (idempotent, per store)
 		services.AddScoped<PaymentMethodSeeder>();
 
+		// Production seeder: product category catalogue (idempotent, per store type)
+		services.AddScoped<ProductCategorySeeder>();
+
 		return services;
 	}
 

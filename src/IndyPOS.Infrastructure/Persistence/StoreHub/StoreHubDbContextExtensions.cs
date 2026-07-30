@@ -65,6 +65,17 @@ public static class StoreHubDbContextExtensions
     }
 
     /// <summary>
+    /// Seeds this store's product categories, chosen by store type.
+    /// Idempotent — safe to run on every start.
+    /// </summary>
+    public static async Task SeedProductCategoriesAsync(this IHost app)
+    {
+        using var scope = app.Services.CreateScope();
+        var seeder = scope.ServiceProvider.GetRequiredService<ProductCategorySeeder>();
+        await seeder.SeedAsync();
+    }
+
+    /// <summary>
     /// Recovery entry point for the "reset-admin" CLI: generates a fresh random
     /// password, (re)sets the admin with must-change, and returns the password
     /// so the caller can print it once.
