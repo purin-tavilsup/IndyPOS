@@ -89,6 +89,60 @@ public class ProductCategorySeederTests : IntegrationTestBase
     }
 
     [Fact]
+    public async Task SeedAsync_ForMimyShop_ShouldSeedExactlyOneServiceAndNoHardware()
+    {
+        var identity = new MockStoreIdentityService
+        {
+            StoreId = "STORE-MS3", StoreType = StoreType.MimyShop
+        };
+        var repository = new ProductCategoryRepository(GetDbContext(), identity);
+
+        await new ProductCategorySeeder(repository, identity,
+            NullLogger<ProductCategorySeeder>.Instance).SeedAsync();
+
+        var seeded = await repository.GetAllAsync();
+
+        seeded.Count(c => c.Kind == ProductCategoryKind.Service).Should().Be(1, "only บริการ is a service");
+        seeded.Should().NotContain(c => c.Kind == ProductCategoryKind.Hardware,
+            "a gift shop sells no building materials");
+    }
+
+    [Fact]
+    public async Task SeedAsync_ForMinimart_ShouldSeedNoHardwareOrServiceKind()
+    {
+        var identity = new MockStoreIdentityService
+        {
+            StoreId = "STORE-MM3", StoreType = StoreType.Minimart
+        };
+        var repository = new ProductCategoryRepository(GetDbContext(), identity);
+
+        await new ProductCategorySeeder(repository, identity,
+            NullLogger<ProductCategorySeeder>.Instance).SeedAsync();
+
+        var seeded = await repository.GetAllAsync();
+
+        seeded.Should().OnlyContain(c => c.Kind == ProductCategoryKind.GeneralGoods);
+    }
+
+    [Fact]
+    public async Task SeedAsync_ForAnUnseededStoreType_ShouldThrowRatherThanLeaveAnEmptyCatalogue()
+    {
+        // An empty catalogue means no product can be created at all, so a missing seed table
+        // must be a loud failure rather than a store that silently cannot add stock.
+        var identity = new MockStoreIdentityService
+        {
+            StoreId = "STORE-UNKNOWN", StoreType = (StoreType)99
+        };
+        var seeder = new ProductCategorySeeder(
+            new ProductCategoryRepository(GetDbContext(), identity), identity,
+            NullLogger<ProductCategorySeeder>.Instance);
+
+        var act = async () => await seeder.SeedAsync();
+
+        await act.Should().ThrowAsync<ArgumentOutOfRangeException>();
+    }
+
+    [Fact]
     public async Task SeedAsync_RunTwice_ShouldNotDuplicate()
     {
         var identity = new MockStoreIdentityService
