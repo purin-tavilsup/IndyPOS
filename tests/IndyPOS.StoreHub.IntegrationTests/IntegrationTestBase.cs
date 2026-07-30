@@ -50,6 +50,11 @@ public abstract class IntegrationTestBase : IClassFixture<StoreHubWebApplication
         var paymentMethodSeeder = scope.ServiceProvider.GetRequiredService<PaymentMethodSeeder>();
         await paymentMethodSeeder.SeedAsync();
 
+        // Same reason, for product categories: the create/update handlers reject a category the
+        // catalogue does not define, so an unseeded catalogue fails every product write.
+        var productCategorySeeder = scope.ServiceProvider.GetRequiredService<ProductCategorySeeder>();
+        await productCategorySeeder.SeedAsync();
+
         // Initialize Respawner for database cleanup between tests
         // For PostgreSQL, we need to pass an open connection, not a connection string
         await using var connection = new NpgsqlConnection(Factory.ConnectionString);
