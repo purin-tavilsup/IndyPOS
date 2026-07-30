@@ -25,6 +25,13 @@ public class ProductCategoryRepository : IProductCategoryRepository
             .ToListAsync(cancellationToken);
     }
 
+    /// <summary>
+    /// Exact, case-SENSITIVE match on Code. Codes are generated from
+    /// <c>ProductCategoryCodes</c> constants, never typed by a user, so exact is the contract —
+    /// and it must stay consistent with every other place a code is compared. Do not "fix" this
+    /// to case-insensitive: a store that accepts <c>plumbingmaterials</c> here would write a
+    /// value the catalogue cannot resolve.
+    /// </summary>
     public async Task<ProductCategory?> GetByCodeAsync(string code, CancellationToken cancellationToken = default)
     {
         var storeId = _storeIdentity.StoreId;

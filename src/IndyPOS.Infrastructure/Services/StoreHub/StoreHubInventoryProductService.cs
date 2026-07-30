@@ -177,7 +177,8 @@ public class StoreHubInventoryProductService : IInventoryProductService
         CancellationToken cancellationToken = default)
     {
         var result = _productCacheService.GetAll()
-            .Where(p => string.Equals(p.Category, categoryCode, StringComparison.OrdinalIgnoreCase))
+            // Ordinal to match ProductCategoryRepository.GetByCodeAsync; codes come from constants.
+            .Where(p => string.Equals(p.Category, categoryCode, StringComparison.Ordinal))
             .Select(p => MapToInventoryProductDto(p, categoryCode, isTrackable: true))
             .ToList();
 
@@ -216,7 +217,7 @@ public class StoreHubInventoryProductService : IInventoryProductService
 
     private InventoryProductDto MapToInventoryProductDto(
         ProductDto product,
-        string categoryCode,
+        string? categoryCode,
         bool isTrackable,
         int? quantityOverride = null)
     {
@@ -227,7 +228,7 @@ public class StoreHubInventoryProductService : IInventoryProductService
             Description = product.Name,
             Manufacturer = product.Manufacturer ?? string.Empty,
             Brand = product.Brand ?? string.Empty,
-            Category = categoryCode,
+            Category = categoryCode ?? string.Empty,
             UnitPrice = product.UnitPrice,
             QuantityInStock = quantityOverride ?? 0, // TODO: Get from StoreHub when available
             GroupPrice = product.GroupPrice ?? 0m,

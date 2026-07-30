@@ -9,15 +9,6 @@ namespace IndyPOS.Infrastructure.Services;
 [type: SupportedOSPlatform("windows")]
 public class BarcodeGeneratorService : IBarcodeGeneratorService
 {
-    public string GenerateEan13Barcode(int productCategoryId, int productNumber)
-    {
-        const int usageAreaCode = 200;
-        var twelveDigitCode = $"{usageAreaCode:000}{productCategoryId:00}{productNumber:0000000}";
-        var checkDigit = CalculateCheckDigit(twelveDigitCode);
-
-        return $"{twelveDigitCode}{checkDigit}";
-    }
-
     public Bitmap CreateEan13BarcodeImage(string barcode, int height, int width, int margin)
     {
         var writer = new BarcodeWriter
