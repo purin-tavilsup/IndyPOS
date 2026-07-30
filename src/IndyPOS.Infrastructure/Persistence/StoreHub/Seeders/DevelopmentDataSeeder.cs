@@ -110,7 +110,7 @@ public class DevelopmentDataSeeder
     private async Task SeedProductsAsync(CancellationToken cancellationToken)
     {
         var storeId = _storeIdentity.StoreId;
-        var generalGoodsCategory = nameof(ProductCategory.GeneralGoods);
+        var generalGoodsCategory = nameof(Application.Common.Enums.ProductCategory.GeneralGoods);
         var testProducts = new[]
         {
             new { Barcode = "8850000000001", Name = "น้ำดื่ม 600ml", UnitPrice = 7m, Category = generalGoodsCategory },

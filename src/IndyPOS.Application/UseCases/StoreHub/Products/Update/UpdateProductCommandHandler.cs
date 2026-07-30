@@ -49,7 +49,7 @@ public class UpdateProductCommandHandler : ICommandHandler<UpdateProductCommand,
         }
 
         // Store-type gating: a general-only store (e.g. Minimart) may not carry Hardware products.
-        var isHardware = string.Equals(command.Category, nameof(ProductCategory.Hardware), StringComparison.OrdinalIgnoreCase);
+        var isHardware = string.Equals(command.Category, nameof(Common.Enums.ProductCategory.Hardware), StringComparison.OrdinalIgnoreCase);
         if (isHardware && !_storeIdentityService.Features.MultipleProductTypesEnabled)
         {
             _logger.LogWarning("Hardware product update rejected: StoreType={StoreType}, ProductId={ProductId}",
