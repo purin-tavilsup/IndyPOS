@@ -70,6 +70,7 @@ public static class ConfigureServices
 		        .AddScoped<IStoreSettingRepository, StoreSettingRepository>()
 		        .AddScoped<IPayLaterRepository, IndyPOS.Infrastructure.Persistence.StoreHub.Repositories.PayLaterRepository>()
 		        .AddScoped<IPaymentMethodRepository, PaymentMethodRepository>()
+		        .AddScoped<IProductCategoryRepository, ProductCategoryRepository>()
 		        .AddScoped<IPaymentMethodCatalogService, PaymentMethodCatalogService>();
 
 		// SyncWorker configuration
