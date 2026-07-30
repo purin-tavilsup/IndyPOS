@@ -14,9 +14,7 @@ namespace IndyPOS.Windows.Forms.UI.Inventory
         private readonly IStoreHubClient _storeHubClient;
 		private readonly MessageForm _messageForm;
 
-        /// <summary>The store's catalogue, fetched when the dialog opens. The combo shows
-        /// DisplayName; the server expects Code, so every save looks the code back up from here.</summary>
-        private IReadOnlyList<ProductCategoryDto> _categories = [];
+        private readonly ProductCategoryPicker _categoryPicker;
 
         public AddNewInventoryProductWithCustomBarcodeForm(IBarcodeGeneratorService barcodeService,
 														   MessageForm messageForm,
@@ -27,13 +25,22 @@ namespace IndyPOS.Windows.Forms.UI.Inventory
 			_messageForm = messageForm;
 			_inventoryProductService = inventoryProductService;
 			_storeHubClient = storeHubClient;
+			_categoryPicker = new ProductCategoryPicker(storeHubClient);
 
 			InitializeComponent();
         }
 
         public new async Task ShowDialog()
         {
-            await PopulateProductCategoryComboBoxAsync();
+            if (!await PopulateProductCategoryComboBoxAsync())
+            {
+                // Opening a form whose category picker is empty just means the operator fills it
+                // in and is then told to "select a valid category" — not the real problem.
+                _messageForm.ShowDialog("ไม่สามารถโหลดประเภทสินค้าได้ กรุณาลองใหม่อีกครั้ง",
+                                        "ไม่สามารถโหลดประเภทสินค้าได้");
+                return;
+            }
+
             ResetProductEntry();
 
             base.ShowDialog();
@@ -105,40 +112,22 @@ namespace IndyPOS.Windows.Forms.UI.Inventory
             return true;
         }
 
-        private async Task PopulateProductCategoryComboBoxAsync()
+        private async Task<bool> PopulateProductCategoryComboBoxAsync()
         {
             CategoryComboBox.Items.Clear();
-            _categories = [];
 
-            IReadOnlyList<ProductCategoryDto> categories;
-            bool multipleTypes;
-            try
+            if (!await _categoryPicker.LoadAsync())
+                return false;
+
+            foreach (var category in _categoryPicker.Selectable)
             {
-                categories = await _storeHubClient.GetProductCategoriesAsync();
-                multipleTypes = (await _storeHubClient.GetStoreFeaturesAsync()).MultipleProductTypesEnabled;
-            }
-            catch
-            {
-                // The server still guards creation, so a fetch failure must not offer a wrong set.
-                // Leave the picker empty and let the operator retry.
-                return;
-            }
-
-            _categories = categories;
-
-            foreach (var category in categories.Where(c => c.IsEnabled))
-            {
-                // Hide kinds this store may not use; the server rejects them anyway.
-                if (!multipleTypes && category.Kind != ProductCategoryKind.GeneralGoods)
-                    continue;
-
                 CategoryComboBox.Items.Add(category.DisplayName);
             }
+
+            return true;
         }
 
-        /// <summary>The catalogue Code behind the selected DisplayName, or null if nothing matches.</summary>
-        private string? SelectedCategoryCode() =>
-            _categories.FirstOrDefault(c => c.DisplayName == CategoryComboBox.Texts.Trim())?.Code;
+        private string? SelectedCategoryCode() => _categoryPicker.CodeFor(CategoryComboBox.Texts);
 
         private async void SaveProductEntryButton_Click(object sender, EventArgs e)
         {

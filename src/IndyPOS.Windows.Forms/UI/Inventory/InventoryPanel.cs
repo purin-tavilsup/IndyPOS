@@ -95,14 +95,32 @@ public partial class InventoryPanel : UserControl
             return;
         }
 
+        // Repopulating and selecting must happen in ONE marshalled block. UiThread uses
+        // BeginInvoke when called off the UI thread, so splitting them lets the caller's
+        // "select all products" run against a combo whose Items are still empty — leaving the
+        // filter reading its placeholder after a successful login.
         CategoryComboBox.UiThread(delegate
         {
-            CategoryComboBox.Items.Clear();
-            CategoryComboBox.Items.Add(AllProductsCategoryText);
+            // Clear() raises SelectedIndexChanged while an item is still selected, which would
+            // otherwise re-enter the handler mid-rebuild on a second login.
+            _suppressCategorySelectionChanged = true;
 
-            foreach (var category in _categories.Where(c => c.IsEnabled))
+            try
             {
-                CategoryComboBox.Items.Add(category.DisplayName);
+                CategoryComboBox.Items.Clear();
+                CategoryComboBox.Items.Add(AllProductsCategoryText);
+
+                foreach (var category in _categories.Where(c => c.IsEnabled))
+                {
+                    CategoryComboBox.Items.Add(category.DisplayName);
+                }
+
+                CategoryComboBox.SelectedItem = AllProductsCategoryText;
+                _lastQueryCategoryCode = null;
+            }
+            finally
+            {
+                _suppressCategorySelectionChanged = false;
             }
         });
     }

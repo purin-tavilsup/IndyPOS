@@ -18,7 +18,14 @@ public partial class SaleHistoryByInvoiceIdForm : Form
 	/// form reports on HISTORICAL rows, so it classifies by looking the stored code up rather
 	/// than by an id range — the legacy ranges collide across store types.
 	/// </summary>
-	private HashSet<string> _hardwareCodes = new(StringComparer.OrdinalIgnoreCase);
+	private HashSet<string> _hardwareCodes = new(StringComparer.Ordinal);
+
+	/// <summary>
+	/// False until the catalogue has been fetched at least once. Without it an empty
+	/// <see cref="_hardwareCodes"/> is indistinguishable from "this store sells no hardware",
+	/// and the form would show a plausible but wrong hardware/general money split.
+	/// </summary>
+	private bool _catalogueLoaded;
 
 	private enum ProductColumn
 	{
@@ -201,7 +208,7 @@ public partial class SaleHistoryByInvoiceIdForm : Form
 
 	private bool IsHardwareProduct(InvoiceProductDto product)
 	{
-		return _hardwareCodes.Contains(product.Category);
+		return !string.IsNullOrEmpty(product.Category) && _hardwareCodes.Contains(product.Category);
 	}
 
 	private async Task RefreshHardwareCodesAsync()
@@ -213,11 +220,14 @@ public partial class SaleHistoryByInvoiceIdForm : Form
 			_hardwareCodes = categories
 				.Where(c => c.Kind == ProductCategoryKind.Hardware)
 				.Select(c => c.Code)
-				.ToHashSet(StringComparer.OrdinalIgnoreCase);
+				.ToHashSet(StringComparer.Ordinal);
+			_catalogueLoaded = true;
 		}
-		catch
+		catch when (_catalogueLoaded)
 		{
 			// Keep the last known set rather than reclassifying every line as general.
+			// If it has NEVER loaded there is no safe set to fall back on, so the exception
+			// propagates rather than showing a wrong hardware/general money split.
 		}
 	}
 

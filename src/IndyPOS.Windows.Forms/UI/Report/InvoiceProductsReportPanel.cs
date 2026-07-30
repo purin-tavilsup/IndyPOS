@@ -21,7 +21,14 @@ public partial class InvoiceProductsReportPanel : UserControl
 	/// reports on HISTORICAL rows, so it classifies by looking the stored code up rather than by
 	/// an id range — the legacy ranges collide across store types.
 	/// </summary>
-	private HashSet<string> _hardwareCodes = new(StringComparer.OrdinalIgnoreCase);
+	private HashSet<string> _hardwareCodes = new(StringComparer.Ordinal);
+
+	/// <summary>
+	/// False until the catalogue has been fetched at least once. Without it an empty
+	/// <see cref="_hardwareCodes"/> is indistinguishable from "this store sells no hardware",
+	/// and the panel would report a plausible but wrong split instead of an error.
+	/// </summary>
+	private bool _catalogueLoaded;
 
 	private enum ProductColumn
 	{
@@ -124,7 +131,7 @@ public partial class InvoiceProductsReportPanel : UserControl
 
 	private bool IsHardwareProductGroup(InvoiceProductDto product)
 	{
-		return _hardwareCodes.Contains(product.Category);
+		return !string.IsNullOrEmpty(product.Category) && _hardwareCodes.Contains(product.Category);
 	}
 
 	private bool IsGeneralProductGroup(InvoiceProductDto product)
@@ -161,11 +168,14 @@ public partial class InvoiceProductsReportPanel : UserControl
 			_hardwareCodes = categories
 				.Where(c => c.Kind == ProductCategoryKind.Hardware)
 				.Select(c => c.Code)
-				.ToHashSet(StringComparer.OrdinalIgnoreCase);
+				.ToHashSet(StringComparer.Ordinal);
+			_catalogueLoaded = true;
 		}
-		catch
+		catch when (_catalogueLoaded)
 		{
 			// Keep the last known set rather than reclassifying every line as general.
+			// If it has NEVER loaded there is no safe set to fall back on, so the exception
+			// propagates to ReportErrorHandler rather than showing a wrong hardware/general split.
 		}
 	}
 
