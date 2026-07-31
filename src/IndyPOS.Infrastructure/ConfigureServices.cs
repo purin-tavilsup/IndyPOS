@@ -70,6 +70,7 @@ public static class ConfigureServices
 		        .AddScoped<IStoreSettingRepository, StoreSettingRepository>()
 		        .AddScoped<IPayLaterRepository, IndyPOS.Infrastructure.Persistence.StoreHub.Repositories.PayLaterRepository>()
 		        .AddScoped<IPaymentMethodRepository, PaymentMethodRepository>()
+		        .AddScoped<IProductCategoryRepository, ProductCategoryRepository>()
 		        .AddScoped<IPaymentMethodCatalogService, PaymentMethodCatalogService>();
 
 		// SyncWorker configuration
@@ -163,6 +164,9 @@ public static class ConfigureServices
 
 		// Production seeder: payment method catalog (idempotent, per store)
 		services.AddScoped<PaymentMethodSeeder>();
+
+		// Production seeder: product category catalogue (idempotent, per store type)
+		services.AddScoped<ProductCategorySeeder>();
 
 		return services;
 	}

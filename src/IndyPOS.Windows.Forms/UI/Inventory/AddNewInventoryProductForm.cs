@@ -1,6 +1,7 @@
 ﻿using IndyPOS.Application.Abstractions.StoreHub;
-using IndyPOS.Application.Common.Enums;
 using IndyPOS.Application.Common.Interfaces;
+using IndyPOS.Application.UseCases.StoreHub.ProductCategories;
+using IndyPOS.Domain.Enums;
 using System.Diagnostics.CodeAnalysis;
 
 namespace IndyPOS.Windows.Forms.UI.Inventory;
@@ -10,25 +11,33 @@ public partial class AddNewInventoryProductForm : Form
 {
 	private readonly IInventoryProductService _inventoryProductService;
 	private readonly IStoreHubClient _storeHubClient;
-	private readonly IReadOnlyDictionary<int, string> _productCategoryDictionary;
 	private readonly MessageForm _messageForm;
 
-	public AddNewInventoryProductForm(IStoreConstants storeConstants,
-									  MessageForm messageForm,
+	private readonly ProductCategoryPicker _categoryPicker;
+
+	public AddNewInventoryProductForm(MessageForm messageForm,
 									  IInventoryProductService inventoryProductService,
 									  IStoreHubClient storeHubClient)
 	{
-		_productCategoryDictionary = storeConstants.ProductCategories;
 		_messageForm = messageForm;
 		_inventoryProductService = inventoryProductService;
 		_storeHubClient = storeHubClient;
+		_categoryPicker = new ProductCategoryPicker(storeHubClient);
 
 		InitializeComponent();
 	}
 
 	public async Task ShowDialog(string? productBarcode = null)
 	{
-		await PopulateProductCategoryComboBoxAsync();
+		if (!await PopulateProductCategoryComboBoxAsync())
+		{
+			// Opening a form whose category picker is empty just means the operator fills it in
+			// and is then told to "select a valid category" — which is not the real problem.
+			_messageForm.ShowDialog("ไม่สามารถโหลดประเภทสินค้าได้ กรุณาลองใหม่อีกครั้ง",
+									"ไม่สามารถโหลดประเภทสินค้าได้");
+			return;
+		}
+
 		ResetProductEntry();
 
 		if (string.IsNullOrWhiteSpace(productBarcode))
@@ -106,7 +115,7 @@ public partial class AddNewInventoryProductForm : Form
 			return false;
 		}
 
-		if (!_productCategoryDictionary.Values.Contains(CategoryComboBox.Texts.Trim()))
+		if (SelectedCategoryCode() is null)
 		{
 			_messageForm.ShowDialog("กรุณาเลือกประเภทสินค้าให้ถูกต้อง", "ประเภทสินค้าไม่ถูกต้อง");
                 
@@ -116,22 +125,22 @@ public partial class AddNewInventoryProductForm : Form
 		return true;
 	}
 
-	private async Task PopulateProductCategoryComboBoxAsync()
+	private async Task<bool> PopulateProductCategoryComboBoxAsync()
 	{
-		bool multipleTypes = true;
-		try { multipleTypes = (await _storeHubClient.GetStoreFeaturesAsync()).MultipleProductTypesEnabled; }
-		catch { /* on failure, fall back to showing all categories; server still guards creation */ }
-
 		CategoryComboBox.Items.Clear();
 
-		foreach (var item in _productCategoryDictionary)
-		{
-			if (!multipleTypes && item.Key == (int)ProductCategory.Hardware)
-				continue; // Hardware hidden on general-only stores
+		if (!await _categoryPicker.LoadAsync())
+			return false;
 
-			CategoryComboBox.Items.Add(item.Value);
+		foreach (var category in _categoryPicker.Selectable)
+		{
+			CategoryComboBox.Items.Add(category.DisplayName);
 		}
+
+		return true;
 	}
+
+	private string? SelectedCategoryCode() => _categoryPicker.CodeFor(CategoryComboBox.Texts);
 
 	private async void SaveProductEntryButton_Click(object sender, EventArgs e)
 	{
@@ -157,8 +166,8 @@ public partial class AddNewInventoryProductForm : Form
 		// Required Attributes
 		var quantity = int.Parse(QuantityTextBox.Texts.Trim());
 		var unitPrice = decimal.Parse(UnitPriceTextBox.Texts.Trim());
-		var category = _productCategoryDictionary.FirstOrDefault(x => x.Value == CategoryComboBox.Texts);
-		var categoryId = category.Key;
+		// Validated before we get here, so a null code is unreachable.
+		var categoryCode = SelectedCategoryCode()!;
 
 		// Optional Attributes
 		decimal? groupPrice = decimal.TryParse(GroupPriceTextBox.Texts.Trim(), out var gp) ? gp : null;
@@ -170,7 +179,7 @@ public partial class AddNewInventoryProductForm : Form
 			Description = DescriptionTextBox.Texts.Trim(),
 			QuantityInStock = quantity,
 			UnitPrice = unitPrice,
-			Category = categoryId,
+			Category = categoryCode,
 			IsTrackable = IsTrackableCheckBox.Checked,
 			Manufacturer = string.IsNullOrWhiteSpace(ManufacturerTextBox.Texts) ? null : ManufacturerTextBox.Texts.Trim(),
 			Brand = string.IsNullOrWhiteSpace(BrandTextBox.Texts) ? null : BrandTextBox.Texts.Trim(),

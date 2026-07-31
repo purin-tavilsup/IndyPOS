@@ -1,6 +1,7 @@
 ﻿using IndyPOS.Application.Abstractions.StoreHub;
-using IndyPOS.Application.Common.Enums;
 using IndyPOS.Application.Common.Interfaces;
+using IndyPOS.Application.UseCases.StoreHub.ProductCategories;
+using IndyPOS.Domain.Enums;
 using System.Diagnostics.CodeAnalysis;
 using IndyPOS.Application.UseCases.InventoryProducts;
 
@@ -12,18 +13,18 @@ public partial class UpdateInventoryProductForm : Form
 	private readonly IInventoryProductService _inventoryProductService;
 	private readonly IStoreHubClient _storeHubClient;
 	private readonly MessageForm _messageForm;
-	private readonly IReadOnlyDictionary<int, string> _productCategoryDictionary;
 	private InventoryProductDto? _product;
 
-	public UpdateInventoryProductForm(IStoreConstants storeConstants,
-									  MessageForm messageForm,
+	private readonly ProductCategoryPicker _categoryPicker;
+
+	public UpdateInventoryProductForm(MessageForm messageForm,
 									  IInventoryProductService inventoryProductService,
 									  IStoreHubClient storeHubClient)
 	{
-		_productCategoryDictionary = storeConstants.ProductCategories;
 		_messageForm = messageForm;
 		_inventoryProductService = inventoryProductService;
 		_storeHubClient = storeHubClient;
+		_categoryPicker = new ProductCategoryPicker(storeHubClient);
 		_product = null;
 
 		InitializeComponent();
@@ -35,8 +36,24 @@ public partial class UpdateInventoryProductForm : Form
 
 		BarcodeTextBox.Texts = _product.Barcode;
 
-		await PopulateProductCategoryComboBoxAsync();
+		if (!await PopulateProductCategoryComboBoxAsync())
+		{
+			_messageForm.ShowDialog("ไม่สามารถโหลดประเภทสินค้าได้ กรุณาลองใหม่อีกครั้ง",
+									"ไม่สามารถโหลดประเภทสินค้าได้");
+			return;
+		}
+
 		PopulateProductProperties();
+
+		// A product filed under a category this store may no longer use cannot be saved at all -
+		// the server rejects the kind. Say so up front instead of letting the operator discover it
+		// by having every save fail.
+		if (_categoryPicker.IsStoredCodeUnselectable(product.Category))
+		{
+			_messageForm.ShowDialog(
+				"สินค้านี้อยู่ในประเภทที่ร้านนี้ใช้ไม่ได้แล้ว กรุณาเลือกประเภทสินค้าใหม่ก่อนบันทึก",
+				"ต้องเลือกประเภทสินค้าใหม่");
+		}
 
 		RemoveProductButton.Enabled = product.IsTrackable;
 
@@ -53,7 +70,9 @@ public partial class UpdateInventoryProductForm : Form
 		DescriptionTextBox.Texts = _product.Description;
 		QuantityLabel.Text = $"{_product.QuantityInStock}";
 		UnitPriceTextBox.Texts = $"{_product.UnitPrice:N}";
-		CategoryComboBox.Texts = _productCategoryDictionary[_product.Category];
+		// An existing product may sit in a category this store no longer offers; show its label
+		// rather than a blank, so editing an unrelated field does not silently retype it.
+		CategoryComboBox.Texts = _categoryPicker.DisplayNameFor(_product.Category) ?? string.Empty;
 		GroupPriceTextBox.Texts = $"{_product.GroupPrice:N}";
 		GroupPriceQuantityTextBox.Texts = _product.GroupPriceQuantity.HasValue ? $"{_product.GroupPriceQuantity.Value}" : string.Empty;
 		ManufacturerTextBox.Texts = _product.Manufacturer;
@@ -82,7 +101,7 @@ public partial class UpdateInventoryProductForm : Form
 			return false;
 		}
 
-		if (!_productCategoryDictionary.Values.Contains(CategoryComboBox.Texts.Trim()))
+		if (SelectedCategoryCode() is null)
 		{
 			_messageForm.ShowDialog("กรุณาเลือกประเภทสินค้าให้ถูกต้อง", "ประเภทสินค้าไม่ถูกต้อง");
 			return false;
@@ -91,22 +110,22 @@ public partial class UpdateInventoryProductForm : Form
 		return true;
 	}
 
-	private async Task PopulateProductCategoryComboBoxAsync()
+	private async Task<bool> PopulateProductCategoryComboBoxAsync()
 	{
-		bool multipleTypes = true;
-		try { multipleTypes = (await _storeHubClient.GetStoreFeaturesAsync()).MultipleProductTypesEnabled; }
-		catch { /* on failure, fall back to showing all categories; server still guards updates */ }
-
 		CategoryComboBox.Items.Clear();
 
-		foreach (var item in _productCategoryDictionary)
-		{
-			if (!multipleTypes && item.Key == (int)ProductCategory.Hardware)
-				continue; // Hardware hidden on general-only stores
+		if (!await _categoryPicker.LoadAsync())
+			return false;
 
-			CategoryComboBox.Items.Add(item.Value);
+		foreach (var category in _categoryPicker.Selectable)
+		{
+			CategoryComboBox.Items.Add(category.DisplayName);
 		}
+
+		return true;
 	}
+
+	private string? SelectedCategoryCode() => _categoryPicker.CodeFor(CategoryComboBox.Texts);
 
 	private async void UpdateProductButton_Click(object sender, EventArgs e)
 	{
@@ -129,8 +148,8 @@ public partial class UpdateInventoryProductForm : Form
 
 	private UpdateInventoryProductRequest CreateRequestForUpdateProduct(InventoryProductDto product)
 	{
-		var category = _productCategoryDictionary.FirstOrDefault(x => x.Value == CategoryComboBox.Texts);
-		var categoryId = category.Key;
+		// Validated before we get here, so a null code is unreachable.
+		var categoryCode = SelectedCategoryCode()!;
 
 		// Optional Attributes
 		decimal? groupPrice = decimal.TryParse(GroupPriceTextBox.Texts.Trim(), out var gp) ? gp : null;
@@ -144,7 +163,7 @@ public partial class UpdateInventoryProductForm : Form
 			UnitPrice = decimal.Parse(UnitPriceTextBox.Texts.Trim()),
 			GroupPrice = groupPrice,
 			GroupPriceQuantity = groupPriceQuantity,
-			Category = categoryId,
+			Category = categoryCode,
 			Manufacturer = string.IsNullOrWhiteSpace(ManufacturerTextBox.Texts) ? null : ManufacturerTextBox.Texts.Trim(),
 			Brand = string.IsNullOrWhiteSpace(BrandTextBox.Texts) ? null : BrandTextBox.Texts.Trim()
 		};

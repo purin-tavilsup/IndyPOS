@@ -448,6 +448,49 @@ namespace IndyPOS.Infrastructure.Persistence.StoreHub.Migrations
                     b.ToTable("product", (string)null);
                 });
 
+            modelBuilder.Entity("IndyPOS.Domain.Entities.Core.ProductCategory", b =>
+                {
+                    b.Property<string>("StoreId")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("store_id");
+
+                    b.Property<string>("Code")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("code");
+
+                    b.Property<DateTime>("CreatedUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_utc");
+
+                    b.Property<string>("DisplayName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("display_name");
+
+                    b.Property<int>("DisplayOrder")
+                        .HasColumnType("integer")
+                        .HasColumnName("display_order");
+
+                    b.Property<bool>("IsEnabled")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_enabled");
+
+                    b.Property<int>("Kind")
+                        .HasColumnType("integer")
+                        .HasColumnName("kind");
+
+                    b.Property<DateTime>("LastModifiedUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("last_modified_utc");
+
+                    b.HasKey("StoreId", "Code");
+
+                    b.ToTable("product_category", (string)null);
+                });
+
             modelBuilder.Entity("IndyPOS.Domain.Entities.Core.StoreSetting", b =>
                 {
                     b.Property<string>("StoreId")

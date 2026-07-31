@@ -24,7 +24,8 @@ public class Product
 
     public string Brand { get; init; } = string.Empty;
 
-    public int Category { get; init; }
+    /// <summary>Catalogue category code (see ProductCategoryCodes), not a legacy numeric id.</summary>
+    public string Category { get; init; } = string.Empty;
 
     public int Quantity { get; set; }
 
