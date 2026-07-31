@@ -15,6 +15,7 @@ using IndyPOS.Application.UseCases.StoreHub.Products.GenerateBarcode;
 using IndyPOS.Application.UseCases.StoreHub.Products.Get;
 using IndyPOS.Application.UseCases.StoreHub.Products.Update;
 using IndyPOS.Application.UseCases.StoreHub.PaymentMethods;
+using IndyPOS.Application.UseCases.StoreHub.ProductCategories;
 using IndyPOS.Application.UseCases.StoreHub.Reports;
 using IndyPOS.Application.UseCases.StoreHub.Reports.GetInvoiceDetail;
 using IndyPOS.Application.UseCases.StoreHub.Reports.GetInvoices;
@@ -102,6 +103,7 @@ builder.Services.AddTransient<IQueryHandler<GenerateBarcodeQuery, string>, Gener
 // Payment methods handlers
 builder.Services.AddTransient<IQueryHandler<GetOfferablePaymentMethodsQuery, IReadOnlyList<PaymentMethodDto>>, GetOfferablePaymentMethodsQueryHandler>();
 builder.Services.AddTransient<IQueryHandler<GetAllPaymentMethodsQuery, IReadOnlyList<PaymentMethodDto>>, GetAllPaymentMethodsQueryHandler>();
+builder.Services.AddTransient<IQueryHandler<GetProductCategoriesQuery, IReadOnlyList<ProductCategoryDto>>, GetProductCategoriesQueryHandler>();
 builder.Services.AddTransient<ICommandHandler<AddCampaignPaymentMethodCommand, PaymentMethodMutationResponse>, AddCampaignPaymentMethodCommandHandler>();
 builder.Services.AddTransient<ICommandHandler<TogglePaymentMethodCommand, PaymentMethodMutationResponse>, TogglePaymentMethodCommandHandler>();
 builder.Services.AddTransient<ICommandHandler<EditPaymentMethodDisplayCommand, PaymentMethodMutationResponse>, EditPaymentMethodDisplayCommandHandler>();
@@ -187,12 +189,14 @@ if (app.Environment.IsDevelopment())
     await app.EnsureStoreHubDatabaseCreatedAsync();
     await app.SeedDevelopmentDataAsync();
     await app.SeedPaymentMethodsAsync();
+    await app.SeedProductCategoriesAsync();
 }
 else if (Array.Exists(args, a => string.Equals(a, "migrate", StringComparison.OrdinalIgnoreCase)))
 {
     await app.MigrateStoreHubDatabaseAsync();
     var seeded = await app.SeedInitialAdminAsync();
     await app.SeedPaymentMethodsAsync();
+    await app.SeedProductCategoriesAsync();
     // Marker consumed by the bootstrapper to decide the finish-screen credential text.
     Console.WriteLine($"ADMIN_SEEDED={(seeded ? "true" : "false")}");
     return;
@@ -337,6 +341,15 @@ app.MapGet("/payment-methods", async (
     return Results.Ok(methods);
 }).RequireAuthorization("CanReadProducts");
 
+// Product categories for this store (the POS renders pickers from this)
+app.MapGet("/product-categories", async (
+    IQueryHandler<GetProductCategoriesQuery, IReadOnlyList<ProductCategoryDto>> handler,
+    CancellationToken cancellationToken) =>
+{
+    var categories = await handler.HandleAsync(new GetProductCategoriesQuery(), cancellationToken);
+    return Results.Ok(categories);
+}).RequireAuthorization("CanReadProducts");
+
 // Store feature flags (store-type gating for WinForms clients)
 app.MapGet("/store/features", (IStoreIdentityService storeIdentity) =>
 {
@@ -412,6 +425,10 @@ app.MapPost("/products", async (
         var result = await handler.HandleAsync(command, cancellationToken);
         return Results.Created($"/products/{result.Id}", result);
     }
+    catch (UnknownProductCategoryException ex)
+    {
+        return Results.BadRequest(new { error = ex.Message });
+    }
     catch (InvalidOperationException ex)
     {
         return Results.Conflict(new { error = ex.Message });
@@ -439,6 +456,10 @@ app.MapPut("/products/{id:guid}", async (
     catch (ProductNotFoundException ex)
     {
         return Results.NotFound(new { error = ex.Message });
+    }
+    catch (UnknownProductCategoryException ex)
+    {
+        return Results.BadRequest(new { error = ex.Message });
     }
     catch (InvalidOperationException ex)
     {

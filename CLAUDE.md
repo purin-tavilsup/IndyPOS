@@ -116,6 +116,13 @@ dotnet test
 # Build
 dotnet build
 
+# Docker must be RUNNING for these three suites - they spin up a real Postgres
+# container. With Docker down they fail instantly (~1ms/test), which reads like a
+# code regression but is not:
+#   tests/IndyPOS.StoreHub.IntegrationTests   (94)
+#   tests/IndyPOS.Migration.Tests             (15 - all of them)
+#   tests/IndyPOS.MigrationTool.Tests         (15 of 37; the other 21 are pure units)
+
 # Run with Aspire (requires Docker)
 dotnet run --project src/IndyPOS.AppHost --launch-profile https
 # Dashboard: https://localhost:17222

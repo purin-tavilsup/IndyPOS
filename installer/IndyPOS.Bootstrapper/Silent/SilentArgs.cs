@@ -68,7 +68,7 @@ public static class SilentArgs
                     if (!TryReadValue(args, ref i, inlineValue, out var storeTypeRaw)
                         || !TryParseStoreTypeName(storeTypeRaw, out storeType))
                         return ParseResult.Usage(
-                            "--store-type must be one of: GeneralHardware, Minimart, CoffeeShop.");
+                            "--store-type must be one of: GeneralHardware, Minimart, MimyShop.");
                     break;
 
                 case SimulatedFailure.ArgumentName:

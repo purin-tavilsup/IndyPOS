@@ -44,9 +44,9 @@ public interface IInventoryProductService
     Task<IReadOnlyList<InventoryProductDto>> GetAllAsync(CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Get inventory products by category ID.
+    /// Get inventory products by catalogue category code.
     /// </summary>
-    Task<IReadOnlyList<InventoryProductDto>> GetByCategoryIdAsync(int categoryId, CancellationToken cancellationToken = default);
+    Task<IReadOnlyList<InventoryProductDto>> GetByCategoryAsync(string categoryCode, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Search inventory products by description keyword.
@@ -68,7 +68,8 @@ public record CreateInventoryProductRequest
     public required string Description { get; init; }
     public string? Manufacturer { get; init; }
     public string? Brand { get; init; }
-    public required int Category { get; init; }
+    /// <summary>Catalogue category code (see ProductCategoryCodes), not a legacy numeric id.</summary>
+    public required string Category { get; init; }
     public required decimal UnitPrice { get; init; }
     public int QuantityInStock { get; init; }
     public int? GroupPriceQuantity { get; init; }
@@ -85,7 +86,8 @@ public record UpdateInventoryProductRequest
     public required string Description { get; init; }
     public string? Manufacturer { get; init; }
     public string? Brand { get; init; }
-    public required int Category { get; init; }
+    /// <summary>Catalogue category code (see ProductCategoryCodes), not a legacy numeric id.</summary>
+    public required string Category { get; init; }
     public required decimal UnitPrice { get; init; }
     public int QuantityInStock { get; init; }
     public int? GroupPriceQuantity { get; init; }

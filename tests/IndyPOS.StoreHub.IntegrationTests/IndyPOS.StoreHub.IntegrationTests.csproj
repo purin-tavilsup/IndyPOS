@@ -25,6 +25,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\IndyPOS.StoreHub\IndyPOS.StoreHub.csproj" />
+    <ProjectReference Include="..\IndyPOS.Mock\IndyPOS.Mock.csproj" />
   </ItemGroup>
 
 </Project>
