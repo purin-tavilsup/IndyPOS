@@ -1,3 +1,4 @@
+using System.Text.RegularExpressions;
 using FluentAssertions;
 using IndyPOS.Windows.Forms.UI.Errors;
 using Serilog;
@@ -9,6 +10,11 @@ namespace IndyPOS.Windows.Forms.Tests.UI.Errors;
 public class UiErrorReporterTests
 {
     private readonly CapturingSink _sink = new();
+
+    // Pulls the generated ERR-XXXX code out of a shown message so a test can pin the
+    // exact full string around it instead of only asserting Contain(...).
+    private static string ExtractReference(string message) =>
+        Regex.Match(message, "ERR-[0-9A-F]{4}").Value;
 
     private UiErrorReporter CreateSut(FakeErrorDialog dialog)
     {
@@ -119,8 +125,10 @@ public class UiErrorReporterTests
 
         CreateSut(dialog).ReportToUser(new Exception("boom"), "op", UiErrorSeverity.Fatal);
 
+        var reference = ExtractReference(dialog.Shown[0].Message);
+
         dialog.Shown[0].Caption.Should().Be("เกิดข้อผิดพลาดร้ายแรง");
-        dialog.Shown[0].Message.Should().Contain("โปรแกรมต้องปิดตัวลง");
+        dialog.Shown[0].Message.Should().Be($"โปรแกรมต้องปิดตัวลง\n\nแจ้งรหัส {reference}");
     }
 
     [Fact]
@@ -130,8 +138,10 @@ public class UiErrorReporterTests
 
         CreateSut(dialog).ReportToUser(new Exception("boom"), "op", UiErrorSeverity.Recoverable);
 
+        var reference = ExtractReference(dialog.Shown[0].Message);
+
         dialog.Shown[0].Caption.Should().Be("เกิดข้อผิดพลาด");
-        dialog.Shown[0].Message.Should().Contain("กรุณาลองอีกครั้ง");
+        dialog.Shown[0].Message.Should().Be($"เกิดข้อผิดพลาดที่ไม่คาดคิด\n\nกรุณาลองอีกครั้ง หากยังเกิดปัญหา แจ้งรหัส {reference}");
     }
 
     [Fact]

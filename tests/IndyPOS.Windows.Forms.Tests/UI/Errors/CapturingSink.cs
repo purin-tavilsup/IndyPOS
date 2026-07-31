@@ -14,7 +14,7 @@ internal sealed class CapturingSink : ILogEventSink
     public void Emit(LogEvent logEvent) => Events.Add(logEvent);
 
     public string? PropertyValue(string name) =>
-        Events.SingleOrDefault()?.Properties.TryGetValue(name, out var value) == true
+        Events.FirstOrDefault()?.Properties.TryGetValue(name, out var value) == true
             ? value.ToString().Trim('"')
             : null;
 }
