@@ -195,15 +195,22 @@ public partial class UpdateInventoryProductForm : Form
 
 	private void IncreaseQuantityButton_Click(object sender, EventArgs e)
 	{
-		var amount = int.Parse(QuantityTextBox.Texts.Trim());
-		var quantity = int.Parse(QuantityLabel.Text.Trim());
-
-		QuantityLabel.Text = $"{quantity + amount}";
-
-		QuantityTextBox.Texts = string.Empty;
+		AdjustQuantityBy(1);
 	}
 
 	private void DecreaseQuantityButton_Click(object sender, EventArgs e)
+	{
+		AdjustQuantityBy(-1);
+	}
+
+	/// <summary>
+	/// Applies the entered amount to the running stock figure. Both buttons share this
+	/// path so the validation gate cannot be omitted from one of them - the increase
+	/// button used to parse the box directly, and an empty box (its initial state, since
+	/// PopulateProductProperties never fills it) threw FormatException straight out of an
+	/// event handler.
+	/// </summary>
+	private void AdjustQuantityBy(int direction)
 	{
 		if (!ValidateQuantity())
 			return;
@@ -211,7 +218,7 @@ public partial class UpdateInventoryProductForm : Form
 		var amount = int.Parse(QuantityTextBox.Texts.Trim());
 		var quantity = int.Parse(QuantityLabel.Text.Trim());
 
-		QuantityLabel.Text = $"{quantity - amount}";
+		QuantityLabel.Text = $"{quantity + direction * amount}";
 
 		QuantityTextBox.Texts = string.Empty;
 	}
