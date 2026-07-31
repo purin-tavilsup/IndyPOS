@@ -32,8 +32,15 @@
 These are deliberate improvements found while planning. They do not change any approved behaviour.
 
 1. **The reference-code format moves to its own `UiErrorReference` static class.** Both `UiErrorReporter` and `ReportErrorHandler` need it, and `ReportErrorHandler` is a static with no DI. A shared static formatter avoids introducing a service locator just so a static can reach the reporter.
-2. **`UiErrorReporter` takes an injected `Serilog.ILogger`** rather than using the static `Log`. This lets tests assert on real `LogEvent`s through a capturing sink instead of mutating global state. `Program.Main` passes `Log.Logger`, so the instance is the same one `Log.CloseAndFlush()` flushes.
-3. **`Show(reference, severity)` is split out from `ReportToUser`.** The fatal path must log, *then* flush, *then* show; that ordering is impossible if logging and showing are welded together. `ReportToUser` becomes `Record` + `Show`.
+2. **`UiErrorReporter` takes an injected `Serilog.ILogger`** rather than using the static `Log`. This lets tests assert on real `LogEvent`s through a capturing sink instead of mutating global state. `Program.Main` passes `Log.Logger`, so it is the same instance the static `Log` refers to.
+3. **`Show(reference, severity)` is split out from `ReportToUser`.** The fatal path must record *then* show, as separate steps; that ordering is impossible if logging and showing are welded together. `ReportToUser` becomes `Record` + `Show`.
+
+> **Superseded during the final review:** Task 3 as originally written called
+> `Log.CloseAndFlush()` between `Record` and `Show`. That was removed — the file sink is
+> unbuffered so the entry is already durable, and flushing there both risked suppressing
+> the dialog on an `IOException` and disposed the logger the reporter still holds. The
+> shipped code and the spec do not flush; the Task 3 code sample below still shows the
+> original call and is stale on that one line.
 
 ## File Structure
 

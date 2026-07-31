@@ -425,9 +425,15 @@ The matched line is a compact-JSON event carrying the full exception and an `Ope
 naming what was happening when it failed — both useful for a developer, neither shown to the
 operator.
 
-**Note on severity:** report-load failures (`ReportErrorHandler`) log at `Warning`; every other
-failure the global handler catches logs at `Error` or `Fatal`. A search filtered to `Error` alone
-will miss report failures, so search by the `ERR-` code itself rather than by level.
+**Note on severity:** the level varies by how the failure arrived, so **search by the `ERR-` code
+itself rather than by level** — a filter on `Error` alone misses two of the four cases:
+
+| Source | Level |
+|---|---|
+| A UI-thread failure caught by the global handler | `Error` |
+| A crash taking the process down | `Fatal` |
+| Report-load failures (`ReportErrorHandler`) | `Warning` |
+| An unobserved background task (`TaskScheduler.UnobservedTaskException`) | `Warning` |
 
 ---
 
