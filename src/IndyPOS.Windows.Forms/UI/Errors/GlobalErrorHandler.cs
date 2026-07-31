@@ -1,5 +1,3 @@
-using Serilog;
-
 namespace IndyPOS.Windows.Forms.UI.Errors;
 
 /// <summary>
@@ -35,12 +33,16 @@ internal static class GlobalErrorHandler
                             ?? new InvalidOperationException(
                                 $"Non-exception object thrown: {args.ExceptionObject}");
 
-            // Record, flush, then show. The process is going down, so getting the
-            // entry onto disk must not depend on a MessageBox call succeeding.
+            // Record, then show. The process is going down, so getting the entry
+            // onto disk must not depend on a MessageBox call succeeding — which is
+            // why Record and Show stay two separate calls rather than ReportToUser.
             var reference = reporter.Record(exception, "unhandled domain exception", UiErrorSeverity.Fatal);
 
-            Log.CloseAndFlush();
-
+            // No CloseAndFlush here. Program.cs wires the file sink unbuffered
+            // (WriteTo.File defaults `buffered` to false), so the Fatal entry above
+            // is already durable on disk before this line runs. Flushing here would
+            // dispose the very Log.Logger instance `reporter` still holds — and that
+            // any later failure on this thread still needs — for no durability gain.
             reporter.Show(reference, UiErrorSeverity.Fatal);
         };
 

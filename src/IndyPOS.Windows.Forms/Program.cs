@@ -44,14 +44,16 @@ internal static class Program
 		ClosePreviousProcesses();
 		ConfigureLogger();
 
-		// After ConfigureLogger so the handler can log from its first invocation, and
-		// before Launch() — which reaches Application.Run at Machine.cs:160. Built with
-		// new rather than resolved from DI so it still works when host construction is
-		// what failed.
-		GlobalErrorHandler.Wire(new UiErrorReporter(new MessageBoxErrorDialog(), Log.Logger));
-
 		try
 		{
+			// After ConfigureLogger so the handler can log from its first invocation, and
+			// before Launch() — which reaches Application.Run at Machine.cs:160. Built with
+			// new rather than resolved from DI so it still works when host construction is
+			// what failed. Inside the try so a wiring failure (Wire can throw, e.g.
+			// SetUnhandledExceptionMode on an existing window handle) is logged by the
+			// catch below instead of crashing before anything is recorded.
+			GlobalErrorHandler.Wire(new UiErrorReporter(new MessageBoxErrorDialog(), Log.Logger));
+
 			Log.Information("Starting application");
 
 			var host = CreateHost();
