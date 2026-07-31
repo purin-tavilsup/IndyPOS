@@ -23,6 +23,7 @@ public class StoreHubDbContext : DbContext
     public DbSet<StoreUser> StoreUsers => Set<StoreUser>();
     public DbSet<StoreSetting> StoreSettings => Set<StoreSetting>();
     public DbSet<PaymentMethod> PaymentMethods => Set<PaymentMethod>();
+    public DbSet<ProductCategory> ProductCategories => Set<ProductCategory>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

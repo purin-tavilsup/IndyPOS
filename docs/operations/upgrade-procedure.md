@@ -32,7 +32,7 @@ That is the whole command. Notes:
   rewriting store identity (which would orphan the store's sales history).
 - **`--store-type` is only needed** if the store was installed before 2026-07-18 and its
   `appsettings.json` has no `Store:Type` key. The run will tell you (exit code 5) if so.
-  Re-run with `--store-type GeneralHardware` or `--store-type Minimart`.
+  Re-run with `--store-type GeneralHardware`, `--store-type Minimart` or `--store-type MimyShop`.
 - Close the POS application on this machine first. The upgrade refuses while it is running,
   because two Velopack processes on one install root can leave the POS unlaunchable.
 
@@ -157,7 +157,7 @@ C:\ProgramData\IndyPOS\v4\StoreHub\appsettings.json
   },
 ```
 
-Use the store's real type (`GeneralHardware` or `Minimart`). Then:
+Use the store's real type (`GeneralHardware`, `Minimart` or `MimyShop`). Then:
 
 ```
 IndyPOS-Setup.exe --silent

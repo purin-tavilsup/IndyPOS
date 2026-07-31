@@ -478,10 +478,12 @@ fabric.properties
 .idea/caches/build_file_checksums.ser
 .idea/.idea.IndyPOS/.idea/
 
-# Claude Code workspace (session logs and local settings are personal)
-.claude/sessions/
-.claude/settings.local.json
-*/.claude/settings.local.json
+# Claude Code workspace — personal session state, kept local and never committed.
+# These are working notes (current task, next actions, session history), not project
+# documentation. Design docs that outlive a session live in docs/ and ARE tracked.
+.claude/
+.superpowers/
+.remember/
 *.db
 
 # Installer payloads — embedded at build time by build-installer.ps1

@@ -141,7 +141,9 @@ public class StoreHubSaleService : ISaleService
             Description = product.Name,
             Manufacturer = product.Manufacturer ?? string.Empty,
             Brand = product.Brand ?? string.Empty,
-            Category = 0, // Category is string in StoreHub, int in legacy
+            // Was hardcoded to 0 because the legacy DTO held an int while StoreHub stores a code;
+            // both are the catalogue code now, so the real category survives the conversion.
+            Category = product.Category ?? string.Empty,
             UnitPrice = product.UnitPrice,
             GroupPrice = product.GroupPrice ?? 0,
             GroupPriceQuantity = product.GroupPriceQuantity,

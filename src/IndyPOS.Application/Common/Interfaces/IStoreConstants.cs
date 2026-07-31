@@ -6,5 +6,4 @@ public interface IStoreConstants
 
 	IReadOnlyDictionary<int, string> PaymentTypes { get; }
 
-	IReadOnlyDictionary<int, string> ProductCategories { get; }
 }
