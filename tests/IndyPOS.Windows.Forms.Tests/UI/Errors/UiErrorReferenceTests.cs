@@ -19,9 +19,12 @@ public class UiErrorReferenceTests
     {
         // Hex avoids the 0/O ambiguity when a code is spoken, because O is not
         // a hex digit. Sample enough times to catch a stray character class.
+        // Assert the full string (not a `[4..]` slice) so the test does not
+        // silently start checking the wrong thing if the "ERR-" prefix length
+        // ever changes.
         for (var i = 0; i < 500; i++)
         {
-            UiErrorReference.New()[4..].Should().MatchRegex("^[0-9A-F]{4}$");
+            UiErrorReference.New().Should().MatchRegex("^ERR-[0-9A-F]{4}$");
         }
     }
 
