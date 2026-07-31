@@ -241,7 +241,7 @@ On the Hyper-V test VM, with a debug hook or a deliberately broken input:
 | Risk | Mitigation |
 |---|---|
 | The net masks bugs during development | Every occurrence is logged at `Error` with a stack trace; nothing is swallowed silently. This is strictly more visibility than today, where nothing is logged at all. |
-| A cascade spams dialogs | `MessageBox` is modal, so the loop is blocked while it is up. Accepted for this PR; if it proves real, add coalescing by exception signature. |
+| A cascade spams dialogs | A modal `MessageBox` pumps its own message loop, so timers, paint handlers and marshalled callbacks keep firing and the error path can be re-entered on the same thread — the loop is *not* blocked. It is state-safe regardless: `UiErrorReporter` holds no mutable state (both fields readonly, all methods use locals, Serilog is thread-safe), so the worst case is stacked dialogs, not corruption. Accepted for this PR; if it proves real, the mitigation is a `[ThreadStatic]` "already showing" guard, deferred to the follow-up PR already scoped above. |
 | `MessageBox` looks unstyled next to the rest of the app | Accepted deliberately for robustness. Per-operation paths keep `MessageForm`. |
 | Reduced pressure to add per-operation handling | The follow-up PR is named in Scope, and generic messages are visibly worse than specific ones, so the incentive stays. |
 
