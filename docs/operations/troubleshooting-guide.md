@@ -400,6 +400,43 @@ Get-ChildItem "C:\ProgramData\IndyPOS\backups\*.dump" | Sort-Object LastWriteTim
 
 ---
 
+### 7. POS App Error Codes (`ERR-XXXX`)
+
+#### Operator Reports an ERR- Code
+
+**Symptoms:**
+- A Thai dialog on the POS till reads a message ending in a code like `แจ้งรหัส ERR-9FDF`
+- No English crash dialog — the app's global error handler caught it and stayed usable (or, on a
+  fatal error, closed cleanly)
+
+**Diagnostic Steps:**
+
+The POS app's log is separate from the StoreHub log referenced above. It lives at
+`C:\ProgramData\IndyPOS\v{Major}\logs\log<date>.json` on the till itself (e.g.
+`C:\ProgramData\IndyPOS\v4\logs\log20260731.json` — the version segment matches the installed
+major version, per `InstallPaths.LogsDirectory`).
+
+```powershell
+# Find the entry for a reported code (adjust the version segment and date)
+Select-String -Path "C:\ProgramData\IndyPOS\v4\logs\log20260731.json" -Pattern 'ERR-9FDF'
+```
+
+The matched line is a compact-JSON event carrying the full exception and an `Operation` property
+naming what was happening when it failed — both useful for a developer, neither shown to the
+operator.
+
+**Note on severity:** the level varies by how the failure arrived, so **search by the `ERR-` code
+itself rather than by level** — a filter on `Error` alone misses two of the four cases:
+
+| Source | Level |
+|---|---|
+| A UI-thread failure caught by the global handler | `Error` |
+| A crash taking the process down | `Fatal` |
+| Report-load failures (`ReportErrorHandler`) | `Warning` |
+| An unobserved background task (`TaskScheduler.UnobservedTaskException`) | `Warning` |
+
+---
+
 ## Error Code Reference
 
 | Error Pattern | Meaning | Resolution |
