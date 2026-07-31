@@ -1,5 +1,6 @@
 ﻿using IndyPOS.Application.Common;
 using IndyPOS.Windows.Forms.Interfaces;
+using IndyPOS.Windows.Forms.UI.Errors;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -42,6 +43,12 @@ internal static class Program
 
 		ClosePreviousProcesses();
 		ConfigureLogger();
+
+		// After ConfigureLogger so the handler can log from its first invocation, and
+		// before Launch() — which reaches Application.Run at Machine.cs:160. Built with
+		// new rather than resolved from DI so it still works when host construction is
+		// what failed.
+		GlobalErrorHandler.Wire(new UiErrorReporter(new MessageBoxErrorDialog(), Log.Logger));
 
 		try
 		{
