@@ -16,16 +16,32 @@ history intact — not cloud infrastructure.
 
 | # | Epic | Status | Why this order |
 |---|------|--------|----------------|
-| 1 | **Product categories + MimyShop** | 📋 Spec pending | The migration needs a category model to map into. Blocks 2 |
-| 2 | **SQLite → PostgreSQL migration hardening** | 📋 Spec pending | 6 known defects + 3 divergent legacy schemas. The risky half of the rollout |
+| 1 | **Product categories + MimyShop** | ✅ **SHIPPED 2026-07-31 (PR #55)** | The migration needs a category model to map into. Blocked 2 |
+| 2 | **SQLite → PostgreSQL migration hardening** | 📋 **NEXT** — spec pending | 6 open defects + 3 divergent legacy schemas. The risky half of the rollout |
 | 3 | **Store rollout** (fresh v4 install + migrate, per store) | ⏳ Blocked by 2 | Where the business value lands: stores off a 3.7.0-era system |
 | 4 | **Epic I: Cloud infrastructure** | 🔴 Not started | Additive. No longer on the critical path — see "Legacy history" below |
 | 5 | **Epic MCP: agent-facing API** | 🔴 Not started | Depends on 4 |
+| 6 | **Store-type panel consolidation** (3 forked apps → 1) | 🔵 **NEW candidate** — analysed, not spec'd | Retires the MimyMart/MimyShop forks. Scheduled after 3; see `findings-2026-07-31.md` §B |
 
 **Legacy history reaches the cloud for free.** After migration each store's own v4 PostgreSQL holds
 its full legacy history, so ordinary sync carries it upward. There is no separate legacy→cloud
 pipeline to build. The consequence is that "the cloud needs legacy history" is not a new component —
 it is a **correctness requirement on epic 2**.
+
+> **📎 Read alongside this plan:
+> [`findings-2026-07-31.md`](findings-2026-07-31.md)** — cross-repo analysis produced after Epic 1
+> merged. It carries material this plan only summarises:
+> **§A** entity identity (defects 8-9 below, and the UUIDv7 window) ·
+> **§B** the three-app consolidation, measured, incl. **defect B3** — the sales report's
+> hardcoded campaign labels defeat Epic M, so a new government campaign collects money that
+> never appears in the report ·
+> **§C** MimyShop's service requirement, its two blockers, and the pinned service barcodes.
+>
+> A pattern runs through all three: **v4 repeatedly makes something data-driven and leaves one
+> hardcoded remnant behind.** Epic M catalogued payment methods but left four hardcoded report
+> labels; Epic 1 catalogued categories but the `Service` kind is locked out by a flag doing
+> double duty; `SalePanel` gates hardware by feature flag but hardcodes its template barcodes.
+> Worth naming explicitly when epic 6 is spec'd.
 
 ---
 
@@ -42,7 +58,10 @@ per-task ledger in `.superpowers/sdd/progress.md`.
 | **Epic M: data-driven payment methods** | `payment_method` catalogue replaces the hardcoded `PaymentType` enum; store-type gating; `PaymentMethodKind` taxonomy (`Standard`/`GovernmentCampaign`/`Special`); admin management screen; fixed the silent-GeneralHardware default | 2026-07-19 |
 | **Product-type restriction** | `GET /store/features`; server rejects Hardware products on general-only stores; WinForms hides Hardware affordances | 2026-07-19 |
 | **Cosmetic-minors batch** | Kind taxonomy re-spec, Thai Kind labels, grid refresh, payment-button icons, `PUT /products/{id}` → 404, one-shot features-error dialog | PR #52 |
-| **Installer upgrade support** | In-place upgrade with verified rollback. See below | PR #54 (open) |
+| **Installer upgrade support** | In-place upgrade with verified rollback. See below | PR #54 |
+| **Epic 1: product categories + MimyShop** | Store-scoped `product_category` catalogue replaces the two-value enum; `StoreType.MimyShop`, `CoffeeShop` retired with value 3 reserved; `GET /product-categories`; create/update gate on category `Kind`. Verified on 3 fresh VM installs (16/17/10 rows) + live UI | PR #55 |
+| **Global UI error handling** | No unhandled WinForms exception can show the default English crash dialog or go unlogged. Thai message + `ERR-XXXX` reference code, same code in the log. Three framework channels wired. `IndyPOS.Windows.Forms.Tests` 0 → 19 tests. VM-verified end to end | PR #56 |
+| **EAN-13 barcode fix** | The generator emitted 9 digits (`{StoreCode}{Sequence:D8}`), which EAN-13 cannot encode, so every generated barcode crashed the add-product dialog. Now `200 + {StoreCode:D2} + {Sequence:D7}` + check digit, with two real shelf labels as test vectors | PR #55 |
 
 ### Installer upgrade support (PR #54, open)
 
@@ -60,7 +79,7 @@ that never happened, by grading a crashed run against an `install-*.log` baked i
 
 ---
 
-## Epic 1: Product categories + MimyShop 📋
+## Epic 1: Product categories + MimyShop ✅ SHIPPED (PR #55, 2026-07-31)
 
 **Problem.** `ProductCategory { GeneralGoods = 10, Hardware = 50 }` is hardcoded, and `Product.Category`
 stores the enum *name*. The real stores have 16 / 11 / 17 fine-grained Thai categories, and **the ids
@@ -125,7 +144,19 @@ Legacy payment id 6 `ผ่อนชำระ` is dead with them.
 | 4 | `ParseDate` does `SpecifyKind(..., Utc)` on `datetime('now','localtime')` values | **Every timestamp 7h off**; corrupts all daily/monthly totals | ❌ |
 | 5 | `Category = product.Category?.ToString()` writes the raw numeric id | All products uncategorised; breaks the Hardware gate and pickers | ❌ (needs Epic 1) |
 | 6 | `InvoiceProduct` selects 7 of 17 columns, dropping `OriginalUnitPrice`, `GroupPrice`, `IsGroupProduct`, `Note`, `Priority` | **165,690 of 325,780 line items (51%)** were discounted; the record is lost | ❌ |
-| 7 | v4 `Core.Product` has no `IsTrackable`; legacy does (21/7/1 non-trackable products) | Services would be stock-tracked and inventory-deducted | ❌ |
+| 7 | v4 `Core.Product` has no `IsTrackable`; legacy does (21/7/1 non-trackable products) | Services would be stock-tracked and inventory-deducted | ❌ **priority raised** |
+| 8 | **Legacy ids are not preserved** on products, invoices, invoice lines or payments (only `StoreUser.LegacyUserId` is) | The migration cannot be re-run idempotently, and a v4 row cannot be reconciled against its SQLite source | ❌ **new** |
+| 9 | `LegacyIdHelper` is dead code that maps the same legacy id to the same Guid **in every store** | Latent cross-store collision once Epic I syncs three shops into one cloud. Delete it | ❌ **new** |
+
+**Defect 7 reframed (2026-07-31).** It is not merely "legacy has a field we omitted" — the legacy
+sale path **already filters on `IsTrackable` before touching stock, in production**
+(`MimyShop SaleService.cs:413-418`). v4 dropped a working guard, and
+`CompleteSaleCommandHandler` now deducts stock for every line unconditionally. This is the
+difference between v4 supporting services at all and v4 driving service stock permanently
+negative, so it is no longer only a migration concern.
+
+See `findings-2026-07-31.md` §A for defects 8-9 and the UUIDv7 recommendation (worth adopting
+while v4 has never run a store — that window closes at the first migration).
 
 v4's `PayLater` entity is already a field-for-field match for the legacy table
 (`PaymentId, Description, PayLaterAmount, PaidAmount, IsCompleted` + calculated `RemainingAmount`),
