@@ -1,13 +1,19 @@
 using IndyPOS.Application.Abstractions.StoreHub.Repositories;
 using IndyPOS.Application.Common.Interfaces;
 using IndyPOS.Domain.Entities.Core;
+using IndyPOS.Domain.ValueObjects;
 using Nokpirab;
 
 namespace IndyPOS.Application.UseCases.StoreHub.Products.GenerateBarcode;
 
 /// <summary>
 /// Handler for generating the next barcode.
-/// Format: {StoreCode}{Sequence:D8} (e.g., "100000001")
+/// Format: 200 + {StoreCode:D2} + {Sequence:D7} + EAN-13 check digit (e.g., "2000100000038").
+/// <para>
+/// This previously returned <c>{StoreCode}{Sequence:D8}</c>, which is 9 digits for a
+/// single-digit store code. EAN-13 accepts only 12 or 13, so every generated barcode
+/// crashed the label preview in the add-product dialog. See <see cref="Ean13Barcode"/>.
+/// </para>
 /// </summary>
 public class GenerateBarcodeQueryHandler : IQueryHandler<GenerateBarcodeQuery, string>
 {
@@ -30,10 +36,8 @@ public class GenerateBarcodeQueryHandler : IQueryHandler<GenerateBarcodeQuery, s
         var nextValue = await _settingRepository.IncrementAsync(
             StoreSettingKeys.BarcodeCounter, cancellationToken);
 
-        // Format: {StoreCode}{Sequence:D8}
         var storeCode = _storeIdentityService.StoreCode;
-        var barcode = $"{storeCode}{nextValue:D8}";
 
-        return barcode;
+        return Ean13Barcode.ForStoreProduct(storeCode, nextValue);
     }
 }
