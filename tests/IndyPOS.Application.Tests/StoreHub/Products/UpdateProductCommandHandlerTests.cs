@@ -1,9 +1,9 @@
 using FluentAssertions;
 using IndyPOS.Application.Abstractions.StoreHub.Repositories;
-using IndyPOS.Application.Common.Enums;
+using IndyPOS.Application.Common.Constants;
 using IndyPOS.Application.Common.Exceptions;
-using IndyPOS.Application.UseCases.StoreHub.Products;
 using IndyPOS.Application.UseCases.StoreHub.Products.Update;
+using IndyPOS.Domain.Entities.Core;
 using IndyPOS.Domain.Enums;
 using IndyPOS.Mock;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -16,8 +16,34 @@ public class UpdateProductCommandHandlerTests
 {
     private static readonly Guid ProductId = Guid.NewGuid();
 
+    /// <summary>
+    /// Resolves the two codes these tests use from the store's catalogue. The gate reads the
+    /// category's Kind now, so the arrangement supplies a catalogue rather than relying on the
+    /// category string matching an enum name.
+    /// </summary>
+    private static IProductCategoryRepository Categories()
+    {
+        var categories = new Mock<IProductCategoryRepository>();
+        categories.Setup(r => r.GetByCodeAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                  .ReturnsAsync((string code, CancellationToken _) => new ProductCategory
+                  {
+                      StoreId = "test-store",
+                      Code = code,
+                      DisplayName = code,
+                      Kind = code == ProductCategoryCodes.PlumbingMaterials
+                          ? ProductCategoryKind.Hardware
+                          : ProductCategoryKind.GeneralGoods,
+                      IsEnabled = true,
+                      DisplayOrder = 1,
+                      CreatedUtc = DateTime.UtcNow,
+                      LastModifiedUtc = DateTime.UtcNow
+                  });
+        return categories.Object;
+    }
+
     private static UpdateProductCommandHandler NewSut(Mock<IProductRepository> products, StoreType storeType) =>
         new(products.Object,
+            Categories(),
             new MockStoreIdentityService { StoreType = storeType },
             NullLogger<UpdateProductCommandHandler>.Instance);
 
@@ -26,12 +52,12 @@ public class UpdateProductCommandHandlerTests
         Id = ProductId, Barcode = "8850000000099", Name = "Test", Category = category, UnitPrice = 10m
     };
 
-    private static Domain.Entities.Core.Product ExistingProduct() => new()
+    private static Product ExistingProduct() => new()
     {
         Id = ProductId,
         Barcode = "8850000000099",
         Name = "Test",
-        Category = nameof(ProductCategory.GeneralGoods),
+        Category = ProductCategoryCodes.Beverages,
         UnitPrice = 10m,
         IsActive = true,
         CreatedUtc = DateTime.UtcNow,
@@ -51,13 +77,13 @@ public class UpdateProductCommandHandlerTests
     {
         var products = NewProductsMock();
         products.Setup(r => r.GetByIdAsync(ProductId, It.IsAny<CancellationToken>()))
-                .ReturnsAsync((Domain.Entities.Core.Product?)null);
+                .ReturnsAsync((Product?)null);
         var sut = NewSut(products, StoreType.GeneralHardware);
 
-        var act = () => sut.HandleAsync(Command(nameof(ProductCategory.GeneralGoods)));
+        var act = () => sut.HandleAsync(Command(ProductCategoryCodes.Beverages));
 
         await act.Should().ThrowAsync<ProductNotFoundException>();
-        products.Verify(r => r.UpdateAsync(It.IsAny<Domain.Entities.Core.Product>(), It.IsAny<CancellationToken>()), Times.Never);
+        products.Verify(r => r.UpdateAsync(It.IsAny<Product>(), It.IsAny<CancellationToken>()), Times.Never);
     }
 
     [Fact]
@@ -68,7 +94,7 @@ public class UpdateProductCommandHandlerTests
                 .ReturnsAsync(true);
         var sut = NewSut(products, StoreType.GeneralHardware);
 
-        var act = () => sut.HandleAsync(Command(nameof(ProductCategory.GeneralGoods)));
+        var act = () => sut.HandleAsync(Command(ProductCategoryCodes.Beverages));
 
         // Stays InvalidOperationException (409) — only the not-found case becomes a 404. The
         // NotBeOfType guard keeps this honest if ProductNotFoundException is ever re-parented
@@ -83,10 +109,10 @@ public class UpdateProductCommandHandlerTests
         var products = NewProductsMock();
         var sut = NewSut(products, StoreType.Minimart);
 
-        var act = () => sut.HandleAsync(Command(nameof(ProductCategory.Hardware)));
+        var act = () => sut.HandleAsync(Command(ProductCategoryCodes.PlumbingMaterials));
 
         await act.Should().ThrowAsync<InvalidOperationException>();
-        products.Verify(r => r.UpdateAsync(It.IsAny<Domain.Entities.Core.Product>(), It.IsAny<CancellationToken>()), Times.Never);
+        products.Verify(r => r.UpdateAsync(It.IsAny<Product>(), It.IsAny<CancellationToken>()), Times.Never);
     }
 
     [Fact]
@@ -95,10 +121,10 @@ public class UpdateProductCommandHandlerTests
         var products = NewProductsMock();
         var sut = NewSut(products, StoreType.GeneralHardware);
 
-        var result = await sut.HandleAsync(Command(nameof(ProductCategory.Hardware)));
+        var result = await sut.HandleAsync(Command(ProductCategoryCodes.PlumbingMaterials));
 
         result.Should().NotBeNull();
-        products.Verify(r => r.UpdateAsync(It.IsAny<Domain.Entities.Core.Product>(), It.IsAny<CancellationToken>()), Times.Once);
+        products.Verify(r => r.UpdateAsync(It.IsAny<Product>(), It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
@@ -107,9 +133,9 @@ public class UpdateProductCommandHandlerTests
         var products = NewProductsMock();
         var sut = NewSut(products, StoreType.Minimart);
 
-        var result = await sut.HandleAsync(Command(nameof(ProductCategory.GeneralGoods)));
+        var result = await sut.HandleAsync(Command(ProductCategoryCodes.Beverages));
 
         result.Should().NotBeNull();
-        products.Verify(r => r.UpdateAsync(It.IsAny<Domain.Entities.Core.Product>(), It.IsAny<CancellationToken>()), Times.Once);
+        products.Verify(r => r.UpdateAsync(It.IsAny<Product>(), It.IsAny<CancellationToken>()), Times.Once);
     }
 }

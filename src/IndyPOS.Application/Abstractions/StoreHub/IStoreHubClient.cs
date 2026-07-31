@@ -3,6 +3,7 @@ using IndyPOS.Application.UseCases.StoreHub.Auth;
 using IndyPOS.Application.UseCases.StoreHub.Auth.ChangePassword;
 using IndyPOS.Application.UseCases.StoreHub.PayLater;
 using IndyPOS.Application.UseCases.StoreHub.PaymentMethods;
+using IndyPOS.Application.UseCases.StoreHub.ProductCategories;
 using IndyPOS.Application.UseCases.StoreHub.Products;
 using IndyPOS.Application.UseCases.StoreHub.Products.AdjustQuantity;
 using IndyPOS.Application.UseCases.StoreHub.Products.Create;
@@ -207,4 +208,12 @@ public interface IStoreHubClient
     /// Requires authentication.
     /// </summary>
     Task<StoreFeaturesDto> GetStoreFeaturesAsync(CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Get this store's product categories, enabled and disabled alike, in display order.
+    /// The POS filters for pickers; a disabled category is still returned so an existing
+    /// product referencing it can render its label. Requires authentication.
+    /// </summary>
+    Task<IReadOnlyList<ProductCategoryDto>> GetProductCategoriesAsync(
+        CancellationToken cancellationToken = default);
 }

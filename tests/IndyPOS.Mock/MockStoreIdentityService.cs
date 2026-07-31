@@ -38,10 +38,10 @@ public class MockStoreIdentityService : IStoreIdentityService
     };
 
     /// <summary>
-    /// Creates a mock configured for CoffeeShop store (PayLater disabled).
+    /// Creates a mock configured for a MimyShop store (PayLater disabled).
     /// </summary>
-    public static MockStoreIdentityService CoffeeShop() => new()
+    public static MockStoreIdentityService MimyShop() => new()
     {
-        StoreType = StoreType.CoffeeShop
+        StoreType = StoreType.MimyShop
     };
 }

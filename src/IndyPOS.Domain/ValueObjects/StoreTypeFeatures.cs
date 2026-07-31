@@ -34,7 +34,7 @@ public record StoreTypeFeatures
             PayLaterEnabled = false,
             MultipleProductTypesEnabled = false
         },
-        StoreType.CoffeeShop => new StoreTypeFeatures
+        StoreType.MimyShop => new StoreTypeFeatures
         {
             PayLaterEnabled = false,
             MultipleProductTypesEnabled = false

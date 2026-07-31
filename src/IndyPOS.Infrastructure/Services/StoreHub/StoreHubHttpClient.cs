@@ -8,6 +8,7 @@ using IndyPOS.Application.UseCases.StoreHub.Auth;
 using IndyPOS.Application.UseCases.StoreHub.Auth.ChangePassword;
 using IndyPOS.Application.UseCases.StoreHub.PayLater;
 using IndyPOS.Application.UseCases.StoreHub.PaymentMethods;
+using IndyPOS.Application.UseCases.StoreHub.ProductCategories;
 using IndyPOS.Application.UseCases.StoreHub.Products;
 using IndyPOS.Application.UseCases.StoreHub.Products.AdjustQuantity;
 using IndyPOS.Application.UseCases.StoreHub.Products.Create;
@@ -342,6 +343,15 @@ public class StoreHubHttpClient : IStoreHubClient
 
     public Task<StoreFeaturesDto> GetStoreFeaturesAsync(CancellationToken cancellationToken = default) =>
         SendAuthenticatedAsync<StoreFeaturesDto>(HttpMethod.Get, "/store/features", content: null, cancellationToken);
+
+    // ========================
+    // Product category catalog
+    // ========================
+
+    public Task<IReadOnlyList<ProductCategoryDto>> GetProductCategoriesAsync(
+        CancellationToken cancellationToken = default) =>
+        SendAuthenticatedAsync<IReadOnlyList<ProductCategoryDto>>(
+            HttpMethod.Get, "/product-categories", content: null, cancellationToken);
 
     // ========================
     // Report methods (legacy format)

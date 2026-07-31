@@ -17,7 +17,8 @@ public record InventoryProductDto
 	public string Description { get; init; } = string.Empty;
 	public string Manufacturer { get; init; } = string.Empty;
 	public string Brand { get; init; } = string.Empty;
-	public int Category { get; init; }
+	/// <summary>Catalogue category code (see ProductCategoryCodes), not a legacy numeric id.</summary>
+	public string Category { get; init; } = string.Empty;
 	public decimal UnitPrice { get; init; }
 	public int QuantityInStock { get; init; }
 	public decimal GroupPrice { get; init; }
