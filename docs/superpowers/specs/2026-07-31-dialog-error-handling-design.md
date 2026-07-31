@@ -155,14 +155,22 @@ Kept out of `Program.cs` because that file is `[ExcludeFromCodeCoverage]`.
 | Channel | Thread | Severity | Action |
 |---|---|---|---|
 | `Application.ThreadException` | UI | `Recoverable` | `ReportToUser` → log `Error`, Thai dialog, app continues |
-| `AppDomain.UnhandledException` | Any | `Fatal` | `Record` → log `Fatal`, **`Log.CloseAndFlush()`**, then best-effort dialog, process ends |
+| `AppDomain.UnhandledException` | Any | `Fatal` | `Record` → log `Fatal`, then best-effort dialog, process ends |
 | `TaskScheduler.UnobservedTaskException` | Finalizer | `Background` | `Record` → log `Warning`, `SetObserved()`, **no dialog** |
 
 The fatal path calls `Record` and shows the dialog itself, rather than `ReportToUser`,
-so that the flush provably happens between the two.
+so that recording provably completes before anything as failure-prone as a
+`MessageBox` is attempted.
 
-Flush before the dialog on the fatal path: getting the entry onto disk must not
-depend on a `MessageBox` call succeeding on a dying process.
+**No `Log.CloseAndFlush()` on the fatal path** (revised during the final review; the
+implementation matches this, not the original draft). The file sink is configured
+unbuffered — `Program.cs` uses `WriteTo.File(new CompactJsonFormatter(), …)` and
+`buffered` defaults to `false` — so the `Fatal` entry is already on its way to the OS
+before the dialog is attempted, and an explicit flush buys nothing. It also carried two
+real costs: an `IOException` from a full or disconnected log volume would escape the
+handler and suppress the dialog entirely, and `CloseAndFlush` disposes the very logger
+instance the reporter still holds, so any later `Record` would write nowhere while
+still handing the operator a code that exists in no log.
 
 No dialog for unobserved tasks — the event fires at GC finalization, arbitrarily
 long after the fact, so a dialog would name an operation the user has moved on from.
