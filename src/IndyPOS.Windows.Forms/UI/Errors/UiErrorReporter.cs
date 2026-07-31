@@ -9,10 +9,14 @@ namespace IndyPOS.Windows.Forms.UI.Errors;
 /// </summary>
 /// <remarks>
 /// <para>
-/// Nothing here may throw. This is the last line of defence: an exception escaping
-/// it would re-enter the handler that called it, and on a till that means a crash
-/// mid-sale. Logging and presentation are therefore guarded independently, so a
-/// broken dialog still leaves a log entry behind.
+/// The logging call and the presentation call may not throw. This is the last line
+/// of defence: an exception escaping either one would re-enter the handler that
+/// called it, and on a till that means a crash mid-sale. They are therefore guarded
+/// independently, so a broken dialog still leaves a log entry behind. Generating the
+/// reference code itself (<see cref="UiErrorReference.New"/>) sits outside both
+/// guards and is not wrapped — a <see cref="Guid"/> plus a string slice cannot throw
+/// short of <see cref="OutOfMemoryException"/>, at which point the process is beyond
+/// helping anyway.
 /// </para>
 /// <para>
 /// The logger is injected rather than taken from the static <c>Log</c> so tests can
@@ -30,6 +34,14 @@ public sealed class UiErrorReporter
 
     public UiErrorReporter(IErrorDialog dialog, ILogger logger)
     {
+        // Fail loudly here, on purpose. A null dependency would not crash the net —
+        // it would silently disable it: _logger.Write/_dialog.Show would throw NREs
+        // that the guards below swallow, leaving no log entry and no dialog, with
+        // the app looking exactly as it did before this class existed. That is worse
+        // than a constructor throw a developer sees immediately at startup.
+        ArgumentNullException.ThrowIfNull(dialog);
+        ArgumentNullException.ThrowIfNull(logger);
+
         _dialog = dialog;
         _logger = logger;
     }
