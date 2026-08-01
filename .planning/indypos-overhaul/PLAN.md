@@ -155,6 +155,44 @@ sale path **already filters on `IsTrackable` before touching stock, in productio
 difference between v4 supporting services at all and v4 driving service stock permanently
 negative, so it is no longer only a migration concern.
 
+> ### ⚠️ Defect 7 addendum (2026-08-01): read `IsTrackable` from the PRODUCT, never the invoice line
+>
+> `InvoiceProduct.IsTrackable` exists and looks authoritative. It is **dead data** — measured across
+> all three real store DBs:
+>
+> | Store | `InvoiceProduct` lines | `IsTrackable = 1` | `IsTrackable = 0` |
+> |---|---|---|---|
+> | GeneralHardware | 325,780 | **325,780** | **0** |
+> | MimyMart | 276,317 | **276,317** | **0** |
+> | MimyShop | 17 | **17** | **0** |
+>
+> **602,114 lines, not a single `0`** — including **73,798** GeneralHardware and **11,890** MimyMart
+> lines sold from products that *are* non-trackable.
+>
+> **Cause — verified in one codebase, inferred for the other two.** In **MimyShop**'s source,
+> `InvoiceProductRepository`'s `INSERT` omits the `IsTrackable` column, so SQLite applies the
+> schema's `DEFAULT 1` on every row. GeneralHardware's rows were written by **IndyPOS v3.7.0** and
+> MimyMart's by a third codebase, and **neither is in this repo** (`grep 'INSERT INTO
+> InvoiceProduct'` over `src/` returns nothing) — so for those two the same defect is *inferred from
+> an identical symptom*, not read off the code. **The conclusion does not depend on the cause:** it
+> rests on the measurement above, which covers all three stores directly.
+>
+> Legacy stock handling is nevertheless correct, which is why this was never noticed: the guard
+> filters the **in-memory** `IInvoiceProduct` (flag copied from the product) and never reads the
+> persisted column.
+>
+> **Consequence for this defect:** a migration that restores a per-line trackable flag by reading
+> `InvoiceProduct.IsTrackable` will mark **every service line as stock-tracked** — the exact bug
+> defect 7 exists to fix, faithfully reproduced from data that looks legitimate. Join
+> `InventoryProduct` on `InventoryProductId` and take the flag from there: only **29** products
+> across the three stores are non-trackable (**21** GeneralHardware + **7** MimyMart + **1**
+> MimyShop, and zero `NULL`s anywhere), and that column *is* maintained.
+>
+> ⚠️ This also means **`InvoiceProduct.IsTrackable` cannot be used to verify the migration** — it
+> reconciles perfectly against a wrong answer, the same trap as defect 1's payment scramble.
+> Found while verifying MimyShop's interim service buttons, where the two seeded service products
+> are `IsTrackable = 0` yet both invoice lines persisted as `1`.
+
 See `findings-2026-07-31.md` §A for defects 8-9 and the UUIDv7 recommendation (worth adopting
 while v4 has never run a store — that window closes at the first migration).
 
@@ -166,11 +204,61 @@ so defect 2 is a rename, not a redesign.
 
 - `MigrationVerifier` compared only row **counts** and `SUM(Invoice.Total)` — both reconcile
   perfectly under a scrambled mapping. Now compares count *and* amount **per method** (`6c63a6d`).
-- **No test anywhere creates a `Payment` table.** `tests/IndyPOS.Migration.Tests` builds
-  `InvoicePayment` / `AccountsReceivablePayment` and carries its own `MigrationService.cs` — it
-  appears to test an older parallel implementation. Its 15 tests pass while validating a schema no
-  store has. **The invoice and product paths may rest on the same sand.**
+- **No test anywhere creates a `Payment` table** — see the audit below.
 - The real-DB tests skip silently when the `.db` files are absent — including in CI.
+
+### Test-harness audit — ✅ DONE 2026-08-01. Verdict: **delete `tests/IndyPOS.Migration.Tests`**
+
+The suspicion was that its 15 passing tests validate nothing. Confirmed, and it is worse than that.
+
+**1. The tests cannot reach the shipped migrator.** `tests/IndyPOS.Migration.Tests/MigrationService.cs`
+(382 lines) is a **second, parallel migration implementation**. The shipped one is
+`src/IndyPOS.MigrationTool/Services/SqliteMigrationService.cs`.
+
+The decisive evidence is structural, not textual: **`IndyPOS.Migration.Tests.csproj` has no
+`ProjectReference` to `IndyPOS.MigrationTool`** — only to `IndyPOS.Domain` and
+`IndyPOS.Infrastructure`. No test in that project *can* touch the shipped migrator, and a grep for
+`SqliteMigrationService` inside it returns nothing. So every one of the 9 defects could be fixed or
+reintroduced in the real tool without moving a single test here.
+
+The test copy also still carries the **pre-`6c63a6d` scrambled payment map** (`2=>"Card"`,
+`3=>"Transfer"`, `4=>"PayLater"`, `5=>"WelfareCard"`, `_=>"Other"`), its own
+`SpecifyKind(..., Utc)` date bug, and its own `Category?.ToString()` — i.e. it is a frozen copy of
+the bugs Epic 2 exists to fix.
+
+⚠️ **Precisely what is and is not real:** because the project *does* reference
+`IndyPOS.Infrastructure`, `MigrationTestFixture` calls `EnsureCreatedAsync()` on the **real**
+`StoreHubDbContext`. So the **target** schema is genuine; the **source** schema and the **migration
+logic** are not.
+
+**2. The schema it builds exists in no store.** Verified against
+`sqlite_database/GeneralHardware/Store.db`, whose 13 tables are `Customers`, `Installments`,
+`InventoryProduct`, `Invoice`, `InvoiceProduct`, `PayLater`, `Payment`, `PaymentType`,
+`ProductBarcodeCounter`, `ProductCategory`, `User`, `UserCredential`, `UserRole`:
+
+| Real store | `MigrationTestFixture` builds |
+|---|---|
+| `Payment` | `InvoicePayment` — wrong name *and* shape |
+| `PayLater` | `AccountsReceivable` + `AccountsReceivablePayment` — exist in no store |
+| `PaymentType`, `ProductCategory`, `UserRole` | absent |
+| — | `StoreConstant` — exists in no store |
+
+**3. Defect 6 independently confirmed.** Real `InvoiceProduct` has **17** columns; the fixture's has
+**9**, missing exactly `Manufacturer`, `Brand`, `Category`, `IsTrackable`, `Note`, `GroupPrice`,
+`IsGroupProduct`, `OriginalUnitPrice`.
+
+**Consequence for Epic 2:** do not "fix" this project — delete it. That removes 15 misleading green
+tests and loses no coverage.
+
+**Why "no coverage" is safe to claim.** The only real thing the project exercises is
+`StoreHubDbContext.EnsureCreatedAsync()` against a live Postgres container — and
+`IndyPOS.StoreHub.IntegrationTests` already does exactly that, on the same context, across its 94
+tests. The target-schema smoke test is therefore duplicated, not lost.
+
+Real coverage has to be built against `SqliteMigrationService` using a fixture whose schema is
+**generated from a real `Store.db`** rather than hand-written — hand-writing it is what produced a
+schema no store has. Until that exists, **treat the invoice and product migration paths as
+untested.**
 
 ---
 
@@ -249,7 +337,7 @@ Remaining items in `.planning/indypos-overhaul/security/`.
 
 | Item | Description | Priority |
 |------|-------------|----------|
-| `Migration.Tests` schema audit | Its SQLite schema matches no real store; invoice/product coverage may be illusory | **HIGH** — see Epic 2 |
+| `Migration.Tests` — **audit DONE 2026-08-01, verdict: delete the project** | Confirmed to test a parallel implementation against a schema no store has. See Epic 2 § *Test-harness audit* | **HIGH** — first task of Epic 2 |
 | Headless installer crash | An unknown argument silently launches the wizard; headless that is a bare CLR crash with no log | MEDIUM |
 | Migration `--sync-to-cloud` | Outbox events for migrated invoices (folds into I6) | LOW |
 | **Auto-Update System (Epic U)** | Remote updates for StoreHub + WinForms. Superseded in part by the installer upgrade path — revisit scope | Future |
