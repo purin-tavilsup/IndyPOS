@@ -155,6 +155,36 @@ sale path **already filters on `IsTrackable` before touching stock, in productio
 difference between v4 supporting services at all and v4 driving service stock permanently
 negative, so it is no longer only a migration concern.
 
+> ### ⚠️ Defect 7 addendum (2026-08-01): read `IsTrackable` from the PRODUCT, never the invoice line
+>
+> `InvoiceProduct.IsTrackable` exists and looks authoritative. It is **dead data** — measured across
+> all three real store DBs:
+>
+> | Store | `InvoiceProduct` lines | `IsTrackable = 1` | `IsTrackable = 0` |
+> |---|---|---|---|
+> | GeneralHardware | 325,780 | **325,780** | **0** |
+> | MimyMart | 276,317 | **276,317** | **0** |
+> | MimyShop | 17 | **17** | **0** |
+>
+> **602,114 lines, not a single `0`** — including **73,798** GeneralHardware and **11,890** MimyMart
+> lines sold from products that *are* non-trackable (21 and 7 such products respectively).
+>
+> **Cause:** the legacy `InvoiceProductRepository`'s `INSERT` omits the `IsTrackable` column, so
+> SQLite applies the schema's `DEFAULT 1` on every row. Nothing has ever written a real value.
+> Legacy stock handling is still correct because the guard filters the **in-memory**
+> `IInvoiceProduct` (flag copied from the product) and never reads the persisted column.
+>
+> **Consequence for this defect:** a migration that restores a per-line trackable flag by reading
+> `InvoiceProduct.IsTrackable` will mark **every service line as stock-tracked** — the exact bug
+> defect 7 exists to fix, faithfully reproduced from data that looks legitimate. Join
+> `InventoryProduct` on `InventoryProductId` and take the flag from there; only 28 products across
+> the three stores are non-trackable, and that column *is* maintained.
+>
+> ⚠️ This also means **`InvoiceProduct.IsTrackable` cannot be used to verify the migration** — it
+> reconciles perfectly against a wrong answer, the same trap as defect 1's payment scramble.
+> Found while verifying MimyShop's interim service buttons, where the two seeded service products
+> are `IsTrackable = 0` yet both invoice lines persisted as `1`.
+
 See `findings-2026-07-31.md` §A for defects 8-9 and the UUIDv7 recommendation (worth adopting
 while v4 has never run a store — that window closes at the first migration).
 
