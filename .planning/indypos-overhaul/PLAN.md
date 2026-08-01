@@ -166,11 +166,41 @@ so defect 2 is a rename, not a redesign.
 
 - `MigrationVerifier` compared only row **counts** and `SUM(Invoice.Total)` — both reconcile
   perfectly under a scrambled mapping. Now compares count *and* amount **per method** (`6c63a6d`).
-- **No test anywhere creates a `Payment` table.** `tests/IndyPOS.Migration.Tests` builds
-  `InvoicePayment` / `AccountsReceivablePayment` and carries its own `MigrationService.cs` — it
-  appears to test an older parallel implementation. Its 15 tests pass while validating a schema no
-  store has. **The invoice and product paths may rest on the same sand.**
+- **No test anywhere creates a `Payment` table** — see the audit below.
 - The real-DB tests skip silently when the `.db` files are absent — including in CI.
+
+### Test-harness audit — ✅ DONE 2026-08-01. Verdict: **delete `tests/IndyPOS.Migration.Tests`**
+
+The suspicion was that its 15 passing tests validate nothing. Confirmed, and it is worse than that.
+
+**1. The tests exercise no shipped code.** `tests/IndyPOS.Migration.Tests/MigrationService.cs` (382
+lines) is a **second, parallel migration implementation**, unreferenced by the product. The shipped
+one is `src/IndyPOS.MigrationTool/Services/SqliteMigrationService.cs`. The test copy still carries
+the **pre-`6c63a6d` scrambled payment map** (`2=>"Card"`, `3=>"Transfer"`, `4=>"PayLater"`,
+`5=>"WelfareCard"`, `_=>"Other"`), its own `SpecifyKind(..., Utc)` date bug, and its own
+`Category?.ToString()`. Every one of the 9 defects could be fixed or reintroduced in the real tool
+without moving a single test in this project.
+
+**2. The schema it builds exists in no store.** Verified against
+`sqlite_database/GeneralHardware/Store.db`, whose 13 tables are `Customers`, `Installments`,
+`InventoryProduct`, `Invoice`, `InvoiceProduct`, `PayLater`, `Payment`, `PaymentType`,
+`ProductBarcodeCounter`, `ProductCategory`, `User`, `UserCredential`, `UserRole`:
+
+| Real store | `MigrationTestFixture` builds |
+|---|---|
+| `Payment` | `InvoicePayment` — wrong name *and* shape |
+| `PayLater` | `AccountsReceivable` + `AccountsReceivablePayment` — exist in no store |
+| `PaymentType`, `ProductCategory`, `UserRole` | absent |
+| — | `StoreConstant` — exists in no store |
+
+**3. Defect 6 independently confirmed.** Real `InvoiceProduct` has **17** columns; the fixture's has
+**9**, missing exactly `Manufacturer`, `Brand`, `Category`, `IsTrackable`, `Note`, `GroupPrice`,
+`IsGroupProduct`, `OriginalUnitPrice`.
+
+**Consequence for Epic 2:** do not "fix" this project — deleting it removes 15 misleading green
+tests and no coverage. Real coverage has to be built against `SqliteMigrationService` using a
+fixture whose schema is generated from a real `Store.db`, not hand-written. Until that exists,
+**treat the invoice and product migration paths as untested.**
 
 ---
 
@@ -249,7 +279,7 @@ Remaining items in `.planning/indypos-overhaul/security/`.
 
 | Item | Description | Priority |
 |------|-------------|----------|
-| `Migration.Tests` schema audit | Its SQLite schema matches no real store; invoice/product coverage may be illusory | **HIGH** — see Epic 2 |
+| `Migration.Tests` — **audit DONE 2026-08-01, verdict: delete the project** | Confirmed to test a parallel implementation against a schema no store has. See Epic 2 § *Test-harness audit* | **HIGH** — first task of Epic 2 |
 | Headless installer crash | An unknown argument silently launches the wizard; headless that is a bare CLR crash with no log | MEDIUM |
 | Migration `--sync-to-cloud` | Outbox events for migrated invoices (folds into I6) | LOW |
 | **Auto-Update System (Epic U)** | Remote updates for StoreHub + WinForms. Superseded in part by the installer upgrade path — revisit scope | Future |
