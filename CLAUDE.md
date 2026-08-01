@@ -2,7 +2,12 @@
 
 ## Session Start
 
-**Always read first:** `.claude/STATUS.md` (quick checkpoint, ~50 lines)
+**New to this repo, or a fresh clone?** Start with [`ONBOARDING.md`](ONBOARDING.md) — prerequisites,
+build/test, how to run it, and the four traps that waste the most time.
+
+**Resuming work on an existing checkout?** Read `.claude/STATUS.md` (quick checkpoint, ~50 lines).
+⚠️ **That file is gitignored and will not exist in a fresh clone** — this repo is public, so session
+context stays local. Do not try to commit it.
 
 **Need more detail?** `.planning/indypos-overhaul/PLAN.md`
 
@@ -130,17 +135,24 @@ dotnet test
 # Build
 dotnet build
 
-# Docker must be RUNNING for these three suites - they spin up a real Postgres
-# container. With Docker down they fail instantly (~1ms/test), which reads like a
-# code regression but is not:
-#   tests/IndyPOS.StoreHub.IntegrationTests   (94)
+# Docker must be RUNNING for three suites - they spin up a real Postgres container.
+# With Docker down they fail fast (each suite in under a second), which reads like a
+# code regression but is not. Measured with Docker stopped: 117 failures, all here.
+#   tests/IndyPOS.StoreHub.IntegrationTests   (87 of 94; 7 need no container)
 #   tests/IndyPOS.Migration.Tests             (15 - all of them)
-#   tests/IndyPOS.MigrationTool.Tests         (15 of 37; the other 21 are pure units)
+#   tests/IndyPOS.MigrationTool.Tests         (15 of 37; 21 are pure units, 1 skipped)
+
+# The installer is NOT in IndyPOS.sln, so the two commands above never touch it.
+# Run it explicitly (231 tests: 223 pass, 8 skipped):
+dotnet test tests/IndyPOS.Bootstrapper.Tests
 
 # Run with Aspire (requires Docker)
 dotnet run --project src/IndyPOS.AppHost --launch-profile https
 # Dashboard: https://localhost:17222
 ```
+
+Solution suites total **512** with Docker running. See [`ONBOARDING.md`](ONBOARDING.md) for the
+per-suite breakdown, the dev-vs-installed port split, and the `/health` vs `/health/ready` trap.
 
 ## Store Configuration (Required for Debug)
 
