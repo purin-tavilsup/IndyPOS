@@ -21,28 +21,42 @@ IndyPOS is a Point-of-Sale system for small retail stores (3 stores, 1-2 termina
 
 ## Project Structure
 
+**`src/` is flat** — one directory per project, no `Core/`/`Services/`/`Tools/` grouping layer.
+
 ```
 src/
-  Core/
-    IndyPOS.Domain/          # Entities, Value Objects, Domain Logic
-    IndyPOS.Application/     # Use Cases (Commands/Queries), Interfaces, DTOs
-    IndyPOS.Infrastructure/  # Repositories, External Services
-  DesktopApp/
-    IndyPOS.Windows.Forms/   # Desktop UI (legacy)
-  Services/
-    IndyPOS.StoreHub/        # Local API service (ASP.NET Core)
-    IndyPOS.CloudApi/        # Central cloud API
-  DevAppHost/
-    IndyPOS.AppHost/         # Aspire orchestrator
-    IndyPOS.ServiceDefaults/ # Shared health checks, OpenTelemetry
-  Tools/
-    IndyPOS.MigrationTool/   # SQLite -> PostgreSQL migration
+  IndyPOS.Domain/            # Entities, Value Objects, Domain Logic
+  IndyPOS.Application/       # Use Cases (Commands/Queries), Interfaces, DTOs
+  IndyPOS.Infrastructure/    # Repositories, External Services
+  IndyPOS.Windows.Forms/     # Desktop UI (legacy)
+  IndyPOS.StoreHub/          # Local API service (ASP.NET Core)
+  IndyPOS.CloudApi/          # Central cloud API
+  IndyPOS.Vault/             # DPAPI secret protection (connection string, JWT key)
+  IndyPOS.MigrationTool/     # SQLite -> PostgreSQL migration
+  IndyPOS.AppHost/           # Aspire orchestrator
+  IndyPOS.ServiceDefaults/   # Shared health checks, OpenTelemetry
 
-tests/                       # Unit, integration, migration tests
+installer/
+  IndyPOS.Bootstrapper/      # Installer: fresh install + in-place upgrade
+
+tests/
+  IndyPOS.Domain.Tests/            IndyPOS.Application.Tests/
+  IndyPOS.Vault.Tests/             IndyPOS.Bootstrapper.Tests/
+  IndyPOS.Windows.Forms.Tests/     IndyPOS.StoreHub.IntegrationTests/   # needs Docker
+  IndyPOS.MigrationTool.Tests/     IndyPOS.Migration.Tests/             # needs Docker
+  IndyPOS.Mock/                                                        # shared fakes, not a test project
+
 docs/                        # Architecture docs, operations
 .planning/                   # Planning docs, diagrams, completed epics
-.claude/                     # Session context (STATUS.md, session-log.md)
+fonts/  scripts/  publish/   # Bundled fonts, helper scripts, build output
+.claude/                     # Session context - GITIGNORED, local only
 ```
+
+⚠️ **`.claude/` is gitignored** (since the BFG history purge), so `STATUS.md` never commits — do not
+try to include it in a PR.
+
+⚠️ **`tests/IndyPOS.Migration.Tests` is scheduled for deletion**, not repair — it tests a parallel
+implementation against a schema no store has. See Epic 2 in `PLAN.md`.
 
 ## Key Documentation
 
