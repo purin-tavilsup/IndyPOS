@@ -127,9 +127,12 @@ never to have been run end-to-end against a real store database.
 
 ### Legacy schema divergence — confirmed, not assumed
 
-All three share 11 tables. GeneralHardware alone adds `PayLater`, `Customers`, `Installments` —
-i.e. the divergence *is* the PayLater feature. `PaymentType` is identical in all three (8 rows), so
-the payment mapping is store-agnostic.
+All three share exactly **10** tables (`InventoryProduct`, `Invoice`, `InvoiceProduct`, `Payment`,
+`PaymentType`, `ProductBarcodeCounter`, `ProductCategory`, `User`, `UserCredential`, `UserRole`) —
+**corrected 2026-08-01 from "11", measured by set intersection.** GeneralHardware adds three
+(`PayLater`, `Customers`, `Installments`) for 13 total; MimyMart and MimyShop add none. So the
+divergence *is* the PayLater feature. `PaymentType` is identical in all three (8 rows), so the
+payment mapping is store-agnostic.
 
 `Customers` and `Installments` are **never used** (0 rows where present) — out of scope permanently.
 Legacy payment id 6 `ผ่อนชำระ` is dead with them.
