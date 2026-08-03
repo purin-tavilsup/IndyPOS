@@ -206,8 +206,20 @@ method. This defect is pinned here and fixed in the same later spec as defect 4.
 ### 2.5 Real schema shapes
 
 GeneralHardware has 13 tables; MimyMart and MimyShop have 10. The divergence is the PayLater
-feature (`PayLater`, `Customers`, `Installments`). `Customers` and `Installments` have 0 rows
-wherever they exist and stay permanently out of scope.
+feature (`PayLater`, `Customers`, `Installments`).
+
+**`Customers` and `Installments` are obsolete and were never used, in every store** — confirmed by
+Pond (2026-08-03), and 0 rows measured in GeneralHardware, the only store that has them. They stay
+permanently out of scope, and legacy payment type 6 (`ผ่อนชำระ`, instalments) is dead with them and
+must remain unmapped.
+
+They are nonetheless kept in the `GeneralHardware.sql` artefact, because that file is a **faithful
+dump** and hand-removing tables from generated output is the very habit this design exists to break.
+Instead a test pins that the migration *ignores* them, so nobody later "completes" the migration by
+importing a feature no store uses.
+
+MimyShop's 10 shared tables are **byte-identical DDL** to GeneralHardware's, so the two artefacts
+differ only by those three tables.
 
 Other differences from the hand-written seeder, all of which matter:
 
