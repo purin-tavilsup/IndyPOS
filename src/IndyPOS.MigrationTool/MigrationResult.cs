@@ -24,6 +24,13 @@ public class MigrationResult
     public Dictionary<int, Guid> UserIdMap { get; } = [];
     public Dictionary<int, Guid> ProductIdMap { get; } = [];
     public Dictionary<int, Guid> InvoiceIdMap { get; } = [];
+
+    /// <summary>
+    /// Legacy <c>Payment.PaymentId</c> to the migrated payment's Guid. PayLater is a 1:1 extension
+    /// of Payment, so its rows attach to an already-migrated payment through this map rather than
+    /// creating one -- see defect 10.
+    /// </summary>
+    public Dictionary<int, Guid> PaymentIdMap { get; } = [];
 }
 
 public class EntityMigrationResult

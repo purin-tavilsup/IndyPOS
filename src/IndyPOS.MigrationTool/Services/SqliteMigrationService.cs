@@ -288,34 +288,43 @@ public class SqliteMigrationService
                             CreatedUtc = createdUtc
                         });
                     }
+                }
 
-                    foreach (var payment in payments)
+                foreach (var payment in payments)
+                {
+                    var method = LegacyPaymentTypeMap.ToCode((int)payment.PaymentTypeId);
+                    if (method is null)
                     {
-                        var method = LegacyPaymentTypeMap.ToCode((int)payment.PaymentTypeId);
-                        if (method is null)
-                        {
-                            // Refused, never guessed. The previous fallback wrote "Other", which
-                            // is not a catalogue code, so the amount became unresolvable while
-                            // the row counts still reconciled.
-                            _result.Errors.Add(
-                                $"Invoice {invoice.InvoiceId} payment {payment.PaymentId}: legacy " +
-                                $"PaymentTypeId {payment.PaymentTypeId} has no payment-method code. " +
-                                $"Migrating it would misattribute {payment.Amount:N2}.");
-                            _result.Payments.Failed++;
-                            continue;
-                        }
-
-                        context.Payments.Add(new Payment
-                        {
-                            Id = Guid.NewGuid(),
-                            InvoiceId = newInvoice.Id,
-                            Method = method,
-                            Amount = (decimal)payment.Amount,
-                            Note = payment.Note,
-                            CreatedUtc = createdUtc
-                        });
-                        _result.Payments.Migrated++;
+                        // Refused, never guessed. The previous fallback wrote "Other", which
+                        // is not a catalogue code, so the amount became unresolvable while
+                        // the row counts still reconciled.
+                        _result.Errors.Add(
+                            $"Invoice {invoice.InvoiceId} payment {payment.PaymentId}: legacy " +
+                            $"PaymentTypeId {payment.PaymentTypeId} has no payment-method code. " +
+                            $"Migrating it would misattribute {payment.Amount:N2}.");
+                        _result.Payments.Failed++;
+                        continue;
                     }
+
+                    var newPayment = new Payment
+                    {
+                        Id = Guid.NewGuid(),
+                        InvoiceId = newInvoice.Id,
+                        Method = method,
+                        Amount = (decimal)payment.Amount,
+                        Note = payment.Note,
+                        CreatedUtc = createdUtc
+                    };
+
+                    if (!_options.DryRun)
+                    {
+                        context.Payments.Add(newPayment);
+                    }
+
+                    // Built in dry-run too: MigratePayLaterAsync resolves against this map, and an
+                    // empty map would make every PayLater row fail its lookup.
+                    _result.PaymentIdMap[(int)payment.PaymentId] = newPayment.Id;
+                    _result.Payments.Migrated++;
                 }
 
                 _result.Invoices.Migrated++;
@@ -373,20 +382,17 @@ public class SqliteMigrationService
 
                 var createdUtc = ParseDate(payLater.DateCreated) ?? DateTime.UtcNow;
 
-                // First, we need to find or create a payment for this PayLater
-                var paymentId = Guid.NewGuid();
-                if (!_options.DryRun)
+                // Defect 10: the legacy Payment row IS this money. PayLater is its 1:1 extension,
+                // keyed by the same id. Creating a payment here double-counted every credit sale
+                // -- THB 836,013 across the 5,181 real rows.
+                if (!_result.PaymentIdMap.TryGetValue((int)payLater.PaymentId, out var paymentId))
                 {
-                    // Create the payment record for PayLater
-                    context.Payments.Add(new Payment
-                    {
-                        Id = paymentId,
-                        InvoiceId = invoiceId,
-                        Method = PaymentMethodCodes.PayLater,
-                        Amount = (decimal)payLater.PayLaterAmount,
-                        Note = payLater.Description,
-                        CreatedUtc = createdUtc
-                    });
+                    _result.Errors.Add(
+                        $"PayLater {payLater.PaymentId}: no migrated payment for legacy PaymentId " +
+                        $"{payLater.PaymentId}, so the debt of {payLater.PayLaterAmount:N2} cannot be " +
+                        $"attached. Refusing rather than inventing a payment.");
+                    _result.PayLater.Failed++;
+                    continue;
                 }
 
                 var newPayLater = new PayLater

@@ -148,4 +148,56 @@ public class PayLaterMigrationTests : IAsyncLifetime
         payLater.IsCompleted.Should().BeFalse();
         payLater.RemainingAmount.Should().Be(401m);
     }
+
+    [Fact]
+    public async Task MigratePayLater_LinksTheExistingPayment_WithoutCreatingASecond()
+    {
+        // Defect 10. At the till a credit sale writes the Payment first, then the PayLater that
+        // tracks the debt. MigratePayLaterAsync re-enacted that sequence -- correct for a NEW sale,
+        // wrong for a migration, because both rows already exist in SQLite. On real GeneralHardware
+        // data that double-counts THB 836,013 across 5,181 rows.
+        await using var store = await LegacyStoreDatabase.CreateAsync(LegacyStoreShape.GeneralHardware);
+        await SeedCreditSaleAsync(store, payLaterAmount: 700m, paidAmount: 299m);
+
+        await MigrationScenario.RunAsync(store, _postgres);
+
+        await using var db = _postgres.CreateDbContext();
+        var payLaterPayments = await db.Payments
+            .Where(p => p.Method == PaymentMethodCodes.PayLater)
+            .ToListAsync();
+
+        payLaterPayments.Should().HaveCount(1, "the legacy Payment row is the money; PayLater only annotates it");
+        payLaterPayments.Single().Amount.Should().Be(700m);
+        (await db.Payments.SumAsync(p => p.Amount)).Should().Be(700m, "no money may be invented");
+
+        var payLater = await db.PayLaters.SingleAsync();
+        payLater.PaymentId.Should().Be(payLaterPayments.Single().Id,
+            "the extension row must point at the migrated payment");
+    }
+
+    [Fact]
+    public async Task MigratePayLater_WhenThePaymentIsMissing_RecordsAnErrorAndSkips()
+    {
+        // The real ฿70 orphan is the reverse case: PaymentId 90 is a type-2 Payment with an empty
+        // Note and no PayLater row. Here we test the other direction -- a PayLater whose payment
+        // was never migrated must be refused, never furnished with an invented payment.
+        await using var store = await LegacyStoreDatabase.CreateAsync(LegacyStoreShape.GeneralHardware);
+        var builder = new LegacyStoreDataBuilder(store);
+        await builder.AddPaymentTypeLookupAsync();
+        await builder.AddUserAsync(1, "cashier", "Somchai", "Jaidee", 1, "2024-03-15 09:00:00");
+        await builder.AddInvoiceAsync(1, userId: 1, total: 700m, dateCreated: "2024-03-15 14:30:00");
+        // No Payment row at all, so PaymentId 999 cannot resolve.
+        await builder.AddPayLaterAsync(
+            paymentId: 999, invoiceId: 1, description: "Somchai", payLaterAmount: 700m,
+            paidAmount: 0m, isCompleted: false, dateCreated: "2024-03-15 14:30:00");
+
+        var result = await MigrationScenario.RunAsync(store, _postgres);
+
+        result.PayLater.Failed.Should().Be(1);
+        result.Errors.Should().ContainSingle().Which.Should().Contain("999");
+
+        await using var db = _postgres.CreateDbContext();
+        (await db.PayLaters.CountAsync()).Should().Be(0);
+        (await db.Payments.CountAsync()).Should().Be(0, "a missing payment must never be invented");
+    }
 }
