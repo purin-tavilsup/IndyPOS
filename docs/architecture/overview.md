@@ -129,9 +129,8 @@ IndyPOS/
 │   └── IndyPOS.ServiceDefaults/  # Shared health checks, telemetry
 │
 ├── tests/
-│   ├── IndyPOS.Application.Tests/       # Unit tests (202 tests)
-│   ├── IndyPOS.StoreHub.IntegrationTests/  # API integration tests (49 tests)
-│   └── IndyPOS.Migration.Tests/         # Migration tests (15 tests)
+│   ├── IndyPOS.Application.Tests/       # Unit tests
+│   └── IndyPOS.StoreHub.IntegrationTests/  # API integration tests (needs Docker)
 │
 └── docs/
     ├── architecture/             # This document

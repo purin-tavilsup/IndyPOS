@@ -46,16 +46,15 @@ dotnet build
 dotnet test
 ```
 
-### ⚠️ Trap 1 — three suites need Docker and fail loudly without it
+### ⚠️ Trap 1 — two suites need Docker and fail loudly without it
 
 They spin up a real PostgreSQL container via Testcontainers. With Docker stopped they fail **fast**
 (each suite in under a second), which reads exactly like a code regression but is not.
 
-Measured with Docker **stopped**: **117 failures**, all from these three:
+Measured with Docker **stopped**: **102 failures**, all from these two:
 
 | Suite | Total | Fails without Docker |
 |---|---|---|
-| `IndyPOS.Migration.Tests` | 15 | **15** — all of them |
 | `IndyPOS.MigrationTool.Tests` | 37 | **15** (21 are pure units, 1 skipped) |
 | `IndyPOS.StoreHub.IntegrationTests` | 94 | **87** (7 need no container) |
 
@@ -73,7 +72,7 @@ dotnet test tests/IndyPOS.Bootstrapper.Tests
 
 ### Expected counts
 
-Solution suites (`dotnet test` at the root), Docker running — **512 total**:
+Solution suites (`dotnet test` at the root), Docker running — **497 total**:
 
 | Suite | Tests |
 |---|---|
@@ -83,15 +82,15 @@ Solution suites (`dotnet test` at the root), Docker running — **512 total**:
 | `IndyPOS.Domain.Tests` | 36 |
 | `IndyPOS.Windows.Forms.Tests` | 19 |
 | `IndyPOS.Vault.Tests` | 17 |
-| `IndyPOS.Migration.Tests` | 15 (Docker) |
 
 Outside the solution: `IndyPOS.Bootstrapper.Tests` — **231** (223 pass, 8 skipped).
 
 `tests/IndyPOS.Mock` is shared fakes, not a test project.
 
-> `tests/IndyPOS.Migration.Tests` is **scheduled for deletion, not repair** — it exercises a
-> parallel migration implementation the product never references, against a SQLite schema no real
-> store has. Do not build on it. See Epic 2 in `PLAN.md`.
+> **The SQLite → PostgreSQL migration paths are untested.** `tests/IndyPOS.Migration.Tests` was
+> deleted, not repaired — it exercised a parallel migration implementation the product never
+> referenced, against a SQLite schema no real store has. Its 15 green tests were misleading, and
+> nothing has replaced them yet. See Epic 2 in `PLAN.md`.
 
 ---
 
