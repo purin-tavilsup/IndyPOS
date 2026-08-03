@@ -48,8 +48,7 @@ tests/
   IndyPOS.Domain.Tests/            IndyPOS.Application.Tests/
   IndyPOS.Vault.Tests/             IndyPOS.Bootstrapper.Tests/
   IndyPOS.Windows.Forms.Tests/     IndyPOS.StoreHub.IntegrationTests/   # needs Docker
-  IndyPOS.MigrationTool.Tests/     IndyPOS.Migration.Tests/             # needs Docker
-  IndyPOS.Mock/                                                        # shared fakes, not a test project
+  IndyPOS.MigrationTool.Tests/     IndyPOS.Mock/                        # Mock = shared fakes, not a test project
 
 docs/                        # Architecture docs, operations
 .planning/                   # Planning docs, diagrams, completed epics
@@ -60,8 +59,9 @@ fonts/  scripts/  publish/   # Bundled fonts, helper scripts, build output
 ⚠️ **`.claude/` is gitignored** (since the BFG history purge), so `STATUS.md` never commits — do not
 try to include it in a PR.
 
-⚠️ **`tests/IndyPOS.Migration.Tests` is scheduled for deletion**, not repair — it tests a parallel
-implementation against a schema no store has. See Epic 2 in `PLAN.md`.
+⚠️ **The SQLite → PostgreSQL migration paths have no test coverage.**
+`tests/IndyPOS.Migration.Tests` was deleted (not repaired) — it tested a parallel implementation
+against a schema no store has. Nothing replaces it yet. See Epic 2 in `PLAN.md`.
 
 ## Key Documentation
 
@@ -135,11 +135,10 @@ dotnet test
 # Build
 dotnet build
 
-# Docker must be RUNNING for three suites - they spin up a real Postgres container.
+# Docker must be RUNNING for two suites - they spin up a real Postgres container.
 # With Docker down they fail fast (each suite in under a second), which reads like a
-# code regression but is not. Measured with Docker stopped: 117 failures, all here.
+# code regression but is not. Measured with Docker stopped: 102 failures, all here.
 #   tests/IndyPOS.StoreHub.IntegrationTests   (87 of 94; 7 need no container)
-#   tests/IndyPOS.Migration.Tests             (15 - all of them)
 #   tests/IndyPOS.MigrationTool.Tests         (15 of 37; 21 are pure units, 1 skipped)
 
 # The installer is NOT in IndyPOS.sln, so the two commands above never touch it.
@@ -151,7 +150,7 @@ dotnet run --project src/IndyPOS.AppHost --launch-profile https
 # Dashboard: https://localhost:17222
 ```
 
-Solution suites total **512** with Docker running. See [`ONBOARDING.md`](ONBOARDING.md) for the
+Solution suites total **497** with Docker running. See [`ONBOARDING.md`](ONBOARDING.md) for the
 per-suite breakdown, the dev-vs-installed port split, and the `/health` vs `/health/ready` trap.
 
 ## Store Configuration (Required for Debug)

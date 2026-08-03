@@ -210,7 +210,10 @@ so defect 2 is a rename, not a redesign.
 - **No test anywhere creates a `Payment` table** — see the audit below.
 - The real-DB tests skip silently when the `.db` files are absent — including in CI.
 
-### Test-harness audit — ✅ DONE 2026-08-01. Verdict: **delete `tests/IndyPOS.Migration.Tests`**
+### Test-harness audit — ✅ DONE 2026-08-01. **Project deleted 2026-08-03.**
+
+`tests/IndyPOS.Migration.Tests` is gone. The audit that justified it is preserved below, because it
+is also the specification for what the replacement must do differently.
 
 The suspicion was that its 15 passing tests validate nothing. Confirmed, and it is worse than that.
 
@@ -340,7 +343,7 @@ Remaining items in `.planning/indypos-overhaul/security/`.
 
 | Item | Description | Priority |
 |------|-------------|----------|
-| `Migration.Tests` — **audit DONE 2026-08-01, verdict: delete the project** | Confirmed to test a parallel implementation against a schema no store has. See Epic 2 § *Test-harness audit* | **HIGH** — first task of Epic 2 |
+| ~~`Migration.Tests` — audit, then delete~~ | ✅ **Done 2026-08-03.** Audited 2026-08-01, project deleted. Replacement coverage against `SqliteMigrationService` is now Epic 2's first task | — |
 | Headless installer crash | An unknown argument silently launches the wizard; headless that is a bare CLR crash with no log | MEDIUM |
 | Migration `--sync-to-cloud` | Outbox events for migrated invoices (folds into I6) | LOW |
 | **Auto-Update System (Epic U)** | Remote updates for StoreHub + WinForms. Superseded in part by the installer upgrade path — revisit scope | Future |
@@ -375,7 +378,7 @@ Stubs returning empty collections; address during MAUI migration:
 | IndyPOS.Application.Tests | 274 |
 | IndyPOS.StoreHub.IntegrationTests | 76 (real PostgreSQL) |
 | IndyPOS.MigrationTool.Tests | 36 / 1 skip |
-| IndyPOS.Migration.Tests | 15 ⚠️ *validates a schema no store has* |
+| ~~IndyPOS.Migration.Tests~~ | **deleted 2026-08-03** — validated a schema no store has |
 | IndyPOS.Domain.Tests | 8 |
 | IndyPOS.Vault.Tests | 17 |
 | Release build | 0 errors |
