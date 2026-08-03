@@ -150,6 +150,32 @@ Legacy payment id 6 `ผ่อนชำระ` is dead with them.
 | 7 | v4 `Core.Product` has no `IsTrackable`; legacy does (21/7/1 non-trackable products) | Services would be stock-tracked and inventory-deducted | ❌ **priority raised** |
 | 8 | **Legacy ids are not preserved** on products, invoices, invoice lines or payments (only `StoreUser.LegacyUserId` is) | The migration cannot be re-run idempotently, and a v4 row cannot be reconciled against its SQLite source | ❌ **new** |
 | 9 | `LegacyIdHelper` is dead code that maps the same legacy id to the same Guid **in every store** | Latent cross-store collision once Epic I syncs three shops into one cloud. Delete it | ❌ **new** |
+| 10 | `MigratePayLaterAsync` **creates a second `Payment`** for money `MigrateInvoicesAsync` has already migrated. `PayLater.PaymentId` is an FK to `Payment.PaymentId` — 5,181/5,181 match, all `PaymentTypeId=2` | **฿836,013 double-counted.** Unreachable today because defect 2 crashes first, so fixing 2 alone turns a loud crash into silent revenue inflation | ❌ **new 2026-08-03** |
+| 11 | `ParseDate` calls bare `DateTime.TryParse` with **no `CultureInfo`**, and the tool runs on the store's Thai-locale till | Under `th-TH` the Buddhist calendar reads `2024` as a BE year → **1481 AD, 543 years off**. Every invoice falls outside every date-range report, so a migrated store shows **zero** sales history | ❌ **new 2026-08-03** |
+
+> ### 🔴 The migration cannot complete against ANY real store (measured 2026-08-03)
+>
+> The `PayLater` SELECT run against each real `Store.db`:
+>
+> ```
+> GeneralHardware   -> no such column: PayLaterId
+> MimyMart          -> no such table: PayLater
+> MimyShop          -> no such table: PayLater
+> ```
+>
+> That `QueryAsync` sits **outside** the per-row `try` (line 338 vs the `try` at 346),
+> `MigrateAllAsync` does not wrap its four phase calls, and **`SaveChangesAsync` is line 55 — after
+> `MigratePayLaterAsync` at line 51.** So the throw escapes before anything is saved.
+>
+> This is not "PayLater is skipped": the tool does the entire migration in memory and then **discards
+> all of it**. It has only ever completed against the fabricated test schema. Defects 4, 5, 6, 7, 8
+> and 11 are all observed by inspecting migrated rows, so **none of them can be observed at all**
+> until defects 2 and 3 are fixed.
+>
+> Also measured: `PaidAmount` is a real maintained column that the code **derives away** from
+> `IsCompleted` (line 387), destroying the 2 genuinely part-paid rows of 5,181 (e.g. ฿700 owed, ฿299
+> paid); and `Payment` has **5,182** type-2 rows against 5,181 PayLater rows (฿836,083 vs ฿836,013),
+> so the relationship is **not 1:1** — one ฿70 orphan exists and no fix may assume otherwise.
 
 **Defect 7 reframed (2026-07-31).** It is not merely "legacy has a field we omitted" — the legacy
 sale path **already filters on `IsTrackable` before touching stock, in production**
@@ -265,6 +291,28 @@ Real coverage has to be built against `SqliteMigrationService` using a fixture w
 **generated from a real `Store.db`** rather than hand-written — hand-writing it is what produced a
 schema no store has. Until that exists, **treat the invoice and product migration paths as
 untested.**
+
+> ### ⚠️ Correction 2026-08-03: this audit undersold the problem
+>
+> "Untested" was too generous. `tests/IndyPOS.MigrationTool.Tests` **already has 11 tests that do
+> exercise the shipped `SqliteMigrationService`** end-to-end against a real Postgres container, and
+> they pass. Its `SqliteTestDataSeeder.CreateSchemaAsync()` hand-writes `PayLater` with exactly the
+> columns *the migrator SELECTs* (`PayLaterId, UserId, CustomerName, PaymentAmount`) and not one of
+> the columns the real table has, and declares `InvoiceProduct` with exactly the 7 columns the
+> migrator reads against the real 17.
+>
+> **The fixture was derived from the SELECT statements, not from a store, so the suite confirms the
+> migrator agrees with itself.** Defects 2, 3 and 6 are invisible *by construction*; and because the
+> data is random (Bogus), no assertion can name an expected value — every one is a count or a
+> `BeGreaterThan`, which conceals 4, 5, 7 and 8. Same failure as the deleted project, in a project
+> that *has* the right `ProjectReference`. Fixing the reference was never the point.
+>
+> Also: `RealDatabaseSchemaTests` hardcodes `C:\personal\IndyPOS\...\Store.db` and `return`s when
+> absent, so its 8 tests report **Passed**, not Skipped, on every other machine including CI — and
+> its `Should().Contain(...)` assertions are one-directional, so a 17-column table satisfies a test
+> listing 7. That is how defect 6 survived a test called `RealDatabase_ProductTable_HasExpectedColumns`.
+>
+> Design for the replacement: `docs/superpowers/specs/2026-08-03-migration-test-coverage-design.md`
 
 ---
 
