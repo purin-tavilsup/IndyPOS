@@ -114,6 +114,10 @@ public class SqliteMigrationServiceTests : IAsyncLifetime
     [Fact]
     public async Task MigrateAllAsync_InDryRun_ShouldWriteNothing()
     {
+        // The payments loop runs outside the DryRun guard by design (defect 10 fix), so that
+        // MigrationResult.PaymentIdMap is always built and PayLater can resolve against it. Only
+        // the context.Payments.Add call stays guarded. These assertions pin that invariant: a
+        // dry run still counts the payment as migrated, but writes nothing.
         await using var store = await LegacyStoreDatabase.CreateAsync(LegacyStoreShape.GeneralHardware);
         await SeedOneSaleAsync(store);
 
@@ -121,9 +125,15 @@ public class SqliteMigrationServiceTests : IAsyncLifetime
 
         result.Users.Migrated.Should().Be(1);
         result.Products.Migrated.Should().Be(1);
+        result.PaymentIdMap.Should().ContainKey(500,
+            "the map must be built in dry run too, or every PayLater lookup would fail");
 
         await using var db = _postgres.CreateDbContext();
         (await db.StoreUsers.CountAsync()).Should().Be(0);
         (await db.Products.CountAsync()).Should().Be(0);
+        (await db.Payments.CountAsync()).Should().Be(0, "dry run must not write payments either");
+        (await db.Invoices.CountAsync()).Should().Be(0);
+        (await db.InvoiceLines.CountAsync()).Should().Be(0);
+        (await db.InventoryMovements.CountAsync()).Should().Be(0);
     }
 }
