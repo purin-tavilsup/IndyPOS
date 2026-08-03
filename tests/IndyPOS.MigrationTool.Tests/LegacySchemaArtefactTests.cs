@@ -100,4 +100,18 @@ public class LegacySchemaArtefactTests
         pk.Should().BeEquivalentTo(["PaymentId"],
             "PayLater is table-per-subtype on Payment: Payment generates the id, PayLater receives it");
     }
+
+    [Fact]
+    public async Task LegacyStoreDatabase_ShouldCreateARealFileWithTheRequestedShape()
+    {
+        await using var store = await Fixtures.LegacyStoreDatabase.CreateAsync(LegacyStoreShape.MimyShop);
+
+        File.Exists(store.Path).Should().BeTrue();
+
+        var tables = (await store.Connection.QueryAsync<string>(
+            "SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'")).ToList();
+
+        tables.Should().HaveCount(10);
+        tables.Should().NotContain("PayLater");
+    }
 }
