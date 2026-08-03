@@ -1,10 +1,7 @@
-using System.Data.SQLite;
 using Dapper;
-using IndyPOS.MigrationTool.Services;
 using IndyPOS.MigrationTool.Tests.Fixtures;
-using IndyPOS.MigrationTool.Tests.TestData;
+using IndyPOS.MigrationTool.Tests.Tools;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging.Abstractions;
 
 namespace IndyPOS.MigrationTool.Tests;
 
@@ -12,319 +9,121 @@ namespace IndyPOS.MigrationTool.Tests;
 public class SqliteMigrationServiceTests : IAsyncLifetime
 {
     private readonly PostgresFixture _postgres;
-    private SQLiteConnection _sqliteConnection = null!;
-    private string _sqliteDbPath = null!;
 
-    public SqliteMigrationServiceTests(PostgresFixture postgres)
+    public SqliteMigrationServiceTests(PostgresFixture postgres) => _postgres = postgres;
+
+    public Task InitializeAsync() => _postgres.ResetDatabaseAsync();
+
+    public Task DisposeAsync() => Task.CompletedTask;
+
+    private static async Task SeedOneSaleAsync(LegacyStoreDatabase store)
     {
-        _postgres = postgres;
-    }
-
-    public async Task InitializeAsync()
-    {
-        // Create temp SQLite database
-        _sqliteDbPath = Path.Combine(Path.GetTempPath(), $"migration_test_{Guid.NewGuid()}.db");
-        _sqliteConnection = new SQLiteConnection($"Data Source={_sqliteDbPath};Version=3;");
-        await _sqliteConnection.OpenAsync();
-
-        // Reset PostgreSQL
-        await _postgres.ResetDatabaseAsync();
-    }
-
-    public async Task DisposeAsync()
-    {
-        await _sqliteConnection.CloseAsync();
-        _sqliteConnection.Dispose();
-
-        // Clean up temp file
-        if (File.Exists(_sqliteDbPath))
-        {
-            File.Delete(_sqliteDbPath);
-        }
+        var builder = new LegacyStoreDataBuilder(store);
+        await builder.AddPaymentTypeLookupAsync();
+        await builder.AddUserAsync(1, "cashier", "Somchai", "Jaidee", 1, "2024-03-15 09:00:00");
+        await builder.AddProductAsync(
+            productId: 10, barcode: "8850001000010", description: "Cement 50kg",
+            unitPrice: 120m, quantityInStock: 20, category: 50, isTrackable: true,
+            dateCreated: "2024-03-15 09:00:00");
+        await builder.AddInvoiceAsync(1, userId: 1, total: 120m, dateCreated: "2024-03-15 14:30:00");
+        await builder.AddInvoiceLineAsync(
+            invoiceProductId: 1, invoiceId: 1, productId: 10, barcode: "8850001000010",
+            description: "Cement 50kg", quantity: 1, unitPrice: 120m, originalUnitPrice: 120m);
+        await builder.AddPaymentAsync(
+            paymentId: 500, invoiceId: 1, paymentTypeId: 1, amount: 120m,
+            dateCreated: "2024-03-15 14:30:00");
     }
 
     [Fact]
-    public async Task MigrateAllAsync_WithEmptyDatabase_ReturnsSuccess()
+    public async Task MigrateAllAsync_WithAnEmptyStore_ShouldSucceedAndMigrateNothing()
     {
-        // Arrange
-        var seeder = new SqliteTestDataSeeder(_sqliteConnection);
-        await seeder.CreateSchemaAsync();
+        await using var store = await LegacyStoreDatabase.CreateAsync(LegacyStoreShape.GeneralHardware);
 
-        var options = CreateOptions();
-        var service = new SqliteMigrationService(options, NullLogger<SqliteMigrationService>.Instance);
+        var result = await MigrationScenario.RunAsync(store, _postgres);
 
-        // Act
-        var result = await service.MigrateAllAsync();
-
-        // Assert
         result.IsSuccess.Should().BeTrue();
         result.TotalMigrated.Should().Be(0);
         result.Errors.Should().BeEmpty();
     }
 
     [Fact]
-    public async Task MigrateAllAsync_WithUsers_MigratesAllUsers()
+    public async Task MigrateAllAsync_CalledTwice_ShouldSkipUsersAndProductsWithoutDuplicating()
     {
-        // Arrange
-        var seeder = new SqliteTestDataSeeder(_sqliteConnection);
-        var data = await seeder.SeedCompleteDataSetAsync(userCount: 5, productCount: 0, invoiceCount: 0);
+        await using var store = await LegacyStoreDatabase.CreateAsync(LegacyStoreShape.GeneralHardware);
+        await SeedOneSaleAsync(store);
 
-        var options = CreateOptions();
-        var service = new SqliteMigrationService(options, NullLogger<SqliteMigrationService>.Instance);
+        var first = await MigrationScenario.RunAsync(store, _postgres);
+        var second = await MigrationScenario.RunAsync(store, _postgres);
 
-        // Act
-        var result = await service.MigrateAllAsync();
+        first.IsSuccess.Should().BeTrue();
+        second.IsSuccess.Should().BeTrue();
+        second.Users.Skipped.Should().Be(first.Users.Migrated);
+        second.Products.Skipped.Should().Be(first.Products.Migrated);
 
-        // Assert
-        result.IsSuccess.Should().BeTrue();
-        result.Users.Migrated.Should().Be(5);
-        result.Users.Failed.Should().Be(0);
-
-        // Verify in PostgreSQL
-        await using var context = _postgres.CreateDbContext();
-        var pgUsers = await context.StoreUsers.CountAsync();
-        pgUsers.Should().Be(5);
+        await using var db = _postgres.CreateDbContext();
+        (await db.StoreUsers.CountAsync()).Should().Be(1, "users must not be duplicated");
+        (await db.Products.CountAsync()).Should().Be(1, "products must not be duplicated");
     }
 
     [Fact]
-    public async Task MigrateAllAsync_WithProducts_MigratesAllProducts()
+    public async Task MigrateAllAsync_WithAUserThatHasNoCredentials_ShouldSkipThatUser()
     {
-        // Arrange
-        var seeder = new SqliteTestDataSeeder(_sqliteConnection);
-        var data = await seeder.SeedCompleteDataSetAsync(userCount: 1, productCount: 25, invoiceCount: 0);
-
-        var options = CreateOptions();
-        var service = new SqliteMigrationService(options, NullLogger<SqliteMigrationService>.Instance);
-
-        // Act
-        var result = await service.MigrateAllAsync();
-
-        // Assert
-        result.IsSuccess.Should().BeTrue();
-        result.Products.Migrated.Should().Be(25);
-
-        // Verify in PostgreSQL
-        await using var context = _postgres.CreateDbContext();
-        var pgProducts = await context.Products.CountAsync();
-        pgProducts.Should().Be(25);
-
-        // Verify initial inventory movements were created
-        var movements = await context.InventoryMovements
-            .Where(m => m.Reason == "Migration:InitialStock")
-            .CountAsync();
-        movements.Should().BeGreaterThan(0);
-    }
-
-    [Fact]
-    public async Task MigrateAllAsync_WithInvoices_MigratesAllInvoicesAndLines()
-    {
-        // Arrange
-        var seeder = new SqliteTestDataSeeder(_sqliteConnection);
-        var data = await seeder.SeedCompleteDataSetAsync(userCount: 2, productCount: 10, invoiceCount: 20);
-
-        var options = CreateOptions();
-        var service = new SqliteMigrationService(options, NullLogger<SqliteMigrationService>.Instance);
-
-        // Act
-        var result = await service.MigrateAllAsync();
-
-        // Assert
-        result.IsSuccess.Should().BeTrue();
-        result.Invoices.Migrated.Should().Be(20);
-
-        // Verify in PostgreSQL
-        await using var context = _postgres.CreateDbContext();
-        var pgInvoices = await context.Invoices.CountAsync();
-        pgInvoices.Should().Be(20);
-
-        // Verify invoice lines exist
-        var pgLines = await context.InvoiceLines.CountAsync();
-        pgLines.Should().BeGreaterThan(0);
-
-        // Verify payments exist
-        var pgPayments = await context.Payments.CountAsync();
-        pgPayments.Should().BeGreaterThan(0);
-    }
-
-    [Fact]
-    public async Task MigrateAllAsync_WithPayLater_MigratesPayLaterRecords()
-    {
-        // Arrange
-        var seeder = new SqliteTestDataSeeder(_sqliteConnection);
-        var data = await seeder.SeedCompleteDataSetAsync(userCount: 2, productCount: 10, invoiceCount: 50);
-
-        var options = CreateOptions();
-        var service = new SqliteMigrationService(options, NullLogger<SqliteMigrationService>.Instance);
-
-        // Act
-        var result = await service.MigrateAllAsync();
-
-        // Assert
-        result.IsSuccess.Should().BeTrue();
-
-        // Verify PayLater records in PostgreSQL
-        await using var context = _postgres.CreateDbContext();
-        var pgPayLaters = await context.PayLaters.CountAsync();
-
-        // PayLater count should match SQLite
-        pgPayLaters.Should().Be(data.PayLaterCount);
-    }
-
-    [Fact]
-    public async Task MigrateAllAsync_WithCompleteDataset_PreservesTotalAmounts()
-    {
-        // Arrange
-        var seeder = new SqliteTestDataSeeder(_sqliteConnection);
-        var data = await seeder.SeedCompleteDataSetAsync(userCount: 3, productCount: 20, invoiceCount: 50);
-
-        // Calculate SQLite totals
-        var sqliteTotalRevenue = await _sqliteConnection.ExecuteScalarAsync<decimal>(
-            "SELECT COALESCE(SUM(Total), 0) FROM Invoice");
-
-        var options = CreateOptions();
-        var service = new SqliteMigrationService(options, NullLogger<SqliteMigrationService>.Instance);
-
-        // Act
-        var result = await service.MigrateAllAsync();
-
-        // Assert
-        result.IsSuccess.Should().BeTrue();
-
-        // Verify totals match in PostgreSQL
-        await using var context = _postgres.CreateDbContext();
-        var pgTotalRevenue = await context.Invoices.SumAsync(i => i.TotalAmount);
-
-        pgTotalRevenue.Should().BeApproximately(sqliteTotalRevenue, 0.10m); // Allow for decimal precision differences
-    }
-
-    [Fact]
-    public async Task MigrateAllAsync_CalledTwice_SkipsUsersAndProducts()
-    {
-        // Arrange
-        var seeder = new SqliteTestDataSeeder(_sqliteConnection);
-        await seeder.SeedCompleteDataSetAsync(userCount: 3, productCount: 10, invoiceCount: 0); // No invoices for this test
-
-        var options = CreateOptions();
-        var service = new SqliteMigrationService(options, NullLogger<SqliteMigrationService>.Instance);
-
-        // Act - First migration
-        var result1 = await service.MigrateAllAsync();
-
-        // Act - Second migration (should skip existing)
-        var result2 = await service.MigrateAllAsync();
-
-        // Assert
-        result1.IsSuccess.Should().BeTrue();
-        result2.IsSuccess.Should().BeTrue();
-
-        // Second run should skip users (matched by username) and products (matched by barcode)
-        result2.Users.Skipped.Should().Be(result1.Users.Migrated);
-        result2.Products.Skipped.Should().Be(result1.Products.Migrated);
-
-        // Total count in PostgreSQL should not have duplicates
-        await using var context = _postgres.CreateDbContext();
-        var userCount = await context.StoreUsers.CountAsync();
-        var productCount = await context.Products.CountAsync();
-
-        userCount.Should().Be(3, "users should not be duplicated");
-        productCount.Should().Be(10, "products should not be duplicated");
-    }
-
-    [Fact]
-    public async Task MigrateAllAsync_DryRun_DoesNotWriteToDatabase()
-    {
-        // Arrange
-        var seeder = new SqliteTestDataSeeder(_sqliteConnection);
-        await seeder.SeedCompleteDataSetAsync(userCount: 3, productCount: 10, invoiceCount: 20);
-
-        var options = CreateOptions(dryRun: true);
-        var service = new SqliteMigrationService(options, NullLogger<SqliteMigrationService>.Instance);
-
-        // Act
-        var result = await service.MigrateAllAsync();
-
-        // Assert
-        result.Users.Migrated.Should().BeGreaterThan(0);
-        result.Products.Migrated.Should().BeGreaterThan(0);
-
-        // But PostgreSQL should be empty
-        await using var context = _postgres.CreateDbContext();
-        var userCount = await context.StoreUsers.CountAsync();
-        var productCount = await context.Products.CountAsync();
-
-        userCount.Should().Be(0);
-        productCount.Should().Be(0);
-    }
-
-    [Fact]
-    public async Task MigrateAllAsync_WithProductGroupPricing_PreservesGroupPrice()
-    {
-        // Arrange
-        var seeder = new SqliteTestDataSeeder(_sqliteConnection);
-        await seeder.CreateSchemaAsync();
-
-        // Add product with group pricing
-        await _sqliteConnection.ExecuteAsync("""
-            INSERT INTO InventoryProduct (Barcode, Description, UnitPrice, QuantityInStock, GroupPrice, GroupPriceQuantity, DateCreated)
-            VALUES ('1234567890', 'Test Product', 100.00, 50, 270.00, 3, '2024-01-01 10:00:00');
+        await using var store = await LegacyStoreDatabase.CreateAsync(LegacyStoreShape.GeneralHardware);
+        await store.Connection.ExecuteAsync("""
+            INSERT INTO User (UserId, FirstName, LastName, RoleId, DateCreated)
+            VALUES (9, 'No', 'Credentials', 1, '2024-03-15 09:00:00');
             """);
 
-        // Add user for the migration to work
-        await _sqliteConnection.ExecuteAsync("""
-            INSERT INTO User (FirstName, LastName, RoleId, DateCreated) VALUES ('Test', 'User', 1, '2024-01-01');
-            INSERT INTO UserCredential (UserId, Username, Password) VALUES (1, 'test', 'hash');
-            """);
+        var result = await MigrationScenario.RunAsync(store, _postgres);
 
-        var options = CreateOptions();
-        var service = new SqliteMigrationService(options, NullLogger<SqliteMigrationService>.Instance);
-
-        // Act
-        var result = await service.MigrateAllAsync();
-
-        // Assert
-        result.IsSuccess.Should().BeTrue();
-
-        await using var context = _postgres.CreateDbContext();
-        var product = await context.Products.FirstAsync();
-
-        product.UnitPrice.Should().Be(100.00m);
-        product.GroupPrice.Should().Be(270.00m);
-        product.GroupPriceQuantity.Should().Be(3);
-    }
-
-    [Fact]
-    public async Task MigrateAllAsync_WithUserWithoutCredentials_SkipsUser()
-    {
-        // Arrange
-        var seeder = new SqliteTestDataSeeder(_sqliteConnection);
-        await seeder.CreateSchemaAsync();
-
-        // Add user WITHOUT credentials
-        await _sqliteConnection.ExecuteAsync("""
-            INSERT INTO User (FirstName, LastName, RoleId, DateCreated)
-            VALUES ('No', 'Credentials', 1, '2024-01-01');
-            """);
-
-        var options = CreateOptions();
-        var service = new SqliteMigrationService(options, NullLogger<SqliteMigrationService>.Instance);
-
-        // Act
-        var result = await service.MigrateAllAsync();
-
-        // Assert
         result.IsSuccess.Should().BeTrue();
         result.Users.Skipped.Should().Be(1);
         result.Users.Migrated.Should().Be(0);
     }
 
-    private MigrationOptions CreateOptions(bool dryRun = false)
+    [Fact]
+    public async Task MigrateAllAsync_ShouldIgnoreTheObsoleteCustomersAndInstallmentsTables()
     {
-        return new MigrationOptions
-        {
-            SqlitePath = _sqliteDbPath,
-            PostgresConnectionString = _postgres.ConnectionString,
-            StoreId = "TEST-STORE",
-            DryRun = dryRun
-        };
+        // Customers and Installments are obsolete and never used in any store (0 rows measured;
+        // confirmed by Pond 2026-08-03). Legacy payment type 6 (ผ่อนชำระ) is dead with them.
+        //
+        // They exist in the GeneralHardware schema, so this pins that the migration ignores them --
+        // otherwise someone later "completes" the migration by adding them, importing a feature no
+        // store uses and giving legacy type 6 a home it should not have.
+        await using var store = await LegacyStoreDatabase.CreateAsync(LegacyStoreShape.GeneralHardware);
+        await SeedOneSaleAsync(store);
+
+        await store.Connection.ExecuteAsync("""
+            INSERT INTO Customers (CustomerId, FirstName, LastName, DateCreated)
+            VALUES (1, 'Obsolete', 'Feature', '2024-03-15 09:00:00');
+            INSERT INTO Installments (CustomerId, Installment, NumberOfInstallments, Total, DateCreated, DueDate)
+            VALUES (1, 'never used', 3, '900', '2024-03-15 09:00:00', '2024-06-15');
+            """);
+
+        var result = await MigrationScenario.RunAsync(store, _postgres);
+
+        result.IsSuccess.Should().BeTrue();
+        result.Errors.Should().BeEmpty("obsolete tables must be ignored, not reported as a problem");
+
+        await using var db = _postgres.CreateDbContext();
+        (await db.Invoices.CountAsync()).Should().Be(1);
+        (await db.PayLaters.CountAsync()).Should().Be(0,
+            "an Installments row must never become a PayLater");
+    }
+
+    [Fact]
+    public async Task MigrateAllAsync_InDryRun_ShouldWriteNothing()
+    {
+        await using var store = await LegacyStoreDatabase.CreateAsync(LegacyStoreShape.GeneralHardware);
+        await SeedOneSaleAsync(store);
+
+        var result = await MigrationScenario.RunAsync(store, _postgres, dryRun: true);
+
+        result.Users.Migrated.Should().Be(1);
+        result.Products.Migrated.Should().Be(1);
+
+        await using var db = _postgres.CreateDbContext();
+        (await db.StoreUsers.CountAsync()).Should().Be(0);
+        (await db.Products.CountAsync()).Should().Be(0);
     }
 }
