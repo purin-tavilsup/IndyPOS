@@ -171,34 +171,33 @@ IndyPOS/
 dotnet test tests/IndyPOS.Application.Tests/
 ```
 
-**Current Status: 266 tests** (202 unit + 49 integration + 15 migration)
+For per-suite counts see [`ONBOARDING.md`](../../ONBOARDING.md), which is the single source for them.
 
 ### Test Categories
 
 ```
 tests/
-├── IndyPOS.Application.Tests/        # 202 unit tests
-│   ├── Common/Authorization/         # RoleCapabilities tests
-│   ├── Integration/StoreHub/         # WireMock E2E tests
-│   ├── StoreHub/                     # Auth, Products, Sales handlers
-│   ├── UseCases/Cloud/               # CloudApi handlers
-│   └── Infrastructure/               # DPAPI, storage tests
+├── IndyPOS.Application.Tests/          # Unit tests
+│   ├── Common/Authorization/           # RoleCapabilities tests
+│   ├── Integration/StoreHub/           # WireMock E2E tests
+│   ├── StoreHub/                       # Auth, Products, Sales handlers
+│   ├── UseCases/Cloud/                 # CloudApi handlers
+│   └── Infrastructure/                 # DPAPI, storage tests
 │
-├── IndyPOS.StoreHub.IntegrationTests/  # 49 integration tests
-│   ├── StoreHubWebApplicationFactory.cs
-│   ├── IntegrationTestBase.cs
-│   └── Endpoints/
-│       ├── AuthEndpointTests.cs
-│       ├── ProductsEndpointTests.cs
-│       ├── SalesEndpointTests.cs
-│       ├── ReportsEndpointTests.cs
-│       └── SyncEndpointTests.cs
-│
-└── IndyPOS.Migration.Tests/          # 15 migration tests
-    ├── MigrationTestFixture.cs
-    ├── ProductMigrationTests.cs
-    └── InvoiceMigrationTests.cs
+└── IndyPOS.StoreHub.IntegrationTests/  # API integration tests (needs Docker)
+    ├── StoreHubWebApplicationFactory.cs
+    ├── IntegrationTestBase.cs
+    └── Endpoints/
+        ├── AuthEndpointTests.cs
+        ├── ProductsEndpointTests.cs
+        ├── SalesEndpointTests.cs
+        ├── ReportsEndpointTests.cs
+        └── SyncEndpointTests.cs
 ```
+
+The SQLite → PostgreSQL migration has **no test coverage** — `IndyPOS.Migration.Tests` was deleted
+because it tested a parallel implementation against a schema no real store has. See Epic 2 in
+`.planning/indypos-overhaul/PLAN.md`.
 
 ### Test Frameworks Used
 
