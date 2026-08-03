@@ -85,6 +85,22 @@ therefore be fixed *as part of building the harness*, or the harness can observe
 | `InvoiceId` disagreements | 0 |
 | `Amount` vs `PayLaterAmount` disagreements | 0 |
 
+**The domain reason (confirmed by Pond, 2026-08-03): PayLater is a special kind of *payment*, not a
+separate transaction.** `PayLater` is a 1:1 extension table on `Payment` — table-per-subtype — which
+the primary keys state outright:
+
+```
+Payment  :  PRIMARY KEY("PaymentId" AUTOINCREMENT)     -- generates the id
+PayLater :  PRIMARY KEY("PaymentId")                   -- no AUTOINCREMENT, receives it
+```
+
+So `PayLater` needs no id of its own, no `UserId` (the payment's invoice has one) and no
+`PaymentAmount` (that is `Payment.Amount`). All it adds is credit-tracking state: who owes it
+(`Description`), how much is settled (`PaidAmount`), whether it is closed (`IsCompleted`). The four
+columns the migrator invents are exactly the four that a table-per-subtype row does not need.
+
+**A PayLater row is therefore an annotation on a money event, not a money event.**
+
 `MigrateInvoicesAsync` already migrates the `Payment` table, including all 5,181 `PaymentTypeId = 2`
 rows, as `Method = PaymentMethodCodes.PayLater`. `MigratePayLaterAsync` then **creates a second
 `Payment`** for the same money (line 369).
@@ -339,6 +355,11 @@ FROM PayLater
 
 v4's `PayLater` entity is already a field-for-field match, so this is a rename, not a redesign.
 
+Because `PayLater` extends `Payment` rather than duplicating it (§2.2), the authoritative money is
+`Payment.Amount` — which agrees with `PayLaterAmount` on all 5,181 real rows — while
+`PayLaterAmount` and `PaidAmount` are credit state. The migration must not treat the extension row as
+a source of revenue.
+
 ### 7.2 Defect 3 — the query runs unconditionally
 
 Guard on table existence before querying:
@@ -355,8 +376,11 @@ PayLater feature, so its absence is normal, not a failure.
 - Add `MigrationResult.PaymentIdMap` (`Dictionary<int, Guid>`, legacy `PaymentId` → new `Guid`).
 - Populate it in `MigrateInvoicesAsync` as each `Payment` is created.
 - `MigratePayLaterAsync` **looks up** `payLater.PaymentId` in that map instead of creating a payment.
-- On a miss, record an error and skip. **Never invent a payment** — same philosophy as the defect 1
-  fix, which refuses an unmappable payment type rather than guessing `"Other"`.
+- On a miss, record an error and skip **the extension row only** — never the payment, and never
+  invent one. The ฿70 orphan is the reverse case: a type-2 `Payment` with no `PayLater` row, i.e. a
+  credit sale whose tracking record was never written. The money happened, so that payment still
+  migrates; it simply has no credit record. Same philosophy as the defect 1 fix, which refuses an
+  unmappable payment type rather than guessing `"Other"`.
 
 ⚠️ The payment loop currently sits inside `if (!_options.DryRun)` (line 256). The map must be
 populated outside that guard, or dry-run leaves it empty and every PayLater row then fails its
