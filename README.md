@@ -92,7 +92,6 @@ Clean Architecture with 4 layers:
 ├── 📁 Services
 │   └── IndyPOS.StoreHub.IntegrationTests/
 ├── 📁 Tools
-│   ├── IndyPOS.Migration.Tests/
 │   └── IndyPOS.MigrationTool.Tests/
 └── IndyPOS.Mock/
 
@@ -115,15 +114,8 @@ dotnet test tests/IndyPOS.MigrationTool.Tests/
 dotnet test
 ```
 
-| Test Project | Tests | Docker? | Framework |
-|--------------|-------|---------|-----------|
-| Application.Tests | 202 | No | xUnit, Moq, AutoFixture |
-| Windows.Forms.Tests | ~20 | No | xUnit, Moq |
-| StoreHub.IntegrationTests | 49 | Yes | Testcontainers, Respawn |
-| MigrationTool.Tests | 23 | Yes | Testcontainers, Bogus |
-| Migration.Tests | 15 | Yes | Testcontainers |
-
-**Total: 300+ tests**
+See [`ONBOARDING.md`](ONBOARDING.md) for the per-suite counts, which suites need Docker, and the
+installer suite that sits outside `IndyPOS.sln`. Kept in one place so the numbers cannot drift apart.
 
 ## Documentation
 

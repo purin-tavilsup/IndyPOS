@@ -70,12 +70,8 @@ dotnet run --project src/IndyPOS.Windows.Forms
 
 ## Test Summary
 
-| Project | Tests | Docker Required |
-|---------|-------|-----------------|
-| Application.Tests | 202 | No |
-| StoreHub.IntegrationTests | 49 | Yes (Testcontainers) |
-| Migration.Tests | 15 | Yes (Testcontainers) |
-| **Total** | **266** | |
+See [`ONBOARDING.md`](../ONBOARDING.md) for the per-suite counts, which suites need Docker, and the
+installer suite that sits outside `IndyPOS.sln`. Kept in one place so the numbers cannot drift apart.
 
 ## Planning Documents
 
