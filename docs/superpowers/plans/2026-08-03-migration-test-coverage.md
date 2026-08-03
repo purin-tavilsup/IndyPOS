@@ -28,6 +28,18 @@
 - **Every date test pins `CultureInfo`** explicitly. Without it, defect 11's test only passes on a Thai-locale machine and defect 4's only on a non-Thai one.
 - Run tests with `dotnet test tests/IndyPOS.MigrationTool.Tests`. **Docker must be running.**
 
+**Two deliberate design decisions, ruled on by Pond 2026-08-03. Both are spec requirements, not
+oversights — do not "fix" either one:**
+
+- **Reflection is the correct tool for pinning an absence.** Tests assert
+  `typeof(InvoiceLine).GetProperties()...Should().NotContain("OriginalUnitPrice")` because there is
+  no field to read, so no value-based assertion can express "the discount record is gone". Keeping
+  it means the pin fails the moment the defect's fix adds the field — which is the signal wanted.
+- **Per-class seeding helpers are deliberate; the duplication stays.** Each test class owns its
+  arrange block so a reader sees the exact scenario without chasing a shared builder, and a change
+  to one defect's scenario cannot silently alter what another defect's test exercises. Do not
+  extract a shared scenarios helper.
+
 ## Deviation from the spec, recorded deliberately
 
 The spec proposed `scripts/extract-legacy-schema.ps1`. **This plan uses a skipped xUnit test instead**
@@ -327,9 +339,22 @@ CREATE TABLE "UserRole" (
 
 - [ ] **Step 3: Create `LegacySchema/MimyShop.sql`**
 
-Verified: MimyShop's 10 shared tables are **byte-identical DDL** to GeneralHardware's. So this file is GeneralHardware.sql minus the `Customers`, `Installments` and `PayLater` blocks, with a header saying 10 tables.
+**Dump it, do not derive it.** Run the Step 1 extractor against
+`.planning/indypos-overhaul/sqlite_database/MimyShop/Store.db`:
 
-Take the file from Step 2, change the header to:
+```bash
+dotnet test tests/IndyPOS.MigrationTool.Tests --filter "ExtractLegacySchema"
+```
+
+⚠️ **Do NOT produce this file by deleting blocks out of `GeneralHardware.sql`.** Editing generated
+output is precisely what the Global Constraints forbid, and it would silently yield a wrong artefact
+the moment MimyShop's DDL diverged from GeneralHardware's. The two are byte-identical across their 10
+shared tables *today*, which is a fact to verify, not a shortcut to rely on.
+
+**Fallback, only if no real `MimyShop/Store.db` is available:** derive it from Step 2's file by
+deleting the `-- Customers`, `-- Installments` and `-- PayLater` blocks, keeping the other ten
+byte-for-byte, and record in the commit message that it was derived rather than dumped so the next
+person knows to regenerate it. Use this header either way:
 
 ```sql
 -- GENERATED FILE -- DO NOT HAND-EDIT.
