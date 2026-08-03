@@ -110,22 +110,66 @@ defect 2 alone would convert a loud crash into silent revenue inflation, which i
 failure mode this epic exists to eliminate. It is therefore fixed here, not deferred.
 
 The relationship is **not** 1:1 in the other direction: `Payment` has **5,182** type-2 rows against
-5,181 PayLater rows, and ฿836,083 against ฿836,013 — one orphan payment of ฿70. The fix must not
-assume a PayLater exists for every type-2 payment, nor a payment for every PayLater.
+5,181 PayLater rows, and ฿836,083 against ฿836,013. The single orphan is identified: **`PaymentId 90`,
+฿70, with an empty `Note` and no `PayLater` row** — the one type-2 payment in the store that records
+no customer at all, i.e. an abandoned credit sale. The fix must not assume a PayLater exists for every
+type-2 payment, nor a payment for every PayLater.
 
-### 2.3 `PaidAmount` is real data, and the code derives it away
+### 2.3 `PaidAmount` is the only record of repayment progress, and the code derives it away
 
-Line 387 computes `PaidAmount = payLater.IsCompleted == 1 ? amount : 0m`. The real column is
-maintained:
+**The domain (Pond, 2026-08-03): a PayLater sale records the customer's name and the customer must
+come back and pay, in instalments, until the amount is complete.** Partial repayment is therefore the
+feature's *core workflow*, not an edge case.
 
-| `IsCompleted` | Rows | Paid in full | Paid zero |
-|---|---|---|---|
-| 0 | 144 | 0 | 142 |
-| 1 | 5,037 | 5,037 | 0 |
+Line 387 computes `PaidAmount = payLater.IsCompleted == 1 ? amount : 0m` — reconstructing from a
+boolean a column that is actually maintained. Measured state:
 
-So **2 rows are partially paid** — e.g. `PaymentId 96`: ฿700 owed, ฿299 paid. Derivation destroys
-them. Small in count, but there is no reason to compute a column that exists. Fixed here as part of
-defect 2, since it is the same query and the same method.
+| State | Rows |
+|---|---|
+| `PaidAmount = 0` — nothing repaid yet | 142 |
+| `0 < PaidAmount < PayLaterAmount` — mid-repayment | **1** |
+| `PaidAmount = PayLaterAmount` — settled | 5,037 |
+| `PaidAmount > PayLaterAmount` | **1** |
+
+Outstanding debt across incomplete rows: **฿20,010**.
+
+`DateUpdated` corroborates that this is a repayment ledger: 142 rows are `NULL` (never repaid) and
+**5,039 have moved off `DateCreated`** — exactly the 5,037 settled plus the two in-flight rows. So
+`DateUpdated` is the last-repayment timestamp.
+
+⚠️ **The snapshot counts understate the loss.** Only two rows are mid-flight *at the instant the
+database was copied*, but every one of the 5,181 passed through partial states, and `Installments` is
+empty everywhere — so `PaidAmount` is the **only** surviving record of repayment progress. There is
+no payment history to reconstruct it from. Deriving it discards the state of every debt still being
+repaid at cutover.
+
+Fixed here as part of defect 2: same query, same method.
+
+#### 2.3.1 A live data-entry error the migration must carry faithfully
+
+`PaymentId 139978`: **฿82 owed, ฿8,200 recorded as paid**, `IsCompleted = 0`. Exactly 100× — a
+dropped decimal, not a real overpayment. `IsCompleted` stayed `0` because the app's completion check
+compares for equality, which `8200 = 82` never satisfies.
+
+The migration must **not** normalise, clamp or "correct" this. Inventing data is worse than carrying
+a visible error, and a store can only fix what it can see. It does mean any later `MigrationVerifier`
+work should *report* rows where `PaidAmount > PayLaterAmount` rather than reconcile them away — noted
+here because it is the kind of row a sum-based check hides.
+
+### 2.3.2 The customer name is stored twice, identically
+
+Both `PayLater.Description` and the linked `Payment.Note` hold the customer name, and they agree on
+**all 5,181 rows** — zero disagreements, zero rows where only one is set, zero rows where neither is.
+`Description` is the intended home (Pond); `Payment.Note` mirrors it.
+
+`Note` is effectively PayLater-specific by convention: **5,181 of 5,182** type-2 payments carry one,
+against 649 of 121,669 cash payments and 48 of 12,458 transfers.
+
+Consequence: once defect 10 is fixed, both values migrate through their own columns with **no special
+handling** — legacy `PayLater.Description` → v4 `PayLater.Description`, legacy `Payment.Note` → v4
+`Payment.Note`. The current code's `Note = payLater.CustomerName` on an invented payment (line 375) is
+copying data the real payment already carries. Longest real `Description` is 41 characters, so the
+500-character truncate never fires.
 
 ### 2.4 Defect 11 (new): `ParseDate` is culture-dependent, and the tool runs on a Thai till
 
@@ -311,8 +355,11 @@ the blindness described in §4.2.
 | `MigrateAllAsync_AgainstAStoreWithNoPayLaterTable_Completes` | Defect 3 fixed, using the MimyShop shape |
 | `MigratePayLater_ReadsRealColumns_MapsDescriptionAndAmounts` | Defect 2 fixed |
 | `MigratePayLater_LinksTheExistingPayment_WithoutCreatingASecond` | Defect 10 fixed — one `Method = PayLater` payment, not two |
-| `MigratePayLater_WithAPartiallyPaidRow_PreservesPaidAmount` | ฿700 owed / ฿299 paid survives (§2.3) |
-| `MigratePayLater_WhenThePaymentIsMissing_RecordsAnErrorAndSkips` | The ฿70 orphan case — refuses rather than inventing a payment |
+| `MigratePayLater_WithAPartiallyPaidRow_PreservesPaidAmount` | ฿700 owed / ฿299 paid survives — the mid-repayment customer (§2.3) |
+| `MigratePayLater_WithPaidAmountExceedingTheDebt_CarriesItUnchanged` | ฿82 owed / ฿8,200 paid is **not** clamped or corrected (§2.3.1) |
+| `MigratePayLater_WithNeverRepaidRow_PreservesZeroPaidAndNullDateUpdated` | The 142-row case: `PaidAmount = 0`, `DateUpdated` null |
+| `MigratePayLater_CustomerName_SurvivesInBothDescriptionAndNote` | §2.3.2 — both columns carry through with no special handling |
+| `MigratePayLater_WhenThePaymentIsMissing_RecordsAnErrorAndSkips` | The `PaymentId 90` orphan — refuses rather than inventing a payment |
 | `MigratePayments_EachLegacyType_MapsToItsCatalogueCodeAndAmount` | Defect 1 regression guard, per method rather than in aggregate |
 
 ⚠️ One more test belongs here but its outcome is genuinely unknown until it is written:
