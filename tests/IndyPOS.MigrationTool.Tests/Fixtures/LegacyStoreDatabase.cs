@@ -51,7 +51,10 @@ public sealed class LegacyStoreDatabase : IAsyncDisposable
         Connection.Dispose();
 
         // SQLite holds the file until pooled handles are released.
-        SQLiteConnection.ClearAllPools();
+        // Scoped to THIS connection's pool. ClearAllPools() would reach every SQLite
+        // connection in the process, and this fixture is used from several test classes
+        // that xUnit runs in parallel collections.
+        SQLiteConnection.ClearPool(Connection);
 
         if (File.Exists(Path))
         {
