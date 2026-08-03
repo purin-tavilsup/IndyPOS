@@ -101,9 +101,25 @@ columns the migrator invents are exactly the four that a table-per-subtype row d
 
 **A PayLater row is therefore an annotation on a money event, not a money event.**
 
-`MigrateInvoicesAsync` already migrates the `Payment` table, including all 5,181 `PaymentTypeId = 2`
-rows, as `Method = PaymentMethodCodes.PayLater`. `MigratePayLaterAsync` then **creates a second
-`Payment`** for the same money (line 369).
+`MigrateInvoicesAsync` selects an invoice's payments with **no type filter**, and
+`LegacyPaymentTypeMap` maps `[2] = PaymentMethodCodes.PayLater`. So all 5,181 type-2 rows are already
+migrated as `Method = PayLater`. `MigratePayLaterAsync` then **creates a second `Payment`** for the
+same money (line 369).
+
+#### Root cause (Pond, 2026-08-03): the migration re-enacts the sale instead of copying it
+
+At the till, a PayLater sale writes **the `Payment` first, then the `PayLater`** as the tracking record
+for that debt, until the customer has repaid it all and it completes. `MigratePayLaterAsync` reproduces
+exactly that sequence — create a payment, then create its tracking record.
+
+That is correct for a till making a new sale. It is wrong for a migration, because **both rows already
+exist in SQLite**. A migration copies history; it does not replay the transaction that produced it.
+Re-enacting a two-step write against data that already contains both steps yields one real payment and
+one invented one.
+
+This is worth recording because it explains why the code reads as entirely sensible: it faithfully
+models the domain flow. The defect is not a misunderstanding of PayLater — it is applying a *write*
+model where a *copy* model was needed.
 
 **฿836,013 counted twice.** This is currently unreachable because defect 2 crashes first — fixing
 defect 2 alone would convert a loud crash into silent revenue inflation, which is precisely the
@@ -428,6 +444,11 @@ PayLater feature, so its absence is normal, not a failure.
   credit sale whose tracking record was never written. The money happened, so that payment still
   migrates; it simply has no credit record. Same philosophy as the defect 1 fix, which refuses an
   unmappable payment type rather than guessing `"Other"`.
+
+The phase ordering already supports this and needs no change: the legacy till writes the `Payment`
+before the `PayLater`, and `MigrateAllAsync` correspondingly runs `MigrateInvoicesAsync` (line 50,
+which migrates payments) before `MigratePayLaterAsync` (line 51). So `PaymentIdMap` is always populated
+before it is read.
 
 ⚠️ The payment loop currently sits inside `if (!_options.DryRun)` (line 256). The map must be
 populated outside that guard, or dry-run leaves it empty and every PayLater row then fails its
