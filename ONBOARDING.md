@@ -51,11 +51,12 @@ dotnet test
 They spin up a real PostgreSQL container via Testcontainers. With Docker stopped they fail **fast**
 (each suite in under a second), which reads exactly like a code regression but is not.
 
-Measured with Docker **stopped**: **102 failures**, all from these two:
+Expect **118 failures** with Docker stopped, all from these two suites. That figure is **derived**
+(87 + 31 by construction), not measured — the suites were last run with Docker up:
 
 | Suite | Total | Fails without Docker |
 |---|---|---|
-| `IndyPOS.MigrationTool.Tests` | 37 | **15** (21 are pure units, 1 skipped) |
+| `IndyPOS.MigrationTool.Tests` | 75 | **31** (of the other 44, see Trap 3) |
 | `IndyPOS.StoreHub.IntegrationTests` | 94 | **87** (7 need no container) |
 
 **Start Docker and re-run before investigating any of these.**
@@ -70,15 +71,47 @@ green run says nothing about the installer. Run it explicitly:
 dotnet test tests/IndyPOS.Bootstrapper.Tests
 ```
 
+### ⚠️ Trap 3 — the migration suite discovers *fewer* tests on a fresh clone, and that is correct
+
+`RealStoreSchemaTests` compares the committed legacy-schema artefacts against **real store
+databases** at `.planning/indypos-overhaul/sqlite_database/<Shape>/Store.db`. Those files are
+gitignored and ~64 MB each, so a fresh clone does not have them.
+
+Without them the tests report **Skipped, never Passed** — deliberately. The version before them
+returned early instead, so 8 tests reported *Passed* on every machine but one, including CI. Those
+tests also used one-directional `Should().Contain(...)` column checks, which a table with extra
+columns satisfies — so they could not have detected a dropped column even when they did run.
+
+So `IndyPOS.MigrationTool.Tests`'s 75 break down as: **31** need Docker, **24** need those real
+databases, **19** are pure units needing neither, and **1** is the manual schema extractor (Trap 3b).
+
+**The total itself changes.** A skipped `[Theory]` is one skipped entry, not one per data row, so the
+21-case artefact comparison collapses to a single entry. On a fresh clone the suite therefore
+discovers **55**, not 75: 50 pass, **5 skipped**, 0 failed. Nothing turns red.
+
+### ⚠️ Trap 3b — regenerating the schema artefacts needs an environment variable
+
+`LegacySchema/*.sql` are generated dumps. Never hand-edit them — hand-writing the legacy schema is
+what produced a fixture schema no real store had. To regenerate:
+
+```powershell
+$env:INDYPOS_REGENERATE_LEGACY_SCHEMA = "1"
+dotnet test tests/IndyPOS.MigrationTool.Tests --filter "ExtractLegacySchema"
+```
+
+**The variable is required.** `--filter` selects a test; it cannot un-skip one. Without it the run
+reports `Skipped: 1` and writes nothing — which looks like success while leaving the artefacts stale.
+
 ### Expected counts
 
-Solution suites (`dotnet test` at the root), Docker running — **497 total**:
+Solution suites (`dotnet test` at the root), Docker running **and** the real store databases present
+— **535 total** (534 pass, 1 skipped). Without those databases the total is **515**, still all green:
 
 | Suite | Tests |
 |---|---|
 | `IndyPOS.Application.Tests` | 294 |
 | `IndyPOS.StoreHub.IntegrationTests` | 94 (Docker) |
-| `IndyPOS.MigrationTool.Tests` | 37 (1 skipped) |
+| `IndyPOS.MigrationTool.Tests` | 75 (Docker; 1 skipped. **55** without the real store data — Trap 3) |
 | `IndyPOS.Domain.Tests` | 36 |
 | `IndyPOS.Windows.Forms.Tests` | 19 |
 | `IndyPOS.Vault.Tests` | 17 |
@@ -87,10 +120,14 @@ Outside the solution: `IndyPOS.Bootstrapper.Tests` — **231** (223 pass, 8 skip
 
 `tests/IndyPOS.Mock` is shared fakes, not a test project.
 
-> **The SQLite → PostgreSQL migration paths are untested.** `tests/IndyPOS.Migration.Tests` was
-> deleted, not repaired — it exercised a parallel migration implementation the product never
-> referenced, against a SQLite schema no real store has. Its 15 green tests were misleading, and
-> nothing has replaced them yet. See Epic 2 in `PLAN.md`.
+> **The SQLite → PostgreSQL migration paths now have real coverage.** `tests/IndyPOS.Migration.Tests`
+> was deleted, not repaired — it exercised a parallel migration implementation the product never
+> referenced, against a SQLite schema no real store has, so its 15 green tests were misleading.
+> `tests/IndyPOS.MigrationTool.Tests` replaces it: the **shipped** migrator, run against schema
+> artefacts dumped from real stores. Defects 2, 3 and 10 are fixed; defects 4, 5, 6, 7, 8 and 11 are
+> **pinned** — tests that assert today's wrong behaviour, name the correct answer, and were each
+> verified able to fail. When a defect is fixed, invert exactly one pinning test. See Epic 2 in
+> `PLAN.md`.
 
 ---
 
@@ -114,7 +151,7 @@ Dev ports come from `src/IndyPOS.StoreHub/Properties/launchSettings.json`:
 
 An **installed** StoreHub listens on **`:5000`**.
 
-### ⚠️ Trap 3 — the till points at the installed port, not the dev one
+### ⚠️ Trap 4 — the till points at the installed port, not the dev one
 
 `src/IndyPOS.Windows.Forms/appsettings.json` sets `BaseUrl` to `http://localhost:5000`, while a
 dev-run StoreHub listens on `:5012`. Running both straight from source, the till cannot reach the
@@ -130,7 +167,7 @@ Registered in `src/IndyPOS.ServiceDefaults/Extensions.cs`:
 | `/health/ready` | checks tagged `ready` — dependencies healthy | always |
 | `/health` | all checks, verbose body | **Development only** |
 
-### ⚠️ Trap 4 — `/health` returns 404 on an installed service
+### ⚠️ Trap 5 — `/health` returns 404 on an installed service
 
 That is by design: the verbose endpoint sits inside an `IsDevelopment()` branch because it leaks
 implementation detail. **Use `/health/ready`** against a real install. A 404 on `/health` is the

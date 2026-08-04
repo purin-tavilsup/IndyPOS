@@ -3,7 +3,7 @@
 ## Session Start
 
 **New to this repo, or a fresh clone?** Start with [`ONBOARDING.md`](ONBOARDING.md) — prerequisites,
-build/test, how to run it, and the four traps that waste the most time.
+build/test, how to run it, and the five traps that waste the most time.
 
 **Resuming work on an existing checkout?** Read `.claude/STATUS.md` (quick checkpoint, ~50 lines).
 ⚠️ **That file is gitignored and will not exist in a fresh clone** — this repo is public, so session
@@ -59,9 +59,19 @@ fonts/  scripts/  publish/   # Bundled fonts, helper scripts, build output
 ⚠️ **`.claude/` is gitignored** (since the BFG history purge), so `STATUS.md` never commits — do not
 try to include it in a PR.
 
-⚠️ **The SQLite → PostgreSQL migration paths have no test coverage.**
-`tests/IndyPOS.Migration.Tests` was deleted (not repaired) — it tested a parallel implementation
-against a schema no store has. Nothing replaces it yet. See Epic 2 in `PLAN.md`.
+⚠️ **The SQLite → PostgreSQL migration tests contain deliberate PINNING tests.**
+`tests/IndyPOS.MigrationTool.Tests` exercises the shipped migrator against schema artefacts dumped
+from real stores. Some of its tests assert **today's wrong behaviour on purpose** — they name their
+defect (4, 5, 6, 7, 8, 11), record the correct answer in the message, and were each verified able to
+fail. **When you fix one of those defects, invert exactly one pinning test; do not "repair" the
+assertion to match new behaviour without reading its comment.** Defects 2, 3 and 10 are fixed. See
+Epic 2 in `PLAN.md`.
+
+⚠️ **Never hand-write the legacy SQLite schema.** `LegacySchema/*.sql` are generated dumps from real
+`Store.db` files. Regenerate by setting `INDYPOS_REGENERATE_LEGACY_SCHEMA=1` and running
+`dotnet test tests/IndyPOS.MigrationTool.Tests --filter "ExtractLegacySchema"` — the variable is
+required, because `--filter` cannot un-skip a test. Hand-writing the schema is what produced a
+fixture no store had, the root of defects 2 and 3.
 
 ## Key Documentation
 
@@ -137,9 +147,11 @@ dotnet build
 
 # Docker must be RUNNING for two suites - they spin up a real Postgres container.
 # With Docker down they fail fast (each suite in under a second), which reads like a
-# code regression but is not. Measured with Docker stopped: 102 failures, all here.
+# code regression but is not. Expect 118 failures with Docker stopped, all here.
+# (118 is DERIVED as 87 + 31, not measured - both suites were last run with Docker up.)
 #   tests/IndyPOS.StoreHub.IntegrationTests   (87 of 94; 7 need no container)
-#   tests/IndyPOS.MigrationTool.Tests         (15 of 37; 21 are pure units, 1 skipped)
+#   tests/IndyPOS.MigrationTool.Tests         (31 of 75; 19 pure units, 24 need the
+#                                              gitignored real store .db files, 1 manual tool)
 
 # The installer is NOT in IndyPOS.sln, so the two commands above never touch it.
 # Run it explicitly (231 tests: 223 pass, 8 skipped):
@@ -150,8 +162,10 @@ dotnet run --project src/IndyPOS.AppHost --launch-profile https
 # Dashboard: https://localhost:17222
 ```
 
-Solution suites total **497** with Docker running. See [`ONBOARDING.md`](ONBOARDING.md) for the
-per-suite breakdown, the dev-vs-installed port split, and the `/health` vs `/health/ready` trap.
+Solution suites total **535** with Docker running and the real store databases present (534 pass,
+1 skipped). Without those databases the suite discovers **515**, still all green — a skipped
+`[Theory]` is one entry, not one per row. See [`ONBOARDING.md`](ONBOARDING.md) for the per-suite
+breakdown, the dev-vs-installed port split, and the `/health` vs `/health/ready` trap.
 
 ## Store Configuration (Required for Debug)
 

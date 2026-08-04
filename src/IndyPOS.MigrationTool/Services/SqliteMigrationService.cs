@@ -288,34 +288,43 @@ public class SqliteMigrationService
                             CreatedUtc = createdUtc
                         });
                     }
+                }
 
-                    foreach (var payment in payments)
+                foreach (var payment in payments)
+                {
+                    var method = LegacyPaymentTypeMap.ToCode((int)payment.PaymentTypeId);
+                    if (method is null)
                     {
-                        var method = LegacyPaymentTypeMap.ToCode((int)payment.PaymentTypeId);
-                        if (method is null)
-                        {
-                            // Refused, never guessed. The previous fallback wrote "Other", which
-                            // is not a catalogue code, so the amount became unresolvable while
-                            // the row counts still reconciled.
-                            _result.Errors.Add(
-                                $"Invoice {invoice.InvoiceId} payment {payment.PaymentId}: legacy " +
-                                $"PaymentTypeId {payment.PaymentTypeId} has no payment-method code. " +
-                                $"Migrating it would misattribute {payment.Amount:N2}.");
-                            _result.Payments.Failed++;
-                            continue;
-                        }
-
-                        context.Payments.Add(new Payment
-                        {
-                            Id = Guid.NewGuid(),
-                            InvoiceId = newInvoice.Id,
-                            Method = method,
-                            Amount = (decimal)payment.Amount,
-                            Note = payment.Note,
-                            CreatedUtc = createdUtc
-                        });
-                        _result.Payments.Migrated++;
+                        // Refused, never guessed. The previous fallback wrote "Other", which
+                        // is not a catalogue code, so the amount became unresolvable while
+                        // the row counts still reconciled.
+                        _result.Errors.Add(
+                            $"Invoice {invoice.InvoiceId} payment {payment.PaymentId}: legacy " +
+                            $"PaymentTypeId {payment.PaymentTypeId} has no payment-method code. " +
+                            $"Migrating it would misattribute {payment.Amount:N2}.");
+                        _result.Payments.Failed++;
+                        continue;
                     }
+
+                    var newPayment = new Payment
+                    {
+                        Id = Guid.NewGuid(),
+                        InvoiceId = newInvoice.Id,
+                        Method = method,
+                        Amount = (decimal)payment.Amount,
+                        Note = payment.Note,
+                        CreatedUtc = createdUtc
+                    };
+
+                    if (!_options.DryRun)
+                    {
+                        context.Payments.Add(newPayment);
+                    }
+
+                    // Built in dry-run too: MigratePayLaterAsync resolves against this map, and an
+                    // empty map would make every PayLater row fail its lookup.
+                    _result.PaymentIdMap[(int)payment.PaymentId] = newPayment.Id;
+                    _result.Payments.Migrated++;
                 }
 
                 _result.Invoices.Migrated++;
@@ -333,10 +342,28 @@ public class SqliteMigrationService
 
     private async Task MigratePayLaterAsync(SQLiteConnection sqlite, StoreHubDbContext context, CancellationToken ct)
     {
+        // Defect 3: PayLater is a GeneralHardware-only feature. Minimart and MimyShop have no such
+        // table, so querying it unconditionally threw "no such table: PayLater" and -- because that
+        // throw escaped before SaveChangesAsync -- discarded the entire migration.
+        var hasPayLaterTable = await sqlite.ExecuteScalarAsync<long>(
+            "SELECT COUNT(*) FROM sqlite_master WHERE type = 'table' AND name = 'PayLater'") > 0;
+
+        if (!hasPayLaterTable)
+        {
+            _logger.LogInformation(
+                "No PayLater table in this store; skipping. PayLater is a GeneralHardware-only feature.");
+            return;
+        }
+
         _logger.LogInformation("Migrating PayLater records...");
 
+        // Defect 2: the previous SELECT named PayLaterId, UserId, CustomerName and PaymentAmount.
+        // None exist. PayLater is a 1:1 extension of Payment (its PK IS the payment's id), so it
+        // needs no id of its own, no user (the payment's invoice has one) and no amount column
+        // beyond the debt it is tracking.
         var payLaters = (await sqlite.QueryAsync<LegacyPayLater>("""
-            SELECT PayLaterId, InvoiceId, UserId, CustomerName, PaymentAmount, IsCompleted, DateCreated, DateUpdated
+            SELECT PaymentId, Description, InvoiceId, IsCompleted, DateCreated, DateUpdated,
+                   PayLaterAmount, PaidAmount
             FROM PayLater
             """)).ToList();
 
@@ -347,34 +374,25 @@ public class SqliteMigrationService
                 // Map invoice ID
                 if (!_result.InvoiceIdMap.TryGetValue((int)payLater.InvoiceId, out var invoiceId))
                 {
-                    _logger.LogWarning("Invoice {InvoiceId} not found for PayLater {PayLaterId}",
-                        payLater.InvoiceId, payLater.PayLaterId);
+                    _logger.LogWarning("Invoice {InvoiceId} not found for PayLater {PaymentId}",
+                        payLater.InvoiceId, payLater.PaymentId);
                     _result.PayLater.Failed++;
                     continue;
                 }
 
-                // Map user ID
-                if (!_result.UserIdMap.TryGetValue((int)payLater.UserId, out var userId))
-                {
-                    userId = _result.UserIdMap.Values.FirstOrDefault();
-                }
-
                 var createdUtc = ParseDate(payLater.DateCreated) ?? DateTime.UtcNow;
 
-                // First, we need to find or create a payment for this PayLater
-                var paymentId = Guid.NewGuid();
-                if (!_options.DryRun)
+                // Defect 10: the legacy Payment row IS this money. PayLater is its 1:1 extension,
+                // keyed by the same id. Creating a payment here double-counted every credit sale
+                // -- THB 836,013 across the 5,181 real rows.
+                if (!_result.PaymentIdMap.TryGetValue((int)payLater.PaymentId, out var paymentId))
                 {
-                    // Create the payment record for PayLater
-                    context.Payments.Add(new Payment
-                    {
-                        Id = paymentId,
-                        InvoiceId = invoiceId,
-                        Method = PaymentMethodCodes.PayLater,
-                        Amount = (decimal)payLater.PaymentAmount,
-                        Note = payLater.CustomerName,
-                        CreatedUtc = createdUtc
-                    });
+                    _result.Errors.Add(
+                        $"PayLater {payLater.PaymentId}: no migrated payment for legacy PaymentId " +
+                        $"{payLater.PaymentId}, so the debt of {payLater.PayLaterAmount:N2} cannot be " +
+                        $"attached. Refusing rather than inventing a payment.");
+                    _result.PayLater.Failed++;
+                    continue;
                 }
 
                 var newPayLater = new PayLater
@@ -382,9 +400,11 @@ public class SqliteMigrationService
                     Id = Guid.NewGuid(),
                     PaymentId = paymentId,
                     InvoiceId = invoiceId,
-                    Description = Truncate(payLater.CustomerName, 500), // Customer name stored in Description
-                    PayLaterAmount = (decimal)payLater.PaymentAmount,
-                    PaidAmount = payLater.IsCompleted == 1 ? (decimal)payLater.PaymentAmount : 0m,
+                    Description = Truncate(payLater.Description ?? string.Empty, 500),
+                    PayLaterAmount = (decimal)payLater.PayLaterAmount,
+                    // Read, never derived. The customer repays in instalments, so this column is
+                    // the only record of that progress -- Installments is empty in every store.
+                    PaidAmount = (decimal)payLater.PaidAmount,
                     IsCompleted = payLater.IsCompleted == 1,
                     CreatedUtc = createdUtc,
                     LastModifiedUtc = ParseDate(payLater.DateUpdated) ?? createdUtc
@@ -396,13 +416,13 @@ public class SqliteMigrationService
                 }
 
                 _result.PayLater.Migrated++;
-                _logger.LogDebug("Migrated PayLater: {PayLaterId}", payLater.PayLaterId);
+                _logger.LogDebug("Migrated PayLater: {PaymentId}", payLater.PaymentId);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Failed to migrate PayLater {PayLaterId}", payLater.PayLaterId);
+                _logger.LogError(ex, "Failed to migrate PayLater {PaymentId}", payLater.PaymentId);
                 _result.PayLater.Failed++;
-                _result.Errors.Add($"PayLater {payLater.PayLaterId}: {ex.Message}");
+                _result.Errors.Add($"PayLater {payLater.PaymentId}: {ex.Message}");
             }
         }
     }
@@ -579,11 +599,14 @@ public class SqliteMigrationService
 
     private class LegacyPayLater
     {
-        public long PayLaterId { get; set; }
+        /// <summary>Both the primary key and the FK to <c>Payment.PaymentId</c>.</summary>
+        public long PaymentId { get; set; }
         public long InvoiceId { get; set; }
-        public long UserId { get; set; }
-        public string CustomerName { get; set; } = "";
-        public double PaymentAmount { get; set; }
+
+        /// <summary>The customer who owes the debt. Mirrored in <c>Payment.Note</c>.</summary>
+        public string? Description { get; set; }
+        public double PayLaterAmount { get; set; }
+        public double PaidAmount { get; set; }
         public long IsCompleted { get; set; }
         public string? DateCreated { get; set; }
         public string? DateUpdated { get; set; }

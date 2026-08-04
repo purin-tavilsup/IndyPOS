@@ -1,7 +1,6 @@
-using System.Data.SQLite;
 using IndyPOS.MigrationTool.Services;
 using IndyPOS.MigrationTool.Tests.Fixtures;
-using IndyPOS.MigrationTool.Tests.TestData;
+using IndyPOS.MigrationTool.Tests.Tools;
 using Microsoft.Extensions.Logging.Abstractions;
 
 namespace IndyPOS.MigrationTool.Tests;
@@ -10,8 +9,7 @@ namespace IndyPOS.MigrationTool.Tests;
 public class MigrationVerifierTests : IAsyncLifetime
 {
     private readonly PostgresFixture _postgres;
-    private SQLiteConnection _sqliteConnection = null!;
-    private string _sqliteDbPath = null!;
+    private LegacyStoreDatabase _store = null!;
 
     public MigrationVerifierTests(PostgresFixture postgres)
     {
@@ -20,25 +18,57 @@ public class MigrationVerifierTests : IAsyncLifetime
 
     public async Task InitializeAsync()
     {
-        _sqliteDbPath = Path.Combine(Path.GetTempPath(), $"verify_test_{Guid.NewGuid()}.db");
-        _sqliteConnection = new SQLiteConnection($"Data Source={_sqliteDbPath};Version=3;");
-        await _sqliteConnection.OpenAsync();
+        _store = await LegacyStoreDatabase.CreateAsync(LegacyStoreShape.GeneralHardware);
         await _postgres.ResetDatabaseAsync();
     }
 
-    public async Task DisposeAsync()
+    public async Task DisposeAsync() => await _store.DisposeAsync();
+
+    /// <summary>
+    /// Seeds a lookup table, <paramref name="userCount"/> users, <paramref name="productCount"/>
+    /// products, and <paramref name="invoiceCount"/> one-line cash invoices, cycling through the
+    /// seeded users and products.
+    /// </summary>
+    private async Task SeedManyAsync(int userCount, int productCount, int invoiceCount)
     {
-        await _sqliteConnection.CloseAsync();
-        _sqliteConnection.Dispose();
-        if (File.Exists(_sqliteDbPath)) File.Delete(_sqliteDbPath);
+        var builder = new LegacyStoreDataBuilder(_store);
+        await builder.AddPaymentTypeLookupAsync();
+
+        for (var i = 1; i <= userCount; i++)
+        {
+            await builder.AddUserAsync(
+                i, $"cashier{i}", $"First{i}", $"Last{i}", roleId: 1, dateCreated: "2024-03-15 09:00:00");
+        }
+
+        for (var i = 1; i <= productCount; i++)
+        {
+            await builder.AddProductAsync(
+                productId: i, barcode: $"885000100{i:D4}", description: $"Product {i}",
+                unitPrice: 10m * i, quantityInStock: 50, category: 50, isTrackable: true,
+                dateCreated: "2024-03-15 09:00:00");
+        }
+
+        for (var i = 1; i <= invoiceCount; i++)
+        {
+            var userId = ((i - 1) % userCount) + 1;
+            var productId = ((i - 1) % productCount) + 1;
+
+            await builder.AddInvoiceAsync(i, userId: userId, total: 100m, dateCreated: "2024-03-15 14:30:00");
+            await builder.AddInvoiceLineAsync(
+                invoiceProductId: i, invoiceId: i, productId: productId,
+                barcode: $"885000100{productId:D4}", description: "Product",
+                quantity: 1, unitPrice: 100m, originalUnitPrice: 100m);
+            await builder.AddPaymentAsync(
+                paymentId: i, invoiceId: i, paymentTypeId: 1, amount: 100m,
+                dateCreated: "2024-03-15 14:30:00");
+        }
     }
 
     [Fact]
     public async Task VerifyAsync_AfterSuccessfulMigration_ReturnsValid()
     {
         // Arrange
-        var seeder = new SqliteTestDataSeeder(_sqliteConnection);
-        var data = await seeder.SeedCompleteDataSetAsync(userCount: 3, productCount: 15, invoiceCount: 30);
+        await SeedManyAsync(userCount: 3, productCount: 15, invoiceCount: 30);
 
         // Perform migration
         var migrationOptions = CreateOptions();
@@ -63,8 +93,7 @@ public class MigrationVerifierTests : IAsyncLifetime
     public async Task VerifyAsync_BeforeMigration_ReturnsInvalid()
     {
         // Arrange - seed SQLite but don't migrate
-        var seeder = new SqliteTestDataSeeder(_sqliteConnection);
-        await seeder.SeedCompleteDataSetAsync(userCount: 3, productCount: 15, invoiceCount: 30);
+        await SeedManyAsync(userCount: 3, productCount: 15, invoiceCount: 30);
 
         var options = CreateOptions();
         var verifier = new MigrationVerifier(options, NullLogger<MigrationVerifier>.Instance);
@@ -85,8 +114,7 @@ public class MigrationVerifierTests : IAsyncLifetime
     public async Task VerifyAsync_WithPartialMigration_ReportsDiscrepancies()
     {
         // Arrange - seed SQLite with initial data
-        var seeder = new SqliteTestDataSeeder(_sqliteConnection);
-        await seeder.SeedCompleteDataSetAsync(userCount: 5, productCount: 20, invoiceCount: 0);
+        await SeedManyAsync(userCount: 5, productCount: 20, invoiceCount: 0);
 
         // Migrate
         var options = CreateOptions();
@@ -95,7 +123,14 @@ public class MigrationVerifierTests : IAsyncLifetime
 
         // Now add more products to SQLite (simulating new data after migration)
         // Use products instead of users to avoid unique constraint collision on username
-        await seeder.SeedProductsAsync(3);
+        var builder = new LegacyStoreDataBuilder(_store);
+        for (var i = 21; i <= 23; i++)
+        {
+            await builder.AddProductAsync(
+                productId: i, barcode: $"885000100{i:D4}", description: $"Product {i}",
+                unitPrice: 10m * i, quantityInStock: 50, category: 50, isTrackable: true,
+                dateCreated: "2024-03-15 09:00:00");
+        }
 
         // Act
         var verifier = new MigrationVerifier(options, NullLogger<MigrationVerifier>.Instance);
@@ -112,8 +147,7 @@ public class MigrationVerifierTests : IAsyncLifetime
     public async Task VerifyAsync_TotalRevenue_MatchesWithinTolerance()
     {
         // Arrange
-        var seeder = new SqliteTestDataSeeder(_sqliteConnection);
-        await seeder.SeedCompleteDataSetAsync(userCount: 2, productCount: 10, invoiceCount: 50);
+        await SeedManyAsync(userCount: 2, productCount: 10, invoiceCount: 50);
 
         var options = CreateOptions();
         var migrationService = new SqliteMigrationService(options, NullLogger<SqliteMigrationService>.Instance);
@@ -132,8 +166,7 @@ public class MigrationVerifierTests : IAsyncLifetime
     public async Task VerifyAsync_ReturnsCorrectCounts()
     {
         // Arrange
-        var seeder = new SqliteTestDataSeeder(_sqliteConnection);
-        var data = await seeder.SeedCompleteDataSetAsync(userCount: 4, productCount: 12, invoiceCount: 25);
+        await SeedManyAsync(userCount: 4, productCount: 12, invoiceCount: 25);
 
         var options = CreateOptions();
         var migrationService = new SqliteMigrationService(options, NullLogger<SqliteMigrationService>.Instance);
@@ -157,7 +190,7 @@ public class MigrationVerifierTests : IAsyncLifetime
     {
         return new MigrationOptions
         {
-            SqlitePath = _sqliteDbPath,
+            SqlitePath = _store.Path,
             PostgresConnectionString = _postgres.ConnectionString,
             StoreId = "TEST-STORE",
             DryRun = false
