@@ -61,8 +61,22 @@ public class SqliteMigrationService
             await context.SaveChangesAsync(ct);
         }
 
-        _logger.LogInformation("Migration completed. Migrated: {Count}, Errors: {Errors}",
-            _result.TotalMigrated, _result.Errors.Count);
+        // The log is what gets read during a support call, so it must not say "completed" for a run
+        // that wrote nothing -- the same trap the console banner exists to avoid.
+        if (_result.PhaseFailures.Count > 0)
+        {
+            _logger.LogError(
+                "Migration ABORTED. Nothing was written. {PhaseCount} phase(s) failed: {Phases}. " +
+                "{Count} row(s) were processed in memory and discarded.",
+                _result.PhaseFailures.Count,
+                string.Join(", ", _result.PhaseFailures.Select(f => f.Phase)),
+                _result.TotalMigrated);
+        }
+        else
+        {
+            _logger.LogInformation("Migration completed. Migrated: {Count}, Errors: {Errors}",
+                _result.TotalMigrated, _result.Errors.Count);
+        }
 
         return _result;
     }

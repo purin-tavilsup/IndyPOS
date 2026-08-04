@@ -265,9 +265,20 @@ static void DisplayVerificationResults(VerificationResult result)
 // Helper methods
 static void DisplayResults(MigrationResult result)
 {
+    // On an aborted run the "Migrated" numbers describe work that was staged in memory and thrown
+    // away. The banner below says so, but the table is printed FIRST and must not read as "these
+    // rows landed" to anyone skimming.
+    var aborted = result.Outcome == MigrationOutcome.Aborted;
+
+    if (aborted)
+    {
+        AnsiConsole.MarkupLine(
+            "[yellow]These counts are work that was staged in memory and then DISCARDED.[/]");
+    }
+
     var resultsTable = new Table();
     resultsTable.AddColumn("Entity");
-    resultsTable.AddColumn("Migrated", c => c.RightAligned());
+    resultsTable.AddColumn(aborted ? "Discarded" : "Migrated", c => c.RightAligned());
     resultsTable.AddColumn("Skipped", c => c.RightAligned());
     resultsTable.AddColumn("Failed", c => c.RightAligned());
 
@@ -311,7 +322,11 @@ static void DisplayResults(MigrationResult result)
             AnsiConsole.MarkupLine("[red]  The whole run was discarded because a phase failed:[/]");
             foreach (var failure in result.PhaseFailures)
             {
-                AnsiConsole.MarkupLine($"  [red]•[/] [bold]{failure.Phase}[/]: {failure.Message}");
+                // SQLite messages are multi-line ("SQL logic error\nno such column: X"), which would
+                // break the bullet across lines and lose the phase association.
+                var cause = string.Join(" ", failure.Message.Split(
+                    ['\r', '\n'], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries));
+                AnsiConsole.MarkupLine($"  [red]•[/] [bold]{failure.Phase}[/]: {cause}");
             }
             AnsiConsole.MarkupLine(
                 "[grey]  Fix the cause and re-run. The database is untouched.[/]");
