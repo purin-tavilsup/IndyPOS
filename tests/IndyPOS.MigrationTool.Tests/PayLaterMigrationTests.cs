@@ -248,8 +248,12 @@ public class PayLaterMigrationTests : IAsyncLifetime
         payLater.PaidAmount.Should().Be(0m);
         payLater.IsCompleted.Should().BeFalse();
         payLater.RemainingAmount.Should().Be(500m);
-        payLater.LastModifiedUtc.Should().Be(payLater.CreatedUtc,
-            "a null DateUpdated falls back to the created timestamp");
+        // Asserted as a CONCRETE value, not just == CreatedUtc: the service computes createdUtc once
+        // and uses it as the fallback, so if ParseDate returned null for BOTH columns the two would
+        // still be equal and the assertion would prove nothing about DateUpdated.
+        payLater.LastModifiedUtc.Should().Be(new DateTime(2024, 3, 15, 14, 30, 0, DateTimeKind.Utc),
+            "a null DateUpdated falls back to the parsed created timestamp");
+        payLater.LastModifiedUtc.Should().Be(payLater.CreatedUtc);
     }
 
     [Fact]
