@@ -200,4 +200,89 @@ public class PayLaterMigrationTests : IAsyncLifetime
         (await db.PayLaters.CountAsync()).Should().Be(0);
         (await db.Payments.CountAsync()).Should().Be(0, "a missing payment must never be invented");
     }
+
+    [Fact]
+    public async Task MigratePayLater_WithPaidAmountExceedingTheDebt_CarriesItUnchanged()
+    {
+        // Real data holds PaymentId 139978: THB 82 owed against THB 8,200 recorded paid -- exactly
+        // 100x, a dropped decimal at the till, with IsCompleted still 0 because the app's
+        // completion check compares for equality. The migration must NOT normalise or clamp this.
+        // Inventing a correction is worse than carrying a visible error: a store can only fix what
+        // it can see.
+        await using var store = await LegacyStoreDatabase.CreateAsync(LegacyStoreShape.GeneralHardware);
+        await SeedCreditSaleAsync(store, payLaterAmount: 82m, paidAmount: 8200m, isCompleted: false);
+
+        await MigrationScenario.RunAsync(store, _postgres);
+
+        await using var db = _postgres.CreateDbContext();
+        var payLater = await db.PayLaters.SingleAsync();
+
+        payLater.PayLaterAmount.Should().Be(82m);
+        payLater.PaidAmount.Should().Be(8200m, "carried verbatim; the migration does not invent corrections");
+        payLater.IsCompleted.Should().BeFalse();
+        payLater.RemainingAmount.Should().Be(-8118m, "a negative remainder is the visible symptom");
+    }
+
+    [Fact]
+    public async Task MigratePayLater_WithNeverRepaidRow_PreservesZeroPaidAmount()
+    {
+        // The 142-row case: nothing repaid yet, DateUpdated null.
+        await using var store = await LegacyStoreDatabase.CreateAsync(LegacyStoreShape.GeneralHardware);
+        var builder = new LegacyStoreDataBuilder(store);
+        await builder.AddPaymentTypeLookupAsync();
+        await builder.AddUserAsync(1, "cashier", "Somchai", "Jaidee", 1, "2024-03-15 09:00:00");
+        await builder.AddInvoiceAsync(1, userId: 1, total: 500m, dateCreated: "2024-03-15 14:30:00");
+        await builder.AddPaymentAsync(
+            paymentId: 500, invoiceId: 1, paymentTypeId: 2, amount: 500m,
+            dateCreated: "2024-03-15 14:30:00", note: "Malee");
+        await builder.AddPayLaterAsync(
+            paymentId: 500, invoiceId: 1, description: "Malee", payLaterAmount: 500m,
+            paidAmount: 0m, isCompleted: false, dateCreated: "2024-03-15 14:30:00",
+            dateUpdated: null);
+
+        await MigrationScenario.RunAsync(store, _postgres);
+
+        await using var db = _postgres.CreateDbContext();
+        var payLater = await db.PayLaters.SingleAsync();
+
+        payLater.PaidAmount.Should().Be(0m);
+        payLater.IsCompleted.Should().BeFalse();
+        payLater.RemainingAmount.Should().Be(500m);
+        payLater.LastModifiedUtc.Should().Be(payLater.CreatedUtc,
+            "a null DateUpdated falls back to the created timestamp");
+    }
+
+    [Fact]
+    public async Task MigratePayLater_CustomerName_SurvivesInBothDescriptionAndNote()
+    {
+        // Measured: PayLater.Description and the linked Payment.Note hold the same customer name on
+        // all 5,181 real rows -- zero disagreements, zero rows where only one is set. Description is
+        // the intended home; Note mirrors it. Both migrate through their own columns.
+        await using var store = await LegacyStoreDatabase.CreateAsync(LegacyStoreShape.GeneralHardware);
+        await SeedCreditSaleAsync(store, customer: "คุณสมชาย ใจดี");
+
+        await MigrationScenario.RunAsync(store, _postgres);
+
+        await using var db = _postgres.CreateDbContext();
+
+        (await db.PayLaters.SingleAsync()).Description.Should().Be("คุณสมชาย ใจดี");
+        (await db.Payments.SingleAsync()).Note.Should().Be("คุณสมชาย ใจดี");
+    }
+
+    [Fact]
+    public async Task MigratePayLater_WhenCompleted_PreservesFullPayment()
+    {
+        // The 5,037-row case: settled in full, IsCompleted 1.
+        await using var store = await LegacyStoreDatabase.CreateAsync(LegacyStoreShape.GeneralHardware);
+        await SeedCreditSaleAsync(store, payLaterAmount: 195m, paidAmount: 195m, isCompleted: true);
+
+        await MigrationScenario.RunAsync(store, _postgres);
+
+        await using var db = _postgres.CreateDbContext();
+        var payLater = await db.PayLaters.SingleAsync();
+
+        payLater.IsCompleted.Should().BeTrue();
+        payLater.PaidAmount.Should().Be(195m);
+        payLater.RemainingAmount.Should().Be(0m);
+    }
 }
