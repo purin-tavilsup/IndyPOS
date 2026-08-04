@@ -275,7 +275,7 @@ missing reference; this project has it.
 
 | Component | Responsibility | Depends on |
 |---|---|---|
-| `scripts/extract-legacy-schema.ps1` | Reads `sqlite_master` from a real `Store.db`, writes DDL to a `.sql` file. Re-runnable. | A real `Store.db` (developer machine only) |
+| `Tools/LegacySchemaExtractor.ExtractLegacySchema` | Reads `sqlite_master` from a real `Store.db`, writes DDL to a `.sql` file. Re-runnable. | A real `Store.db` (developer machine only) |
 | `LegacySchema/GeneralHardware.sql` | Generated DDL, 13 tables, **has** `PayLater` | — (committed artefact) |
 | `LegacySchema/MimyShop.sql` | Generated DDL, 10 tables, **no** `PayLater` | — (committed artefact) |
 | `LegacyStoreDatabase` | Creates a temp SQLite file and applies one committed DDL. Replaces `SqliteTestDataSeeder.CreateSchemaAsync`. | A `.sql` artefact |
@@ -286,8 +286,21 @@ The two `.sql` files each carry a header recording source store, extraction date
 that they are generated and must not be hand-edited. Committing them means the tests run in CI with
 no real `.db` present, and a schema change surfaces as a diff on a tracked file.
 
-The extraction script is committed so the provenance of the schema is reproducible rather than
+The extraction tool is committed so the provenance of the schema is reproducible rather than
 folklore. That is the whole point: **hand-writing the schema is what produced one no store has.**
+
+> **Amended 2026-08-04 — the extractor shipped as a skipped xUnit test, not a `.ps1`.**
+> It is `[Fact(Skip = "Manual tool…")]` on `Tools/LegacySchemaExtractor`, run explicitly with
+> `dotnet test tests/IndyPOS.MigrationTool.Tests --filter "ExtractLegacySchema"`.
+>
+> Why: as a test it reuses the suite's own `System.Data.SQLite` dependency and its `LegacyStoreShape`
+> enum, so the artefact path and the shape list cannot drift from what the tests consume. A `.ps1`
+> would need its own SQLite access and its own copy of that list — a second source of truth for
+> exactly the thing this spec exists to keep singular. It also stays inside `dotnet test`, so no
+> contributor needs PowerShell to regenerate an artefact.
+>
+> Cost, recorded honestly: a skipped test is easy to overlook, and the skip reason is the only place
+> that says it is a tool rather than dead coverage.
 
 ### 4.2 The fidelity rule that matters most
 
