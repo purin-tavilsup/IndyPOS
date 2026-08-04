@@ -97,7 +97,11 @@ public class RealStoreSchemaTests
         labels[1].Should().Be("เงินสด");
         labels[2].Should().Be("ลงบัญชี");
         labels[3].Should().Be("บัตรสวัสดิการแห่งรัฐ");
+        labels[4].Should().Be("ม.33");
         labels[5].Should().Be("โอนเข้าบัญชี");
+        // Id 6 has no catalogue equivalent. Pinned anyway: it is the one row that a check covering
+        // only the mappable ids would never notice going wrong.
+        labels[6].Should().Be("ผ่อนชำระ");
         labels[7].Should().Be("คนละครึ่ง");
         labels[8].Should().Be("เราชนะ");
     }
