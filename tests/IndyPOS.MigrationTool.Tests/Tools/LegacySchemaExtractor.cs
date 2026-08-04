@@ -5,6 +5,25 @@ using Dapper;
 namespace IndyPOS.MigrationTool.Tests.Tools;
 
 /// <summary>
+/// Marks a manual developer tool that ships as a test. It is skipped unless the named environment
+/// variable is set, so a normal <c>dotnet test</c> never runs it.
+///
+/// Not <c>[Fact(Skip = "...")]</c>: a static skip cannot be lifted by <c>--filter</c>, so the
+/// documented way to run the tool would silently do nothing. xUnit 2.9.3 has no runtime skip and no
+/// "explicit test" support, so the decision is made here, at discovery.
+/// </summary>
+public sealed class ManualToolFactAttribute : FactAttribute
+{
+    public ManualToolFactAttribute(string environmentVariable, string reason)
+    {
+        if (string.IsNullOrEmpty(Environment.GetEnvironmentVariable(environmentVariable)))
+        {
+            Skip = $"{reason} Set {environmentVariable}=1 to run it.";
+        }
+    }
+}
+
+/// <summary>
 /// Which real store a legacy schema artefact was dumped from. The two shapes differ only by the
 /// PayLater feature: GeneralHardware adds PayLater, Customers and Installments.
 /// </summary>
@@ -26,18 +45,26 @@ public enum LegacyStoreShape
 ///
 /// SCHEMA ONLY. This must never copy rows: IndyPOS is a public repository.
 ///
-/// Run with:
+/// Run with (PowerShell):
+///   $env:INDYPOS_REGENERATE_LEGACY_SCHEMA = "1"
 ///   dotnet test tests/IndyPOS.MigrationTool.Tests --filter "ExtractLegacySchema"
+///
+/// The environment variable is REQUIRED. `--filter` selects a test; it does not un-skip one, so a
+/// statically skipped <c>[Fact(Skip = "...")]</c> would report "Skipped: 1" and write nothing --
+/// which reads as success while leaving the artefacts untouched.
 /// </summary>
 public class LegacySchemaExtractor
 {
+    internal const string EnvironmentVariable = "INDYPOS_REGENERATE_LEGACY_SCHEMA";
+
     private static string SourceDb(LegacyStoreShape shape) => RealStoreDatabases.PathFor(shape);
 
     private static string ArtefactPath(LegacyStoreShape shape) => Path.Combine(
         RealStoreDatabases.RepoRoot, "tests", "IndyPOS.MigrationTool.Tests",
         "LegacySchema", $"{shape}.sql");
 
-    [Fact(Skip = "Manual tool. Run explicitly to regenerate LegacySchema/*.sql from a real Store.db.")]
+    [ManualToolFact(EnvironmentVariable,
+        "Manual tool. Regenerates LegacySchema/*.sql from a real Store.db.")]
     public async Task ExtractLegacySchema()
     {
         foreach (var shape in Enum.GetValues<LegacyStoreShape>())
@@ -70,7 +97,8 @@ public class LegacySchemaExtractor
         var artefact = new StringBuilder();
         artefact.AppendLine($"-- GENERATED FILE -- DO NOT HAND-EDIT.");
         artefact.AppendLine($"-- Legacy SQLite schema dumped from a real {shape} Store.db.");
-        artefact.AppendLine($"-- Regenerate with:");
+        artefact.AppendLine($"-- Regenerate with (PowerShell):");
+        artefact.AppendLine($"--   $env:{EnvironmentVariable} = \"1\"");
         artefact.AppendLine($"--   dotnet test tests/IndyPOS.MigrationTool.Tests --filter \"ExtractLegacySchema\"");
         artefact.AppendLine($"-- Tables: {tables.Count}");
         artefact.AppendLine($"-- Schema only. Never add rows: this repository is public.");

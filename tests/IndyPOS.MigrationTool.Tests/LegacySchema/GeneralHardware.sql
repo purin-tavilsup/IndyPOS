@@ -1,6 +1,7 @@
 -- GENERATED FILE -- DO NOT HAND-EDIT.
 -- Legacy SQLite schema dumped from a real GeneralHardware Store.db.
--- Regenerate with:
+-- Regenerate with (PowerShell):
+--   $env:INDYPOS_REGENERATE_LEGACY_SCHEMA = "1"
 --   dotnet test tests/IndyPOS.MigrationTool.Tests --filter "ExtractLegacySchema"
 -- Tables: 13
 -- Schema only. Never add rows: this repository is public.
