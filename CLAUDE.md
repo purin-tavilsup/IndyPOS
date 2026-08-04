@@ -68,8 +68,10 @@ assertion to match new behaviour without reading its comment.** Defects 2, 3 and
 Epic 2 in `PLAN.md`.
 
 ⚠️ **Never hand-write the legacy SQLite schema.** `LegacySchema/*.sql` are generated dumps from real
-`Store.db` files — regenerate with `dotnet test --filter "ExtractLegacySchema"`, never by editing.
-Hand-writing it is what produced a fixture schema no store had, which is the root of defects 2 and 3.
+`Store.db` files. Regenerate by setting `INDYPOS_REGENERATE_LEGACY_SCHEMA=1` and running
+`dotnet test tests/IndyPOS.MigrationTool.Tests --filter "ExtractLegacySchema"` — the variable is
+required, because `--filter` cannot un-skip a test. Hand-writing the schema is what produced a
+fixture no store had, the root of defects 2 and 3.
 
 ## Key Documentation
 
@@ -145,9 +147,10 @@ dotnet build
 
 # Docker must be RUNNING for two suites - they spin up a real Postgres container.
 # With Docker down they fail fast (each suite in under a second), which reads like a
-# code regression but is not. Measured with Docker stopped: 118 failures, all here.
+# code regression but is not. Expect 118 failures with Docker stopped, all here.
+# (118 is DERIVED as 87 + 31, not measured - both suites were last run with Docker up.)
 #   tests/IndyPOS.StoreHub.IntegrationTests   (87 of 94; 7 need no container)
-#   tests/IndyPOS.MigrationTool.Tests         (31 of 77; 21 pure units, 24 need the
+#   tests/IndyPOS.MigrationTool.Tests         (31 of 75; 19 pure units, 24 need the
 #                                              gitignored real store .db files, 1 manual tool)
 
 # The installer is NOT in IndyPOS.sln, so the two commands above never touch it.
@@ -159,9 +162,10 @@ dotnet run --project src/IndyPOS.AppHost --launch-profile https
 # Dashboard: https://localhost:17222
 ```
 
-Solution suites total **537** with Docker running (536 pass, 1 skipped; 24 more skip without the
-gitignored real store databases). See [`ONBOARDING.md`](ONBOARDING.md) for the per-suite breakdown,
-the dev-vs-installed port split, and the `/health` vs `/health/ready` trap.
+Solution suites total **535** with Docker running and the real store databases present (534 pass,
+1 skipped). Without those databases the suite discovers **515**, still all green — a skipped
+`[Theory]` is one entry, not one per row. See [`ONBOARDING.md`](ONBOARDING.md) for the per-suite
+breakdown, the dev-vs-installed port split, and the `/health` vs `/health/ready` trap.
 
 ## Store Configuration (Required for Debug)
 

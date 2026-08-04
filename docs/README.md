@@ -56,7 +56,7 @@ docs/
 ## Quick Commands
 
 ```bash
-# Run all tests (266 tests, no Docker needed)
+# Run all tests (535 with Docker running; two suites REQUIRE it -- see ONBOARDING.md Trap 1)
 dotnet test
 
 # Run with Aspire (requires Docker)
