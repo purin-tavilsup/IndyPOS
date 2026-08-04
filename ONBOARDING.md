@@ -51,12 +51,12 @@ dotnet test
 They spin up a real PostgreSQL container via Testcontainers. With Docker stopped they fail **fast**
 (each suite in under a second), which reads exactly like a code regression but is not.
 
-Expect **118 failures** with Docker stopped, all from these two suites. That figure is **derived**
-(87 + 31 by construction), not measured — the suites were last run with Docker up:
+Expect **123 failures** with Docker stopped, all from these two suites. That figure is **derived**
+(87 + 36 by construction), not measured — the suites were last run with Docker up:
 
 | Suite | Total | Fails without Docker |
 |---|---|---|
-| `IndyPOS.MigrationTool.Tests` | 75 | **31** (of the other 44, see Trap 3) |
+| `IndyPOS.MigrationTool.Tests` | 86 | **36** (of the other 50, see Trap 3) |
 | `IndyPOS.StoreHub.IntegrationTests` | 94 | **87** (7 need no container) |
 
 **Start Docker and re-run before investigating any of these.**
@@ -82,12 +82,12 @@ returned early instead, so 8 tests reported *Passed* on every machine but one, i
 tests also used one-directional `Should().Contain(...)` column checks, which a table with extra
 columns satisfies — so they could not have detected a dropped column even when they did run.
 
-So `IndyPOS.MigrationTool.Tests`'s 75 break down as: **31** need Docker, **24** need those real
-databases, **19** are pure units needing neither, and **1** is the manual schema extractor (Trap 3b).
+So `IndyPOS.MigrationTool.Tests`'s 86 break down as: **36** need Docker, **24** need those real
+databases, **25** are pure units needing neither, and **1** is the manual schema extractor (Trap 3b).
 
 **The total itself changes.** A skipped `[Theory]` is one skipped entry, not one per data row, so the
 21-case artefact comparison collapses to a single entry. On a fresh clone the suite therefore
-discovers **55**, not 75: 50 pass, **5 skipped**, 0 failed. Nothing turns red.
+discovers **66**, not 86: 61 pass, **5 skipped**, 0 failed. Nothing turns red.
 
 ### ⚠️ Trap 3b — regenerating the schema artefacts needs an environment variable
 
@@ -105,13 +105,13 @@ reports `Skipped: 1` and writes nothing — which looks like success while leavi
 ### Expected counts
 
 Solution suites (`dotnet test` at the root), Docker running **and** the real store databases present
-— **535 total** (534 pass, 1 skipped). Without those databases the total is **515**, still all green:
+— **546 total** (545 pass, 1 skipped). Without those databases the total is **526**, still all green:
 
 | Suite | Tests |
 |---|---|
 | `IndyPOS.Application.Tests` | 294 |
 | `IndyPOS.StoreHub.IntegrationTests` | 94 (Docker) |
-| `IndyPOS.MigrationTool.Tests` | 75 (Docker; 1 skipped. **55** without the real store data — Trap 3) |
+| `IndyPOS.MigrationTool.Tests` | 86 (Docker; 1 skipped. **66** without the real store data — Trap 3) |
 | `IndyPOS.Domain.Tests` | 36 |
 | `IndyPOS.Windows.Forms.Tests` | 19 |
 | `IndyPOS.Vault.Tests` | 17 |
