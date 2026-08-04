@@ -124,7 +124,7 @@ public class SqliteMigrationService
             {
                 _logger.LogError(ex, "Failed to migrate user {UserId}", user.UserId);
                 _result.Users.Failed++;
-                _result.Errors.Add($"User {user.UserId}: {ex.Message}");
+                _result.AddError("Users", $"User {user.UserId}: {ex.Message}");
             }
         }
     }
@@ -202,7 +202,7 @@ public class SqliteMigrationService
             {
                 _logger.LogError(ex, "Failed to migrate product {Barcode}", product.Barcode);
                 _result.Products.Failed++;
-                _result.Errors.Add($"Product {product.Barcode}: {ex.Message}");
+                _result.AddError("Products", $"Product {product.Barcode}: {ex.Message}");
             }
         }
     }
@@ -298,7 +298,7 @@ public class SqliteMigrationService
                         // Refused, never guessed. The previous fallback wrote "Other", which
                         // is not a catalogue code, so the amount became unresolvable while
                         // the row counts still reconciled.
-                        _result.Errors.Add(
+                        _result.AddError("Invoices",
                             $"Invoice {invoice.InvoiceId} payment {payment.PaymentId}: legacy " +
                             $"PaymentTypeId {payment.PaymentTypeId} has no payment-method code. " +
                             $"Migrating it would misattribute {payment.Amount:N2}.");
@@ -335,7 +335,7 @@ public class SqliteMigrationService
             {
                 _logger.LogError(ex, "Failed to migrate invoice {InvoiceId}", invoice.InvoiceId);
                 _result.Invoices.Failed++;
-                _result.Errors.Add($"Invoice {invoice.InvoiceId}: {ex.Message}");
+                _result.AddError("Invoices", $"Invoice {invoice.InvoiceId}: {ex.Message}");
             }
         }
     }
@@ -387,7 +387,7 @@ public class SqliteMigrationService
                 // -- THB 836,013 across the 5,181 real rows.
                 if (!_result.PaymentIdMap.TryGetValue((int)payLater.PaymentId, out var paymentId))
                 {
-                    _result.Errors.Add(
+                    _result.AddError("PayLater",
                         $"PayLater {payLater.PaymentId}: no migrated payment for legacy PaymentId " +
                         $"{payLater.PaymentId}, so the debt of {payLater.PayLaterAmount:N2} cannot be " +
                         $"attached. Refusing rather than inventing a payment.");
@@ -422,7 +422,7 @@ public class SqliteMigrationService
             {
                 _logger.LogError(ex, "Failed to migrate PayLater {PaymentId}", payLater.PaymentId);
                 _result.PayLater.Failed++;
-                _result.Errors.Add($"PayLater {payLater.PaymentId}: {ex.Message}");
+                _result.AddError("PayLater", $"PayLater {payLater.PaymentId}: {ex.Message}");
             }
         }
     }

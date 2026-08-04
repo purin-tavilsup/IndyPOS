@@ -1,5 +1,27 @@
 namespace IndyPOS.MigrationTool;
 
+/// <summary>
+/// A phase that failed as a whole -- its query threw, so none of its rows were examined. Distinct
+/// from a per-row failure: a phase failure means NOTHING is persisted for the entire run.
+/// </summary>
+public sealed record MigrationPhaseFailure(string Phase, string Message);
+
+/// <summary>
+/// The three outcomes an operator must be able to tell apart. Collapsing <see cref="Aborted"/> into
+/// <see cref="CompletedWithErrors"/> would report a run that wrote nothing as a partial success.
+/// </summary>
+public enum MigrationOutcome
+{
+    /// <summary>Everything migrated, and it was committed.</summary>
+    Success,
+
+    /// <summary>Committed, but individual rows were refused. Data WAS written.</summary>
+    CompletedWithErrors,
+
+    /// <summary>A phase failed wholesale, so NOTHING was written.</summary>
+    Aborted
+}
+
 public class MigrationResult
 {
     public EntityMigrationResult Users { get; set; } = new();
@@ -8,13 +30,64 @@ public class MigrationResult
     public EntityMigrationResult Payments { get; set; } = new();
     public EntityMigrationResult PayLater { get; set; } = new();
 
-    public List<string> Errors { get; } = [];
+    /// <summary>Per phase, because a cascade from one failure must not bury every other phase.</summary>
+    private const int MaxErrorsPerPhase = 100;
 
-    public bool IsSuccess => Users.Failed == 0 &&
-                             Products.Failed == 0 &&
-                             Invoices.Failed == 0 &&
-                             Payments.Failed == 0 &&
-                             PayLater.Failed == 0;
+    private readonly List<string> _errors = [];
+    private readonly Dictionary<string, int> _errorCountByPhase = [];
+    private readonly Dictionary<string, int> _suppressionNoteIndexByPhase = [];
+
+    /// <summary>Read-only so every write goes through <see cref="AddError"/> and stays bounded.</summary>
+    public IReadOnlyList<string> Errors => _errors;
+
+    /// <summary>Phases that failed as a whole. Non-empty means nothing was persisted.</summary>
+    public List<MigrationPhaseFailure> PhaseFailures { get; } = [];
+
+    public MigrationOutcome Outcome =>
+        PhaseFailures.Count > 0 ? MigrationOutcome.Aborted :
+        AnyRowFailed ? MigrationOutcome.CompletedWithErrors :
+        MigrationOutcome.Success;
+
+    /// <remarks>
+    /// Defect 12: this MUST count phase failures. Program.cs turns it into the process exit code, so
+    /// a phase failure that left IsSuccess true would exit 0 on a run that wrote nothing.
+    /// </remarks>
+    public bool IsSuccess => Outcome == MigrationOutcome.Success;
+
+    private bool AnyRowFailed => Users.Failed > 0 || Products.Failed > 0 ||
+                                 Invoices.Failed > 0 || Payments.Failed > 0 ||
+                                 PayLater.Failed > 0;
+
+    /// <summary>
+    /// Records a per-row error, capped per phase. The <see cref="EntityMigrationResult.Failed"/>
+    /// counts stay exact -- only these strings are capped, because an upstream phase failure makes
+    /// every downstream row miss its lookup (up to 325,780 on real data).
+    /// </summary>
+    public void AddError(string phase, string message)
+    {
+        var alreadyRecorded = _errorCountByPhase.GetValueOrDefault(phase);
+        _errorCountByPhase[phase] = alreadyRecorded + 1;
+
+        if (alreadyRecorded < MaxErrorsPerPhase)
+        {
+            _errors.Add(message);
+            return;
+        }
+
+        var note = $"{phase}: {alreadyRecorded + 1 - MaxErrorsPerPhase} further error(s) suppressed.";
+
+        if (_suppressionNoteIndexByPhase.TryGetValue(phase, out var index))
+        {
+            _errors[index] = note;
+            return;
+        }
+
+        _errors.Add(note);
+        _suppressionNoteIndexByPhase[phase] = _errors.Count - 1;
+    }
+
+    public void AddPhaseFailure(string phase, string message) =>
+        PhaseFailures.Add(new MigrationPhaseFailure(phase, message));
 
     public int TotalMigrated => Users.Migrated + Products.Migrated +
                                 Invoices.Migrated + Payments.Migrated +
