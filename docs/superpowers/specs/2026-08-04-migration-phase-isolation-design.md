@@ -2,9 +2,10 @@
 
 **Date:** 2026-08-04
 **Defect:** 12 (`.planning/indypos-overhaul/PLAN.md`)
-**Depends on:** PR #61 (`feat/epic2-migration-coverage`). The tests need `LegacyStoreDatabase` and
-`LegacyStoreDataBuilder`, which land in that PR, so this work **stacks on that branch** and its PR
-must merge after #61.
+**Depended on:** PR #61 (`feat/epic2-migration-coverage`), **merged 2026-08-04** as `2901d1b`. The
+tests need `LegacyStoreDatabase` and `LegacyStoreDataBuilder`, which came from that PR. This work
+therefore branches cleanly off `development` (`fix/migration-phase-isolation`) rather than stacking.
+Verified on the new base before planning: 74 pass / 1 skip / 0 fail.
 
 ---
 
@@ -175,10 +176,12 @@ rather than by a mock:
 await store.Connection.ExecuteAsync("ALTER TABLE PayLater DROP COLUMN PaidAmount;");
 ```
 
-`DROP COLUMN` needs SQLite 3.35+. If the bundled engine in `System.Data.SQLite` 1.0.119 rejects it,
-the fallback is to `DROP TABLE PayLater` and recreate it without that column from the artefact's own
-DDL — same observable drift, no reliance on a newer engine. Confirm which applies in step 1 of the
-plan rather than assuming.
+`DROP COLUMN` needs SQLite 3.35+, and SQLite refuses it for a column that is a PK, UNIQUE, indexed,
+or named in a CHECK / view / trigger. Checked against the committed artefact: `PaidAmount` is a plain
+`NUMERIC NOT NULL DEFAULT 0`, the PK is `PaymentId`, and the table carries no indexes — so none of
+those restrictions apply. If the bundled engine rejects it anyway, the fallback is to `DROP TABLE
+PayLater` and recreate it without that column from the artefact's own DDL: same observable drift, no
+reliance on a newer engine. Test 1 surfaces this immediately in its Arrange step.
 
 | # | Test | Asserts |
 |---|---|---|
