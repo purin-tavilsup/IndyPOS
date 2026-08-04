@@ -66,7 +66,9 @@ public class RealStoreSchemaTests
         real.Should().NotBeEmpty($"the real {shape} store must actually have a {table} table");
         artefact.Should().BeEquivalentTo(real,
             $"the committed {shape}.sql artefact must match the real store's {table} exactly. " +
-            "If this fails, regenerate it: dotnet test --filter \"ExtractLegacySchema\"");
+            "If this fails, regenerate it: set INDYPOS_REGENERATE_LEGACY_SCHEMA=1, then " +
+            "dotnet test tests/IndyPOS.MigrationTool.Tests --filter \"ExtractLegacySchema\" " +
+            "(the variable is required -- --filter cannot un-skip a test)");
     }
 
     [RealStoreFact(LegacyStoreShape.GeneralHardware)]

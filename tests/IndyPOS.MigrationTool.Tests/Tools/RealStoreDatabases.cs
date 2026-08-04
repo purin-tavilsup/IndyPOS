@@ -18,16 +18,14 @@ public static class RealStoreDatabases
 
     public static bool IsMissing(LegacyStoreShape shape) => !File.Exists(PathFor(shape));
 
-    public static IEnumerable<LegacyStoreShape> MissingShapes() =>
-        Enum.GetValues<LegacyStoreShape>().Where(IsMissing);
-
     /// <returns>A skip reason, or <c>null</c> when every requested shape is present.</returns>
     public static string? SkipReasonFor(params LegacyStoreShape[] shapes)
     {
         var missing = shapes.Where(IsMissing).ToList();
         if (missing.Count == 0) return null;
 
-        return $"No real Store.db for {string.Join(", ", missing)} (gitignored, ~64 MB each). " +
+        return $"No real Store.db for {string.Join(", ", missing)} of the required " +
+               $"{string.Join(", ", shapes)} (gitignored, ~64 MB each). " +
                "SKIPPED, not passed: this check can only run on a machine holding real store data. " +
                $"Expected at {PathFor(missing[0])}";
     }
@@ -51,8 +49,9 @@ public sealed class RealStoreFactAttribute : FactAttribute
 }
 
 /// <summary>
-/// <see cref="RealStoreFactAttribute"/> for theories. The skip covers the whole theory, because a
-/// discovery-time decision cannot discriminate between individual data rows.
+/// <see cref="RealStoreFactAttribute"/> for theories. Requires EVERY shape, and the skip covers the
+/// whole theory: a discovery-time decision cannot discriminate between individual data rows, so a
+/// machine holding only some shapes skips the cases it could have run.
 /// </summary>
 public sealed class RealStoreTheoryAttribute : TheoryAttribute
 {
