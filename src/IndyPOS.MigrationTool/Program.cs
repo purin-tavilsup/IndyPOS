@@ -298,21 +298,36 @@ static void DisplayResults(MigrationResult result)
 
     AnsiConsole.Write(resultsTable);
 
-    if (result.IsSuccess)
+    switch (result.Outcome)
     {
-        AnsiConsole.MarkupLine("\n[green]✓ Migration completed successfully![/]");
-    }
-    else
-    {
-        AnsiConsole.MarkupLine("\n[red]✗ Migration completed with errors[/]");
-        foreach (var error in result.Errors.Take(10))
-        {
-            AnsiConsole.MarkupLine($"  [red]•[/] {error}");
-        }
-        if (result.Errors.Count > 10)
-        {
-            AnsiConsole.MarkupLine($"  [grey]... and {result.Errors.Count - 10} more errors[/]");
-        }
+        case MigrationOutcome.Success:
+            AnsiConsole.MarkupLine("\n[green]✓ Migration completed successfully![/]");
+            break;
+
+        case MigrationOutcome.Aborted:
+            // Distinct from "completed with errors" on purpose: NOTHING was written. Saying
+            // "completed" here would tell the operator their store is mostly migrated.
+            AnsiConsole.MarkupLine("\n[red]✗ Migration ABORTED - nothing was written.[/]");
+            AnsiConsole.MarkupLine("[red]  The whole run was discarded because a phase failed:[/]");
+            foreach (var failure in result.PhaseFailures)
+            {
+                AnsiConsole.MarkupLine($"  [red]•[/] [bold]{failure.Phase}[/]: {failure.Message}");
+            }
+            AnsiConsole.MarkupLine(
+                "[grey]  Fix the cause and re-run. The database is untouched.[/]");
+            break;
+
+        default:
+            AnsiConsole.MarkupLine("\n[red]✗ Migration completed with errors[/]");
+            foreach (var error in result.Errors.Take(10))
+            {
+                AnsiConsole.MarkupLine($"  [red]•[/] {error}");
+            }
+            if (result.Errors.Count > 10)
+            {
+                AnsiConsole.MarkupLine($"  [grey]... and {result.Errors.Count - 10} more errors[/]");
+            }
+            break;
     }
 }
 

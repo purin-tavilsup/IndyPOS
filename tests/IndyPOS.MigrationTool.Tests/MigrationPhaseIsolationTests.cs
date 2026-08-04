@@ -135,4 +135,37 @@ public class MigrationPhaseIsolationTests : IAsyncLifetime
         result.PayLater.Migrated.Should().Be(1, "and so did the last one");
         result.IsSuccess.Should().BeFalse("a phase still failed, so nothing was written");
     }
+
+    [Fact]
+    public async Task MigrateAllAsync_WithMoreRowErrorsThanTheCap_BoundsTheStringsButNotTheCounts()
+    {
+        // Drives the cap through the real service. This run has NO phase failure -- it reaches the cap
+        // with ordinary per-row refusals, which is the cheapest way to exercise it. The cascade the cap
+        // exists for (a failed Products phase making every invoice line miss its lookup, up to 325,780
+        // near-identical strings on real data) is the same code path with a bigger multiplier.
+        await using var store = await LegacyStoreDatabase.CreateAsync(LegacyStoreShape.GeneralHardware);
+        var builder = new LegacyStoreDataBuilder(store);
+        await builder.AddPaymentTypeLookupAsync();
+        await builder.AddUserAsync(1, "cashier", "Somchai", "Jaidee", 1, "2024-03-15 09:00:00");
+        await builder.AddProductAsync(
+            productId: 10, barcode: "8850001000010", description: "Cement 50kg",
+            unitPrice: 1m, quantityInStock: 5, category: 50, isTrackable: true,
+            dateCreated: "2024-03-15 09:00:00");
+
+        // 150 invoices, each paid by a legacy type with no catalogue code, so each records one
+        // per-row error in the Invoices phase -- 150 > the cap of 100.
+        for (var i = 1; i <= 150; i++)
+        {
+            await builder.AddInvoiceAsync(i, userId: 1, total: 1m, dateCreated: "2024-03-15 14:30:00");
+            await builder.AddPaymentAsync(
+                paymentId: 500 + i, invoiceId: i, paymentTypeId: 6, amount: 1m,
+                dateCreated: "2024-03-15 14:30:00");
+        }
+
+        var result = await MigrationScenario.RunAsync(store, _postgres);
+
+        result.Payments.Failed.Should().Be(150, "the COUNT must stay exact");
+        result.Errors.Should().HaveCount(101, "100 strings plus one suppression note");
+        result.Errors.Last().Should().Be("Invoices: 50 further error(s) suppressed.");
+    }
 }
