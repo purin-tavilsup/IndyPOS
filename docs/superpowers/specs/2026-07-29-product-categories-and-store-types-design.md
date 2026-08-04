@@ -44,7 +44,7 @@ Three consequences:
 2. **Any global id→category mapping is wrong for at least one store.** Mapping `10 → GeneralGoods`
    is defensible for GeneralHardware and MimyMart, and meaningless for MimyShop where 10 is gifts.
    This is the same defect class as the payment-method mapping that mis-attributed ~15% of ฿21.2M
-   (see `6c63a6d`): an id treated as globally meaningful when it is only meaningful in context.
+   (see `af4ea14`): an id treated as globally meaningful when it is only meaningful in context.
 3. **A new category requires a redeploy**, exactly the problem Epic M solved for payment methods.
 
 There is also a third store type, **MimyShop**, which does not exist in `StoreType` yet, and

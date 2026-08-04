@@ -195,8 +195,11 @@ tests/
         └── SyncEndpointTests.cs
 ```
 
-The SQLite → PostgreSQL migration has **no test coverage** — `IndyPOS.Migration.Tests` was deleted
-because it tested a parallel implementation against a schema no real store has. See Epic 2 in
+The SQLite → PostgreSQL migration is covered by `tests/IndyPOS.MigrationTool.Tests`, which exercises
+the **shipped** migrator against schema artefacts dumped from real stores. (The old
+`IndyPOS.Migration.Tests` was deleted: it tested a parallel implementation against a schema no real
+store has.) Some of those tests are **pinning tests** that assert today's wrong behaviour on purpose
+and name their defect — when you fix one, invert exactly one pinning test. See Epic 2 in
 `.planning/indypos-overhaul/PLAN.md`.
 
 ### Test Frameworks Used
