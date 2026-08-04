@@ -91,8 +91,10 @@ public class ProductMigrationTests : IAsyncLifetime
         // cannot be reconciled against its SQLite source.
         // CORRECT: a legacy id preserved on all five entity types.
         // This test asserts the structural fact: StoreUser has the property and Product has no
-        // equivalent. It fails to compile-time-check Product, so it checks the recorded user id
-        // and documents the gap for the others.
+        // equivalent. Product's absence cannot be checked at compile time, so it is checked by
+        // reflection below -- which only flips if the eventual fix names the property exactly
+        // "LegacyProductId". A fix naming it LegacyId or SourceProductId leaves this pin green, so
+        // whoever fixes defect 8 must invert this pin deliberately rather than rely on it failing.
         await using var store = await LegacyStoreDatabase.CreateAsync(LegacyStoreShape.GeneralHardware);
         var builder = await SeedCashierAsync(store);
         await builder.AddProductAsync(
@@ -120,9 +122,14 @@ public class ProductMigrationTests : IAsyncLifetime
     [Fact]
     public async Task MigrateProducts_WithANumericPrice_PreservesTheValue()
     {
-        // Real money columns are NUMERIC and the migrator maps them to double before casting to
-        // decimal. If this test FAILS it is a NEW defect: record it, do not weaken the assertion
-        // to match the observed value.
+        // Covers that GroupPrice and GroupPriceQuantity are mapped AT ALL -- they are the two money
+        // columns nothing else asserts.
+        //
+        // It does NOT prove the NUMERIC -> double -> decimal hop is lossless: measured on .NET 10,
+        // (decimal)19.99d == 19.99m and (decimal)269.97d == 269.97m both hold exactly, so these
+        // values can never detect a precision loss. Pick a value that does not round-trip in binary
+        // floating point if you want to test that. If this test FAILS it is a NEW defect: record it,
+        // do not weaken the assertion to match the observed value.
         await using var store = await LegacyStoreDatabase.CreateAsync(LegacyStoreShape.GeneralHardware);
         var builder = await SeedCashierAsync(store);
         await builder.AddProductAsync(

@@ -112,8 +112,9 @@ public class InvoiceLineMigrationTests : IAsyncLifetime
     [Fact]
     public async Task MigrateInvoiceLines_WithADeletedProduct_CurrentlySkipsTheLine()
     {
-        // Real GeneralHardware has 1,980 invoice lines whose product no longer exists. The line is
-        // skipped with a warning, so an invoice's lines can silently sum to less than its total.
+        // Defect 13. Real GeneralHardware has 1,980 invoice lines whose product no longer exists.
+        // The line is skipped with a warning, so an invoice's lines can silently sum to less than
+        // its total.
         // CORRECT: the line is preserved -- ProductName is already a historical snapshot.
         await using var store = await LegacyStoreDatabase.CreateAsync(LegacyStoreShape.GeneralHardware);
         var builder = new LegacyStoreDataBuilder(store);
