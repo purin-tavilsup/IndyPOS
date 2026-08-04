@@ -30,8 +30,11 @@ public class PaymentMigrationTests : IAsyncLifetime
         var builder = new LegacyStoreDataBuilder(store);
         await builder.AddPaymentTypeLookupAsync();
         await builder.AddUserAsync(1, "cashier", "Somchai", "Jaidee", 1, "2024-03-15 09:00:00");
-        await builder.AddInvoiceAsync(1, userId: 1, total: 1146m, dateCreated: "2024-03-15 14:30:00");
+        await builder.AddInvoiceAsync(1, userId: 1, total: 1143m, dateCreated: "2024-03-15 14:30:00");
 
+        // Every amount MUST be distinct. The plan's original table gave PayLater and WeWin both 10,
+        // which left the guard blind to a 2<->8 swap -- a shift between the store's highest-value
+        // method (฿836k of credit) and a dead campaign. Verified: with both at 10 the swap passed.
         var expected = new (int LegacyId, string Code, decimal Amount)[]
         {
             (1, PaymentMethodCodes.Cash,          1m),
@@ -40,8 +43,11 @@ public class PaymentMigrationTests : IAsyncLifetime
             (4, PaymentMethodCodes.M33WeLove,     5m),
             (5, PaymentMethodCodes.MoneyTransfer, 1000m),
             (7, PaymentMethodCodes.FiftyFifty,   20m),
-            (8, PaymentMethodCodes.WeWin,        10m)
+            (8, PaymentMethodCodes.WeWin,         7m)
         };
+
+        expected.Select(e => e.Amount).Should().OnlyHaveUniqueItems(
+            "a repeated amount makes this guard blind to a shift between those two methods");
 
         var paymentId = 500;
         foreach (var (legacyId, _, amount) in expected)
