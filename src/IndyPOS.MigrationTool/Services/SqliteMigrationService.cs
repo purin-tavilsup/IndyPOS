@@ -45,12 +45,18 @@ public class SqliteMigrationService
         _logger.LogInformation("Starting migration from {SqlitePath} to PostgreSQL", _options.SqlitePath);
 
         // Order matters: Users → Products → Invoices (with lines/payments) → PayLater
-        await MigrateUsersAsync(sqliteConnection, context, ct);
-        await MigrateProductsAsync(sqliteConnection, context, ct);
-        await MigrateInvoicesAsync(sqliteConnection, context, ct);
-        await MigratePayLaterAsync(sqliteConnection, context, ct);
+        // Defect 12: each phase is isolated so ONE run reports every schema problem. Re-running
+        // against a real shop costs a visit with the till switched off.
+        await RunPhaseAsync("Users", () => MigrateUsersAsync(sqliteConnection, context, ct));
+        await RunPhaseAsync("Products", () => MigrateProductsAsync(sqliteConnection, context, ct));
+        await RunPhaseAsync("Invoices", () => MigrateInvoicesAsync(sqliteConnection, context, ct));
+        await RunPhaseAsync("PayLater", () => MigratePayLaterAsync(sqliteConnection, context, ct));
 
-        if (!_options.DryRun)
+        // Isolating the diagnosis must NOT isolate the transaction. If any phase failed the run is
+        // not trustworthy, so nothing is written -- the same outcome as before, reached deliberately
+        // instead of by an exception escaping past this line. A half-migrated store that reported
+        // success would be far worse than the crash this replaces.
+        if (!_options.DryRun && _result.PhaseFailures.Count == 0)
         {
             await context.SaveChangesAsync(ct);
         }
@@ -59,6 +65,33 @@ public class SqliteMigrationService
             _result.TotalMigrated, _result.Errors.Count);
 
         return _result;
+    }
+
+    /// <summary>
+    /// Runs one migration phase, turning a phase-level throw into a recorded failure so the remaining
+    /// phases still run and report their own state.
+    /// </summary>
+    /// <remarks>
+    /// Nothing is swallowed: a recorded failure makes <see cref="MigrationResult.IsSuccess"/> false,
+    /// which is the process exit code, prints an ABORTED banner, and suppresses the save.
+    /// </remarks>
+    private async Task RunPhaseAsync(string phase, Func<Task> migratePhase)
+    {
+        try
+        {
+            await migratePhase();
+        }
+        catch (OperationCanceledException)
+        {
+            // An operator cancelling is not a defect in the store's schema.
+            throw;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex,
+                "Migration phase {Phase} failed. Nothing will be persisted for this run.", phase);
+            _result.AddPhaseFailure(phase, ex.Message);
+        }
     }
 
     private async Task MigrateUsersAsync(SQLiteConnection sqlite, StoreHubDbContext context, CancellationToken ct)
