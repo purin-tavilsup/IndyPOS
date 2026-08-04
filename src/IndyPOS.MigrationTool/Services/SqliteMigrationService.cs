@@ -45,20 +45,67 @@ public class SqliteMigrationService
         _logger.LogInformation("Starting migration from {SqlitePath} to PostgreSQL", _options.SqlitePath);
 
         // Order matters: Users → Products → Invoices (with lines/payments) → PayLater
-        await MigrateUsersAsync(sqliteConnection, context, ct);
-        await MigrateProductsAsync(sqliteConnection, context, ct);
-        await MigrateInvoicesAsync(sqliteConnection, context, ct);
-        await MigratePayLaterAsync(sqliteConnection, context, ct);
+        // Defect 12: each phase is isolated so ONE run reports every schema problem. Re-running
+        // against a real shop costs a visit with the till switched off.
+        await RunPhaseAsync("Users", () => MigrateUsersAsync(sqliteConnection, context, ct));
+        await RunPhaseAsync("Products", () => MigrateProductsAsync(sqliteConnection, context, ct));
+        await RunPhaseAsync("Invoices", () => MigrateInvoicesAsync(sqliteConnection, context, ct));
+        await RunPhaseAsync("PayLater", () => MigratePayLaterAsync(sqliteConnection, context, ct));
 
-        if (!_options.DryRun)
+        // Isolating the diagnosis must NOT isolate the transaction. If any phase failed the run is
+        // not trustworthy, so nothing is written -- the same outcome as before, reached deliberately
+        // instead of by an exception escaping past this line. A half-migrated store that reported
+        // success would be far worse than the crash this replaces.
+        if (!_options.DryRun && _result.PhaseFailures.Count == 0)
         {
             await context.SaveChangesAsync(ct);
         }
 
-        _logger.LogInformation("Migration completed. Migrated: {Count}, Errors: {Errors}",
-            _result.TotalMigrated, _result.Errors.Count);
+        // The log is what gets read during a support call, so it must not say "completed" for a run
+        // that wrote nothing -- the same trap the console banner exists to avoid.
+        if (_result.PhaseFailures.Count > 0)
+        {
+            _logger.LogError(
+                "Migration ABORTED. Nothing was written. {PhaseCount} phase(s) failed: {Phases}. " +
+                "{Count} row(s) were processed in memory and discarded.",
+                _result.PhaseFailures.Count,
+                string.Join(", ", _result.PhaseFailures.Select(f => f.Phase)),
+                _result.TotalMigrated);
+        }
+        else
+        {
+            _logger.LogInformation("Migration completed. Migrated: {Count}, Errors: {Errors}",
+                _result.TotalMigrated, _result.Errors.Count);
+        }
 
         return _result;
+    }
+
+    /// <summary>
+    /// Runs one migration phase, turning a phase-level throw into a recorded failure so the remaining
+    /// phases still run and report their own state.
+    /// </summary>
+    /// <remarks>
+    /// Nothing is swallowed: a recorded failure makes <see cref="MigrationResult.IsSuccess"/> false,
+    /// which is the process exit code, prints an ABORTED banner, and suppresses the save.
+    /// </remarks>
+    private async Task RunPhaseAsync(string phase, Func<Task> migratePhase)
+    {
+        try
+        {
+            await migratePhase();
+        }
+        catch (OperationCanceledException)
+        {
+            // An operator cancelling is not a defect in the store's schema.
+            throw;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex,
+                "Migration phase {Phase} failed. Nothing will be persisted for this run.", phase);
+            _result.AddPhaseFailure(phase, ex.Message);
+        }
     }
 
     private async Task MigrateUsersAsync(SQLiteConnection sqlite, StoreHubDbContext context, CancellationToken ct)
@@ -124,7 +171,7 @@ public class SqliteMigrationService
             {
                 _logger.LogError(ex, "Failed to migrate user {UserId}", user.UserId);
                 _result.Users.Failed++;
-                _result.Errors.Add($"User {user.UserId}: {ex.Message}");
+                _result.AddError("Users", $"User {user.UserId}: {ex.Message}");
             }
         }
     }
@@ -202,7 +249,7 @@ public class SqliteMigrationService
             {
                 _logger.LogError(ex, "Failed to migrate product {Barcode}", product.Barcode);
                 _result.Products.Failed++;
-                _result.Errors.Add($"Product {product.Barcode}: {ex.Message}");
+                _result.AddError("Products", $"Product {product.Barcode}: {ex.Message}");
             }
         }
     }
@@ -298,7 +345,7 @@ public class SqliteMigrationService
                         // Refused, never guessed. The previous fallback wrote "Other", which
                         // is not a catalogue code, so the amount became unresolvable while
                         // the row counts still reconciled.
-                        _result.Errors.Add(
+                        _result.AddError("Invoices",
                             $"Invoice {invoice.InvoiceId} payment {payment.PaymentId}: legacy " +
                             $"PaymentTypeId {payment.PaymentTypeId} has no payment-method code. " +
                             $"Migrating it would misattribute {payment.Amount:N2}.");
@@ -335,7 +382,7 @@ public class SqliteMigrationService
             {
                 _logger.LogError(ex, "Failed to migrate invoice {InvoiceId}", invoice.InvoiceId);
                 _result.Invoices.Failed++;
-                _result.Errors.Add($"Invoice {invoice.InvoiceId}: {ex.Message}");
+                _result.AddError("Invoices", $"Invoice {invoice.InvoiceId}: {ex.Message}");
             }
         }
     }
@@ -387,7 +434,7 @@ public class SqliteMigrationService
                 // -- THB 836,013 across the 5,181 real rows.
                 if (!_result.PaymentIdMap.TryGetValue((int)payLater.PaymentId, out var paymentId))
                 {
-                    _result.Errors.Add(
+                    _result.AddError("PayLater",
                         $"PayLater {payLater.PaymentId}: no migrated payment for legacy PaymentId " +
                         $"{payLater.PaymentId}, so the debt of {payLater.PayLaterAmount:N2} cannot be " +
                         $"attached. Refusing rather than inventing a payment.");
@@ -422,7 +469,7 @@ public class SqliteMigrationService
             {
                 _logger.LogError(ex, "Failed to migrate PayLater {PaymentId}", payLater.PaymentId);
                 _result.PayLater.Failed++;
-                _result.Errors.Add($"PayLater {payLater.PaymentId}: {ex.Message}");
+                _result.AddError("PayLater", $"PayLater {payLater.PaymentId}: {ex.Message}");
             }
         }
     }

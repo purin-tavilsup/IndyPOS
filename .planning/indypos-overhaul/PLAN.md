@@ -17,7 +17,7 @@ history intact — not cloud infrastructure.
 | # | Epic | Status | Why this order |
 |---|------|--------|----------------|
 | 1 | **Product categories + MimyShop** | ✅ **SHIPPED 2026-07-31 (PR #55)** | The migration needs a category model to map into. Blocked 2 |
-| 2 | **SQLite → PostgreSQL migration hardening** | 🚧 **IN PROGRESS** — test harness landed; defects 2, 3, 10 fixed, 4/5/6/7/8/11 pinned, 9 open | 3 divergent legacy schemas. The risky half of the rollout |
+| 2 | **SQLite → PostgreSQL migration hardening** | 🚧 **IN PROGRESS** — test harness landed; defects 2, 3, 10, 12 fixed; 4/5/6/7/8/11/13 pinned; 9 open | 3 divergent legacy schemas. The risky half of the rollout |
 | 3 | **Store rollout** (fresh v4 install + migrate, per store) | ⏳ Blocked by 2 | Where the business value lands: stores off a 3.7.0-era system |
 | 4 | **Epic I: Cloud infrastructure** | 🔴 Not started | Additive. No longer on the critical path — see "Legacy history" below |
 | 5 | **Epic MCP: agent-facing API** | 🔴 Not started | Depends on 4 |
@@ -152,7 +152,7 @@ Legacy payment id 6 `ผ่อนชำระ` is dead with them.
 | 9 | `LegacyIdHelper` is dead code that maps the same legacy id to the same Guid **in every store** | Latent cross-store collision once Epic I syncs three shops into one cloud. Delete it | ❌ **new** — not pinned (dead code; deletion, not behaviour) |
 | 10 | `MigratePayLaterAsync` **creates a second `Payment`** for money `MigrateInvoicesAsync` has already migrated. `PayLater.PaymentId` is an FK to `Payment.PaymentId` — 5,181/5,181 match, all `PaymentTypeId=2` | **฿836,013 double-counted.** Unreachable today because defect 2 crashes first, so fixing 2 alone turns a loud crash into silent revenue inflation | ✅ Fixed `cf61005` |
 | 11 | `ParseDate` calls bare `DateTime.TryParse` with **no `CultureInfo`**, and the tool runs on the store's Thai-locale till | Under `th-TH` the Buddhist calendar reads `2024` as a BE year → **1481 AD, 543 years off**. Every invoice falls outside every date-range report, so a migrated store shows **zero** sales history | ❌ **new 2026-08-03** — **pinned** `c1a3ac8` |
-| 12 | **A phase-level throw still discards the whole run.** The `sqlite_master` probe and the `PayLater` SELECT sit *outside* any `try`, `MigrateAllAsync` does not wrap its four phase calls, and `SaveChangesAsync` runs after the last phase | Defects 2 and 3 were fixed at the symptom (right columns, a table probe) but **the amplifier remains**: the next column-level drift — a store whose `PayLater` lacks `PaidAmount`, say — again throws before any save, so an entire migration is discarded instead of one phase failing | ❌ **new 2026-08-04** — not pinned; needs its own fix spec |
+| 12 | **A phase-level throw still discards the whole run.** The `sqlite_master` probe and the `PayLater` SELECT sit *outside* any `try`, `MigrateAllAsync` does not wrap its four phase calls, and `SaveChangesAsync` runs after the last phase | Defects 2 and 3 were fixed at the symptom (right columns, a table probe) but **the amplifier remains**: the next column-level drift — a store whose `PayLater` lacks `PaidAmount`, say — again throws before any save, so an entire migration is discarded instead of one phase failing | ✅ Fixed `b28cb08` |
 | 13 | **An invoice line whose product no longer exists is silently dropped.** `MigrateInvoicesAsync` `continue`s when `ProductIdMap` has no entry for the line's `InventoryProductId` | **1,980 real GeneralHardware lines** reference a deleted product, so those invoices migrate with fewer lines than they had — an invoice's lines can sum to less than its own `TotalAmount`, with only a log warning. `ProductName` is already a historical snapshot on `InvoiceLine`, so the line could be preserved without the product | ❌ **new 2026-08-04** — **pinned** `3c73f11` (`MigrateInvoiceLines_WithADeletedProduct_CurrentlySkipsTheLine`) |
 
 > **"Pinned" means there is an executable test asserting today's WRONG behaviour**, naming the defect
@@ -168,6 +168,13 @@ Legacy payment id 6 `ผ่อนชำระ` is dead with them.
 > alone would have converted a loud crash into silent revenue inflation. A test now runs the shipped
 > migrator to completion against both real store shapes and asserts rows are persisted.
 > The analysis below stands as the record of why count-based verification never caught any of it.
+>
+> **The structural cause was fixed separately, as defect 12 (`b28cb08`).** Those two fixes corrected
+> the *symptom* — the wrong column names and the missing table probe. What made a single wrong column
+> name mean "no store can migrate at all" was the paragraph below: a phase-level throw escaping past
+> `SaveChangesAsync`. Each phase is now isolated, so one run reports every schema problem, while the
+> save stays gated on there being no phase failure — atomicity preserved deliberately rather than by
+> an escaping exception.
 >
 > The `PayLater` SELECT run against each real `Store.db`:
 >
@@ -443,12 +450,12 @@ Stubs returning empty collections; address during MAUI migration:
 | IndyPOS.Bootstrapper.Tests | 223 pass / 8 skip (admin-required) |
 | IndyPOS.Application.Tests | 294 |
 | IndyPOS.StoreHub.IntegrationTests | 94 (real PostgreSQL; 87 need Docker) |
-| IndyPOS.MigrationTool.Tests | 74 pass / 1 skip (75) — 31 need Docker, 24 need the gitignored real store `.db` files, 19 pure units, 1 manual extractor. **55 discovered** without those `.db` files, still all green |
+| IndyPOS.MigrationTool.Tests | 85 pass / 1 skip (86) — 36 need Docker, 24 need the gitignored real store `.db` files, 25 pure units, 1 manual extractor. **66 discovered** without those `.db` files, still all green |
 | ~~IndyPOS.Migration.Tests~~ | **deleted 2026-08-03** — validated a schema no store has |
 | IndyPOS.Domain.Tests | 36 |
 | IndyPOS.Windows.Forms.Tests | 19 |
 | IndyPOS.Vault.Tests | 17 |
-| Solution total | **535** (534 pass / 1 skip) with Docker running and real store `.db` files present; **515** without them |
+| Solution total | **546** (545 pass / 1 skip) with Docker running and real store `.db` files present; **526** without them |
 | Release build | 0 errors |
 
 ---
