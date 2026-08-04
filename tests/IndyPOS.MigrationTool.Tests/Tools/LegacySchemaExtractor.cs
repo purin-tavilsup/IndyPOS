@@ -31,14 +31,11 @@ public enum LegacyStoreShape
 /// </summary>
 public class LegacySchemaExtractor
 {
-    private static string RepoRoot =>
-        Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", ".."));
-
-    private static string SourceDb(LegacyStoreShape shape) => Path.Combine(
-        RepoRoot, ".planning", "indypos-overhaul", "sqlite_database", shape.ToString(), "Store.db");
+    private static string SourceDb(LegacyStoreShape shape) => RealStoreDatabases.PathFor(shape);
 
     private static string ArtefactPath(LegacyStoreShape shape) => Path.Combine(
-        RepoRoot, "tests", "IndyPOS.MigrationTool.Tests", "LegacySchema", $"{shape}.sql");
+        RealStoreDatabases.RepoRoot, "tests", "IndyPOS.MigrationTool.Tests",
+        "LegacySchema", $"{shape}.sql");
 
     [Fact(Skip = "Manual tool. Run explicitly to regenerate LegacySchema/*.sql from a real Store.db.")]
     public async Task ExtractLegacySchema()
