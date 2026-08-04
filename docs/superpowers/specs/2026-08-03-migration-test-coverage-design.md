@@ -289,9 +289,15 @@ no real `.db` present, and a schema change surfaces as a diff on a tracked file.
 The extraction tool is committed so the provenance of the schema is reproducible rather than
 folklore. That is the whole point: **hand-writing the schema is what produced one no store has.**
 
-> **Amended 2026-08-04 — the extractor shipped as a skipped xUnit test, not a `.ps1`.**
-> It is `[Fact(Skip = "Manual tool…")]` on `Tools/LegacySchemaExtractor`, run explicitly with
+> **Amended 2026-08-04 — the extractor shipped as an environment-gated xUnit test, not a `.ps1`.**
+> It is `[ManualToolFact(...)]` on `Tools/LegacySchemaExtractor`, run with
+> `INDYPOS_REGENERATE_LEGACY_SCHEMA=1` plus
 > `dotnet test tests/IndyPOS.MigrationTool.Tests --filter "ExtractLegacySchema"`.
+>
+> It was first written as `[Fact(Skip = "Manual tool…")]`, which **did not work**: in xUnit v2 a
+> static `Skip` is applied at discovery and `--filter` only *selects* tests, so the documented
+> command reported `Skipped: 1` and wrote nothing — failing silently at the one job this component
+> exists to do. Caught in review; the gate is now an environment variable read at discovery.
 >
 > Why: as a test it reuses the suite's own `System.Data.SQLite` dependency and its `LegacyStoreShape`
 > enum, so the artefact path and the shape list cannot drift from what the tests consume. A `.ps1`

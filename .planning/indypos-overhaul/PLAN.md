@@ -141,7 +141,7 @@ Legacy payment id 6 `ผ่อนชำระ` is dead with them.
 
 | # | Defect | Impact | Status |
 |---|--------|--------|--------|
-| 1 | Payment mapping **shifted**: PayLater→`"Card"`, WelfareCard→`"Transfer"`, MoneyTransfer→`"WelfareCard"`, campaigns→`"Other"` | ~15% of ฿21.2M attributed to the wrong method; ฿836k of PayLater credit invisible | ✅ Fixed `6c63a6d` |
+| 1 | Payment mapping **shifted**: PayLater→`"Card"`, WelfareCard→`"Transfer"`, MoneyTransfer→`"WelfareCard"`, campaigns→`"Other"` | ~15% of ฿21.2M attributed to the wrong method; ฿836k of PayLater credit invisible | ✅ Fixed `af4ea14` |
 | 2 | `MigratePayLaterAsync` selects `PayLaterId, UserId, CustomerName, PaymentAmount` — **none exist** (real: `PaymentId, Description, PayLaterAmount, PaidAmount`) | Throws; aborts the whole migration. 5,181 rows / ฿836k | ✅ Fixed `926a245` |
 | 3 | Same method queries `FROM PayLater` **unconditionally** | Throws "no such table" on MimyMart and MimyShop | ✅ Fixed `926a245` |
 | 4 | `ParseDate` does `SpecifyKind(..., Utc)` on `datetime('now','localtime')` values | **Every timestamp 7h off**; corrupts all daily/monthly totals | ❌ — **pinned** `c1a3ac8` |
@@ -153,6 +153,7 @@ Legacy payment id 6 `ผ่อนชำระ` is dead with them.
 | 10 | `MigratePayLaterAsync` **creates a second `Payment`** for money `MigrateInvoicesAsync` has already migrated. `PayLater.PaymentId` is an FK to `Payment.PaymentId` — 5,181/5,181 match, all `PaymentTypeId=2` | **฿836,013 double-counted.** Unreachable today because defect 2 crashes first, so fixing 2 alone turns a loud crash into silent revenue inflation | ✅ Fixed `cf61005` |
 | 11 | `ParseDate` calls bare `DateTime.TryParse` with **no `CultureInfo`**, and the tool runs on the store's Thai-locale till | Under `th-TH` the Buddhist calendar reads `2024` as a BE year → **1481 AD, 543 years off**. Every invoice falls outside every date-range report, so a migrated store shows **zero** sales history | ❌ **new 2026-08-03** — **pinned** `c1a3ac8` |
 | 12 | **A phase-level throw still discards the whole run.** The `sqlite_master` probe and the `PayLater` SELECT sit *outside* any `try`, `MigrateAllAsync` does not wrap its four phase calls, and `SaveChangesAsync` runs after the last phase | Defects 2 and 3 were fixed at the symptom (right columns, a table probe) but **the amplifier remains**: the next column-level drift — a store whose `PayLater` lacks `PaidAmount`, say — again throws before any save, so an entire migration is discarded instead of one phase failing | ❌ **new 2026-08-04** — not pinned; needs its own fix spec |
+| 13 | **An invoice line whose product no longer exists is silently dropped.** `MigrateInvoicesAsync` `continue`s when `ProductIdMap` has no entry for the line's `InventoryProductId` | **1,980 real GeneralHardware lines** reference a deleted product, so those invoices migrate with fewer lines than they had — an invoice's lines can sum to less than its own `TotalAmount`, with only a log warning. `ProductName` is already a historical snapshot on `InvoiceLine`, so the line could be preserved without the product | ❌ **new 2026-08-04** — **pinned** `3c73f11` (`MigrateInvoiceLines_WithADeletedProduct_CurrentlySkipsTheLine`) |
 
 > **"Pinned" means there is an executable test asserting today's WRONG behaviour**, naming the defect
 > and recording the correct answer in its message. Each was verified able to fail. When you fix one,
@@ -188,7 +189,11 @@ Legacy payment id 6 `ผ่อนชำระ` is dead with them.
 > Also measured: `PaidAmount` is a real maintained column that the code **derives away** from
 > `IsCompleted` (line 387), destroying the 2 genuinely part-paid rows of 5,181 (e.g. ฿700 owed, ฿299
 > paid); and `Payment` has **5,182** type-2 rows against 5,181 PayLater rows (฿836,083 vs ฿836,013),
-> so the relationship is **not 1:1** — one ฿70 orphan exists and no fix may assume otherwise.
+> so the relationship is **not 1:1 in the Payment→PayLater direction** — one ฿70 orphan exists and no
+> fix may assume otherwise. The **PayLater→Payment** direction *is* total: all 5,181 PayLater rows
+> resolve to an existing type-2 `Payment`, zero orphans, which is what defect 10's fix relies on and
+> what `RealStore_PayLaterShouldExtendPayment_OneToOne` pins. Both statements are true; mind the
+> direction.
 
 **Defect 7 reframed (2026-07-31).** It is not merely "legacy has a field we omitted" — the legacy
 sale path **already filters on `IsTrackable` before touching stock, in production**
@@ -245,7 +250,7 @@ so defect 2 is a rename, not a redesign.
 ### Why none of it was caught
 
 - `MigrationVerifier` compared only row **counts** and `SUM(Invoice.Total)` — both reconcile
-  perfectly under a scrambled mapping. Now compares count *and* amount **per method** (`6c63a6d`).
+  perfectly under a scrambled mapping. Now compares count *and* amount **per method** (`af4ea14`).
 - **No test anywhere creates a `Payment` table** — see the audit below.
 - The real-DB tests skip silently when the `.db` files are absent — including in CI.
 
@@ -266,7 +271,7 @@ The decisive evidence is structural, not textual: **`IndyPOS.Migration.Tests.csp
 `SqliteMigrationService` inside it returns nothing. So every one of the 9 defects could be fixed or
 reintroduced in the real tool without moving a single test here.
 
-The test copy also still carries the **pre-`6c63a6d` scrambled payment map** (`2=>"Card"`,
+The test copy also still carries the **pre-`af4ea14` scrambled payment map** (`2=>"Card"`,
 `3=>"Transfer"`, `4=>"PayLater"`, `5=>"WelfareCard"`, `_=>"Other"`), its own
 `SpecifyKind(..., Utc)` date bug, and its own `Category?.ToString()` — i.e. it is a frozen copy of
 the bugs Epic 2 exists to fix.
@@ -438,12 +443,12 @@ Stubs returning empty collections; address during MAUI migration:
 | IndyPOS.Bootstrapper.Tests | 223 pass / 8 skip (admin-required) |
 | IndyPOS.Application.Tests | 294 |
 | IndyPOS.StoreHub.IntegrationTests | 94 (real PostgreSQL; 87 need Docker) |
-| IndyPOS.MigrationTool.Tests | 76 pass / 1 skip — 31 need Docker, 24 need the gitignored real store `.db` files, 21 pure units |
+| IndyPOS.MigrationTool.Tests | 74 pass / 1 skip (75) — 31 need Docker, 24 need the gitignored real store `.db` files, 19 pure units, 1 manual extractor. **55 discovered** without those `.db` files, still all green |
 | ~~IndyPOS.Migration.Tests~~ | **deleted 2026-08-03** — validated a schema no store has |
 | IndyPOS.Domain.Tests | 36 |
 | IndyPOS.Windows.Forms.Tests | 19 |
 | IndyPOS.Vault.Tests | 17 |
-| Solution total | **537** (536 pass / 1 skip) with Docker running |
+| Solution total | **535** (534 pass / 1 skip) with Docker running and real store `.db` files present; **515** without them |
 | Release build | 0 errors |
 
 ---
