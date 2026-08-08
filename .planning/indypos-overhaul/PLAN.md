@@ -17,7 +17,7 @@ history intact — not cloud infrastructure.
 | # | Epic | Status | Why this order |
 |---|------|--------|----------------|
 | 1 | **Product categories + MimyShop** | ✅ **SHIPPED 2026-07-31 (PR #55)** | The migration needs a category model to map into. Blocked 2 |
-| 2 | **SQLite → PostgreSQL migration hardening** | 🚧 **IN PROGRESS** — test harness landed; defects 2, 3, 10, 12 fixed; 4/5/6/7/8/11/13 pinned; 9 open | 3 divergent legacy schemas. The risky half of the rollout |
+| 2 | **SQLite → PostgreSQL migration hardening** | 🚧 **IN PROGRESS** — test harness landed; defects 2, 3, 4, 10, 11, 12 fixed; 5/6/7/8/13 pinned; 9 open | 3 divergent legacy schemas. The risky half of the rollout |
 | 3 | **Store rollout** (fresh v4 install + migrate, per store) | ⏳ Blocked by 2 | Where the business value lands: stores off a 3.7.0-era system |
 | 4 | **Epic I: Cloud infrastructure** | 🔴 Not started | Additive. No longer on the critical path — see "Legacy history" below |
 | 5 | **Epic MCP: agent-facing API** | 🔴 Not started | Depends on 4 |
@@ -144,14 +144,14 @@ Legacy payment id 6 `ผ่อนชำระ` is dead with them.
 | 1 | Payment mapping **shifted**: PayLater→`"Card"`, WelfareCard→`"Transfer"`, MoneyTransfer→`"WelfareCard"`, campaigns→`"Other"` | ~15% of ฿21.2M attributed to the wrong method; ฿836k of PayLater credit invisible | ✅ Fixed `af4ea14` |
 | 2 | `MigratePayLaterAsync` selects `PayLaterId, UserId, CustomerName, PaymentAmount` — **none exist** (real: `PaymentId, Description, PayLaterAmount, PaidAmount`) | Throws; aborts the whole migration. 5,181 rows / ฿836k | ✅ Fixed `926a245` |
 | 3 | Same method queries `FROM PayLater` **unconditionally** | Throws "no such table" on MimyMart and MimyShop | ✅ Fixed `926a245` |
-| 4 | `ParseDate` does `SpecifyKind(..., Utc)` on `datetime('now','localtime')` values | **Every timestamp 7h off**; corrupts all daily/monthly totals | ❌ — **pinned** `c1a3ac8` |
+| 4 | `ParseDate` does `SpecifyKind(..., Utc)` on `datetime('now','localtime')` values | **Every timestamp 7h off**; corrupts all daily/monthly totals | ✅ Fixed `28fef5f` |
 | 5 | `Category = product.Category?.ToString()` writes the raw numeric id | All products uncategorised; breaks the Hardware gate and pickers | ❌ (needs Epic 1) — **pinned** `3ae92f1` |
 | 6 | `InvoiceProduct` selects 7 of 17 columns, dropping `OriginalUnitPrice`, `GroupPrice`, `IsGroupProduct`, `Note`, `Priority` | **165,690 of 325,780 line items (51%)** were discounted; the record is lost | ❌ — **pinned** `3c73f11` |
 | 7 | v4 `Core.Product` has no `IsTrackable`; legacy does (21/7/1 non-trackable products) | Services would be stock-tracked and inventory-deducted | ❌ **priority raised** — **pinned** `3ae92f1` |
 | 8 | **Legacy ids are not preserved** on products, invoices, invoice lines or payments (only `StoreUser.LegacyUserId` is) | The migration cannot be re-run idempotently, and a v4 row cannot be reconciled against its SQLite source | ❌ **new** — **pinned** `3ae92f1` |
 | 9 | `LegacyIdHelper` is dead code that maps the same legacy id to the same Guid **in every store** | Latent cross-store collision once Epic I syncs three shops into one cloud. Delete it | ❌ **new** — not pinned (dead code; deletion, not behaviour) |
 | 10 | `MigratePayLaterAsync` **creates a second `Payment`** for money `MigrateInvoicesAsync` has already migrated. `PayLater.PaymentId` is an FK to `Payment.PaymentId` — 5,181/5,181 match, all `PaymentTypeId=2` | **฿836,013 double-counted.** Unreachable today because defect 2 crashes first, so fixing 2 alone turns a loud crash into silent revenue inflation | ✅ Fixed `cf61005` |
-| 11 | `ParseDate` calls bare `DateTime.TryParse` with **no `CultureInfo`**, and the tool runs on the store's Thai-locale till | Under `th-TH` the Buddhist calendar reads `2024` as a BE year → **1481 AD, 543 years off**. Every invoice falls outside every date-range report, so a migrated store shows **zero** sales history | ❌ **new 2026-08-03** — **pinned** `c1a3ac8` |
+| 11 | `ParseDate` calls bare `DateTime.TryParse` with **no `CultureInfo`**, and the tool runs on the store's Thai-locale till | Under `th-TH` the Buddhist calendar reads `2024` as a BE year → **1481 AD, 543 years off**. Every invoice falls outside every date-range report, so a migrated store shows **zero** sales history | ✅ Fixed `28fef5f` |
 | 12 | **A phase-level throw still discards the whole run.** The `sqlite_master` probe and the `PayLater` SELECT sit *outside* any `try`, `MigrateAllAsync` does not wrap its four phase calls, and `SaveChangesAsync` runs after the last phase | Defects 2 and 3 were fixed at the symptom (right columns, a table probe) but **the amplifier remains**: the next column-level drift — a store whose `PayLater` lacks `PaidAmount`, say — again throws before any save, so an entire migration is discarded instead of one phase failing | ✅ Fixed `b28cb08` |
 | 13 | **An invoice line whose product no longer exists is silently dropped.** `MigrateInvoicesAsync` `continue`s when `ProductIdMap` has no entry for the line's `InventoryProductId` | **1,980 real GeneralHardware lines** reference a deleted product, so those invoices migrate with fewer lines than they had — an invoice's lines can sum to less than its own `TotalAmount`, with only a log warning. `ProductName` is already a historical snapshot on `InvoiceLine`, so the line could be preserved without the product | ❌ **new 2026-08-04** — **pinned** `3c73f11` (`MigrateInvoiceLines_WithADeletedProduct_CurrentlySkipsTheLine`) |
 
@@ -159,8 +159,17 @@ Legacy payment id 6 `ผ่อนชำระ` is dead with them.
 > and recording the correct answer in its message. Each was verified able to fail. When you fix one,
 > invert exactly one pinning test — see `tests/IndyPOS.MigrationTool.Tests`.
 >
-> Defects 4 and 11 share the same six-line `ParseDate`, but their pins are independent: fixing the
-> culture flips only 11's pin, and fixing the offset flips only 4's. Verified both ways.
+> Defects 4 and 11 shared the same six-line `ParseDate`, but their pins were independent: fixing the
+> culture flipped only 11's pin, and fixing the offset flipped only 4's. Verified both ways, and
+> confirmed again at the moment of the fix — with both pins inverted and the old code still in place,
+> defect 4's test reported `14:30` vs `07:30` while defect 11's reported `1481-03-15 14:30` vs
+> `2024-03-15 07:30`. Both are now ✅ (`28fef5f`); the two tests survive as ordinary assertions.
+>
+> **Why `InvariantCulture` is safe on real data.** Measured before choosing it: all **493,845**
+> timestamps across `Invoice`, `Payment`, `InventoryProduct`, `User` and `PayLater` in all three
+> stores use exactly one shape, `YYYY-MM-DD HH:MM:SS`, with Gregorian years 2021-2026 and zero
+> Buddhist-era values. The legacy write path is SQLite's `datetime()`, never .NET `ToString()`, so no
+> real row can fail to parse and fall back to `DateTime.UtcNow`.
 
 > ### ✅ RESOLVED 2026-08-04 — kept for the reasoning. Was: the migration could not complete against ANY real store (measured 2026-08-03)
 >
