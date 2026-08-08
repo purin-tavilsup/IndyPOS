@@ -30,7 +30,8 @@ Remove all SQLite dependencies from the main IndyPOS application. WinForms will 
 ### Key Decisions
 - **MigrationTool**: KEEP (stores still migrating)
 - **Legacy Nokpirab handlers**: DELETE (dead code, WinForms uses StoreHub services)
-- **LegacyIdHelper**: KEEP (still needed for int→Guid conversions)
+- **LegacyIdHelper**: ~~KEEP~~ **DELETED** — this line was wrong. It had zero callers; the migrator
+  assigns `Guid.NewGuid()` and keeps its own in-memory `ProductIdMap`. Removed as defect 9
 
 ---
 
