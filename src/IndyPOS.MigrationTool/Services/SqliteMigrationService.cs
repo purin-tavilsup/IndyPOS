@@ -18,6 +18,13 @@ public class SqliteMigrationService
     private readonly ILogger<SqliteMigrationService> _logger;
     private MigrationResult _result = new();
 
+    /// <summary>
+    /// Barcode -> migrated product id. A barcode identifies the physical article, so this is what
+    /// lets an invoice line whose legacy product was deleted find the product the shopkeeper
+    /// re-added in its place. See <see cref="ResolveLineProductId"/>.
+    /// </summary>
+    private readonly Dictionary<string, Guid> _productIdByBarcode = new();
+
     public SqliteMigrationService(MigrationOptions options, ILogger<SqliteMigrationService> logger)
     {
         _options = options;
@@ -27,6 +34,7 @@ public class SqliteMigrationService
     public async Task<MigrationResult> MigrateAllAsync(CancellationToken ct = default)
     {
         _result = new MigrationResult();
+        _productIdByBarcode.Clear();
 
         await using var sqliteConnection = new SQLiteConnection($"Data Source={_options.SqlitePath};Version=3;");
         await sqliteConnection.OpenAsync(ct);
@@ -201,6 +209,7 @@ public class SqliteMigrationService
                     _logger.LogDebug("Product {Barcode} already exists", product.Barcode);
                     _result.Products.Skipped++;
                     _result.ProductIdMap[(int)product.InventoryProductId] = existing.Id;
+                    _productIdByBarcode[existing.Barcode] = existing.Id;
                     continue;
                 }
 
@@ -244,6 +253,7 @@ public class SqliteMigrationService
 
                 _result.Products.Migrated++;
                 _result.ProductIdMap[(int)product.InventoryProductId] = newProduct.Id;
+                _productIdByBarcode[newProduct.Barcode] = newProduct.Id;
                 _logger.LogDebug("Migrated product: {Barcode}", product.Barcode);
             }
             catch (Exception ex)
@@ -307,11 +317,7 @@ public class SqliteMigrationService
 
                     foreach (var line in lines)
                     {
-                        if (!_result.ProductIdMap.TryGetValue((int)line.InventoryProductId, out var productId))
-                        {
-                            _logger.LogWarning("Product {ProductId} not found for invoice line", line.InventoryProductId);
-                            continue;
-                        }
+                        var productId = ResolveLineProductId(line, context, createdUtc);
 
                         context.InvoiceLines.Add(new InvoiceLine
                         {
@@ -571,6 +577,55 @@ public class SqliteMigrationService
             .ToListAsync(ct);
 
         return new BulkMigrationRequest(_options.StoreId, users, products, invoices);
+    }
+
+    /// <summary>
+    /// Resolves the product a historical invoice line belongs to, in three tiers: the legacy id,
+    /// then the barcode of a product still in the catalogue, then a synthesised inactive
+    /// placeholder. It never fails to resolve — dropping the line is what defect 13 was, and it let
+    /// an invoice's lines sum to less than the invoice's own total.
+    /// </summary>
+    private Guid ResolveLineProductId(LegacyInvoiceLine line, StoreHubDbContext context, DateTime createdUtc)
+    {
+        if (_result.ProductIdMap.TryGetValue((int)line.InventoryProductId, out var byLegacyId))
+            return byLegacyId;
+
+        var barcode = Truncate(line.Barcode ?? string.Empty, 50);
+
+        // The product was deleted and re-added under a new legacy id. Same barcode means the same
+        // physical article, so the line belongs with it — and one article keeps one sales history.
+        if (_productIdByBarcode.TryGetValue(barcode, out var byBarcode))
+        {
+            _logger.LogDebug(
+                "Invoice line for deleted product {LegacyProductId} relinked by barcode {Barcode}",
+                line.InventoryProductId, barcode);
+            return byBarcode;
+        }
+
+        var placeholder = new Product
+        {
+            Id = Guid.NewGuid(),
+            StoreId = _options.StoreId,
+            Barcode = barcode,
+            Name = Truncate(line.Description, 50),
+            Description = Truncate(line.Description, 200),
+            UnitPrice = (decimal)line.UnitPrice,
+            IsActive = false,
+            CreatedUtc = createdUtc,
+            LastModifiedUtc = createdUtc
+        };
+
+        context.Products.Add(placeholder);
+
+        // Registering the barcode makes every later line for this article reuse the one placeholder,
+        // which is also what keeps it from colliding on the (StoreId, Barcode) unique index.
+        _productIdByBarcode[barcode] = placeholder.Id;
+
+        _logger.LogInformation(
+            "Deleted product {LegacyProductId} ({Barcode}) restored as an inactive placeholder so its invoice lines survive",
+            line.InventoryProductId, barcode);
+
+        return placeholder.Id;
     }
 
     /// <summary>
