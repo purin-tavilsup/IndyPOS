@@ -6,9 +6,8 @@ using Microsoft.EntityFrameworkCore;
 namespace IndyPOS.MigrationTool.Tests;
 
 /// <summary>
-/// PINNING TESTS. These assert what the migrator does TODAY, including its defects, so the suite
-/// stays green and meaningful while the fixes land in their own specs. Each names its defect and
-/// records the correct answer. When a defect is fixed, invert exactly one test here.
+/// Defects 4 and 11 are FIXED; both tests below were pins that have now been inverted. They assert
+/// the correct answer: a legacy timestamp is Thai local time, and it must parse under any culture.
 /// </summary>
 [Collection("Postgres")]
 public class MigrationDateTests : IAsyncLifetime
@@ -35,13 +34,15 @@ public class MigrationDateTests : IAsyncLifetime
             dateCreated: ThaiLocalTimestamp);
     }
 
+    /// <summary>The same instant expressed as UTC. Thailand is UTC+7 with no DST, ever.</summary>
+    private static readonly DateTime ExpectedUtc = new(2024, 3, 15, 7, 30, 0, DateTimeKind.Utc);
+
     [Fact]
-    public async Task MigrateInvoices_DateCreated_CurrentlyRelabelsThaiLocalAsUtc_Defect4()
+    public async Task MigrateInvoices_DateCreated_ConvertsThaiLocalToUtc_Defect4()
     {
-        // Defect 4: ParseDate does SpecifyKind(..., Utc) on a value written by
-        // datetime('now','localtime'), so a 14:30 Bangkok sale becomes 14:30 UTC.
-        // CORRECT: 2024-03-15T07:30:00Z (Thailand is UTC+7).
-        // Across 139,680 real invoices every timestamp is 7 hours out, which silently corrupts
+        // Defect 4 (FIXED): ParseDate used to SpecifyKind(..., Utc) on a value written by
+        // datetime('now','localtime'), so a 14:30 Bangkok sale became 14:30 UTC.
+        // Across 139,680 real invoices every timestamp was 7 hours out, which silently corrupted
         // every daily and monthly total while reconciling perfectly under any count-based check.
         var original = CultureInfo.CurrentCulture;
         CultureInfo.CurrentCulture = CultureInfo.InvariantCulture;
@@ -55,9 +56,7 @@ public class MigrationDateTests : IAsyncLifetime
             await using var db = _postgres.CreateDbContext();
             var invoice = await db.Invoices.SingleAsync();
 
-            invoice.CreatedUtc.Should().Be(new DateTime(2024, 3, 15, 14, 30, 0, DateTimeKind.Utc));
-            invoice.CreatedUtc.Should().NotBe(new DateTime(2024, 3, 15, 7, 30, 0, DateTimeKind.Utc),
-                "this is the correct answer and defect 4 does not yet produce it");
+            invoice.CreatedUtc.Should().Be(ExpectedUtc);
         }
         finally
         {
@@ -66,14 +65,14 @@ public class MigrationDateTests : IAsyncLifetime
     }
 
     [Fact]
-    public async Task MigrateInvoices_UnderThaiCulture_CurrentlyLandsIn1481_Defect11()
+    public async Task MigrateInvoices_UnderThaiCulture_ParsesTheGregorianYear_Defect11()
     {
-        // Defect 11: ParseDate calls bare DateTime.TryParse with NO CultureInfo, and the migration
-        // tool runs on the store's own Thai-locale till. Under th-TH the Buddhist calendar reads
-        // 2024 as a Buddhist-era year, giving 1481 AD -- 543 years off.
-        // CORRECT: year 2024, by parsing with CultureInfo.InvariantCulture.
-        // Every invoice then falls outside every date-range report, so a migrated store shows ZERO
-        // sales history. Same six-line method as defect 4.
+        // Defect 11 (FIXED): ParseDate called bare DateTime.TryParse with NO CultureInfo, and the
+        // migration tool runs on the store's own Thai-locale till. Under th-TH the Buddhist calendar
+        // read 2024 as a Buddhist-era year, giving 1481 AD -- 543 years off. Every invoice then fell
+        // outside every date-range report, so a migrated store showed ZERO sales history.
+        // Same expected value as defect 4's test: the ONLY difference is the ambient culture, which
+        // is exactly what must stop mattering.
         var original = CultureInfo.CurrentCulture;
         CultureInfo.CurrentCulture = CultureInfo.GetCultureInfo("th-TH");
         try
@@ -86,10 +85,7 @@ public class MigrationDateTests : IAsyncLifetime
             await using var db = _postgres.CreateDbContext();
             var invoice = await db.Invoices.SingleAsync();
 
-            invoice.CreatedUtc.Year.Should().Be(1481,
-                "the Thai Buddhist calendar reads 2024 as a BE year; 2024 - 543 = 1481");
-            invoice.CreatedUtc.Year.Should().NotBe(2024,
-                "this is the correct answer and defect 11 does not yet produce it");
+            invoice.CreatedUtc.Should().Be(ExpectedUtc);
         }
         finally
         {

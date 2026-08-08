@@ -1,4 +1,5 @@
 using System.Data.SQLite;
+using System.Globalization;
 using System.Net.Http.Json;
 using System.Text.Json;
 using Dapper;
@@ -572,12 +573,27 @@ public class SqliteMigrationService
         return new BulkMigrationRequest(_options.StoreId, users, products, invoices);
     }
 
+    /// <summary>
+    /// Legacy timestamps are written by SQLite's datetime('now','localtime') on a till standing in
+    /// Thailand, so every value is Bangkok wall-clock time with no offset recorded.
+    /// </summary>
+    private static readonly TimeZoneInfo StoreTimeZone =
+        TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time");
+
+    /// <summary>
+    /// Parses a legacy timestamp as Thai local time and returns it as UTC.
+    /// InvariantCulture is required: the tool runs on a th-TH till, whose Buddhist calendar would
+    /// otherwise read 2024 as a Buddhist-era year and land every row in 1481 AD.
+    /// </summary>
     private static DateTime? ParseDate(string? dateString)
     {
         if (string.IsNullOrEmpty(dateString)) return null;
-        return DateTime.TryParse(dateString, out var result)
-            ? DateTime.SpecifyKind(result, DateTimeKind.Utc)
-            : null;
+
+        if (!DateTime.TryParse(dateString, CultureInfo.InvariantCulture, DateTimeStyles.None, out var parsed))
+            return null;
+
+        var storeLocal = DateTime.SpecifyKind(parsed, DateTimeKind.Unspecified);
+        return TimeZoneInfo.ConvertTimeToUtc(storeLocal, StoreTimeZone);
     }
 
     private static string? NullIfEmpty(string? value) =>
