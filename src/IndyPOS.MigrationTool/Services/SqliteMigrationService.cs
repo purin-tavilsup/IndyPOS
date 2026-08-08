@@ -1,4 +1,5 @@
 using System.Data.SQLite;
+using System.Globalization;
 using System.Net.Http.Json;
 using System.Text.Json;
 using Dapper;
@@ -17,6 +18,13 @@ public class SqliteMigrationService
     private readonly ILogger<SqliteMigrationService> _logger;
     private MigrationResult _result = new();
 
+    /// <summary>
+    /// Barcode -> migrated product id. A barcode identifies the physical article, so this is what
+    /// lets an invoice line whose legacy product was deleted find the product the shopkeeper
+    /// re-added in its place. See <see cref="ResolveLineProductId"/>.
+    /// </summary>
+    private readonly Dictionary<string, Guid> _productIdByBarcode = new();
+
     public SqliteMigrationService(MigrationOptions options, ILogger<SqliteMigrationService> logger)
     {
         _options = options;
@@ -26,6 +34,7 @@ public class SqliteMigrationService
     public async Task<MigrationResult> MigrateAllAsync(CancellationToken ct = default)
     {
         _result = new MigrationResult();
+        _productIdByBarcode.Clear();
 
         await using var sqliteConnection = new SQLiteConnection($"Data Source={_options.SqlitePath};Version=3;");
         await sqliteConnection.OpenAsync(ct);
@@ -200,6 +209,7 @@ public class SqliteMigrationService
                     _logger.LogDebug("Product {Barcode} already exists", product.Barcode);
                     _result.Products.Skipped++;
                     _result.ProductIdMap[(int)product.InventoryProductId] = existing.Id;
+                    _productIdByBarcode[existing.Barcode] = existing.Id;
                     continue;
                 }
 
@@ -243,6 +253,7 @@ public class SqliteMigrationService
 
                 _result.Products.Migrated++;
                 _result.ProductIdMap[(int)product.InventoryProductId] = newProduct.Id;
+                _productIdByBarcode[newProduct.Barcode] = newProduct.Id;
                 _logger.LogDebug("Migrated product: {Barcode}", product.Barcode);
             }
             catch (Exception ex)
@@ -306,11 +317,7 @@ public class SqliteMigrationService
 
                     foreach (var line in lines)
                     {
-                        if (!_result.ProductIdMap.TryGetValue((int)line.InventoryProductId, out var productId))
-                        {
-                            _logger.LogWarning("Product {ProductId} not found for invoice line", line.InventoryProductId);
-                            continue;
-                        }
+                        var productId = ResolveLineProductId(line, context, createdUtc);
 
                         context.InvoiceLines.Add(new InvoiceLine
                         {
@@ -572,12 +579,76 @@ public class SqliteMigrationService
         return new BulkMigrationRequest(_options.StoreId, users, products, invoices);
     }
 
+    /// <summary>
+    /// Resolves the product a historical invoice line belongs to, in three tiers: the legacy id,
+    /// then the barcode of a product still in the catalogue, then a synthesised inactive
+    /// placeholder. It never fails to resolve — dropping the line is what defect 13 was, and it let
+    /// an invoice's lines sum to less than the invoice's own total.
+    /// </summary>
+    private Guid ResolveLineProductId(LegacyInvoiceLine line, StoreHubDbContext context, DateTime createdUtc)
+    {
+        if (_result.ProductIdMap.TryGetValue((int)line.InventoryProductId, out var byLegacyId))
+            return byLegacyId;
+
+        var barcode = Truncate(line.Barcode ?? string.Empty, 50);
+
+        // The product was deleted and re-added under a new legacy id. Same barcode means the same
+        // physical article, so the line belongs with it — and one article keeps one sales history.
+        if (_productIdByBarcode.TryGetValue(barcode, out var byBarcode))
+        {
+            _logger.LogDebug(
+                "Invoice line for deleted product {LegacyProductId} relinked by barcode {Barcode}",
+                line.InventoryProductId, barcode);
+            return byBarcode;
+        }
+
+        var placeholder = new Product
+        {
+            Id = Guid.NewGuid(),
+            StoreId = _options.StoreId,
+            Barcode = barcode,
+            Name = Truncate(line.Description, 50),
+            Description = Truncate(line.Description, 200),
+            UnitPrice = (decimal)line.UnitPrice,
+            IsActive = false,
+            CreatedUtc = createdUtc,
+            LastModifiedUtc = createdUtc
+        };
+
+        context.Products.Add(placeholder);
+
+        // Registering the barcode makes every later line for this article reuse the one placeholder,
+        // which is also what keeps it from colliding on the (StoreId, Barcode) unique index.
+        _productIdByBarcode[barcode] = placeholder.Id;
+
+        _logger.LogInformation(
+            "Deleted product {LegacyProductId} ({Barcode}) restored as an inactive placeholder so its invoice lines survive",
+            line.InventoryProductId, barcode);
+
+        return placeholder.Id;
+    }
+
+    /// <summary>
+    /// Legacy timestamps are written by SQLite's datetime('now','localtime') on a till standing in
+    /// Thailand, so every value is Bangkok wall-clock time with no offset recorded.
+    /// </summary>
+    private static readonly TimeZoneInfo StoreTimeZone =
+        TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time");
+
+    /// <summary>
+    /// Parses a legacy timestamp as Thai local time and returns it as UTC.
+    /// InvariantCulture is required: the tool runs on a th-TH till, whose Buddhist calendar would
+    /// otherwise read 2024 as a Buddhist-era year and land every row in 1481 AD.
+    /// </summary>
     private static DateTime? ParseDate(string? dateString)
     {
         if (string.IsNullOrEmpty(dateString)) return null;
-        return DateTime.TryParse(dateString, out var result)
-            ? DateTime.SpecifyKind(result, DateTimeKind.Utc)
-            : null;
+
+        if (!DateTime.TryParse(dateString, CultureInfo.InvariantCulture, DateTimeStyles.None, out var parsed))
+            return null;
+
+        var storeLocal = DateTime.SpecifyKind(parsed, DateTimeKind.Unspecified);
+        return TimeZoneInfo.ConvertTimeToUtc(storeLocal, StoreTimeZone);
     }
 
     private static string? NullIfEmpty(string? value) =>

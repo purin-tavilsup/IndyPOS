@@ -62,10 +62,10 @@ try to include it in a PR.
 ⚠️ **The SQLite → PostgreSQL migration tests contain deliberate PINNING tests.**
 `tests/IndyPOS.MigrationTool.Tests` exercises the shipped migrator against schema artefacts dumped
 from real stores. Some of its tests assert **today's wrong behaviour on purpose** — they name their
-defect (4, 5, 6, 7, 8, 11), record the correct answer in the message, and were each verified able to
+defect (5, 6, 7, 8, 13), record the correct answer in the message, and were each verified able to
 fail. **When you fix one of those defects, invert exactly one pinning test; do not "repair" the
-assertion to match new behaviour without reading its comment.** Defects 2, 3 and 10 are fixed. See
-Epic 2 in `PLAN.md`.
+assertion to match new behaviour without reading its comment.** Defects 2, 3, 4, 10, 11 and 12 are
+fixed. See Epic 2 in `PLAN.md`.
 
 ⚠️ **Never hand-write the legacy SQLite schema.** `LegacySchema/*.sql` are generated dumps from real
 `Store.db` files. Regenerate by setting `INDYPOS_REGENERATE_LEGACY_SCHEMA=1` and running

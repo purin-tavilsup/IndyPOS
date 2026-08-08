@@ -678,10 +678,6 @@ This document contains detailed ASCII diagrams for all major flows in the IndyPO
 │   - Creating InvoiceLines (ProductId FK)                                    │
 │   - Creating InventoryMovements (ProductId FK)                              │
 │                                                                              │
-│   WinForms Compatibility:                                                   │
-│   - LegacyIdHelper extracts first 4 bytes of Guid for display             │
-│   - Example: a1b2c3d4-... → displays as "2718547924" in legacy UI          │
-│                                                                              │
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
 

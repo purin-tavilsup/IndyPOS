@@ -124,9 +124,9 @@ Outside the solution: `IndyPOS.Bootstrapper.Tests` — **231** (223 pass, 8 skip
 > was deleted, not repaired — it exercised a parallel migration implementation the product never
 > referenced, against a SQLite schema no real store has, so its 15 green tests were misleading.
 > `tests/IndyPOS.MigrationTool.Tests` replaces it: the **shipped** migrator, run against schema
-> artefacts dumped from real stores. Defects 2, 3 and 10 are fixed; defects 4, 5, 6, 7, 8 and 11 are
-> **pinned** — tests that assert today's wrong behaviour, name the correct answer, and were each
-> verified able to fail. When a defect is fixed, invert exactly one pinning test. See Epic 2 in
+> artefacts dumped from real stores. Defects 2, 3, 4, 10, 11 and 12 are fixed; defects 5, 6, 7, 8 and
+> 13 are **pinned** — tests that assert today's wrong behaviour, name the correct answer, and were
+> each verified able to fail. When a defect is fixed, invert exactly one pinning test. See Epic 2 in
 > `PLAN.md`.
 
 ---
