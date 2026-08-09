@@ -169,4 +169,40 @@ public class ProductMigrationTests : IAsyncLifetime
         // The sale itself is not lost -- it is the invoice line.
         (await db.InvoiceLines.CountAsync()).Should().Be(1);
     }
+
+    [Fact]
+    public async Task MigrateProducts_WithNegativeLegacyStock_ClampsToZeroAndReportsIt()
+    {
+        // QuantityInStock was never strictly maintained: restocks often went unrecorded, so 952
+        // GeneralHardware products and 583 MimyMart products sit at negative stock, down to -3,882.
+        // Those are unrecorded restocks, not shelf state, so they are clamped to zero -- but the
+        // clamp is a deliberate data change and must be reported, not silent. The operator needs
+        // the list to drive a recount.
+        await using var store = await LegacyStoreDatabase.CreateAsync(LegacyStoreShape.GeneralHardware);
+        var builder = await SeedCashierAsync(store);
+        await builder.AddProductAsync(
+            productId: 10, barcode: "8850001000010", description: "Cement 50kg",
+            unitPrice: 120m, quantityInStock: -5, category: 50, isTrackable: true,
+            dateCreated: "2024-03-15 09:00:00");
+        await builder.AddProductAsync(
+            productId: 11, barcode: "8850001000027", description: "Sand 25kg",
+            unitPrice: 80m, quantityInStock: 12, category: 50, isTrackable: true,
+            dateCreated: "2024-03-15 09:00:00");
+
+        var result = await MigrationScenario.RunAsync(store, _postgres);
+
+        await using var db = _postgres.CreateDbContext();
+        var movements = await db.InventoryMovements.ToListAsync();
+
+        movements.Should().ContainSingle("the clamped product gets no movement, so its stock is 0");
+        movements.Single().QuantityDelta.Should().Be(12);
+
+        var clamped = result.ClampedStocks.Should().ContainSingle().Subject;
+        clamped.Barcode.Should().Be("8850001000010");
+        clamped.ProductName.Should().Be("Cement 50kg");
+        clamped.LegacyQuantity.Should().Be(-5);
+
+        result.IsSuccess.Should().BeTrue(
+            "a clamp is a reported data decision, not a row failure -- it must not change the outcome");
+    }
 }

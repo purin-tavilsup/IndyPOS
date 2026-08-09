@@ -232,6 +232,18 @@ public class SqliteMigrationService
                     LastModifiedUtc = ParseDate(product.DateUpdated) ?? createdUtc
                 };
 
+                // Recorded in BOTH modes on purpose: a dry run exists to preview what a real run
+                // would do, and clamping stock is the one thing it does that the operator must
+                // decide about beforehand.
+                if (product.QuantityInStock < 0)
+                {
+                    _result.AddClampedStock(
+                        newProduct.Barcode, newProduct.Name, (int)product.QuantityInStock);
+                    _logger.LogWarning(
+                        "Product {Barcode} has negative legacy stock {Quantity}; migrating as 0",
+                        newProduct.Barcode, product.QuantityInStock);
+                }
+
                 if (!_options.DryRun)
                 {
                     context.Products.Add(newProduct);
