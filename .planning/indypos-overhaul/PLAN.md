@@ -17,7 +17,7 @@ history intact — not cloud infrastructure.
 | # | Epic | Status | Why this order |
 |---|------|--------|----------------|
 | 1 | **Product categories + MimyShop** | ✅ **SHIPPED 2026-07-31 (PR #55)** | The migration needs a category model to map into. Blocked 2 |
-| 2 | **SQLite → PostgreSQL migration hardening** | 🚧 **IN PROGRESS** — test harness landed; defects 2, 3, 4, 9, 10, 11, 12, 13 fixed; 5/6/7/8 pinned; **14 new and open** | 3 divergent legacy schemas. The risky half of the rollout |
+| 2 | **SQLite → PostgreSQL migration hardening** | 🚧 **IN PROGRESS** — test harness landed; defects 2, 3, 4, 9, 10, 11, 12, 13, 14 fixed (plus 7a); 5/6/8 pinned; **7b open and deliberately unpinned** | 3 divergent legacy schemas. The risky half of the rollout |
 | 3 | **Store rollout** (fresh v4 install + migrate, per store) | ⏳ Blocked by 2 | Where the business value lands: stores off a 3.7.0-era system |
 | 4 | **Epic I: Cloud infrastructure** | 🔴 Not started | Additive. No longer on the critical path — see "Legacy history" below |
 | 5 | **Epic MCP: agent-facing API** | 🔴 Not started | Depends on 4 |
@@ -147,18 +147,41 @@ Legacy payment id 6 `ผ่อนชำระ` is dead with them.
 | 4 | `ParseDate` does `SpecifyKind(..., Utc)` on `datetime('now','localtime')` values | **Every timestamp 7h off**; corrupts all daily/monthly totals | ✅ Fixed `28fef5f` |
 | 5 | `Category = product.Category?.ToString()` writes the raw numeric id | All products uncategorised; breaks the Hardware gate and pickers | ❌ (needs Epic 1) — **pinned** `3ae92f1` |
 | 6 | `InvoiceProduct` selects 7 of 17 columns, dropping `OriginalUnitPrice`, `GroupPrice`, `IsGroupProduct`, `Note`, `Priority` | **165,690 of 325,780 line items (51%)** were discounted; the record is lost | ❌ — **pinned** `3c73f11` |
-| 7 | v4 `Core.Product` has no `IsTrackable`; legacy does (21/7/1 non-trackable products) | Services would be stock-tracked and inventory-deducted | ❌ **priority raised** — **pinned** `3ae92f1` |
+| 7 | v4 `Core.Product` has no `IsTrackable`; legacy does (21/7/1 non-trackable products) | Services would be stock-tracked and inventory-deducted | ❌ **split 2026-08-09.** **7a** (migration replays a service sale as a stock deduction) ✅ closed by defect 14 — the replay is gone. **7b** (live v4 sales deduct stock for services) ❌ **open and deliberately UNPINNED** — see the note below |
 | 8 | **Legacy ids are not preserved** on products, invoices, invoice lines or payments (only `StoreUser.LegacyUserId` is) | The migration cannot be re-run idempotently, and a v4 row cannot be reconciled against its SQLite source | ❌ **new** — **pinned** `3ae92f1` |
 | 9 | `LegacyIdHelper` is dead code that maps the same legacy id to the same Guid **in every store** | Latent cross-store collision once Epic I syncs three shops into one cloud. Delete it | ✅ Deleted `ca1be53` |
 | 10 | `MigratePayLaterAsync` **creates a second `Payment`** for money `MigrateInvoicesAsync` has already migrated. `PayLater.PaymentId` is an FK to `Payment.PaymentId` — 5,181/5,181 match, all `PaymentTypeId=2` | **฿836,013 double-counted.** Unreachable today because defect 2 crashes first, so fixing 2 alone turns a loud crash into silent revenue inflation | ✅ Fixed `cf61005` |
 | 11 | `ParseDate` calls bare `DateTime.TryParse` with **no `CultureInfo`**, and the tool runs on the store's Thai-locale till | Under `th-TH` the Buddhist calendar reads `2024` as a BE year → **1481 AD, 543 years off**. Every invoice falls outside every date-range report, so a migrated store shows **zero** sales history | ✅ Fixed `28fef5f` |
 | 12 | **A phase-level throw still discards the whole run.** The `sqlite_master` probe and the `PayLater` SELECT sit *outside* any `try`, `MigrateAllAsync` does not wrap its four phase calls, and `SaveChangesAsync` runs after the last phase | Defects 2 and 3 were fixed at the symptom (right columns, a table probe) but **the amplifier remains**: the next column-level drift — a store whose `PayLater` lacks `PaidAmount`, say — again throws before any save, so an entire migration is discarded instead of one phase failing | ✅ Fixed `b28cb08` |
 | 13 | **An invoice line whose product no longer exists is silently dropped.** `MigrateInvoicesAsync` `continue`s when `ProductIdMap` has no entry for the line's `InventoryProductId` | **1,980 real GeneralHardware lines** (+205 MimyMart) reference a deleted product, so those invoices migrate with fewer lines than they had — an invoice's lines can sum to less than its own `TotalAmount`, with only a log warning | ✅ Fixed `cb037c5` |
-| 14 | **Migrated stock is current stock minus the entire sales history.** `MigrateProductsAsync` writes a `Migration:InitialStock` movement of `+QuantityInStock` — *today's* stock, already net of every sale — and then `MigrateInvoicesAsync` replays every historical line as a `Migration:Sale` of `-Quantity`. `Product` has no stock column: `InventoryMovement.cs:6` defines stock as `SUM(QuantityDelta)` | **Measured: GeneralHardware nets −400,541 units, with 7,028 of 10,590 products (66%) going negative; MimyMart nets −249,652, 2,350 of 6,335 (37%).** Every till would show deeply negative stock the moment a store cut over. The sales replay is the double-count — `QuantityInStock` already reflects them | ❌ **new 2026-08-08** — not pinned yet |
+| 14 | **Migrated stock is current stock minus the entire sales history.** `MigrateProductsAsync` writes a `Migration:InitialStock` movement of `+QuantityInStock` — *today's* stock, already net of every sale — and then `MigrateInvoicesAsync` replays every historical line as a `Migration:Sale` of `-Quantity`. `Product` has no stock column: `InventoryMovement.cs:6` defines stock as `SUM(QuantityDelta)` | **Measured: GeneralHardware nets −400,541 units, with 7,028 of 10,590 products (66%) going negative; MimyMart nets −249,652, 2,350 of 6,335 (37%).** Every till would show deeply negative stock the moment a store cut over. The sales replay is the double-count — `QuantityInStock` already reflects them. Fixed by removing the sales replay: `QuantityInStock` is migrated as the single source of stock, and the `Migration:InitialStock` movement is now dated at cutover rather than the product's creation date. Also fixed in the same method (**14b**): the `> 0` guard silently dropped the **1,535** products already at negative legacy stock (952 GeneralHardware + 583 MimyMart, down to −3,882) to zero. They are still clamped to zero — `QuantityInStock` was never strictly maintained, so those values are unrecorded restock rather than shelf state — but now reported on `MigrationResult.ClampedStocks` and printed as a recount list | ✅ Fixed `ecfaa86` (14b: `e3c193f`) |
 
 > **"Pinned" means there is an executable test asserting today's WRONG behaviour**, naming the defect
 > and recording the correct answer in its message. Each was verified able to fail. When you fix one,
 > invert exactly one pinning test — see `tests/IndyPOS.MigrationTool.Tests`.
+>
+> **Defect 7 has no pin, on purpose (Pond, 2026-08-09).** Its pin used to assert that migrating a
+> service line produced a `Migration:Sale` stock movement. Defect 14 deleted that replay, so the
+> pin's subject ceased to exist and the pin was **deleted, not re-aimed**. A replacement asserting by
+> reflection that `Core.Product` has no `IsTrackable` was considered and rejected: it goes red when
+> someone adds the property without using it, and would then invite an "inversion" that records
+> defect 7 as fixed while `CompleteSaleCommandHandler.cs:89-100` still builds a movement for every
+> line. Defect 8's pin gets away with reflection because its defect *is* a structural absence; 7b's
+> harm is behavioural.
+>
+> 7b cannot be pinned honestly today — "non-trackable" cannot be expressed until `Product` carries
+> the flag, so any test would duplicate the correct-behaviour one. It is documented instead, as a
+> commented trip-wire at `CompleteSaleCommandHandlerTests.HandleAsync_ShouldCreateInventoryMovementsForEachLine`:
+> when the flag arrives, that test's `HaveCount(2)` breaks, and the comment says to add a
+> non-trackable line expecting **1** movement rather than repair the number.
+>
+> Measured 2026-08-09: all **29** non-trackable products across the three stores have nonzero
+> `QuantityInStock` (mostly a sentinel 1; MimyMart's ice holds 15, 100, 100), so the migration gives
+> them stock and 7b's harm starts at their first v4 sale.
+>
+> A second test still carries defect 7's number and is unaffected by all of this:
+> `LegacyStoreDataBuilderTests…_Defect7Addendum` is a fixture-fidelity guard on SQLite's `DEFAULT 1`
+> and never runs the migrator.
 >
 > Defects 4 and 11 shared the same six-line `ParseDate`, but their pins were independent: fixing the
 > culture flipped only 11's pin, and fixing the offset flipped only 4's. Verified both ways, and
