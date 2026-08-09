@@ -14,9 +14,19 @@ namespace IndyPOS.MigrationTool.Services;
 
 public class SqliteMigrationService
 {
+    /// <summary>The only movement reason the migration writes.</summary>
+    private const string InitialStockReason = "Migration:InitialStock";
+
     private readonly MigrationOptions _options;
     private readonly ILogger<SqliteMigrationService> _logger;
     private MigrationResult _result = new();
+
+    /// <summary>
+    /// When this run started. Migration:InitialStock records stock as observed AT CUTOVER, so every
+    /// such movement in a run carries this one timestamp rather than the product's creation date.
+    /// Initialised here as well as in MigrateAllAsync so it is never default(DateTime).
+    /// </summary>
+    private DateTime _migrationStartedUtc = DateTime.UtcNow;
 
     /// <summary>
     /// Barcode -> migrated product id. A barcode identifies the physical article, so this is what
@@ -35,6 +45,7 @@ public class SqliteMigrationService
     {
         _result = new MigrationResult();
         _productIdByBarcode.Clear();
+        _migrationStartedUtc = DateTime.UtcNow;
 
         await using var sqliteConnection = new SQLiteConnection($"Data Source={_options.SqlitePath};Version=3;");
         await sqliteConnection.OpenAsync(ct);
@@ -232,6 +243,18 @@ public class SqliteMigrationService
                     LastModifiedUtc = ParseDate(product.DateUpdated) ?? createdUtc
                 };
 
+                // Recorded in BOTH modes on purpose: a dry run exists to preview what a real run
+                // would do, and clamping stock is the one thing it does that the operator must
+                // decide about beforehand.
+                if (product.QuantityInStock < 0)
+                {
+                    _result.AddClampedStock(
+                        newProduct.Barcode, newProduct.Name, (int)product.QuantityInStock);
+                    _logger.LogWarning(
+                        "Product {Barcode} has negative legacy stock {Quantity}; migrating as 0",
+                        newProduct.Barcode, product.QuantityInStock);
+                }
+
                 if (!_options.DryRun)
                 {
                     context.Products.Add(newProduct);
@@ -245,8 +268,8 @@ public class SqliteMigrationService
                             StoreId = _options.StoreId,
                             ProductId = newProduct.Id,
                             QuantityDelta = (int)product.QuantityInStock,
-                            Reason = "Migration:InitialStock",
-                            CreatedUtc = createdUtc
+                            Reason = InitialStockReason,
+                            CreatedUtc = _migrationStartedUtc
                         });
                     }
                 }
@@ -330,17 +353,10 @@ public class SqliteMigrationService
                             CreatedUtc = createdUtc
                         });
 
-                        // Create inventory movement for sale
-                        context.InventoryMovements.Add(new InventoryMovement
-                        {
-                            Id = Guid.NewGuid(),
-                            StoreId = _options.StoreId,
-                            ProductId = productId,
-                            QuantityDelta = -(int)line.Quantity,
-                            Reason = "Migration:Sale",
-                            ReferenceId = newInvoice.Id,
-                            CreatedUtc = createdUtc
-                        });
+                        // Defect 14: NO inventory movement for a historical sale. The product's
+                        // QuantityInStock is today's stock, already net of every sale, so replaying
+                        // lines here subtracts each sold unit a second time. The sale itself is not
+                        // lost -- it is the InvoiceLine written above.
                     }
                 }
 
