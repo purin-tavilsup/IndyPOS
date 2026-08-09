@@ -62,10 +62,17 @@ try to include it in a PR.
 ⚠️ **The SQLite → PostgreSQL migration tests contain deliberate PINNING tests.**
 `tests/IndyPOS.MigrationTool.Tests` exercises the shipped migrator against schema artefacts dumped
 from real stores. Some of its tests assert **today's wrong behaviour on purpose** — they name their
-defect (5, 6, 7, 8, 13), record the correct answer in the message, and were each verified able to
+defect (5, 6, 8), record the correct answer in the message, and were each verified able to
 fail. **When you fix one of those defects, invert exactly one pinning test; do not "repair" the
-assertion to match new behaviour without reading its comment.** Defects 2, 3, 4, 10, 11 and 12 are
-fixed. See Epic 2 in `PLAN.md`.
+assertion to match new behaviour without reading its comment.** Defects 2, 3, 4, 9, 10, 11, 12, 13
+and 14 are fixed.
+
+⚠️ **Defect 7 is open but has NO pin** — do not go looking for one. Its pin asserted that migrating a
+service line produced a stock movement; defect 14 removed that replay, so the pin was deleted rather
+than re-aimed. What survives (7b: live sales deduct stock for services) cannot be pinned until
+`Core.Product` carries `IsTrackable`, so it is documented as a commented trip-wire in
+`CompleteSaleCommandHandlerTests.HandleAsync_ShouldCreateInventoryMovementsForEachLine`. Full
+reasoning in Epic 2's defect table in `PLAN.md`.
 
 ⚠️ **Never hand-write the legacy SQLite schema.** `LegacySchema/*.sql` are generated dumps from real
 `Store.db` files. Regenerate by setting `INDYPOS_REGENERATE_LEGACY_SCHEMA=1` and running
@@ -147,10 +154,10 @@ dotnet build
 
 # Docker must be RUNNING for two suites - they spin up a real Postgres container.
 # With Docker down they fail fast (each suite in under a second), which reads like a
-# code regression but is not. Expect 123 failures with Docker stopped, all here.
-# (123 is DERIVED as 87 + 36, not measured - both suites were last run with Docker up.)
+# code regression but is not. Expect 126 failures with Docker stopped, all here.
+# (126 is DERIVED as 87 + 39, not measured - both suites were last run with Docker up.)
 #   tests/IndyPOS.StoreHub.IntegrationTests   (87 of 94; 7 need no container)
-#   tests/IndyPOS.MigrationTool.Tests         (36 of 86; 25 pure units, 24 need the
+#   tests/IndyPOS.MigrationTool.Tests         (39 of 89; 25 pure units, 24 need the
 #                                              gitignored real store .db files, 1 manual tool)
 
 # The installer is NOT in IndyPOS.sln, so the two commands above never touch it.
@@ -162,8 +169,8 @@ dotnet run --project src/IndyPOS.AppHost --launch-profile https
 # Dashboard: https://localhost:17222
 ```
 
-Solution suites total **546** with Docker running and the real store databases present (545 pass,
-1 skipped). Without those databases the suite discovers **526**, still all green — a skipped
+Solution suites total **549** with Docker running and the real store databases present (548 pass,
+1 skipped). Without those databases the suite discovers **529**, still all green — a skipped
 `[Theory]` is one entry, not one per row. See [`ONBOARDING.md`](ONBOARDING.md) for the per-suite
 breakdown, the dev-vs-installed port split, and the `/health` vs `/health/ready` trap.
 

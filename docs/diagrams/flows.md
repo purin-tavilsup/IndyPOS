@@ -601,7 +601,7 @@ This document contains detailed ASCII diagrams for all major flows in the IndyPO
 │   │ For each invoice:                                                    │   │
 │   │   - Generate new Guid ID                                            │   │
 │   │   - Map product IDs in lines using mapping table                    │   │
-│   │   - Create InventoryMovements (negative) for each line              │   │
+│   │   - No InventoryMovement (defect 14: stock is already net)          │   │
 │   │                                                                      │   │
 │   │ For each user:                                                       │   │
 │   │   - Generate new Guid ID                                            │   │
@@ -613,11 +613,10 @@ This document contains detailed ASCII diagrams for all major flows in the IndyPO
 │   │ BEGIN TRANSACTION                                                    │   │
 │   │                                                                      │   │
 │   │ INSERT Products (with Guid IDs)                                     │   │
-│   │ INSERT InventoryMovements (initial stock)                           │   │
+│   │ INSERT InventoryMovements (initial stock, dated at cutover)         │   │
 │   │ INSERT Invoices                                                     │   │
 │   │ INSERT InvoiceLines (with mapped ProductIds)                        │   │
 │   │ INSERT Payments                                                     │   │
-│   │ INSERT InventoryMovements (sales deductions)                        │   │
 │   │ INSERT StoreUsers (with BCrypt hashes)                              │   │
 │   │                                                                      │   │
 │   │ COMMIT                                                               │   │

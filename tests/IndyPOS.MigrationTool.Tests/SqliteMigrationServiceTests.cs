@@ -118,15 +118,27 @@ public class SqliteMigrationServiceTests : IAsyncLifetime
         // MigrationResult.PaymentIdMap is always built and PayLater can resolve against it. Only
         // the context.Payments.Add call stays guarded. These assertions pin that invariant: a
         // dry run still counts the payment as migrated, but writes nothing.
+        //
+        // The negative-stock clamp (defect 14b) is recorded outside the guard for the same class of
+        // reason: a dry run exists to preview what a real run would do, and clamping stock is the
+        // one thing it does that the operator must decide about beforehand. Pinned here so a later
+        // tidy-up cannot quietly move the recording inside the guard.
         await using var store = await LegacyStoreDatabase.CreateAsync(LegacyStoreShape.GeneralHardware);
         await SeedOneSaleAsync(store);
+        await new LegacyStoreDataBuilder(store).AddProductAsync(
+            productId: 11, barcode: "8850001000027", description: "Sand 25kg",
+            unitPrice: 80m, quantityInStock: -5, category: 50, isTrackable: true,
+            dateCreated: "2024-03-15 09:00:00");
 
         var result = await MigrationScenario.RunAsync(store, _postgres, dryRun: true);
 
         result.Users.Migrated.Should().Be(1);
-        result.Products.Migrated.Should().Be(1);
+        result.Products.Migrated.Should().Be(2);
         result.PaymentIdMap.Should().ContainKey(500,
             "the map must be built in dry run too, or every PayLater lookup would fail");
+        result.ClampedStocks.Should().ContainSingle(
+            "a dry run must still report the clamp, or the preview hides the data change")
+            .Which.LegacyQuantity.Should().Be(-5);
 
         await using var db = _postgres.CreateDbContext();
         (await db.StoreUsers.CountAsync()).Should().Be(0);
