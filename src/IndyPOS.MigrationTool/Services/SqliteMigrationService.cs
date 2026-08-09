@@ -19,6 +19,13 @@ public class SqliteMigrationService
     private MigrationResult _result = new();
 
     /// <summary>
+    /// When this run started. Migration:InitialStock records stock as observed AT CUTOVER, so every
+    /// such movement in a run carries this one timestamp rather than the product's creation date.
+    /// Initialised here as well as in MigrateAllAsync so it is never default(DateTime).
+    /// </summary>
+    private DateTime _migrationStartedUtc = DateTime.UtcNow;
+
+    /// <summary>
     /// Barcode -> migrated product id. A barcode identifies the physical article, so this is what
     /// lets an invoice line whose legacy product was deleted find the product the shopkeeper
     /// re-added in its place. See <see cref="ResolveLineProductId"/>.
@@ -35,6 +42,7 @@ public class SqliteMigrationService
     {
         _result = new MigrationResult();
         _productIdByBarcode.Clear();
+        _migrationStartedUtc = DateTime.UtcNow;
 
         await using var sqliteConnection = new SQLiteConnection($"Data Source={_options.SqlitePath};Version=3;");
         await sqliteConnection.OpenAsync(ct);
@@ -258,7 +266,7 @@ public class SqliteMigrationService
                             ProductId = newProduct.Id,
                             QuantityDelta = (int)product.QuantityInStock,
                             Reason = "Migration:InitialStock",
-                            CreatedUtc = createdUtc
+                            CreatedUtc = _migrationStartedUtc
                         });
                     }
                 }
