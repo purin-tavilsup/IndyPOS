@@ -309,6 +309,28 @@ static void DisplayResults(MigrationResult result)
 
     AnsiConsole.Write(resultsTable);
 
+    // Placed above the outcome banner deliberately: on an aborted run the "discarded" warning
+    // printed before the table covers this list too.
+    if (result.ClampedStocks.Count > 0)
+    {
+        AnsiConsole.MarkupLine(
+            $"\n[yellow]{result.ClampedStocks.Count} product(s) had negative stock in the legacy " +
+            "database and were migrated as 0. These need a physical recount:[/]");
+
+        foreach (var clamped in result.ClampedStocks.Take(10))
+        {
+            AnsiConsole.MarkupLine(
+                $"  [yellow]•[/] {clamped.Barcode} {clamped.ProductName.EscapeMarkup()} " +
+                $"([red]{clamped.LegacyQuantity}[/])");
+        }
+
+        if (result.ClampedStocks.Count > 10)
+        {
+            AnsiConsole.MarkupLine(
+                $"  [grey]... and {result.ClampedStocks.Count - 10} more (see the log for all)[/]");
+        }
+    }
+
     switch (result.Outcome)
     {
         case MigrationOutcome.Success:
