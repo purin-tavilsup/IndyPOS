@@ -23,7 +23,7 @@ all for historical invoice lines. Negative legacy stock is clamped to zero and r
   correct answer in its assertion message. Never "repair" a pin because it looks backwards — read the
   comment first.
 - **Every commit must leave the suite green.** Task order below exists for this reason: defect 7's
-  pin is re-aimed *before* the replay is deleted, because deleting it first would break that pin.
+  migration pin is retired *before* the replay is deleted, because deleting it first would break it.
 - **Baseline:** `dotnet test IndyPOS.sln` → 546 pass / 1 skip / 0 fail with Docker up and the real
   store `.db` files present. A root `dotnet test` exits 1 via `IndyPOS.Mock` — pre-existing, ignore.
 - **Never hand-edit `tests/IndyPOS.MigrationTool.Tests/LegacySchema/*.sql`.** They are generated
@@ -41,13 +41,15 @@ all for historical invoice lines. Negative legacy stock is clamped to zero and r
 | `src/IndyPOS.MigrationTool/MigrationResult.cs` | Modify | Add the `ClampedStock` record + `ClampedStocks` list |
 | `src/IndyPOS.MigrationTool/Services/SqliteMigrationService.cs` | Modify | Delete the sale replay; clamp negatives; date the movement at migration time |
 | `src/IndyPOS.MigrationTool/Program.cs` | Modify (`DisplayResults`) | Print the clamp list for the operator |
-| `tests/IndyPOS.MigrationTool.Tests/ProductMigrationTests.cs` | Modify | The defect-14 pin, the clamp test, the movement-date test, the re-aimed defect-7 pin |
-| `.planning/indypos-overhaul/PLAN.md` | Modify | Mark defect 14 fixed; record what happened to defect 7's pin |
+| `tests/IndyPOS.MigrationTool.Tests/ProductMigrationTests.cs` | Modify | The defect-14 pin, the clamp test, the movement-date test; delete the defect-7 migration pin |
+| `tests/IndyPOS.Application.Tests/StoreHub/Sales/Commands/CompleteSaleCommandHandlerTests.cs` | Modify (comment only) | Document defect 7b's trip-wire where the live harm is |
+| `.planning/indypos-overhaul/PLAN.md` | Modify | Mark defect 14 fixed; split defect 7 into 7a/7b |
 
 **Test-harness facts you will need** (all already exist — do not rebuild them):
 
 - `MigrationScenario.RunAsync(store, postgres, dryRun = false)` returns `MigrationResult`. Defined at
-  the top of `tests/IndyPOS.MigrationTool.Tests/PayLaterMigrationTests.cs:13`.
+  the top of `tests/IndyPOS.MigrationTool.Tests/PayLaterMigrationTests.cs:17` (the `MigrationScenario`
+  class declaration is at `:13`).
 - `ProductMigrationTests` already has `SeedCashierAsync(store)` (`:19`) which adds the payment-type
   lookup and user 1.
 - `LegacyStoreDatabase.CreateAsync(LegacyStoreShape.GeneralHardware)` applies the generated schema.
@@ -60,84 +62,84 @@ all for historical invoice lines. Negative legacy stock is clamped to zero and r
 
 ---
 
-### Task 1: Re-aim defect 7's pin before it is collateral damage
+### Task 1: Delete defect 7's migration pin and document 7b where the harm lives
 
 `MigrateProducts_CurrentlyDropsIsTrackable_Defect7` asserts a service line still produces exactly one
-`Migration:Sale` movement. Task 3 deletes all sale movements, which would break it. That is **not** a
-defect-7 fix: `Core.Product` still has no `IsTrackable`, so live v4 sales still deduct stock for
-services. Re-aim the pin at the half that survives — doing it first keeps every commit green, because
-the re-aimed assertion holds both before and after Task 3.
+`Migration:Sale` movement. Task 3 deletes all sale movements, so the pin's subject ceases to exist.
+Doing this first keeps every commit green.
+
+Defect 7 splits (see the spec): **7a** — migration replays a service sale — is closed by Task 3.
+**7b** — live v4 sales deduct stock for services — is still broken and gets **no pin**, by Pond's
+ruling on 2026-08-09. It cannot have an honest one: "non-trackable" cannot be expressed in v4 until
+`Product` carries the flag, so any new test would be indistinguishable from the correct-behaviour
+test that already exists. A reflection pin on `Product`'s property names was rejected — it goes red
+when someone adds the property without using it, and would then invite a "deliberate inversion" that
+records defect 7 as fixed while every service sale still deducts stock.
 
 **Files:**
-- Modify: `tests/IndyPOS.MigrationTool.Tests/ProductMigrationTests.cs:52-84`
+- Modify: `tests/IndyPOS.MigrationTool.Tests/ProductMigrationTests.cs:52-84` (delete)
+- Modify: `tests/IndyPOS.Application.Tests/StoreHub/Sales/Commands/CompleteSaleCommandHandlerTests.cs:139-144` (comment only)
 
 **Interfaces:**
 - Consumes: nothing.
 - Produces: nothing consumed by later tasks.
 
-- [ ] **Step 1: Replace the test body**
+- [ ] **Step 1: Delete the migration pin**
 
-Replace the whole of `MigrateProducts_CurrentlyDropsIsTrackable_Defect7` (lines 52-84) with:
+Delete `MigrateProducts_CurrentlyDropsIsTrackable_Defect7` from `ProductMigrationTests.cs` in full —
+lines 52-84, i.e. from the `[Fact]` attribute through the method's closing brace, plus the blank line
+that separated it from the next test. Do not leave a stub or a `[Fact(Skip=...)]`.
+
+- [ ] **Step 2: Comment the 7b trip-wire**
+
+In `tests/IndyPOS.Application.Tests/StoreHub/Sales/Commands/CompleteSaleCommandHandlerTests.cs`,
+inside `HandleAsync_ShouldCreateInventoryMovementsForEachLine`, replace this (currently `:139-141`):
 
 ```csharp
-    [Fact]
-    public async Task MigrateProducts_CurrentlyDropsIsTrackable_Defect7()
-    {
-        // Defect 7: v4's Core.Product has no IsTrackable, so the legacy flag is dropped.
-        // CORRECT: Product carries the flag, and CompleteSaleCommandHandler skips the stock
-        // deduction for a non-trackable product.
-        //
-        // This pin originally asserted the MIGRATION consequence -- that a service line still
-        // produced a stock-deducting Migration:Sale movement. Defect 14 (2026-08-09) removed the
-        // sales replay entirely, so that consequence is gone and the assertion was re-aimed, NOT
-        // repaired. What remains pinned is the LIVE consequence: the flag is still absent from
-        // Product, so a service sold through v4 still deducts stock.
-        //
-        // Structural absence cannot be checked at compile time, so it is checked by reflection --
-        // the same approach defect 8's pin uses below. A fix naming the property anything other
-        // than "IsTrackable" leaves this pin green, so whoever fixes defect 7 must invert it
-        // deliberately rather than rely on it failing.
-        await using var store = await LegacyStoreDatabase.CreateAsync(LegacyStoreShape.GeneralHardware);
-        var builder = await SeedCashierAsync(store);
-        await builder.AddProductAsync(
-            productId: 4242, barcode: "2002500000014", description: "Delivery service",
-            unitPrice: 50m, quantityInStock: 0, category: 25, isTrackable: false,
-            dateCreated: "2024-03-15 09:00:00");
-        await builder.AddInvoiceAsync(1, userId: 1, total: 50m, dateCreated: "2024-03-15 14:30:00");
-        await builder.AddInvoiceLineAsync(
-            invoiceProductId: 1, invoiceId: 1, productId: 4242, barcode: "2002500000014",
-            description: "Delivery service", quantity: 1, unitPrice: 50m, originalUnitPrice: 50m);
-        await builder.AddPaymentAsync(
-            paymentId: 500, invoiceId: 1, paymentTypeId: 1, amount: 50m,
-            dateCreated: "2024-03-15 14:30:00");
-
-        var result = await MigrationScenario.RunAsync(store, _postgres);
-
-        // The run still has to complete for a non-trackable product -- otherwise the reflection
-        // assertion below would pass on a migration that did nothing.
-        result.Products.Migrated.Should().Be(1);
-
-        var productProperties = typeof(IndyPOS.Domain.Entities.Core.Product)
-            .GetProperties().Select(p => p.Name).ToList();
-        productProperties.Should().NotContain("IsTrackable",
-            "defect 7: the flag is dropped, so v4 stock-tracks services it should leave alone");
-    }
+        // Assert
+        capturedMovements.Should().NotBeNull();
+        capturedMovements.Should().HaveCount(2);
 ```
 
-- [ ] **Step 2: Run the test and confirm it passes on unchanged production code**
+with:
+
+```csharp
+        // Assert
+        capturedMovements.Should().NotBeNull();
+
+        // DEFECT 7b -- this is NOT a pinning test. Two ordinary products SHOULD produce two
+        // movements, so the assertion below is correct as it stands.
+        //
+        // It is a trip-wire. v4's Core.Product has no IsTrackable, so CompleteSaleCommandHandler
+        // (:89-100) builds a movement for EVERY line -- including services, which have no stock.
+        // 21/7/1 products across the three real stores are non-trackable, and the migration gives
+        // all 29 of them stock, so the harm starts at their first v4 sale.
+        //
+        // The day Product gains IsTrackable, CreateTestProduct below will not set it and this count
+        // will break. DO NOT repair the number. Add a non-trackable line to this test and assert it
+        // produces NO movement -- that is the assertion defect 7b has been waiting for.
+        //
+        // Defect 7b is deliberately unpinned: "non-trackable" cannot be expressed until the flag
+        // exists, so any pin today would just duplicate this test. See PLAN.md's defect table.
+        capturedMovements.Should().HaveCount(2);
+```
+
+- [ ] **Step 3: Run both affected suites**
 
 ```bash
 dotnet test tests/IndyPOS.MigrationTool.Tests --filter "Defect7"
+dotnet test tests/IndyPOS.Application.Tests --filter "CompleteSaleCommandHandler"
 ```
 
-Expected: PASS. It must pass *before* the replay is deleted — that is the whole point of doing this
-task first.
+Expected: the first now matches only `LegacyStoreDataBuilderTests…_Defect7Addendum` (a
+fixture-fidelity guard that never runs the migrator) and passes. The second passes unchanged — Step 2
+adds only comments. If the Application suite goes red, you edited an assertion; revert and redo.
 
-- [ ] **Step 3: Commit**
+- [ ] **Step 4: Commit**
 
 ```bash
-git add tests/IndyPOS.MigrationTool.Tests/ProductMigrationTests.cs
-git commit -m "test(migration): re-aim defect 7's pin at the flag, not the sale movement"
+git add tests/IndyPOS.MigrationTool.Tests/ProductMigrationTests.cs tests/IndyPOS.Application.Tests/StoreHub/Sales/Commands/CompleteSaleCommandHandlerTests.cs
+git commit -m "test(migration): retire defect 7's migration pin, document 7b at the handler"
 ```
 
 ---
@@ -265,26 +267,48 @@ the pin go red is the proof the fix reaches the behaviour the pin describes.
 
 - [ ] **Step 3: Invert the pin**
 
-In `MigrateProducts_CurrentlyReplaysSalesAgainstCurrentStock_Defect14`, rename the test and replace
-the comment header and the assertion block:
+Replace the whole `MigrateProducts_CurrentlyReplaysSalesAgainstCurrentStock_Defect14` method — from
+its `[Fact]` attribute through its closing brace — with the following. This is the complete final
+method: name, comment, seeding and assertions. Do not merge it by hand with what is there.
 
 ```csharp
     [Fact]
     public async Task MigrateProducts_DoesNotReplaySalesAgainstCurrentStock_Defect14()
     {
-        // Defect 14 (fixed): QuantityInStock is TODAY's stock -- already net of every sale the store
-        // ever made -- so replaying historical invoice lines as stock movements subtracted every
-        // sold unit twice. GeneralHardware netted -400,541 units, 66% of products negative.
-        // The migration now writes ONE movement per product and none for historical lines.
-        // If this test fails with a Migration:Sale movement present, the replay has come back.
-```
+        // Defect 14 (fixed 2026-08-09): QuantityInStock is TODAY's stock -- already net of every
+        // sale the store ever made -- so replaying historical invoice lines as stock movements
+        // subtracted every sold unit twice. Measured before the fix: GeneralHardware netted
+        // -400,541 units with 7,028 of 10,590 products (66%) negative; MimyMart -249,652 with
+        // 2,350 of 6,335 (37%). Product has no stock column: InventoryMovement.cs:6 defines stock
+        // as SUM(QuantityDelta).
+        // The migration now writes ONE movement per product and none for historical lines. If this
+        // test fails with a Migration:Sale movement present, the replay has come back.
+        await using var store = await LegacyStoreDatabase.CreateAsync(LegacyStoreShape.GeneralHardware);
+        var builder = await SeedCashierAsync(store);
+        await builder.AddProductAsync(
+            productId: 10, barcode: "8850001000010", description: "Cement 50kg",
+            unitPrice: 120m, quantityInStock: 20, category: 50, isTrackable: true,
+            dateCreated: "2024-03-15 09:00:00");
+        await builder.AddInvoiceAsync(1, userId: 1, total: 600m, dateCreated: "2024-03-15 14:30:00");
+        await builder.AddInvoiceLineAsync(
+            invoiceProductId: 1, invoiceId: 1, productId: 10, barcode: "8850001000010",
+            description: "Cement 50kg", quantity: 5, unitPrice: 120m, originalUnitPrice: 120m);
+        await builder.AddPaymentAsync(
+            paymentId: 500, invoiceId: 1, paymentTypeId: 1, amount: 600m,
+            dateCreated: "2024-03-15 14:30:00");
 
-and, keeping the seeding identical, replace the three assertion lines with:
+        await MigrationScenario.RunAsync(store, _postgres);
 
-```csharp
+        await using var db = _postgres.CreateDbContext();
+        var movements = await db.InventoryMovements.ToListAsync();
+
         movements.Should().ContainSingle().Which.Reason.Should().Be("Migration:InitialStock");
         movements.Sum(m => m.QuantityDelta).Should().Be(20,
             "migrated stock must equal what the old till displayed");
+
+        // The sale itself is not lost -- it is the invoice line.
+        (await db.InvoiceLines.CountAsync()).Should().Be(1);
+    }
 ```
 
 - [ ] **Step 4: Run the whole migration suite**
@@ -312,7 +336,7 @@ current `> 0` guard drops them to zero silently. Keep the clamp, lose the silenc
 
 **Files:**
 - Modify: `src/IndyPOS.MigrationTool/MigrationResult.cs`
-- Modify: `src/IndyPOS.MigrationTool/Services/SqliteMigrationService.cs:240-251`
+- Modify: `src/IndyPOS.MigrationTool/Services/SqliteMigrationService.cs:235-252`
 - Modify: `tests/IndyPOS.MigrationTool.Tests/ProductMigrationTests.cs`
 
 **Interfaces:**
@@ -326,7 +350,8 @@ current `> 0` guard drops them to zero silently. Keep the clamp, lose the silenc
 
 - [ ] **Step 1: Write the failing test**
 
-Add to `ProductMigrationTests`:
+Add to `ProductMigrationTests`, immediately after
+`MigrateProducts_DoesNotReplaySalesAgainstCurrentStock_Defect14` (the test Task 3 produced):
 
 ```csharp
     [Fact]
@@ -405,7 +430,10 @@ Inside `MigrationResult`, next to the `_errors` field:
 
 - [ ] **Step 4: Change the guard in `MigrateProductsAsync`**
 
-Replace the movement block at `SqliteMigrationService.cs:239-251`:
+Replace **lines 235-252** — the entire `if (!_options.DryRun)` block, from the `if (!_options.DryRun)`
+line through its closing brace, which is exactly the snippet below. Note the "before" includes
+`context.Products.Add(newProduct);` and the outer braces; replacing only the inner `if` would leave a
+nested duplicate and an orphan brace that closes the `try` early.
 
 ```csharp
                 if (!_options.DryRun)
@@ -553,6 +581,9 @@ four years ago.
 
 - [ ] **Step 1: Write the failing test**
 
+Add to `ProductMigrationTests`, immediately after
+`MigrateProducts_WithNegativeLegacyStock_ClampsToZeroAndReportsIt` (the test Task 4 added):
+
 ```csharp
     [Fact]
     public async Task MigrateProducts_InitialStockMovement_IsDatedAtMigrationTime()
@@ -627,7 +658,12 @@ In `MigrateAllAsync`, alongside the existing reset (`:36-37`):
 
 - [ ] **Step 4: Use it for the movement**
 
-In `MigrateProductsAsync`, in the `Migration:InitialStock` initialiser, change:
+⚠️ **`CreatedUtc = createdUtc` appears in five initialisers in this file** (product, invoice, invoice
+line, initial-stock movement, and — until Task 3 — the sale movement). Change **exactly one**: the
+occurrence inside the object initialiser that also contains `Reason = "Migration:InitialStock"`. A
+replace-all silently corrupts invoice dates and re-breaks defects 4 and 11.
+
+In that one initialiser, change:
 
 ```csharp
                             CreatedUtc = createdUtc
@@ -663,6 +699,9 @@ git commit -m "fix(migration): date the initial-stock movement at cutover, not p
 The console strings have no automated cover, and a previous session found two places reporting
 success on a run that wrote nothing. Tests are not enough — run the tool.
 
+⚠️ **Run every command in this task in Git Bash, not PowerShell.** `mkdir -p`, `rm -f`, `/c/...`
+paths, `\` line continuations and the `python -c "..."` block are all bash syntax.
+
 **Files:** none modified.
 
 **Interfaces:** none.
@@ -673,38 +712,58 @@ success on a run that wrote nothing. Tests are not enough — run the tool.
 dotnet test IndyPOS.sln
 ```
 
-Expected: 0 failures. Baseline was 546 pass / 1 skip; this branch adds 3 tests (defect-14 pin, clamp,
-movement date) and modifies 1, so expect **549 pass / 1 skip**. Docker must be running.
+Expected: 0 failures, **549 pass / 1 skip**. Baseline is 546 pass / 1 skip (547 discovered, verified
+with `dotnet test IndyPOS.sln --list-tests`); this branch adds 3 `[Fact]` methods — the defect-14 pin,
+the clamp, the movement date — and rewrites two existing ones without changing the count. Docker must
+be running.
+
+⚠️ `CLAUDE.md` still claims 546 total / 545 pass and "MigrationTool 86". That is **stale** since
+defect 13's fix. Trust the `--list-tests` number over the doc; fixing the doc is not part of this
+plan.
 
 - [ ] **Step 2: Build a fixture from the committed artefact**
 
 ```bash
-mkdir -p /c/temp/defect14 && cd /c/temp/defect14 && rm -f Store.db
+mkdir -p /c/temp/defect14 && rm -f /c/temp/defect14/Store.db
 python -c "
 import sqlite3
 schema = open(r'C:/personal/IndyPOS/tests/IndyPOS.MigrationTool.Tests/LegacySchema/GeneralHardware.sql', encoding='utf-8').read()
-c = sqlite3.connect('Store.db')
+c = sqlite3.connect(r'C:/temp/defect14/Store.db')
 c.executescript(schema)
-c.execute(\"INSERT INTO UserRole (RoleId, RoleName) VALUES (1, 'Admin')\")
-c.execute(\"INSERT INTO [User] (UserId, Username, Password, FirstName, LastName, RoleId, DateCreated) VALUES (1,'cashier','x','Somchai','Jaidee',1,'2024-03-15 09:00:00')\")
+c.execute(\"INSERT INTO UserRole (Id, Role) VALUES (1, 'Admin')\")
+c.execute(\"INSERT INTO [User] (UserId, FirstName, LastName, RoleId, DateCreated) VALUES (1,'Somchai','Jaidee',1,'2024-03-15 09:00:00')\")
+c.execute(\"INSERT INTO UserCredential (UserId, Username, Password, DateCreated) VALUES (1,'cashier','legacy-3des-hash','2024-03-15 09:00:00')\")
 c.execute(\"INSERT INTO InventoryProduct (InventoryProductId, Barcode, Description, Category, QuantityInStock, IsTrackable, DateCreated, UnitPrice) VALUES (10,'8850001000010','Cement 50kg',50,20,1,'2021-06-01 09:00:00',120)\")
 c.execute(\"INSERT INTO InventoryProduct (InventoryProductId, Barcode, Description, Category, QuantityInStock, IsTrackable, DateCreated, UnitPrice) VALUES (11,'8850001000027','Sand 25kg',50,-7,1,'2023-02-14 09:00:00',80)\")
 c.execute(\"INSERT INTO Invoice (InvoiceId, UserId, Total, DateCreated) VALUES (1,1,600,'2024-03-15 14:30:00')\")
 c.execute(\"INSERT INTO InvoiceProduct (InvoiceProductId, InvoiceId, InventoryProductId, Barcode, Description, Quantity, UnitPrice, OriginalUnitPrice) VALUES (1,1,10,'8850001000010','Cement 50kg',5,120,120)\")
 c.execute(\"INSERT INTO Payment (PaymentId, InvoiceId, PaymentTypeId, Amount, DateCreated) VALUES (500,1,1,600,'2024-03-15 14:30:00')\")
 c.commit()
-print('fixture written to', c.execute('PRAGMA database_list').fetchall())
+print('fixture rows:', c.execute('SELECT COUNT(*) FROM InventoryProduct').fetchone())
 "
 ```
 
-If a column in one of those INSERTs does not exist, read the real column list out of
-`GeneralHardware.sql` and correct the INSERT — **never** edit the `.sql`.
+⚠️ **`UserCredential` is a separate table and the third INSERT is not optional.** Legacy `User` has no
+`Username`/`Password` columns, and `UserRole` is `(Id, Role)` — not `(RoleId, RoleName)`. Without the
+credential row, `MigrateUsersAsync` (`SqliteMigrationService.cs:135-140`) skips the user,
+`UserIdMap` is empty, and the invoice gets `Guid.Empty` from the fallback at `:286` — the run still
+reports success while writing a junk `user_id`, which would make Step 3's expected output a lie.
+
+No `PaymentType` rows are needed: `LegacyPaymentTypeMap` is a static dictionary, and there is no FK
+from `payment` to `payment_method`.
+
+If any column still does not exist, read the real column list out of `GeneralHardware.sql` and correct
+the INSERT — **never** edit the `.sql`.
 
 - [ ] **Step 2b: Start Postgres**
 
 ```bash
 docker run -d --name defect14-check -e POSTGRES_PASSWORD=pw -p 55432:5432 postgres:16-alpine
+until docker exec defect14-check pg_isready -U postgres -q; do sleep 1; done
 ```
+
+`docker run -d` returns before the server accepts connections, so without the wait Step 3 usually
+hits connection-refused on the first attempt.
 
 - [ ] **Step 3: Run the migrator**
 
@@ -724,11 +783,16 @@ Expected on screen:
 
 - [ ] **Step 4: Check the stock in Postgres**
 
+The StoreHub schema is **snake_case and singular** — `product`, `inventory_movement`, `invoice_line`,
+with columns `barcode`, `quantity_delta`, `product_id`, `id` (see
+`Persistence/StoreHub/Configurations/*.cs`, each of which calls `ToTable` and `HasColumnName`
+explicitly). Unquoted lowercase identifiers need no escaping:
+
 ```bash
 docker exec defect14-check psql -U postgres -c \
-  "SELECT p.\"Barcode\", COALESCE(SUM(m.\"QuantityDelta\"), 0) AS stock, COUNT(m.*) AS movements
-   FROM \"Products\" p LEFT JOIN \"InventoryMovements\" m ON m.\"ProductId\" = p.\"Id\"
-   GROUP BY p.\"Barcode\" ORDER BY p.\"Barcode\";"
+  "SELECT p.barcode, COALESCE(SUM(m.quantity_delta), 0) AS stock, COUNT(m.id) AS movements
+   FROM product p LEFT JOIN inventory_movement m ON m.product_id = p.id
+   GROUP BY p.barcode ORDER BY p.barcode;"
 ```
 
 Expected exactly:
@@ -741,7 +805,7 @@ Expected exactly:
 20, not 15 — the sale of 5 is not replayed. Also confirm the invoice line survived:
 
 ```bash
-docker exec defect14-check psql -U postgres -c "SELECT COUNT(*) FROM \"InvoiceLines\";"
+docker exec defect14-check psql -U postgres -c "SELECT COUNT(*) FROM invoice_line;"
 ```
 
 Expected: 1. Deleting the movement must not have deleted the line.
@@ -766,20 +830,24 @@ docker rm -f defect14-check
 
 - [ ] **Step 1: Mark defect 14 fixed**
 
-In the defects table, change row 14's Status cell from
-`❌ **new 2026-08-08** — not pinned yet` to `✅ Fixed <commit sha from Task 3>`, and append to its
-Impact cell:
+Row 14 is at `PLAN.md:157`. Change its Status cell from `❌ **new 2026-08-08** — not pinned yet` to
+`✅ Fixed <Task 3 sha> (14b: <Task 4 sha>)` — two SHAs, because the double-count and the negative-stock
+clamp land in different commits. Append to its Impact cell:
 
 ```
 Fixed by removing the sales replay: QuantityInStock is migrated as the single source of stock. Also fixed in the same method (14b): the `> 0` guard silently dropped the 1,535 products already at negative legacy stock to zero -- they are still clamped to zero (QuantityInStock was never strictly maintained, so -3,882 is unrecorded restock, not shelf state) but now reported on `MigrationResult.ClampedStocks` and printed for recount.
 ```
 
-- [ ] **Step 2: Record what happened to defect 7's pin**
+- [ ] **Step 2: Split defect 7 into 7a and 7b**
 
-Append to row 7's Status cell, after `**pinned** \`3ae92f1\``:
+Row 7 is at `PLAN.md:150`. ⚠️ Anchor on the **full** Status cell text
+`❌ **priority raised** — **pinned** \`3ae92f1\`` — the substring `` **pinned** `3ae92f1` `` alone
+also appears in rows 5 and 8, so a naive find/replace hits the wrong row.
+
+Replace that Status cell with:
 
 ```
- — pin re-aimed 2026-08-09: it asserted the migration consequence (a service line producing a `Migration:Sale` movement), which defect 14 removed. It now asserts the live consequence, that `Core.Product` still has no `IsTrackable`. Defect 7 itself is NOT fixed
+❌ **split 2026-08-09.** **7a** (migration replays a service sale as a stock deduction) ✅ closed by defect 14 — the replay is gone. **7b** (live v4 sales deduct stock for services) ❌ **open and deliberately UNPINNED** — see the note below
 ```
 
 - [ ] **Step 3: Add a note under the table**
@@ -787,17 +855,35 @@ Append to row 7's Status cell, after `**pinned** \`3ae92f1\``:
 After the existing "Pinned means..." blockquote, add:
 
 ```markdown
-> **Defect 14 changed what defect 7's pin can observe.** Removing the sales replay deleted the
-> movement defect 7's pin was asserting on. The pin was re-aimed at the surviving half — the flag's
-> absence from `Core.Product` — rather than repaired or deleted. If you fix defect 7, invert that
-> reflection assertion deliberately; it will not fail on its own for a property named anything else.
+> **Defect 7 has no pin, on purpose (Pond, 2026-08-09).** Its pin used to assert that migrating a
+> service line produced a `Migration:Sale` stock movement. Defect 14 deleted that replay, so the pin's
+> subject ceased to exist and the pin was **deleted, not re-aimed**. A replacement asserting by
+> reflection that `Core.Product` has no `IsTrackable` was considered and rejected: it goes red when
+> someone adds the property without using it, and would then invite an "inversion" that records
+> defect 7 as fixed while `CompleteSaleCommandHandler.cs:89-100` still builds a movement for every
+> line. Defect 8's pin gets away with reflection because its defect *is* a structural absence;
+> 7b's harm is behavioural.
+>
+> 7b cannot be pinned honestly today — "non-trackable" cannot be expressed until `Product` carries the
+> flag, so any test would duplicate the correct-behaviour one. It is documented instead, as a
+> commented trip-wire at `CompleteSaleCommandHandlerTests.cs` (`HandleAsync_ShouldCreateInventoryMovementsForEachLine`):
+> when the flag arrives, that test's `HaveCount(2)` breaks, and the comment says to add a
+> non-trackable line expecting **1** movement rather than repair the number.
+>
+> Measured 2026-08-09: all 29 non-trackable products across the three stores have nonzero
+> `QuantityInStock` (mostly a sentinel 1; MimyMart's ice holds 15, 100, 100), so the migration gives
+> them stock and 7b's harm starts at their first v4 sale.
+>
+> A second test still carries defect 7's number and is unaffected by all of this:
+> `LegacyStoreDataBuilderTests…_Defect7Addendum` is a fixture-fidelity guard on SQLite's `DEFAULT 1`
+> and never runs the migrator.
 ```
 
 - [ ] **Step 4: Commit**
 
 ```bash
 git add .planning/indypos-overhaul/PLAN.md
-git commit -m "docs(migration): record defect 14 fixed and defect 7's pin re-aimed"
+git commit -m "docs(migration): record defect 14 fixed and defect 7 split into 7a/7b"
 ```
 
 ---
@@ -807,15 +893,22 @@ git commit -m "docs(migration): record defect 14 fixed and defect 7's pin re-aim
 - `dotnet test IndyPOS.sln` → 549 pass / 1 skip / 0 fail, Docker up.
 - The real run in Task 7 shows stock 20 and 0, one movement and none, one invoice line, and the
   clamp list on screen.
-- `PLAN.md` says defect 14 is fixed and explains defect 7's re-aimed pin.
-- Defects still open afterwards: **5, 6, 7, 8** (all pinned).
+- `PLAN.md` says defect 14 is fixed and explains why defect 7b has no pin.
+- Defects still open afterwards: **5, 6, 8** (pinned) and **7b** (open, deliberately unpinned).
 
 ## Notes for the reviewer
 
-- The only judgement call is **Task 1**. Deleting the sales replay makes defect 7's pin unsatisfiable
-  as written; re-aiming it at the flag's structural absence keeps defect 7 pinned without pretending
-  it was fixed. The alternative — deleting the pin — would lose the record that v4 still stock-tracks
-  services.
+- **Task 1 is the judgement call**, and it was revised after review. The first draft re-aimed defect
+  7's pin at `Core.Product`'s property names by reflection. That pin can flip red when someone adds
+  `IsTrackable` without wiring it into `CompleteSaleCommandHandler` — and its own comment would then
+  invite an inversion recording defect 7 as fixed while every service sale still deducts stock. A pin
+  that can report a false fix is worse than no pin, so it is deleted and 7b is documented at the
+  handler test instead. Pond ruled "no pin is fine, just document it clearly" on 2026-08-09.
 - **Clamping is a data decision, not a bug fix.** Pond chose it over carrying negatives forward,
   because `QuantityInStock` was never strictly maintained. If that call is revisited, only Task 4
   changes.
+- **Task 7 was wrong in its first draft** in two ways that three reviewers caught: the fixture
+  INSERTs used a legacy user schema that does not exist (`UserCredential` is a separate table), and
+  the verification queries used PascalCase table names against a snake_case schema. Both are fixed
+  and verified against the real files — but it is the part of the plan most worth re-checking if it
+  misbehaves, since none of it is covered by a test.
