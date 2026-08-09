@@ -144,27 +144,49 @@ captured field is enough to make the run deterministic and the assertion writabl
 The `Product` row's own `CreatedUtc` / `LastModifiedUtc` keep mapping from the legacy dates. Only the
 movement moves.
 
-## Impact on defect 7's pin — deliberate, not a repair
+## Impact on defect 7 — its pin is deleted and the defect splits
 
 `ProductMigrationTests.cs:52` (`MigrateProducts_CurrentlyDropsIsTrackable_Defect7`) asserts that a
 non-trackable service line still produces **exactly 1** `Migration:Sale` movement of `-1`. Change 1
-makes that count 0, so the pin breaks.
+deletes every such movement, so the pin's subject ceases to exist.
 
-**This does not fix defect 7.** Defect 7 is that v4's `Core.Product` has no `IsTrackable`, so the
-flag is lost. Two consequences follow from it, and only one is resolved here:
+**This does not fix defect 7.** Defect 7 is that v4's `Core.Product` has no `IsTrackable`. Two
+consequences follow, and only one is resolved here, so the defect splits:
 
-| Consequence | After this change |
-|---|---|
-| Migration replays a service sale as a stock deduction | Gone — no sale movements are written at all |
-| Live v4 sales deduct stock for services (`CompleteSaleCommandHandler`) | **Still broken.** The flag is still dropped |
+| | Consequence | After this change |
+|---|---|---|
+| **7a** | Migration replays a service sale as a stock deduction | **Closed.** No sale movements are written at all |
+| **7b** | Live v4 sales deduct stock for services | **Open.** `CompleteSaleCommandHandler.cs:89-100` builds a movement for *every* line; the product is fetched at `:74` only for its name |
 
-So the pin is **re-aimed, not repaired**: rewrite it to assert the structural fact that survives —
-`Core.Product` exposes no `IsTrackable` property — following the reflection pattern defect 8's pin
-already uses (`ProductMigrationTests.cs:116`). Its comment must record that the movement half was
-resolved by defect 14 on 2026-08-09 and that the flag half is what remains pinned.
+### The pin is deleted, not re-aimed
 
-The 29 non-trackable products across the three stores (21 / 7 / 1) are unaffected by the migration
-either way once the replay is gone.
+Re-aiming it by reflection at `Core.Product`'s property names was considered and **rejected**. Such a
+pin flips red when someone adds `IsTrackable` to `Product` without touching
+`CompleteSaleCommandHandler` — and its own comment would then instruct the next person to invert it,
+recording defect 7 as fixed while every service sale still deducts stock. Defect 8's pin gets away
+with reflection because its defect *is* a structural absence; 7b's harm is behavioural, so a pin on a
+property name is a proxy that can report a false fix.
+
+### 7b gets no executable pin — a decision, not an oversight
+
+Ruled by Pond on 2026-08-09. It cannot have an honest one: "non-trackable" cannot be *expressed* in
+v4 until `Product` carries the flag, so any new test would be indistinguishable from the
+correct-behaviour test that already exists. Instead, 7b is documented in two places:
+
+- **`CompleteSaleCommandHandlerTests.cs:139-144`** (`HandleAsync_ShouldCreateInventoryMovementsForEachLine`)
+  gets a comment naming 7b. That test asserts 2 movements for 2 ordinary lines, which is **correct**
+  — it is not a pin. But it *is* a trip-wire: the day `Product` gains `IsTrackable`,
+  `CreateTestProduct` (`:100`) will not set it and `HaveCount(2)` breaks. The comment tells whoever
+  hits it to add a non-trackable line expecting **1** movement, rather than repairing the count.
+- **`PLAN.md`** records 7b as open and explicitly unpinnable, with this reason.
+
+### The 29 non-trackable products still get stock
+
+Measured 2026-08-09: **all 29 have nonzero `QuantityInStock`** — mostly a sentinel `1`, but
+MimyMart's ice products hold 15, 100 and 100. So each still receives one `Migration:InitialStock`
+movement once the replay is gone. That is faithful carry-forward of what the legacy till held and is
+not a new defect, but it does mean the migration leaves services *with* stock, so 7b's live harm
+applies to them from their first v4 sale.
 
 ## Testing
 
@@ -179,7 +201,8 @@ RED first, per the repo convention. Every pin must be watched failing before the
    product with positive stock in the same run must not appear in that list.
 3. **New test for the movement date**: the `Migration:InitialStock` movement's `CreatedUtc` is not
    the product's `DateCreated` (2024-03-15) and falls inside the run window.
-4. **Re-aim defect 7's pin** as described above, in its own commit, with the comment rewritten.
+4. **Delete defect 7's migration pin** and comment the 7b trip-wire, as described above — in its own
+   commit, before change 1, so no commit leaves the suite red.
 5. `MigrateProducts_WithStock_ShouldRecordAnInitialStockMovement` (`:150`) stays as-is and must stay
    green — it asserts `QuantityDelta == 20` with no date assertion.
 6. **Real run.** Build a fixture from the committed `GeneralHardware.sql` artefact, run the tool
@@ -189,8 +212,8 @@ RED first, per the repo convention. Every pin must be watched failing before the
 
 ## Out of scope
 
-- **Defect 7's live half** — the missing `IsTrackable` on `Core.Product`. Needs a schema change and
-  stays pinned.
+- **Defect 7b** — the missing `IsTrackable` on `Core.Product`. Needs a schema change; open and
+  documented rather than pinned, for the reason given above.
 - **Defects 5, 6, 8** — unrelated, still pinned.
 - **A stock check in `MigrationVerifier`.** It has none today, which is part of why this went
   unnoticed. Worth adding, but it is its own change and this fix is verified by tests plus a real
