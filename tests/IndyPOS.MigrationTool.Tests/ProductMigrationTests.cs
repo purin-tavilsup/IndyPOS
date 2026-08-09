@@ -50,40 +50,6 @@ public class ProductMigrationTests : IAsyncLifetime
     }
 
     [Fact]
-    public async Task MigrateProducts_CurrentlyDropsIsTrackable_Defect7()
-    {
-        // Defect 7: v4's Product has no IsTrackable, so the flag is dropped and every sold line
-        // gets a stock-deducting movement -- including services, which have no stock.
-        // CORRECT: a non-trackable product produces NO Migration:Sale inventory movement.
-        // Only 29 products across the three real stores are non-trackable (21 + 7 + 1), and the
-        // legacy sale path already filters on this flag in production.
-        await using var store = await LegacyStoreDatabase.CreateAsync(LegacyStoreShape.GeneralHardware);
-        var builder = await SeedCashierAsync(store);
-        await builder.AddProductAsync(
-            productId: 4242, barcode: "2002500000014", description: "Delivery service",
-            unitPrice: 50m, quantityInStock: 0, category: 25, isTrackable: false,
-            dateCreated: "2024-03-15 09:00:00");
-        await builder.AddInvoiceAsync(1, userId: 1, total: 50m, dateCreated: "2024-03-15 14:30:00");
-        await builder.AddInvoiceLineAsync(
-            invoiceProductId: 1, invoiceId: 1, productId: 4242, barcode: "2002500000014",
-            description: "Delivery service", quantity: 1, unitPrice: 50m, originalUnitPrice: 50m);
-        await builder.AddPaymentAsync(
-            paymentId: 500, invoiceId: 1, paymentTypeId: 1, amount: 50m,
-            dateCreated: "2024-03-15 14:30:00");
-
-        await MigrationScenario.RunAsync(store, _postgres);
-
-        await using var db = _postgres.CreateDbContext();
-        var saleMovements = await db.InventoryMovements
-            .Where(m => m.Reason == "Migration:Sale")
-            .ToListAsync();
-
-        saleMovements.Should().HaveCount(1,
-            "defect 7: a service line still deducts stock, because v4 dropped the flag");
-        saleMovements.Single().QuantityDelta.Should().Be(-1);
-    }
-
-    [Fact]
     public async Task MigrateProducts_CurrentlyPreservesNoLegacyId_Defect8()
     {
         // Defect 8: only StoreUser carries a legacy id (LegacyUserId). Products, invoices, lines
@@ -164,5 +130,124 @@ public class ProductMigrationTests : IAsyncLifetime
             .SingleAsync(m => m.Reason == "Migration:InitialStock");
 
         movement.QuantityDelta.Should().Be(20);
+    }
+
+    [Fact]
+    public async Task MigrateProducts_DoesNotReplaySalesAgainstCurrentStock_Defect14()
+    {
+        // Defect 14 (fixed 2026-08-09): QuantityInStock is TODAY's stock -- already net of every
+        // sale the store ever made -- so replaying historical invoice lines as stock movements
+        // subtracted every sold unit twice. Measured before the fix: GeneralHardware netted
+        // -400,541 units with 7,028 of 10,590 products (66%) negative; MimyMart -249,652 with
+        // 2,350 of 6,335 (37%). Product has no stock column: InventoryMovement.cs:6 defines stock
+        // as SUM(QuantityDelta).
+        // The migration now writes ONE movement per product and none for historical lines. If this
+        // test fails with a Migration:Sale movement present, the replay has come back.
+        await using var store = await LegacyStoreDatabase.CreateAsync(LegacyStoreShape.GeneralHardware);
+        var builder = await SeedCashierAsync(store);
+        await builder.AddProductAsync(
+            productId: 10, barcode: "8850001000010", description: "Cement 50kg",
+            unitPrice: 120m, quantityInStock: 20, category: 50, isTrackable: true,
+            dateCreated: "2024-03-15 09:00:00");
+        await builder.AddInvoiceAsync(1, userId: 1, total: 600m, dateCreated: "2024-03-15 14:30:00");
+        await builder.AddInvoiceLineAsync(
+            invoiceProductId: 1, invoiceId: 1, productId: 10, barcode: "8850001000010",
+            description: "Cement 50kg", quantity: 5, unitPrice: 120m, originalUnitPrice: 120m);
+        await builder.AddPaymentAsync(
+            paymentId: 500, invoiceId: 1, paymentTypeId: 1, amount: 600m,
+            dateCreated: "2024-03-15 14:30:00");
+
+        await MigrationScenario.RunAsync(store, _postgres);
+
+        await using var db = _postgres.CreateDbContext();
+        var movements = await db.InventoryMovements.ToListAsync();
+
+        movements.Should().ContainSingle().Which.Reason.Should().Be("Migration:InitialStock");
+        movements.Sum(m => m.QuantityDelta).Should().Be(20,
+            "migrated stock must equal what the old till displayed");
+
+        // The sale itself is not lost -- it is the invoice line.
+        (await db.InvoiceLines.CountAsync()).Should().Be(1);
+    }
+
+    [Fact]
+    public async Task MigrateProducts_WithNegativeLegacyStock_ClampsToZeroAndReportsIt()
+    {
+        // QuantityInStock was never strictly maintained: restocks often went unrecorded, so 952
+        // GeneralHardware products and 583 MimyMart products sit at negative stock, down to -3,882.
+        // Those are unrecorded restocks, not shelf state, so they are clamped to zero -- but the
+        // clamp is a deliberate data change and must be reported, not silent. The operator needs
+        // the list to drive a recount.
+        await using var store = await LegacyStoreDatabase.CreateAsync(LegacyStoreShape.GeneralHardware);
+        var builder = await SeedCashierAsync(store);
+        await builder.AddProductAsync(
+            productId: 10, barcode: "8850001000010", description: "Cement 50kg",
+            unitPrice: 120m, quantityInStock: -5, category: 50, isTrackable: true,
+            dateCreated: "2024-03-15 09:00:00");
+        await builder.AddProductAsync(
+            productId: 11, barcode: "8850001000027", description: "Sand 25kg",
+            unitPrice: 80m, quantityInStock: 12, category: 50, isTrackable: true,
+            dateCreated: "2024-03-15 09:00:00");
+
+        var result = await MigrationScenario.RunAsync(store, _postgres);
+
+        await using var db = _postgres.CreateDbContext();
+        var movements = await db.InventoryMovements.ToListAsync();
+
+        // Both products must still migrate -- a clamp adjusts stock, it does not skip the product.
+        (await db.Products.CountAsync()).Should().Be(2);
+
+        movements.Should().ContainSingle("the clamped product gets no movement, so its stock is 0");
+        movements.Single().QuantityDelta.Should().Be(12);
+
+        var clamped = result.ClampedStocks.Should().ContainSingle().Subject;
+        clamped.Barcode.Should().Be("8850001000010");
+        clamped.ProductName.Should().Be("Cement 50kg");
+        clamped.LegacyQuantity.Should().Be(-5);
+
+        result.IsSuccess.Should().BeTrue(
+            "a clamp is a reported data decision, not a row failure -- it must not change the outcome");
+    }
+
+    [Fact]
+    public async Task MigrateProducts_InitialStockMovement_IsDatedAtMigrationTime()
+    {
+        // The quantity describes stock OBSERVED AT CUTOVER, not stock held when the product was
+        // first created -- dating it 2021 would have any stock-over-time report claim the store
+        // held today's inventory four years ago. One timestamp is captured per run, so every
+        // product's movement shares it.
+        var startedUtc = DateTime.UtcNow;
+
+        await using var store = await LegacyStoreDatabase.CreateAsync(LegacyStoreShape.GeneralHardware);
+        var builder = await SeedCashierAsync(store);
+        await builder.AddProductAsync(
+            productId: 10, barcode: "8850001000010", description: "Cement 50kg",
+            unitPrice: 120m, quantityInStock: 20, category: 50, isTrackable: true,
+            dateCreated: "2021-06-01 09:00:00");
+        await builder.AddProductAsync(
+            productId: 11, barcode: "8850001000027", description: "Sand 25kg",
+            unitPrice: 80m, quantityInStock: 12, category: 50, isTrackable: true,
+            dateCreated: "2023-02-14 09:00:00");
+
+        await MigrationScenario.RunAsync(store, _postgres);
+
+        await using var db = _postgres.CreateDbContext();
+        var movements = await db.InventoryMovements.ToListAsync();
+        var products = await db.Products.ToListAsync();
+
+        movements.Should().HaveCount(2);
+
+        // The products keep their own legacy dates -- only the movement moves.
+        products.Select(p => p.CreatedUtc.Year).Should().BeEquivalentTo([2021, 2023]);
+
+        foreach (var movement in movements)
+        {
+            movement.CreatedUtc.Should().BeOnOrAfter(startedUtc).And.BeOnOrBefore(DateTime.UtcNow);
+        }
+
+        // Documents the intent that one timestamp is captured per run. It cannot PROVE it: Windows
+        // DateTime.UtcNow has coarse granularity, so an inline UtcNow per product would usually
+        // produce identical values too. The BeOnOrAfter loop above is what actually catches the bug.
+        movements.Select(m => m.CreatedUtc).Distinct().Should().ContainSingle();
     }
 }
