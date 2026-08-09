@@ -205,4 +205,44 @@ public class ProductMigrationTests : IAsyncLifetime
         result.IsSuccess.Should().BeTrue(
             "a clamp is a reported data decision, not a row failure -- it must not change the outcome");
     }
+
+    [Fact]
+    public async Task MigrateProducts_InitialStockMovement_IsDatedAtMigrationTime()
+    {
+        // The quantity describes stock OBSERVED AT CUTOVER, not stock held when the product was
+        // first created -- dating it 2021 would have any stock-over-time report claim the store
+        // held today's inventory four years ago. One timestamp is captured per run, so every
+        // product's movement shares it.
+        var startedUtc = DateTime.UtcNow;
+
+        await using var store = await LegacyStoreDatabase.CreateAsync(LegacyStoreShape.GeneralHardware);
+        var builder = await SeedCashierAsync(store);
+        await builder.AddProductAsync(
+            productId: 10, barcode: "8850001000010", description: "Cement 50kg",
+            unitPrice: 120m, quantityInStock: 20, category: 50, isTrackable: true,
+            dateCreated: "2021-06-01 09:00:00");
+        await builder.AddProductAsync(
+            productId: 11, barcode: "8850001000027", description: "Sand 25kg",
+            unitPrice: 80m, quantityInStock: 12, category: 50, isTrackable: true,
+            dateCreated: "2023-02-14 09:00:00");
+
+        await MigrationScenario.RunAsync(store, _postgres);
+
+        await using var db = _postgres.CreateDbContext();
+        var movements = await db.InventoryMovements.ToListAsync();
+        var products = await db.Products.ToListAsync();
+
+        movements.Should().HaveCount(2);
+
+        // The products keep their own legacy dates -- only the movement moves.
+        products.Select(p => p.CreatedUtc.Year).Should().BeEquivalentTo([2021, 2023]);
+
+        foreach (var movement in movements)
+        {
+            movement.CreatedUtc.Should().BeOnOrAfter(startedUtc).And.BeOnOrBefore(DateTime.UtcNow);
+        }
+
+        movements.Select(m => m.CreatedUtc).Distinct().Should().ContainSingle(
+            "one timestamp is captured per run, not one per product");
+    }
 }
