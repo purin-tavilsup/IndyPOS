@@ -712,10 +712,13 @@ paths, `\` line continuations and the `python -c "..."` block are all bash synta
 dotnet test IndyPOS.sln
 ```
 
-Expected: 0 failures, **549 pass / 1 skip**. Baseline is 546 pass / 1 skip (547 discovered, verified
-with `dotnet test IndyPOS.sln --list-tests`); this branch adds 3 `[Fact]` methods — the defect-14 pin,
-the clamp, the movement date — and rewrites two existing ones without changing the count. Docker must
-be running.
+Expected: 0 failures, **548 pass / 1 skip** (549 discovered). Baseline is 546 pass / 1 skip (547
+discovered, verified with `dotnet test IndyPOS.sln --list-tests`). Net **+2**: Task 2, Task 4 and
+Task 6 each add a `[Fact]`, and Task 1 deletes one. Docker must be running.
+
+⚠️ A root `dotnet test` **exits 1 regardless** — `tests/IndyPOS.Mock` references xunit with no
+runner, so the runner treats it as a test source and the testhost errors. Pre-existing and unrelated;
+judge the run by the per-suite `Passed!` lines, not the exit code.
 
 ⚠️ `CLAUDE.md` still claims 546 total / 545 pass and "MigrationTool 86". That is **stale** since
 defect 13's fix. Trust the `--list-tests` number over the doc; fixing the doc is not part of this
@@ -890,7 +893,7 @@ git commit -m "docs(migration): record defect 14 fixed and defect 7 split into 7
 
 ## Done When
 
-- `dotnet test IndyPOS.sln` → 549 pass / 1 skip / 0 fail, Docker up.
+- `dotnet test IndyPOS.sln` → 548 pass / 1 skip / 0 fail, Docker up.
 - The real run in Task 7 shows stock 20 and 0, one movement and none, one invoice line, and the
   clamp list on screen.
 - `PLAN.md` says defect 14 is fixed and explains why defect 7b has no pin.
