@@ -133,15 +133,16 @@ public class ProductMigrationTests : IAsyncLifetime
     }
 
     [Fact]
-    public async Task MigrateProducts_CurrentlyReplaysSalesAgainstCurrentStock_Defect14()
+    public async Task MigrateProducts_DoesNotReplaySalesAgainstCurrentStock_Defect14()
     {
-        // Defect 14: QuantityInStock is TODAY's stock -- already net of every sale the store ever
-        // made. The migrator writes it as a Migration:InitialStock movement and THEN replays each
-        // historical invoice line as a Migration:Sale, so every sold unit is subtracted twice.
-        // Product has no stock column: InventoryMovement.cs:6 defines stock as SUM(QuantityDelta).
-        // CORRECT: net stock 20 -- exactly what the old till displayed.
-        // Measured on real data: GeneralHardware nets -400,541 units with 7,028 of 10,590 products
-        // (66%) negative; MimyMart -249,652 with 2,350 of 6,335 (37%).
+        // Defect 14 (fixed 2026-08-09): QuantityInStock is TODAY's stock -- already net of every
+        // sale the store ever made -- so replaying historical invoice lines as stock movements
+        // subtracted every sold unit twice. Measured before the fix: GeneralHardware netted
+        // -400,541 units with 7,028 of 10,590 products (66%) negative; MimyMart -249,652 with
+        // 2,350 of 6,335 (37%). Product has no stock column: InventoryMovement.cs:6 defines stock
+        // as SUM(QuantityDelta).
+        // The migration now writes ONE movement per product and none for historical lines. If this
+        // test fails with a Migration:Sale movement present, the replay has come back.
         await using var store = await LegacyStoreDatabase.CreateAsync(LegacyStoreShape.GeneralHardware);
         var builder = await SeedCashierAsync(store);
         await builder.AddProductAsync(
@@ -161,13 +162,11 @@ public class ProductMigrationTests : IAsyncLifetime
         await using var db = _postgres.CreateDbContext();
         var movements = await db.InventoryMovements.ToListAsync();
 
-        // Non-vacuity: naming both movements means this cannot pass on a run that wrote nothing,
-        // and it fails loudly rather than silently when the replay is removed.
-        movements.Should().HaveCount(2);
-        movements.Single(m => m.Reason == "Migration:InitialStock").QuantityDelta.Should().Be(20);
-        movements.Single(m => m.Reason == "Migration:Sale").QuantityDelta.Should().Be(-5);
+        movements.Should().ContainSingle().Which.Reason.Should().Be("Migration:InitialStock");
+        movements.Sum(m => m.QuantityDelta).Should().Be(20,
+            "migrated stock must equal what the old till displayed");
 
-        movements.Sum(m => m.QuantityDelta).Should().Be(15,
-            "defect 14: the sale is replayed against stock that already excludes it. CORRECT is 20");
+        // The sale itself is not lost -- it is the invoice line.
+        (await db.InvoiceLines.CountAsync()).Should().Be(1);
     }
 }
