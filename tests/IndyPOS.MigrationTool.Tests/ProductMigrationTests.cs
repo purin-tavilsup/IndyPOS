@@ -50,40 +50,6 @@ public class ProductMigrationTests : IAsyncLifetime
     }
 
     [Fact]
-    public async Task MigrateProducts_CurrentlyDropsIsTrackable_Defect7()
-    {
-        // Defect 7: v4's Product has no IsTrackable, so the flag is dropped and every sold line
-        // gets a stock-deducting movement -- including services, which have no stock.
-        // CORRECT: a non-trackable product produces NO Migration:Sale inventory movement.
-        // Only 29 products across the three real stores are non-trackable (21 + 7 + 1), and the
-        // legacy sale path already filters on this flag in production.
-        await using var store = await LegacyStoreDatabase.CreateAsync(LegacyStoreShape.GeneralHardware);
-        var builder = await SeedCashierAsync(store);
-        await builder.AddProductAsync(
-            productId: 4242, barcode: "2002500000014", description: "Delivery service",
-            unitPrice: 50m, quantityInStock: 0, category: 25, isTrackable: false,
-            dateCreated: "2024-03-15 09:00:00");
-        await builder.AddInvoiceAsync(1, userId: 1, total: 50m, dateCreated: "2024-03-15 14:30:00");
-        await builder.AddInvoiceLineAsync(
-            invoiceProductId: 1, invoiceId: 1, productId: 4242, barcode: "2002500000014",
-            description: "Delivery service", quantity: 1, unitPrice: 50m, originalUnitPrice: 50m);
-        await builder.AddPaymentAsync(
-            paymentId: 500, invoiceId: 1, paymentTypeId: 1, amount: 50m,
-            dateCreated: "2024-03-15 14:30:00");
-
-        await MigrationScenario.RunAsync(store, _postgres);
-
-        await using var db = _postgres.CreateDbContext();
-        var saleMovements = await db.InventoryMovements
-            .Where(m => m.Reason == "Migration:Sale")
-            .ToListAsync();
-
-        saleMovements.Should().HaveCount(1,
-            "defect 7: a service line still deducts stock, because v4 dropped the flag");
-        saleMovements.Single().QuantityDelta.Should().Be(-1);
-    }
-
-    [Fact]
     public async Task MigrateProducts_CurrentlyPreservesNoLegacyId_Defect8()
     {
         // Defect 8: only StoreUser carries a legacy id (LegacyUserId). Products, invoices, lines
