@@ -1,6 +1,7 @@
 using IndyPOS.MigrationTool.Services;
 using IndyPOS.MigrationTool.Tests.Fixtures;
 using IndyPOS.MigrationTool.Tests.Tools;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging.Abstractions;
 
 namespace IndyPOS.MigrationTool.Tests;
@@ -184,6 +185,98 @@ public class MigrationVerifierTests : IAsyncLifetime
         result.Checks.First(c => c.EntityName == "Users").PostgresCount.Should().Be(4);
         result.Checks.First(c => c.EntityName == "Products").PostgresCount.Should().Be(12);
         result.Checks.First(c => c.EntityName == "Invoices").PostgresCount.Should().Be(25);
+    }
+
+    [Fact]
+    public async Task VerifyAsync_Stock_MatchesLegacyQuantityPerProduct()
+    {
+        // Defect 14 went unnoticed because every existing check reconciles counts and revenue, and
+        // all of them passed against a store netting -400,541 units. This is the check that would
+        // have caught it: legacy QuantityInStock vs SUM(QuantityDelta) of what the migration wrote.
+        await SeedManyAsync(userCount: 2, productCount: 10, invoiceCount: 20);
+
+        var options = CreateOptions();
+        await new SqliteMigrationService(options, NullLogger<SqliteMigrationService>.Instance)
+            .MigrateAllAsync();
+
+        var verifier = new MigrationVerifier(options, NullLogger<MigrationVerifier>.Instance);
+        var result = await verifier.VerifyAsync();
+
+        var stockCheck = result.Checks.First(c => c.EntityName == "Stock (units)");
+        stockCheck.IsValid.Should().BeTrue();
+
+        // 10 products at 50 each. The 20 invoices selling one unit apiece must NOT be deducted --
+        // QuantityInStock already excludes them.
+        stockCheck.SqliteCount.Should().Be(500);
+        stockCheck.PostgresCount.Should().Be(500);
+        result.IsValid.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task VerifyAsync_WhenMigratedStockIsWrong_ShouldFailAndNameTheProduct()
+    {
+        // Non-vacuity: proves the stock check can actually fail. Without this, a check that always
+        // agreed with itself would look identical to a passing one -- the trap that let defect 1's
+        // scrambled payment mapping reconcile perfectly.
+        await SeedManyAsync(userCount: 1, productCount: 3, invoiceCount: 0);
+
+        var options = CreateOptions();
+        await new SqliteMigrationService(options, NullLogger<SqliteMigrationService>.Instance)
+            .MigrateAllAsync();
+
+        // Skew exactly one product's stock, the way a replayed sale used to.
+        await using (var db = _postgres.CreateDbContext())
+        {
+            var product = await db.Products.FirstAsync(p => p.Barcode == "8850001000002");
+            db.InventoryMovements.Add(new IndyPOS.Domain.Entities.Core.InventoryMovement
+            {
+                Id = Guid.NewGuid(),
+                StoreId = MigrationScenario.StoreId,
+                ProductId = product.Id,
+                QuantityDelta = -7,
+                Reason = "Migration:Sale",
+                CreatedUtc = DateTime.UtcNow
+            });
+            await db.SaveChangesAsync();
+        }
+
+        var verifier = new MigrationVerifier(options, NullLogger<MigrationVerifier>.Instance);
+        var result = await verifier.VerifyAsync();
+
+        result.IsValid.Should().BeFalse();
+        result.Checks.First(c => c.EntityName == "Stock (units)").IsValid.Should().BeFalse();
+        result.Errors.Should().Contain(e => e.Contains("8850001000002: expected 50, migrated 43"),
+            "the operator needs the barcode and both figures, not just a store-wide total");
+    }
+
+    [Fact]
+    public async Task VerifyAsync_WithNegativeLegacyStock_ExpectsZeroNotTheNegative()
+    {
+        // The migrator clamps negative legacy stock to zero (defect 14b). The verifier must agree
+        // with that decision, or every one of the 1,535 real clamped products reports a mismatch.
+        var builder = new LegacyStoreDataBuilder(_store);
+        await builder.AddPaymentTypeLookupAsync();
+        await builder.AddUserAsync(1, "cashier", "Somchai", "Jaidee", 1, "2024-03-15 09:00:00");
+        await builder.AddProductAsync(
+            productId: 1, barcode: "8850001000010", description: "Cement 50kg",
+            unitPrice: 120m, quantityInStock: -5, category: 50, isTrackable: true,
+            dateCreated: "2024-03-15 09:00:00");
+        await builder.AddProductAsync(
+            productId: 2, barcode: "8850001000027", description: "Sand 25kg",
+            unitPrice: 80m, quantityInStock: 12, category: 50, isTrackable: true,
+            dateCreated: "2024-03-15 09:00:00");
+
+        var options = CreateOptions();
+        await new SqliteMigrationService(options, NullLogger<SqliteMigrationService>.Instance)
+            .MigrateAllAsync();
+
+        var verifier = new MigrationVerifier(options, NullLogger<MigrationVerifier>.Instance);
+        var result = await verifier.VerifyAsync();
+
+        var stockCheck = result.Checks.First(c => c.EntityName == "Stock (units)");
+        stockCheck.SqliteCount.Should().Be(12, "the -5 is expected as 0, not as -5");
+        stockCheck.PostgresCount.Should().Be(12);
+        stockCheck.IsValid.Should().BeTrue();
     }
 
     private MigrationOptions CreateOptions()

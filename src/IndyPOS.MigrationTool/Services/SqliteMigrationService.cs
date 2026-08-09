@@ -14,6 +14,9 @@ namespace IndyPOS.MigrationTool.Services;
 
 public class SqliteMigrationService
 {
+    /// <summary>The only movement reason the migration writes.</summary>
+    private const string InitialStockReason = "Migration:InitialStock";
+
     private readonly MigrationOptions _options;
     private readonly ILogger<SqliteMigrationService> _logger;
     private MigrationResult _result = new();
@@ -265,7 +268,7 @@ public class SqliteMigrationService
                             StoreId = _options.StoreId,
                             ProductId = newProduct.Id,
                             QuantityDelta = (int)product.QuantityInStock,
-                            Reason = "Migration:InitialStock",
+                            Reason = InitialStockReason,
                             CreatedUtc = _migrationStartedUtc
                         });
                     }
