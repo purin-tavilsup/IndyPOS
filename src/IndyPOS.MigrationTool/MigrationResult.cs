@@ -22,6 +22,12 @@ public enum MigrationOutcome
     Aborted
 }
 
+/// <summary>
+/// A product whose legacy <c>QuantityInStock</c> was negative and was migrated as zero. Unrecorded
+/// restocks, not shelf state -- 1,535 products across the two large stores, down to -3,882.
+/// </summary>
+public sealed record ClampedStock(string Barcode, string ProductName, int LegacyQuantity);
+
 public class MigrationResult
 {
     public EntityMigrationResult Users { get; set; } = new();
@@ -42,6 +48,19 @@ public class MigrationResult
 
     /// <summary>Phases that failed as a whole. Non-empty means nothing was persisted.</summary>
     public List<MigrationPhaseFailure> PhaseFailures { get; } = [];
+
+    private readonly List<ClampedStock> _clampedStocks = [];
+
+    /// <summary>
+    /// Products whose negative legacy stock was migrated as zero. Deliberately UNCAPPED, unlike
+    /// <see cref="AddError"/>: error strings are capped because one phase failure can produce an
+    /// error per invoice line (325,780 on real data), while clamps are bounded by the product count.
+    /// This is not an error -- <see cref="Outcome"/> is unaffected and no row failed.
+    /// </summary>
+    public IReadOnlyList<ClampedStock> ClampedStocks => _clampedStocks;
+
+    public void AddClampedStock(string barcode, string productName, int legacyQuantity) =>
+        _clampedStocks.Add(new ClampedStock(barcode, productName, legacyQuantity));
 
     public MigrationOutcome Outcome =>
         PhaseFailures.Count > 0 ? MigrationOutcome.Aborted :
