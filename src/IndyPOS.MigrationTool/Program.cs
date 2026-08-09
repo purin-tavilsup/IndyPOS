@@ -249,7 +249,15 @@ static void DisplayVerificationResults(VerificationResult result)
     foreach (var check in result.Checks)
     {
         var status = check.IsValid ? "[green]✓[/]" : "[red]✗[/]";
-        table.AddRow(check.EntityName, check.SqliteCount.ToString(), check.PostgresCount.ToString(), status);
+
+        // EntityName must be escaped: the per-method checks are named "Payments [Cash]", and
+        // AddRow parses its arguments as markup, so an unescaped name threw "malformed markup tag"
+        // and took the whole verify command down for any store that had payments at all.
+        table.AddRow(
+            check.EntityName.EscapeMarkup(),
+            check.SqliteCount.ToString(),
+            check.PostgresCount.ToString(),
+            status);
     }
 
     AnsiConsole.Write(table);
@@ -263,7 +271,8 @@ static void DisplayVerificationResults(VerificationResult result)
         AnsiConsole.MarkupLine("\n[red]✗ Migration verification failed[/]");
         foreach (var error in result.Errors)
         {
-            AnsiConsole.MarkupLine($"  [red]•[/] {error}");
+            // Errors carry barcodes and payment-method codes in brackets -- same trap as above.
+            AnsiConsole.MarkupLine($"  [red]•[/] {error.EscapeMarkup()}");
         }
     }
 }

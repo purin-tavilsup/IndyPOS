@@ -9,6 +9,11 @@ namespace IndyPOS.MigrationTool.Services;
 
 public class MigrationVerifier
 {
+    private const string StockCheckName = "Stock (units)";
+
+    /// <summary>A store can have thousands of products; the count stays exact, the listing does not.</summary>
+    private const int MaxStockMismatchesReported = 10;
+
     private readonly MigrationOptions _options;
     private readonly ILogger<MigrationVerifier> _logger;
 
@@ -73,6 +78,11 @@ public class MigrationVerifier
         // turnover attributed to the wrong method, with every aggregate check still green.
         await VerifyPaymentsByMethodAsync(sqliteConnection, context, result, ct);
 
+        // Verify STOCK per product. Every other check here is a count or a total, and defect 14 --
+        // which left GeneralHardware at -400,541 units, 66% of products negative -- passed all of
+        // them. Stock was the one thing nothing looked at.
+        await VerifyStockAsync(sqliteConnection, context, result, ct);
+
         // Verify total amounts match (within tolerance)
         var sqliteTotalAmount = await sqliteConnection.ExecuteScalarAsync<decimal>(
             "SELECT COALESCE(SUM(Total), 0) FROM Invoice");
@@ -93,10 +103,11 @@ public class MigrationVerifier
             result.Errors.Add($"Revenue mismatch: SQLite={sqliteTotalAmount:C}, PostgreSQL={pgTotalAmount:C}, Diff={amountDifference:C}");
         }
 
-        // Add errors for failed checks
+        // Add errors for failed checks. Total Revenue and Stock report their own richer errors --
+        // a bare "SQLite has X, PostgreSQL has Y" would restate them less usefully.
         foreach (var check in result.Checks.Where(c => !c.IsValid))
         {
-            if (check.EntityName != "Total Revenue")
+            if (check.EntityName is not ("Total Revenue" or StockCheckName))
             {
                 result.Errors.Add($"{check.EntityName}: SQLite has {check.SqliteCount}, PostgreSQL has {check.PostgresCount}");
             }
@@ -104,6 +115,82 @@ public class MigrationVerifier
 
         _logger.LogInformation("Verification completed. Valid: {IsValid}", result.IsValid);
         return result;
+    }
+
+    /// <summary>
+    /// Compares legacy <c>QuantityInStock</c> against <c>SUM(QuantityDelta)</c> of the movements the
+    /// migration wrote, PER PRODUCT. Per product matters: defect 14 subtracted every sold unit a
+    /// second time, and a store-wide total would have to be compared against a number nothing else
+    /// computes, so the error would still hide.
+    /// </summary>
+    /// <remarks>
+    /// It sums EVERY movement for the product, deliberately not just the migration's own
+    /// <c>Migration:InitialStock</c> rows. Filtering by reason was tried and rejected: defect 14's
+    /// harm was the EXTRA <c>Migration:Sale</c> rows, so a reason-filtered sum ignores exactly the
+    /// rows that made stock wrong and reports green. Stock is <c>SUM(QuantityDelta)</c>
+    /// (<c>InventoryMovement.cs:6</c>) and this must check the same number the till displays.
+    ///
+    /// The consequence is that this check is only meaningful immediately after a migration -- once
+    /// the till starts selling, real movements legitimately move stock away from the legacy figure.
+    ///
+    /// Negative legacy stock is expected as ZERO, matching the migrator's clamp (defect 14b).
+    /// </remarks>
+    private async Task VerifyStockAsync(
+        SQLiteConnection sqlite, StoreHubDbContext context, VerificationResult result, CancellationToken ct)
+    {
+        var expected = (await sqlite.QueryAsync<(string Barcode, long Quantity)>(
+                "SELECT Barcode, MAX(QuantityInStock, 0) AS Quantity FROM InventoryProduct"))
+            .ToDictionary(row => row.Barcode, row => (int)row.Quantity);
+
+        var actual = (await context.Products
+                .Where(p => p.StoreId == _options.StoreId)
+                .Select(p => new
+                {
+                    p.Barcode,
+                    Quantity = p.InventoryMovements.Sum(m => (int?)m.QuantityDelta) ?? 0
+                })
+                .ToListAsync(ct))
+            .ToDictionary(row => row.Barcode, row => row.Quantity);
+
+        var mismatches = new List<string>();
+        var expectedUnits = 0;
+        var actualUnits = 0;
+
+        foreach (var (barcode, want) in expected)
+        {
+            // A product missing from PostgreSQL scores 0 rather than being skipped: "not migrated"
+            // is a stock failure too, not an absence of evidence.
+            var got = actual.GetValueOrDefault(barcode);
+            expectedUnits += want;
+            actualUnits += got;
+
+            if (got != want)
+            {
+                mismatches.Add($"{barcode}: expected {want}, migrated {got}");
+            }
+        }
+
+        result.Checks.Add(new VerificationCheck(
+            StockCheckName, expectedUnits, actualUnits, mismatches.Count == 0));
+
+        if (mismatches.Count == 0)
+        {
+            return;
+        }
+
+        result.Errors.Add(
+            $"Stock mismatch on {mismatches.Count} product(s). Legacy QuantityInStock must equal " +
+            "SUM(QuantityDelta) after migration, and negative legacy stock is expected as 0.");
+
+        foreach (var mismatch in mismatches.Take(MaxStockMismatchesReported))
+        {
+            result.Errors.Add($"  {mismatch}");
+        }
+
+        if (mismatches.Count > MaxStockMismatchesReported)
+        {
+            result.Errors.Add($"  ... and {mismatches.Count - MaxStockMismatchesReported} more");
+        }
     }
 
     /// <summary>
