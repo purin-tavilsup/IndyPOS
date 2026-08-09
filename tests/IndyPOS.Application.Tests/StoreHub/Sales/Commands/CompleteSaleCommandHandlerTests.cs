@@ -138,6 +138,21 @@ public class CompleteSaleCommandHandlerTests
 
         // Assert
         capturedMovements.Should().NotBeNull();
+
+        // DEFECT 7b -- this is NOT a pinning test. Two ordinary products SHOULD produce two
+        // movements, so the assertion below is correct as it stands.
+        //
+        // It is a trip-wire. v4's Core.Product has no IsTrackable, so CompleteSaleCommandHandler
+        // (:89-100) builds a movement for EVERY line -- including services, which have no stock.
+        // 21/7/1 products across the three real stores are non-trackable, and the migration gives
+        // all 29 of them stock, so the harm starts at their first v4 sale.
+        //
+        // The day Product gains IsTrackable, CreateTestProduct below will not set it and this count
+        // will break. DO NOT repair the number. Add a non-trackable line to this test and assert it
+        // produces NO movement -- that is the assertion defect 7b has been waiting for.
+        //
+        // Defect 7b is deliberately unpinned: "non-trackable" cannot be expressed until the flag
+        // exists, so any pin today would just duplicate this test. See PLAN.md's defect table.
         capturedMovements.Should().HaveCount(2);
         capturedMovements![0].QuantityDelta.Should().Be(-3); // Negative for sale
         capturedMovements![1].QuantityDelta.Should().Be(-1);
