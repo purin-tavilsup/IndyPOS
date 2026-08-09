@@ -330,17 +330,10 @@ public class SqliteMigrationService
                             CreatedUtc = createdUtc
                         });
 
-                        // Create inventory movement for sale
-                        context.InventoryMovements.Add(new InventoryMovement
-                        {
-                            Id = Guid.NewGuid(),
-                            StoreId = _options.StoreId,
-                            ProductId = productId,
-                            QuantityDelta = -(int)line.Quantity,
-                            Reason = "Migration:Sale",
-                            ReferenceId = newInvoice.Id,
-                            CreatedUtc = createdUtc
-                        });
+                        // Defect 14: NO inventory movement for a historical sale. The product's
+                        // QuantityInStock is today's stock, already net of every sale, so replaying
+                        // lines here subtracts each sold unit a second time. The sale itself is not
+                        // lost -- it is the InvoiceLine written above.
                     }
                 }
 
