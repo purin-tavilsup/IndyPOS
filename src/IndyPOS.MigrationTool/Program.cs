@@ -141,9 +141,15 @@ rootCommand.SetHandler(async (context) =>
                 return await migrationService.MigrateAllAsync();
             });
 
+        // Written before the summary so the summary can print where it went. The clamp list is the
+        // only mitigating control for a deliberate data change on real products, and console output
+        // alone cannot carry it -- logging is console-only and the run happens inside a live
+        // spinner region, so per-product warnings scroll away.
+        var clampedReportPath = WriteClampedStockReport(result, sqliteFile);
+
         // Display results
         AnsiConsole.WriteLine();
-        DisplayResults(result);
+        DisplayResults(result, clampedReportPath);
 
         // Cloud sync if configured
         if (!string.IsNullOrEmpty(cloudApi) && !string.IsNullOrEmpty(clientId) && result.IsSuccess && !dryRun)
@@ -263,7 +269,45 @@ static void DisplayVerificationResults(VerificationResult result)
 }
 
 // Helper methods
-static void DisplayResults(MigrationResult result)
+
+/// <summary>
+/// Writes every clamped product to a CSV beside the legacy database, and returns its path.
+/// Returns null when there is nothing to report, or when the file could not be written -- a failed
+/// report must never fail a migration that otherwise succeeded.
+/// </summary>
+static string? WriteClampedStockReport(MigrationResult result, FileInfo sqliteFile)
+{
+    if (result.ClampedStocks.Count == 0)
+    {
+        return null;
+    }
+
+    var directory = sqliteFile.DirectoryName ?? Directory.GetCurrentDirectory();
+    var path = Path.Combine(
+        directory, $"clamped-stock-{DateTime.Now:yyyyMMdd-HHmmss}.csv");
+
+    try
+    {
+        var lines = new List<string> { "Barcode,ProductName,LegacyQuantity" };
+        lines.AddRange(result.ClampedStocks.Select(clamped =>
+            $"{CsvField(clamped.Barcode)},{CsvField(clamped.ProductName)},{clamped.LegacyQuantity}"));
+
+        File.WriteAllLines(path, lines, System.Text.Encoding.UTF8);
+        return path;
+    }
+    catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+    {
+        AnsiConsole.MarkupLine(
+            $"[yellow]Could not write the clamped-stock report to {path.EscapeMarkup()}: " +
+            $"{ex.Message.EscapeMarkup()}[/]");
+        return null;
+    }
+}
+
+/// <summary>Quotes a CSV field. Product names are free text and routinely contain commas.</summary>
+static string CsvField(string value) => $"\"{value.Replace("\"", "\"\"")}\"";
+
+static void DisplayResults(MigrationResult result, string? clampedReportPath = null)
 {
     // On an aborted run the "Migrated" numbers describe work that was staged in memory and thrown
     // away. The banner below says so, but the table is printed FIRST and must not read as "these
@@ -313,22 +357,30 @@ static void DisplayResults(MigrationResult result)
     // printed before the table covers this list too.
     if (result.ClampedStocks.Count > 0)
     {
+        // "would be" on an aborted run: nothing was written, so the clamp has not happened yet.
+        var verb = aborted ? "would be migrated as 0" : "were migrated as 0";
         AnsiConsole.MarkupLine(
             $"\n[yellow]{result.ClampedStocks.Count} product(s) had negative stock in the legacy " +
-            "database and were migrated as 0. These need a physical recount:[/]");
+            $"database and {verb}. These need a physical recount:[/]");
 
         foreach (var clamped in result.ClampedStocks.Take(10))
         {
             AnsiConsole.MarkupLine(
-                $"  [yellow]•[/] {clamped.Barcode} {clamped.ProductName.EscapeMarkup()} " +
+                $"  [yellow]•[/] {clamped.Barcode.EscapeMarkup()} {clamped.ProductName.EscapeMarkup()} " +
                 $"([red]{clamped.LegacyQuantity}[/])");
         }
 
         if (result.ClampedStocks.Count > 10)
         {
             AnsiConsole.MarkupLine(
-                $"  [grey]... and {result.ClampedStocks.Count - 10} more (see the log for all)[/]");
+                $"  [grey]... and {result.ClampedStocks.Count - 10} more[/]");
         }
+
+        // The full list must be reachable: console-only logging inside a spinner cannot carry it.
+        AnsiConsole.MarkupLine(clampedReportPath is null
+            ? "  [red]The full list could not be written to a file -- copy the above before " +
+              "closing this window.[/]"
+            : $"  [grey]Full list: {clampedReportPath.EscapeMarkup()}[/]");
     }
 
     switch (result.Outcome)

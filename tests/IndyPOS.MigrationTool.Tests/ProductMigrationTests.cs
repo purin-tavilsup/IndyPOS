@@ -194,6 +194,9 @@ public class ProductMigrationTests : IAsyncLifetime
         await using var db = _postgres.CreateDbContext();
         var movements = await db.InventoryMovements.ToListAsync();
 
+        // Both products must still migrate -- a clamp adjusts stock, it does not skip the product.
+        (await db.Products.CountAsync()).Should().Be(2);
+
         movements.Should().ContainSingle("the clamped product gets no movement, so its stock is 0");
         movements.Single().QuantityDelta.Should().Be(12);
 
@@ -242,7 +245,9 @@ public class ProductMigrationTests : IAsyncLifetime
             movement.CreatedUtc.Should().BeOnOrAfter(startedUtc).And.BeOnOrBefore(DateTime.UtcNow);
         }
 
-        movements.Select(m => m.CreatedUtc).Distinct().Should().ContainSingle(
-            "one timestamp is captured per run, not one per product");
+        // Documents the intent that one timestamp is captured per run. It cannot PROVE it: Windows
+        // DateTime.UtcNow has coarse granularity, so an inline UtcNow per product would usually
+        // produce identical values too. The BeOnOrAfter loop above is what actually catches the bug.
+        movements.Select(m => m.CreatedUtc).Distinct().Should().ContainSingle();
     }
 }

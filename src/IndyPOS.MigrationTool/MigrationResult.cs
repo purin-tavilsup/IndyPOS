@@ -42,14 +42,13 @@ public class MigrationResult
     private readonly List<string> _errors = [];
     private readonly Dictionary<string, int> _errorCountByPhase = [];
     private readonly Dictionary<string, int> _suppressionNoteIndexByPhase = [];
+    private readonly List<ClampedStock> _clampedStocks = [];
 
     /// <summary>Read-only so every write goes through <see cref="AddError"/> and stays bounded.</summary>
     public IReadOnlyList<string> Errors => _errors;
 
     /// <summary>Phases that failed as a whole. Non-empty means nothing was persisted.</summary>
     public List<MigrationPhaseFailure> PhaseFailures { get; } = [];
-
-    private readonly List<ClampedStock> _clampedStocks = [];
 
     /// <summary>
     /// Products whose negative legacy stock was migrated as zero. Deliberately UNCAPPED, unlike
