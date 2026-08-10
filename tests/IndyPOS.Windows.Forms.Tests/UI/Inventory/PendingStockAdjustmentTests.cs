@@ -72,4 +72,45 @@ public class PendingStockAdjustmentTests
         adjustment.Delta.Should()
                         .Be(-5);
     }
+
+    [Fact]
+    public void RebaseToDisplayedQuantity_AfterIncrease_ShouldReportNoChange()
+    {
+        // Simulates a failed AdjustQuantityAsync call: a blind re-Save must not resend the
+        // same delta, since the request may already have landed on the server.
+        var adjustment = new PendingStockAdjustment(startingQuantity: 10);
+        adjustment.Increase(5);
+
+        adjustment.RebaseToDisplayedQuantity();
+
+        adjustment.Delta.Should()
+                        .Be(0);
+        adjustment.HasChange.Should()
+                            .BeFalse();
+    }
+
+    [Fact]
+    public void RebaseToDisplayedQuantity_ShouldNotChangeTheDisplayedQuantity()
+    {
+        var adjustment = new PendingStockAdjustment(startingQuantity: 10);
+        adjustment.Increase(5);
+
+        adjustment.RebaseToDisplayedQuantity();
+
+        adjustment.DisplayedQuantity.Should()
+                                    .Be(15);
+    }
+
+    [Fact]
+    public void Increase_AfterRebaseToDisplayedQuantity_ShouldAccumulateFromTheNewBaseline()
+    {
+        var adjustment = new PendingStockAdjustment(startingQuantity: 10);
+        adjustment.Increase(5);
+        adjustment.RebaseToDisplayedQuantity();
+
+        adjustment.Increase(3);
+
+        adjustment.Delta.Should()
+                        .Be(3);
+    }
 }
