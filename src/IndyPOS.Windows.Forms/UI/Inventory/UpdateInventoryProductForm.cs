@@ -134,9 +134,15 @@ public partial class UpdateInventoryProductForm : Form
 		if (_product is null || _stockAdjustment is null || !ValidateProductEntry())
 			return;
 
+		// A stock change follows in its own event below - suppress this call's refresh so
+		// the grid settles once, from the adjustment, rather than from two whole-store stock
+		// fetches racing each other.
+		var hasStockChange = _stockAdjustment.HasChange;
+
 		try
 		{
-			await _inventoryProductService.UpdateAsync(CreateRequestForUpdateProduct(_product));
+			await _inventoryProductService.UpdateAsync(
+				CreateRequestForUpdateProduct(_product), publishUpdatedEvent: !hasStockChange);
 		}
 		catch (Exception ex)
 		{

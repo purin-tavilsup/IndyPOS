@@ -16,7 +16,13 @@ public interface IInventoryProductService
     /// <summary>
     /// Update an existing inventory product.
     /// </summary>
-    Task<InventoryProductDto> UpdateAsync(UpdateInventoryProductRequest request, CancellationToken cancellationToken = default);
+    /// <param name="publishUpdatedEvent">
+    /// Whether to publish <c>InventoryProductUpdatedEvent</c> for this call. Pass false when the
+    /// caller is about to follow this update with <see cref="AdjustQuantityAsync"/> in the same
+    /// save, so the UI refreshes once - from the adjustment - instead of twice from two
+    /// concurrent whole-store stock fetches racing each other.
+    /// </param>
+    Task UpdateAsync(UpdateInventoryProductRequest request, bool publishUpdatedEvent = true, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Soft delete an inventory product (sets IsActive = false).
@@ -25,9 +31,8 @@ public interface IInventoryProductService
 
     /// <summary>
     /// Adjust product stock by a signed delta via inventory movement.
-    /// Returns the product with its balance after the movement.
     /// </summary>
-    Task<InventoryProductDto> AdjustQuantityAsync(Guid productId, int delta, string reason, CancellationToken cancellationToken = default);
+    Task AdjustQuantityAsync(Guid productId, int delta, string reason, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Generate the next available barcode for the store.
