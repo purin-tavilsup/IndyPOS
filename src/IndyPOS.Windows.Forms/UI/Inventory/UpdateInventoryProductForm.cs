@@ -137,22 +137,42 @@ public partial class UpdateInventoryProductForm : Form
 		try
 		{
 			await _inventoryProductService.UpdateAsync(CreateRequestForUpdateProduct(_product));
-
-			// Stock is a separate concern from the product record: it is a movement, not
-			// a column. UpdateAsync has never carried it - the typed quantity used to be
-			// parsed and silently dropped.
-			if (_stockAdjustment.HasChange)
-			{
-				await _inventoryProductService.AdjustQuantityAsync(
-					_product.Id, _stockAdjustment.Delta, "แก้ไขจำนวนสินค้า");
-			}
-
-			Close();
 		}
 		catch (Exception ex)
 		{
 			_messageForm.ShowDialog($"เกิดความผิดพลาดในขณะที่กำลังอัพเดทสินค้า Error: {ex.Message}", "เกิดความผิดพลาดในขณะที่กำลังอัพเดทสินค้า");
+			return;
 		}
+
+		// Stock is a separate concern from the product record: it is a movement, not
+		// a column. UpdateAsync has never carried it - the typed quantity used to be
+		// parsed and silently dropped. It gets its own try/catch, separate from the update
+		// above, because the two calls can fail independently and the operator needs to
+		// know which half failed - "click Save again" and "go fix the quantity" are
+		// different instructions.
+		if (_stockAdjustment.HasChange)
+		{
+			try
+			{
+				await _inventoryProductService.AdjustQuantityAsync(
+					_product.Id, _stockAdjustment.Delta, "แก้ไขจำนวนสินค้า");
+			}
+			catch (Exception ex)
+			{
+				// The endpoint is not idempotent, so a blind re-Save must not resend this
+				// delta - the request may already have landed even though we never saw the
+				// response. Rebase to zero rather than retry: the operator has just been
+				// told to check the quantity, so re-entering it is a deliberate act, not a
+				// silent double-apply.
+				_stockAdjustment.RebaseToDisplayedQuantity();
+				_messageForm.ShowDialog(
+					$"บันทึกข้อมูลสินค้าเรียบร้อยแล้ว แต่ไม่สามารถปรับจำนวนสินค้าได้ กรุณาตรวจสอบจำนวนสินค้าและลองใหม่อีกครั้ง Error: {ex.Message}",
+					"ปรับจำนวนสินค้าไม่สำเร็จ");
+				return;
+			}
+		}
+
+		Close();
 	}
 
 	private UpdateInventoryProductRequest CreateRequestForUpdateProduct(InventoryProductDto product)
