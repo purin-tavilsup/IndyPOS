@@ -14,6 +14,7 @@ public partial class UpdateInventoryProductForm : Form
 	private readonly IStoreHubClient _storeHubClient;
 	private readonly MessageForm _messageForm;
 	private InventoryProductDto? _product;
+	private PendingStockAdjustment? _stockAdjustment;
 
 	private readonly ProductCategoryPicker _categoryPicker;
 
@@ -68,7 +69,8 @@ public partial class UpdateInventoryProductForm : Form
 		}
 		
 		DescriptionTextBox.Texts = _product.Description;
-		QuantityLabel.Text = $"{_product.QuantityInStock}";
+		_stockAdjustment = new PendingStockAdjustment(_product.QuantityInStock);
+		QuantityLabel.Text = $"{_stockAdjustment.DisplayedQuantity}";
 		UnitPriceTextBox.Texts = $"{_product.UnitPrice:N}";
 		// An existing product may sit in a category this store no longer offers; show its label
 		// rather than a blank, so editing an unrelated field does not silently retype it.
@@ -129,14 +131,21 @@ public partial class UpdateInventoryProductForm : Form
 
 	private async void UpdateProductButton_Click(object sender, EventArgs e)
 	{
-		if (_product is null || !ValidateProductEntry())
+		if (_product is null || _stockAdjustment is null || !ValidateProductEntry())
 			return;
 
 		try
 		{
-			var request = CreateRequestForUpdateProduct(_product);
+			await _inventoryProductService.UpdateAsync(CreateRequestForUpdateProduct(_product));
 
-			await _inventoryProductService.UpdateAsync(request);
+			// Stock is a separate concern from the product record: it is a movement, not
+			// a column. UpdateAsync has never carried it - the typed quantity used to be
+			// parsed and silently dropped.
+			if (_stockAdjustment.HasChange)
+			{
+				await _inventoryProductService.AdjustQuantityAsync(
+					_product.Id, _stockAdjustment.Delta, "แก้ไขจำนวนสินค้า");
+			}
 
 			Close();
 		}
@@ -211,13 +220,13 @@ public partial class UpdateInventoryProductForm : Form
 	/// </summary>
 	private void AdjustQuantityBy(int direction)
 	{
-		if (!ValidateQuantity())
+		if (_stockAdjustment is null || !ValidateQuantity())
 			return;
 
 		var amount = int.Parse(QuantityTextBox.Texts.Trim());
-		var quantity = int.Parse(QuantityLabel.Text.Trim());
 
-		QuantityLabel.Text = $"{quantity + direction * amount}";
+		_stockAdjustment.Increase(direction * amount);
+		QuantityLabel.Text = $"{_stockAdjustment.DisplayedQuantity}";
 
 		QuantityTextBox.Texts = string.Empty;
 	}
