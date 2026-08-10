@@ -1,7 +1,7 @@
 # IndyPOS — Getting Started
 
 Everything needed to go from a fresh clone to a running, tested build. Facts only; every number
-below was measured against this repository.
+below was measured against this repository, except where marked derived.
 
 For architecture and coding standards read [`CLAUDE.md`](CLAUDE.md). For the roadmap and open work
 read [`.planning/indypos-overhaul/PLAN.md`](.planning/indypos-overhaul/PLAN.md).
@@ -51,13 +51,13 @@ dotnet test
 They spin up a real PostgreSQL container via Testcontainers. With Docker stopped they fail **fast**
 (each suite in under a second), which reads exactly like a code regression but is not.
 
-Expect **123 failures** with Docker stopped, all from these two suites. That figure is **derived**
-(87 + 36 by construction), not measured — the suites were last run with Docker up:
+Expect **139 failures** with Docker stopped, all from these two suites. That figure is **derived**
+(97 + 42 by construction), not measured — the suites were last run with Docker up:
 
 | Suite | Total | Fails without Docker |
 |---|---|---|
-| `IndyPOS.MigrationTool.Tests` | 86 | **36** (of the other 50, see Trap 3) |
-| `IndyPOS.StoreHub.IntegrationTests` | 94 | **87** (7 need no container) |
+| `IndyPOS.MigrationTool.Tests` | 92 | **42** (of the other 50, see Trap 3) |
+| `IndyPOS.StoreHub.IntegrationTests` | 104 | **97** (7 need no container) |
 
 **Start Docker and re-run before investigating any of these.**
 
@@ -82,12 +82,13 @@ returned early instead, so 8 tests reported *Passed* on every machine but one, i
 tests also used one-directional `Should().Contain(...)` column checks, which a table with extra
 columns satisfies — so they could not have detected a dropped column even when they did run.
 
-So `IndyPOS.MigrationTool.Tests`'s 86 break down as: **36** need Docker, **24** need those real
+So `IndyPOS.MigrationTool.Tests`'s 92 break down as: **42** need Docker, **24** need those real
 databases, **25** are pure units needing neither, and **1** is the manual schema extractor (Trap 3b).
 
 **The total itself changes.** A skipped `[Theory]` is one skipped entry, not one per data row, so the
 21-case artefact comparison collapses to a single entry. On a fresh clone the suite therefore
-discovers **66**, not 86: 61 pass, **5 skipped**, 0 failed. Nothing turns red.
+discovers **72**, not 92 (**derived** as 92 − 20, not measured — the same 20-row collapse described
+above). Nothing turns red.
 
 ### ⚠️ Trap 3b — regenerating the schema artefacts needs an environment variable
 
@@ -105,15 +106,16 @@ reports `Skipped: 1` and writes nothing — which looks like success while leavi
 ### Expected counts
 
 Solution suites (`dotnet test` at the root), Docker running **and** the real store databases present
-— **546 total** (545 pass, 1 skipped). Without those databases the total is **526**, still all green:
+— **575 total** (574 pass, 1 skipped) — measured 2026-08-10. Without those databases the total is
+**555** (**derived** as 575 − 20, not measured), still all green:
 
 | Suite | Tests |
 |---|---|
-| `IndyPOS.Application.Tests` | 294 |
-| `IndyPOS.StoreHub.IntegrationTests` | 94 (Docker) |
-| `IndyPOS.MigrationTool.Tests` | 86 (Docker; 1 skipped. **66** without the real store data — Trap 3) |
+| `IndyPOS.Application.Tests` | 298 |
+| `IndyPOS.StoreHub.IntegrationTests` | 104 (Docker) |
+| `IndyPOS.MigrationTool.Tests` | 92 (Docker; 1 skipped. **72** without the real store data — Trap 3, derived) |
 | `IndyPOS.Domain.Tests` | 36 |
-| `IndyPOS.Windows.Forms.Tests` | 19 |
+| `IndyPOS.Windows.Forms.Tests` | 28 |
 | `IndyPOS.Vault.Tests` | 17 |
 
 Outside the solution: `IndyPOS.Bootstrapper.Tests` — **231** (223 pass, 8 skipped).
