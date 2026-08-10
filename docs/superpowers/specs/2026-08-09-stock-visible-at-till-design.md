@@ -134,6 +134,21 @@ the +/- buttons are a delta by construction.
 `AdjustQuantityRequest` has no production callers outside this work, so changing the contract costs
 nothing in compatibility.
 
+**Third defect, found while planning: the adjust response is deserialized as the wrong type.** The
+endpoint returns an anonymous `{ productId, quantity }` (`Program.cs:496`) while
+`IStoreHubClient.AdjustProductQuantityAsync` declares `Task<ProductDto>`. Neither property binds, so
+the client has always returned a `ProductDto` with a default `Id` and empty strings — and
+`StoreHubInventoryProductService` then fed that empty record straight into
+`_productCacheService.UpsertProduct`, which would have corrupted the cache entry the moment anything
+called it. Nothing did, because no UI path calls adjust. Fixed here with a named
+`AdjustQuantityResponse(Guid ProductId, int Quantity)`; the `UpsertProduct` call is dropped, since
+stock is deliberately not part of `ProductDto` and nothing else about the product changed.
+
+**The existing endpoint test hides this.** `AdjustQuantity_AsManager_ReturnsSuccess` posts
+`quantityDelta`, which binds to nothing, so `TargetQuantity` defaults to `0` and the call *zeroes*
+the product's stock — and the test asserts only `200 OK`, with a comment conceding it verifies
+nothing further. It is replaced, not repaired.
+
 - `AdjustQuantityRequest(int Delta, string? Reason = null)`
 - `AdjustProductQuantityCommand` carries `Delta`
 - The handler writes the movement directly from `Delta`, then reads the balance back to return it.
@@ -164,11 +179,18 @@ quantity — that one is real, flowing to `CreateProductCommand.InitialQuantity`
 | `GetBalancesAsync` is scoped to the store | StoreHub.IntegrationTests | Another store's movements do not leak in |
 | `GET /products/stock` returns balances | StoreHub.IntegrationTests | Endpoint + auth policy wired |
 | `GET /products/stock` requires `CanReadProducts` | StoreHub.IntegrationTests | 401/403 unauthenticated |
-| Adjust applies the delta to the existing balance | Application.Tests | Balance 10, delta +5 → 15 |
-| Adjust does not swallow a concurrent sale | Application.Tests | Balance 10, a −3 sale lands, then delta +2 → **9**, not 12. This is the reason for delta semantics; it must fail if anyone reverts to target |
-| Adjust rejects a zero delta | Application.Tests | Boundary validation, not a silent return |
-| Update form saves an adjust call with the typed delta | Application.Tests | Via `IInventoryProductService` |
-| Update form issues no adjust call when the quantity is untouched | Application.Tests | No spurious movement rows |
+| Adjust applies the delta to the existing balance | StoreHub.IntegrationTests | Balance 100, delta +50 → 150 |
+| Adjust does not swallow a concurrent sale | StoreHub.IntegrationTests | Balance 100, a −30 sale lands, then delta +50 → **120**, not 150. This is the reason for delta semantics; it must fail if anyone reverts to target. Written against real Postgres rather than mocks, so it exercises the actual movement sum |
+| Adjust rejects a zero delta | StoreHub.IntegrationTests | 400 at the boundary, not a silent return |
+| The service sends the delta and returns the new balance | Application.Tests | Via a mocked `IStoreHubClient` |
+| Pending adjustment accumulates +/- presses and reports the delta | Windows.Forms.Tests | Including "back to where it started ⇒ no change", so no zero-delta call is made |
+
+The last row is the edit form's logic, extracted into a `PendingStockAdjustment` value object. The
+repo has no harness for instantiating WinForms forms — `IndyPOS.Windows.Forms.Tests` covers only the
+error-reporting helpers — so the decision logic lives somewhere testable and the form stays a thin
+caller. The rest of the form change is covered by the manual run below, plus a compile-time
+guarantee: `UpdateInventoryProductRequest.QuantityInStock` is deleted, so the silently-dropped path
+cannot return.
 
 **Verify by running it, not only by tests.** Consistent with how defect 14 was closed: migrate a
 fixture store, open `InventoryPanel`, confirm the figures match `SUM(QuantityDelta)` in Postgres,
