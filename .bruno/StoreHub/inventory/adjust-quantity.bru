@@ -16,7 +16,7 @@ auth:bearer {
 
 body:json {
   {
-    "quantityChange": 10,
+    "delta": 10,
     "reason": "Stock replenishment"
   }
 }
@@ -36,24 +36,25 @@ docs {
 
   | Field | Type | Required | Description |
   |-------|------|----------|-------------|
-  | quantityChange | int | Yes | Amount to adjust (positive = add, negative = subtract) |
+  | delta | int | Yes | Signed amount to adjust (positive = add, negative = subtract) |
   | reason | string | No | Reason for adjustment |
 
   ## Examples
 
   **Add stock:**
   ```json
-  { "quantityChange": 50, "reason": "New shipment received" }
+  { "delta": 50, "reason": "New shipment received" }
   ```
 
   **Remove stock (damaged):**
   ```json
-  { "quantityChange": -5, "reason": "Damaged items removed" }
+  { "delta": -5, "reason": "Damaged items removed" }
   ```
 
   ## Response
 
-  Returns the updated product with new quantity.
+  `AdjustQuantityResponse { productId, quantity }` — the product's id and its new stock balance
+  after the movement. Not the product itself.
 
   ## Authorization
 
