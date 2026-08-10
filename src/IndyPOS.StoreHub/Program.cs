@@ -13,6 +13,7 @@ using IndyPOS.Application.UseCases.StoreHub.Products.Create;
 using IndyPOS.Application.UseCases.StoreHub.Products.Delete;
 using IndyPOS.Application.UseCases.StoreHub.Products.GenerateBarcode;
 using IndyPOS.Application.UseCases.StoreHub.Products.Get;
+using IndyPOS.Application.UseCases.StoreHub.Products.GetStock;
 using IndyPOS.Application.UseCases.StoreHub.Products.Update;
 using IndyPOS.Application.UseCases.StoreHub.PaymentMethods;
 using IndyPOS.Application.UseCases.StoreHub.ProductCategories;
@@ -89,6 +90,7 @@ builder.Services.AddStoreHubAuthServices(builder.Configuration);
 // Register StoreHub CQRS handlers manually
 // Note: We don't use AddApplicationServices() as it registers ALL handlers including legacy ones
 builder.Services.AddTransient<IQueryHandler<GetProductsQuery, IReadOnlyList<ProductDto>>, GetProductsQueryHandler>();
+builder.Services.AddTransient<IQueryHandler<GetProductStockQuery, IReadOnlyList<ProductStockDto>>, GetProductStockQueryHandler>();
 builder.Services.AddTransient<ICommandHandler<CompleteSaleCommand, CompleteSaleResponse>, CompleteSaleCommandHandler>();
 builder.Services.AddTransient<ICommandHandler<LoginCommand, LoginResponse>, LoginCommandHandler>();
 builder.Services.AddTransient<ICommandHandler<ChangePasswordCommand, ChangePasswordResponse>, ChangePasswordCommandHandler>();
@@ -330,6 +332,18 @@ app.MapGet("/products", async (
 
     var products = await handler.HandleAsync(query, cancellationToken);
     return Results.Ok(products);
+}).RequireAuthorization("CanReadProducts");
+
+// Current stock per product. Separate from /products on purpose: the POS caches
+// products for the session, and a quantity on that record would go stale at the
+// first sale on either terminal.
+app.MapGet("/products/stock", async (
+    IQueryHandler<GetProductStockQuery, IReadOnlyList<ProductStockDto>> handler,
+    Guid? productId,
+    CancellationToken cancellationToken) =>
+{
+    var stock = await handler.HandleAsync(new GetProductStockQuery(productId), cancellationToken);
+    return Results.Ok(stock);
 }).RequireAuthorization("CanReadProducts");
 
 // Payment methods endpoint (offerable methods for this store)
