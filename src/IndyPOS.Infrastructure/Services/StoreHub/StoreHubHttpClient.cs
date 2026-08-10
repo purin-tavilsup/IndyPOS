@@ -186,14 +186,14 @@ public class StoreHubHttpClient : IStoreHubClient
         AdjustQuantityRequest request,
         CancellationToken cancellationToken = default)
     {
-        _logger.LogDebug("Adjusting quantity for product: {Id}, Target: {TargetQuantity}",
-            productId, request.TargetQuantity);
+        _logger.LogDebug("Adjusting quantity for product: {Id}, Delta: {Delta}",
+            productId, request.Delta);
 
         var result = await SendAuthenticatedAsync<ProductDto>(
             HttpMethod.Post, $"/products/{productId}/adjust-quantity", request, cancellationToken);
 
-        _logger.LogInformation("Product quantity adjusted. Id: {Id}, Target: {TargetQuantity}",
-            result.Id, request.TargetQuantity);
+        _logger.LogInformation("Product quantity adjusted. Id: {Id}, Delta: {Delta}",
+            result.Id, request.Delta);
         return result;
     }
 

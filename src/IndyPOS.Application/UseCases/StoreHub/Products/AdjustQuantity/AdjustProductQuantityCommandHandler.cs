@@ -33,7 +33,11 @@ public class AdjustProductQuantityCommandHandler : ICommandHandler<AdjustProduct
         AdjustProductQuantityCommand command,
         CancellationToken cancellationToken = default)
     {
-        // Validate product exists
+        if (command.Delta == 0)
+        {
+            throw new ArgumentException("Delta must not be zero.", nameof(command));
+        }
+
         var product = await _productRepository.GetByIdAsync(command.ProductId, cancellationToken);
         if (product is null)
         {
@@ -42,28 +46,12 @@ public class AdjustProductQuantityCommandHandler : ICommandHandler<AdjustProduct
 
         var storeId = _storeIdentityService.StoreId;
 
-        // Get current balance
-        var currentBalance = await _movementRepository.GetCurrentBalanceAsync(
-            storeId, command.ProductId, cancellationToken);
-
-        // Calculate delta
-        var delta = command.TargetQuantity - currentBalance;
-
-        if (delta == 0)
-        {
-            _logger.LogDebug(
-                "No adjustment needed for product {ProductId}: already at {Quantity}",
-                command.ProductId, command.TargetQuantity);
-            return command.TargetQuantity;
-        }
-
-        // Create adjustment movement
         var movement = new InventoryMovement
         {
             Id = Guid.NewGuid(),
             StoreId = storeId,
             ProductId = command.ProductId,
-            QuantityDelta = delta,
+            QuantityDelta = command.Delta,
             Reason = "Adjustment",
             Note = command.Reason ?? "Manual adjustment",
             CreatedUtc = DateTime.UtcNow
@@ -71,10 +59,15 @@ public class AdjustProductQuantityCommandHandler : ICommandHandler<AdjustProduct
 
         await _movementRepository.AddAsync(movement, cancellationToken);
 
-        _logger.LogInformation(
-            "Adjusted product {ProductId} quantity by {Delta} (from {From} to {To})",
-            command.ProductId, delta, currentBalance, command.TargetQuantity);
+        // Read back only to report the result. The balance no longer decides what gets
+        // written, which is the whole point of taking a delta.
+        var newBalance = await _movementRepository.GetCurrentBalanceAsync(
+            storeId, command.ProductId, cancellationToken);
 
-        return command.TargetQuantity;
+        _logger.LogInformation(
+            "Adjusted product {ProductId} by {Delta} (new balance {Balance})",
+            command.ProductId, command.Delta, newBalance);
+
+        return newBalance;
     }
 }

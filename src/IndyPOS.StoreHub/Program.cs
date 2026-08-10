@@ -492,22 +492,27 @@ app.MapDelete("/products/{id:guid}", async (
     return Results.NoContent();
 }).RequireAuthorization("CanManageProducts");
 
-// Adjust product quantity
+// Adjust product quantity by a signed delta
 app.MapPost("/products/{id:guid}/adjust-quantity", async (
     ICommandHandler<AdjustProductQuantityCommand, int> handler,
     Guid id,
     AdjustQuantityRequest request,
     CancellationToken cancellationToken) =>
 {
+    if (request.Delta == 0)
+    {
+        return Results.BadRequest(new { error = "Delta must not be zero." });
+    }
+
     var command = new AdjustProductQuantityCommand
     {
         ProductId = id,
-        TargetQuantity = request.TargetQuantity,
+        Delta = request.Delta,
         Reason = request.Reason
     };
 
     var newBalance = await handler.HandleAsync(command, cancellationToken);
-    return Results.Ok(new { productId = id, quantity = newBalance });
+    return Results.Ok(new AdjustQuantityResponse(id, newBalance));
 }).RequireAuthorization("CanAdjustInventory");
 
 // Generate next barcode
