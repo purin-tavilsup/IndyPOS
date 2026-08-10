@@ -4,6 +4,7 @@ using IndyPOS.Application.UseCases.InventoryProducts;
 using IndyPOS.Application.UseCases.StoreHub.Products;
 using IndyPOS.Application.UseCases.StoreHub.Products.AdjustQuantity;
 using IndyPOS.Application.UseCases.StoreHub.Products.Create;
+using IndyPOS.Application.UseCases.StoreHub.Products.GetStock;
 using IndyPOS.Application.UseCases.StoreHub.Products.Update;
 using IndyPOS.Domain.Events;
 using Microsoft.Extensions.Logging;
@@ -100,7 +101,9 @@ public class StoreHubInventoryProductService : IInventoryProductService
 
         _logger.LogInformation("Product updated: {Id} - {Name}", result.Id, result.Name);
 
-        return MapToInventoryProductDto(result, request.Category, isTrackable: true, request.QuantityInStock);
+        var stock = await _storeHubClient.GetProductStockAsync(result.Id, cancellationToken);
+
+        return MapToInventoryProductDto(result, request.Category, isTrackable: true, StockFor(stock, result.Id));
     }
 
     public async Task DeleteAsync(Guid productId, CancellationToken cancellationToken = default)
@@ -120,24 +123,26 @@ public class StoreHubInventoryProductService : IInventoryProductService
 
     public async Task<InventoryProductDto> AdjustQuantityAsync(
         Guid productId,
-        int targetQuantity,
+        int delta,
         string reason,
         CancellationToken cancellationToken = default)
     {
-        _logger.LogDebug("Adjusting quantity for product: {Id}, Target: {Quantity}", productId, targetQuantity);
+        _logger.LogDebug("Adjusting stock for product: {Id}, Delta: {Delta}", productId, delta);
 
-        var request = new AdjustQuantityRequest(targetQuantity, reason);
-        var result = await _storeHubClient.AdjustProductQuantityAsync(productId, request, cancellationToken);
+        var request = new AdjustQuantityRequest(delta, reason);
+        var response = await _storeHubClient.AdjustProductQuantityAsync(productId, request, cancellationToken);
 
-        // Update cache
-        _productCacheService.UpsertProduct(result);
+        // Nothing on the cached ProductDto changed - stock deliberately does not live
+        // there - so there is no cache entry to refresh, only a UI refresh to trigger.
+        _eventAggregator.GetEvent<InventoryProductUpdatedEvent>().Publish(productId);
 
-        // Publish event for UI refresh
-        _eventAggregator.GetEvent<InventoryProductUpdatedEvent>().Publish(result.Id);
+        _logger.LogInformation("Product stock adjusted: {Id}, Delta: {Delta}, Balance: {Balance}",
+            productId, delta, response.Quantity);
 
-        _logger.LogInformation("Product quantity adjusted: {Id}, Target: {Quantity}", result.Id, targetQuantity);
+        var product = _productCacheService.GetById(productId)
+                      ?? throw new KeyNotFoundException($"Product not found in cache: {productId}");
 
-        return MapToInventoryProductDto(result, result.Category, isTrackable: true, targetQuantity);
+        return MapToInventoryProductDto(product, product.Category, isTrackable: true, response.Quantity);
     }
 
     public async Task<string> GenerateBarcodeAsync(CancellationToken cancellationToken = default)
@@ -151,7 +156,7 @@ public class StoreHubInventoryProductService : IInventoryProductService
         return barcode;
     }
 
-    public Task<InventoryProductDto> GetByBarcodeAsync(string barcode, CancellationToken cancellationToken = default)
+    public async Task<InventoryProductDto> GetByBarcodeAsync(string barcode, CancellationToken cancellationToken = default)
     {
         var product = _productCacheService.GetByBarcode(barcode);
 
@@ -160,57 +165,54 @@ public class StoreHubInventoryProductService : IInventoryProductService
             throw new KeyNotFoundException($"Product not found with barcode: {barcode}");
         }
 
-        return Task.FromResult(MapToInventoryProductDto(product, product.Category, isTrackable: true));
+        var stock = await _storeHubClient.GetProductStockAsync(product.Id, cancellationToken);
+
+        return MapToInventoryProductDto(product, product.Category, isTrackable: true, StockFor(stock, product.Id));
     }
 
-    public Task<IReadOnlyList<InventoryProductDto>> GetAllAsync(CancellationToken cancellationToken = default)
+    public async Task<IReadOnlyList<InventoryProductDto>> GetAllAsync(CancellationToken cancellationToken = default)
     {
-        var result = _productCacheService.GetAll()
-            .Select(p => MapToInventoryProductDto(p, p.Category, isTrackable: true))
-            .ToList();
+        var stock = await _storeHubClient.GetProductStockAsync(cancellationToken: cancellationToken);
 
-        return Task.FromResult<IReadOnlyList<InventoryProductDto>>(result);
+        return _productCacheService.GetAll()
+            .Select(p => MapToInventoryProductDto(p, p.Category, isTrackable: true, StockFor(stock, p.Id)))
+            .ToList();
     }
 
-    public Task<IReadOnlyList<InventoryProductDto>> GetByCategoryAsync(
+    public async Task<IReadOnlyList<InventoryProductDto>> GetByCategoryAsync(
         string categoryCode,
         CancellationToken cancellationToken = default)
     {
-        var result = _productCacheService.GetAll()
+        var stock = await _storeHubClient.GetProductStockAsync(cancellationToken: cancellationToken);
+
+        return _productCacheService.GetAll()
             // Ordinal to match ProductCategoryRepository.GetByCodeAsync; codes come from constants.
             .Where(p => string.Equals(p.Category, categoryCode, StringComparison.Ordinal))
-            .Select(p => MapToInventoryProductDto(p, categoryCode, isTrackable: true))
+            .Select(p => MapToInventoryProductDto(p, categoryCode, isTrackable: true, StockFor(stock, p.Id)))
             .ToList();
-
-        return Task.FromResult<IReadOnlyList<InventoryProductDto>>(result);
     }
 
-    public Task<IReadOnlyList<InventoryProductDto>> SearchByDescriptionAsync(
+    public async Task<IReadOnlyList<InventoryProductDto>> SearchByDescriptionAsync(
         string keyword,
         CancellationToken cancellationToken = default)
     {
-        var products = _productCacheService.Search(keyword);
+        var stock = await _storeHubClient.GetProductStockAsync(cancellationToken: cancellationToken);
 
-        var result = products
-            .Select(p => MapToInventoryProductDto(p, p.Category, isTrackable: true))
+        return _productCacheService.Search(keyword)
+            .Select(p => MapToInventoryProductDto(p, p.Category, isTrackable: true, StockFor(stock, p.Id)))
             .ToList();
-
-        return Task.FromResult<IReadOnlyList<InventoryProductDto>>(result);
     }
 
-    public Task<IReadOnlyList<InventoryProductDto>> SearchByBrandAsync(
+    public async Task<IReadOnlyList<InventoryProductDto>> SearchByBrandAsync(
         string keyword,
         CancellationToken cancellationToken = default)
     {
-        var products = _productCacheService.GetAll()
+        var stock = await _storeHubClient.GetProductStockAsync(cancellationToken: cancellationToken);
+
+        return _productCacheService.GetAll()
             .Where(p => p.Brand?.Contains(keyword, StringComparison.OrdinalIgnoreCase) == true)
+            .Select(p => MapToInventoryProductDto(p, p.Category, isTrackable: true, StockFor(stock, p.Id)))
             .ToList();
-
-        var result = products
-            .Select(p => MapToInventoryProductDto(p, p.Category, isTrackable: true))
-            .ToList();
-
-        return Task.FromResult<IReadOnlyList<InventoryProductDto>>(result);
     }
 
     #region Private Helpers
@@ -219,7 +221,7 @@ public class StoreHubInventoryProductService : IInventoryProductService
         ProductDto product,
         string? categoryCode,
         bool isTrackable,
-        int? quantityOverride = null)
+        int quantityInStock)
     {
         return new InventoryProductDto
         {
@@ -230,7 +232,7 @@ public class StoreHubInventoryProductService : IInventoryProductService
             Brand = product.Brand ?? string.Empty,
             Category = categoryCode ?? string.Empty,
             UnitPrice = product.UnitPrice,
-            QuantityInStock = quantityOverride ?? 0, // TODO: Get from StoreHub when available
+            QuantityInStock = quantityInStock,
             GroupPrice = product.GroupPrice ?? 0m,
             GroupPriceQuantity = product.GroupPriceQuantity,
             IsTrackable = isTrackable,
@@ -238,6 +240,12 @@ public class StoreHubInventoryProductService : IInventoryProductService
             DateUpdated = DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss")
         };
     }
+
+    /// <summary>
+    /// A product absent from the balances has no movements, which is genuinely zero.
+    /// </summary>
+    private static int StockFor(IReadOnlyDictionary<Guid, int> stock, Guid productId)
+        => stock.TryGetValue(productId, out var quantity) ? quantity : 0;
 
     #endregion
 }

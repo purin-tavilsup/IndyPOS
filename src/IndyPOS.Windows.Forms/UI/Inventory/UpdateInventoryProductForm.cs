@@ -159,7 +159,6 @@ public partial class UpdateInventoryProductForm : Form
 		{
 			Id = product.Id,
 			Description = DescriptionTextBox.Texts.Trim(),
-			QuantityInStock = int.Parse(QuantityLabel.Text.Trim()),
 			UnitPrice = decimal.Parse(UnitPriceTextBox.Texts.Trim()),
 			GroupPrice = groupPrice,
 			GroupPriceQuantity = groupPriceQuantity,

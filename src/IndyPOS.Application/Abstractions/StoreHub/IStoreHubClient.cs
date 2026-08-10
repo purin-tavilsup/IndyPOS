@@ -7,6 +7,7 @@ using IndyPOS.Application.UseCases.StoreHub.ProductCategories;
 using IndyPOS.Application.UseCases.StoreHub.Products;
 using IndyPOS.Application.UseCases.StoreHub.Products.AdjustQuantity;
 using IndyPOS.Application.UseCases.StoreHub.Products.Create;
+using IndyPOS.Application.UseCases.StoreHub.Products.GetStock;
 using IndyPOS.Application.UseCases.StoreHub.Products.Update;
 using IndyPOS.Application.UseCases.StoreHub.Sales;
 
@@ -40,6 +41,15 @@ public interface IStoreHubClient
         CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// Get current stock for this store, keyed by product id. Pass productId to narrow
+    /// it to one product. Products with no movements are absent — read them as zero.
+    /// Requires authentication.
+    /// </summary>
+    Task<IReadOnlyDictionary<Guid, int>> GetProductStockAsync(
+        Guid? productId = null,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// Create a new product in StoreHub.
     /// Requires authentication and ProductsManage capability.
     /// </summary>
@@ -62,10 +72,11 @@ public interface IStoreHubClient
     Task DeleteProductAsync(Guid productId, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Adjust product quantity via inventory movement.
+    /// Adjust product stock by a signed delta via inventory movement.
+    /// Returns the balance after the movement.
     /// Requires authentication and InventoryAdjust capability.
     /// </summary>
-    Task<ProductDto> AdjustProductQuantityAsync(
+    Task<AdjustQuantityResponse> AdjustProductQuantityAsync(
         Guid productId,
         AdjustQuantityRequest request,
         CancellationToken cancellationToken = default);
