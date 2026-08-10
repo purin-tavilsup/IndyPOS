@@ -295,16 +295,24 @@ public partial class InventoryPanel : UserControl
     {
         var barcode = GetProductBarcodeFromSelectedProduct();
 
+        InventoryProductDto product;
+
         try
         {
-            var product = await GetInventoryProductsByByBarcodeAsync(barcode);
-
-            await _updateProductForm.ShowDialog(product);
+            product = await GetInventoryProductsByByBarcodeAsync(barcode);
+        }
+        catch (KeyNotFoundException)
+        {
+            _messageForm.ShowDialog($"ไม่พบรหัสสินค้า {barcode} ในระบบ", "ไม่พบสินค้าในระบบ");
+            return;
         }
         catch (Exception ex)
         {
-            _messageForm.ShowDialog($"ไม่พบรหัสสินค้า {barcode} ในระบบ Error: {ex.Message}", "ไม่พบสินค้าในระบบ");
+            _messageForm.ShowDialog($"เกิดความผิดพลาดในขณะที่กำลังค้นหาสินค้า Error: {ex.Message}", "เกิดความผิดพลาดในขณะที่กำลังค้นหาสินค้า");
+            return;
         }
+
+        await _updateProductForm.ShowDialog(product);
     }
 
     private string GetProductBarcodeFromSelectedProduct()
@@ -325,19 +333,28 @@ public partial class InventoryPanel : UserControl
         if (_activeSubPanel != SubPanel.Inventory)
             return;
 
+        InventoryProductDto product;
+
         try
         {
-            var product = await GetInventoryProductsByByBarcodeAsync(barcode);
-
-            ShowExistingProduct(product);
+            product = await GetInventoryProductsByByBarcodeAsync(barcode);
+        }
+        catch (KeyNotFoundException)
+        {
+            // Genuinely not in the catalogue - offer to add it as new.
+            AddNewProduct(barcode);
             return;
         }
-        catch
+        catch (Exception ex)
         {
-            // ignored
+            // A StoreHub outage, an expired token, a timeout - none of these mean the
+            // product does not exist, so falling through to "Add New Product" would offer
+            // to recreate a product that is already there. Surface the failure instead.
+            _messageForm.ShowDialog($"เกิดความผิดพลาดในขณะที่กำลังค้นหาสินค้า Error: {ex.Message}", "เกิดความผิดพลาดในขณะที่กำลังค้นหาสินค้า");
+            return;
         }
 
-        AddNewProduct(barcode);
+        ShowExistingProduct(product);
     }
 
     private async Task<InventoryProductDto> GetInventoryProductsByByBarcodeAsync(string barcode)
