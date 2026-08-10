@@ -1234,7 +1234,7 @@ public class PendingStockAdjustment
 - [ ] **Step 4: Run the tests to verify they pass**
 
 Run: `dotnet test tests/IndyPOS.Windows.Forms.Tests --filter "PendingStockAdjustmentTests"`
-Expected: PASS, 7 tests (the `[Theory]` contributes 2).
+Expected: PASS, 6 tests (4 `[Fact]` plus the `[Theory]`'s 2 cases).
 
 - [ ] **Step 5: Wire it into the form**
 
@@ -1314,9 +1314,10 @@ Delete this line from `CreateRequestForUpdateProduct` (line 162) — the propert
 - [ ] **Step 6: Build and run the full suite**
 
 Run: `dotnet build IndyPOS.sln` then `dotnet test IndyPOS.sln`
-Expected: 0 build errors. Test count **551 + 20 net new = 571**, 1 skip, 0 fail. (Task 1 adds 4,
-Task 2 adds 4, Task 3 is +3/−1, Task 4 adds 3 and swaps one for one, Task 5 adds 7 — the
-`[Theory]` contributes 2 cases.) If any other call site of `AdjustQuantityAsync` or `UpdateInventoryProductRequest.QuantityInStock` surfaces, fix it here rather than deferring.
+Expected: 0 build errors. **570 pass / 1 skip / 0 fail (571 discovered)**, up from a 551 pass /
+1 skip baseline. (Task 1 adds 4, Task 2 adds 4, Task 3 is +3/−1, Task 4 adds 3 and swaps one for
+one, Task 5 adds 6 — 4 `[Fact]` plus a `[Theory]` contributing 2 cases. Net +19 passing.)
+If any other call site of `AdjustQuantityAsync` or `UpdateInventoryProductRequest.QuantityInStock` surfaces, fix it here rather than deferring.
 
 - [ ] **Step 7: Commit**
 
