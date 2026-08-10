@@ -141,22 +141,60 @@ public class StoreHubInventoryProductServiceTests
                 It.IsAny<UpdateProductCommand>(),
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(updatedProduct);
-        _storeHubClientMock.Setup(x => x.GetProductStockAsync(productId, It.IsAny<CancellationToken>()))
-                           .ReturnsAsync(new Dictionary<Guid, int> { [productId] = 20 });
 
         // Act
-        var result = await _sut.UpdateAsync(request);
+        await _sut.UpdateAsync(request);
 
         // Assert
-        result.Should().NotBeNull();
-        result.Id.Should().Be(productId);
-        result.Description.Should().Be(request.Description);
-
         _storeHubClientMock.Verify(x => x.UpdateProductAsync(
             It.Is<UpdateProductCommand>(c => c.Id == productId && c.Name == request.Description),
             It.IsAny<CancellationToken>()), Times.Once);
 
         _productCacheServiceMock.Verify(x => x.UpsertProduct(updatedProduct), Times.Once);
+    }
+
+    [Fact]
+    public async Task UpdateAsync_WhenPublishUpdatedEventIsFalse_ShouldNotPublish()
+    {
+        // Arrange - the caller sets this when a stock adjustment is about to follow in the
+        // same save, so the grid refreshes once, from the adjustment, not twice.
+        var productId = Guid.NewGuid();
+        var request = new UpdateInventoryProductRequest
+        {
+            Id = productId,
+            Description = "Updated Product",
+            Category = ProductCategoryCodes.Food,
+            UnitPrice = 150m
+        };
+
+        var updatedProduct = new ProductDto(
+            Id: productId,
+            Barcode: "1234567890123",
+            Name: request.Description,
+            Description: request.Description,
+            Category: "อาหาร",
+            Brand: null,
+            Manufacturer: null,
+            UnitPrice: request.UnitPrice,
+            GroupPrice: null,
+            GroupPriceQuantity: null,
+            IsActive: true);
+
+        var publishedIds = new List<Guid>();
+        var updatedEvent = new InventoryProductUpdatedEvent();
+        updatedEvent.Subscribe(publishedIds.Add);
+
+        _eventAggregatorMock.Setup(x => x.GetEvent<InventoryProductUpdatedEvent>()).Returns(updatedEvent);
+        _storeHubClientMock.Setup(x => x.UpdateProductAsync(
+                It.IsAny<UpdateProductCommand>(),
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(updatedProduct);
+
+        // Act
+        await _sut.UpdateAsync(request, publishUpdatedEvent: false);
+
+        // Assert
+        publishedIds.Should().BeEmpty();
     }
 
     [Fact]
@@ -177,28 +215,17 @@ public class StoreHubInventoryProductServiceTests
     }
 
     [Fact]
-    public async Task AdjustQuantityAsync_ShouldSendTheDelta_AndReturnTheNewBalance()
+    public async Task AdjustQuantityAsync_ShouldSendTheDelta_AndPublishTheUpdatedEvent()
     {
         // Arrange
         var productId = Guid.NewGuid();
         var delta = 50;
         var reason = "Manual adjustment";
 
-        var cachedProduct = new ProductDto(
-            Id: productId,
-            Barcode: "1234567890123",
-            Name: "Test Product",
-            Description: "Test Description",
-            Category: "เครื่องดื่ม",
-            Brand: null,
-            Manufacturer: null,
-            UnitPrice: 100m,
-            GroupPrice: null,
-            GroupPriceQuantity: null,
-            IsActive: true);
-
-        _productCacheServiceMock.Setup(x => x.GetById(productId))
-                                .Returns(cachedProduct);
+        var publishedIds = new List<Guid>();
+        var updatedEvent = new InventoryProductUpdatedEvent();
+        updatedEvent.Subscribe(publishedIds.Add);
+        _eventAggregatorMock.Setup(x => x.GetEvent<InventoryProductUpdatedEvent>()).Returns(updatedEvent);
 
         _storeHubClientMock.Setup(x => x.AdjustProductQuantityAsync(
                 productId,
@@ -207,13 +234,16 @@ public class StoreHubInventoryProductServiceTests
             .ReturnsAsync(new AdjustQuantityResponse(productId, 150));
 
         // Act
-        var result = await _sut.AdjustQuantityAsync(productId, delta, reason);
+        await _sut.AdjustQuantityAsync(productId, delta, reason);
 
         // Assert
-        result.Id.Should()
-                 .Be(productId);
-        result.QuantityInStock.Should()
-                              .Be(150);
+        _storeHubClientMock.Verify(x => x.AdjustProductQuantityAsync(
+            productId,
+            It.Is<AdjustQuantityRequest>(r => r.Delta == delta && r.Reason == reason),
+            It.IsAny<CancellationToken>()), Times.Once);
+
+        publishedIds.Should().ContainSingle()
+                    .Which.Should().Be(productId);
     }
 
     [Fact]
@@ -252,7 +282,7 @@ public class StoreHubInventoryProductServiceTests
 
         _productCacheServiceMock.Setup(x => x.GetByBarcode(barcode)).Returns(cachedProduct);
         _storeHubClientMock.Setup(x => x.GetProductStockAsync(cachedProduct.Id, It.IsAny<CancellationToken>()))
-                           .ReturnsAsync(new Dictionary<Guid, int>());
+                           .ReturnsAsync(new Dictionary<Guid, int> { [cachedProduct.Id] = 23 });
 
         // Act
         var result = await _sut.GetByBarcodeAsync(barcode);
@@ -264,6 +294,7 @@ public class StoreHubInventoryProductServiceTests
         result.UnitPrice.Should().Be(cachedProduct.UnitPrice);
         result.GroupPrice.Should().Be(cachedProduct.GroupPrice ?? 0m);
         result.GroupPriceQuantity.Should().Be(cachedProduct.GroupPriceQuantity);
+        result.QuantityInStock.Should().Be(23);
     }
 
     [Fact]
@@ -287,16 +318,15 @@ public class StoreHubInventoryProductServiceTests
         // Arrange
         var categoryCode = ProductCategoryCodes.Beverages;
 
-        var products = new List<ProductDto>
-        {
-            new(Guid.NewGuid(), "123", "Product 1", "Desc 1", categoryCode, null, null, 10m, null, null, true),
-            new(Guid.NewGuid(), "456", "Product 2", "Desc 2", categoryCode, null, null, 20m, null, null, true),
-            new(Guid.NewGuid(), "789", "Product 3", "Desc 3", ProductCategoryCodes.Food, null, null, 30m, null, null, true)
-        };
+        var product1 = new ProductDto(Guid.NewGuid(), "123", "Product 1", "Desc 1", categoryCode, null, null, 10m, null, null, true);
+        var product2 = new ProductDto(Guid.NewGuid(), "456", "Product 2", "Desc 2", categoryCode, null, null, 20m, null, null, true);
+        var product3 = new ProductDto(Guid.NewGuid(), "789", "Product 3", "Desc 3", ProductCategoryCodes.Food, null, null, 30m, null, null, true);
+
+        var products = new List<ProductDto> { product1, product2, product3 };
 
         _productCacheServiceMock.Setup(x => x.GetAll()).Returns(products);
         _storeHubClientMock.Setup(x => x.GetProductStockAsync(null, It.IsAny<CancellationToken>()))
-                           .ReturnsAsync(new Dictionary<Guid, int>());
+                           .ReturnsAsync(new Dictionary<Guid, int> { [product1.Id] = 33, [product2.Id] = 77 });
 
         // Act
         var result = await _sut.GetByCategoryAsync(categoryCode);
@@ -304,6 +334,8 @@ public class StoreHubInventoryProductServiceTests
         // Assert
         result.Should().HaveCount(2);
         result.All(p => p.Category == categoryCode).Should().BeTrue();
+        result.Single(p => p.Barcode == "123").QuantityInStock.Should().Be(33);
+        result.Single(p => p.Barcode == "456").QuantityInStock.Should().Be(77);
     }
 
     [Fact]
@@ -333,14 +365,12 @@ public class StoreHubInventoryProductServiceTests
     {
         // Arrange
         var keyword = "test";
-        var products = new List<ProductDto>
-        {
-            new(Guid.NewGuid(), "123", "Test Product", "Test Desc", "เครื่องดื่ม", null, null, 10m, null, null, true)
-        };
+        var product = new ProductDto(Guid.NewGuid(), "123", "Test Product", "Test Desc", "เครื่องดื่ม", null, null, 10m, null, null, true);
+        var products = new List<ProductDto> { product };
 
         _productCacheServiceMock.Setup(x => x.Search(keyword)).Returns(products);
         _storeHubClientMock.Setup(x => x.GetProductStockAsync(null, It.IsAny<CancellationToken>()))
-                           .ReturnsAsync(new Dictionary<Guid, int>());
+                           .ReturnsAsync(new Dictionary<Guid, int> { [product.Id] = 15 });
 
         // Act
         var result = await _sut.SearchByDescriptionAsync(keyword);
@@ -348,6 +378,7 @@ public class StoreHubInventoryProductServiceTests
         // Assert
         result.Should().HaveCount(1);
         result.First().Description.Should().Contain("Test");
+        result.First().QuantityInStock.Should().Be(15);
     }
 
     [Fact]
@@ -355,15 +386,13 @@ public class StoreHubInventoryProductServiceTests
     {
         // Arrange
         var keyword = "Apple";
-        var allProducts = new List<ProductDto>
-        {
-            new(Guid.NewGuid(), "123", "iPhone", "Phone", "Tech", "Apple", null, 1000m, null, null, true),
-            new(Guid.NewGuid(), "456", "Galaxy", "Phone", "Tech", "Samsung", null, 900m, null, null, true)
-        };
+        var appleProduct = new ProductDto(Guid.NewGuid(), "123", "iPhone", "Phone", "Tech", "Apple", null, 1000m, null, null, true);
+        var samsungProduct = new ProductDto(Guid.NewGuid(), "456", "Galaxy", "Phone", "Tech", "Samsung", null, 900m, null, null, true);
+        var allProducts = new List<ProductDto> { appleProduct, samsungProduct };
 
         _productCacheServiceMock.Setup(x => x.GetAll()).Returns(allProducts);
         _storeHubClientMock.Setup(x => x.GetProductStockAsync(null, It.IsAny<CancellationToken>()))
-                           .ReturnsAsync(new Dictionary<Guid, int>());
+                           .ReturnsAsync(new Dictionary<Guid, int> { [appleProduct.Id] = 8 });
 
         // Act
         var result = await _sut.SearchByBrandAsync(keyword);
@@ -371,6 +400,7 @@ public class StoreHubInventoryProductServiceTests
         // Assert
         result.Should().HaveCount(1);
         result.First().Brand.Should().Be("Apple");
+        result.First().QuantityInStock.Should().Be(8);
     }
 
     [Fact]
