@@ -197,7 +197,7 @@ public class StoreHubInventoryProductServiceTests
 
         _storeHubClientMock.Setup(x => x.AdjustProductQuantityAsync(
                 productId,
-                It.Is<AdjustQuantityRequest>(r => r.TargetQuantity == targetQuantity && r.Reason == reason),
+                It.Is<AdjustQuantityRequest>(r => r.Delta == targetQuantity && r.Reason == reason),
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(adjustedProduct);
 

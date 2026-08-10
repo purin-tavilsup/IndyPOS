@@ -8,7 +8,8 @@ namespace IndyPOS.Application.UseCases.StoreHub.Products.AdjustQuantity;
 
 /// <summary>
 /// Handler for adjusting product quantity via inventory movement.
-/// Creates an Adjustment movement with calculated delta.
+/// Writes the caller's delta straight to an Adjustment movement; nothing is calculated
+/// from a balance read.
 /// </summary>
 public class AdjustProductQuantityCommandHandler : ICommandHandler<AdjustProductQuantityCommand, int>
 {
