@@ -679,18 +679,28 @@ git commit -m "fix(inventory): adjust stock by delta so a concurrent sale is not
 
 ---
 
-### Task 4: Client plumbing for stock and adjust
+### Task 4: Client plumbing, and real stock in the inventory list
 
 **Files:**
 - Modify: `src/IndyPOS.Application/Abstractions/StoreHub/IStoreHubClient.cs:36-71`
 - Modify: `src/IndyPOS.Infrastructure/Services/StoreHub/StoreHubHttpClient.cs:184-198`
-- Test: `tests/IndyPOS.Application.Tests/StoreHub/Services/StoreHubInventoryProductServiceTests.cs:177-212`
+- Modify: `src/IndyPOS.Application/Common/Interfaces/IInventoryProductService.cs:29` and `:83-95`
+- Modify: `src/IndyPOS.Infrastructure/Services/StoreHub/StoreHubInventoryProductService.cs:69-240`
+- Test: `tests/IndyPOS.Application.Tests/StoreHub/Services/StoreHubInventoryProductServiceTests.cs`
 
 **Interfaces:**
 - Consumes: `GET /products/stock` (Task 2), `AdjustQuantityRequest` / `AdjustQuantityResponse` (Task 3)
-- Produces: `Task<IReadOnlyDictionary<Guid, int>> IStoreHubClient.GetProductStockAsync(Guid? productId = null, CancellationToken cancellationToken = default)`; `Task<AdjustQuantityResponse> IStoreHubClient.AdjustProductQuantityAsync(Guid productId, AdjustQuantityRequest request, CancellationToken cancellationToken = default)` — used by Task 5
+- Produces: `Task<IReadOnlyDictionary<Guid, int>> IStoreHubClient.GetProductStockAsync(Guid? productId = null, CancellationToken cancellationToken = default)`; `Task<AdjustQuantityResponse> IStoreHubClient.AdjustProductQuantityAsync(...)`; `IInventoryProductService.AdjustQuantityAsync(Guid productId, int delta, string reason, ...)`; `UpdateInventoryProductRequest` **without** `QuantityInStock` — used by Task 5
 
-- [ ] **Step 1: Update the interface**
+**Why one task:** changing `AdjustProductQuantityAsync`'s return type breaks its only caller,
+`StoreHubInventoryProductService`. Splitting the client change from the caller change would put a
+commit on the branch that does not build. Every commit here builds.
+
+All five read methods on `IInventoryProductService` are called only from `InventoryPanel` (verified:
+`InventoryPanel.cs:216, 222, 345, 350, 355`). `SalePanel` does not use this service at all, so
+enriching every read path adds no I/O to the barcode-scan hot path.
+
+- [ ] **Step 1: Update the client interface**
 
 In `IStoreHubClient.cs`, add after `GetProductsAsync` (line 40):
 
@@ -776,9 +786,9 @@ Replace `AdjustProductQuantityAsync` (lines 184-198):
 - [ ] **Step 3: Build to find every broken call site**
 
 Run: `dotnet build IndyPOS.sln`
-Expected: FAIL. `StoreHubInventoryProductService.AdjustQuantityAsync` (line 129-140) and the Application test at line 178 no longer compile. Task 5 fixes the service; fix the test now.
+Expected: FAIL. `StoreHubInventoryProductService.AdjustQuantityAsync` (line 129-140) and the Application test at line 178 no longer compile. Both are fixed in the steps below — do not commit until the build is green again.
 
-- [ ] **Step 4: Update the Application test deliberately**
+- [ ] **Step 4: Update the existing Application test deliberately**
 
 In `StoreHubInventoryProductServiceTests.cs`, replace `AdjustQuantityAsync_ShouldCallStoreHubClient_AndUpdateCache` (lines 177-212) with:
 
@@ -830,31 +840,7 @@ Add the using at the top if absent:
 using IndyPOS.Application.UseCases.StoreHub.Products.GetStock;
 ```
 
-- [ ] **Step 5: Commit (build still red on the service — that is Task 5)**
-
-```bash
-git add src/IndyPOS.Application/Abstractions/StoreHub/IStoreHubClient.cs \
-        src/IndyPOS.Infrastructure/Services/StoreHub/StoreHubHttpClient.cs \
-        tests/IndyPOS.Application.Tests/StoreHub/Services/StoreHubInventoryProductServiceTests.cs
-git commit -m "feat(client): fetch product stock and adjust by delta"
-```
-
----
-
-### Task 5: Merge real stock into the inventory list paths
-
-**Files:**
-- Modify: `src/IndyPOS.Application/Common/Interfaces/IInventoryProductService.cs:29` and `:83-95`
-- Modify: `src/IndyPOS.Infrastructure/Services/StoreHub/StoreHubInventoryProductService.cs:69-240`
-- Test: `tests/IndyPOS.Application.Tests/StoreHub/Services/StoreHubInventoryProductServiceTests.cs`
-
-**Interfaces:**
-- Consumes: `IStoreHubClient.GetProductStockAsync`, `AdjustQuantityResponse` (Task 4)
-- Produces: `IInventoryProductService.AdjustQuantityAsync(Guid productId, int delta, string reason, ...)`; `UpdateInventoryProductRequest` **without** `QuantityInStock` — used by Task 6
-
-All five read methods on this service are called only from `InventoryPanel` (verified: `InventoryPanel.cs:216, 222, 345, 350, 355`). `SalePanel` does not use this service at all, so enriching every read path here adds no I/O to the barcode-scan hot path.
-
-- [ ] **Step 1: Write the failing tests**
+- [ ] **Step 5: Write the remaining failing tests**
 
 Add to `StoreHubInventoryProductServiceTests.cs`:
 
@@ -934,12 +920,12 @@ Add to `StoreHubInventoryProductServiceTests.cs`:
         IsActive: true);
 ```
 
-- [ ] **Step 2: Run the tests to verify they fail**
+- [ ] **Step 6: Run the tests to verify they fail**
 
 Run: `dotnet test tests/IndyPOS.Application.Tests --filter "StoreHubInventoryProductServiceTests"`
 Expected: BUILD FAILURE (the service still calls the old client signature).
 
-- [ ] **Step 3: Update the service interface and request record**
+- [ ] **Step 7: Update the service interface and request record**
 
 In `IInventoryProductService.cs`, replace the `AdjustQuantityAsync` declaration (line 26-29):
 
@@ -959,7 +945,7 @@ In the same file, delete this line from `UpdateInventoryProductRequest` (line 92
 
 Leave `CreateInventoryProductRequest.QuantityInStock` alone — that one is real, feeding `CreateProductCommand.InitialQuantity`.
 
-- [ ] **Step 4: Rewrite the service's read and adjust paths**
+- [ ] **Step 8: Rewrite the service's read and adjust paths**
 
 In `StoreHubInventoryProductService.cs`:
 
@@ -1095,15 +1081,17 @@ Add the helper at the end of the `#region Private Helpers` block:
         => stock.TryGetValue(productId, out var quantity) ? quantity : 0;
 ```
 
-- [ ] **Step 5: Run the tests to verify they pass**
+- [ ] **Step 9: Build and run the tests to verify they pass**
 
-Run: `dotnet test tests/IndyPOS.Application.Tests --filter "StoreHubInventoryProductServiceTests"`
-Expected: PASS. If `CreateAsync`'s call to `MapToInventoryProductDto` fails to compile, pass `request.QuantityInStock` as the new fourth argument — the create path's typed quantity is real.
+Run: `dotnet build IndyPOS.sln` then `dotnet test tests/IndyPOS.Application.Tests --filter "StoreHubInventoryProductServiceTests"`
+Expected: 0 build errors, tests PASS. The build must be green before committing. If `CreateAsync`'s call to `MapToInventoryProductDto` fails to compile, pass `request.QuantityInStock` as the new fourth argument — the create path's typed quantity is real.
 
-- [ ] **Step 6: Commit**
+- [ ] **Step 10: Commit**
 
 ```bash
-git add src/IndyPOS.Application/Common/Interfaces/IInventoryProductService.cs \
+git add src/IndyPOS.Application/Abstractions/StoreHub/IStoreHubClient.cs \
+        src/IndyPOS.Infrastructure/Services/StoreHub/StoreHubHttpClient.cs \
+        src/IndyPOS.Application/Common/Interfaces/IInventoryProductService.cs \
         src/IndyPOS.Infrastructure/Services/StoreHub/StoreHubInventoryProductService.cs \
         tests/IndyPOS.Application.Tests/StoreHub/Services/StoreHubInventoryProductServiceTests.cs
 git commit -m "feat(inventory): show real stock in the inventory list"
@@ -1111,7 +1099,7 @@ git commit -m "feat(inventory): show real stock in the inventory list"
 
 ---
 
-### Task 6: Make the edit form actually restock
+### Task 5: Make the edit form actually restock
 
 **Files:**
 - Create: `src/IndyPOS.Windows.Forms/UI/Inventory/PendingStockAdjustment.cs`
@@ -1119,10 +1107,10 @@ git commit -m "feat(inventory): show real stock in the inventory list"
 - Test: `tests/IndyPOS.Windows.Forms.Tests/UI/Inventory/PendingStockAdjustmentTests.cs` (create)
 
 **Interfaces:**
-- Consumes: `IInventoryProductService.AdjustQuantityAsync(Guid, int delta, string reason, ...)` (Task 5)
+- Consumes: `IInventoryProductService.AdjustQuantityAsync(Guid, int delta, string reason, ...)` (Task 4)
 - Produces: nothing downstream
 
-**Note on coverage:** the repo has no harness for instantiating WinForms forms (`IndyPOS.Windows.Forms.Tests` only covers the error-reporting helpers), so the accumulate-and-decide logic is extracted into `PendingStockAdjustment` and unit-tested there, leaving the form a thin caller. The spec's test table said this would be an Application.Tests case; this is the same coverage in the suite that can actually host it. Everything else in this task is covered by the manual run in Task 7 — plus a compile-time guarantee: `UpdateInventoryProductRequest.QuantityInStock` is gone, so the old silent path cannot come back.
+**Note on coverage:** the repo has no harness for instantiating WinForms forms (`IndyPOS.Windows.Forms.Tests` only covers the error-reporting helpers), so the accumulate-and-decide logic is extracted into `PendingStockAdjustment` and unit-tested there, leaving the form a thin caller. The spec's test table said this would be an Application.Tests case; this is the same coverage in the suite that can actually host it. Everything else in this task is covered by the manual run in Task 6 — plus a compile-time guarantee: `UpdateInventoryProductRequest.QuantityInStock` is gone, so the old silent path cannot come back.
 
 - [ ] **Step 1: Write the failing tests**
 
@@ -1327,7 +1315,7 @@ Delete this line from `CreateRequestForUpdateProduct` (line 162) — the propert
 
 Run: `dotnet build IndyPOS.sln` then `dotnet test IndyPOS.sln`
 Expected: 0 build errors. Test count **551 + 20 net new = 571**, 1 skip, 0 fail. (Task 1 adds 4,
-Task 2 adds 4, Task 3 is +3/−1, Task 4 swaps one for one, Task 5 adds 3, Task 6 adds 7 — the
+Task 2 adds 4, Task 3 is +3/−1, Task 4 adds 3 and swaps one for one, Task 5 adds 7 — the
 `[Theory]` contributes 2 cases.) If any other call site of `AdjustQuantityAsync` or `UpdateInventoryProductRequest.QuantityInStock` surfaces, fix it here rather than deferring.
 
 - [ ] **Step 7: Commit**
@@ -1341,7 +1329,7 @@ git commit -m "fix(inventory): send the restock instead of dropping it"
 
 ---
 
-### Task 7: Verify against a real store, then record it
+### Task 6: Verify against a real store, then record it
 
 **Files:**
 - Modify: `.claude/STATUS.md` (gitignored — do not stage)
