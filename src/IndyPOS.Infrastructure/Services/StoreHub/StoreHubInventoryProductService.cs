@@ -67,8 +67,9 @@ public class StoreHubInventoryProductService : IInventoryProductService
         return MapToInventoryProductDto(result, request.Category, request.IsTrackable, request.QuantityInStock);
     }
 
-    public async Task<InventoryProductDto> UpdateAsync(
+    public async Task UpdateAsync(
         UpdateInventoryProductRequest request,
+        bool publishUpdatedEvent = true,
         CancellationToken cancellationToken = default)
     {
         _logger.LogDebug("Updating product: {Id}", request.Id);
@@ -96,14 +97,12 @@ public class StoreHubInventoryProductService : IInventoryProductService
         // Update cache
         _productCacheService.UpsertProduct(result);
 
-        // Publish event for UI refresh
-        _eventAggregator.GetEvent<InventoryProductUpdatedEvent>().Publish(result.Id);
+        if (publishUpdatedEvent)
+        {
+            _eventAggregator.GetEvent<InventoryProductUpdatedEvent>().Publish(result.Id);
+        }
 
         _logger.LogInformation("Product updated: {Id} - {Name}", result.Id, result.Name);
-
-        var stock = await _storeHubClient.GetProductStockAsync(result.Id, cancellationToken);
-
-        return MapToInventoryProductDto(result, request.Category, isTrackable: true, StockFor(stock, result.Id));
     }
 
     public async Task DeleteAsync(Guid productId, CancellationToken cancellationToken = default)
@@ -121,7 +120,7 @@ public class StoreHubInventoryProductService : IInventoryProductService
         _logger.LogInformation("Product deleted: {Id}", productId);
     }
 
-    public async Task<InventoryProductDto> AdjustQuantityAsync(
+    public async Task AdjustQuantityAsync(
         Guid productId,
         int delta,
         string reason,
@@ -138,11 +137,6 @@ public class StoreHubInventoryProductService : IInventoryProductService
 
         _logger.LogInformation("Product stock adjusted: {Id}, Delta: {Delta}, Balance: {Balance}",
             productId, delta, response.Quantity);
-
-        var product = _productCacheService.GetById(productId)
-                      ?? throw new KeyNotFoundException($"Product not found in cache: {productId}");
-
-        return MapToInventoryProductDto(product, product.Category, isTrackable: true, response.Quantity);
     }
 
     public async Task<string> GenerateBarcodeAsync(CancellationToken cancellationToken = default)
