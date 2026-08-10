@@ -5,6 +5,7 @@ using IndyPOS.Application.Common.Interfaces;
 using IndyPOS.Application.UseCases.StoreHub.Products;
 using IndyPOS.Application.UseCases.StoreHub.Products.AdjustQuantity;
 using IndyPOS.Application.UseCases.StoreHub.Products.Create;
+using IndyPOS.Application.UseCases.StoreHub.Products.GetStock;
 using IndyPOS.Application.UseCases.StoreHub.Products.Update;
 using IndyPOS.Domain.Events;
 using IndyPOS.Infrastructure.Services.StoreHub;
@@ -106,8 +107,7 @@ public class StoreHubInventoryProductServiceTests
             Id = productId,
             Description = "Updated Product",
             Category = ProductCategoryCodes.Food,
-            UnitPrice = 150m,
-            QuantityInStock = 20
+            UnitPrice = 150m
         };
 
         var existingProduct = new ProductDto(
@@ -141,6 +141,8 @@ public class StoreHubInventoryProductServiceTests
                 It.IsAny<UpdateProductCommand>(),
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(updatedProduct);
+        _storeHubClientMock.Setup(x => x.GetProductStockAsync(productId, It.IsAny<CancellationToken>()))
+                           .ReturnsAsync(new Dictionary<Guid, int> { [productId] = 20 });
 
         // Act
         var result = await _sut.UpdateAsync(request);
@@ -175,14 +177,14 @@ public class StoreHubInventoryProductServiceTests
     }
 
     [Fact]
-    public async Task AdjustQuantityAsync_ShouldCallStoreHubClient_AndUpdateCache()
+    public async Task AdjustQuantityAsync_ShouldSendTheDelta_AndReturnTheNewBalance()
     {
         // Arrange
         var productId = Guid.NewGuid();
-        var targetQuantity = 50;
+        var delta = 50;
         var reason = "Manual adjustment";
 
-        var adjustedProduct = new ProductDto(
+        var cachedProduct = new ProductDto(
             Id: productId,
             Barcode: "1234567890123",
             Name: "Test Product",
@@ -195,20 +197,23 @@ public class StoreHubInventoryProductServiceTests
             GroupPriceQuantity: null,
             IsActive: true);
 
+        _productCacheServiceMock.Setup(x => x.GetById(productId))
+                                .Returns(cachedProduct);
+
         _storeHubClientMock.Setup(x => x.AdjustProductQuantityAsync(
                 productId,
-                It.Is<AdjustQuantityRequest>(r => r.Delta == targetQuantity && r.Reason == reason),
+                It.Is<AdjustQuantityRequest>(r => r.Delta == delta && r.Reason == reason),
                 It.IsAny<CancellationToken>()))
-            .ReturnsAsync(adjustedProduct);
+            .ReturnsAsync(new AdjustQuantityResponse(productId, 150));
 
         // Act
-        var result = await _sut.AdjustQuantityAsync(productId, targetQuantity, reason);
+        var result = await _sut.AdjustQuantityAsync(productId, delta, reason);
 
         // Assert
-        result.Should().NotBeNull();
-        result.Id.Should().Be(productId);
-
-        _productCacheServiceMock.Verify(x => x.UpsertProduct(adjustedProduct), Times.Once);
+        result.Id.Should()
+                 .Be(productId);
+        result.QuantityInStock.Should()
+                              .Be(150);
     }
 
     [Fact]
@@ -246,6 +251,8 @@ public class StoreHubInventoryProductServiceTests
             IsActive: true);
 
         _productCacheServiceMock.Setup(x => x.GetByBarcode(barcode)).Returns(cachedProduct);
+        _storeHubClientMock.Setup(x => x.GetProductStockAsync(cachedProduct.Id, It.IsAny<CancellationToken>()))
+                           .ReturnsAsync(new Dictionary<Guid, int>());
 
         // Act
         var result = await _sut.GetByBarcodeAsync(barcode);
@@ -288,6 +295,8 @@ public class StoreHubInventoryProductServiceTests
         };
 
         _productCacheServiceMock.Setup(x => x.GetAll()).Returns(products);
+        _storeHubClientMock.Setup(x => x.GetProductStockAsync(null, It.IsAny<CancellationToken>()))
+                           .ReturnsAsync(new Dictionary<Guid, int>());
 
         // Act
         var result = await _sut.GetByCategoryAsync(categoryCode);
@@ -308,6 +317,8 @@ public class StoreHubInventoryProductServiceTests
         };
 
         _productCacheServiceMock.Setup(x => x.GetAll()).Returns(products);
+        _storeHubClientMock.Setup(x => x.GetProductStockAsync(null, It.IsAny<CancellationToken>()))
+                           .ReturnsAsync(new Dictionary<Guid, int>());
 
         // Act
         var result = await _sut.GetAllAsync();
@@ -328,6 +339,8 @@ public class StoreHubInventoryProductServiceTests
         };
 
         _productCacheServiceMock.Setup(x => x.Search(keyword)).Returns(products);
+        _storeHubClientMock.Setup(x => x.GetProductStockAsync(null, It.IsAny<CancellationToken>()))
+                           .ReturnsAsync(new Dictionary<Guid, int>());
 
         // Act
         var result = await _sut.SearchByDescriptionAsync(keyword);
@@ -349,6 +362,8 @@ public class StoreHubInventoryProductServiceTests
         };
 
         _productCacheServiceMock.Setup(x => x.GetAll()).Returns(allProducts);
+        _storeHubClientMock.Setup(x => x.GetProductStockAsync(null, It.IsAny<CancellationToken>()))
+                           .ReturnsAsync(new Dictionary<Guid, int>());
 
         // Act
         var result = await _sut.SearchByBrandAsync(keyword);
@@ -357,4 +372,78 @@ public class StoreHubInventoryProductServiceTests
         result.Should().HaveCount(1);
         result.First().Brand.Should().Be("Apple");
     }
+
+    [Fact]
+    public async Task GetAllAsync_ShouldFillQuantityInStockFromStoreHub()
+    {
+        // Arrange
+        var productId = Guid.NewGuid();
+        var product = ProductWithId(productId);
+
+        _productCacheServiceMock.Setup(x => x.GetAll())
+                                .Returns(new List<ProductDto> { product });
+        _storeHubClientMock.Setup(x => x.GetProductStockAsync(null, It.IsAny<CancellationToken>()))
+                           .ReturnsAsync(new Dictionary<Guid, int> { [productId] = 42 });
+
+        // Act
+        var result = await _sut.GetAllAsync();
+
+        // Assert
+        result.Single()
+              .QuantityInStock.Should()
+                              .Be(42);
+    }
+
+    [Fact]
+    public async Task GetAllAsync_ForAProductWithNoMovements_ShouldReportZero()
+    {
+        // Absent from the stock dictionary means genuinely zero, not "unknown".
+        // Before this change every product reported 0 because the field was hardcoded.
+        var product = ProductWithId(Guid.NewGuid());
+
+        _productCacheServiceMock.Setup(x => x.GetAll())
+                                .Returns(new List<ProductDto> { product });
+        _storeHubClientMock.Setup(x => x.GetProductStockAsync(null, It.IsAny<CancellationToken>()))
+                           .ReturnsAsync(new Dictionary<Guid, int>());
+
+        var result = await _sut.GetAllAsync();
+
+        result.Single()
+              .QuantityInStock.Should()
+                              .Be(0);
+    }
+
+    [Fact]
+    public async Task GetAllAsync_ShouldFetchStockOnce_NotPerProduct()
+    {
+        // One GROUP BY for the whole store. A per-product fetch would be 10,000 round
+        // trips on the largest store.
+        _productCacheServiceMock.Setup(x => x.GetAll())
+                                .Returns(new List<ProductDto>
+                                {
+                                    ProductWithId(Guid.NewGuid()),
+                                    ProductWithId(Guid.NewGuid()),
+                                    ProductWithId(Guid.NewGuid())
+                                });
+        _storeHubClientMock.Setup(x => x.GetProductStockAsync(null, It.IsAny<CancellationToken>()))
+                           .ReturnsAsync(new Dictionary<Guid, int>());
+
+        await _sut.GetAllAsync();
+
+        _storeHubClientMock.Verify(
+            x => x.GetProductStockAsync(null, It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    private static ProductDto ProductWithId(Guid id) => new(
+        Id: id,
+        Barcode: "1234567890123",
+        Name: "Test Product",
+        Description: "Test Description",
+        Category: "เครื่องดื่ม",
+        Brand: null,
+        Manufacturer: null,
+        UnitPrice: 100m,
+        GroupPrice: null,
+        GroupPriceQuantity: null,
+        IsActive: true);
 }

@@ -24,9 +24,10 @@ public interface IInventoryProductService
     Task DeleteAsync(Guid productId, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Adjust product quantity via inventory movement.
+    /// Adjust product stock by a signed delta via inventory movement.
+    /// Returns the product with its balance after the movement.
     /// </summary>
-    Task<InventoryProductDto> AdjustQuantityAsync(Guid productId, int targetQuantity, string reason, CancellationToken cancellationToken = default);
+    Task<InventoryProductDto> AdjustQuantityAsync(Guid productId, int delta, string reason, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Generate the next available barcode for the store.
@@ -89,7 +90,6 @@ public record UpdateInventoryProductRequest
     /// <summary>Catalogue category code (see ProductCategoryCodes), not a legacy numeric id.</summary>
     public required string Category { get; init; }
     public required decimal UnitPrice { get; init; }
-    public int QuantityInStock { get; init; }
     public int? GroupPriceQuantity { get; init; }
     public decimal? GroupPrice { get; init; }
 }
