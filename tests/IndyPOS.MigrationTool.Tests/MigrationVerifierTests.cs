@@ -279,13 +279,58 @@ public class MigrationVerifierTests : IAsyncLifetime
         stockCheck.IsValid.Should().BeTrue();
     }
 
-    private MigrationOptions CreateOptions()
+    [Fact]
+    public async Task VerifyAsync_AgainstAStoreWithNoPayLaterTable_Completes()
+    {
+        // Defect 15. The verifier's PayLater count runs unconditionally -- the same shape as
+        // defect 3, which was only ever fixed in SqliteMigrationService. So `verify` throws
+        // "no such table: PayLater" on MimyShop and MimyMart, 2 of the 3 real stores, and the
+        // per-product stock check added for defect 14 has never been runnable on either of them.
+        await using var store = await LegacyStoreDatabase.CreateAsync(LegacyStoreShape.MimyShop);
+        var builder = new LegacyStoreDataBuilder(store);
+        await builder.AddPaymentTypeLookupAsync();
+        await builder.AddUserAsync(1, "cashier", "Malee", "Sooksan", 1, "2024-03-15 09:00:00");
+        await builder.AddProductAsync(
+            productId: 10, barcode: "8850002000020", description: "Instant noodles",
+            unitPrice: 6m, quantityInStock: 100, category: 20, isTrackable: true,
+            dateCreated: "2024-03-15 09:00:00");
+        await builder.AddInvoiceAsync(1, userId: 1, total: 6m, dateCreated: "2024-03-15 14:30:00");
+        await builder.AddInvoiceLineAsync(
+            invoiceProductId: 1, invoiceId: 1, productId: 10, barcode: "8850002000020",
+            description: "Instant noodles", quantity: 1, unitPrice: 6m, originalUnitPrice: 6m);
+        await builder.AddPaymentAsync(
+            paymentId: 500, invoiceId: 1, paymentTypeId: 1, amount: 6m,
+            dateCreated: "2024-03-15 14:30:00");
+
+        await MigrationScenario.RunAsync(store, _postgres);
+
+        var options = CreateOptions(store.Path);
+        var verifier = new MigrationVerifier(options, NullLogger<MigrationVerifier>.Instance);
+
+        var result = await verifier.VerifyAsync();
+
+        result.IsValid.Should().BeTrue();
+        result.Errors.Should().BeEmpty();
+
+        // The absence is REPORTED, not silently dropped: a check that vanishes from the table looks
+        // the same as one that was never written, which is how defect 14 survived every run.
+        result.Checks.Should().Contain(c => c.EntityName == NoPayLaterTableCheckName && c.IsValid);
+
+        // And the checks that matter still ran -- this is the whole point of the fix.
+        result.Checks.Should().Contain(c => c.EntityName == "Stock (units)" && c.IsValid);
+    }
+
+    private const string NoPayLaterTableCheckName = "PayLater (no legacy table)";
+
+    private MigrationOptions CreateOptions() => CreateOptions(_store.Path);
+
+    private MigrationOptions CreateOptions(string sqlitePath)
     {
         return new MigrationOptions
         {
-            SqlitePath = _store.Path,
+            SqlitePath = sqlitePath,
             PostgresConnectionString = _postgres.ConnectionString,
-            StoreId = "TEST-STORE",
+            StoreId = MigrationScenario.StoreId,
             DryRun = false
         };
     }

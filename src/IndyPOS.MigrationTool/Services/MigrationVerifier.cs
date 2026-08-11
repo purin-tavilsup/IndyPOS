@@ -11,6 +11,9 @@ public class MigrationVerifier
 {
     private const string StockCheckName = "Stock (units)";
 
+    /// <summary>Shown in place of the PayLater row for a store that does not have that feature.</summary>
+    private const string NoPayLaterTableCheckName = "PayLater (no legacy table)";
+
     /// <summary>A store can have thousands of products; the count stays exact, the listing does not.</summary>
     private const int MaxStockMismatchesReported = 10;
 
@@ -67,10 +70,7 @@ public class MigrationVerifier
         result.Checks.Add(new VerificationCheck("Payments", sqlitePayments, pgPayments, sqlitePayments <= pgPayments));
 
         // Verify PayLater
-        var sqlitePayLater = await sqliteConnection.ExecuteScalarAsync<int>(
-            "SELECT COUNT(*) FROM PayLater");
-        var pgPayLater = await context.PayLaters.CountAsync(ct);
-        result.Checks.Add(new VerificationCheck("PayLater", sqlitePayLater, pgPayLater, sqlitePayLater <= pgPayLater));
+        await VerifyPayLaterAsync(sqliteConnection, context, result, ct);
 
         // Verify payments PER METHOD, not just in total. Counts and revenue both reconcile
         // perfectly when the method mapping is scrambled, which is exactly how a mapping that
@@ -191,6 +191,44 @@ public class MigrationVerifier
         {
             result.Errors.Add($"  ... and {mismatches.Count - MaxStockMismatchesReported} more");
         }
+    }
+
+    /// <summary>
+    /// Compares PayLater counts, tolerating stores that have no such table.
+    ///
+    /// Defect 15. PayLater is a GeneralHardware-only feature; MimyMart and MimyShop have no such
+    /// table. Querying it unconditionally threw "no such table: PayLater" before any later check
+    /// ran, so on 2 of the 3 real stores the per-product stock check added for defect 14 - the one
+    /// thing that proves migrated stock is right - was never reachable. Same shape as defect 3,
+    /// which was only ever fixed in the migrator.
+    /// </summary>
+    private async Task VerifyPayLaterAsync(
+        SQLiteConnection sqlite, StoreHubDbContext context, VerificationResult result, CancellationToken ct)
+    {
+        var pgPayLater = await context.PayLaters.CountAsync(ct);
+
+        if (!await HasTableAsync(sqlite, "PayLater"))
+        {
+            _logger.LogInformation(
+                "No PayLater table in this store; skipping the count check. " +
+                "PayLater is a GeneralHardware-only feature.");
+
+            // Reported rather than skipped silently: a check that simply vanishes from the results
+            // table is indistinguishable from one that was never written, which is the class of
+            // blind spot that let defect 14 ship.
+            result.Checks.Add(new VerificationCheck(NoPayLaterTableCheckName, 0, pgPayLater, true));
+            return;
+        }
+
+        var sqlitePayLater = await sqlite.ExecuteScalarAsync<int>("SELECT COUNT(*) FROM PayLater");
+        result.Checks.Add(new VerificationCheck("PayLater", sqlitePayLater, pgPayLater, sqlitePayLater <= pgPayLater));
+    }
+
+    private static async Task<bool> HasTableAsync(SQLiteConnection sqlite, string tableName)
+    {
+        return await sqlite.ExecuteScalarAsync<long>(
+            "SELECT COUNT(*) FROM sqlite_master WHERE type = 'table' AND name = @tableName",
+            new { tableName }) > 0;
     }
 
     /// <summary>
