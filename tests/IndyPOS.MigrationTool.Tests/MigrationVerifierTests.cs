@@ -1,4 +1,4 @@
-using IndyPOS.MigrationTool.Services;
+﻿using IndyPOS.MigrationTool.Services;
 using IndyPOS.MigrationTool.Tests.Fixtures;
 using IndyPOS.MigrationTool.Tests.Tools;
 using Microsoft.EntityFrameworkCore;
@@ -318,6 +318,36 @@ public class MigrationVerifierTests : IAsyncLifetime
 
         // And the checks that matter still ran -- this is the whole point of the fix.
         result.Checks.Should().Contain(c => c.EntityName == "Stock (units)" && c.IsValid);
+    }
+
+    [Fact]
+    public async Task VerifyAsync_AgainstAStoreThatHasPayLater_ShouldStillCompareTheCounts()
+    {
+        // Coverage, not a new behaviour. Without this, a probe stuck at "absent" - reporting every
+        // store as having no PayLater and never comparing anything - passes the entire suite. The
+        // sibling test only proves the no-table path, so the two together are what constrain the
+        // probe. GeneralHardware is the shape that HAS the table.
+        await SeedManyAsync(userCount: 1, productCount: 2, invoiceCount: 2);
+
+        var builder = new LegacyStoreDataBuilder(_store);
+        await builder.AddPayLaterAsync(
+            paymentId: 1, invoiceId: 1, description: "Somchai", payLaterAmount: 700m,
+            paidAmount: 0m, isCompleted: false, dateCreated: "2024-03-15 14:30:00");
+
+        var options = CreateOptions();
+        await new SqliteMigrationService(options, NullLogger<SqliteMigrationService>.Instance)
+            .MigrateAllAsync();
+
+        var result = await new MigrationVerifier(options, NullLogger<MigrationVerifier>.Instance)
+            .VerifyAsync();
+
+        var payLater = result.Checks.Should().ContainSingle(c => c.EntityName == "PayLater").Subject;
+        payLater.SqliteCount.Should().Be(1);
+        payLater.PostgresCount.Should().Be(1);
+        payLater.IsValid.Should().BeTrue();
+
+        result.Checks.Should().NotContain(c => c.EntityName == NoPayLaterTableCheckName,
+            "this store HAS the table, so the skip row must not appear");
     }
 
     private const string NoPayLaterTableCheckName = "PayLater (no legacy table)";
