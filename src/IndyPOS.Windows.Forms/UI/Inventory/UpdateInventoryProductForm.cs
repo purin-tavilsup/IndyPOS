@@ -1,6 +1,5 @@
 ﻿using IndyPOS.Application.Abstractions.StoreHub;
 using IndyPOS.Application.Common.Interfaces;
-using IndyPOS.Application.Events;
 using IndyPOS.Application.UseCases.StoreHub.ProductCategories;
 using IndyPOS.Domain.Enums;
 using IndyPOS.Domain.Events;
@@ -170,17 +169,20 @@ public partial class UpdateInventoryProductForm : Form
 			}
 			catch (Exception ex)
 			{
+				// The endpoint is not idempotent, so a blind re-Save must not resend this
+				// delta - the request may already have landed even though we never saw the
+				// response. Rebase to zero rather than retry: the operator has just been
+				// told to check the quantity, so re-entering it is a deliberate act, not a
+				// silent double-apply. This stays AHEAD of the publish below, because Publish invokes
+				// subscribers inline: a future subscriber that threw would otherwise skip the rebase
+				// and leave a live delta armed - the very double-apply it exists to prevent.
+				_stockAdjustment.RebaseToDisplayedQuantity();
+
 				// UpdateAsync suppressed its own refresh so the grid would settle once, from
 				// this adjustment. The adjustment is what failed, so nothing else will publish -
 				// without this the grid keeps showing the pre-save product record.
 				_eventAggregator.GetEvent<InventoryProductUpdatedEvent>().Publish(_product.Id);
 
-				// The endpoint is not idempotent, so a blind re-Save must not resend this
-				// delta - the request may already have landed even though we never saw the
-				// response. Rebase to zero rather than retry: the operator has just been
-				// told to check the quantity, so re-entering it is a deliberate act, not a
-				// silent double-apply.
-				_stockAdjustment.RebaseToDisplayedQuantity();
 				_messageForm.ShowDialog(
 					$"บันทึกข้อมูลสินค้าเรียบร้อยแล้ว แต่ไม่สามารถปรับจำนวนสินค้าได้ กรุณาตรวจสอบจำนวนสินค้าและลองใหม่อีกครั้ง Error: {ex.Message}",
 					"ปรับจำนวนสินค้าไม่สำเร็จ");
