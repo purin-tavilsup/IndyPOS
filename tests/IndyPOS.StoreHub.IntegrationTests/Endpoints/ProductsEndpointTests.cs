@@ -3,8 +3,12 @@ using System.Net.Http.Json;
 using FluentAssertions;
 using IndyPOS.Application.Common.Constants;
 using IndyPOS.Application.UseCases.StoreHub.Products;
+using IndyPOS.Application.UseCases.StoreHub.Products.AdjustQuantity;
 using IndyPOS.Application.UseCases.StoreHub.Products.Create;
 using IndyPOS.Application.UseCases.StoreHub.Products.Update;
+using IndyPOS.Domain.Entities.Core;
+using IndyPOS.Infrastructure.Persistence.StoreHub;
+using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
 namespace IndyPOS.StoreHub.IntegrationTests.Endpoints;
@@ -256,7 +260,7 @@ public class ProductsEndpointTests : IntegrationTestBase
     }
 
     [Fact]
-    public async Task AdjustQuantity_AsManager_ReturnsSuccess()
+    public async Task AdjustQuantity_AsManager_ShouldApplyTheDeltaToTheBalance()
     {
         // Arrange
         await AuthenticateAsManagerAsync();
@@ -265,15 +269,73 @@ public class ProductsEndpointTests : IntegrationTestBase
         // Act
         var response = await Client.PostAsJsonAsync($"/products/{product.Id}/adjust-quantity", new
         {
-            quantityDelta = 50,
+            delta = 50,
             reason = "Restock"
         });
 
         // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        response.StatusCode.Should()
+                           .Be(HttpStatusCode.OK);
 
-        // Note: Stock calculation via inventory movements may filter by StoreId
-        // This test verifies the endpoint returns success
+        var result = await response.Content.ReadFromJsonAsync<AdjustQuantityResponse>(JsonOptions);
+        result!.Quantity.Should()
+                        .Be(150);
+
+        (await GetProductStockAsync(product.Id)).Should()
+                                                .Be(150);
+    }
+
+    [Fact]
+    public async Task AdjustQuantity_WithASaleInBetween_ShouldNotSwallowTheSale()
+    {
+        // The reason this endpoint takes a delta rather than a target quantity. The
+        // operator sees 100 and restocks by 50; meanwhile the other till sells 30. The
+        // answer is 120. A target-based endpoint would write 150 and lose the sale.
+        // If anyone reverts to target semantics, this test must fail.
+        await AuthenticateAsManagerAsync();
+        var product = await CreateTestProductAsync(initialStock: 100);
+
+        await using (var scope = Factory.Services.CreateAsyncScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<StoreHubDbContext>();
+            db.InventoryMovements.Add(new InventoryMovement
+            {
+                Id = Guid.NewGuid(),
+                StoreId = "test-store",
+                ProductId = product.Id,
+                QuantityDelta = -30,
+                Reason = "Sale",
+                CreatedUtc = DateTime.UtcNow
+            });
+            await db.SaveChangesAsync();
+        }
+
+        await Client.PostAsJsonAsync($"/products/{product.Id}/adjust-quantity", new
+        {
+            delta = 50,
+            reason = "Restock"
+        });
+
+        (await GetProductStockAsync(product.Id)).Should()
+                                                .Be(120);
+    }
+
+    [Fact]
+    public async Task AdjustQuantity_WithAZeroDelta_ShouldReturnBadRequest()
+    {
+        // Rejected at the boundary rather than silently ignored, so a UI bug that sends
+        // a no-op adjustment is visible instead of looking like it worked.
+        await AuthenticateAsManagerAsync();
+        var product = await CreateTestProductAsync(initialStock: 100);
+
+        var response = await Client.PostAsJsonAsync($"/products/{product.Id}/adjust-quantity", new
+        {
+            delta = 0,
+            reason = "Restock"
+        });
+
+        response.StatusCode.Should()
+                           .Be(HttpStatusCode.BadRequest);
     }
 
     [Fact]

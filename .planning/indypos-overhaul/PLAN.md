@@ -17,7 +17,7 @@ history intact — not cloud infrastructure.
 | # | Epic | Status | Why this order |
 |---|------|--------|----------------|
 | 1 | **Product categories + MimyShop** | ✅ **SHIPPED 2026-07-31 (PR #55)** | The migration needs a category model to map into. Blocked 2 |
-| 2 | **SQLite → PostgreSQL migration hardening** | 🚧 **IN PROGRESS** — test harness landed; defects 2, 3, 4, 9, 10, 11, 12, 13, 14 fixed (plus 7a); 5/6/8 pinned; **7b open and deliberately unpinned** | 3 divergent legacy schemas. The risky half of the rollout |
+| 2 | **SQLite → PostgreSQL migration hardening** | 🚧 **IN PROGRESS** — test harness landed; defects 2, 3, 4, 9, 10, 11, 12, 13, 14, 15, 16 fixed (plus 7a); 5/6/8 pinned; **7b open and deliberately unpinned**. **Stock is now observable and correctable at the till** — see below | 3 divergent legacy schemas. The risky half of the rollout |
 | 3 | **Store rollout** (fresh v4 install + migrate, per store) | ⏳ Blocked by 2 | Where the business value lands: stores off a 3.7.0-era system |
 | 4 | **Epic I: Cloud infrastructure** | 🔴 Not started | Additive. No longer on the critical path — see "Legacy history" below |
 | 5 | **Epic MCP: agent-facing API** | 🔴 Not started | Depends on 4 |
@@ -157,6 +157,45 @@ Legacy payment id 6 `ผ่อนชำระ` is dead with them.
 | 14 | **Migrated stock is current stock minus the entire sales history.** `MigrateProductsAsync` writes a `Migration:InitialStock` movement of `+QuantityInStock` — *today's* stock, already net of every sale — and then `MigrateInvoicesAsync` replays every historical line as a `Migration:Sale` of `-Quantity`. `Product` has no stock column: `InventoryMovement.cs:6` defines stock as `SUM(QuantityDelta)` | **Measured: GeneralHardware nets −400,541 units, with 7,028 of 10,590 products (66%) going negative; MimyMart nets −249,652, 2,350 of 6,335 (37%).** Every till would show deeply negative stock the moment a store cut over. The sales replay is the double-count — `QuantityInStock` already reflects them. Fixed by removing the sales replay: `QuantityInStock` is migrated as the single source of stock, and the `Migration:InitialStock` movement is now dated at cutover rather than the product's creation date. Also fixed in the same method (**14b**): the `> 0` guard silently dropped the **1,535** products already at negative legacy stock (952 GeneralHardware + 583 MimyMart, down to −3,882) to zero. They are still clamped to zero — `QuantityInStock` was never strictly maintained, so those values are unrecorded restock rather than shelf state — but now reported on `MigrationResult.ClampedStocks` and printed as a recount list. **`MigrationVerifier` now checks stock per product** — it had no stock check at all, which is why a −400,541-unit error passed every count- and revenue-based check. The check sums ALL movements, not just the migration's own: filtering by reason would ignore the very `Migration:Sale` rows that made stock wrong | ✅ Fixed `ecfaa86` (14b: `e3c193f`) |
 | 15 | **`MigrationVerifier` queries `PayLater` unconditionally** (`MigrationVerifier.cs:70`) — the same shape as defect 3, which was fixed only in `SqliteMigrationService` | **`verify` crashed with `no such table: PayLater` on MimyMart and MimyShop, 2 of the 3 real stores**, before any later check ran. So the per-product stock check added for defect 14 — the one thing that proves migrated stock is right — had never been runnable on either of them. `migrate` itself always succeeded; only `verify` died, which is why it went unnoticed. Found 2026-08-10 by running `verify` for real. Fixed by probing `sqlite_master` first, as the migrator already does; the absence is reported as its own check row rather than dropped, so "this store has no PayLater" cannot be confused with a check that silently disappeared. Confirmed on real data: `verify` now completes on MimyShop (stock check reads 719 units, matching the API) and reaches the stock check on MimyMart (36,789 legacy units). **This alone did NOT make the stock check runnable everywhere** — GeneralHardware still crashed one check earlier, on defect 16 | ✅ Fixed `772bce5`, probe shared with the migrator in `8d1fe7d` |
 | 16 | **`verify` crashes on GeneralHardware with `InvalidCastException`.** `VerifyPaymentsByMethodAsync` reads `COALESCE(SUM(Amount), 0)` into a ValueTuple. `Payment.Amount` is declared `NUMERIC`, so SQLite stores each row in whichever class fits and `SUM()` returns **integer for payment types 2/3/7/8 and real for 1/5** on the real store. Dapper binds the accessor from the first row, then throws on the first row of the other class | **The stock check sits at line 84 and this throws at line 79**, so on the largest store — the one defect 14 left at −400,541 units — the stock check was still unreachable after defect 15 was fixed. MimyMart and MimyShop escaped only because every one of their groups happens to land on integer, which is exactly why migrating and verifying those two read as proof. Found 2026-08-11 by an adversarial review that ran the third store. Fixed by `CAST(... AS REAL)`; `verify` now completes on GeneralHardware, reporting PayLater 5,181 and Stock 54,183, both matching independently computed SQLite figures | ✅ Fixed `f62df1a` |
+
+### Stock at the till — closed 2026-08-10
+
+Defect 14 fixed migrated stock, but **nothing could see it**: `ProductDto` carried no quantity, so
+`StoreHubInventoryProductService.cs:233` returned a literal `0` for every product and the grid column
+`จำนวนในคลัง` read 0 on all 10,590 GeneralHardware rows. Investigating it surfaced two more defects in
+the same area, both shipped together with the fix:
+
+- **Restocking through the UI was a silent no-op.** `UpdateInventoryProductForm`'s +/- buttons edited a
+  label; `Save` packed the figure into `UpdateInventoryProductRequest.QuantityInStock`, which
+  `UpdateProductCommand` deliberately excludes ("use AdjustQuantity for that") — so it was parsed and
+  dropped. `AdjustQuantityAsync` existed end to end with **zero UI callers**.
+- **The adjust response was deserialized as the wrong type.** The endpoint returned an anonymous
+  `{ productId, quantity }` while `IStoreHubClient.AdjustProductQuantityAsync` declared
+  `Task<ProductDto>`; nothing bound, so it always returned an empty `ProductDto` — which the service
+  then fed to `_productCacheService.UpsertProduct`. Harmless only because nothing called it.
+
+**Design.** Stock is read through a new `GET /products/stock` (batched `GROUP BY ProductId`, optional
+`?productId=`) and merged into the inventory list. **It is deliberately NOT on `ProductDto`**: the POS
+caches that record from login onward, so a quantity there would be stale after the first sale on
+either terminal. `SalePanel` therefore shows no stock at all — a number that is right at login and
+wrong by mid-morning is worse than none on the screen where speed matters.
+
+**`AdjustQuantityRequest` now takes a signed `Delta`, not a target quantity.** Target-based math had a
+lost-update hole: load 100, another till sells 30, save 150 → the server wrote +50 and swallowed the
+sale. Pinned by `AdjustQuantity_WithASaleInBetween_ShouldNotSwallowTheSale`, which must fail if anyone
+reverts to target semantics. The replaced test was itself a dud — it posted `quantityDelta`, which
+bound to nothing, so the call *zeroed* the product's stock while asserting only `200 OK`.
+
+**Verified for real** against a migrated MimyShop fixture, not only by tests: 100 movement rows for
+100 products, all `Migration:InitialStock` and **no `Migration:Sale`** (defect 14 confirmed on real
+data); `GET /products/stock` returned 100 rows totalling 719 units, matching
+`SELECT SUM(quantity_delta) GROUP BY product_id` exactly, top balances 24/24/12/12/12; a `+5` adjust
+returned 29 and wrote exactly one `Adjustment` movement; a zero delta returned 400.
+
+⚠️ **Operational trap found while doing it:** if the installed StoreHub's `Store:Id` does not match the
+`--store-id` passed to the migration tool, `/products/stock` returns **zero rows** and every till
+shows 0 — indistinguishable from the bug this work fixed. Worth an explicit check in Epic 3's
+per-store runbook.
 
 > **"Pinned" means there is an executable test asserting today's WRONG behaviour**, naming the defect
 > and recording the correct answer in its message. Each was verified able to fail. When you fix one,
@@ -478,19 +517,19 @@ Stubs returning empty collections; address during MAUI migration:
 
 ---
 
-## Test state (2026-08-04, all rows re-measured)
+## Test state (2026-08-10, all rows re-measured)
 
 | Suite | Count |
 |-------|-------|
-| IndyPOS.Bootstrapper.Tests | 223 pass / 8 skip (admin-required) |
-| IndyPOS.Application.Tests | 294 |
-| IndyPOS.StoreHub.IntegrationTests | 94 (real PostgreSQL; 87 need Docker) |
-| IndyPOS.MigrationTool.Tests | 85 pass / 1 skip (86) — 36 need Docker, 24 need the gitignored real store `.db` files, 25 pure units, 1 manual extractor. **66 discovered** without those `.db` files, still all green |
+| IndyPOS.Bootstrapper.Tests | 223 pass / 8 skip (admin-required) — not re-measured 2026-08-10; not in `IndyPOS.sln` |
+| IndyPOS.Application.Tests | 297 |
+| IndyPOS.StoreHub.IntegrationTests | 104 (real PostgreSQL; 97 need Docker) |
+| IndyPOS.MigrationTool.Tests | 91 pass / 1 skip (92) — 42 need Docker, 24 need the gitignored real store `.db` files, 25 pure units, 1 manual extractor |
 | ~~IndyPOS.Migration.Tests~~ | **deleted 2026-08-03** — validated a schema no store has |
 | IndyPOS.Domain.Tests | 36 |
-| IndyPOS.Windows.Forms.Tests | 19 |
+| IndyPOS.Windows.Forms.Tests | 28 (was 19; +9 from the stock-at-the-till work) |
 | IndyPOS.Vault.Tests | 17 |
-| Solution total | **546** (545 pass / 1 skip) with Docker running and real store `.db` files present; **526** without them |
+| Solution total | **574** (573 pass / 1 skip) with Docker running and real store `.db` files present; **554** without them (derived, not measured) |
 | Release build | 0 errors |
 
 ---

@@ -32,6 +32,20 @@ public class InventoryMovementRepository : IInventoryMovementRepository
             .SumAsync(m => m.QuantityDelta, cancellationToken);
     }
 
+    public async Task<IReadOnlyDictionary<Guid, int>> GetBalancesAsync(
+        string storeId,
+        CancellationToken cancellationToken = default)
+    {
+        var balances = await _dbContext.InventoryMovements
+            .AsNoTracking()
+            .Where(m => m.StoreId == storeId)
+            .GroupBy(m => m.ProductId)
+            .Select(g => new { ProductId = g.Key, Balance = g.Sum(m => m.QuantityDelta) })
+            .ToListAsync(cancellationToken);
+
+        return balances.ToDictionary(b => b.ProductId, b => b.Balance);
+    }
+
     public async Task<IReadOnlyList<InventoryMovement>> GetByProductIdAsync(
         string storeId,
         Guid productId,
