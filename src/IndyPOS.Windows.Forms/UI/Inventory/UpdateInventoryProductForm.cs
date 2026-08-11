@@ -1,7 +1,9 @@
 ﻿using IndyPOS.Application.Abstractions.StoreHub;
 using IndyPOS.Application.Common.Interfaces;
+using IndyPOS.Application.Events;
 using IndyPOS.Application.UseCases.StoreHub.ProductCategories;
 using IndyPOS.Domain.Enums;
+using IndyPOS.Domain.Events;
 using System.Diagnostics.CodeAnalysis;
 using IndyPOS.Application.UseCases.InventoryProducts;
 
@@ -10,6 +12,7 @@ namespace IndyPOS.Windows.Forms.UI.Inventory;
 [ExcludeFromCodeCoverage]
 public partial class UpdateInventoryProductForm : Form
 {
+	private readonly IEventAggregator _eventAggregator;
 	private readonly IInventoryProductService _inventoryProductService;
 	private readonly IStoreHubClient _storeHubClient;
 	private readonly MessageForm _messageForm;
@@ -19,10 +22,12 @@ public partial class UpdateInventoryProductForm : Form
 	private readonly ProductCategoryPicker _categoryPicker;
 
 	public UpdateInventoryProductForm(MessageForm messageForm,
+									  IEventAggregator eventAggregator,
 									  IInventoryProductService inventoryProductService,
 									  IStoreHubClient storeHubClient)
 	{
 		_messageForm = messageForm;
+		_eventAggregator = eventAggregator;
 		_inventoryProductService = inventoryProductService;
 		_storeHubClient = storeHubClient;
 		_categoryPicker = new ProductCategoryPicker(storeHubClient);
@@ -165,6 +170,11 @@ public partial class UpdateInventoryProductForm : Form
 			}
 			catch (Exception ex)
 			{
+				// UpdateAsync suppressed its own refresh so the grid would settle once, from
+				// this adjustment. The adjustment is what failed, so nothing else will publish -
+				// without this the grid keeps showing the pre-save product record.
+				_eventAggregator.GetEvent<InventoryProductUpdatedEvent>().Publish(_product.Id);
+
 				// The endpoint is not idempotent, so a blind re-Save must not resend this
 				// delta - the request may already have landed even though we never saw the
 				// response. Rebase to zero rather than retry: the operator has just been
