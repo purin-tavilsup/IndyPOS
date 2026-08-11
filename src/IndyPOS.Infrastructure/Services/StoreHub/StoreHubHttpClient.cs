@@ -12,6 +12,7 @@ using IndyPOS.Application.UseCases.StoreHub.ProductCategories;
 using IndyPOS.Application.UseCases.StoreHub.Products;
 using IndyPOS.Application.UseCases.StoreHub.Products.AdjustQuantity;
 using IndyPOS.Application.UseCases.StoreHub.Products.Create;
+using IndyPOS.Application.UseCases.StoreHub.Products.GetStock;
 using IndyPOS.Application.UseCases.StoreHub.Products.Update;
 using IndyPOS.Application.UseCases.StoreHub.Sales;
 using Microsoft.Extensions.Logging;
@@ -146,6 +147,21 @@ public class StoreHubHttpClient : IStoreHubClient
         return products ?? [];
     }
 
+    public async Task<IReadOnlyDictionary<Guid, int>> GetProductStockAsync(
+        Guid? productId = null,
+        CancellationToken cancellationToken = default)
+    {
+        var url = productId is { } id ? $"/products/stock?productId={id}" : "/products/stock";
+
+        var stock = await SendAuthenticatedAsync<IReadOnlyList<ProductStockDto>>(
+            HttpMethod.Get, url, content: null, cancellationToken);
+
+        _logger.LogDebug("Fetched stock for {Count} products from StoreHub", stock?.Count ?? 0);
+
+        return stock?.ToDictionary(s => s.ProductId, s => s.Quantity)
+               ?? new Dictionary<Guid, int>();
+    }
+
     public async Task<ProductDto> CreateProductAsync(
         CreateProductCommand command,
         CancellationToken cancellationToken = default)
@@ -181,19 +197,20 @@ public class StoreHubHttpClient : IStoreHubClient
         _logger.LogInformation("Product deleted successfully. Id: {Id}", productId);
     }
 
-    public async Task<ProductDto> AdjustProductQuantityAsync(
+    public async Task<AdjustQuantityResponse> AdjustProductQuantityAsync(
         Guid productId,
         AdjustQuantityRequest request,
         CancellationToken cancellationToken = default)
     {
-        _logger.LogDebug("Adjusting quantity for product: {Id}, Target: {TargetQuantity}",
-            productId, request.TargetQuantity);
+        _logger.LogDebug("Adjusting stock for product: {Id}, Delta: {Delta}",
+            productId, request.Delta);
 
-        var result = await SendAuthenticatedAsync<ProductDto>(
+        var result = await SendAuthenticatedAsync<AdjustQuantityResponse>(
             HttpMethod.Post, $"/products/{productId}/adjust-quantity", request, cancellationToken);
 
-        _logger.LogInformation("Product quantity adjusted. Id: {Id}, Target: {TargetQuantity}",
-            result.Id, request.TargetQuantity);
+        _logger.LogInformation("Product stock adjusted. Id: {Id}, Delta: {Delta}, Balance: {Balance}",
+            productId, request.Delta, result.Quantity);
+
         return result;
     }
 

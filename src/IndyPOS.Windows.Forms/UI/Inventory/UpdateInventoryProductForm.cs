@@ -2,6 +2,7 @@
 using IndyPOS.Application.Common.Interfaces;
 using IndyPOS.Application.UseCases.StoreHub.ProductCategories;
 using IndyPOS.Domain.Enums;
+using IndyPOS.Domain.Events;
 using System.Diagnostics.CodeAnalysis;
 using IndyPOS.Application.UseCases.InventoryProducts;
 
@@ -10,18 +11,22 @@ namespace IndyPOS.Windows.Forms.UI.Inventory;
 [ExcludeFromCodeCoverage]
 public partial class UpdateInventoryProductForm : Form
 {
+	private readonly IEventAggregator _eventAggregator;
 	private readonly IInventoryProductService _inventoryProductService;
 	private readonly IStoreHubClient _storeHubClient;
 	private readonly MessageForm _messageForm;
 	private InventoryProductDto? _product;
+	private PendingStockAdjustment? _stockAdjustment;
 
 	private readonly ProductCategoryPicker _categoryPicker;
 
 	public UpdateInventoryProductForm(MessageForm messageForm,
+									  IEventAggregator eventAggregator,
 									  IInventoryProductService inventoryProductService,
 									  IStoreHubClient storeHubClient)
 	{
 		_messageForm = messageForm;
+		_eventAggregator = eventAggregator;
 		_inventoryProductService = inventoryProductService;
 		_storeHubClient = storeHubClient;
 		_categoryPicker = new ProductCategoryPicker(storeHubClient);
@@ -68,7 +73,8 @@ public partial class UpdateInventoryProductForm : Form
 		}
 		
 		DescriptionTextBox.Texts = _product.Description;
-		QuantityLabel.Text = $"{_product.QuantityInStock}";
+		_stockAdjustment = new PendingStockAdjustment(_product.QuantityInStock);
+		QuantityLabel.Text = $"{_stockAdjustment.DisplayedQuantity}";
 		UnitPriceTextBox.Texts = $"{_product.UnitPrice:N}";
 		// An existing product may sit in a category this store no longer offers; show its label
 		// rather than a blank, so editing an unrelated field does not silently retype it.
@@ -129,21 +135,62 @@ public partial class UpdateInventoryProductForm : Form
 
 	private async void UpdateProductButton_Click(object sender, EventArgs e)
 	{
-		if (_product is null || !ValidateProductEntry())
+		if (_product is null || _stockAdjustment is null || !ValidateProductEntry())
 			return;
+
+		// A stock change follows in its own event below - suppress this call's refresh so
+		// the grid settles once, from the adjustment, rather than from two whole-store stock
+		// fetches racing each other.
+		var hasStockChange = _stockAdjustment.HasChange;
 
 		try
 		{
-			var request = CreateRequestForUpdateProduct(_product);
-
-			await _inventoryProductService.UpdateAsync(request);
-
-			Close();
+			await _inventoryProductService.UpdateAsync(
+				CreateRequestForUpdateProduct(_product), publishUpdatedEvent: !hasStockChange);
 		}
 		catch (Exception ex)
 		{
 			_messageForm.ShowDialog($"เกิดความผิดพลาดในขณะที่กำลังอัพเดทสินค้า Error: {ex.Message}", "เกิดความผิดพลาดในขณะที่กำลังอัพเดทสินค้า");
+			return;
 		}
+
+		// Stock is a separate concern from the product record: it is a movement, not
+		// a column. UpdateAsync has never carried it - the typed quantity used to be
+		// parsed and silently dropped. It gets its own try/catch, separate from the update
+		// above, because the two calls can fail independently and the operator needs to
+		// know which half failed - "click Save again" and "go fix the quantity" are
+		// different instructions.
+		if (_stockAdjustment.HasChange)
+		{
+			try
+			{
+				await _inventoryProductService.AdjustQuantityAsync(
+					_product.Id, _stockAdjustment.Delta, "แก้ไขจำนวนสินค้า");
+			}
+			catch (Exception ex)
+			{
+				// The endpoint is not idempotent, so a blind re-Save must not resend this
+				// delta - the request may already have landed even though we never saw the
+				// response. Rebase to zero rather than retry: the operator has just been
+				// told to check the quantity, so re-entering it is a deliberate act, not a
+				// silent double-apply. This stays AHEAD of the publish below, because Publish invokes
+				// subscribers inline: a future subscriber that threw would otherwise skip the rebase
+				// and leave a live delta armed - the very double-apply it exists to prevent.
+				_stockAdjustment.RebaseToDisplayedQuantity();
+
+				// UpdateAsync suppressed its own refresh so the grid would settle once, from
+				// this adjustment. The adjustment is what failed, so nothing else will publish -
+				// without this the grid keeps showing the pre-save product record.
+				_eventAggregator.GetEvent<InventoryProductUpdatedEvent>().Publish(_product.Id);
+
+				_messageForm.ShowDialog(
+					$"บันทึกข้อมูลสินค้าเรียบร้อยแล้ว แต่ไม่สามารถปรับจำนวนสินค้าได้ กรุณาตรวจสอบจำนวนสินค้าและลองใหม่อีกครั้ง Error: {ex.Message}",
+					"ปรับจำนวนสินค้าไม่สำเร็จ");
+				return;
+			}
+		}
+
+		Close();
 	}
 
 	private UpdateInventoryProductRequest CreateRequestForUpdateProduct(InventoryProductDto product)
@@ -159,7 +206,6 @@ public partial class UpdateInventoryProductForm : Form
 		{
 			Id = product.Id,
 			Description = DescriptionTextBox.Texts.Trim(),
-			QuantityInStock = int.Parse(QuantityLabel.Text.Trim()),
 			UnitPrice = decimal.Parse(UnitPriceTextBox.Texts.Trim()),
 			GroupPrice = groupPrice,
 			GroupPriceQuantity = groupPriceQuantity,
@@ -212,13 +258,13 @@ public partial class UpdateInventoryProductForm : Form
 	/// </summary>
 	private void AdjustQuantityBy(int direction)
 	{
-		if (!ValidateQuantity())
+		if (_stockAdjustment is null || !ValidateQuantity())
 			return;
 
 		var amount = int.Parse(QuantityTextBox.Texts.Trim());
-		var quantity = int.Parse(QuantityLabel.Text.Trim());
 
-		QuantityLabel.Text = $"{quantity + direction * amount}";
+		_stockAdjustment.Increase(direction * amount);
+		QuantityLabel.Text = $"{_stockAdjustment.DisplayedQuantity}";
 
 		QuantityTextBox.Texts = string.Empty;
 	}
