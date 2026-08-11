@@ -6,6 +6,7 @@ using IndyPOS.Domain.Events;
 using IndyPOS.Windows.Forms.Enums;
 using IndyPOS.Windows.Forms.Events;
 using IndyPOS.Windows.Forms.Extensions;
+using Serilog;
 using System.Diagnostics.CodeAnalysis;
 using IndyPOS.Application.UseCases.InventoryProducts;
 
@@ -408,7 +409,23 @@ public partial class InventoryPanel : UserControl
 
     private async void InventoryProductUpdated(Guid productId)
     {
-        await RefreshCurrentProductViewAsync();
+        try
+        {
+            await RefreshCurrentProductViewAsync();
+        }
+        catch (Exception ex)
+        {
+            // This refresh opens with GET /products/stock, and one publisher of this event is
+            // the stock-adjust FAILURE path - where StoreHub is the most likely thing to have
+            // just broken, so the refresh throws too. Escaping an async void handler would put
+            // a second, generic "unexpected error" dialog on top of the message that actually
+            // explains what happened, and on a timeout it would arrive seconds later.
+            //
+            // Logged, never shown: UiErrorSeverity.Background names this exact case - the
+            // caller presents its own dialog. A stale grid is recoverable and the next
+            // navigation refreshes it.
+            Log.Warning(ex, "Inventory grid refresh failed after product {ProductId} was updated", productId);
+        }
     }
 
     private async void InventoryProductDeleted()
