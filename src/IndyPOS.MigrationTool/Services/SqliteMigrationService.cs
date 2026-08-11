@@ -1,4 +1,4 @@
-using System.Data.SQLite;
+﻿using System.Data.SQLite;
 using System.Globalization;
 using System.Net.Http.Json;
 using System.Text.Json;
@@ -415,8 +415,7 @@ public class SqliteMigrationService
         // Defect 3: PayLater is a GeneralHardware-only feature. Minimart and MimyShop have no such
         // table, so querying it unconditionally threw "no such table: PayLater" and -- because that
         // throw escaped before SaveChangesAsync -- discarded the entire migration.
-        var hasPayLaterTable = await sqlite.ExecuteScalarAsync<long>(
-            "SELECT COUNT(*) FROM sqlite_master WHERE type = 'table' AND name = 'PayLater'") > 0;
+        var hasPayLaterTable = await LegacySchemaProbe.HasTableAsync(sqlite, "PayLater");
 
         if (!hasPayLaterTable)
         {

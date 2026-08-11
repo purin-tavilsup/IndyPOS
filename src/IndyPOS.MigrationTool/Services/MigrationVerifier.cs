@@ -1,4 +1,4 @@
-using System.Data.SQLite;
+﻿using System.Data.SQLite;
 using Dapper;
 using IndyPOS.Application.Common.Constants;
 using IndyPOS.Infrastructure.Persistence.StoreHub;
@@ -10,6 +10,9 @@ namespace IndyPOS.MigrationTool.Services;
 public class MigrationVerifier
 {
     private const string StockCheckName = "Stock (units)";
+
+    /// <summary>Shown in place of the PayLater row for a store that does not have that feature.</summary>
+    private const string NoPayLaterTableCheckName = "PayLater (no legacy table)";
 
     /// <summary>A store can have thousands of products; the count stays exact, the listing does not.</summary>
     private const int MaxStockMismatchesReported = 10;
@@ -67,10 +70,7 @@ public class MigrationVerifier
         result.Checks.Add(new VerificationCheck("Payments", sqlitePayments, pgPayments, sqlitePayments <= pgPayments));
 
         // Verify PayLater
-        var sqlitePayLater = await sqliteConnection.ExecuteScalarAsync<int>(
-            "SELECT COUNT(*) FROM PayLater");
-        var pgPayLater = await context.PayLaters.CountAsync(ct);
-        result.Checks.Add(new VerificationCheck("PayLater", sqlitePayLater, pgPayLater, sqlitePayLater <= pgPayLater));
+        await VerifyPayLaterAsync(sqliteConnection, context, result, ct);
 
         // Verify payments PER METHOD, not just in total. Counts and revenue both reconcile
         // perfectly when the method mapping is scrambled, which is exactly how a mapping that
@@ -194,6 +194,41 @@ public class MigrationVerifier
     }
 
     /// <summary>
+    /// Compares PayLater counts, tolerating stores that have no such table.
+    ///
+    /// Defect 15. PayLater is a GeneralHardware-only feature; MimyMart and MimyShop have no such
+    /// table. Querying it unconditionally threw "no such table: PayLater" before any later check
+    /// ran, so on 2 of the 3 real stores the per-product stock check added for defect 14 - the one
+    /// thing that proves migrated stock is right - was never reachable. Same shape as defect 3,
+    /// which was only ever fixed in the migrator.
+    /// </summary>
+    private async Task VerifyPayLaterAsync(
+        SQLiteConnection sqlite, StoreHubDbContext context, VerificationResult result, CancellationToken ct)
+    {
+        var pgPayLater = await context.PayLaters.CountAsync(ct);
+
+        if (!await LegacySchemaProbe.HasTableAsync(sqlite, "PayLater"))
+        {
+            _logger.LogInformation(
+                "No PayLater table in this store; skipping the count check. " +
+                "PayLater is a GeneralHardware-only feature.");
+
+            // Reported rather than skipped silently: a check that simply vanishes from the results
+            // table is indistinguishable from one that was never written, which is the class of
+            // blind spot that let defect 14 ship.
+            // PostgreSQL holding PayLater rows this store has no legacy source for means a dirty
+            // target or a second migration into it - the same thing VerifyPaymentsByMethodAsync
+            // already treats as a failure. Hardcoding true here would make this the one row
+            // that can never fail.
+            result.Checks.Add(new VerificationCheck(NoPayLaterTableCheckName, 0, pgPayLater, pgPayLater == 0));
+            return;
+        }
+
+        var sqlitePayLater = await sqlite.ExecuteScalarAsync<int>("SELECT COUNT(*) FROM PayLater");
+        result.Checks.Add(new VerificationCheck("PayLater", sqlitePayLater, pgPayLater, sqlitePayLater <= pgPayLater));
+    }
+
+    /// <summary>
     /// Compares payment count and amount per catalogue method. Expectations are derived from the
     /// legacy table through <see cref="LegacyPaymentTypeMap"/> - the same map the migration wrote
     /// with, so a mis-mapping shows up as a mismatch on both sides rather than cancelling out.
@@ -202,7 +237,15 @@ public class MigrationVerifier
         SQLiteConnection sqlite, StoreHubDbContext context, VerificationResult result, CancellationToken ct)
     {
         var legacyGroups = await sqlite.QueryAsync<(long PaymentTypeId, int Count, decimal Total)>(
-            "SELECT PaymentTypeId, COUNT(*) AS Count, COALESCE(SUM(Amount), 0) AS Total " +
+            // CAST is load-bearing. Amount is declared NUMERIC, so SQLite stores each row in
+            // whichever class fits and SUM() returns integer for some payment types and real
+            // for others - on the real GeneralHardware store, integer for types 2/3/7/8 and
+            // real for 1/5. Dapper binds the tuple accessor from the FIRST row and then throws
+            // InvalidCastException on the first row of the other class, which took the whole
+            // verify down before it ever reached the stock check. MimyMart and MimyShop escape
+            // only because every one of their groups happens to land on integer.
+            "SELECT PaymentTypeId, COUNT(*) AS Count, " +
+            "       CAST(COALESCE(SUM(Amount), 0) AS REAL) AS Total " +
             "FROM Payment GROUP BY PaymentTypeId");
 
         var expected = new Dictionary<string, (int Count, decimal Total)>();
