@@ -216,7 +216,11 @@ public class MigrationVerifier
             // Reported rather than skipped silently: a check that simply vanishes from the results
             // table is indistinguishable from one that was never written, which is the class of
             // blind spot that let defect 14 ship.
-            result.Checks.Add(new VerificationCheck(NoPayLaterTableCheckName, 0, pgPayLater, true));
+            // PostgreSQL holding PayLater rows this store has no legacy source for means a dirty
+            // target or a second migration into it - the same thing VerifyPaymentsByMethodAsync
+            // already treats as a failure. Hardcoding true here would make this the one row
+            // that can never fail.
+            result.Checks.Add(new VerificationCheck(NoPayLaterTableCheckName, 0, pgPayLater, pgPayLater == 0));
             return;
         }
 
@@ -233,7 +237,15 @@ public class MigrationVerifier
         SQLiteConnection sqlite, StoreHubDbContext context, VerificationResult result, CancellationToken ct)
     {
         var legacyGroups = await sqlite.QueryAsync<(long PaymentTypeId, int Count, decimal Total)>(
-            "SELECT PaymentTypeId, COUNT(*) AS Count, COALESCE(SUM(Amount), 0) AS Total " +
+            // CAST is load-bearing. Amount is declared NUMERIC, so SQLite stores each row in
+            // whichever class fits and SUM() returns integer for some payment types and real
+            // for others - on the real GeneralHardware store, integer for types 2/3/7/8 and
+            // real for 1/5. Dapper binds the tuple accessor from the FIRST row and then throws
+            // InvalidCastException on the first row of the other class, which took the whole
+            // verify down before it ever reached the stock check. MimyMart and MimyShop escape
+            // only because every one of their groups happens to land on integer.
+            "SELECT PaymentTypeId, COUNT(*) AS Count, " +
+            "       CAST(COALESCE(SUM(Amount), 0) AS REAL) AS Total " +
             "FROM Payment GROUP BY PaymentTypeId");
 
         var expected = new Dictionary<string, (int Count, decimal Total)>();
