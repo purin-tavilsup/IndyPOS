@@ -1,4 +1,4 @@
-# IndyPOS — Getting Started
+﻿# IndyPOS — Getting Started
 
 Everything needed to go from a fresh clone to a running, tested build. Facts only; every number
 below was measured against this repository, except where marked derived.
@@ -51,12 +51,12 @@ dotnet test
 They spin up a real PostgreSQL container via Testcontainers. With Docker stopped they fail **fast**
 (each suite in under a second), which reads exactly like a code regression but is not.
 
-Expect **139 failures** with Docker stopped, all from these two suites. That figure is **derived**
-(97 + 42 by construction), not measured — the suites were last run with Docker up:
+Expect **141 failures** with Docker stopped, all from these two suites. That figure is **derived**
+(97 + 44 by construction), not measured — the suites were last run with Docker up:
 
 | Suite | Total | Fails without Docker |
 |---|---|---|
-| `IndyPOS.MigrationTool.Tests` | 92 | **42** (of the other 50, see Trap 3) |
+| `IndyPOS.MigrationTool.Tests` | 101 | **44** (of the other 57, see Trap 3) |
 | `IndyPOS.StoreHub.IntegrationTests` | 104 | **97** (7 need no container) |
 
 **Start Docker and re-run before investigating any of these.**
@@ -106,14 +106,14 @@ reports `Skipped: 1` and writes nothing — which looks like success while leavi
 ### Expected counts
 
 Solution suites (`dotnet test` at the root), Docker running **and** the real store databases present
-— **575 total** (574 pass, 1 skipped) — measured 2026-08-10. Without those databases the total is
-**555** (**derived** as 575 − 20, not measured), still all green:
+— **584 total** (583 pass, 1 skipped) — measured 2026-08-11. Without those databases the total is
+**564** (**derived** as 584 − 20, not measured), still all green:
 
 | Suite | Tests |
 |---|---|
 | `IndyPOS.Application.Tests` | 298 |
 | `IndyPOS.StoreHub.IntegrationTests` | 104 (Docker) |
-| `IndyPOS.MigrationTool.Tests` | 92 (Docker; 1 skipped. **72** without the real store data — Trap 3, derived) |
+| `IndyPOS.MigrationTool.Tests` | 101 (Docker; 1 skipped. **81** without the real store data — Trap 3, derived) |
 | `IndyPOS.Domain.Tests` | 36 |
 | `IndyPOS.Windows.Forms.Tests` | 28 |
 | `IndyPOS.Vault.Tests` | 17 |
