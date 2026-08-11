@@ -1,4 +1,4 @@
-using System.Data.SQLite;
+﻿using System.Data.SQLite;
 using Dapper;
 using IndyPOS.Application.Common.Constants;
 using IndyPOS.Infrastructure.Persistence.StoreHub;
@@ -207,7 +207,7 @@ public class MigrationVerifier
     {
         var pgPayLater = await context.PayLaters.CountAsync(ct);
 
-        if (!await HasTableAsync(sqlite, "PayLater"))
+        if (!await LegacySchemaProbe.HasTableAsync(sqlite, "PayLater"))
         {
             _logger.LogInformation(
                 "No PayLater table in this store; skipping the count check. " +
@@ -222,13 +222,6 @@ public class MigrationVerifier
 
         var sqlitePayLater = await sqlite.ExecuteScalarAsync<int>("SELECT COUNT(*) FROM PayLater");
         result.Checks.Add(new VerificationCheck("PayLater", sqlitePayLater, pgPayLater, sqlitePayLater <= pgPayLater));
-    }
-
-    private static async Task<bool> HasTableAsync(SQLiteConnection sqlite, string tableName)
-    {
-        return await sqlite.ExecuteScalarAsync<long>(
-            "SELECT COUNT(*) FROM sqlite_master WHERE type = 'table' AND name = @tableName",
-            new { tableName }) > 0;
     }
 
     /// <summary>
