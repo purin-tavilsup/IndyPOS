@@ -200,6 +200,8 @@ public class SqliteMigrationService
     {
         _logger.LogInformation("Migrating products...");
 
+        var categories = await LegacyCategoryResolver.LoadAsync(sqlite);
+
         var products = (await sqlite.QueryAsync<LegacyProduct>("""
             SELECT InventoryProductId, Barcode, Description, Manufacturer, Brand, Category,
                    UnitPrice, QuantityInStock, GroupPrice, GroupPriceQuantity, IsTrackable,
@@ -234,7 +236,7 @@ public class SqliteMigrationService
                     Description = Truncate(product.Description, 200),
                     Manufacturer = NullIfEmpty(product.Manufacturer) is { } m ? Truncate(m, 200) : null,
                     Brand = NullIfEmpty(product.Brand) is { } b ? Truncate(b, 200) : null,
-                    Category = product.Category?.ToString() is { } c ? Truncate(c, 100) : null,
+                    Category = ResolveCategory(product, categories),
                     UnitPrice = (decimal)product.UnitPrice,
                     GroupPrice = product.GroupPrice > 0 ? (decimal)product.GroupPrice : null,
                     GroupPriceQuantity = product.GroupPriceQuantity > 0 ? (int)product.GroupPriceQuantity : null,
@@ -286,6 +288,26 @@ public class SqliteMigrationService
                 _result.AddError("Products", $"Product {product.Barcode}: {ex.Message}");
             }
         }
+    }
+
+    /// <summary>
+    /// Resolves a product's category, reporting anything it could not resolve.
+    /// </summary>
+    /// <remarks>
+    /// An unresolved category is recorded but does NOT fail the row: losing one product's category
+    /// is no reason to refuse its price, stock and sales history as well.
+    /// </remarks>
+    private string? ResolveCategory(LegacyProduct product, LegacyCategoryResolver categories)
+    {
+        var (code, problem) = categories.Resolve(product.Category);
+
+        if (problem is not null)
+        {
+            _result.AddError("Products",
+                $"Product {product.Barcode}: {problem} Migrated with no category.");
+        }
+
+        return code;
     }
 
     private async Task MigrateInvoicesAsync(SQLiteConnection sqlite, StoreHubDbContext context, CancellationToken ct)

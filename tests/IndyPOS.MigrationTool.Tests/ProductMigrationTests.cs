@@ -1,3 +1,4 @@
+using Dapper;
 using IndyPOS.Application.Common.Constants;
 using IndyPOS.MigrationTool.Tests.Fixtures;
 using IndyPOS.MigrationTool.Tests.Tools;
@@ -25,13 +26,12 @@ public class ProductMigrationTests : IAsyncLifetime
     }
 
     [Fact]
-    public async Task MigrateProducts_Category_CurrentlyWritesRawLegacyId_Defect5()
+    public async Task MigrateProducts_Category_ResolvesTheLegacyIdToACatalogueCode()
     {
-        // Defect 5: Category = product.Category?.ToString() writes the raw legacy id.
-        // CORRECT: ProductCategoryCodes.GeneralMaterials ("GeneralMaterials"), resolved from
-        // legacy id 50 via the store-scoped product_category catalogue Epic 1 added.
-        // A raw id matches no catalogue code, so every migrated product is uncategorised and both
-        // the Hardware gate and the category pickers break.
+        // Defect 5 FIXED (was: Category = product.Category?.ToString(), the raw legacy id).
+        // The legacy id is resolved through the store's OWN ProductCategory lookup table to a Thai
+        // name, and that name to a catalogue code. Ids collide across store types -- 10 is
+        // เบ็ดเตล็ด here and ของขวัญ in MimyShop -- so the id alone is not a mapping key; the name is.
         await using var store = await LegacyStoreDatabase.CreateAsync(LegacyStoreShape.GeneralHardware);
         var builder = await SeedCashierAsync(store);
         await builder.AddProductAsync(
@@ -44,9 +44,80 @@ public class ProductMigrationTests : IAsyncLifetime
         await using var db = _postgres.CreateDbContext();
         var product = await db.Products.SingleAsync();
 
-        product.Category.Should().Be("50");
-        product.Category.Should().NotBe(ProductCategoryCodes.GeneralMaterials,
-            "this is the correct answer and defect 5 does not yet produce it");
+        product.Category.Should().Be(ProductCategoryCodes.GeneralMaterials,
+            "legacy id 50 is วัสดุและอุปกรณ์ทั่วไป in this store, which is the GeneralMaterials code");
+        product.Category.Should().NotBe("50", "the raw legacy id matches no catalogue code");
+    }
+
+    [Fact]
+    public async Task MigrateProducts_WithACategoryIdTheStoreLookupDoesNotHave_MigratesUncategorisedAndReportsIt()
+    {
+        // A product pointing at a ProductCategory row that no longer exists. Losing the category is
+        // not a reason to refuse the product's price, stock and sales history, so the row still
+        // migrates -- but silently writing no category is what defect 5 felt like from the till, so
+        // it is reported.
+        await using var store = await LegacyStoreDatabase.CreateAsync(LegacyStoreShape.GeneralHardware);
+        var builder = await SeedCashierAsync(store);
+        await builder.AddProductAsync(
+            productId: 10, barcode: "8850001000010", description: "Cement 50kg",
+            unitPrice: 120m, quantityInStock: 20, category: 999, isTrackable: true,
+            dateCreated: "2024-03-15 09:00:00");
+
+        var result = await MigrationScenario.RunAsync(store, _postgres);
+
+        await using var db = _postgres.CreateDbContext();
+        var product = await db.Products.SingleAsync();
+
+        product.Category.Should().BeNull("the raw legacy id is never written as a fallback");
+        result.Products.Migrated.Should().Be(1, "the product itself is fine");
+        result.Errors.Should().ContainSingle()
+              .Which.Should().Contain("999").And.Contain("8850001000010");
+    }
+
+    [Fact]
+    public async Task MigrateProducts_WithACategoryNameTheCatalogueDoesNotHave_MigratesUncategorisedAndReportsIt()
+    {
+        // A category the shopkeeper added after LegacyCategoryMap was measured. Guessing a code
+        // would file the product under a category nothing in the catalogue means -- the same harm
+        // as the "Other" payment-method fallback defect 10 removed.
+        await using var store = await LegacyStoreDatabase.CreateAsync(LegacyStoreShape.GeneralHardware);
+        await store.Connection.ExecuteAsync(
+            "INSERT INTO ProductCategory (Id, Category) VALUES (777, 'หมวดที่เพิ่งเพิ่ม')");
+        var builder = await SeedCashierAsync(store);
+        await builder.AddProductAsync(
+            productId: 10, barcode: "8850001000010", description: "Cement 50kg",
+            unitPrice: 120m, quantityInStock: 20, category: 777, isTrackable: true,
+            dateCreated: "2024-03-15 09:00:00");
+
+        var result = await MigrationScenario.RunAsync(store, _postgres);
+
+        await using var db = _postgres.CreateDbContext();
+        var product = await db.Products.SingleAsync();
+
+        product.Category.Should().BeNull();
+        result.Errors.Should().ContainSingle()
+              .Which.Should().Contain("หมวดที่เพิ่งเพิ่ม", "the operator needs the name to add it to the map");
+    }
+
+    [Fact]
+    public async Task MigrateProducts_WithNoLegacyCategory_MigratesUncategorisedWithoutAnError()
+    {
+        // Category is nullable in the legacy schema and a genuinely uncategorised product is not a
+        // data problem. Reporting it would bury the ones that ARE a problem under the error cap.
+        await using var store = await LegacyStoreDatabase.CreateAsync(LegacyStoreShape.GeneralHardware);
+        var builder = await SeedCashierAsync(store);
+        await builder.AddProductAsync(
+            productId: 10, barcode: "8850001000010", description: "Cement 50kg",
+            unitPrice: 120m, quantityInStock: 20, category: null, isTrackable: true,
+            dateCreated: "2024-03-15 09:00:00");
+
+        var result = await MigrationScenario.RunAsync(store, _postgres);
+
+        await using var db = _postgres.CreateDbContext();
+
+        (await db.Products.SingleAsync()).Category.Should().BeNull();
+        result.Errors.Should().BeEmpty();
+        result.Outcome.Should().Be(MigrationOutcome.Success);
     }
 
     [Fact]
