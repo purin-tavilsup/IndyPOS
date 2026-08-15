@@ -62,10 +62,10 @@ try to include it in a PR.
 ⚠️ **The SQLite → PostgreSQL migration tests contain deliberate PINNING tests.**
 `tests/IndyPOS.MigrationTool.Tests` exercises the shipped migrator against schema artefacts dumped
 from real stores. Some of its tests assert **today's wrong behaviour on purpose** — they name their
-defect (5, 6, 8), record the correct answer in the message, and were each verified able to
+defect (6, 8), record the correct answer in the message, and were each verified able to
 fail. **When you fix one of those defects, invert exactly one pinning test; do not "repair" the
-assertion to match new behaviour without reading its comment.** Defects 2, 3, 4, 9, 10, 11, 12, 13
-and 14 are fixed.
+assertion to match new behaviour without reading its comment.** Defects 2, 3, 4, 5, 9, 10, 11, 12,
+13, 14, 15 and 16 are fixed.
 
 ⚠️ **Defect 7 is open but has NO pin** — do not go looking for one. Its pin asserted that migrating a
 service line produced a stock movement; defect 14 removed that replay, so the pin was deleted rather
