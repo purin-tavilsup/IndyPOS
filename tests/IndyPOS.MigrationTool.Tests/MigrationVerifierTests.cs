@@ -1,4 +1,5 @@
-﻿using IndyPOS.MigrationTool.Services;
+﻿using Dapper;
+using IndyPOS.MigrationTool.Services;
 using IndyPOS.MigrationTool.Tests.Fixtures;
 using IndyPOS.MigrationTool.Tests.Tools;
 using Microsoft.EntityFrameworkCore;
@@ -247,6 +248,85 @@ public class MigrationVerifierTests : IAsyncLifetime
         result.Checks.First(c => c.EntityName == "Stock (units)").IsValid.Should().BeFalse();
         result.Errors.Should().Contain(e => e.Contains("8850001000002: expected 50, migrated 43"),
             "the operator needs the barcode and both figures, not just a store-wide total");
+    }
+
+    [Fact]
+    public async Task VerifyAsync_Category_MatchesTheCatalogueCodePerProduct()
+    {
+        await SeedManyAsync(userCount: 1, productCount: 3, invoiceCount: 0);
+
+        var options = CreateOptions();
+        await new SqliteMigrationService(options, NullLogger<SqliteMigrationService>.Instance)
+            .MigrateAllAsync();
+
+        var verifier = new MigrationVerifier(options, NullLogger<MigrationVerifier>.Instance);
+        var result = await verifier.VerifyAsync();
+
+        var categoryCheck = result.Checks.First(c => c.EntityName == "Categories");
+        categoryCheck.SqliteCount.Should().Be(3, "all three legacy products carry category 50");
+        categoryCheck.PostgresCount.Should().Be(3);
+        categoryCheck.IsValid.Should().BeTrue();
+        result.IsValid.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task VerifyAsync_WhenAMigratedCategoryIsTheRawLegacyId_ShouldFailAndNameTheProduct()
+    {
+        // Non-vacuity, and defect 5 exactly: the migration used to write Category = "50". Every
+        // count and total reconciles perfectly in that state -- Products, Invoices, Payments, Stock
+        // and Revenue are all green -- which is how defect 5 survived. This is the only check that
+        // looks at the VALUE, so it is the only one that can catch it coming back.
+        await SeedManyAsync(userCount: 1, productCount: 3, invoiceCount: 0);
+
+        var options = CreateOptions();
+        await new SqliteMigrationService(options, NullLogger<SqliteMigrationService>.Instance)
+            .MigrateAllAsync();
+
+        await using (var db = _postgres.CreateDbContext())
+        {
+            var product = await db.Products.FirstAsync(p => p.Barcode == "8850001000002");
+            product.Category = "50";
+            await db.SaveChangesAsync();
+        }
+
+        var verifier = new MigrationVerifier(options, NullLogger<MigrationVerifier>.Instance);
+        var result = await verifier.VerifyAsync();
+
+        result.IsValid.Should().BeFalse();
+        result.Checks.First(c => c.EntityName == "Categories").IsValid.Should().BeFalse();
+        result.Errors.Should().Contain(
+            e => e.Contains("8850001000002") && e.Contains("GeneralMaterials") && e.Contains("50"),
+            "the operator needs the barcode, the expected code and what was actually written");
+    }
+
+    [Fact]
+    public async Task VerifyAsync_WithACategoryTheCatalogueDoesNotHave_ExpectsNoCategory()
+    {
+        // The migrator refuses to guess a code for an unmapped legacy name and writes null. The
+        // verifier must expect the SAME null, or every store that adds a category after
+        // LegacyCategoryMap was measured reports a mismatch it cannot act on -- re-running is not
+        // idempotent (defect 8), so a red here would have no safe remedy.
+        await _store.Connection.ExecuteAsync(
+            "INSERT INTO ProductCategory (Id, Category) VALUES (777, 'หมวดที่เพิ่งเพิ่ม')");
+
+        var builder = new LegacyStoreDataBuilder(_store);
+        await builder.AddPaymentTypeLookupAsync();
+        await builder.AddUserAsync(1, "cashier", "Somchai", "Jaidee", 1, "2024-03-15 09:00:00");
+        await builder.AddProductAsync(
+            productId: 1, barcode: "8850001000010", description: "Mystery item",
+            unitPrice: 120m, quantityInStock: 5, category: 777, isTrackable: true,
+            dateCreated: "2024-03-15 09:00:00");
+
+        var options = CreateOptions();
+        await new SqliteMigrationService(options, NullLogger<SqliteMigrationService>.Instance)
+            .MigrateAllAsync();
+
+        var verifier = new MigrationVerifier(options, NullLogger<MigrationVerifier>.Instance);
+        var result = await verifier.VerifyAsync();
+
+        var categoryCheck = result.Checks.First(c => c.EntityName == "Categories");
+        categoryCheck.SqliteCount.Should().Be(0, "an unmappable category is expected as none");
+        categoryCheck.IsValid.Should().BeTrue();
     }
 
     [Fact]
