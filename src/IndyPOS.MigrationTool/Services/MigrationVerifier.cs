@@ -11,11 +11,13 @@ public class MigrationVerifier
 {
     private const string StockCheckName = "Stock (units)";
 
+    private const string CategoryCheckName = "Categories";
+
     /// <summary>Shown in place of the PayLater row for a store that does not have that feature.</summary>
     private const string NoPayLaterTableCheckName = "PayLater (no legacy table)";
 
     /// <summary>A store can have thousands of products; the count stays exact, the listing does not.</summary>
-    private const int MaxStockMismatchesReported = 10;
+    private const int MaxMismatchesReported = 10;
 
     private readonly MigrationOptions _options;
     private readonly ILogger<MigrationVerifier> _logger;
@@ -83,6 +85,11 @@ public class MigrationVerifier
         // them. Stock was the one thing nothing looked at.
         await VerifyStockAsync(sqliteConnection, context, result, ct);
 
+        // Verify the CATEGORY VALUE per product. Every check above is a count or a total, and all
+        // of them are green while Category holds the raw legacy id -- which is how defect 5 lasted
+        // as long as it did. This is the only check that looks at what was actually written.
+        await VerifyCategoriesAsync(sqliteConnection, context, result, ct);
+
         // Verify total amounts match (within tolerance)
         var sqliteTotalAmount = await sqliteConnection.ExecuteScalarAsync<decimal>(
             "SELECT COALESCE(SUM(Total), 0) FROM Invoice");
@@ -107,7 +114,7 @@ public class MigrationVerifier
         // a bare "SQLite has X, PostgreSQL has Y" would restate them less usefully.
         foreach (var check in result.Checks.Where(c => !c.IsValid))
         {
-            if (check.EntityName is not ("Total Revenue" or StockCheckName))
+            if (check.EntityName is not ("Total Revenue" or StockCheckName or CategoryCheckName))
             {
                 result.Errors.Add($"{check.EntityName}: SQLite has {check.SqliteCount}, PostgreSQL has {check.PostgresCount}");
             }
@@ -182,14 +189,89 @@ public class MigrationVerifier
             $"Stock mismatch on {mismatches.Count} product(s). Legacy QuantityInStock must equal " +
             "SUM(QuantityDelta) after migration, and negative legacy stock is expected as 0.");
 
-        foreach (var mismatch in mismatches.Take(MaxStockMismatchesReported))
+        foreach (var mismatch in mismatches.Take(MaxMismatchesReported))
         {
             result.Errors.Add($"  {mismatch}");
         }
 
-        if (mismatches.Count > MaxStockMismatchesReported)
+        if (mismatches.Count > MaxMismatchesReported)
         {
-            result.Errors.Add($"  ... and {mismatches.Count - MaxStockMismatchesReported} more");
+            result.Errors.Add($"  ... and {mismatches.Count - MaxMismatchesReported} more");
+        }
+    }
+
+    /// <summary>
+    /// Compares the <c>Category</c> written against the code the legacy row resolves to, PER
+    /// PRODUCT. The counts are of CATEGORISED products, so the row also reads as coverage.
+    /// </summary>
+    /// <remarks>
+    /// Expectations come from <see cref="LegacyCategoryResolver"/> -- the same lookup and map the
+    /// migration read, exactly as <see cref="VerifyPaymentsByMethodAsync"/> shares
+    /// <see cref="LegacyPaymentTypeMap"/>. Re-deriving them independently would mean a second
+    /// mapping to keep in step, and the two drifting is the failure this is meant to detect.
+    ///
+    /// A legacy category the catalogue does not know is expected as NULL, matching what the
+    /// migrator writes. Expecting a code there would paint every such store red with no safe
+    /// remedy: re-running the migration is not idempotent (defect 8).
+    ///
+    /// Like the stock check this is only meaningful straight after a migration -- once the shop is
+    /// live, someone recategorising a product in the UI is a legitimate divergence.
+    /// </remarks>
+    private async Task VerifyCategoriesAsync(
+        SQLiteConnection sqlite, StoreHubDbContext context, VerificationResult result, CancellationToken ct)
+    {
+        var resolver = await LegacyCategoryResolver.LoadAsync(sqlite);
+
+        var expected = (await sqlite.QueryAsync<(string Barcode, long? Category)>(
+                "SELECT Barcode, Category FROM InventoryProduct"))
+            .ToDictionary(row => row.Barcode, row => resolver.Resolve(row.Category).Code);
+
+        var actual = (await context.Products
+                .Where(p => p.StoreId == _options.StoreId)
+                .Select(p => new { p.Barcode, p.Category })
+                .ToListAsync(ct))
+            .ToDictionary(row => row.Barcode, row => row.Category);
+
+        var mismatches = new List<string>();
+        var expectedCategorised = 0;
+        var actualCategorised = 0;
+
+        foreach (var (barcode, want) in expected)
+        {
+            // A product missing from PostgreSQL resolves to null here, so a product that should
+            // have been categorised and was not migrated at all counts as a mismatch rather than
+            // quietly agreeing.
+            var got = actual.GetValueOrDefault(barcode);
+
+            if (want is not null) expectedCategorised++;
+            if (want is not null && got == want) actualCategorised++;
+
+            if (got != want)
+            {
+                mismatches.Add($"{barcode}: expected {want ?? "no category"}, migrated {got ?? "no category"}");
+            }
+        }
+
+        result.Checks.Add(new VerificationCheck(
+            CategoryCheckName, expectedCategorised, actualCategorised, mismatches.Count == 0));
+
+        if (mismatches.Count == 0)
+        {
+            return;
+        }
+
+        result.Errors.Add(
+            $"Category mismatch on {mismatches.Count} product(s). Product.Category must hold a v4 " +
+            "catalogue code, never the raw legacy id.");
+
+        foreach (var mismatch in mismatches.Take(MaxMismatchesReported))
+        {
+            result.Errors.Add($"  {mismatch}");
+        }
+
+        if (mismatches.Count > MaxMismatchesReported)
+        {
+            result.Errors.Add($"  ... and {mismatches.Count - MaxMismatchesReported} more");
         }
     }
 
