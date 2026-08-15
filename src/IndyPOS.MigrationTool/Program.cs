@@ -394,6 +394,15 @@ static void DisplayResults(MigrationResult result, string? clampedReportPath = n
 
     switch (result.Outcome)
     {
+        // Success means no row was REFUSED, not that nothing was worth reading. An unresolved
+        // product category is recorded without failing the row, so without this branch the run
+        // would print a clean tick and drop the list -- exactly the "reported success on a run
+        // that had a problem" trap defects 10 and 12 were about.
+        case MigrationOutcome.Success when result.Errors.Count > 0:
+            AnsiConsole.MarkupLine("\n[green]✓ Migration completed[/] [yellow]with warnings[/]");
+            DisplayErrors(result.Errors);
+            break;
+
         case MigrationOutcome.Success:
             AnsiConsole.MarkupLine("\n[green]✓ Migration completed successfully![/]");
             break;
@@ -417,15 +426,30 @@ static void DisplayResults(MigrationResult result, string? clampedReportPath = n
 
         default:
             AnsiConsole.MarkupLine("\n[red]✗ Migration completed with errors[/]");
-            foreach (var error in result.Errors.Take(10))
-            {
-                AnsiConsole.MarkupLine($"  [red]•[/] {error}");
-            }
-            if (result.Errors.Count > 10)
-            {
-                AnsiConsole.MarkupLine($"  [grey]... and {result.Errors.Count - 10} more errors[/]");
-            }
+            DisplayErrors(result.Errors);
             break;
+    }
+}
+
+/// <summary>
+/// Prints the first ten recorded errors.
+/// </summary>
+/// <remarks>
+/// Escaped, because these strings carry free text straight from the store: barcodes, Thai category
+/// names and SQLite messages. An unescaped '[' throws inside Spectre's markup parser AFTER
+/// SaveChangesAsync has committed, turning a good run into a crash and inviting a re-run that
+/// duplicates every invoice -- the migration is not idempotent (defect 8).
+/// </remarks>
+static void DisplayErrors(IReadOnlyList<string> errors)
+{
+    foreach (var error in errors.Take(10))
+    {
+        AnsiConsole.MarkupLine($"  [red]•[/] {error.EscapeMarkup()}");
+    }
+
+    if (errors.Count > 10)
+    {
+        AnsiConsole.MarkupLine($"  [grey]... and {errors.Count - 10} more errors[/]");
     }
 }
 
