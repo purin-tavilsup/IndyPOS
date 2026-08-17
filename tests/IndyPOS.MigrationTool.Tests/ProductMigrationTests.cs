@@ -26,6 +26,40 @@ public class ProductMigrationTests : IAsyncLifetime
     }
 
     [Fact]
+    public async Task MigrateProducts_RerunWithABarcodeLongerThanTheColumn_SkipsItInsteadOfDuplicatingIt()
+    {
+        // The "already exists by barcode" branch is what makes the products phase re-runnable after a
+        // failed run. It looks the product up by the LEGACY barcode while the row was stored
+        // TRUNCATED to 50, so for an overlong barcode it can never match: the second run adds a
+        // duplicate, and the unique (StoreId, Barcode) index rejects it at SaveChangesAsync -- which
+        // is outside RunPhaseAsync, so the operator gets a bare "error occurred while saving the
+        // entity changes" instead of a named phase failure.
+        //
+        // Real data: two such products in GeneralHardware, one in MimyMart. Both are scanned TISI
+        // certification QR-code URLs, 90 and 53 characters.
+        const string overlong =
+            "https://appdb.tisi.go.th/Q/i.php?d=3535221937https://appdb.tisi.go.th/Q/i.php?d=3535221937";
+
+        await using var store = await LegacyStoreDatabase.CreateAsync(LegacyStoreShape.GeneralHardware);
+        var builder = await SeedCashierAsync(store);
+        await builder.AddProductAsync(
+            productId: 1, barcode: overlong, description: "Certified fitting",
+            unitPrice: 120m, quantityInStock: 7, category: 10, isTrackable: true,
+            dateCreated: "2024-03-15 09:00:00");
+
+        await MigrationScenario.RunAsync(store, _postgres);
+
+        var second = await MigrationScenario.RunAsync(store, _postgres);
+
+        second.Products.Skipped.Should().Be(1,
+            "the stored row is the same product, so a re-run must recognise and skip it");
+        second.Products.Migrated.Should().Be(0, "re-adding it violates the unique barcode index");
+
+        await using var db = _postgres.CreateDbContext();
+        (await db.Products.CountAsync()).Should().Be(1, "no duplicate was written");
+    }
+
+    [Fact]
     public async Task MigrateProducts_Category_ResolvesTheLegacyIdToACatalogueCode()
     {
         // Defect 5 FIXED (was: Category = product.Category?.ToString(), the raw legacy id).
