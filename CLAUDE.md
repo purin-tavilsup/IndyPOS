@@ -97,8 +97,11 @@ now waits for the condition instead. **An earlier note here blamed the number of
 that was wrong**; it recurred with only one container up, and the cause was always the fixed sleep.
 
 `ProductsEndpointTests.CreateProduct_WithValidData_ReturnsCreatedProduct` has flaked once under the
-same load and is **not** fixed. It passes in isolation. Re-run before investigating it as a
-regression, and be suspicious of any other test that sleeps rather than waiting for a condition.
+same load and is **not** fixed — the cause is genuinely unknown, because the failure message was never
+captured. Two things were ruled out: it is not a barcode collision (they are random per test), and not
+a shared-catalogue race — every class touching the shared database is in the `Integration` collection,
+and the one migration class outside it uses its own Testcontainers instance. The assertion now prints
+the response body, so **the next occurrence will explain itself**. Capture that message.
 
 ✅ **Defect 7b is fixed and its trip-wire is discharged.** `Core.Product` now carries `IsTrackable`
 and a sale of a non-trackable product moves no stock — the invoice line is still written, because the
@@ -178,7 +181,8 @@ builder.AddProject<Projects.IndyPOS_StoreHub>("storehub-api")
 ## Quick Commands
 
 ```bash
-# Run all tests
+# Run all tests. Exits 0 on success -- IndyPOS.Mock is marked IsTestProject=false, so the
+# runner no longer tries to execute the shared-fakes assembly and fail on it.
 dotnet test
 
 # Build
