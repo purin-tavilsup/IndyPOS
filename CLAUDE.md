@@ -65,7 +65,13 @@ from real stores. Some of its tests assert **today's wrong behaviour on purpose*
 defect (6, 8), record the correct answer in the message, and were each verified able to
 fail. **When you fix one of those defects, invert exactly one pinning test; do not "repair" the
 assertion to match new behaviour without reading its comment.** Defects 2, 3, 4, 5, 9, 10, 11, 12,
-13, 14, 15, 16, 17, 18 and 19 are fixed.
+13, 14, 15, 16, 17, 18, 19 and 20 are fixed.
+
+✅ **All three real stores now migrate and verify end to end.** GeneralHardware and MimyMart had
+never once completed before defect 19; both take about a minute now. GeneralHardware's `verify` still
+exits 1, correctly and permanently: 2 legacy payments reference an invoice that no longer exists
+(defect 20), so ฿1,000 can never reach v4. Every *migration* check is green — the one ✗ is
+`Payments (no invoice)`, and the remedy is in the legacy database, not a re-run.
 
 ⚠️ **A full migration takes about a minute per store and peaks near 2.8 GB.** Defect 19 removed the
 per-invoice queries that made it take hours (GeneralHardware went 3.5 h → **1.2 min**), so a run that
@@ -73,10 +79,11 @@ sits there for many minutes is now a real problem rather than normal. The memory
 single `SaveChangesAsync` that defect 12 made deliberate — everything is held until then — so watch
 it on a low-RAM till.
 
-⚠️ **Defect 20 is OPEN: a payment whose invoice is missing is dropped and the run still says
-`Errors: 0`.** 2 real GeneralHardware payments, ฿1,000 of cash. `Total Revenue` cannot catch it (it
-sums `Invoice.Total`, and those invoices do not exist) — only `verify`'s per-method payment check
-does, which is why `verify` exits 1 on GeneralHardware today. See Epic 2's defect table.
+⚠️ **Running many Postgres containers at once makes two tests flake.** With 9 up, a full-solution run
+failed `SyncWorkerTests.SyncWorker_ShouldHandleException_WithoutCrashing` and
+`ProductsEndpointTests.CreateProduct_WithValidData_ReturnsCreatedProduct`. Both passed in isolation
+and both passed on a full re-run after stopping the spare containers. These are the names behind the
+previously unidentified `Application.Tests` flake — check `docker ps` before investigating either.
 
 ⚠️ **Defect 7 is open but has NO pin** — do not go looking for one. Its pin asserted that migrating a
 service line produced a stock movement; defect 14 removed that replay, so the pin was deleted rather
@@ -165,10 +172,10 @@ dotnet build
 
 # Docker must be RUNNING for two suites - they spin up a real Postgres container.
 # With Docker down they fail fast (each suite in under a second), which reads like a
-# code regression but is not. Expect 154 failures with Docker stopped, all here.
-# (154 is DERIVED as 97 + 57, not measured - both suites were last run with Docker up.)
+# code regression but is not. Expect 157 failures with Docker stopped, all here.
+# (157 is DERIVED as 97 + 60, not measured - both suites were last run with Docker up.)
 #   tests/IndyPOS.StoreHub.IntegrationTests   (97 of 104; 7 need no container)
-#   tests/IndyPOS.MigrationTool.Tests         (57 of 119; 37 pure units, 24 need the
+#   tests/IndyPOS.MigrationTool.Tests         (60 of 122; 37 pure units, 24 need the
 #                                              gitignored real store .db files, 1 manual tool)
 
 # The installer is NOT in IndyPOS.sln, so the two commands above never touch it.

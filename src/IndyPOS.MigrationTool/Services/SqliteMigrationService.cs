@@ -305,6 +305,39 @@ public class SqliteMigrationService
     }
 
     /// <summary>
+    /// Reports payments whose invoice does not exist, which no other code path can reach.
+    /// </summary>
+    /// <remarks>
+    /// Defect 20. The phase walks invoices and attaches each one's payments, so a <c>Payment</c> row
+    /// pointing at an <c>InvoiceId</c> absent from <c>Invoice</c> is never visited at all -- it was
+    /// dropped while the run reported <c>Errors: 0</c>. Two such rows exist in GeneralHardware,
+    /// ฿1,000 of cash. <c>Total Revenue</c> cannot catch them either, because it sums
+    /// <c>Invoice.Total</c> and those invoices are gone.
+    ///
+    /// Refused, not rescued, matching how PayLater already treats a row whose parent is missing:
+    /// there is no invoice to attach the money to, and synthesising one would fabricate a sale that
+    /// never happened. Reported per row so the operator can settle ฿1,000 by hand.
+    /// </remarks>
+    private void ReportPaymentsWithNoInvoice(
+        IEnumerable<LegacyInvoice> invoices, ILookup<long, LegacyPayment> paymentsByInvoice)
+    {
+        var knownInvoiceIds = invoices.Select(invoice => invoice.InvoiceId).ToHashSet();
+
+        var orphaned = paymentsByInvoice
+            .Where(group => !knownInvoiceIds.Contains(group.Key))
+            .SelectMany(group => group);
+
+        foreach (var payment in orphaned)
+        {
+            _result.AddError("Invoices",
+                $"Payment {payment.PaymentId}: legacy invoice {payment.InvoiceId} does not exist, so " +
+                $"there is nothing to attach {payment.Amount:N2} to. Refusing rather than inventing " +
+                "an invoice. Settle this amount by hand; re-running will not recover it.");
+            _result.Payments.Failed++;
+        }
+    }
+
+    /// <summary>
     /// Resolves a product's category, reporting anything it could not resolve.
     /// </summary>
     /// <remarks>
@@ -453,6 +486,8 @@ public class SqliteMigrationService
                 _result.AddError("Invoices", $"Invoice {invoice.InvoiceId}: {ex.Message}");
             }
         }
+
+        ReportPaymentsWithNoInvoice(invoices, paymentsByInvoice);
     }
 
     private async Task MigratePayLaterAsync(SQLiteConnection sqlite, StoreHubDbContext context, CancellationToken ct)

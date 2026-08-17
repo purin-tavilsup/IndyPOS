@@ -18,6 +18,22 @@ public class MigrationVerifier
 
     private const string BarcodeKeyCheckName = "Barcode keys";
 
+    /// <summary>Payments the migration cannot attach, because their invoice does not exist.</summary>
+    private const string NoInvoicePaymentCheckName = "Payments (no invoice)";
+
+    /// <summary>
+    /// Restricts a <c>Payment</c> query to rows the migration is actually able to migrate.
+    /// </summary>
+    /// <remarks>
+    /// Defect 20: a payment pointing at an <c>InvoiceId</c> that is absent from <c>Invoice</c> can
+    /// never be migrated -- there is no invoice to hang it on -- so counting it as expected blames the
+    /// migration for an inconsistency in the store's own data. On GeneralHardware that read as
+    /// "Cash 121,669 vs 121,667" with nothing to say why. Those rows are reported by
+    /// <see cref="NoInvoicePaymentCheckName"/> instead, where the number means something.
+    /// </remarks>
+    private const string AttachablePaymentsOnly =
+        "WHERE InvoiceId IN (SELECT InvoiceId FROM Invoice)";
+
     /// <summary>Shown in place of the PayLater row for a store that does not have that feature.</summary>
     private const string NoPayLaterTableCheckName = "PayLater (no legacy table)";
 
@@ -70,11 +86,13 @@ public class MigrationVerifier
         var pgLines = await context.InvoiceLines.CountAsync(ct);
         result.Checks.Add(new VerificationCheck("Invoice Lines", sqliteLines, pgLines, sqliteLines <= pgLines));
 
-        // Verify Payments
+        // Verify Payments -- the attachable ones. See AttachablePaymentsOnly.
         var sqlitePayments = await sqliteConnection.ExecuteScalarAsync<int>(
-            "SELECT COUNT(*) FROM Payment");
+            $"SELECT COUNT(*) FROM Payment {AttachablePaymentsOnly}");
         var pgPayments = await context.Payments.CountAsync(ct);
         result.Checks.Add(new VerificationCheck("Payments", sqlitePayments, pgPayments, sqlitePayments <= pgPayments));
+
+        await VerifyPaymentsWithNoInvoiceAsync(sqliteConnection, result);
 
         // Verify PayLater
         await VerifyPayLaterAsync(sqliteConnection, context, result, ct);
@@ -124,7 +142,7 @@ public class MigrationVerifier
         foreach (var check in result.Checks.Where(c => !c.IsValid))
         {
             if (check.EntityName is not ("Total Revenue" or StockCheckName or CategoryCheckName
-                                        or BarcodeKeyCheckName))
+                                        or BarcodeKeyCheckName or NoInvoicePaymentCheckName))
             {
                 result.Errors.Add($"{check.EntityName}: SQLite has {check.SqliteCount}, PostgreSQL has {check.PostgresCount}");
             }
@@ -152,6 +170,52 @@ public class MigrationVerifier
     ///
     /// Negative legacy stock is expected as ZERO, matching the migrator's clamp (defect 14b).
     /// </remarks>
+    /// <summary>
+    /// Reports payments the migration could not attach, because their invoice does not exist.
+    /// </summary>
+    /// <remarks>
+    /// Defect 20. Its own row rather than folded into the count or the per-method checks, because it
+    /// is a different kind of problem: not a migration that lost money, but a legacy database that
+    /// records money against a sale it no longer holds. The remedy is in the source data, and
+    /// re-running cannot help -- so the row says how much is at stake and the migration names each
+    /// row.
+    ///
+    /// It fails when non-zero. Nothing here can be fixed by the tool, but ฿1,000 that will never
+    /// reach v4 is not something to show a green tick beside.
+    /// </remarks>
+    private async Task VerifyPaymentsWithNoInvoiceAsync(SQLiteConnection sqlite, VerificationResult result)
+    {
+        var orphaned = await sqlite.QueryAsync<(long PaymentId, long InvoiceId, decimal Amount)>(
+            "SELECT PaymentId, InvoiceId, CAST(Amount AS REAL) AS Amount " +
+            "FROM Payment WHERE InvoiceId NOT IN (SELECT InvoiceId FROM Invoice)");
+
+        var rows = orphaned.ToList();
+
+        result.Checks.Add(new VerificationCheck(
+            NoInvoicePaymentCheckName, rows.Count, 0, rows.Count == 0));
+
+        if (rows.Count == 0)
+        {
+            return;
+        }
+
+        result.Errors.Add(
+            $"{rows.Count} payment(s) totalling {rows.Sum(row => row.Amount):N2} reference a legacy " +
+            "invoice that does not exist, so they cannot be migrated at all. Fix them in the legacy " +
+            "database or settle them by hand; re-running the migration will not recover them.");
+
+        foreach (var row in rows.Take(MaxMismatchesReported))
+        {
+            result.Errors.Add(
+                $"  Payment {row.PaymentId} -> missing invoice {row.InvoiceId}, {row.Amount:N2}");
+        }
+
+        if (rows.Count > MaxMismatchesReported)
+        {
+            result.Errors.Add($"  ... and {rows.Count - MaxMismatchesReported} more");
+        }
+    }
+
     /// <summary>
     /// Checks that legacy barcodes are still distinct once truncated to the stored length.
     /// </summary>
@@ -405,7 +469,7 @@ public class MigrationVerifier
             // only because every one of their groups happens to land on integer.
             "SELECT PaymentTypeId, COUNT(*) AS Count, " +
             "       CAST(COALESCE(SUM(Amount), 0) AS REAL) AS Total " +
-            "FROM Payment GROUP BY PaymentTypeId");
+            $"FROM Payment {AttachablePaymentsOnly} GROUP BY PaymentTypeId");
 
         var expected = new Dictionary<string, (int Count, decimal Total)>();
 
