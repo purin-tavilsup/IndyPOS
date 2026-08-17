@@ -281,6 +281,10 @@ public class SqliteMigrationService
                     Id = Guid.NewGuid(),
                     StoreId = _options.StoreId,
                     LegacyProductId = (int)product.InventoryProductId,
+                    // Defect 7b. Real signal, unlike InvoiceProduct.IsTrackable on the line, which is
+                    // dead (every row 1, because the legacy INSERT omits it). Measured here: 21 + 7 + 1
+                    // non-trackable products across the three stores.
+                    IsTrackable = product.IsTrackable != 0,
                     Barcode = storedBarcode,
                     Name = Truncate(product.Description, 50),
                     Description = Truncate(product.Description, 200),

@@ -3,6 +3,7 @@ using System;
 using IndyPOS.Infrastructure.Persistence.StoreHub;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace IndyPOS.Infrastructure.Persistence.StoreHub.Migrations
 {
     [DbContext(typeof(StoreHubDbContext))]
-    partial class StoreHubDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260817175930_AddProductIsTrackable")]
+    partial class AddProductIsTrackable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
