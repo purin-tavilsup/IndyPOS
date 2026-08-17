@@ -377,6 +377,70 @@ public class MigrationVerifierTests : IAsyncLifetime
         stockCheck.IsValid.Should().BeTrue();
     }
 
+    /// <summary>One real TISI certification URL, 45 characters — the shape that gets scanned in.</summary>
+    private const string TisiUrl = "https://appdb.tisi.go.th/Q/i.php?d=3535221937";
+
+    [Fact]
+    public async Task VerifyAsync_WhenTwoBarcodesCollideOnceTruncated_ReportsItInsteadOfThrowing()
+    {
+        // Legacy Barcode is TEXT NOT NULL UNIQUE, and that constraint is what made keying the
+        // comparison on the raw barcode safe. Truncating to 50 discards the guarantee: two products
+        // whose barcodes agree on their first 50 characters now share one key. The dictionary build
+        // would throw ArgumentException and take the WHOLE verify report down with it -- including
+        // the revenue check that runs after -- which is the defect 15 and 16 failure shape.
+        //
+        // Reachable on real data: the URL prefix is 45 chars, so any two products certified under
+        // the same TISI certificate and double-scanned collide.
+        var first = TisiUrl + TisiUrl;
+        var second = TisiUrl + "https://appdb.tisi.go.th/Q/i.php?d=9999999999";
+
+        LegacyBarcode.ToStored(first).Should().Be(LegacyBarcode.ToStored(second),
+            "the fixture is only meaningful if these really do collide once truncated");
+
+        var builder = new LegacyStoreDataBuilder(_store);
+        await builder.AddPaymentTypeLookupAsync();
+        await builder.AddUserAsync(1, "cashier", "Somchai", "Jaidee", 1, "2024-03-15 09:00:00");
+        await builder.AddProductAsync(
+            productId: 1, barcode: first, description: "Certified fitting A",
+            unitPrice: 120m, quantityInStock: 7, category: 10, isTrackable: true,
+            dateCreated: "2024-03-15 09:00:00");
+        await builder.AddProductAsync(
+            productId: 2, barcode: second, description: "Certified fitting B",
+            unitPrice: 130m, quantityInStock: 3, category: 10, isTrackable: true,
+            dateCreated: "2024-03-15 09:00:00");
+
+        var options = CreateOptions();
+        var verifier = new MigrationVerifier(options, NullLogger<MigrationVerifier>.Instance);
+
+        var result = await verifier.VerifyAsync();
+
+        result.Errors.Should().Contain(e => e.Contains(LegacyBarcode.ToStored(first)),
+            "the operator needs the key that collided in order to fix the source data");
+        result.Checks.Should().Contain(c => c.EntityName == "Total Revenue",
+            "a collision must not stop the later checks from running");
+    }
+
+    [Fact]
+    public async Task VerifyAsync_WithNoLegacyProductCategoryTable_ReportsItInsteadOfThrowing()
+    {
+        // VerifyAsync is a flat sequence with no per-check isolation, so an unguarded throw in the
+        // category check loses the entire report. The migrator can afford to let this throw because
+        // RunPhaseAsync records it as a phase failure; the verifier has no such net. Defect 15's
+        // lesson was to probe sqlite_master first and report the absence as its own row, so that
+        // "this store has no such table" cannot be confused with a check that silently vanished.
+        await _store.Connection.ExecuteAsync("DROP TABLE ProductCategory");
+
+        var options = CreateOptions();
+        var verifier = new MigrationVerifier(options, NullLogger<MigrationVerifier>.Instance);
+
+        var result = await verifier.VerifyAsync();
+
+        result.Checks.Should().Contain(c => c.EntityName == "Categories (no legacy table)",
+            "the absence is reported, not dropped");
+        result.Checks.Should().Contain(c => c.EntityName == "Total Revenue",
+            "every check after the category check must still run");
+    }
+
     private async Task SeedOverlongBarcodeProductAsync()
     {
         var builder = new LegacyStoreDataBuilder(_store);
