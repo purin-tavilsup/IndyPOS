@@ -329,6 +329,65 @@ public class MigrationVerifierTests : IAsyncLifetime
         categoryCheck.IsValid.Should().BeTrue();
     }
 
+    /// <summary>
+    /// A real GeneralHardware barcode: a TISI certification QR code scanned into the barcode field,
+    /// twice over, at 90 characters. Two such rows exist in GeneralHardware and one in MimyMart.
+    /// </summary>
+    private const string OverlongLegacyBarcode =
+        "https://appdb.tisi.go.th/Q/i.php?d=3535221937https://appdb.tisi.go.th/Q/i.php?d=3535221937";
+
+    [Fact]
+    public async Task VerifyAsync_WithABarcodeLongerThanTheColumn_MatchesTheProductByItsStoredBarcode()
+    {
+        // Product.Barcode is capped at 50 characters, so the migrator truncates on write. Both sides
+        // of this comparison must therefore be keyed on the barcode AS STORED -- keying the
+        // expectation on the untruncated legacy value makes the join miss and reports a mismatch on
+        // a product that migrated perfectly.
+        await SeedOverlongBarcodeProductAsync();
+
+        var options = CreateOptions();
+        await new SqliteMigrationService(options, NullLogger<SqliteMigrationService>.Instance)
+            .MigrateAllAsync();
+
+        var verifier = new MigrationVerifier(options, NullLogger<MigrationVerifier>.Instance);
+        var result = await verifier.VerifyAsync();
+
+        var categoryCheck = result.Checks.First(c => c.EntityName == "Categories");
+        categoryCheck.PostgresCount.Should().Be(1, "the truncated product still carries its code");
+        categoryCheck.IsValid.Should().BeTrue(
+            "the product's category migrated correctly; only the join key was wrong");
+    }
+
+    [Fact]
+    public async Task VerifyAsync_WithABarcodeLongerThanTheColumn_MatchesItsStockByStoredBarcode()
+    {
+        // Same defect as the category check above, in the stock check. Recorded separately because
+        // they are separate comparisons that must not drift apart again.
+        await SeedOverlongBarcodeProductAsync();
+
+        var options = CreateOptions();
+        await new SqliteMigrationService(options, NullLogger<SqliteMigrationService>.Instance)
+            .MigrateAllAsync();
+
+        var verifier = new MigrationVerifier(options, NullLogger<MigrationVerifier>.Instance);
+        var result = await verifier.VerifyAsync();
+
+        var stockCheck = result.Checks.First(c => c.EntityName == "Stock (units)");
+        stockCheck.PostgresCount.Should().Be(7, "the stock movement was written against the product");
+        stockCheck.IsValid.Should().BeTrue();
+    }
+
+    private async Task SeedOverlongBarcodeProductAsync()
+    {
+        var builder = new LegacyStoreDataBuilder(_store);
+        await builder.AddPaymentTypeLookupAsync();
+        await builder.AddUserAsync(1, "cashier", "Somchai", "Jaidee", 1, "2024-03-15 09:00:00");
+        await builder.AddProductAsync(
+            productId: 1, barcode: OverlongLegacyBarcode, description: "Certified fitting",
+            unitPrice: 120m, quantityInStock: 7, category: 10, isTrackable: true,
+            dateCreated: "2024-03-15 09:00:00");
+    }
+
     [Fact]
     public async Task VerifyAsync_WithNegativeLegacyStock_ExpectsZeroNotTheNegative()
     {
