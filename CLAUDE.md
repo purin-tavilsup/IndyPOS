@@ -62,10 +62,16 @@ try to include it in a PR.
 ⚠️ **The SQLite → PostgreSQL migration tests contain deliberate PINNING tests.**
 `tests/IndyPOS.MigrationTool.Tests` exercises the shipped migrator against schema artefacts dumped
 from real stores. Some of its tests assert **today's wrong behaviour on purpose** — they name their
-defect (6, 8), record the correct answer in the message, and were each verified able to
-fail. **When you fix one of those defects, invert exactly one pinning test; do not "repair" the
-assertion to match new behaviour without reading its comment.** Defects 2, 3, 4, 5, 9, 10, 11, 12,
-13, 14, 15, 16, 17, 18, 19, 20 and 21 are fixed.
+defect (8), record the correct answer in the message, and were each verified able to
+fail. **When you fix a defect, invert its pin; do not "repair" the assertion to match new behaviour
+without reading its comment.** Defects 2, 3, 4, 5, 6, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20
+and 21 are fixed. Only **8** is still pinned.
+
+⚠️ **A pin's stated "correct answer" can itself be wrong — defect 6's was.** It claimed 51% of real
+invoice lines were discounted; that figure was really the count of rows where `OriginalUnitPrice` is
+*zero*, and the true number of discounted lines across all three stores is **0**. So two of its five
+columns were deliberately NOT restored, and both pins now assert that decision instead. **Re-measure
+before trusting a pin's premise**, not just its assertion.
 
 ✅ **All three real stores now migrate and verify end to end.** GeneralHardware and MimyMart had
 never once completed before defect 19; both take about a minute now. GeneralHardware's `verify` still
@@ -177,10 +183,10 @@ dotnet build
 
 # Docker must be RUNNING for two suites - they spin up a real Postgres container.
 # With Docker down they fail fast (each suite in under a second), which reads like a
-# code regression but is not. Expect 160 failures with Docker stopped, all here.
-# (160 is DERIVED as 97 + 63, not measured - both suites were last run with Docker up.)
+# code regression but is not. Expect 161 failures with Docker stopped, all here.
+# (161 is DERIVED as 97 + 64, not measured - both suites were last run with Docker up.)
 #   tests/IndyPOS.StoreHub.IntegrationTests   (97 of 104; 7 need no container)
-#   tests/IndyPOS.MigrationTool.Tests         (63 of 125; 37 pure units, 24 need the
+#   tests/IndyPOS.MigrationTool.Tests         (64 of 127; 38 pure units, 24 need the
 #                                              gitignored real store .db files, 1 manual tool)
 
 # The installer is NOT in IndyPOS.sln, so the two commands above never touch it.
@@ -192,10 +198,10 @@ dotnet run --project src/IndyPOS.AppHost --launch-profile https
 # Dashboard: https://localhost:17222
 ```
 
-Solution suites total **608** with Docker running and the real store databases present (607 pass,
-1 skipped) — measured 2026-08-17. Per suite: Domain 36 · Vault 17 · MigrationTool 125 (124 pass,
+Solution suites total **610** with Docker running and the real store databases present (609 pass,
+1 skipped) — measured 2026-08-17. Per suite: Domain 36 · Vault 17 · MigrationTool 127 (126 pass,
 1 skip) · StoreHub.IntegrationTests 104 · Application 298 · Windows.Forms 28. Without the real
-store databases the suite discovers **588** (DERIVED as 608 − 20, not measured) — a skipped
+store databases the suite discovers **590** (DERIVED as 610 − 20, not measured) — a skipped
 `[Theory]` is one entry, not one per row. See [`ONBOARDING.md`](ONBOARDING.md) for the per-suite
 breakdown, the dev-vs-installed port split, and the `/health` vs `/health/ready` trap.
 

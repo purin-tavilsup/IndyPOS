@@ -401,7 +401,7 @@ public class SqliteMigrationService
         // TryGetValue dance to say the same thing.
         var linesByInvoice = (await sqlite.QueryAsync<LegacyInvoiceLine>("""
             SELECT InvoiceProductId, InvoiceId, InventoryProductId, Barcode, Description, Quantity,
-                   UnitPrice, Category
+                   UnitPrice, Category, Note, Priority, GroupPrice
             FROM InvoiceProduct
             """)).ToLookup(line => line.InvoiceId);
 
@@ -457,6 +457,12 @@ public class SqliteMigrationService
                             ProductName = Truncate(line.Description, 200),
                             Quantity = (int)line.Quantity,
                             UnitPrice = (decimal)line.UnitPrice,
+                            // Defect 6. Absent, not zero: the legacy defaults are 0 and empty string,
+                            // and 0 is neither a group price nor a position on an invoice. Writing 0
+                            // would make "not recorded" indistinguishable from a real value.
+                            Note = NullIfEmpty(line.Note) is { } note ? Truncate(note, 200) : null,
+                            Priority = line.Priority > 0 ? (int)line.Priority : null,
+                            GroupPrice = line.GroupPrice > 0 ? (decimal)line.GroupPrice : null,
                             CreatedUtc = createdUtc
                         });
 
@@ -839,9 +845,16 @@ public class SqliteMigrationService
 
         /// <summary>
         /// The line's own legacy category. Read only to categorise a synthesised placeholder — the
-        /// line itself does not carry a category in v4, and defect 6 owns what InvoiceLine gains.
+        /// line itself does not carry a category in v4.
         /// </summary>
         public long? Category { get; set; }
+
+        // Defect 6. OriginalUnitPrice and IsGroupProduct are deliberately absent: measured across
+        // all three real stores, the first records no discount anywhere and the second is set on 15
+        // rows in one store and never where GroupPrice actually is.
+        public string? Note { get; set; }
+        public long? Priority { get; set; }
+        public double? GroupPrice { get; set; }
     }
 
     private class LegacyPayment

@@ -42,6 +42,21 @@ public class InvoiceLineConfiguration : IEntityTypeConfiguration<InvoiceLine>
             .HasColumnName("created_utc")
             .IsRequired();
 
+        // Defect 6. All three NULLABLE, which is what lets this migration run against the previous
+        // release's binaries -- the forward-only release gate in CLAUDE.md. Their INSERTs simply do
+        // not mention these columns.
+        // 200 not 50: the longest real note is 47 characters, and ProductName beside it is 200.
+        builder.Property(e => e.Note)
+            .HasColumnName("note")
+            .HasMaxLength(200);
+
+        builder.Property(e => e.Priority)
+            .HasColumnName("priority");
+
+        builder.Property(e => e.GroupPrice)
+            .HasColumnName("group_price")
+            .HasPrecision(18, 2);
+
         // LineTotal is calculated, not stored
         builder.Ignore(e => e.LineTotal);
 

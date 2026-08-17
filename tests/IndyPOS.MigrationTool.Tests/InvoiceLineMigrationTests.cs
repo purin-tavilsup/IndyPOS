@@ -16,16 +16,28 @@ public class InvoiceLineMigrationTests : IAsyncLifetime
     public Task DisposeAsync() => Task.CompletedTask;
 
     [Fact]
-    public async Task MigrateInvoiceLines_CurrentlyCannotDistinguishADiscountedLine_Defect6()
+    public async Task MigrateInvoiceLines_OriginalUnitPrice_IsDeliberatelyNotMigrated()
     {
-        // Defect 6: the InvoiceProduct SELECT takes 7 of 17 columns, dropping OriginalUnitPrice,
-        // GroupPrice, IsGroupProduct, Note and Priority. 165,690 of 325,780 real lines (51%) were
-        // discounted, and the record of that is lost.
-        // CORRECT: the discount is recoverable -- which needs a v4 schema change, since InvoiceLine
-        // is deliberately 7 fields. That is why this is pinned here and fixed in its own spec.
+        // Defect 6, and this test's PREMISE WAS WRONG until 2026-08-17. It used to claim that
+        // "165,690 of 325,780 real lines (51%) were discounted, and the record of that is lost",
+        // and called OriginalUnitPrice the fix.
         //
-        // Two lines, same sold price. One was discounted from 100 to 80, the other always cost 80.
-        // After migration they are indistinguishable, so no report can ever recompute the discount.
+        // Measured across all three real stores, that 165,690 is the count of rows where
+        // OriginalUnitPrice is ZERO -- unset -- not discounted. Partitioned properly:
+        //
+        //                              GeneralHardware   MimyMart   MimyShop
+        //   OriginalUnitPrice = 0               165,716    276,317         17
+        //   = UnitPrice (non-zero)              160,064          0          0
+        //   > UnitPrice (a real discount)             0          0          0
+        //
+        // Every row is 0 or exactly UnitPrice. Total discount recorded anywhere: THB 0.00. There is
+        // no discount history to preserve, so the column is NOT migrated and InvoiceLine gains no
+        // OriginalUnitPrice -- adding one would create a field that looks like discount history and
+        // is not, which a later report would reasonably trust.
+        //
+        // This assertion therefore stays as it was, but it is now pinning a DECISION rather than
+        // recording a defect. If a store ever starts recording real discounts, this is the test to
+        // change, and the partition above is the measurement to redo first.
         await using var store = await LegacyStoreDatabase.CreateAsync(LegacyStoreShape.GeneralHardware);
         var builder = new LegacyStoreDataBuilder(store);
         await builder.AddPaymentTypeLookupAsync();
@@ -63,17 +75,26 @@ public class InvoiceLineMigrationTests : IAsyncLifetime
         lines.Select(l => l.UnitPrice).Should().AllBeEquivalentTo(80m);
         lines.Select(l => l.LineTotal).Should().AllBeEquivalentTo(80m);
 
-        // The migrated rows differ only by product. Nothing records that ฿20 was given away.
         typeof(IndyPOS.Domain.Entities.Core.InvoiceLine)
             .GetProperties().Select(p => p.Name)
             .Should().NotContain("OriginalUnitPrice",
-                "defect 6: with no such field, a discounted line and a full-price line are identical");
+                "no real store records a discount in it, so the field would promise history v4 does " +
+                "not have");
     }
 
     [Fact]
-    public async Task MigrateInvoiceLines_CurrentlyDiscardsNoteAndGroupPricing_Defect6()
+    public async Task MigrateInvoiceLines_PreservesNoteGroupPriceAndPriority()
     {
-        // Defect 6, the other four dropped columns. CORRECT: all of them preserved.
+        // Defect 6 FIXED for the three columns that carry information v4 does not already hold.
+        // Measured before choosing, across the three real stores:
+        //
+        //   Note        68,904 non-empty in GeneralHardware, 11,473 distinct (+8,276 MimyMart)
+        //   Priority    every line, and exactly 1..n on 138,324 of 139,680 invoices -- line order
+        //   GroupPrice  sparse but real: 93 rows GeneralHardware, 555 MimyMart
+        //
+        // IsGroupProduct is NOT migrated: 15 rows in GeneralHardware and 0 anywhere else, and
+        // MimyMart has 555 group prices with the flag never set, so the flag never recorded the
+        // intent reliably. See MigrateInvoiceLines_IsGroupProduct_IsDeliberatelyNotMigrated.
         await using var store = await LegacyStoreDatabase.CreateAsync(LegacyStoreShape.GeneralHardware);
         var builder = new LegacyStoreDataBuilder(store);
         await builder.AddPaymentTypeLookupAsync();
@@ -100,13 +121,56 @@ public class InvoiceLineMigrationTests : IAsyncLifetime
         line.Quantity.Should().Be(3);
         line.UnitPrice.Should().Be(18m);
 
-        var fields = typeof(IndyPOS.Domain.Entities.Core.InvoiceLine)
-            .GetProperties().Select(p => p.Name).ToList();
+        line.Note.Should().Be("ลดราคาให้ลูกค้าประจำ",
+            "Note is free text the till captured and nothing else in v4 holds");
+        line.Priority.Should().Be(2, "Priority is the line's position on its invoice");
+        line.GroupPrice.Should().Be(54m);
+    }
 
-        fields.Should().NotContain("GroupPrice");
-        fields.Should().NotContain("IsGroupProduct");
-        fields.Should().NotContain("Note", "the cashier's reason for the discount is lost");
-        fields.Should().NotContain("Priority");
+    [Fact]
+    public async Task MigrateInvoiceLines_WithNoNoteGroupPriceOrPriority_LeavesThemUnset()
+    {
+        // The legacy defaults are 0 and empty rather than NULL, and 0 is not a group price. Writing
+        // 0 would make "sold at a group price of nothing" indistinguishable from "not a group sale".
+        await using var store = await LegacyStoreDatabase.CreateAsync(LegacyStoreShape.GeneralHardware);
+        var builder = new LegacyStoreDataBuilder(store);
+        await builder.AddPaymentTypeLookupAsync();
+        await builder.AddUserAsync(1, "cashier", "Somchai", "Jaidee", 1, "2024-03-15 09:00:00");
+        await builder.AddProductAsync(
+            productId: 10, barcode: "8850001000010", description: "Screws",
+            unitPrice: 20m, quantityInStock: 50, category: 50, isTrackable: true,
+            dateCreated: "2024-03-15 09:00:00");
+        await builder.AddInvoiceAsync(1, userId: 1, total: 20m, dateCreated: "2024-03-15 14:30:00");
+        await builder.AddInvoiceLineAsync(
+            invoiceProductId: 1, invoiceId: 1, productId: 10, barcode: "8850001000010",
+            description: "Screws", quantity: 1, unitPrice: 20m, originalUnitPrice: 20m);
+        await builder.AddPaymentAsync(
+            paymentId: 500, invoiceId: 1, paymentTypeId: 1, amount: 20m,
+            dateCreated: "2024-03-15 14:30:00");
+
+        await MigrationScenario.RunAsync(store, _postgres);
+
+        await using var db = _postgres.CreateDbContext();
+        var line = await db.InvoiceLines.SingleAsync();
+
+        line.Note.Should().BeNull("an empty legacy note is absence, not an empty remark");
+        line.GroupPrice.Should().BeNull("0 is not a group price");
+        line.Priority.Should().BeNull("0 is not a position on the invoice");
+    }
+
+    [Fact]
+    public void MigrateInvoiceLines_IsGroupProduct_IsDeliberatelyNotMigrated()
+    {
+        // Defect 6's fifth column, deliberately dropped rather than restored. Measured: 15 rows set
+        // in GeneralHardware, 0 in MimyMart and 0 in MimyShop -- while MimyMart carries 555 non-zero
+        // GroupPrice values with the flag never set. So the flag does not record whether a line was
+        // a group sale; GroupPrice does that better by simply being present.
+        //
+        // Same shape as InvoiceProduct.IsTrackable, which is dead for the same reason (see
+        // LegacyStoreDataBuilderTests.AddInvoiceLine_ShouldLeaveIsTrackableAtItsSqliteDefault).
+        typeof(IndyPOS.Domain.Entities.Core.InvoiceLine)
+            .GetProperties().Select(p => p.Name)
+            .Should().NotContain("IsGroupProduct");
     }
 
     [Fact]
