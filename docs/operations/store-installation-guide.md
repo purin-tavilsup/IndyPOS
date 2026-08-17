@@ -406,9 +406,10 @@ is useful, keep it.
 
 > ### ⛔ Run this exactly once
 >
-> The migration is **not idempotent**. A second run against the same database re-adds every invoice
-> and payment, silently doubling the store's recorded turnover — measured on a real store: 15 invoices
-> and ฿1,056 became 30 and ฿2,112.
+> A second run against a store already migrated is **refused**: the tool reports
+> `Migration REFUSED … already has N migrated invoice(s)`, aborts and writes nothing. That guard exists
+> because it used to silently **double** the store's recorded turnover — measured on a real store: 15
+> invoices and ฿1,056 became 30 and ฿2,112.
 >
 > **A non-zero exit code does not mean "try again".** Only one of the four outcomes wrote nothing and
 > is safe to re-run:

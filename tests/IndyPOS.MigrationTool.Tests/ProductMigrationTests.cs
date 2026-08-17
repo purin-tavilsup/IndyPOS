@@ -155,17 +155,20 @@ public class ProductMigrationTests : IAsyncLifetime
     }
 
     [Fact]
-    public async Task MigrateProducts_CurrentlyPreservesNoLegacyId_Defect8()
+    public async Task MigrateProducts_PreservesTheLegacyProductId()
     {
-        // Defect 8: only StoreUser carries a legacy id (LegacyUserId). Products, invoices, lines
-        // and payments do not, so the migration cannot be re-run idempotently by id and a v4 row
-        // cannot be reconciled against its SQLite source.
-        // CORRECT: a legacy id preserved on all five entity types.
-        // This test asserts the structural fact: StoreUser has the property and Product has no
-        // equivalent. Product's absence cannot be checked at compile time, so it is checked by
-        // reflection below -- which only flips if the eventual fix names the property exactly
-        // "LegacyProductId". A fix naming it LegacyId or SourceProductId leaves this pin green, so
-        // whoever fixes defect 8 must invert this pin deliberately rather than rely on it failing.
+        // Defect 8, reconciliation half FIXED. Products, invoices, lines and payments now each carry
+        // the legacy id they came from, so a v4 row can be traced back to its SQLite source.
+        //
+        // ⚠️ The IDEMPOTENCY half of defect 8 is NOT delivered. Storing the id does not by itself make
+        // a re-run safe -- the invoice, line and payment phases would also have to skip what they
+        // already migrated. Until that lands, re-running still duplicates invoices, and the operator
+        // docs still say never to re-run. Do not read this test as "the migration is idempotent now".
+        //
+        // Measured before choosing the design: all four legacy ids are unique and non-null in every
+        // real store, so the unique indexes are real guarantees rather than hopeful ones. Their ranges
+        // OVERLAP across stores -- GeneralHardware invoices 79..139,758 against MimyMart's
+        // 67,994..165,286 -- which is why uniqueness is scoped per store wherever StoreId exists.
         await using var store = await LegacyStoreDatabase.CreateAsync(LegacyStoreShape.GeneralHardware);
         var builder = await SeedCashierAsync(store);
         await builder.AddProductAsync(
@@ -178,16 +181,12 @@ public class ProductMigrationTests : IAsyncLifetime
         await using var db = _postgres.CreateDbContext();
 
         (await db.StoreUsers.SingleAsync()).LegacyUserId.Should().Be(1,
-            "users DO preserve their legacy id");
+            "users always preserved their legacy id");
 
-        // The product's legacy id 4242 survives only in this in-memory map, which is discarded when
-        // the process exits. Nothing in PostgreSQL records it.
         result.ProductIdMap.Should().ContainKey(4242);
 
-        var productProperties = typeof(IndyPOS.Domain.Entities.Core.Product)
-            .GetProperties().Select(p => p.Name).ToList();
-        productProperties.Should().NotContain("LegacyProductId",
-            "defect 8: Product has no legacy id column, so a migrated row cannot be reconciled");
+        (await db.Products.SingleAsync()).LegacyProductId.Should().Be(4242,
+            "the id now survives in PostgreSQL, not only in an in-memory map discarded at exit");
     }
 
     [Fact]

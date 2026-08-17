@@ -38,6 +38,14 @@ public class InvoiceConfiguration : IEntityTypeConfiguration<Invoice>
             .HasColumnName("last_modified_utc")
             .IsRequired();
 
+        builder.Property(e => e.LegacyInvoiceId)
+            .HasColumnName("legacy_invoice_id");
+
+        // Defect 8, scoped per store for the same reason as Product's: GeneralHardware invoices run
+        // 79..139,758 and MimyMart's 67,994..165,286, which overlap.
+        builder.HasIndex(e => new { e.StoreId, e.LegacyInvoiceId })
+            .IsUnique();
+
         builder.HasIndex(e => e.StoreId);
         builder.HasIndex(e => e.CreatedUtc);
     }
