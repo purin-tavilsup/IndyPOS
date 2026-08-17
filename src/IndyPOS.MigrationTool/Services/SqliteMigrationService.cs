@@ -64,6 +64,29 @@ public class SqliteMigrationService
 
         _logger.LogInformation("Starting migration from {SqlitePath} to PostgreSQL", _options.SqlitePath);
 
+        // Refuse a second run before doing any work. Defect 8's per-store unique index on the legacy
+        // invoice id makes re-running impossible anyway -- which is the point, because a re-run used
+        // to DUPLICATE a store's sales history in silence: measured, MimyShop went from 15 invoices
+        // and THB 1,056 to 30 and THB 2,112. Left to the database it surfaces as an opaque 23505 from
+        // SaveChangesAsync, which sits outside RunPhaseAsync and so escapes as a bare crash.
+        //
+        // Recorded as a phase failure so the existing machinery does the rest: the save is suppressed,
+        // the ABORTED banner prints, and the exit code is non-zero. Products and users were always
+        // re-runnable (they skip what exists), so only the invoice side needs asking about.
+        if (!_options.DryRun && await CountMigratedInvoicesAsync(context, ct) is var already and > 0)
+        {
+            _result.AddPhaseFailure("AlreadyMigrated",
+                $"Store '{_options.StoreId}' already has {already} migrated invoice(s). Re-running " +
+                "would duplicate its sales history, so nothing was written. Migrate into an empty " +
+                "database, or run 'verify' to check the migration that is already there.");
+
+            _logger.LogError(
+                "Migration REFUSED. Store {StoreId} already has {Count} migrated invoice(s).",
+                _options.StoreId, already);
+
+            return _result;
+        }
+
         // Order matters: Users → Products → Invoices (with lines/payments) → PayLater
         // Defect 12: each phase is isolated so ONE run reports every schema problem. Re-running
         // against a real shop costs a visit with the till switched off.
@@ -102,6 +125,18 @@ public class SqliteMigrationService
 
         return _result;
     }
+
+    /// <summary>
+    /// How many invoices this store has already migrated into the target.
+    /// </summary>
+    /// <remarks>
+    /// Counted by <see cref="Invoice.LegacyInvoiceId"/> being set, not by invoices existing: a store
+    /// that has been trading in v4 has invoices of its own, and refusing to migrate because the till
+    /// made a sale would be wrong. Only a row that came from SQLite blocks a second migration.
+    /// </remarks>
+    private async Task<int> CountMigratedInvoicesAsync(StoreHubDbContext context, CancellationToken ct) =>
+        await context.Invoices
+            .CountAsync(i => i.StoreId == _options.StoreId && i.LegacyInvoiceId != null, ct);
 
     /// <summary>
     /// Runs one migration phase, turning a phase-level throw into a recorded failure so the remaining
@@ -245,6 +280,7 @@ public class SqliteMigrationService
                 {
                     Id = Guid.NewGuid(),
                     StoreId = _options.StoreId,
+                    LegacyProductId = (int)product.InventoryProductId,
                     Barcode = storedBarcode,
                     Name = Truncate(product.Description, 50),
                     Description = Truncate(product.Description, 200),
@@ -432,6 +468,7 @@ public class SqliteMigrationService
                 {
                     Id = Guid.NewGuid(),
                     StoreId = _options.StoreId,
+                    LegacyInvoiceId = (int)invoice.InvoiceId,
                     UserId = userId,
                     TotalAmount = (decimal)invoice.Total,
                     CreatedUtc = createdUtc,
@@ -453,6 +490,7 @@ public class SqliteMigrationService
                         {
                             Id = Guid.NewGuid(),
                             InvoiceId = newInvoice.Id,
+                            LegacyInvoiceLineId = (int)line.InvoiceProductId,
                             ProductId = productId,
                             ProductName = Truncate(line.Description, 200),
                             Quantity = (int)line.Quantity,
@@ -493,6 +531,7 @@ public class SqliteMigrationService
                     {
                         Id = Guid.NewGuid(),
                         InvoiceId = newInvoice.Id,
+                        LegacyPaymentId = (int)payment.PaymentId,
                         Method = method,
                         Amount = (decimal)payment.Amount,
                         Note = payment.Note,

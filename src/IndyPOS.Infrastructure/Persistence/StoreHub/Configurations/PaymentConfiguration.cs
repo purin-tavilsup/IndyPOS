@@ -37,6 +37,13 @@ public class PaymentConfiguration : IEntityTypeConfiguration<Payment>
             .HasColumnName("created_utc")
             .IsRequired();
 
+        builder.Property(e => e.LegacyPaymentId)
+            .HasColumnName("legacy_payment_id");
+
+        // Defect 8, scoped to the invoice for the same reason as InvoiceLine's.
+        builder.HasIndex(e => new { e.InvoiceId, e.LegacyPaymentId })
+            .IsUnique();
+
         builder.HasOne(e => e.Invoice)
             .WithMany(i => i.Payments)
             .HasForeignKey(e => e.InvoiceId)

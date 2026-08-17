@@ -60,6 +60,16 @@ public class InvoiceLineConfiguration : IEntityTypeConfiguration<InvoiceLine>
         // LineTotal is calculated, not stored
         builder.Ignore(e => e.LineTotal);
 
+        builder.Property(e => e.LegacyInvoiceLineId)
+            .HasColumnName("legacy_invoice_line_id");
+
+        // Defect 8. Scoped to the INVOICE, because InvoiceLine carries no StoreId -- it reaches its
+        // store through Invoice. That still forbids the same legacy line being attached twice to one
+        // invoice, which is the duplicate that matters; store-wide uniqueness would need StoreId
+        // denormalised onto this table and is not worth that for a reconciliation key.
+        builder.HasIndex(e => new { e.InvoiceId, e.LegacyInvoiceLineId })
+            .IsUnique();
+
         builder.HasOne(e => e.Invoice)
             .WithMany(i => i.Lines)
             .HasForeignKey(e => e.InvoiceId)

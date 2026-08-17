@@ -1,7 +1,10 @@
 using Dapper;
+using IndyPOS.MigrationTool;
+using IndyPOS.MigrationTool.Services;
 using IndyPOS.MigrationTool.Tests.Fixtures;
 using IndyPOS.MigrationTool.Tests.Tools;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace IndyPOS.MigrationTool.Tests;
 
@@ -47,8 +50,17 @@ public class SqliteMigrationServiceTests : IAsyncLifetime
     }
 
     [Fact]
-    public async Task MigrateAllAsync_CalledTwice_ShouldSkipUsersAndProductsWithoutDuplicating()
+    public async Task MigrateAllAsync_CalledTwice_RefusesTheSecondRunAndWritesNothing()
     {
+        // CHANGED BEHAVIOUR, and an improvement. This test used to assert the second run SUCCEEDED,
+        // with users and products skipped -- while saying nothing about invoices, which it silently
+        // DUPLICATED. Measured on real data before this change: a second run took MimyShop from 15
+        // invoices and THB 1,056 to 30 and THB 2,112, doubling recorded turnover.
+        //
+        // Defect 8's per-store unique index on the legacy invoice id makes that duplication
+        // impossible, so a re-run can no longer quietly double a store's history. Left to the
+        // database it surfaced as an opaque 23505 escaping MigrateAllAsync, so the run is now refused
+        // up front with a message that says what happened and that nothing was written.
         await using var store = await LegacyStoreDatabase.CreateAsync(LegacyStoreShape.GeneralHardware);
         await SeedOneSaleAsync(store);
 
@@ -56,13 +68,46 @@ public class SqliteMigrationServiceTests : IAsyncLifetime
         var second = await MigrationScenario.RunAsync(store, _postgres);
 
         first.IsSuccess.Should().BeTrue();
-        second.IsSuccess.Should().BeTrue();
-        second.Users.Skipped.Should().Be(first.Users.Migrated);
-        second.Products.Skipped.Should().Be(first.Products.Migrated);
+
+        second.IsSuccess.Should().BeFalse("re-running would duplicate this store's sales history");
+        second.Outcome.Should().Be(MigrationOutcome.Aborted, "nothing may be written");
+        second.PhaseFailures.Should().ContainSingle()
+              .Which.Message.Should().Contain("already").And.Contain("1");
 
         await using var db = _postgres.CreateDbContext();
         (await db.StoreUsers.CountAsync()).Should().Be(1, "users must not be duplicated");
         (await db.Products.CountAsync()).Should().Be(1, "products must not be duplicated");
+        (await db.Invoices.CountAsync()).Should().Be(1, "and neither must invoices");
+        (await db.Payments.CountAsync()).Should().Be(1);
+    }
+
+    [Fact]
+    public async Task MigrateAllAsync_AgainstADifferentStoreInTheSameDatabase_IsNotRefused()
+    {
+        // The guard must be per store, not per database. Two stores legitimately share one database
+        // in a shared-hosting setup, and their legacy ids overlap.
+        await using var first = await LegacyStoreDatabase.CreateAsync(LegacyStoreShape.GeneralHardware);
+        await SeedOneSaleAsync(first);
+        await MigrationScenario.RunAsync(first, _postgres);
+
+        await using var second = await LegacyStoreDatabase.CreateAsync(LegacyStoreShape.GeneralHardware);
+        await SeedOneSaleAsync(second);
+
+        var options = new MigrationOptions
+        {
+            SqlitePath = second.Path,
+            PostgresConnectionString = _postgres.ConnectionString,
+            StoreId = "A-DIFFERENT-STORE",
+            DryRun = false
+        };
+
+        var result = await new SqliteMigrationService(
+            options, NullLogger<SqliteMigrationService>.Instance).MigrateAllAsync();
+
+        result.IsSuccess.Should().BeTrue("a different store has migrated nothing yet");
+
+        await using var db = _postgres.CreateDbContext();
+        (await db.Invoices.CountAsync()).Should().Be(2, "one invoice per store");
     }
 
     [Fact]
