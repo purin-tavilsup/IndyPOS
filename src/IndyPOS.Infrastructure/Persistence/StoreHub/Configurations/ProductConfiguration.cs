@@ -72,6 +72,14 @@ public class ProductConfiguration : IEntityTypeConfiguration<Product>
             .IsRequired();
 
         // Unique barcode per store
+        // Defect 7b. NOT NULL with a default of true, which the release gate allows: the previous
+        // release's INSERTs do not mention the column and the default fills it. Nullable would be
+        // worse here -- "we do not know whether this tracks stock" is not a state the till can act on.
+        builder.Property(e => e.IsTrackable)
+            .HasColumnName("is_trackable")
+            .HasDefaultValue(true)
+            .IsRequired();
+
         builder.Property(e => e.LegacyProductId)
             .HasColumnName("legacy_product_id");
 

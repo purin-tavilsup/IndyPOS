@@ -154,6 +154,31 @@ public class ProductMigrationTests : IAsyncLifetime
         result.Outcome.Should().Be(MigrationOutcome.Success);
     }
 
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task MigrateProducts_CarriesTheLegacyTrackableFlag(bool isTrackable)
+    {
+        // Defect 7b. InventoryProduct.IsTrackable is REAL signal -- 21 + 7 + 1 non-trackable products
+        // across the three stores -- unlike InvoiceProduct.IsTrackable on the line, which is dead
+        // (every row 1, because the legacy INSERT omits it and SQLite applies DEFAULT 1).
+        //
+        // It has to survive migration, because CompleteSaleCommandHandler now reads it to decide
+        // whether a sale moves stock. Migrating it as the default true would drive all 29 of those
+        // products negative from their first v4 sale, which is the defect.
+        await using var store = await LegacyStoreDatabase.CreateAsync(LegacyStoreShape.GeneralHardware);
+        var builder = await SeedCashierAsync(store);
+        await builder.AddProductAsync(
+            productId: 10, barcode: "8850001000010", description: "น้ำแข็ง",
+            unitPrice: 10m, quantityInStock: 100, category: 50, isTrackable: isTrackable,
+            dateCreated: "2024-03-15 09:00:00");
+
+        await MigrationScenario.RunAsync(store, _postgres);
+
+        await using var db = _postgres.CreateDbContext();
+        (await db.Products.SingleAsync()).IsTrackable.Should().Be(isTrackable);
+    }
+
     [Fact]
     public async Task MigrateProducts_PreservesTheLegacyProductId()
     {
