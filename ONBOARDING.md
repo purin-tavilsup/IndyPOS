@@ -120,7 +120,9 @@ Solution suites (`dotnet test` at the root), Docker running **and** the real sto
 
 Outside the solution: `IndyPOS.Bootstrapper.Tests` — **231** (223 pass, 8 skipped).
 
-`tests/IndyPOS.Mock` is shared fakes, not a test project.
+`tests/IndyPOS.Mock` is shared fakes, not a test project — it is marked `IsTestProject=false` so the
+runner skips it. Without that, `dotnet test` tried to execute the assembly, failed to load it, and
+the whole solution exited **1 on a fully green run**.
 
 > **The SQLite → PostgreSQL migration paths now have real coverage.** `tests/IndyPOS.Migration.Tests`
 > was deleted, not repaired — it exercised a parallel migration implementation the product never
