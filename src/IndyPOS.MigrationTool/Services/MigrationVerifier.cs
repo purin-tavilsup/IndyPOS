@@ -147,7 +147,7 @@ public class MigrationVerifier
     {
         var expected = (await sqlite.QueryAsync<(string Barcode, long Quantity)>(
                 "SELECT Barcode, MAX(QuantityInStock, 0) AS Quantity FROM InventoryProduct"))
-            .ToDictionary(row => row.Barcode, row => (int)row.Quantity);
+            .ToDictionary(row => LegacyBarcode.ToStored(row.Barcode), row => (int)row.Quantity);
 
         var actual = (await context.Products
                 .Where(p => p.StoreId == _options.StoreId)
@@ -224,7 +224,7 @@ public class MigrationVerifier
 
         var expected = (await sqlite.QueryAsync<(string Barcode, long? Category)>(
                 "SELECT Barcode, Category FROM InventoryProduct"))
-            .ToDictionary(row => row.Barcode, row => resolver.Resolve(row.Category).Code);
+            .ToDictionary(row => LegacyBarcode.ToStored(row.Barcode), row => resolver.Resolve(row.Category).Code);
 
         var actual = (await context.Products
                 .Where(p => p.StoreId == _options.StoreId)

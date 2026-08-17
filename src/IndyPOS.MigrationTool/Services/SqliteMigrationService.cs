@@ -231,7 +231,7 @@ public class SqliteMigrationService
                 {
                     Id = Guid.NewGuid(),
                     StoreId = _options.StoreId,
-                    Barcode = Truncate(product.Barcode, 50),
+                    Barcode = LegacyBarcode.ToStored(product.Barcode),
                     Name = Truncate(product.Description, 50),
                     Description = Truncate(product.Description, 200),
                     Manufacturer = NullIfEmpty(product.Manufacturer) is { } m ? Truncate(m, 200) : null,
@@ -627,7 +627,7 @@ public class SqliteMigrationService
         if (_result.ProductIdMap.TryGetValue((int)line.InventoryProductId, out var byLegacyId))
             return byLegacyId;
 
-        var barcode = Truncate(line.Barcode ?? string.Empty, 50);
+        var barcode = LegacyBarcode.ToStored(line.Barcode);
 
         // The product was deleted and re-added under a new legacy id. Same barcode means the same
         // physical article, so the line belongs with it — and one article keeps one sales history.
