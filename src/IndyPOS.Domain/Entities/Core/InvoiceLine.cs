@@ -38,6 +38,18 @@ public class InvoiceLine
     /// <summary>The group price this line was sold at, when it was part of a group sale.</summary>
     public decimal? GroupPrice { get; set; }
 
+    /// <summary>
+    /// The legacy SQLite InvoiceProductId this row was migrated from, or <c>null</c> for a row v4 created
+    /// itself. Defect 8: without it a migrated row cannot be reconciled against its source, and for
+    /// invoices there is no natural key to fall back on.
+    /// </summary>
+    /// <remarks>
+    /// Nullable rather than 0-when-absent, unlike <c>StoreUser.LegacyUserId</c> which predates this:
+    /// a row v4 created has no legacy id, and 0 is a magic value standing in for absence. Nullable
+    /// also keeps the unique index honest, because PostgreSQL treats NULLs as distinct.
+    /// </remarks>
+    public int? LegacyInvoiceLineId { get; set; }
+
     // Navigation properties
     public Invoice Invoice { get; set; } = default!;
     public Product Product { get; set; } = default!;

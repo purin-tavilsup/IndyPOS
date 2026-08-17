@@ -72,6 +72,16 @@ public class ProductConfiguration : IEntityTypeConfiguration<Product>
             .IsRequired();
 
         // Unique barcode per store
+        builder.Property(e => e.LegacyProductId)
+            .HasColumnName("legacy_product_id");
+
+        // Defect 8. Scoped to the store, not global: legacy id ranges OVERLAP between the real
+        // stores (GeneralHardware products 1..10,679 against MimyMart's 1..8,857), so a global
+        // unique index would reject the second store on a shared database. NULLs are distinct in
+        // PostgreSQL, so synthesised placeholders -- which have no legacy row -- do not collide.
+        builder.HasIndex(e => new { e.StoreId, e.LegacyProductId })
+            .IsUnique();
+
         builder.HasIndex(e => new { e.StoreId, e.Barcode })
             .IsUnique();
 
