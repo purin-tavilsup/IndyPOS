@@ -56,7 +56,7 @@ Expect **152 failures** with Docker stopped, all from these two suites. That fig
 
 | Suite | Total | Fails without Docker |
 |---|---|---|
-| `IndyPOS.MigrationTool.Tests` | 112 | **55** (of the other 57, see Trap 3) |
+| `IndyPOS.MigrationTool.Tests` | 117 | **55** (of the other 62, see Trap 3) |
 | `IndyPOS.StoreHub.IntegrationTests` | 104 | **97** (7 need no container) |
 
 **Start Docker and re-run before investigating any of these.**
@@ -82,12 +82,12 @@ returned early instead, so 8 tests reported *Passed* on every machine but one, i
 tests also used one-directional `Should().Contain(...)` column checks, which a table with extra
 columns satisfies — so they could not have detected a dropped column even when they did run.
 
-So `IndyPOS.MigrationTool.Tests`'s 112 break down as: **55** need Docker, **24** need those real
-databases, **32** are pure units needing neither, and **1** is the manual schema extractor (Trap 3b).
+So `IndyPOS.MigrationTool.Tests`'s 117 break down as: **55** need Docker, **24** need those real
+databases, **37** are pure units needing neither, and **1** is the manual schema extractor (Trap 3b).
 
 **The total itself changes.** A skipped `[Theory]` is one skipped entry, not one per data row, so the
 21-case artefact comparison collapses to a single entry. On a fresh clone the suite therefore
-discovers **92**, not 112 (**derived** as 112 − 20, not measured — the same 20-row collapse described
+discovers **97**, not 117 (**derived** as 117 − 20, not measured — the same 20-row collapse described
 above). Nothing turns red.
 
 ### ⚠️ Trap 3b — regenerating the schema artefacts needs an environment variable
@@ -106,14 +106,14 @@ reports `Skipped: 1` and writes nothing — which looks like success while leavi
 ### Expected counts
 
 Solution suites (`dotnet test` at the root), Docker running **and** the real store databases present
-— **595 total** (594 pass, 1 skipped) — measured 2026-08-17. Without those databases the total is
-**575** (**derived** as 595 − 20, not measured), still all green:
+— **600 total** (599 pass, 1 skipped) — measured 2026-08-17. Without those databases the total is
+**580** (**derived** as 600 − 20, not measured), still all green:
 
 | Suite | Tests |
 |---|---|
 | `IndyPOS.Application.Tests` | 298 |
 | `IndyPOS.StoreHub.IntegrationTests` | 104 (Docker) |
-| `IndyPOS.MigrationTool.Tests` | 112 (Docker; 1 skipped. **92** without the real store data — Trap 3, derived) |
+| `IndyPOS.MigrationTool.Tests` | 117 (Docker; 1 skipped. **97** without the real store data — Trap 3, derived) |
 | `IndyPOS.Domain.Tests` | 36 |
 | `IndyPOS.Windows.Forms.Tests` | 28 |
 | `IndyPOS.Vault.Tests` | 17 |
