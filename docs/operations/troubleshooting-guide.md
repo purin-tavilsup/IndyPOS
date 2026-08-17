@@ -443,11 +443,28 @@ itself rather than by level** — a filter on `Error` alone misses two of the fo
 |---------------|---------|------------|
 | `ECONNREFUSED` | Service not listening | Start StoreHub/PostgreSQL |
 | `ETIMEDOUT` | Network timeout | Check network connectivity |
-| `23505` | Duplicate key violation | Data integrity issue - check for duplicates |
+| `23505` | Duplicate key violation | Data integrity issue - check for duplicates. **During a data migration** see the note below |
 | `42P01` | Table does not exist | Run EF migrations |
 | `28P01` | Authentication failed | Check credentials |
 | `53300` | Too many connections | Restart services, check for leaks |
 | `57014` | Query cancelled | Timeout - check slow queries |
+
+### `23505` during a data migration
+
+`IX_product_store_id_barcode` in the message means two products are competing for one barcode. Two
+causes, and the difference matters:
+
+1. **The migration was already run against this database.** The migration is not idempotent, so a
+   second run duplicates invoices and payments as well. **Do not keep re-running.** Check whether the
+   store's data is already there (`SELECT COUNT(*) FROM invoice`) before doing anything else; if it has
+   been run twice, the recorded turnover is doubled and the database needs restoring from backup.
+2. **Two legacy products share the first 50 characters of their barcode.** `Product.Barcode` is capped
+   at 50, so both truncate to the same value and cannot coexist. Real barcodes hit this — scanned TISI
+   certification QR codes are 90 characters, and their first 45 are a shared URL prefix. Shorten one
+   barcode **in the legacy database**, then migrate into a clean database.
+
+`verify`'s `Barcode keys` row detects case 2 before you migrate. Run the dry run first and it costs
+nothing.
 
 ---
 

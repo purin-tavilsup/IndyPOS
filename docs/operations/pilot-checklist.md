@@ -133,14 +133,79 @@ cd "C:\Program Files\IndyPOS\StoreHub"
   --client-secret "<CLIENT_SECRET>"
 ```
 
+#### ⛔ Read this before running Step 4b
+
+**Never run the migration twice against the same database.** It is not idempotent: a second run
+re-adds every invoice and payment, silently doubling the store's recorded turnover. A real test took
+one store from 15 invoices / ฿1,056 to 30 / ฿2,112.
+
+So a non-zero exit code from Step 4b does **not** mean "try again". The tool tells you which of four
+cases you are in, and only one of them is safe to re-run:
+
+| What it prints | Exit | Was anything written? | What to do |
+|---|---|---|---|
+| `✓ Migration completed successfully!` | 0 | Yes, everything | Go to Step 4c |
+| `✓ Migration completed with warnings` | 0 | Yes, everything | **Read the warnings**, then Step 4c. Nothing was refused, but something is worth knowing — most often a product category the v4 catalogue does not have |
+| `✗ Migration completed with errors` | 1 | **Yes — the rows that succeeded ARE saved** | **Do NOT re-run.** Fix the causes in the *legacy* database, or settle them by hand. The banner says this too |
+| `✗ Migration ABORTED - nothing was written` | 1 | **No, nothing at all** | Safe to fix and re-run. The database is untouched |
+
+Only the **ABORTED** case may be re-run. It is the only one that wrote nothing.
+
+**Do Step 4a (dry run) first and read its output properly** — it reports the same problems as the real
+run while writing nothing to the database, so every surprise below is one you can meet *before*
+committing. It takes seconds.
+
+#### Expected time and resources for Step 4b
+
+| Store size | Time | Peak memory |
+|---|---|---|
+| Small (hundreds of invoices) | seconds | < 500 MB |
+| Large (~140,000 invoices, ~326,000 lines) | **about 1 minute** | **up to ~2.8 GB** |
+
+Measured on the largest real store. **If a migration runs for many minutes, something is wrong** —
+stop and investigate rather than waiting. Make sure the machine has the memory free; the whole
+migration is held in memory and committed once, so that it is all-or-nothing.
+
+#### Step 4d: collect the clamped-stock report
+
+If any product had **negative** stock in the legacy database, the tool migrates it as **0** and writes
+`clamped-stock-<timestamp>.csv` beside the legacy database, naming every product. On the largest real
+store that is **952 products**.
+
+- [ ] If the run mentions clamped stock, **keep that CSV** and give it to the shop for a physical
+      recount. Those quantities are not recoverable from anywhere else.
+
 **Verification:**
-- [ ] Dry run completes without errors
-- [ ] Migration completes without errors
-- [ ] Verification tool shows all checks passed (✓)
+- [ ] Dry run (4a) completed and its output was **read**, not just glanced at
+- [ ] Step 4b printed one of the four banners above, and you took the matching action
+- [ ] **The migration was NOT run twice**
+- [ ] Verification tool (4c) shows every row ✓ — **or** the only ✗ rows are ones you have consciously
+      accepted, with a note in the sign-off table saying which and why
 - [ ] Product count matches: SQLite → PostgreSQL
 - [ ] User count matches: SQLite → PostgreSQL
 - [ ] Invoice count matches: SQLite → PostgreSQL
-- [ ] Revenue totals match (within ±$0.01)
+- [ ] Revenue totals match (within ±฿1.00)
+- [ ] `Stock (units)` row matches
+- [ ] `Categories` row matches — every product carries a real catalogue code, not a legacy id
+- [ ] `Barcode keys` row reads 0
+- [ ] Clamped-stock CSV collected if the run produced one
+
+#### What each `verify` row means, and which ✗ you may have to accept
+
+`verify` reports per-entity counts plus four value checks. Most ✗ rows mean the migration went wrong.
+**Two do not** — they are properties of the store's own legacy data. One of those is fixable at
+source, the other is not fixable at all:
+
+| Row | A ✗ here means |
+|---|---|
+| `Stock (units)` | Legacy `QuantityInStock` does not equal the sum of migrated movements. A real problem |
+| `Categories` | A product's category is not the catalogue code its legacy category maps to. A real problem |
+| `Barcode keys` | Two products share the first 50 characters of their barcode, so they cannot both migrate. **Fix in the legacy database** — shorten one |
+| `Payments (no invoice)` | Payments reference an invoice that no longer exists, so they cannot be attached to anything. **Not fixable by the tool.** Settle the amount by hand. Re-running will not recover it |
+
+⚠️ **One real store is expected to fail permanently on `Payments (no invoice)`.** GeneralHardware has
+two such payments totalling ฿1,000. Every other row is green. Do not chase this as a migration bug and
+do **not** re-run to try to clear it — record it in the sign-off table as accepted, with the amount.
 
 ### Step 5: Configure Backup Schedule
 ```powershell
@@ -222,9 +287,20 @@ Invoke-RestMethod -Uri "http://localhost:5000/sync/status" `
 | PostgreSQL configured | IT | [ ] |
 | StoreHub service running | IT | [ ] |
 | Data migration verified | IT | [ ] |
+| Migration run **once only** | IT | [ ] |
+| Clamped-stock CSV handed to the shop (if produced) | IT | [ ] |
+| Accepted `verify` exceptions recorded below | IT | [ ] |
 | Backup schedule active | IT | [ ] |
 | Test sale completed | Store Manager | [ ] |
 | Staff trained | Store Manager | [ ] |
+
+**Accepted `verify` exceptions.** Any ✗ row you are going live with, and why. Leave blank if every
+row was ✓. A store with an entry here is going live with data that will never reach v4, so the amount
+matters:
+
+| `verify` row | Count | Amount at stake | Why accepted |
+|---|---|---|---|
+| | | | |
 
 **Go-Live Decision:** [ ] APPROVED / [ ] BLOCKED
 

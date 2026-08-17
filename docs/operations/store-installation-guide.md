@@ -397,9 +397,31 @@ cd "C:\Program Files\IndyPOS\StoreHub"
     --dry-run
 ```
 
-Review the output for any errors.
+Read the output properly — a dry run reports the same problems as the real migration while writing
+nothing to the database, so anything surprising is far cheaper to meet here. It takes seconds. It does
+write a clamped-stock report beside the legacy database if any product has negative stock; that file
+is useful, keep it.
 
 ### 5.3 Execute Migration
+
+> ### ⛔ Run this exactly once
+>
+> The migration is **not idempotent**. A second run against the same database re-adds every invoice
+> and payment, silently doubling the store's recorded turnover — measured on a real store: 15 invoices
+> and ฿1,056 became 30 and ฿2,112.
+>
+> **A non-zero exit code does not mean "try again".** Only one of the four outcomes wrote nothing and
+> is safe to re-run:
+>
+> | What it prints | Exit | Written? | Action |
+> |---|---|---|---|
+> | `✓ Migration completed successfully!` | 0 | all | Continue to 5.4 |
+> | `✓ Migration completed with warnings` | 0 | all | Read the warnings, then 5.4 |
+> | `✗ Migration completed with errors` | 1 | **the successful rows ARE saved** | **Do NOT re-run.** Fix the causes in the legacy database or settle them by hand |
+> | `✗ Migration ABORTED - nothing was written` | 1 | **nothing** | Safe to fix and re-run |
+>
+> On the largest real store this takes **about a minute** and peaks near **2.8 GB** of memory. If it
+> runs for many minutes, stop and investigate — that is not normal.
 
 ```powershell
 .\IndyPOS.MigrationTool.exe `
@@ -416,6 +438,23 @@ Review the output for any errors.
     --postgres "Host=127.0.0.1;Database=indypos_storehub;Username=indypos_app;Password=YOUR_APP_PASSWORD" `
     --store-id "STORE-001"
 ```
+
+Every row should read ✓. Four rows check **values** rather than counts, and are the ones worth reading
+closely:
+
+| Row | A ✗ means |
+|---|---|
+| `Stock (units)` | Migrated stock does not match legacy `QuantityInStock`. A real problem |
+| `Categories` | A product carries the wrong catalogue code, or a raw legacy id. A real problem |
+| `Barcode keys` | Two products share their barcode's first 50 characters and cannot both migrate. Shorten one **in the legacy database** |
+| `Payments (no invoice)` | Payments point at an invoice that no longer exists, so nothing can hold them. **Not fixable by the tool** and re-running will not help — settle the amount by hand |
+
+⚠️ **GeneralHardware is expected to fail `Payments (no invoice)` permanently** — two payments totalling
+฿1,000, with every other row green. That is a known inconsistency in that store's legacy data, not a
+migration bug. Record it and move on; do **not** re-run.
+
+**Never re-run the migration to try to clear a ✗.** Re-running duplicates invoices; it cannot repair
+anything.
 
 ---
 
