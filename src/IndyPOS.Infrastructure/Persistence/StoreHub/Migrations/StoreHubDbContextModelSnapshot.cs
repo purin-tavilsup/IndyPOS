@@ -88,6 +88,10 @@ namespace IndyPOS.Infrastructure.Persistence.StoreHub.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("last_modified_utc");
 
+                    b.Property<int?>("LegacyInvoiceId")
+                        .HasColumnType("integer")
+                        .HasColumnName("legacy_invoice_id");
+
                     b.Property<string>("StoreId")
                         .IsRequired()
                         .HasMaxLength(50)
@@ -108,6 +112,9 @@ namespace IndyPOS.Infrastructure.Persistence.StoreHub.Migrations
                     b.HasIndex("CreatedUtc");
 
                     b.HasIndex("StoreId");
+
+                    b.HasIndex("StoreId", "LegacyInvoiceId")
+                        .IsUnique();
 
                     b.ToTable("invoice", (string)null);
                 });
@@ -132,6 +139,10 @@ namespace IndyPOS.Infrastructure.Persistence.StoreHub.Migrations
                     b.Property<Guid>("InvoiceId")
                         .HasColumnType("uuid")
                         .HasColumnName("invoice_id");
+
+                    b.Property<int?>("LegacyInvoiceLineId")
+                        .HasColumnType("integer")
+                        .HasColumnName("legacy_invoice_line_id");
 
                     b.Property<string>("Note")
                         .HasMaxLength(200)
@@ -163,9 +174,10 @@ namespace IndyPOS.Infrastructure.Persistence.StoreHub.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("InvoiceId");
-
                     b.HasIndex("ProductId");
+
+                    b.HasIndex("InvoiceId", "LegacyInvoiceLineId")
+                        .IsUnique();
 
                     b.ToTable("invoice_line", (string)null);
                 });
@@ -309,6 +321,10 @@ namespace IndyPOS.Infrastructure.Persistence.StoreHub.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("invoice_id");
 
+                    b.Property<int?>("LegacyPaymentId")
+                        .HasColumnType("integer")
+                        .HasColumnName("legacy_payment_id");
+
                     b.Property<string>("Method")
                         .IsRequired()
                         .HasMaxLength(50)
@@ -321,7 +337,8 @@ namespace IndyPOS.Infrastructure.Persistence.StoreHub.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("InvoiceId");
+                    b.HasIndex("InvoiceId", "LegacyPaymentId")
+                        .IsUnique();
 
                     b.ToTable("payment", (string)null);
                 });
@@ -428,6 +445,10 @@ namespace IndyPOS.Infrastructure.Persistence.StoreHub.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("last_modified_utc");
 
+                    b.Property<int?>("LegacyProductId")
+                        .HasColumnType("integer")
+                        .HasColumnName("legacy_product_id");
+
                     b.Property<string>("Manufacturer")
                         .HasMaxLength(200)
                         .HasColumnType("character varying(200)")
@@ -457,6 +478,9 @@ namespace IndyPOS.Infrastructure.Persistence.StoreHub.Migrations
                     b.HasIndex("StoreId");
 
                     b.HasIndex("StoreId", "Barcode")
+                        .IsUnique();
+
+                    b.HasIndex("StoreId", "LegacyProductId")
                         .IsUnique();
 
                     b.ToTable("product", (string)null);

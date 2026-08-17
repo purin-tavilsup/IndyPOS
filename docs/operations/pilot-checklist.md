@@ -135,9 +135,17 @@ cd "C:\Program Files\IndyPOS\StoreHub"
 
 #### ⛔ Read this before running Step 4b
 
-**Never run the migration twice against the same database.** It is not idempotent: a second run
-re-adds every invoice and payment, silently doubling the store's recorded turnover. A real test took
-one store from 15 invoices / ฿1,056 to 30 / ฿2,112.
+**The tool now refuses a second run against a store it has already migrated.** It reports
+`Migration REFUSED … already has N migrated invoice(s)`, aborts, and writes nothing — verified on
+GeneralHardware, whose 139,680 invoices and ฿12,414,071 were left untouched by the attempt.
+
+That guard exists because a re-run used to silently **double** the store's recorded turnover: a real
+test took one store from 15 invoices / ฿1,056 to 30 / ฿2,112. Re-running is therefore no longer
+destructive, but it is still never the fix — see the table below for what each outcome means.
+
+⚠️ The guard recognises a previous migration by the legacy ids it wrote. A store migrated by a build
+older than this one has no legacy ids, so it would **not** be recognised. No store is live on v4 yet,
+so today that is theoretical; migrate into an empty database and it cannot arise.
 
 So a non-zero exit code from Step 4b does **not** mean "try again". The tool tells you which of four
 cases you are in, and only one of them is safe to re-run:
@@ -146,8 +154,8 @@ cases you are in, and only one of them is safe to re-run:
 |---|---|---|---|
 | `✓ Migration completed successfully!` | 0 | Yes, everything | Go to Step 4c |
 | `✓ Migration completed with warnings` | 0 | Yes, everything | **Read the warnings**, then Step 4c. Nothing was refused, but something is worth knowing — most often a product category the v4 catalogue does not have |
-| `✗ Migration completed with errors` | 1 | **Yes — the rows that succeeded ARE saved** | **Do NOT re-run.** Fix the causes in the *legacy* database, or settle them by hand. The banner says this too |
-| `✗ Migration ABORTED - nothing was written` | 1 | **No, nothing at all** | Safe to fix and re-run. The database is untouched |
+| `✗ Migration completed with errors` | 1 | **Yes — the rows that succeeded ARE saved** | **Do not re-run** — it will be refused anyway. Fix the causes in the *legacy* database, or settle them by hand. The banner says this too |
+| `✗ Migration ABORTED - nothing was written` | 1 | **No, nothing at all** | Safe to fix and re-run. The database is untouched. **`AlreadyMigrated` is this case too** — it means this store was migrated before, so re-running cannot help; `verify` the existing migration instead |
 
 Only the **ABORTED** case may be re-run. It is the only one that wrote nothing.
 

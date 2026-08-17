@@ -454,10 +454,12 @@ itself rather than by level** — a filter on `Error` alone misses two of the fo
 `IX_product_store_id_barcode` in the message means two products are competing for one barcode. Two
 causes, and the difference matters:
 
-1. **The migration was already run against this database.** The migration is not idempotent, so a
-   second run duplicates invoices and payments as well. **Do not keep re-running.** Check whether the
-   store's data is already there (`SELECT COUNT(*) FROM invoice`) before doing anything else; if it has
-   been run twice, the recorded turnover is doubled and the database needs restoring from backup.
+1. **The migration was already run against this database.** A second run is now **refused** before
+   it writes anything — you will see `Migration REFUSED … already has N migrated invoice(s)` and an
+   ABORTED banner, not a 23505. If you somehow reach 23505 this way, the store was first migrated by a
+   build older than the legacy-id guard, so the guard could not recognise it; check
+   `SELECT COUNT(*) FROM invoice` before doing anything else, and restore from backup if the turnover
+   has already been doubled.
 2. **Two legacy products share the first 50 characters of their barcode.** `Product.Barcode` is capped
    at 50, so both truncate to the same value and cannot coexist. Real barcodes hit this — scanned TISI
    certification QR codes are 90 characters, and their first 45 are a shared URL prefix. Shorten one
