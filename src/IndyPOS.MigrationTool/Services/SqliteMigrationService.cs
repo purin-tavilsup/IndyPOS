@@ -305,6 +305,29 @@ public class SqliteMigrationService
     }
 
     /// <summary>
+    /// Resolves the category for a synthesised placeholder from the line that created it.
+    /// </summary>
+    /// <remarks>
+    /// Same rules as a live product's category: never a guess, never the raw legacy id, and an
+    /// unresolvable one is reported rather than dropped. It does not fail the row — the placeholder
+    /// exists so the SALE survives, and refusing it over a missing category would lose the money
+    /// that defect 13 was written to keep.
+    /// </remarks>
+    private string? ResolvePlaceholderCategory(LegacyInvoiceLine line, LegacyCategoryResolver categories)
+    {
+        var (code, problem) = categories.Resolve(line.Category);
+
+        if (problem is not null)
+        {
+            _result.AddError("Invoices",
+                $"Invoice line {line.InvoiceProductId} restored deleted product {line.Barcode}: " +
+                $"{problem} The placeholder was restored with no category.");
+        }
+
+        return code;
+    }
+
+    /// <summary>
     /// Reports payments whose invoice does not exist, which no other code path can reach.
     /// </summary>
     /// <remarks>
@@ -377,7 +400,8 @@ public class SqliteMigrationService
         // is exactly right for an invoice with no lines or no payments. A Dictionary would need a
         // TryGetValue dance to say the same thing.
         var linesByInvoice = (await sqlite.QueryAsync<LegacyInvoiceLine>("""
-            SELECT InvoiceProductId, InvoiceId, InventoryProductId, Barcode, Description, Quantity, UnitPrice
+            SELECT InvoiceProductId, InvoiceId, InventoryProductId, Barcode, Description, Quantity,
+                   UnitPrice, Category
             FROM InvoiceProduct
             """)).ToLookup(line => line.InvoiceId);
 
@@ -385,6 +409,11 @@ public class SqliteMigrationService
             SELECT PaymentId, InvoiceId, PaymentTypeId, Amount, Note
             FROM Payment
             """)).ToLookup(payment => payment.InvoiceId);
+
+        // Loaded here rather than reused from the products phase, because RunPhaseAsync isolates the
+        // phases: if Products failed, a field set there would be null and every placeholder would
+        // silently lose the category its own line records.
+        var categories = await LegacyCategoryResolver.LoadAsync(sqlite);
 
         foreach (var invoice in invoices)
         {
@@ -418,7 +447,7 @@ public class SqliteMigrationService
 
                     foreach (var line in lines)
                     {
-                        var productId = ResolveLineProductId(line, context, createdUtc);
+                        var productId = ResolveLineProductId(line, context, createdUtc, categories);
 
                         context.InvoiceLines.Add(new InvoiceLine
                         {
@@ -680,7 +709,9 @@ public class SqliteMigrationService
     /// placeholder. It never fails to resolve — dropping the line is what defect 13 was, and it let
     /// an invoice's lines sum to less than the invoice's own total.
     /// </summary>
-    private Guid ResolveLineProductId(LegacyInvoiceLine line, StoreHubDbContext context, DateTime createdUtc)
+    private Guid ResolveLineProductId(
+        LegacyInvoiceLine line, StoreHubDbContext context, DateTime createdUtc,
+        LegacyCategoryResolver categories)
     {
         if (_result.ProductIdMap.TryGetValue((int)line.InventoryProductId, out var byLegacyId))
             return byLegacyId;
@@ -704,6 +735,12 @@ public class SqliteMigrationService
             Barcode = barcode,
             Name = Truncate(line.Description, 50),
             Description = Truncate(line.Description, 200),
+            // InvoiceProduct carries its own Category, so the deleted product's category is sitting
+            // in the very row being read. Leaving it null was "never guessed" turning into "never
+            // looked". Measured: all 30 real GeneralHardware placeholders resolve, and their lines
+            // never disagree. Where several lines DO disagree, the first one wins -- deterministic,
+            // and it is the line that created the placeholder.
+            Category = ResolvePlaceholderCategory(line, categories),
             UnitPrice = (decimal)line.UnitPrice,
             IsActive = false,
             CreatedUtc = createdUtc,
@@ -799,6 +836,12 @@ public class SqliteMigrationService
         public string Description { get; set; } = "";
         public long Quantity { get; set; }
         public double UnitPrice { get; set; }
+
+        /// <summary>
+        /// The line's own legacy category. Read only to categorise a synthesised placeholder — the
+        /// line itself does not carry a category in v4, and defect 6 owns what InvoiceLine gains.
+        /// </summary>
+        public long? Category { get; set; }
     }
 
     private class LegacyPayment
