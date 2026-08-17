@@ -86,7 +86,7 @@ rootCommand.SetHandler(async (context) =>
     // Validate inputs
     if (!sqliteFile.Exists)
     {
-        AnsiConsole.MarkupLine($"[red]Error:[/] SQLite file not found: {sqliteFile.FullName}");
+        AnsiConsole.MarkupLine($"[red]Error:[/] SQLite file not found: {sqliteFile.FullName.EscapeMarkup()}");
         context.ExitCode = 1;
         return;
     }
@@ -95,10 +95,14 @@ rootCommand.SetHandler(async (context) =>
     var configTable = new Table();
     configTable.AddColumn("Setting");
     configTable.AddColumn("Value");
-    configTable.AddRow("SQLite File", sqliteFile.FullName);
-    configTable.AddRow("PostgreSQL", postgresConn.Length > 50 ? postgresConn[..50] + "..." : postgresConn);
-    configTable.AddRow("Store ID", storeId);
-    configTable.AddRow("Cloud API", cloudApi ?? "[grey](not configured)[/]");
+    // Escaped: every one of these is operator-supplied. A staging folder named
+    // "Store backup [2026-08-17]" is enough to kill the tool before it starts, and the truncated
+    // connection string can also SPLIT a "[...]" tag and throw on the unbalanced remainder.
+    configTable.AddRow("SQLite File", sqliteFile.FullName.EscapeMarkup());
+    configTable.AddRow("PostgreSQL",
+        (postgresConn.Length > 50 ? postgresConn[..50] + "..." : postgresConn).EscapeMarkup());
+    configTable.AddRow("Store ID", storeId.EscapeMarkup());
+    configTable.AddRow("Cloud API", cloudApi is { } url ? url.EscapeMarkup() : "[grey](not configured)[/]");
     configTable.AddRow("Dry Run", dryRun ? "[yellow]Yes[/]" : "No");
     AnsiConsole.Write(configTable);
     AnsiConsole.WriteLine();
@@ -170,7 +174,7 @@ rootCommand.SetHandler(async (context) =>
     }
     catch (Exception ex)
     {
-        AnsiConsole.MarkupLine($"[red]Migration failed:[/] {ex.Message}");
+        AnsiConsole.MarkupLine($"[red]Migration failed:[/] {ex.Message.EscapeMarkup()}");
         if (verbose)
         {
             AnsiConsole.WriteException(ex);
@@ -195,7 +199,7 @@ verifyCommand.SetHandler(async (context) =>
 
     if (!sqliteFile.Exists)
     {
-        AnsiConsole.MarkupLine($"[red]Error:[/] SQLite file not found: {sqliteFile.FullName}");
+        AnsiConsole.MarkupLine($"[red]Error:[/] SQLite file not found: {sqliteFile.FullName.EscapeMarkup()}");
         context.ExitCode = 1;
         return;
     }
@@ -418,7 +422,8 @@ static void DisplayResults(MigrationResult result, string? clampedReportPath = n
                 // break the bullet across lines and lose the phase association.
                 var cause = string.Join(" ", failure.Message.Split(
                     ['\r', '\n'], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries));
-                AnsiConsole.MarkupLine($"  [red]•[/] [bold]{failure.Phase}[/]: {cause}");
+                AnsiConsole.MarkupLine(
+                    $"  [red]•[/] [bold]{failure.Phase.EscapeMarkup()}[/]: {cause.EscapeMarkup()}");
             }
             AnsiConsole.MarkupLine(
                 "[grey]  Fix the cause and re-run. The database is untouched.[/]");
@@ -444,7 +449,13 @@ static void DisplayErrors(IReadOnlyList<string> errors)
 {
     foreach (var error in errors.Take(10))
     {
-        AnsiConsole.MarkupLine($"  [red]•[/] {error.EscapeMarkup()}");
+        // Flattened for the same reason the phase-failure branch flattens: real messages are
+        // multi-line ("42P01: relation ... does not exist\n\nPOSITION: 297"), which breaks one
+        // bullet across several lines and makes the trailing fragment read as its own error.
+        var message = string.Join(" ", error.Split(
+            ['\r', '\n'], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries));
+
+        AnsiConsole.MarkupLine($"  [red]•[/] {message.EscapeMarkup()}");
     }
 
     if (errors.Count > 10)
@@ -461,7 +472,12 @@ static void DisplayCloudSyncResults(CloudSyncResult result)
     }
     else
     {
-        AnsiConsole.MarkupLine($"[red]✗ Cloud sync failed: {result.Error}[/]");
+        // result.Error carries the RAW HTTP response body. Nearly every JSON error body contains
+        // '[', so leaving this unescaped threw inside Spectre AFTER the migration had committed --
+        // the outer catch then relabelled it "Migration failed" with exit 1, contradicting the
+        // success banner printed moments earlier and destroying the actual cloud error. A runbook
+        // that re-runs on exit 1 then duplicates every invoice; the migration is not idempotent.
+        AnsiConsole.MarkupLine($"[red]✗ Cloud sync failed: {result.Error.EscapeMarkup()}[/]");
     }
 }
 
