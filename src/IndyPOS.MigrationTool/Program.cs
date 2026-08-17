@@ -109,7 +109,11 @@ rootCommand.SetHandler(async (context) =>
 
     if (dryRun)
     {
-        AnsiConsole.MarkupLine("[yellow]DRY RUN MODE - No changes will be made[/]\n");
+        // "to the database", not a blanket "no changes": a dry run still writes the clamped-stock
+        // report, which is the point of running one -- you get the recount list before committing.
+        AnsiConsole.MarkupLine(
+            "[yellow]DRY RUN MODE - the database will not be changed. A clamped-stock report is " +
+            "still written beside the legacy database.[/]\n");
     }
 
     // Setup services
@@ -370,8 +374,10 @@ static void DisplayResults(MigrationResult result, string? clampedReportPath = n
     // printed before the table covers this list too.
     if (result.ClampedStocks.Count > 0)
     {
-        // "would be" on an aborted run: nothing was written, so the clamp has not happened yet.
-        var verb = aborted ? "would be migrated as 0" : "were migrated as 0";
+        // "would be" whenever nothing was written, so the clamp has not happened yet. A dry run
+        // counts as well as an aborted one: claiming 952 real products "were migrated as 0" on a run
+        // that deliberately changed nothing is a false statement about a deliberate data change.
+        var verb = aborted || dryRun ? "would be migrated as 0" : "were migrated as 0";
         AnsiConsole.MarkupLine(
             $"\n[yellow]{result.ClampedStocks.Count} product(s) had negative stock in the legacy " +
             $"database and {verb}. These need a physical recount:[/]");
