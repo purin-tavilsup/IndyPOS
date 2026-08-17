@@ -7,6 +7,17 @@
     <Nullable>enable</Nullable>
     <Platforms>x64</Platforms>
     <ImplicitUsings>enable</ImplicitUsings>
+    <!--
+      Shared fakes and AutoFixture customisations, NOT a test project - it contains no tests. It
+      references xunit only for [Theory] attribute plumbing that the real suites consume.
+
+      Without this, `dotnet test` sees a project under tests/ that references xunit, tries to run
+      IndyPOS.Mock.dll as a test assembly, and fails to load it ("An assembly specified in the
+      application dependencies manifest was not found"). That made the WHOLE solution exit 1 on a
+      fully green run - a green suite reporting failure, which is exactly the trap the migration
+      work spent this epic removing. Scripts and CI cannot trust an exit code that is always 1.
+    -->
+    <IsTestProject>false</IsTestProject>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">
     <OutputPath>bin\x64\Debug\</OutputPath>
