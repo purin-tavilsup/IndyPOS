@@ -79,11 +79,16 @@ sits there for many minutes is now a real problem rather than normal. The memory
 single `SaveChangesAsync` that defect 12 made deliberate — everything is held until then — so watch
 it on a low-RAM till.
 
-⚠️ **Running many Postgres containers at once makes two tests flake.** With 9 up, a full-solution run
-failed `SyncWorkerTests.SyncWorker_ShouldHandleException_WithoutCrashing` and
-`ProductsEndpointTests.CreateProduct_WithValidData_ReturnsCreatedProduct`. Both passed in isolation
-and both passed on a full re-run after stopping the spare containers. These are the names behind the
-previously unidentified `Application.Tests` flake — check `docker ps` before investigating either.
+⚠️ **Two tests flake under the CPU load of a full-solution run**, and one of them is now fixed.
+`SyncWorkerTests.SyncWorker_ShouldHandleException_WithoutCrashing` was the long-unidentified
+`Application.Tests` flake: it slept a fixed 100 ms and then asserted a background worker had polled,
+which is not guaranteed when six suites and two Testcontainers Postgres instances are competing. It
+now waits for the condition instead. **An earlier note here blamed the number of running containers —
+that was wrong**; it recurred with only one container up, and the cause was always the fixed sleep.
+
+`ProductsEndpointTests.CreateProduct_WithValidData_ReturnsCreatedProduct` has flaked once under the
+same load and is **not** fixed. It passes in isolation. Re-run before investigating it as a
+regression, and be suspicious of any other test that sleeps rather than waiting for a condition.
 
 ⚠️ **Defect 7 is open but has NO pin** — do not go looking for one. Its pin asserted that migrating a
 service line produced a stock movement; defect 14 removed that replay, so the pin was deleted rather

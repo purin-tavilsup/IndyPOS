@@ -153,22 +153,47 @@ public class SyncWorkerTests
     [Fact]
     public async Task SyncWorker_ShouldHandleException_WithoutCrashing()
     {
-        // Arrange
-        var (worker, outboxRepo, syncClient) = CreateSut();
+        // Waits for the condition rather than for a fixed 100 ms. This test used to sleep 100 ms and
+        // then assert the worker had polled at least once, which made it FLAKY: under the CPU load of
+        // a full-solution run the background worker is not always scheduled inside that window, so
+        // the count was 0 and the run failed with nothing wrong. It surfaced twice on 2026-08-17 and
+        // passed every time in isolation.
+        //
+        // Polling a SECOND time is also the stronger assertion, and the one that matches the test's
+        // name: surviving the exception means it kept going, not merely that it started.
+        // SyncWorker_ShouldMarkAsFailed_WhenSyncFails in this file already used this shape.
+        var (worker, outboxRepo, _) = CreateSut();
 
-        outboxRepo.SetupSequence(x => x.GetPendingEventsAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
-            .ThrowsAsync(new InvalidOperationException("Database error"))
-            .ReturnsAsync(new List<OutboxEvent>());
+        var polledAfterThrowing = new TaskCompletionSource();
+        var calls = 0;
+
+        outboxRepo.Setup(x => x.GetPendingEventsAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
+            .Returns(() =>
+            {
+                if (Interlocked.Increment(ref calls) == 1)
+                {
+                    throw new InvalidOperationException("Database error");
+                }
+
+                polledAfterThrowing.TrySetResult();
+                return Task.FromResult<IReadOnlyList<OutboxEvent>>([]);
+            });
 
         using var cts = new CancellationTokenSource();
 
-        // Act - Should not throw
-        var workerTask = worker.StartAsync(cts.Token);
-        await Task.Delay(100);
+        // Act - should not throw
+        await worker.StartAsync(cts.Token);
+
+        var finished = await Task.WhenAny(polledAfterThrowing.Task, Task.Delay(TimeSpan.FromSeconds(10)));
+
         cts.Cancel();
         await worker.StopAsync(CancellationToken.None);
 
-        // Assert - Worker should have survived the exception
-        outboxRepo.Verify(x => x.GetPendingEventsAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()), Times.AtLeast(1));
+        // Assert
+        finished.Should().Be(polledAfterThrowing.Task,
+            "the worker must keep polling after GetPendingEventsAsync throws, not die on it");
+        outboxRepo.Verify(
+            x => x.GetPendingEventsAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()),
+            Times.AtLeast(2));
     }
 }
