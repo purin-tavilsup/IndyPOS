@@ -33,7 +33,7 @@ with it rather than upgrading it.
 | Requirement | Detail |
 |---|---|
 | **.NET SDK 10** | `global.json` pins `10.0.107` with `rollForward: latestMinor`, so any later 10.0.x works |
-| **Docker Desktop** | Required by 117 of the tests (see below) and by Aspire |
+| **Docker Desktop** | Required by **154** of the tests (57 + 97, derived — see Trap 1) and by Aspire |
 | **Windows** | Several projects target `net10.0-windows`; the till is Windows Forms |
 | **FC Subject font** | In [`fonts/`](fonts/) — install `Regular` and `Bold`. Every panel names this family explicitly, so without it Windows substitutes a fallback and Thai captions clip |
 
@@ -51,12 +51,12 @@ dotnet test
 They spin up a real PostgreSQL container via Testcontainers. With Docker stopped they fail **fast**
 (each suite in under a second), which reads exactly like a code regression but is not.
 
-Expect **152 failures** with Docker stopped, all from these two suites. That figure is **derived**
-(97 + 55 by construction), not measured — the suites were last run with Docker up:
+Expect **154 failures** with Docker stopped, all from these two suites. That figure is **derived**
+(97 + 57 by construction), not measured — the suites were last run with Docker up:
 
 | Suite | Total | Fails without Docker |
 |---|---|---|
-| `IndyPOS.MigrationTool.Tests` | 117 | **55** (of the other 62, see Trap 3) |
+| `IndyPOS.MigrationTool.Tests` | 119 | **57** (of the other 62, see Trap 3) |
 | `IndyPOS.StoreHub.IntegrationTests` | 104 | **97** (7 need no container) |
 
 **Start Docker and re-run before investigating any of these.**
@@ -82,12 +82,12 @@ returned early instead, so 8 tests reported *Passed* on every machine but one, i
 tests also used one-directional `Should().Contain(...)` column checks, which a table with extra
 columns satisfies — so they could not have detected a dropped column even when they did run.
 
-So `IndyPOS.MigrationTool.Tests`'s 117 break down as: **55** need Docker, **24** need those real
+So `IndyPOS.MigrationTool.Tests`'s 119 break down as: **57** need Docker, **24** need those real
 databases, **37** are pure units needing neither, and **1** is the manual schema extractor (Trap 3b).
 
 **The total itself changes.** A skipped `[Theory]` is one skipped entry, not one per data row, so the
 21-case artefact comparison collapses to a single entry. On a fresh clone the suite therefore
-discovers **97**, not 117 (**derived** as 117 − 20, not measured — the same 20-row collapse described
+discovers **99**, not 119 (**derived** as 119 − 20, not measured — the same 20-row collapse described
 above). Nothing turns red.
 
 ### ⚠️ Trap 3b — regenerating the schema artefacts needs an environment variable
@@ -106,14 +106,14 @@ reports `Skipped: 1` and writes nothing — which looks like success while leavi
 ### Expected counts
 
 Solution suites (`dotnet test` at the root), Docker running **and** the real store databases present
-— **600 total** (599 pass, 1 skipped) — measured 2026-08-17. Without those databases the total is
-**580** (**derived** as 600 − 20, not measured), still all green:
+— **602 total** (601 pass, 1 skipped) — measured 2026-08-17. Without those databases the total is
+**582** (**derived** as 602 − 20, not measured), still all green:
 
 | Suite | Tests |
 |---|---|
 | `IndyPOS.Application.Tests` | 298 |
 | `IndyPOS.StoreHub.IntegrationTests` | 104 (Docker) |
-| `IndyPOS.MigrationTool.Tests` | 117 (Docker; 1 skipped. **97** without the real store data — Trap 3, derived) |
+| `IndyPOS.MigrationTool.Tests` | 119 (Docker; 1 skipped. **99** without the real store data — Trap 3, derived) |
 | `IndyPOS.Domain.Tests` | 36 |
 | `IndyPOS.Windows.Forms.Tests` | 28 |
 | `IndyPOS.Vault.Tests` | 17 |
@@ -127,7 +127,7 @@ Outside the solution: `IndyPOS.Bootstrapper.Tests` — **231** (223 pass, 8 skip
 > referenced, against a SQLite schema no real store has, so its 15 green tests were misleading.
 > `tests/IndyPOS.MigrationTool.Tests` replaces it: the **shipped** migrator, run against schema
 > artefacts dumped from real stores. Defects 2, 3, 4, 5, 9, 10, 11, 12, 13, 14, 15, 16, 17 and 18 are
-> fixed (19 is open — the invoice phase is quadratic, hours per large store);
+> fixed (20 is open — a payment whose invoice is missing is dropped silently);
 > defects 6 and 8 are **pinned** — tests that assert today's wrong behaviour, name the correct
 > answer, and were each verified able to fail. When a defect is fixed, invert exactly one pinning
 > test. See Epic 2 in `PLAN.md`.
