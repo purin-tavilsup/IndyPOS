@@ -65,7 +65,8 @@ try to include it in a PR.
 `tests/IndyPOS.MigrationTool.Tests` exercises the shipped migrator against schema artefacts dumped
 from real stores. Those tests asserted **today's wrong behaviour on purpose**: each named its defect,
 recorded the correct answer in the message, and was verified able to fail. **None are left pinned** —
-defects 2, 3, 4, 5, 6, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20 and 21 are all fixed.
+defects 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20 and 21 are all fixed —
+**Epic 2's defect list is now empty.**
 
 Several of those tests now pin a **decision** instead — which columns are deliberately *not* migrated,
 for instance — so the rule that mattered still holds: **read the comment before changing one.**
@@ -99,12 +100,11 @@ that was wrong**; it recurred with only one container up, and the cause was alwa
 same load and is **not** fixed. It passes in isolation. Re-run before investigating it as a
 regression, and be suspicious of any other test that sleeps rather than waiting for a condition.
 
-⚠️ **Defect 7 is open but has NO pin** — do not go looking for one. Its pin asserted that migrating a
-service line produced a stock movement; defect 14 removed that replay, so the pin was deleted rather
-than re-aimed. What survives (7b: live sales deduct stock for services) cannot be pinned until
-`Core.Product` carries `IsTrackable`, so it is documented as a commented trip-wire in
-`CompleteSaleCommandHandlerTests.HandleAsync_ShouldCreateInventoryMovementsForEachLine`. Full
-reasoning in Epic 2's defect table in `PLAN.md`.
+✅ **Defect 7b is fixed and its trip-wire is discharged.** `Core.Product` now carries `IsTrackable`
+and a sale of a non-trackable product moves no stock — the invoice line is still written, because the
+money is real. 29 real products are affected. It is a per-PRODUCT flag, not derived from
+`ProductCategoryKind.Service`: every category holding a non-trackable product also holds trackable
+ones (เบ็ดเตล็ด has 12 against 3,391), so the category cannot stand in for it.
 
 ⚠️ **Never hand-write the legacy SQLite schema.** `LegacySchema/*.sql` are generated dumps from real
 `Store.db` files. Regenerate by setting `INDYPOS_REGENERATE_LEGACY_SCHEMA=1` and running
@@ -186,10 +186,10 @@ dotnet build
 
 # Docker must be RUNNING for two suites - they spin up a real Postgres container.
 # With Docker down they fail fast (each suite in under a second), which reads like a
-# code regression but is not. Expect 165 failures with Docker stopped, all here.
-# (165 is DERIVED as 97 + 68, not measured - both suites were last run with Docker up.)
+# code regression but is not. Expect 167 failures with Docker stopped, all here.
+# (167 is DERIVED as 97 + 70, not measured - both suites were last run with Docker up.)
 #   tests/IndyPOS.StoreHub.IntegrationTests   (97 of 104; 7 need no container)
-#   tests/IndyPOS.MigrationTool.Tests         (68 of 131; 38 pure units, 24 need the
+#   tests/IndyPOS.MigrationTool.Tests         (70 of 133; 38 pure units, 24 need the
 #                                              gitignored real store .db files, 1 manual tool)
 
 # The installer is NOT in IndyPOS.sln, so the two commands above never touch it.
@@ -201,10 +201,10 @@ dotnet run --project src/IndyPOS.AppHost --launch-profile https
 # Dashboard: https://localhost:17222
 ```
 
-Solution suites total **614** with Docker running and the real store databases present (613 pass,
-1 skipped) — measured 2026-08-17. Per suite: Domain 36 · Vault 17 · MigrationTool 131 (130 pass,
-1 skip) · StoreHub.IntegrationTests 104 · Application 298 · Windows.Forms 28. Without the real
-store databases the suite discovers **594** (DERIVED as 614 − 20, not measured) — a skipped
+Solution suites total **617** with Docker running and the real store databases present (616 pass,
+1 skipped) — measured 2026-08-17. Per suite: Domain 36 · Vault 17 · MigrationTool 133 (132 pass,
+1 skip) · StoreHub.IntegrationTests 104 · Application 299 · Windows.Forms 28. Without the real
+store databases the suite discovers **597** (DERIVED as 617 − 20, not measured) — a skipped
 `[Theory]` is one entry, not one per row. See [`ONBOARDING.md`](ONBOARDING.md) for the per-suite
 breakdown, the dev-vs-installed port split, and the `/health` vs `/health/ready` trap.
 
