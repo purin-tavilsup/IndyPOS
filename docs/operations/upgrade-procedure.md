@@ -242,8 +242,42 @@ C:\ProgramData\IndyPOS\v4\backups\<yyyyMMdd-HHmmss>\
 
 ---
 
+## Verifying the forward-only gate before a release
+
+Point 5 above is a **promise to the store**: a failed upgrade leaves them working. It rests entirely
+on every migration in the release being runnable against the *previous* release's binaries, and until
+2026-08-17 that had only ever been reasoned about, never tested.
+
+It is cheap to test, and worth doing for any release that adds a migration:
+
+```powershell
+# 1. A throwaway PostgreSQL with THIS release's schema. Any migration run applies it.
+docker run -d --name gate -e POSTGRES_PASSWORD=pass -e POSTGRES_DB=storehub -p 55510:5432 postgres:16-alpine
+.\IndyPOS.MigrationTool.exe --sqlite <any-legacy.db> --postgres "Host=localhost;Port=55510;..." --store-id GATE
+
+# 2. Confirm every column the release ADDED is nullable, or NOT NULL with a default.
+docker exec gate psql -U postgres -d storehub -c "
+  SELECT table_name, column_name, is_nullable, column_default
+  FROM information_schema.columns WHERE table_schema='public' ORDER BY 1,2"
+```
+
+**3. Then prove it, rather than trusting step 2.** Write the rows the way the *previous* release does —
+an `INSERT` naming only the columns that existed before, never mentioning the new ones — for
+`product`, `invoice`, `invoice_line`, `payment` and `inventory_movement`. If a complete sale can be
+written that way, the restored binaries can still trade. If any `INSERT` fails, **the rollback claim in
+point 5 is false** and the release must not ship.
+
+Result for the 2026-08-17 release (3 migrations: invoice-line detail, legacy ids, `is_trackable`):
+every pre-release `INSERT` succeeded, `product.is_trackable` defaulted to `true`, the legacy id columns
+took `NULL`, and a complete sale was written using only pre-release columns. Note that this also covers
+the two `DropIndex` calls in the legacy-ids migration — they remove EF *convention* indexes superseded
+by composite ones leading with the same column, so no access path is lost.
+
+---
+
 ## Change Log
 
 | Date | Change |
 |------|--------|
 | 2026-07-29 | Initial in-place upgrade procedure |
+| 2026-08-17 | Added the forward-only gate verification, and ran it against the release's 3 migrations |
