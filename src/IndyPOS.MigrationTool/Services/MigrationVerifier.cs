@@ -11,11 +11,18 @@ public class MigrationVerifier
 {
     private const string StockCheckName = "Stock (units)";
 
+    private const string CategoryCheckName = "Categories";
+
+    /// <summary>Shown in place of the category row for a store with no such lookup table.</summary>
+    private const string NoCategoryTableCheckName = "Categories (no legacy table)";
+
+    private const string BarcodeKeyCheckName = "Barcode keys";
+
     /// <summary>Shown in place of the PayLater row for a store that does not have that feature.</summary>
     private const string NoPayLaterTableCheckName = "PayLater (no legacy table)";
 
     /// <summary>A store can have thousands of products; the count stays exact, the listing does not.</summary>
-    private const int MaxStockMismatchesReported = 10;
+    private const int MaxMismatchesReported = 10;
 
     private readonly MigrationOptions _options;
     private readonly ILogger<MigrationVerifier> _logger;
@@ -78,10 +85,19 @@ public class MigrationVerifier
         // turnover attributed to the wrong method, with every aggregate check still green.
         await VerifyPaymentsByMethodAsync(sqliteConnection, context, result, ct);
 
+        // Both per-product checks below key on the barcode as STORED, so establish first that those
+        // keys are actually distinct. Reported rather than left to throw out of a dictionary build.
+        await VerifyBarcodeKeysAsync(sqliteConnection, result, ct);
+
         // Verify STOCK per product. Every other check here is a count or a total, and defect 14 --
         // which left GeneralHardware at -400,541 units, 66% of products negative -- passed all of
         // them. Stock was the one thing nothing looked at.
         await VerifyStockAsync(sqliteConnection, context, result, ct);
+
+        // Verify the CATEGORY VALUE per product. Every check above is a count or a total, and all
+        // of them are green while Category holds the raw legacy id -- which is how defect 5 lasted
+        // as long as it did. This is the only check that looks at what was actually written.
+        await VerifyCategoriesAsync(sqliteConnection, context, result, ct);
 
         // Verify total amounts match (within tolerance)
         var sqliteTotalAmount = await sqliteConnection.ExecuteScalarAsync<decimal>(
@@ -107,7 +123,8 @@ public class MigrationVerifier
         // a bare "SQLite has X, PostgreSQL has Y" would restate them less usefully.
         foreach (var check in result.Checks.Where(c => !c.IsValid))
         {
-            if (check.EntityName is not ("Total Revenue" or StockCheckName))
+            if (check.EntityName is not ("Total Revenue" or StockCheckName or CategoryCheckName
+                                        or BarcodeKeyCheckName))
             {
                 result.Errors.Add($"{check.EntityName}: SQLite has {check.SqliteCount}, PostgreSQL has {check.PostgresCount}");
             }
@@ -135,12 +152,64 @@ public class MigrationVerifier
     ///
     /// Negative legacy stock is expected as ZERO, matching the migrator's clamp (defect 14b).
     /// </remarks>
+    /// <summary>
+    /// Checks that legacy barcodes are still distinct once truncated to the stored length.
+    /// </summary>
+    /// <remarks>
+    /// Legacy <c>InventoryProduct.Barcode</c> is <c>UNIQUE</c>, and that constraint is the only
+    /// reason the two per-product checks can key on it at all. <see cref="LegacyBarcode.ToStored"/>
+    /// truncates to 50 characters and truncation does NOT preserve uniqueness, so a store can
+    /// present two products that share one key -- real barcodes include 90-character scanned TISI
+    /// URLs whose first 50 characters are the certificate prefix.
+    ///
+    /// Reported as its own row rather than left to throw <c>ArgumentException</c> out of a
+    /// dictionary build, which would take the entire verify report down with it, including the
+    /// revenue check that runs afterwards -- the failure shape of defects 15 and 16.
+    ///
+    /// It also names a real problem rather than a verifier inconvenience: two colliding products
+    /// cannot BOTH migrate, because <c>(StoreId, Barcode)</c> is unique in v4.
+    /// </remarks>
+    private async Task VerifyBarcodeKeysAsync(
+        SQLiteConnection sqlite, VerificationResult result, CancellationToken ct)
+    {
+        var collisions = (await sqlite.QueryAsync<string>("SELECT Barcode FROM InventoryProduct"))
+            .GroupBy(LegacyBarcode.ToStored)
+            .Where(group => group.Count() > 1)
+            .ToList();
+
+        result.Checks.Add(new VerificationCheck(
+            BarcodeKeyCheckName, collisions.Count, 0, collisions.Count == 0));
+
+        if (collisions.Count == 0)
+        {
+            return;
+        }
+
+        result.Errors.Add(
+            $"{collisions.Count} barcode(s) stop being distinct when truncated to " +
+            $"{LegacyBarcode.MaxLength} characters. Those products cannot all migrate: " +
+            "(StoreId, Barcode) is unique. Shorten them in the legacy database first.");
+
+        foreach (var collision in collisions.Take(MaxMismatchesReported))
+        {
+            result.Errors.Add($"  {collision.Key} <- {string.Join(" | ", collision)}");
+        }
+
+        if (collisions.Count > MaxMismatchesReported)
+        {
+            result.Errors.Add($"  ... and {collisions.Count - MaxMismatchesReported} more");
+        }
+    }
+
     private async Task VerifyStockAsync(
         SQLiteConnection sqlite, StoreHubDbContext context, VerificationResult result, CancellationToken ct)
     {
+        // Grouped, not ToDictionary: a truncation collision is already reported by
+        // VerifyBarcodeKeysAsync, and throwing here would lose every check after this one.
         var expected = (await sqlite.QueryAsync<(string Barcode, long Quantity)>(
                 "SELECT Barcode, MAX(QuantityInStock, 0) AS Quantity FROM InventoryProduct"))
-            .ToDictionary(row => row.Barcode, row => (int)row.Quantity);
+            .GroupBy(row => LegacyBarcode.ToStored(row.Barcode))
+            .ToDictionary(group => group.Key, group => (int)group.First().Quantity);
 
         var actual = (await context.Products
                 .Where(p => p.StoreId == _options.StoreId)
@@ -182,14 +251,104 @@ public class MigrationVerifier
             $"Stock mismatch on {mismatches.Count} product(s). Legacy QuantityInStock must equal " +
             "SUM(QuantityDelta) after migration, and negative legacy stock is expected as 0.");
 
-        foreach (var mismatch in mismatches.Take(MaxStockMismatchesReported))
+        foreach (var mismatch in mismatches.Take(MaxMismatchesReported))
         {
             result.Errors.Add($"  {mismatch}");
         }
 
-        if (mismatches.Count > MaxStockMismatchesReported)
+        if (mismatches.Count > MaxMismatchesReported)
         {
-            result.Errors.Add($"  ... and {mismatches.Count - MaxStockMismatchesReported} more");
+            result.Errors.Add($"  ... and {mismatches.Count - MaxMismatchesReported} more");
+        }
+    }
+
+    /// <summary>
+    /// Compares the <c>Category</c> written against the code the legacy row resolves to, PER
+    /// PRODUCT. The counts are of CATEGORISED products, so the row also reads as coverage.
+    /// </summary>
+    /// <remarks>
+    /// Expectations come from <see cref="LegacyCategoryResolver"/> -- the same lookup and map the
+    /// migration read, exactly as <see cref="VerifyPaymentsByMethodAsync"/> shares
+    /// <see cref="LegacyPaymentTypeMap"/>. Re-deriving them independently would mean a second
+    /// mapping to keep in step, and the two drifting is the failure this is meant to detect.
+    ///
+    /// A legacy category the catalogue does not know is expected as NULL, matching what the
+    /// migrator writes. Expecting a code there would paint every such store red with no safe
+    /// remedy: re-running the migration is not idempotent (defect 8).
+    ///
+    /// Like the stock check this is only meaningful straight after a migration -- once the shop is
+    /// live, someone recategorising a product in the UI is a legitimate divergence.
+    /// </remarks>
+    private async Task VerifyCategoriesAsync(
+        SQLiteConnection sqlite, StoreHubDbContext context, VerificationResult result, CancellationToken ct)
+    {
+        // Probed, unlike the migrator's call site. LegacyCategoryResolver.LoadAsync deliberately
+        // lets a missing table throw there, because RunPhaseAsync records it as a named phase
+        // failure -- VerifyAsync has no such isolation, so here the same throw would discard the
+        // whole report including the revenue check below. Defect 15's lesson exactly: report the
+        // absence as its own row so it cannot be mistaken for a check that silently vanished.
+        if (!await LegacySchemaProbe.HasTableAsync(sqlite, "ProductCategory"))
+        {
+            _logger.LogWarning(
+                "No ProductCategory table in this store; the per-product category check cannot run.");
+            result.Checks.Add(new VerificationCheck(NoCategoryTableCheckName, 0, 0, true));
+            return;
+        }
+
+        var resolver = await LegacyCategoryResolver.LoadAsync(sqlite);
+
+        // Grouped for the same reason as the stock check: a collision is reported, never thrown.
+        var expected = (await sqlite.QueryAsync<(string Barcode, long? Category)>(
+                "SELECT Barcode, Category FROM InventoryProduct"))
+            .GroupBy(row => LegacyBarcode.ToStored(row.Barcode))
+            .ToDictionary(group => group.Key, group => resolver.Resolve(group.First().Category).Code);
+
+        var actual = (await context.Products
+                .Where(p => p.StoreId == _options.StoreId)
+                .Select(p => new { p.Barcode, p.Category })
+                .ToListAsync(ct))
+            .ToDictionary(row => row.Barcode, row => row.Category);
+
+        var mismatches = new List<string>();
+        var expectedCategorised = 0;
+        var actualCategorised = 0;
+
+        foreach (var (barcode, want) in expected)
+        {
+            // A product missing from PostgreSQL resolves to null here, so a product that should
+            // have been categorised and was not migrated at all counts as a mismatch rather than
+            // quietly agreeing.
+            var got = actual.GetValueOrDefault(barcode);
+
+            if (want is not null) expectedCategorised++;
+            if (want is not null && got == want) actualCategorised++;
+
+            if (got != want)
+            {
+                mismatches.Add($"{barcode}: expected {want ?? "no category"}, migrated {got ?? "no category"}");
+            }
+        }
+
+        result.Checks.Add(new VerificationCheck(
+            CategoryCheckName, expectedCategorised, actualCategorised, mismatches.Count == 0));
+
+        if (mismatches.Count == 0)
+        {
+            return;
+        }
+
+        result.Errors.Add(
+            $"Category mismatch on {mismatches.Count} product(s). Product.Category must hold a v4 " +
+            "catalogue code, never the raw legacy id.");
+
+        foreach (var mismatch in mismatches.Take(MaxMismatchesReported))
+        {
+            result.Errors.Add($"  {mismatch}");
+        }
+
+        if (mismatches.Count > MaxMismatchesReported)
+        {
+            result.Errors.Add($"  ... and {mismatches.Count - MaxMismatchesReported} more");
         }
     }
 

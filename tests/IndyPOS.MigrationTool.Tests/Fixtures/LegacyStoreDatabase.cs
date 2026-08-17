@@ -42,6 +42,11 @@ public sealed class LegacyStoreDatabase : IAsyncDisposable
 
         await connection.ExecuteAsync(await File.ReadAllTextAsync(ddlPath));
 
+        // Reference data, not per-test data: every real store ships its ProductCategory rows with
+        // the schema. Seeding it here rather than per test stops a category-resolution bug passing
+        // against an empty lookup while every real store fails.
+        await LegacyCategoryLookup.SeedAsync(connection, shape);
+
         return new LegacyStoreDatabase(path, connection);
     }
 
