@@ -33,7 +33,7 @@ with it rather than upgrading it.
 | Requirement | Detail |
 |---|---|
 | **.NET SDK 10** | `global.json` pins `10.0.107` with `rollForward: latestMinor`, so any later 10.0.x works |
-| **Docker Desktop** | Required by **157** of the tests (60 + 97, derived — see Trap 1) and by Aspire |
+| **Docker Desktop** | Required by **160** of the tests (63 + 97, derived — see Trap 1) and by Aspire |
 | **Windows** | Several projects target `net10.0-windows`; the till is Windows Forms |
 | **FC Subject font** | In [`fonts/`](fonts/) — install `Regular` and `Bold`. Every panel names this family explicitly, so without it Windows substitutes a fallback and Thai captions clip |
 
@@ -51,12 +51,12 @@ dotnet test
 They spin up a real PostgreSQL container via Testcontainers. With Docker stopped they fail **fast**
 (each suite in under a second), which reads exactly like a code regression but is not.
 
-Expect **157 failures** with Docker stopped, all from these two suites. That figure is **derived**
-(97 + 60 by construction), not measured — the suites were last run with Docker up:
+Expect **160 failures** with Docker stopped, all from these two suites. That figure is **derived**
+(97 + 63 by construction), not measured — the suites were last run with Docker up:
 
 | Suite | Total | Fails without Docker |
 |---|---|---|
-| `IndyPOS.MigrationTool.Tests` | 122 | **60** (of the other 62, see Trap 3) |
+| `IndyPOS.MigrationTool.Tests` | 125 | **63** (of the other 62, see Trap 3) |
 | `IndyPOS.StoreHub.IntegrationTests` | 104 | **97** (7 need no container) |
 
 **Start Docker and re-run before investigating any of these.**
@@ -82,12 +82,12 @@ returned early instead, so 8 tests reported *Passed* on every machine but one, i
 tests also used one-directional `Should().Contain(...)` column checks, which a table with extra
 columns satisfies — so they could not have detected a dropped column even when they did run.
 
-So `IndyPOS.MigrationTool.Tests`'s 122 break down as: **60** need Docker, **24** need those real
+So `IndyPOS.MigrationTool.Tests`'s 125 break down as: **63** need Docker, **24** need those real
 databases, **37** are pure units needing neither, and **1** is the manual schema extractor (Trap 3b).
 
 **The total itself changes.** A skipped `[Theory]` is one skipped entry, not one per data row, so the
 21-case artefact comparison collapses to a single entry. On a fresh clone the suite therefore
-discovers **102**, not 122 (**derived** as 122 − 20, not measured — the same 20-row collapse described
+discovers **105**, not 125 (**derived** as 125 − 20, not measured — the same 20-row collapse described
 above). Nothing turns red.
 
 ### ⚠️ Trap 3b — regenerating the schema artefacts needs an environment variable
@@ -106,14 +106,14 @@ reports `Skipped: 1` and writes nothing — which looks like success while leavi
 ### Expected counts
 
 Solution suites (`dotnet test` at the root), Docker running **and** the real store databases present
-— **605 total** (604 pass, 1 skipped) — measured 2026-08-17. Without those databases the total is
-**585** (**derived** as 605 − 20, not measured), still all green:
+— **608 total** (607 pass, 1 skipped) — measured 2026-08-17. Without those databases the total is
+**588** (**derived** as 608 − 20, not measured), still all green:
 
 | Suite | Tests |
 |---|---|
 | `IndyPOS.Application.Tests` | 298 |
 | `IndyPOS.StoreHub.IntegrationTests` | 104 (Docker) |
-| `IndyPOS.MigrationTool.Tests` | 122 (Docker; 1 skipped. **102** without the real store data — Trap 3, derived) |
+| `IndyPOS.MigrationTool.Tests` | 125 (Docker; 1 skipped. **105** without the real store data — Trap 3, derived) |
 | `IndyPOS.Domain.Tests` | 36 |
 | `IndyPOS.Windows.Forms.Tests` | 28 |
 | `IndyPOS.Vault.Tests` | 17 |
@@ -126,8 +126,8 @@ Outside the solution: `IndyPOS.Bootstrapper.Tests` — **231** (223 pass, 8 skip
 > was deleted, not repaired — it exercised a parallel migration implementation the product never
 > referenced, against a SQLite schema no real store has, so its 15 green tests were misleading.
 > `tests/IndyPOS.MigrationTool.Tests` replaces it: the **shipped** migrator, run against schema
-> artefacts dumped from real stores. Defects 2, 3, 4, 5, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19
-> and 20 are fixed, and all three real stores now migrate and verify end to end;
+> artefacts dumped from real stores. Defects 2, 3, 4, 5, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19,
+> 20 and 21 are fixed, and all three real stores now migrate and verify end to end;
 > defects 6 and 8 are **pinned** — tests that assert today's wrong behaviour, name the correct
 > answer, and were each verified able to fail. When a defect is fixed, invert exactly one pinning
 > test. See Epic 2 in `PLAN.md`.
