@@ -211,6 +211,16 @@ public class SqliteMigrationService
             FROM InventoryProduct
             """)).ToList();
 
+        // One query for the whole store instead of one per product. Nothing this run adds is visible
+        // to a database query anyway -- everything is saved once at the end -- so the old per-product
+        // round-trip could only ever find rows from an EARLIER run, which is exactly what this
+        // already-migrated set holds. 10,590 round-trips became 1 on GeneralHardware.
+        var existingByBarcode = (await context.Products
+                .Where(p => p.StoreId == _options.StoreId)
+                .Select(p => new { p.Barcode, p.Id })
+                .ToListAsync(ct))
+            .ToDictionary(p => p.Barcode, p => p.Id);
+
         foreach (var product in products)
         {
             try
@@ -221,15 +231,12 @@ public class SqliteMigrationService
                 // (StoreId, Barcode) index would reject the whole save.
                 var storedBarcode = LegacyBarcode.ToStored(product.Barcode);
 
-                var existing = await context.Products
-                    .FirstOrDefaultAsync(p => p.Barcode == storedBarcode, ct);
-
-                if (existing is not null)
+                if (existingByBarcode.TryGetValue(storedBarcode, out var existingId))
                 {
                     _logger.LogDebug("Product {Barcode} already exists", product.Barcode);
                     _result.Products.Skipped++;
-                    _result.ProductIdMap[(int)product.InventoryProductId] = existing.Id;
-                    _productIdByBarcode[existing.Barcode] = existing.Id;
+                    _result.ProductIdMap[(int)product.InventoryProductId] = existingId;
+                    _productIdByBarcode[storedBarcode] = existingId;
                     continue;
                 }
 
@@ -326,6 +333,26 @@ public class SqliteMigrationService
             FROM Invoice
             """)).ToList();
 
+        // Defect 19: read each child table ONCE and group in memory, rather than querying per
+        // invoice. Neither InvoiceProduct.InvoiceId nor Payment.InvoiceId is indexed in ANY real
+        // store -- EXPLAIN QUERY PLAN returns a bare SCAN -- so a query per invoice was two FULL
+        // TABLE SCANS per invoice. Measured at 97 ms/invoice on MimyMart and 90 ms on
+        // GeneralHardware: 2.6 and 3.5 HOURS of scanning for one store, which is why the tool had
+        // never completed on either. The same rows as two bulk reads take about half a second.
+        //
+        // ILookup, not Dictionary: indexing a key it does not hold yields an empty sequence, which
+        // is exactly right for an invoice with no lines or no payments. A Dictionary would need a
+        // TryGetValue dance to say the same thing.
+        var linesByInvoice = (await sqlite.QueryAsync<LegacyInvoiceLine>("""
+            SELECT InvoiceProductId, InvoiceId, InventoryProductId, Barcode, Description, Quantity, UnitPrice
+            FROM InvoiceProduct
+            """)).ToLookup(line => line.InvoiceId);
+
+        var paymentsByInvoice = (await sqlite.QueryAsync<LegacyPayment>("""
+            SELECT PaymentId, InvoiceId, PaymentTypeId, Amount, Note
+            FROM Payment
+            """)).ToLookup(payment => payment.InvoiceId);
+
         foreach (var invoice in invoices)
         {
             try
@@ -349,19 +376,8 @@ public class SqliteMigrationService
                     LastModifiedUtc = createdUtc
                 };
 
-                // Get and migrate invoice lines
-                var lines = await sqlite.QueryAsync<LegacyInvoiceLine>("""
-                    SELECT InvoiceProductId, InvoiceId, InventoryProductId, Barcode, Description, Quantity, UnitPrice
-                    FROM InvoiceProduct
-                    WHERE InvoiceId = @InvoiceId
-                    """, new { invoice.InvoiceId });
-
-                // Get and migrate payments
-                var payments = await sqlite.QueryAsync<LegacyPayment>("""
-                    SELECT PaymentId, InvoiceId, PaymentTypeId, Amount, Note
-                    FROM Payment
-                    WHERE InvoiceId = @InvoiceId
-                    """, new { invoice.InvoiceId });
+                var lines = linesByInvoice[invoice.InvoiceId];
+                var payments = paymentsByInvoice[invoice.InvoiceId];
 
                 if (!_options.DryRun)
                 {
