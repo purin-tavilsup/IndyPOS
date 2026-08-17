@@ -108,7 +108,15 @@ public class ProductsEndpointTests : IntegrationTestBase
         var response = await Client.PostAsJsonAsync("/products", command);
 
         // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.Created);
+        // The body is read into the failure message on purpose. This test flaked once under the CPU
+        // load of a full-solution run (2026-08-17) and the cause is still unknown, because
+        // Should().Be(Created) reports only "expected Created, found X" and the response explaining
+        // WHY was discarded. It is not a shared-catalogue race: every class touching the shared
+        // database is in the "Integration" collection, and the one migration class outside it uses its
+        // own Testcontainers instance. So the next occurrence needs to diagnose itself.
+        var body = await response.Content.ReadAsStringAsync();
+        response.StatusCode.Should().Be(HttpStatusCode.Created,
+            "POST /products should succeed. Response body: {0}", body);
 
         var product = await response.Content.ReadFromJsonAsync<ProductDto>(JsonOptions);
         product.Should().NotBeNull();
