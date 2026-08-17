@@ -87,6 +87,20 @@ public class SqliteMigrationService
             return _result;
         }
 
+        // ONE transaction around every phase. The migration used to be held entirely in memory until
+        // a single SaveChangesAsync, which is what made defect 12's all-or-nothing guarantee true by
+        // construction -- and what peaked at 2.8 GB on GeneralHardware, measured, against a documented
+        // 4 GB minimum till that also runs Windows, PostgreSQL, StoreHub and the till app.
+        //
+        // Rows are now flushed in batches, so they really do reach PostgreSQL before the run is known
+        // to be good. The guarantee therefore rests on this transaction, which is committed only if no
+        // phase failed -- explicit now, rather than a side effect of saving exactly once. Disposing
+        // without committing rolls everything back, including flushed batches, which
+        // MigrateAllAsync_WhenAPhaseFailsAfterABatchWasFlushed_StillPersistsNothing pins.
+        await using var transaction = _options.DryRun
+            ? null
+            : await context.Database.BeginTransactionAsync(ct);
+
         // Order matters: Users → Products → Invoices (with lines/payments) → PayLater
         // Defect 12: each phase is isolated so ONE run reports every schema problem. Re-running
         // against a real shop costs a visit with the till switched off.
@@ -102,6 +116,7 @@ public class SqliteMigrationService
         if (!_options.DryRun && _result.PhaseFailures.Count == 0)
         {
             await context.SaveChangesAsync(ct);
+            await transaction!.CommitAsync(ct);
         }
 
         // The log is what gets read during a support call, so it must not say "completed" for a run
@@ -124,6 +139,26 @@ public class SqliteMigrationService
         }
 
         return _result;
+    }
+
+    /// <summary>
+    /// Writes what has accumulated so far and forgets it, inside the run's transaction.
+    /// </summary>
+    /// <remarks>
+    /// The memory is the change tracker, not the Dapper rows: an invoice, its lines and its payments
+    /// are roughly five entities each, so GeneralHardware's 139,680 invoices reach about 600,000
+    /// tracked entities and 2.8 GB. Clearing after each save is what bounds it -- saving alone would
+    /// not, because EF keeps every saved entity tracked as Unchanged.
+    ///
+    /// Safe to call mid-phase precisely BECAUSE of the surrounding transaction: nothing is visible to
+    /// anyone else until it commits, and a later phase failure rolls all of it back.
+    /// </remarks>
+    private async Task FlushAsync(StoreHubDbContext context, CancellationToken ct)
+    {
+        if (_options.DryRun) return;
+
+        await context.SaveChangesAsync(ct);
+        context.ChangeTracker.Clear();
     }
 
     /// <summary>
@@ -556,6 +591,14 @@ public class SqliteMigrationService
                 _result.Invoices.Migrated++;
                 _result.InvoiceIdMap[(int)invoice.InvoiceId] = newInvoice.Id;
                 _logger.LogDebug("Migrated invoice: {InvoiceId}", invoice.InvoiceId);
+
+                // Flushed on an invoice boundary, never inside one, so an invoice and its lines and
+                // payments always reach the database together.
+                if (_result.Invoices.Migrated % _options.InvoiceFlushBatchSize == 0)
+                {
+                    await FlushAsync(context, ct);
+                    _logger.LogDebug("Flushed {Count} invoices so far", _result.Invoices.Migrated);
+                }
             }
             catch (Exception ex)
             {
