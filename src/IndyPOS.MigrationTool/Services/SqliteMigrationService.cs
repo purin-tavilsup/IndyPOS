@@ -94,8 +94,10 @@ public class SqliteMigrationService
         }
         else
         {
+            // TotalErrorsRecorded, not Errors.Count: the list is capped per phase, so its Count is
+            // the number of strings KEPT, not the number of problems found.
             _logger.LogInformation("Migration completed. Migrated: {Count}, Errors: {Errors}",
-                _result.TotalMigrated, _result.Errors.Count);
+                _result.TotalMigrated, _result.TotalErrorsRecorded);
         }
 
         return _result;
@@ -200,6 +202,8 @@ public class SqliteMigrationService
     {
         _logger.LogInformation("Migrating products...");
 
+        var categories = await LegacyCategoryResolver.LoadAsync(sqlite);
+
         var products = (await sqlite.QueryAsync<LegacyProduct>("""
             SELECT InventoryProductId, Barcode, Description, Manufacturer, Brand, Category,
                    UnitPrice, QuantityInStock, GroupPrice, GroupPriceQuantity, IsTrackable,
@@ -211,9 +215,14 @@ public class SqliteMigrationService
         {
             try
             {
-                // Check if already exists by barcode
+                // Look the product up by the barcode AS STORED, not the legacy one. An overlong
+                // legacy barcode is truncated on write, so comparing the raw value never matches
+                // its own migrated row: a re-run would add a duplicate and the unique
+                // (StoreId, Barcode) index would reject the whole save.
+                var storedBarcode = LegacyBarcode.ToStored(product.Barcode);
+
                 var existing = await context.Products
-                    .FirstOrDefaultAsync(p => p.Barcode == product.Barcode, ct);
+                    .FirstOrDefaultAsync(p => p.Barcode == storedBarcode, ct);
 
                 if (existing is not null)
                 {
@@ -229,12 +238,12 @@ public class SqliteMigrationService
                 {
                     Id = Guid.NewGuid(),
                     StoreId = _options.StoreId,
-                    Barcode = Truncate(product.Barcode, 50),
+                    Barcode = storedBarcode,
                     Name = Truncate(product.Description, 50),
                     Description = Truncate(product.Description, 200),
                     Manufacturer = NullIfEmpty(product.Manufacturer) is { } m ? Truncate(m, 200) : null,
                     Brand = NullIfEmpty(product.Brand) is { } b ? Truncate(b, 200) : null,
-                    Category = product.Category?.ToString() is { } c ? Truncate(c, 100) : null,
+                    Category = ResolveCategory(product, categories),
                     UnitPrice = (decimal)product.UnitPrice,
                     GroupPrice = product.GroupPrice > 0 ? (decimal)product.GroupPrice : null,
                     GroupPriceQuantity = product.GroupPriceQuantity > 0 ? (int)product.GroupPriceQuantity : null,
@@ -286,6 +295,26 @@ public class SqliteMigrationService
                 _result.AddError("Products", $"Product {product.Barcode}: {ex.Message}");
             }
         }
+    }
+
+    /// <summary>
+    /// Resolves a product's category, reporting anything it could not resolve.
+    /// </summary>
+    /// <remarks>
+    /// An unresolved category is recorded but does NOT fail the row: losing one product's category
+    /// is no reason to refuse its price, stock and sales history as well.
+    /// </remarks>
+    private string? ResolveCategory(LegacyProduct product, LegacyCategoryResolver categories)
+    {
+        var (code, problem) = categories.Resolve(product.Category);
+
+        if (problem is not null)
+        {
+            _result.AddError("Products",
+                $"Product {product.Barcode}: {problem} Migrated with no category.");
+        }
+
+        return code;
     }
 
     private async Task MigrateInvoicesAsync(SQLiteConnection sqlite, StoreHubDbContext context, CancellationToken ct)
@@ -605,7 +634,7 @@ public class SqliteMigrationService
         if (_result.ProductIdMap.TryGetValue((int)line.InventoryProductId, out var byLegacyId))
             return byLegacyId;
 
-        var barcode = Truncate(line.Barcode ?? string.Empty, 50);
+        var barcode = LegacyBarcode.ToStored(line.Barcode);
 
         // The product was deleted and re-added under a new legacy id. Same barcode means the same
         // physical article, so the line belongs with it — and one article keeps one sales history.

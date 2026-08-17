@@ -47,6 +47,18 @@ public class MigrationResult
     /// <summary>Read-only so every write goes through <see cref="AddError"/> and stays bounded.</summary>
     public IReadOnlyList<string> Errors => _errors;
 
+    /// <summary>
+    /// How many errors were actually recorded, across every phase and ignoring the cap.
+    /// </summary>
+    /// <remarks>
+    /// <see cref="Errors"/> is capped, so its Count understates -- and it understates by an amount
+    /// the operator could not discover: the note that carries the suppressed count is appended at
+    /// index <see cref="MaxErrorsPerPhase"/>, while the console prints only the first ten, so
+    /// whenever suppression happens the note announcing it can never be on screen. A store with 400
+    /// unresolved categories reported "... and 91 more errors" and the figure 400 appeared nowhere.
+    /// </remarks>
+    public int TotalErrorsRecorded => _errorCountByPhase.Values.Sum();
+
     /// <summary>Phases that failed as a whole. Non-empty means nothing was persisted.</summary>
     public List<MigrationPhaseFailure> PhaseFailures { get; } = [];
 

@@ -45,23 +45,34 @@ public class ProductCategorySeederTests : IntegrationTestBase
     }
 
     [Fact]
-    public async Task SeedAsync_ForMinimart_ShouldSeedTenAndNoHardware()
+    public async Task SeedAsync_ForMinimart_ShouldSeedElevenAndNoHardware()
     {
         var codes = await SeedAndReadCodesAsync("STORE-MM", StoreType.Minimart);
 
-        codes.Should().HaveCount(10);
+        codes.Should().HaveCount(11);
         codes.Should().NotContain(ProductCategoryCodes.PlumbingMaterials);
     }
 
     [Fact]
-    public async Task SeedAsync_ForMinimart_ShouldNotSeedTheLeftoverAgricultureCategory()
+    public async Task SeedAsync_ForMinimart_ShouldSeedAgricultureBecauseTheLegacyTableOffersIt()
     {
-        // MimyMart's category table was copied from GeneralHardware and การเกษตร came along as a
-        // leftover: 0 products and 0 invoice lines in the real database. Seeding it would put a
-        // category a minimart never sells in its picker.
+        // REVERSED 2026-08-17, deliberately, and NOT because the assertion looked wrong.
+        //
+        // This test used to assert the opposite, on the grounds that การเกษตร was a leftover copied
+        // from GeneralHardware with 0 products and 0 invoice lines in the real MimyMart database.
+        // The count was right; the inference was not. The snapshot is not migration day, and
+        // MimyMart's legacy ProductCategory table still OFFERS the category (id 20), so the till can
+        // file a product under it at any point before cutover.
+        //
+        // The migration resolves legacy names through a store-agnostic LegacyCategoryMap, so such a
+        // product migrates to "Agriculture". With that code unseeded the product looks categorised,
+        // is invisible to every picker, and UpdateProductCommandHandler refuses to save it -- the
+        // exact symptom defect 5 had. Product.Category carries no foreign key, so nothing refuses
+        // it at write time, and MigrationVerifier derives its expectation from the same map, so it
+        // reports green. LegacyCategoryMapTests now guards the invariant for all three store types.
         var codes = await SeedAndReadCodesAsync("STORE-MM2", StoreType.Minimart);
 
-        codes.Should().NotContain(ProductCategoryCodes.Agriculture);
+        codes.Should().Contain(ProductCategoryCodes.Agriculture);
     }
 
     [Fact]
@@ -140,8 +151,9 @@ public class ProductCategorySeederTests : IntegrationTestBase
     [Fact]
     public async Task SeedAsync_ForMinimart_ShouldSeedTheExactLegacyLabels()
     {
-        // MimyMart's legacy ids 10-19. Id 20 (การเกษตร) is deliberately absent: 0 products and
-        // 0 invoice lines in the real database.
+        // MimyMart's legacy ids 10-20, byte-identical to GeneralHardware's for that range. Id 20
+        // (การเกษตร) is included: it has no products in the snapshot, but the legacy table offers it
+        // until cutover, so the catalogue must be able to receive it.
         await AssertSeededRowsAsync("STORE-LABELS-MM", StoreType.Minimart,
             (ProductCategoryCodes.Miscellaneous, "เบ็ดเตล็ด", ProductCategoryKind.GeneralGoods),
             (ProductCategoryCodes.Beverages, "เครื่องดื่ม", ProductCategoryKind.GeneralGoods),
@@ -152,7 +164,8 @@ public class ProductCategorySeederTests : IntegrationTestBase
             (ProductCategoryCodes.Household, "ของใช้ในบ้าน", ProductCategoryKind.GeneralGoods),
             (ProductCategoryCodes.ElectricalAppliances, "เครื่องใช้ไฟฟ้า", ProductCategoryKind.GeneralGoods),
             (ProductCategoryCodes.Toys, "ของเล่น", ProductCategoryKind.GeneralGoods),
-            (ProductCategoryCodes.Medicine, "ยา", ProductCategoryKind.GeneralGoods));
+            (ProductCategoryCodes.Medicine, "ยา", ProductCategoryKind.GeneralGoods),
+            (ProductCategoryCodes.Agriculture, "การเกษตร", ProductCategoryKind.GeneralGoods));
     }
 
     [Fact]
@@ -257,6 +270,6 @@ public class ProductCategorySeederTests : IntegrationTestBase
         await SeedAndReadCodesAsync("STORE-A", StoreType.MimyShop);
         var second = await SeedAndReadCodesAsync("STORE-B", StoreType.Minimart);
 
-        second.Should().HaveCount(10, "STORE-B must not see STORE-A's rows");
+        second.Should().HaveCount(11, "STORE-B must not see STORE-A's rows");
     }
 }
