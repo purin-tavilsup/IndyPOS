@@ -421,8 +421,8 @@ is useful, keep it.
 > | `✗ Migration completed with errors` | 1 | **the successful rows ARE saved** | **Do NOT re-run.** Fix the causes in the legacy database or settle them by hand |
 > | `✗ Migration ABORTED - nothing was written` | 1 | **nothing** | Safe to fix and re-run |
 >
-> On the largest real store this takes **about a minute** and peaks near **2.8 GB** of memory. If it
-> runs for many minutes, stop and investigate — that is not normal.
+> On the largest real store this takes **about a minute** and peaks under **750 MB**. If it runs for
+> many minutes, stop and investigate — that is not normal.
 
 ```powershell
 .\IndyPOS.MigrationTool.exe `

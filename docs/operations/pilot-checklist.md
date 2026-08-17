@@ -168,11 +168,12 @@ committing. It takes seconds.
 | Store size | Time | Peak memory |
 |---|---|---|
 | Small (hundreds of invoices) | seconds | < 500 MB |
-| Large (~140,000 invoices, ~326,000 lines) | **about 1 minute** | **up to ~2.8 GB** |
+| Large (~140,000 invoices, ~326,000 lines) | **about 1 minute** | **under 750 MB** |
 
 Measured on the largest real store. **If a migration runs for many minutes, something is wrong** —
-stop and investigate rather than waiting. Make sure the machine has the memory free; the whole
-migration is held in memory and committed once, so that it is all-or-nothing.
+stop and investigate rather than waiting. It fits comfortably inside the 4 GB minimum spec: invoices
+are written in batches inside one transaction, so the run is still all-or-nothing without having to
+hold the whole store in memory.
 
 #### Step 4d: collect the clamped-stock report
 

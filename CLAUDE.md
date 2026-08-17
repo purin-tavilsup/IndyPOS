@@ -83,11 +83,17 @@ exits 1, correctly and permanently: 2 legacy payments reference an invoice that 
 (defect 20), so ฿1,000 can never reach v4. Every *migration* check is green — the one ✗ is
 `Payments (no invoice)`, and the remedy is in the legacy database, not a re-run.
 
-⚠️ **A full migration takes about a minute per store and peaks near 2.8 GB.** Defect 19 removed the
+⚠️ **A full migration takes about a minute per store and peaks under 750 MB.** Defect 19 removed the
 per-invoice queries that made it take hours (GeneralHardware went 3.5 h → **1.2 min**), so a run that
-sits there for many minutes is now a real problem rather than normal. The memory is inherent to the
-single `SaveChangesAsync` that defect 12 made deliberate — everything is held until then — so watch
-it on a low-RAM till.
+sits there for many minutes is now a real problem rather than normal. Memory was 2.8 GB against a
+documented **4 GB minimum** till; invoices are now flushed in batches inside one transaction, which
+brought GeneralHardware to **724 MB** and MimyMart to 672 MB.
+
+⚠️ **Defect 12's all-or-nothing guarantee now rests on that transaction, not on saving once.** Rows
+reach PostgreSQL before the run is known to be good, and are rolled back if any phase fails. If you
+touch `FlushAsync` or the transaction in `MigrateAllAsync`, the test that protects this is
+`MigrationPhaseIsolationTests.MigrateAllAsync_WhenAPhaseFailsAfterABatchWasFlushed_StillPersistsNothing`
+— the older one-invoice test cannot catch a broken transaction, because it never flushes.
 
 ⚠️ **Two tests flake under the CPU load of a full-solution run**, and one of them is now fixed.
 `SyncWorkerTests.SyncWorker_ShouldHandleException_WithoutCrashing` was the long-unidentified
@@ -186,10 +192,10 @@ dotnet build
 
 # Docker must be RUNNING for two suites - they spin up a real Postgres container.
 # With Docker down they fail fast (each suite in under a second), which reads like a
-# code regression but is not. Expect 167 failures with Docker stopped, all here.
-# (167 is DERIVED as 97 + 70, not measured - both suites were last run with Docker up.)
+# code regression but is not. Expect 168 failures with Docker stopped, all here.
+# (168 is DERIVED as 97 + 71, not measured - both suites were last run with Docker up.)
 #   tests/IndyPOS.StoreHub.IntegrationTests   (97 of 104; 7 need no container)
-#   tests/IndyPOS.MigrationTool.Tests         (70 of 133; 38 pure units, 24 need the
+#   tests/IndyPOS.MigrationTool.Tests         (71 of 134; 38 pure units, 24 need the
 #                                              gitignored real store .db files, 1 manual tool)
 
 # The installer is NOT in IndyPOS.sln, so the two commands above never touch it.
@@ -201,10 +207,10 @@ dotnet run --project src/IndyPOS.AppHost --launch-profile https
 # Dashboard: https://localhost:17222
 ```
 
-Solution suites total **617** with Docker running and the real store databases present (616 pass,
-1 skipped) — measured 2026-08-17. Per suite: Domain 36 · Vault 17 · MigrationTool 133 (132 pass,
+Solution suites total **618** with Docker running and the real store databases present (617 pass,
+1 skipped) — measured 2026-08-17. Per suite: Domain 36 · Vault 17 · MigrationTool 134 (133 pass,
 1 skip) · StoreHub.IntegrationTests 104 · Application 299 · Windows.Forms 28. Without the real
-store databases the suite discovers **597** (DERIVED as 617 − 20, not measured) — a skipped
+store databases the suite discovers **598** (DERIVED as 618 − 20, not measured) — a skipped
 `[Theory]` is one entry, not one per row. See [`ONBOARDING.md`](ONBOARDING.md) for the per-suite
 breakdown, the dev-vs-installed port split, and the `/health` vs `/health/ready` trap.
 
