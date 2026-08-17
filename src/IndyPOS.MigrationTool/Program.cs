@@ -404,7 +404,7 @@ static void DisplayResults(MigrationResult result, string? clampedReportPath = n
         // that had a problem" trap defects 10 and 12 were about.
         case MigrationOutcome.Success when result.Errors.Count > 0:
             AnsiConsole.MarkupLine("\n[green]✓ Migration completed[/] [yellow]with warnings[/]");
-            DisplayErrors(result.Errors);
+            DisplayErrors(result.Errors, result.TotalErrorsRecorded);
             break;
 
         case MigrationOutcome.Success:
@@ -431,21 +431,28 @@ static void DisplayResults(MigrationResult result, string? clampedReportPath = n
 
         default:
             AnsiConsole.MarkupLine("\n[red]✗ Migration completed with errors[/]");
-            DisplayErrors(result.Errors);
+            DisplayErrors(result.Errors, result.TotalErrorsRecorded);
             break;
     }
 }
 
 /// <summary>
-/// Prints the first ten recorded errors.
+/// Prints the first ten recorded errors, and how many there really were.
 /// </summary>
+/// <param name="totalRecorded">
+/// The TRUE count, not <paramref name="errors"/>.Count. The list is capped per phase, and the note
+/// carrying the suppressed figure lands at index 100 while only ten are printed -- so the moment
+/// suppression happens, the count is invisible in the very output that exists to report it. A store
+/// with 400 unresolved categories said "... and 91 more errors" and 400 appeared nowhere: not on
+/// screen, not in the log line, not in the results table, whose Failed column is legitimately 0.
+/// </param>
 /// <remarks>
 /// Escaped, because these strings carry free text straight from the store: barcodes, Thai category
 /// names and SQLite messages. An unescaped '[' throws inside Spectre's markup parser AFTER
 /// SaveChangesAsync has committed, turning a good run into a crash and inviting a re-run that
 /// duplicates every invoice -- the migration is not idempotent (defect 8).
 /// </remarks>
-static void DisplayErrors(IReadOnlyList<string> errors)
+static void DisplayErrors(IReadOnlyList<string> errors, int totalRecorded)
 {
     foreach (var error in errors.Take(10))
     {
@@ -458,9 +465,12 @@ static void DisplayErrors(IReadOnlyList<string> errors)
         AnsiConsole.MarkupLine($"  [red]•[/] {message.EscapeMarkup()}");
     }
 
-    if (errors.Count > 10)
+    var shown = Math.Min(10, errors.Count);
+
+    if (totalRecorded > shown)
     {
-        AnsiConsole.MarkupLine($"  [grey]... and {errors.Count - 10} more errors[/]");
+        AnsiConsole.MarkupLine(
+            $"  [grey]... and {totalRecorded - shown} more ({totalRecorded} recorded in total)[/]");
     }
 }
 

@@ -94,8 +94,10 @@ public class SqliteMigrationService
         }
         else
         {
+            // TotalErrorsRecorded, not Errors.Count: the list is capped per phase, so its Count is
+            // the number of strings KEPT, not the number of problems found.
             _logger.LogInformation("Migration completed. Migrated: {Count}, Errors: {Errors}",
-                _result.TotalMigrated, _result.Errors.Count);
+                _result.TotalMigrated, _result.TotalErrorsRecorded);
         }
 
         return _result;

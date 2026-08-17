@@ -162,7 +162,7 @@ dotnet build
 # code regression but is not. Expect 152 failures with Docker stopped, all here.
 # (152 is DERIVED as 97 + 55, not measured - both suites were last run with Docker up.)
 #   tests/IndyPOS.StoreHub.IntegrationTests   (97 of 104; 7 need no container)
-#   tests/IndyPOS.MigrationTool.Tests         (55 of 112; 32 pure units, 24 need the
+#   tests/IndyPOS.MigrationTool.Tests         (55 of 117; 37 pure units, 24 need the
 #                                              gitignored real store .db files, 1 manual tool)
 
 # The installer is NOT in IndyPOS.sln, so the two commands above never touch it.
@@ -174,10 +174,10 @@ dotnet run --project src/IndyPOS.AppHost --launch-profile https
 # Dashboard: https://localhost:17222
 ```
 
-Solution suites total **595** with Docker running and the real store databases present (594 pass,
-1 skipped) — measured 2026-08-17. Per suite: Domain 36 · Vault 17 · MigrationTool 112 (111 pass,
+Solution suites total **600** with Docker running and the real store databases present (599 pass,
+1 skipped) — measured 2026-08-17. Per suite: Domain 36 · Vault 17 · MigrationTool 117 (116 pass,
 1 skip) · StoreHub.IntegrationTests 104 · Application 298 · Windows.Forms 28. Without the real
-store databases the suite discovers **575** (DERIVED as 595 − 20, not measured) — a skipped
+store databases the suite discovers **580** (DERIVED as 600 − 20, not measured) — a skipped
 `[Theory]` is one entry, not one per row. See [`ONBOARDING.md`](ONBOARDING.md) for the per-suite
 breakdown, the dev-vs-installed port split, and the `/health` vs `/health/ready` trap.
 

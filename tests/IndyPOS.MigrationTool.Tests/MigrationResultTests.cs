@@ -67,6 +67,36 @@ public class MigrationResultTests
     }
 
     [Fact]
+    public void TotalErrorsRecorded_PastTheCap_CountsWhatHappenedNotWhatWasKept()
+    {
+        // The figure the operator needs and could not get. Errors.Count is 101, and the console
+        // prints ten of those and then "... and N more" computed from the capped list -- so a run
+        // with 250 problems reported 91. The note carrying the real number is appended at index 100
+        // and the console prints only the first ten, so it can never appear on screen.
+        var result = new MigrationResult();
+
+        for (var i = 1; i <= 250; i++)
+        {
+            result.AddError("Invoices", $"Invoice {i}: product not found");
+        }
+
+        result.TotalErrorsRecorded.Should().Be(250);
+        result.Errors.Count.Should().Be(101, "the LIST stays capped; only the count is uncapped");
+    }
+
+    [Fact]
+    public void TotalErrorsRecorded_SumsEveryPhase()
+    {
+        var result = new MigrationResult();
+
+        result.AddError("Products", "no category");
+        result.AddError("Invoices", "product not found");
+        result.AddError("Invoices", "product not found");
+
+        result.TotalErrorsRecorded.Should().Be(3);
+    }
+
+    [Fact]
     public void AddError_CapsEachPhaseIndependently()
     {
         var result = new MigrationResult();
