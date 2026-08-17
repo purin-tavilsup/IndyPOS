@@ -441,6 +441,12 @@ namespace IndyPOS.Infrastructure.Persistence.StoreHub.Migrations
                         .HasDefaultValue(true)
                         .HasColumnName("is_active");
 
+                    b.Property<bool>("IsTrackable")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(true)
+                        .HasColumnName("is_trackable");
+
                     b.Property<DateTime>("LastModifiedUtc")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("last_modified_utc");

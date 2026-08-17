@@ -86,6 +86,21 @@ public class CompleteSaleCommandHandler : ICommandHandler<CompleteSaleCommand, C
             };
             lines.Add(line);
 
+            // Defect 7b: a non-trackable product holds no stock, so selling it moves none. Without
+            // this guard every sale wrote a movement, driving such a product permanently negative
+            // from its first v4 sale -- 29 real products across the three stores, the sold-by-hand
+            // items like ice and "5-baht snack".
+            //
+            // The LINE is still recorded above either way: the sale happened and its money is real.
+            // Only the stock movement is skipped.
+            //
+            // An unknown product (product is null) keeps its movement, unchanged: that is a
+            // different problem and silently dropping its stock effect would hide it.
+            if (product is { IsTrackable: false })
+            {
+                continue;
+            }
+
             // Create inventory movement (negative for sale)
             var movement = new InventoryMovement
             {

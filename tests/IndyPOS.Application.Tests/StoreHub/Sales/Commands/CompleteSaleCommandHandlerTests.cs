@@ -13,7 +13,7 @@ namespace IndyPOS.Application.Tests.StoreHub.Sales.Commands;
 
 public class CompleteSaleCommandHandlerTests
 {
-    private static Product CreateTestProduct(Guid? id = null)
+    private static Product CreateTestProduct(Guid? id = null, bool isTrackable = true)
     {
         return new Product
         {
@@ -21,7 +21,8 @@ public class CompleteSaleCommandHandlerTests
             Barcode = "TEST123",
             Name = "Test Product",
             UnitPrice = 100m,
-            IsActive = true
+            IsActive = true,
+            IsTrackable = isTrackable
         };
     }
 
@@ -139,24 +140,84 @@ public class CompleteSaleCommandHandlerTests
         // Assert
         capturedMovements.Should().NotBeNull();
 
-        // DEFECT 7b -- this is NOT a pinning test. Two ordinary products SHOULD produce two
-        // movements, so the assertion below is correct as it stands.
-        //
-        // It is a trip-wire. v4's Core.Product has no IsTrackable, so CompleteSaleCommandHandler
-        // (:89-100) builds a movement for EVERY line -- including services, which have no stock.
-        // 21/7/1 products across the three real stores are non-trackable, and the migration gives
-        // all 29 of them stock, so the harm starts at their first v4 sale.
-        //
-        // The day Product gains IsTrackable, CreateTestProduct below will not set it and this count
-        // will break. DO NOT repair the number. Add a non-trackable line to this test and assert it
-        // produces NO movement -- that is the assertion defect 7b has been waiting for.
-        //
-        // Defect 7b is deliberately unpinned: "non-trackable" cannot be expressed until the flag
-        // exists, so any pin today would just duplicate this test. See PLAN.md's defect table.
+        // Two ordinary, stock-tracked products produce two movements. The trip-wire that used to live
+        // here is discharged: Core.Product now carries IsTrackable and
+        // HandleAsync_WithANonTrackableProduct_ShouldNotCreateAnInventoryMovement below is the
+        // assertion defect 7b was waiting for.
         capturedMovements.Should().HaveCount(2);
         capturedMovements![0].QuantityDelta.Should().Be(-3); // Negative for sale
         capturedMovements![1].QuantityDelta.Should().Be(-1);
         capturedMovements.All(m => m.Reason == "Sale").Should().BeTrue();
+    }
+
+    [Theory]
+    [CustomAutoData]
+    public async Task HandleAsync_WithANonTrackableProduct_ShouldNotCreateAnInventoryMovement(
+        [Frozen] Mock<ISaleRepository> saleRepository,
+        [Frozen] Mock<IProductRepository> productRepository,
+        [Frozen] Mock<IPaymentMethodCatalogService> catalog,
+        CompleteSaleCommandHandler sut)
+    {
+        // DEFECT 7b. A non-trackable product holds no stock, so selling it must not move any.
+        // Before this, the handler built a movement for EVERY line, which drove such a product's
+        // stock permanently negative from its first v4 sale.
+        //
+        // Measured on the real stores: 21 + 7 + 1 = 29 non-trackable products, and they are exactly
+        // the sold-by-hand items -- น้ำแข็ง (ice), ขนม 5 บาท, สินค้าเบ็ดเตล็ด, ตะปู.
+        //
+        // The flag cannot be derived from the category: every category holding a non-trackable
+        // product also holds trackable ones (เบ็ดเตล็ด has 12 against 3,391), which is why this is a
+        // per-product flag rather than ProductCategoryKind.Service.
+        var trackableId = Guid.NewGuid();
+        var untrackedId = Guid.NewGuid();
+
+        productRepository.Setup(x => x.GetByIdAsync(trackableId, It.IsAny<CancellationToken>()))
+                         .ReturnsAsync(CreateTestProduct(trackableId));
+        productRepository.Setup(x => x.GetByIdAsync(untrackedId, It.IsAny<CancellationToken>()))
+                         .ReturnsAsync(CreateTestProduct(untrackedId, isTrackable: false));
+
+        catalog.Setup(c => c.GetOfferableAsync(It.IsAny<CancellationToken>()))
+               .ReturnsAsync(OfferableWith("Cash"));
+
+        IReadOnlyList<InventoryMovement>? capturedMovements = null;
+        IReadOnlyList<InvoiceLine>? capturedLines = null;
+        saleRepository.Setup(x => x.CompleteSaleAsync(
+                It.IsAny<Invoice>(),
+                It.IsAny<IReadOnlyList<InvoiceLine>>(),
+                It.IsAny<IReadOnlyList<Payment>>(),
+                It.IsAny<IReadOnlyList<InventoryMovement>>(),
+                It.IsAny<OutboxEvent>(),
+                It.IsAny<CancellationToken>()))
+            .Callback((Invoice _, IReadOnlyList<InvoiceLine> invoiceLines, IReadOnlyList<Payment> _,
+                IReadOnlyList<InventoryMovement> movements, OutboxEvent _, CancellationToken _) =>
+            {
+                capturedLines = invoiceLines;
+                capturedMovements = movements;
+            })
+            .ReturnsAsync((Invoice inv, IReadOnlyList<InvoiceLine> _, IReadOnlyList<Payment> _,
+                IReadOnlyList<InventoryMovement> _, OutboxEvent _, CancellationToken _) => inv);
+
+        var command = new CompleteSaleCommand(
+            StoreId: "STORE-001",
+            UserId: Guid.NewGuid(),
+            Lines: new List<SaleLineRequest>
+            {
+                new(ProductId: trackableId, Quantity: 2, UnitPrice: 50m),
+                new(ProductId: untrackedId, Quantity: 4, UnitPrice: 10m)
+            },
+            Payments: new List<SalePaymentRequest>
+            {
+                new(Method: "Cash", Amount: 140m)
+            });
+
+        await sut.HandleAsync(command);
+
+        capturedLines.Should().HaveCount(2, "BOTH lines are sold and both must appear on the invoice");
+
+        capturedMovements.Should().ContainSingle(
+            "only the stock-tracked product moves stock")
+            .Which.ProductId.Should().Be(trackableId);
+        capturedMovements![0].QuantityDelta.Should().Be(-2);
     }
 
     [Theory]
