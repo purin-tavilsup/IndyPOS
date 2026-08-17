@@ -56,9 +56,21 @@ public class ProductCategorySeeder
         new(ProductCategoryCodes.ConstructionMaterials, "วัสดุก่อสร้างและอุปกรณ์การช่าง", ProductCategoryKind.Hardware, 16)
     ];
 
-    // Minimart = the grocery set only. การเกษตร is deliberately absent: it was copied from
-    // GeneralHardware and has 0 products and 0 invoice lines in the real MimyMart database.
-    private static readonly Seed[] MinimartSeeds = [.. GroceryCommon];
+    // Minimart = the grocery set, plus การเกษตร (legacy 20).
+    //
+    // การเกษตร was previously omitted here because it has 0 products and 0 invoice lines in the real
+    // MimyMart database. That reasoning was wrong: the snapshot is not migration day, and the legacy
+    // ProductCategory table still OFFERS the category, so the till can file a product under it right
+    // up to cutover. The migration resolves legacy names through a store-agnostic map, so such a
+    // product would migrate to "Agriculture" -- a code this catalogue did not contain, leaving it
+    // invisible to every picker and rejected by UpdateProductCommandHandler. Product.Category has no
+    // foreign key, so nothing would have refused it. Seeding one unused category costs a picker row;
+    // MimyShop already seeds 12 categories with no products for the same reason.
+    private static readonly Seed[] MinimartSeeds =
+    [
+        .. GroceryCommon,
+        new(ProductCategoryCodes.Agriculture, "การเกษตร", ProductCategoryKind.GeneralGoods, 11)
+    ];
 
     // MimyShop reuses legacy ids 10-26 with entirely different meanings. All 17 are seeded even
     // though 12 currently have no products: it is a new store still adding inventory.
@@ -82,6 +94,19 @@ public class ProductCategorySeeder
         new(ProductCategoryCodes.Services, "บริการ", ProductCategoryKind.Service, 16),
         new(ProductCategoryCodes.Miscellaneous, "เบ็ดเตล็ด", ProductCategoryKind.GeneralGoods, 17)
     ];
+
+    /// <summary>
+    /// The catalogue codes a store of this type is seeded with.
+    /// </summary>
+    /// <remarks>
+    /// Exposed so the invariant that actually matters can be asserted without a database: every
+    /// legacy category a store can present must map to a code THAT store type seeds. The migration
+    /// resolves legacy names through a store-agnostic map, so a code missing here produces a
+    /// product that looks categorised, is unreachable from the pickers and cannot be saved at all —
+    /// which is what defect 5 was, reached by a different route.
+    /// </remarks>
+    public static IReadOnlyCollection<string> CodesFor(StoreType storeType) =>
+        SeedsFor(storeType).Select(seed => seed.Code).ToList();
 
     public async Task SeedAsync(CancellationToken cancellationToken = default)
     {

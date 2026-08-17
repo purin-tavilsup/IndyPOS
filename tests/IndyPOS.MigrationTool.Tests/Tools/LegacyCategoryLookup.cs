@@ -1,5 +1,6 @@
 ﻿using System.Data.SQLite;
 using Dapper;
+using IndyPOS.Domain.Enums;
 
 namespace IndyPOS.MigrationTool.Tests.Tools;
 
@@ -10,8 +11,15 @@ namespace IndyPOS.MigrationTool.Tests.Tools;
 /// Seeded by <c>LegacyStoreDatabase.CreateAsync</c> alongside the DDL, because it is reference
 /// data the store schema comes with rather than per-test data. A fixture without it would let a
 /// category-resolution bug pass here while every real store failed.
-/// <para>Rows are the real ones. MimyMart shares MimyShop's SCHEMA but carries the grocery names,
-/// so its ids look like GeneralHardware's -- which is exactly why the mapping keys on the name.</para>
+/// <para>Rows are the real ones, measured from the three store databases.</para>
+/// <para>
+/// <c>SeedAsync</c> picks by SCHEMA shape, of which there are two, while the real stores are three.
+/// MimyMart runs MimyShop's schema but carries the GROCERY names -- its 11 rows are byte-identical
+/// to GeneralHardware's ids 10-20 -- so a shape-keyed fixture cannot reproduce MimyMart's actual
+/// combination. That is harmless for resolution, because the resolver reads whatever the store's own
+/// table holds and never asks which store it is. Where the store type genuinely matters, use
+/// <see cref="NamesFor"/>, which is keyed on <see cref="StoreType"/> rather than on the schema.
+/// </para>
 /// </remarks>
 internal static class LegacyCategoryLookup
 {
@@ -55,6 +63,22 @@ internal static class LegacyCategoryLookup
         (25, "บริการ"),
         (26, "เบ็ดเตล็ด")
     ];
+
+    /// <summary>
+    /// The legacy category names a real store of this type can present.
+    /// </summary>
+    /// <remarks>
+    /// Minimart is GeneralHardware's ids 10-20: MimyMart's real table is that exact set, without the
+    /// five วัสดุ* hardware ranges at 50-54. Measured, not assumed -- all 11 rows match
+    /// GeneralHardware's byte for byte.
+    /// </remarks>
+    public static IReadOnlyCollection<string> NamesFor(StoreType storeType) => storeType switch
+    {
+        StoreType.GeneralHardware => GeneralHardware.Select(row => row.Name).ToList(),
+        StoreType.Minimart => GeneralHardware.Where(row => row.Id <= 20).Select(row => row.Name).ToList(),
+        StoreType.MimyShop => MimyShop.Select(row => row.Name).ToList(),
+        _ => throw new ArgumentOutOfRangeException(nameof(storeType), storeType, "No legacy rows recorded.")
+    };
 
     public static async Task SeedAsync(SQLiteConnection connection, LegacyStoreShape shape)
     {
