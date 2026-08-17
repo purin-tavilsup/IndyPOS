@@ -1,7 +1,11 @@
 using Dapper;
+using FluentAssertions;
+using IndyPOS.MigrationTool;
+using IndyPOS.MigrationTool.Services;
 using IndyPOS.MigrationTool.Tests.Fixtures;
 using IndyPOS.MigrationTool.Tests.Tools;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace IndyPOS.MigrationTool.Tests;
 
@@ -55,6 +59,61 @@ public class MigrationPhaseIsolationTests : IAsyncLifetime
     /// </summary>
     private static Task DropPayLaterPaidAmountAsync(LegacyStoreDatabase store) =>
         store.Connection.ExecuteAsync("ALTER TABLE PayLater DROP COLUMN PaidAmount;");
+
+    [Fact]
+    public async Task MigrateAllAsync_WhenAPhaseFailsAfterABatchWasFlushed_StillPersistsNothing()
+    {
+        // The guard on the memory fix. Invoices are now flushed to PostgreSQL in batches instead of
+        // being held until one SaveChangesAsync -- the old way peaked at 2.8 GB on GeneralHardware,
+        // against a documented 4 GB minimum till.
+        //
+        // Flushing means rows really do reach the database BEFORE the run is known to be good, so
+        // defect 12's guarantee now rests on the surrounding transaction rather than on saving exactly
+        // once. This test is the difference: three invoices with a batch size of two forces a flush,
+        // then PayLater fails, and NOTHING may survive.
+        //
+        // MigrateAllAsync_WhenAPhaseFails_PersistsNothingFromEarlierPhases cannot catch a broken
+        // transaction, because with one invoice it never flushes.
+        await using var store = await LegacyStoreDatabase.CreateAsync(LegacyStoreShape.GeneralHardware);
+        await SeedOneOfEverythingAsync(store);
+
+        var builder = new LegacyStoreDataBuilder(store);
+        foreach (var id in new[] { 2, 3 })
+        {
+            await builder.AddInvoiceAsync(id, userId: 1, total: 700m, dateCreated: "2024-03-16 09:00:00");
+            await builder.AddInvoiceLineAsync(
+                invoiceProductId: id, invoiceId: id, productId: 10, barcode: "8850001000010",
+                description: "Cement 50kg", quantity: 1, unitPrice: 700m, originalUnitPrice: 700m);
+            await builder.AddPaymentAsync(
+                paymentId: 500 + id, invoiceId: id, paymentTypeId: 1, amount: 700m,
+                dateCreated: "2024-03-16 09:00:00");
+        }
+
+        await DropPayLaterPaidAmountAsync(store);
+
+        var options = new MigrationOptions
+        {
+            SqlitePath = store.Path,
+            PostgresConnectionString = _postgres.ConnectionString,
+            StoreId = MigrationScenario.StoreId,
+            DryRun = false,
+            InvoiceFlushBatchSize = 2
+        };
+
+        var result = await new SqliteMigrationService(
+            options, NullLogger<SqliteMigrationService>.Instance).MigrateAllAsync();
+
+        result.Invoices.Migrated.Should().Be(3, "all three invoices were processed before PayLater failed");
+        result.PhaseFailures.Should().ContainSingle().Which.Phase.Should().Be("PayLater");
+
+        await using var db = _postgres.CreateDbContext();
+        (await db.Invoices.CountAsync()).Should().Be(0,
+            "a flushed batch must roll back with everything else");
+        (await db.InvoiceLines.CountAsync()).Should().Be(0);
+        (await db.Payments.CountAsync()).Should().Be(0);
+        (await db.Products.CountAsync()).Should().Be(0);
+        (await db.StoreUsers.CountAsync()).Should().Be(0);
+    }
 
     [Fact]
     public async Task MigrateAllAsync_WhenAPhaseFails_DoesNotThrowAndNamesThePhase()
