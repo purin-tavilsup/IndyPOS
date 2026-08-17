@@ -222,7 +222,8 @@ powershell.exe -ExecutionPolicy Bypass -File "C:\ProgramData\IndyPOS\ops\health-
 
 | Document | Purpose |
 |----------|---------|
-| [Pilot Checklist](pilot-checklist.md) | Initial deployment steps |
+| [Pilot Checklist](pilot-checklist.md) | Initial deployment steps, incl. **the legacy data migration — run it once only** |
+| [Store Installation Guide](store-installation-guide.md) | Full install walkthrough, incl. the migration's four outcomes and which one is safe to re-run |
 | [Smoke Test Script](smoke-test.ps1) | Automated health verification |
 | [Post-Deployment Monitoring](post-deployment-monitoring.md) | Metrics and alerting |
 | [Troubleshooting Guide](troubleshooting-guide.md) | Common issues and fixes |
