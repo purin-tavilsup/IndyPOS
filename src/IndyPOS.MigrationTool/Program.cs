@@ -153,7 +153,7 @@ rootCommand.SetHandler(async (context) =>
 
         // Display results
         AnsiConsole.WriteLine();
-        DisplayResults(result, clampedReportPath);
+        DisplayResults(result, clampedReportPath, dryRun);
 
         // Cloud sync if configured
         if (!string.IsNullOrEmpty(cloudApi) && !string.IsNullOrEmpty(clientId) && result.IsSuccess && !dryRun)
@@ -320,7 +320,7 @@ static string? WriteClampedStockReport(MigrationResult result, FileInfo sqliteFi
 /// <summary>Quotes a CSV field. Product names are free text and routinely contain commas.</summary>
 static string CsvField(string value) => $"\"{value.Replace("\"", "\"\"")}\"";
 
-static void DisplayResults(MigrationResult result, string? clampedReportPath = null)
+static void DisplayResults(MigrationResult result, string? clampedReportPath = null, bool dryRun = false)
 {
     // On an aborted run the "Migrated" numbers describe work that was staged in memory and thrown
     // away. The banner below says so, but the table is printed FIRST and must not read as "these
@@ -432,6 +432,17 @@ static void DisplayResults(MigrationResult result, string? clampedReportPath = n
         default:
             AnsiConsole.MarkupLine("\n[red]✗ Migration completed with errors[/]");
             DisplayErrors(result.Errors, result.TotalErrorsRecorded);
+
+            // Says whether the database was written, because the Aborted branch above says
+            // "re-run, the database is untouched" and this branch is also exit 1. Without this the
+            // two are indistinguishable to an operator reading an exit code, and re-running a run
+            // that DID commit duplicates every invoice -- the migration is not idempotent
+            // (defect 8). Reachable on a real store: GeneralHardware lands here every time, on two
+            // payments whose invoice no longer exists (defect 20).
+            AnsiConsole.MarkupLine(dryRun
+                ? "[grey]  Dry run: nothing was written.[/]"
+                : "[yellow]  The rows that succeeded ARE saved. Do NOT re-run to retry - that would " +
+                  "duplicate them. Fix the causes above in the legacy database, or settle them by hand.[/]");
             break;
     }
 }
