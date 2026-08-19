@@ -23,15 +23,26 @@ wizard step.
 
 ## v3.7.0 coexistence
 
-`Test-IndyPOSInstallation.ps1` drops the side-by-side invariants, because a clean VM
-has no v3 footprint to protect — and `verify-install.ps1`'s section 7 `Skip`s for the
-same reason. So the coexistence promise in `docs/operations/upgrade-procedure.md` has
-never actually been tested, and there is no v3.7.0 artefact to install (releases stop
-at 3.6.0).
+**v3.7.0 is an xcopy deployment.** No installer, no uninstall entry, no versioned folder:
+the binary was copied into place, and its data lives in **non-versioned directories at the
+root of `C:\ProgramData\IndyPOS`** — `Config\StoreConfiguration.json`, `db\Store.db`,
+`Logs\log*.json`. That is why `verify-install.ps1` section 7 keys on "top-level entries
+that are not `v*`": those entries *are* v3.
+
+So there is nothing to install to build a test machine, and no manifest to read a till's
+layout from — **a capture is the only way to know what a given till has.** Meanwhile a
+clean VM has no v3 footprint at all, so `Test-IndyPOSInstallation.ps1` drops the
+side-by-side invariants and section 7 `Skip`s, leaving the coexistence promise in
+`docs/operations/upgrade-procedure.md` untested.
 
 The pair of scripts above closes that: capture the layout a live store really has,
 replay it onto the VM, install v4 over it, then read section 7 of `verify-install.ps1`
 — it must now report the v3-era entries rather than skip.
+
+⚠️ **v3 and v4 share one root**, so anything deleting broadly under `C:\ProgramData\IndyPOS`
+would take the shop's live `Store.db` with it. `cleanup-v4.ps1`'s `Assert-V4Path` was
+exercised against exactly that on 2026-08-19 — `v4` and `v4.0.0` deletable; the bare root,
+`db`, `Config`, `Logs`, a `v4\..\db` traversal and a loose `.exe` all refused.
 
 ```powershell
 # 1. At a store, BEFORE v4 is installed there. Read-only.

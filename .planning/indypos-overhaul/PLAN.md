@@ -501,11 +501,35 @@ campaign is covered the moment it is added.
 **Still owed before the first store: one v3.7.0-coexistence check against a real v3 footprint** —
 now unblocked, but it needs one read-only command run at a live store.
 
-`scripts/vm-testing/` now carries `Get-V3Footprint.ps1` (capture a store's real layout, read-only)
-and `New-V3Footprint.ps1` (replay it onto the VM before installing v4). The reason to capture rather
-than rebuild: a v3.7.0 binary *is* reproducible from this repo (`9aca15c~1`, before the 4.0.0
-assembly bump — there is no tag or release, which stops at 3.6.0), but a from-source build gives a
-*fresh-install* footprint, not the layout a five-year-old till has actually accumulated.
+🔑 **v3.7.0 was never *installed*. It is an xcopy deployment** — confirmed by the owner 2026-08-19.
+No installer, no MSI, no uninstall entry, and **no versioned folder**: the binary was copied into
+place and its data lives in **non-versioned directories at the root of `C:\ProgramData\IndyPOS`** —
+`Config\StoreConfiguration.json`, `db\Store.db`, `Logs\log*.json` (that exact shape is on the dev box
+today, beside `v4\` and `v4.0.0\`).
+
+Three consequences, and they reframe this whole check:
+
+1. **There is no "install v3, then install v4" test to run.** Nothing to install. You place v3's
+   files and install v4 over them. Earlier drafts of this plan said "there is no v3.7.0 artefact to
+   install" and then corrected that to "a binary is buildable from `9aca15c~1`" — both missed the
+   point. A build would give you a *binary*, and v3 never had an installer to exercise anyway.
+2. **`verify-install.ps1` section 7's design is now explained rather than merely asserted.** It keys
+   on "top-level entries that are not `v*`" precisely because that IS v3's footprint. It is also why
+   the stale `v\d+\.\d+\.\d+` pattern was so damaging: it swallowed our own `v4` into the same bucket.
+3. **v3 and v4 share one root**, so anything that deletes broadly under `C:\ProgramData\IndyPOS`
+   would take the shop's live `Store.db` with it. `cleanup-v4.ps1`'s `Assert-V4Path` was executed
+   against that exact list on 2026-08-19: `v4` and `v4.0.0` deletable; the bare root, `db`, `Config`,
+   `Logs`, a `v4\..\db` traversal, `vendor` and a loose `.exe` all refused. **That guard holds.**
+
+`scripts/vm-testing/` carries `Get-V3Footprint.ps1` (capture a till's real layout, read-only) and
+`New-V3Footprint.ps1` (replay it onto the VM before installing v4). With no installer and no manifest
+anywhere, **a capture is the only way to know what a given till actually has** — which makes the pair
+more necessary here, not less.
+
+❓ **Open: where does the v3 binary live on a till?** It is *not* on the dev box — only v3's data is
+(`Config`, `db`, `Logs`; no `.exe` under `C:\ProgramData\IndyPOS`, none in `Program Files`, and
+`%LOCALAPPDATA%\IndyPOS` holds only an unrelated credential file). The capture answers this per store,
+which is one more reason to run it.
 
 ⚠️ **`verify-install.ps1` section 7 was also silently broken**, fixed in this branch: `SystemRoot`
 became `v{Major}` in `5ce6cea` but the script still matched `v\d+\.\d+\.\d+`, so it counted our *own*
