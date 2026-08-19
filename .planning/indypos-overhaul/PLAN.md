@@ -443,8 +443,56 @@ Per store: fresh v4 install (`--silent --store-id <ID> --store-type <T>`), then 
 v4 installs **alongside** v3.7.0 — detection classifies a v3-only machine as `Fresh`
 (pinned by `Detect_OnAMachineRunningOnlyV3_ShouldReturnFresh`).
 
-Owed before the first store: PR #52's visual smoke (payment-button caption clipping on
-`บัตรสวัสดิการแห่งรัฐ`), and one v3.7.0-coexistence check against a real v3 footprint.
+✅ **PR #52's visual smoke is discharged (2026-08-19) at 100% display scaling.** Rendered against the
+real `AcceptPaymentForm.CreatePaymentMethodButton`, the caption `บัตรสวัสดิการแห่งรัฐ` is
+pixel-identical on the shipped 195x129 button and on one where clipping is impossible — ink rows
+108-122, **15px**, with rows 123-127 clear below it. The welfare-card icon declares 190x100 but inks
+174x100, unchanged in a 400px-wide button, so it is not cropped either. The original alarm was
+arithmetic on *declared* asset sizes, which include 8px of transparent margin each side.
+
+🚨 **But "no clipping" holds only at 100%, and independent review found a real defect above it.**
+From **144.8% scaling** — so Windows' standard 150% — the caption wraps to two lines and is painted
+**on top of the card artwork**: white Thai text over pale blue. Only `WelfareCard` is affected, being
+the longest caption. Height budget: 100px icon + caption ink = 115px at 100% (fits in 129), **154px
+at 150%**, 174px at 200%.
+
+**Cause.** `AcceptPaymentForm` is `AutoScaleMode.Font` with `AutoScaleDimensions = (6,13)`, but
+`CreatePaymentMethodButton` hardcodes `Size(195,129)` and `Location(10 + col*201, 16 + row*135)` in
+device pixels, and `BuildPaymentMethodButtons` runs from the async load path — *after*
+`PerformAutoScale`. So the panel scales, the 12pt font scales, and the buttons never do. **Fix:**
+scale those literals by `CurrentAutoScaleDimensions / AutoScaleDimensions`, or build through a
+layout panel. **Not fixed yet — check what scaling the tills actually run at before the cutover.**
+
+⚠️ The measurement that first cleared this was **also** wrong in a way worth remembering: the ink
+detector walked up from the bottom until a blank row, which finds only the *last* line — so it
+reported a comfortable single-line caption at exactly the DPI where the caption had doubled.
+
+`PaymentMethodButtonCaptionTests` pins the 100% contract: max caption width **184px**, established
+by bisecting real renders rather than derived from chrome (`MeasureText` adds 10px of glyph-overhang
+padding that is *not* chrome, which is why "195 − border − inset" lands ~3px too lenient); and room
+for one line beneath the tallest icon, read from the real `PaymentMethodIcons` table — verified to
+fail when a 130px icon is injected. Captions come from `PaymentMethodSeeder.Defaults`, so a new
+campaign is covered the moment it is added.
+
+**Still owed before the first store: one v3.7.0-coexistence check against a real v3 footprint** —
+now unblocked, but it needs one read-only command run at a live store.
+
+`scripts/vm-testing/` now carries `Get-V3Footprint.ps1` (capture a store's real layout, read-only)
+and `New-V3Footprint.ps1` (replay it onto the VM before installing v4). The reason to capture rather
+than rebuild: a v3.7.0 binary *is* reproducible from this repo (`9aca15c~1`, before the 4.0.0
+assembly bump — there is no tag or release, which stops at 3.6.0), but a from-source build gives a
+*fresh-install* footprint, not the layout a five-year-old till has actually accumulated.
+
+⚠️ **`verify-install.ps1` section 7 was also silently broken**, fixed in this branch: `SystemRoot`
+became `v{Major}` in `5ce6cea` but the script still matched `v\d+\.\d+\.\d+`, so it counted our *own*
+`v4` directory as a v3-era entry and reported "v3.7.0-era top-level entries detected → Pass" on a
+machine that had never seen v3. The same stale pattern made the side-by-side check *fail* a correct
+install. (Pre-fix it would still have skipped on a box whose only root was a long-form `v4.0.0`.)
+
+⚠️ **Section 7 remains advisory, even fixed.** It enumerates non-versioned top-level entries for a
+human; it cannot tell v3's `Config`/`db`/`Logs` from a dev box's, since `CLAUDE.md`'s debug setup
+puts `StoreConfiguration.json` at exactly that path. It skips only on a pristine machine. Proving
+the footprint is *untouched* still needs a before/after baseline diff, which does not exist yet.
 
 ---
 

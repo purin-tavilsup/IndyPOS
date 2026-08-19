@@ -17,7 +17,36 @@ wizard step.
 | `VMTestConfig.psd1` | Shared config — VM name, paths, timeouts |
 | `Reset-AndInstall.ps1` | Host-side orchestrator (run this) |
 | `Test-IndyPOSInstallation.ps1` | In-VM verifier (called via PSDirect) |
+| `Get-V3Footprint.ps1` | Read-only capture of a v3.7.0 store's layout (run at a store) |
+| `New-V3Footprint.ps1` | Replays that capture onto the VM (run before installing v4) |
 | `README.md` | This file |
+
+## v3.7.0 coexistence
+
+`Test-IndyPOSInstallation.ps1` drops the side-by-side invariants, because a clean VM
+has no v3 footprint to protect — and `verify-install.ps1`'s section 7 `Skip`s for the
+same reason. So the coexistence promise in `docs/operations/upgrade-procedure.md` has
+never actually been tested, and there is no v3.7.0 artefact to install (releases stop
+at 3.6.0).
+
+The pair of scripts above closes that: capture the layout a live store really has,
+replay it onto the VM, install v4 over it, then read section 7 of `verify-install.ps1`
+— it must now report the v3-era entries rather than skip.
+
+```powershell
+# 1. At a store, BEFORE v4 is installed there. Read-only.
+.\Get-V3Footprint.ps1 -StoreLabel GeneralHardware
+
+# 2. On the test VM, from the Clean-Windows snapshot.
+.\New-V3Footprint.ps1 -CapturePath .\v3-footprint-GeneralHardware.json
+
+# 3. Install v4, then:
+..\verify-install.ps1
+```
+
+⚠️ The capture lists real store paths and **must not be committed** — this repo is public.
+`New-V3Footprint.ps1` refuses to run where a `v*\` root already exists, so it cannot be
+pointed at a real till by accident.
 
 ## Prerequisites (one-time, ~30 min)
 
