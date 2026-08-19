@@ -13,9 +13,17 @@
     which is whether the v4 install leaves the v3 footprint alone. It is NOT a working
     v3 install and will not launch.
 
-    Services and uninstall entries are NOT replayed. A real v3.7.0 has neither a
-    Windows service nor Postgres, so recreating them would model a machine that does
-    not exist. The script warns if the capture contains any.
+    Only the C:\ProgramData\IndyPOS tree is replayed. The capture also records AppRoots
+    (%LOCALAPPDATA%\IndyPOS*, Program Files) and uninstall entries, but those are kept as
+    evidence for a human rather than recreated, because verify-install.ps1's section 7 --
+    the check this exists to feed -- only inspects ProgramDataRoot. Consequence worth
+    knowing: this setup cannot detect a v4 install that clobbered v3's program files.
+
+    Services are NOT replayed either. A real v3.7.0 has neither a Windows service nor
+    Postgres, so recreating one would model a machine that does not exist. The script
+    warns if the capture contains any.
+
+    Runs on Windows PowerShell 5.1, which is what a clean Windows snapshot ships with.
 
 .PARAMETER CapturePath
     The JSON written by Get-V3Footprint.ps1.
@@ -84,11 +92,54 @@ $sep = [char]92
 $made = [ordered]@{ Directories = 0; Files = 0 }
 $truncated = New-Object System.Collections.Generic.List[string]
 
+# Join-Path does not normalise, so a capture carrying ".." in a RelativePath would
+# resolve to a write OUTSIDE the target root -- past the safety guard entirely. A
+# genuine capture cannot produce one (RelativePath is a Substring of FullName), so
+# this only bites on an edited or corrupted JSON. Refuse it rather than trust it.
+$rootFull = [System.IO.Path]::GetFullPath($ProgramDataRoot)
+
+# ConvertFrom-Json may hand back a DateTime already (pwsh 7) or a string (older hosts).
+# Calling [datetime]::Parse on a DateTime stringifies it with the CURRENT culture and
+# re-parses it as Unspecified, which then gets the local offset applied a second time --
+# and under th-TH it reads 2026 as a Buddhist-era year, giving 1483, which is before the
+# Win32 FILETIME epoch and throws mid-replay. This is a Thai POS; assume a Thai locale.
+function ConvertTo-Utc {
+    param($Value)
+
+    if ($Value -is [datetime]) {
+        switch ($Value.Kind) {
+            ([System.DateTimeKind]::Utc)   { return $Value }
+            ([System.DateTimeKind]::Local) { return $Value.ToUniversalTime() }
+            # The capture wrote UTC ("o" format, trailing Z), so Unspecified means UTC.
+            default { return [datetime]::SpecifyKind($Value, [System.DateTimeKind]::Utc) }
+        }
+    }
+
+    return [datetime]::Parse(
+        [string]$Value,
+        [cultureinfo]::InvariantCulture,
+        [System.Globalization.DateTimeStyles]::RoundtripKind).ToUniversalTime()
+}
+
+function Resolve-Contained {
+    param([string]$Root, [string]$RootFull, [string]$RelativePath)
+
+    $candidate = [System.IO.Path]::GetFullPath((Join-Path $Root $RelativePath))
+    $prefix = if ($RootFull.EndsWith([System.IO.Path]::DirectorySeparatorChar)) { $RootFull }
+              else { $RootFull + [System.IO.Path]::DirectorySeparatorChar }
+
+    if (-not $candidate.StartsWith($prefix, [StringComparison]::OrdinalIgnoreCase)) {
+        throw "Capture entry escapes the target root: '$RelativePath' -> '$candidate'"
+    }
+
+    return $candidate
+}
+
 # Directories first, deepest last, so a file never precedes its parent.
 foreach ($entry in ($capture.ProgramDataTree | Where-Object { $_.IsDirectory } |
                     Sort-Object { $_.RelativePath.Split($sep).Count })) {
 
-    $target = Join-Path $ProgramDataRoot $entry.RelativePath
+    $target = Resolve-Contained -Root $ProgramDataRoot -RootFull $rootFull -RelativePath $entry.RelativePath
 
     if (-not (Test-Path -LiteralPath $target)) {
         $null = New-Item -ItemType Directory -Path $target -Force
@@ -97,7 +148,7 @@ foreach ($entry in ($capture.ProgramDataTree | Where-Object { $_.IsDirectory } |
 }
 
 foreach ($entry in ($capture.ProgramDataTree | Where-Object { -not $_.IsDirectory })) {
-    $target = Join-Path $ProgramDataRoot $entry.RelativePath
+    $target = Resolve-Contained -Root $ProgramDataRoot -RootFull $rootFull -RelativePath $entry.RelativePath
     $parent = Split-Path $target -Parent
 
     if (-not (Test-Path -LiteralPath $parent)) {
@@ -107,7 +158,9 @@ foreach ($entry in ($capture.ProgramDataTree | Where-Object { -not $_.IsDirector
 
     if (Test-Path -LiteralPath $target) { continue }
 
-    $length = [long]($entry.SizeBytes ?? 0)
+    # No ?? here: Windows PowerShell 5.1 cannot even PARSE it, and that is what a
+    # clean Windows snapshot ships with -- the whole point is to run this on the VM.
+    $length = if ($null -eq $entry.SizeBytes) { [long]0 } else { [long]$entry.SizeBytes }
 
     if ($length -gt $MaxFileBytes) {
         $truncated.Add("$($entry.RelativePath) ($length bytes -> $MaxFileBytes)")
@@ -119,7 +172,7 @@ foreach ($entry in ($capture.ProgramDataTree | Where-Object { -not $_.IsDirector
     $stream = [System.IO.File]::Create($target)
     try { $stream.SetLength($length) } finally { $stream.Dispose() }
 
-    [System.IO.File]::SetLastWriteTimeUtc($target, [datetime]::Parse($entry.LastWriteUtc).ToUniversalTime())
+    [System.IO.File]::SetLastWriteTimeUtc($target, (ConvertTo-Utc $entry.LastWriteUtc))
     $made.Files++
 }
 
