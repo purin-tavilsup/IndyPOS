@@ -385,10 +385,16 @@ function Test-SideBySide {
         return
     }
 
+    # SystemRoot is "v{Major}" (InstallationConfig.cs:80), so "v4" -- it stopped being
+    # "v4.0.0" in 5ce6cea so that an upgrade reuses one root across patch releases.
+    # Accept both: a box installed by an older bootstrapper still carries the long form.
+    $ourRootPattern = '^v\d+(\.\d+)*$'
+
     # v4 location confinement is already covered by Test-Filesystem;
     # don't re-fail here. Just verify the install dir is strictly a
     # v*\ subdir (defence against accidental top-level writes).
-    if ($SystemRoot -match [regex]::Escape($ProgramDataRoot) + '\\v\d+\.\d+\.\d+') {
+    if ((Split-Path $SystemRoot -Parent) -eq $ProgramDataRoot -and
+        (Split-Path $SystemRoot -Leaf) -match $ourRootPattern) {
         Pass "SystemRoot is a v*\ subdir (no top-level v4 leakage)" $SystemRoot
     } else {
         Fail "SystemRoot is NOT a v-version subdir of ProgramDataRoot" $SystemRoot
@@ -397,8 +403,11 @@ function Test-SideBySide {
     # Top-level entries other than v*\ dirs are presumed pre-existing v3 or
     # unrelated. We can't verify byte-for-byte untouchedness without a
     # baseline snapshot, so just enumerate them for the human reviewer.
+    # NOTE: matching this against the OLD 'v\d+\.\d+\.\d+' pattern counted our own
+    # "v4" directory as a v3-era entry, so this reported a v3 footprint on a box
+    # that had never seen v3 -- a false pass on the one check that was still owed.
     $topLevel = Get-ChildItem $ProgramDataRoot -ErrorAction SilentlyContinue
-    $nonVersioned = $topLevel | Where-Object { $_.Name -notmatch '^v\d+\.\d+\.\d+$' }
+    $nonVersioned = $topLevel | Where-Object { $_.Name -notmatch $ourRootPattern }
     if ($nonVersioned.Count -gt 0) {
         Pass "v3.7.0-era top-level entries detected" "$($nonVersioned.Count) found: $($nonVersioned.Name -join ', ')"
     } else {
