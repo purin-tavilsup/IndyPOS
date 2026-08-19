@@ -443,8 +443,20 @@ Per store: fresh v4 install (`--silent --store-id <ID> --store-type <T>`), then 
 v4 installs **alongside** v3.7.0 — detection classifies a v3-only machine as `Fresh`
 (pinned by `Detect_OnAMachineRunningOnlyV3_ShouldReturnFresh`).
 
-Owed before the first store: PR #52's visual smoke (payment-button caption clipping on
-`บัตรสวัสดิการแห่งรัฐ`), and one v3.7.0-coexistence check against a real v3 footprint.
+✅ **PR #52's visual smoke is discharged (2026-08-19) — there was no clipping.** Rendered against
+the real `AcceptPaymentForm.CreatePaymentMethodButton`, the caption `บัตรสวัสดิการแห่งรัฐ` is
+pixel-identical on the shipped 195x129 button and on a 195x260 button where clipping is impossible
+(11px of ink, 5px of gap below). The welfare-card icon declares 190px but inks 174px, unchanged in a
+400px-wide button, so it is not cropped either. The alarm was arithmetic on declared asset sizes,
+which include transparent margin — `MeasureText` height (21px) is ascent+descent+leading, not ink.
+
+What *is* tight is pinned by `PaymentMethodButtonCaptionTests`: beneath a 100px icon there is room
+for exactly **one** 21px line, with zero slack, and today's longest caption is 130px of a usable
+187px. A future campaign with a longer name, or a taller bundled icon, breaks it — and now fails a
+test rather than reaching a till. The captions are read from `PaymentMethodSeeder.Defaults`, so a new
+campaign is covered the moment it is added.
+
+Still owed before the first store: one v3.7.0-coexistence check against a real v3 footprint.
 
 ---
 
