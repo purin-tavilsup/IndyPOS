@@ -214,7 +214,11 @@ source, the other is not fixable at all:
 
 ⚠️ **One real store is expected to fail permanently on `Payments (no invoice)`.** GeneralHardware has
 two such payments totalling ฿1,000. Every other row is green. Do not chase this as a migration bug and
-do **not** re-run to try to clear it — record it in the sign-off table as accepted, with the amount.
+do **not** re-run to try to clear it.
+
+✅ **That exception is already decided — accepted 2026-08-19.** It is not an open question to settle at
+the till. See *Decided in advance — GeneralHardware only* under Go-Live Approval, and copy the row
+into the sign-off table.
 
 ### Step 5: Configure Backup Schedule
 ```powershell
@@ -310,6 +314,26 @@ matters:
 | `verify` row | Count | Amount at stake | Why accepted |
 |---|---|---|---|
 | | | | |
+
+#### Decided in advance — GeneralHardware only
+
+**GeneralHardware is approved to go live with a permanently failing `Payments (no invoice)` row.**
+Decided 2026-08-19 by Purin. Copy this row into the table above when running that store; it does not
+apply to MimyMart or MimyShop, which have no orphaned payments.
+
+| `verify` row | Count | Amount at stake | Why accepted |
+|---|---|---|---|
+| `Payments (no invoice)` | 2 (`PaymentId` 78→`InvoiceId` 77, 79→78) | ฿1,000.00 | Orphaned in the legacy database — both invoices are gone, so there is nothing to attach the cash to. Judged to be left over from early testing. Not recoverable by the tool, and not worth reconstructing |
+
+Two things follow from accepting it, and both are deliberate:
+
+- **`verify` will keep exiting 1 for this store, forever.** That is correct, not a defect to chase.
+  Every *migration* check is green; this single ✗ reports the state of the shop's own data.
+- **Do not re-run the migration to clear it.** A re-run is refused now, and could not help anyway —
+  a committed re-run duplicates every invoice.
+
+The tool refuses these rows rather than rescuing them: synthesising an invoice to hold the ฿1,000
+would put a sale in the books that nobody made, which is worse than a known discrepancy.
 
 **Go-Live Decision:** [ ] APPROVED / [ ] BLOCKED
 
