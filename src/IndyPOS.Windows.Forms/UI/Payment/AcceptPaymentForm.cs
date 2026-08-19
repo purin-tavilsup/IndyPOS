@@ -104,9 +104,15 @@ namespace IndyPOS.Windows.Forms.UI.Payment
 
             var orderedMethods = _offerableMethods.OrderBy(m => m.DisplayOrder).ToList();
 
+            // These buttons are built here, long after PerformAutoScale has sized the designer's
+            // controls, so nothing scales them for us. The caption font is point-sized and does
+            // grow with the display, which is what made the caption land on the card artwork above
+            // ~145% scaling. LogicalToDeviceUnits is the same 96dpi-relative factor WinForms uses.
+            var scale = PaymentTypePanel.LogicalToDeviceUnits(DesignDpi) / (float)DesignDpi;
+
             for (var index = 0; index < orderedMethods.Count; index++)
             {
-                var button = CreatePaymentMethodButton(orderedMethods[index], index);
+                var button = CreatePaymentMethodButton(orderedMethods[index], index, scale);
 
                 button.Click += PaymentMethodButton_Click;
 
@@ -120,18 +126,27 @@ namespace IndyPOS.Windows.Forms.UI.Payment
         private static readonly Font PaymentMethodButtonFont =
             new("Leelawadee UI", 12F, FontStyle.Regular, GraphicsUnit.Point);
 
-        private static Button CreatePaymentMethodButton(PaymentMethodDto method, int index)
+        /// <summary>The dpi the literals below were laid out against.</summary>
+        private const int DesignDpi = 96;
+
+        /// <param name="scale">
+        /// 1.0 at 100% display scaling. Every literal here is in design pixels and must go through
+        /// this, or the button stays put while its point-sized caption grows.
+        /// </param>
+        private static Button CreatePaymentMethodButton(PaymentMethodDto method, int index, float scale)
         {
             const int columnCount = 2;
             var column = index % columnCount;
             var row = index / columnCount;
 
+            int Scaled(int designPixels) => (int)Math.Round(designPixels * scale);
+
             var button = new Button
             {
                 Tag = method.Code,
                 Text = method.DisplayName,
-                Size = new Size(195, 129),
-                Location = new Point(10 + column * 201, 16 + row * 135),
+                Size = new Size(Scaled(195), Scaled(129)),
+                Location = new Point(Scaled(10 + column * 201), Scaled(16 + row * 135)),
                 BackColor = Color.FromArgb(80, 80, 80),
                 ForeColor = Color.White,
                 FlatStyle = FlatStyle.Flat,

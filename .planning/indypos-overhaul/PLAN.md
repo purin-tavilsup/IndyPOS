@@ -450,18 +450,42 @@ pixel-identical on the shipped 195x129 button and on one where clipping is impos
 174x100, unchanged in a 400px-wide button, so it is not cropped either. The original alarm was
 arithmetic on *declared* asset sizes, which include 8px of transparent margin each side.
 
-🚨 **But "no clipping" holds only at 100%, and independent review found a real defect above it.**
-From **144.8% scaling** — so Windows' standard 150% — the caption wraps to two lines and is painted
-**on top of the card artwork**: white Thai text over pale blue. Only `WelfareCard` is affected, being
-the longest caption. Height budget: 100px icon + caption ink = 115px at 100% (fits in 129), **154px
-at 150%**, 174px at 200%.
+🚨 **"No clipping" held only at 100%, and independent review found a real defect above it —
+now fixed (2026-08-19).** From **144.8% scaling** — Windows' standard 150% — the caption wrapped to
+two lines and was painted **on top of the card artwork**: white Thai text over pale blue. Only
+`WelfareCard`, the longest caption. Height budget: 100px icon + caption ink = 115px at 100% (fits in
+129), **154px at 150%**, 174px at 200%.
 
 **Cause.** `AcceptPaymentForm` is `AutoScaleMode.Font` with `AutoScaleDimensions = (6,13)`, but
-`CreatePaymentMethodButton` hardcodes `Size(195,129)` and `Location(10 + col*201, 16 + row*135)` in
+`CreatePaymentMethodButton` hardcoded `Size(195,129)` and `Location(10 + col*201, 16 + row*135)` in
 device pixels, and `BuildPaymentMethodButtons` runs from the async load path — *after*
-`PerformAutoScale`. So the panel scales, the 12pt font scales, and the buttons never do. **Fix:**
-scale those literals by `CurrentAutoScaleDimensions / AutoScaleDimensions`, or build through a
-layout panel. **Not fixed yet — check what scaling the tills actually run at before the cutover.**
+`PerformAutoScale`. The panel scaled, the 12pt font scaled, the buttons never did.
+
+**Fix.** The factory now takes a `scale`, and every literal goes through it.
+`BuildPaymentMethodButtons` derives it as `PaymentTypePanel.LogicalToDeviceUnits(96) / 96f`, which
+is 1.0 at 100% so the shipped geometry is untouched. Measured on real renders, caption ink vs icon
+ink isolated by layout-preserving diffs:
+
+| scaling | before (icon / caption rows) | after |
+|---|---|---|
+| 100% | 6..105 / 108..122 — clear | unchanged, 195x129 |
+| 125% | 6..105 / **105**..122 — touching | 11..110 / 119..136 clear |
+| 150% | 6..105 / **69**..122 — over the artwork | 19..118 / 127..148 clear |
+| 200% | 6..105 / **47**..120 — over the artwork | 31..130 / 143..171 clear |
+
+`PaymentMethodButtonScalingTests` pins it at 100/125/150/175/200%, taking the factor as a parameter
+so it runs identically on any machine (12pt@144dpi and 18pt@96dpi share a `LOGFONT.lfHeight`, so
+raising the point size is an exact stand-in). Verified to fail against the pre-fix behaviour: 6 red
+at 125% and above, 100% still green.
+
+⚠️ **Known limits of the fix.** The icons are *not* scaled — a 100px bitmap in a 292px button at
+150% simply looks smaller; nothing overlaps. And the factor is DPI-based while the form autoscales
+on **font** metrics; those track together for normal display scaling but would diverge if a till
+ran a custom system font size. Neither is the reported defect, both are cheap to revisit.
+
+⚠️ **Same latent pattern lives in `ChangePasswordForm`**, which also builds sized controls in code.
+Not touched here. There is no other DPI handling anywhere in the WinForms project — this is the
+first.
 
 ⚠️ The measurement that first cleared this was **also** wrong in a way worth remembering: the ink
 detector walked up from the bottom until a blank row, which finds only the *last* line — so it
