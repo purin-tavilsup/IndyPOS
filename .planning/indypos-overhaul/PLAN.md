@@ -456,7 +456,19 @@ for exactly **one** 21px line, with zero slack, and today's longest caption is 1
 test rather than reaching a till. The captions are read from `PaymentMethodSeeder.Defaults`, so a new
 campaign is covered the moment it is added.
 
-Still owed before the first store: one v3.7.0-coexistence check against a real v3 footprint.
+**Still owed before the first store: one v3.7.0-coexistence check against a real v3 footprint** —
+now unblocked, but it needs one read-only command run at a live store.
+
+It could not be done before: a clean VM has no v3 footprint, so `verify-install.ps1`'s section 7
+skips, and there is no v3.7.0 artefact to install (releases stop at 3.6.0). `scripts/vm-testing/`
+now carries `Get-V3Footprint.ps1` (capture a store's real layout, read-only) and
+`New-V3Footprint.ps1` (replay it onto the VM before installing v4).
+
+⚠️ **That section was also silently broken**, fixed in this branch: `SystemRoot` became `v{Major}`
+in `5ce6cea` but the script still matched `v\d+\.\d+\.\d+`, so it counted our *own* `v4` directory
+as a v3-era entry and reported "v3.7.0-era top-level entries detected → Pass" on a machine that had
+never seen v3. It could never `Skip`, so this check would have looked discharged while testing
+nothing — and the same stale pattern made the side-by-side check fail a correct install.
 
 ---
 
