@@ -162,7 +162,10 @@ must therefore be runnable against the *previous* release's binaries:
   and the till could not complete a sale.
 
 A migration that breaks this makes the installer's rollback claim false.
-See `docs/operations/upgrade-procedure.md`.
+See `docs/operations/upgrade-procedure.md`, which now carries a **recipe for verifying the gate** —
+apply the release's schema, then write a complete sale using only the columns that existed before it.
+Verified for the 2026-08-17 release's three migrations; before that it had only ever been reasoned
+about.
 
 ### Method Chaining Style
 ```csharp
