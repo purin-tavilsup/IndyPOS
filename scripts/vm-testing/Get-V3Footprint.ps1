@@ -3,10 +3,17 @@
     Read-only capture of a v3.7.0 store's on-disk and registry footprint.
 
 .DESCRIPTION
-    Epic 3 owes one v3.7.0-coexistence check before the first cutover, and there is
-    no v3.7.0 artefact to install — GitHub releases stop at 3.6.0. So instead of
-    reconstructing v3 from a build, we capture what a live store actually has and
-    replay it onto the test VM with New-V3Footprint.ps1.
+    Epic 3 owes one v3.7.0-coexistence check before the first cutover.
+
+    v3.7.0 is an XCOPY deployment: no installer, no uninstall entry, no versioned
+    folder. The binary was copied into place and its data lives in non-versioned
+    directories at the root of C:\ProgramData\IndyPOS -- Config\, db\Store.db, Logs\.
+    So there is nothing to install to build a test machine, and no manifest to read a
+    till's layout from. Capturing what a store actually has is the only way to know,
+    and New-V3Footprint.ps1 replays it onto the test VM.
+
+    Note v3 and v4 SHARE that root: v4 lives in v4\ beside v3's folders. Anything that
+    deletes broadly under C:\ProgramData\IndyPOS would take the shop's live Store.db.
 
     STRICTLY READ-ONLY on the store machine. It records paths, sizes and timestamps.
     It never opens Store.db, never reads file CONTENTS, and never writes anywhere
