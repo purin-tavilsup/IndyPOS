@@ -115,7 +115,8 @@ public class PaymentMethodButtonCaptionTests
 
         var method = new PaymentMethodDto(code, caption, PaymentMethodKind.Standard, true, 1);
 
-        return (Button)factory.Invoke(null, [method, 0])!;
+        // 1.0f = 100% display scaling; PaymentMethodButtonScalingTests covers the rest.
+        return (Button)factory.Invoke(null, [method, 0, 1.0f])!;
     }
 
     /// <summary>The seeded method carrying the tallest bundled icon — the worst case for height.</summary>
