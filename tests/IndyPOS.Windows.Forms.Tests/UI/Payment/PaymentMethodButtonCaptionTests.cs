@@ -1,3 +1,4 @@
+using System.Drawing;
 using System.Reflection;
 using System.Windows.Forms;
 using FluentAssertions;
@@ -13,66 +14,98 @@ namespace IndyPOS.Windows.Forms.Tests.UI.Payment;
 /// <para>
 /// PLAN.md carried an owed visual smoke for months, suspecting <c>บัตรสวัสดิการแห่งรัฐ</c> was
 /// clipped on the 195x129 button. It is not: rendered against a 195x260 button, where clipping is
-/// impossible, the caption ink is identical (11px, 5px of gap below it) and the welfare-card icon's
-/// visible ink is 174px wide in both a 195px and a 400px button. The arithmetic that raised the
-/// alarm used declared asset sizes, which include transparent margin.
+/// impossible, the caption ink is identical (rows 108-122, 15px, with rows 123-127 clear below it)
+/// and the welfare-card icon's visible ink is 174px wide in both a 195px and a 400px button. The
+/// arithmetic that raised the alarm used declared asset sizes, which include transparent margin.
 /// </para>
 /// <para>
-/// What is genuinely tight is that only ONE line of caption fits beneath a 100px icon, and the
-/// catalogue is data-driven — a future campaign can arrive with a longer name. These tests pin the
-/// two margins that keep it readable, driven by the real factory and the real seeded catalogue so
-/// neither can drift from what a till renders.
+/// What is genuinely tight is that only ONE line of caption fits beneath the tallest bundled icon,
+/// and the catalogue is data-driven — a future campaign can arrive with a longer name. These tests
+/// pin the two margins that keep it readable. Everything they measure is read from shipped code:
+/// the button from the real factory, the captions from <see cref="PaymentMethodSeeder"/>, and the
+/// icon height from the real <c>PaymentMethodIcons</c> table — so bundling a taller icon or adding
+/// a longer campaign name fails here rather than reaching a till.
 /// </para>
 /// </summary>
 public class PaymentMethodButtonCaptionTests
 {
-    /// <summary>1px flat border plus the 3px text inset ButtonBase applies, on both sides.</summary>
-    private const int HorizontalChrome = 8;
+    /// <summary>
+    /// Widest caption that renders unclipped, established empirically rather than derived: a
+    /// button was rendered at 195px and again at 400px and the caption's ink pixels compared,
+    /// which puts the onset of real clipping between 184px and 189px depending on the glyphs.
+    /// 184 is the strict end of that band, so this errs toward a false alarm rather than a miss.
+    /// <para>
+    /// Do NOT re-derive this as "195 minus border and inset". `MeasureText(text, font)` adds a
+    /// fixed 10px of glyph-overhang padding that is not chrome, so that arithmetic mixes units
+    /// and lands ~3px too lenient.
+    /// </para>
+    /// </summary>
+    private const int MaxCaptionWidth = 184;
 
     /// <summary>The same allowance vertically, above and below the image-plus-text stack.</summary>
     private const int VerticalChrome = 8;
 
-    /// <summary>The tallest icon bundled for a payment method (see PaymentMethodIcons).</summary>
-    private const int TallestIconHeight = 100;
-
-    public static TheoryData<string> SeededCaptions()
+    public static TheoryData<string, string> SeededMethods()
     {
-        var data = new TheoryData<string>();
+        var data = new TheoryData<string, string>();
 
-        foreach (var caption in ShippedCaptions())
-            data.Add(caption);
+        foreach (var (code, caption) in ShippedMethods())
+            data.Add(code, caption);
 
         return data;
     }
 
     [Theory]
-    [MemberData(nameof(SeededCaptions))]
-    public void CreatePaymentMethodButton_ForEverySeededCaption_ShouldRenderOnOneLine(string caption)
+    [MemberData(nameof(SeededMethods))]
+    public void CreatePaymentMethodButton_ForEverySeededCaption_ShouldRenderOnOneLine(
+        string code, string caption)
     {
-        using var button = CreateButton(caption);
+        using var button = CreateButton(code, caption);
 
         var width = TextRenderer.MeasureText(caption, button.Font).Width;
 
         width.Should()
-             .BeLessThanOrEqualTo(button.Width - HorizontalChrome,
-                 $"'{caption}' has to fit on one line — a second line does not fit under the icon");
+             .BeLessThanOrEqualTo(MaxCaptionWidth,
+                 $"'{caption}' has to fit on one line — with an icon above it, a caption this " +
+                 "wide is hard-clipped mid-glyph rather than wrapped");
     }
 
     [Fact]
-    public void CreatePaymentMethodButton_BeneathTheTallestIcon_ShouldLeaveRoomForOneLine()
+    public void CreatePaymentMethodButton_BeneathTheTallestBundledIcon_ShouldLeaveRoomForOneLine()
     {
-        using var button = CreateButton("บัตรสวัสดิการแห่งรัฐ");
+        var tallestIcon = ShippedIconHeights().Max();
 
-        var roomForCaption = button.Height - TallestIconHeight - VerticalChrome;
-        var lineHeight = TextRenderer.MeasureText("บัตรสวัสดิการแห่งรัฐ", button.Font).Height;
+        using var button = CreateButton(TallestSeededMethod().Code, TallestSeededMethod().Caption);
+
+        var roomForCaption = button.Height - tallestIcon - VerticalChrome;
+        var lineHeight = TextRenderer.MeasureText(TallestSeededMethod().Caption, button.Font).Height;
 
         roomForCaption.Should()
                       .BeGreaterThanOrEqualTo(lineHeight,
-                          "the caption is drawn below the icon, so shrinking the button or " +
-                          "bundling a taller icon would clip it");
+                          $"the caption is drawn below the icon, and the tallest bundled icon is " +
+                          $"{tallestIcon}px — shrinking the button or bundling a taller icon clips it");
     }
 
-    private static Button CreateButton(string caption)
+    /// <summary>
+    /// The layout the margin tests assume. Without an icon actually attached and stacked above the
+    /// text, both of them would be arithmetic on constants that no longer describe the button.
+    /// </summary>
+    [Fact]
+    public void CreatePaymentMethodButton_ForASeededMethod_ShouldStackARealIconAboveTheCaption()
+    {
+        var seeded = TallestSeededMethod();
+
+        using var button = CreateButton(seeded.Code, seeded.Caption);
+
+        button.Image.Should()
+              .NotBeNull($"'{seeded.Code}' is a seeded method and must resolve a bundled icon — " +
+                         "without one these tests measure a layout the till does not use");
+
+        button.TextImageRelation.Should().Be(TextImageRelation.ImageAboveText);
+        button.Image!.Height.Should().Be(ShippedIconHeights().Max());
+    }
+
+    private static Button CreateButton(string code, string caption)
     {
         var factory = typeof(global::IndyPOS.Windows.Forms.UI.MainForm).Assembly
                           .GetType("IndyPOS.Windows.Forms.UI.Payment.AcceptPaymentForm")!
@@ -80,16 +113,51 @@ public class PaymentMethodButtonCaptionTests
                       ?? throw new InvalidOperationException(
                           "AcceptPaymentForm.CreatePaymentMethodButton is gone — this guard is measuring nothing.");
 
-        var method = new PaymentMethodDto("Code", caption, PaymentMethodKind.Standard, true, 1);
+        var method = new PaymentMethodDto(code, caption, PaymentMethodKind.Standard, true, 1);
 
         return (Button)factory.Invoke(null, [method, 0])!;
     }
 
+    /// <summary>The seeded method carrying the tallest bundled icon — the worst case for height.</summary>
+    private static (string Code, string Caption) TallestSeededMethod()
+    {
+        var icons = ShippedIcons();
+
+        var withIcons = ShippedMethods()
+                        .Where(method => icons.ContainsKey(method.Code))
+                        .OrderByDescending(method => icons[method.Code].Height)
+                        .ToList();
+
+        if (withIcons.Count == 0)
+            throw new InvalidOperationException(
+                "No seeded payment method resolves a bundled icon — this guard is measuring nothing.");
+
+        return withIcons[0];
+    }
+
+    private static IEnumerable<int> ShippedIconHeights() =>
+        ShippedIcons().Values.Select(image => image.Height);
+
     /// <summary>
-    /// The captions a store actually gets, read from the seeder rather than copied, so a new
+    /// The real icon table, so a taller asset is caught here rather than copied into a constant
+    /// that silently goes stale.
+    /// </summary>
+    private static Dictionary<string, Image> ShippedIcons()
+    {
+        var field = typeof(global::IndyPOS.Windows.Forms.UI.MainForm).Assembly
+                        .GetType("IndyPOS.Windows.Forms.UI.Payment.PaymentMethodIcons")!
+                        .GetField("IconsByCode", BindingFlags.NonPublic | BindingFlags.Static)
+                    ?? throw new InvalidOperationException(
+                        "PaymentMethodIcons.IconsByCode is gone — this guard is measuring nothing.");
+
+        return (Dictionary<string, Image>)field.GetValue(null)!;
+    }
+
+    /// <summary>
+    /// The methods a store actually gets, read from the seeder rather than copied, so a new
     /// campaign is covered by this guard the moment it is added.
     /// </summary>
-    private static IEnumerable<string> ShippedCaptions()
+    private static IEnumerable<(string Code, string Caption)> ShippedMethods()
     {
         var defaults = typeof(PaymentMethodSeeder)
                            .GetField("Defaults", BindingFlags.NonPublic | BindingFlags.Static)
@@ -98,6 +166,12 @@ public class PaymentMethodButtonCaptionTests
                            "PaymentMethodSeeder.Defaults is gone — this guard is measuring nothing.");
 
         foreach (var seed in defaults)
-            yield return (string)seed.GetType().GetProperty("DisplayName")!.GetValue(seed)!;
+        {
+            var type = seed.GetType();
+
+            yield return (
+                (string)type.GetProperty("Code")!.GetValue(seed)!,
+                (string)type.GetProperty("DisplayName")!.GetValue(seed)!);
+        }
     }
 }
