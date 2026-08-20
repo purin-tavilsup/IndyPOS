@@ -9,6 +9,12 @@ x-cloudapi: &cloudapi
     dockerfile: src/IndyPOS.CloudApi/Dockerfile
   image: indypos-cloudapi:prod
   env_file: .env
+  environment:
+    # OpenIddict rejects token requests that did not arrive over HTTPS (ID2083). TLS terminates at
+    # the reverse proxy in front of this container, so the requirement is relaxed here. Defaults to
+    # false in code -- an unconfigured host stays strict and refuses to issue tokens over cleartext.
+    # If you run this stack WITHOUT a terminator, tokens go out in the clear.
+    OpenIddict__TlsTerminatedUpstream: "true"
   logging:
     driver: json-file
     options:

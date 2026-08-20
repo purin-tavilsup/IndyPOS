@@ -68,30 +68,39 @@ The migrate one-shot runs first and must exit 0; the API will not start otherwis
 Nothing in these files terminates TLS, and no domain is registered yet, so `compose.prod.yaml` binds
 the API to `127.0.0.1:8080`. See the marked seam in that file for what a terminator must do.
 
-**Known limitation — the token endpoint needs HTTPS, and the container only serves HTTP.**
-OpenIddict's token endpoint (and every other OpenIddict endpoint — `/oauth/token`,
-`/.well-known/openid-configuration`, `/.well-known/jwks`) rejects plain HTTP with `400` and
-`error_uri: https://documentation.openiddict.com/errors/ID2083`, because
-`DisableTransportSecurityRequirement()` is never called. This was verified against the containerized
-API with a real RSA signing key configured (`INDYPOS_RSA_SIGNING_KEY`), ruling out the
-ephemeral-development-certificate fallback as the cause.
+**The token endpoint requires HTTPS, and the container serves HTTP — this is now configured, not
+broken.** OpenIddict rejects plain-HTTP token requests with `400` and
+`error_uri: https://documentation.openiddict.com/errors/ID2083`. It decides whether a request "is
+HTTPS" from `HttpContext.Request.IsHttps`, which reflects the connection the *container* sees — not
+the connection the client made to the terminator. So terminating TLS upstream does **not**, by
+itself, satisfy the check.
 
-**Putting a TLS terminator in front does NOT resolve this by itself.** OpenIddict decides whether the
-request "is HTTPS" from `HttpContext.Request.IsHttps`, which reflects the connection the *container*
-sees — not the connection the client made to the terminator. With TLS terminated upstream and no
-forwarded-headers handling in this app, the container still sees a plain `http` request from the
-terminator and still rejects it with ID2083. Resolving this needs one of two things, **and the choice
-is deliberately deferred to the repository owner as a security decision, not made here**:
+Both compose files therefore declare `OpenIddict__TlsTerminatedUpstream: "true"`, which makes
+`AddOpenIddictServer` call `DisableTransportSecurityRequirement()`
+(`src/IndyPOS.CloudApi/Infrastructure/Auth/OpenIddictExtensions.cs`).
 
-- Call `DisableTransportSecurityRequirement()` — accepts plain HTTP into the container outright, or
-- Configure `UseForwardedHeaders()` so the app trusts the terminator's `X-Forwarded-Proto` header,
-  which requires the terminator to be configured to set that header and the app to trust it only
-  from the terminator's address.
+**It defaults to `false` in code.** An unconfigured host — the image run without these compose files —
+stays strict and refuses to issue tokens over cleartext rather than doing it silently. That is the
+same fail-closed posture as the JWT signing-key guard.
 
-Do **not** add either mechanism to this repository's C# yet, and do not work around ID2083 by
-generating a certificate inside the container — a terminator is necessary infrastructure either way,
-but is not sufficient on its own, and picking between the two options above is left to the repository
-owner.
+⚠️ **Turning it on is a statement about your topology, and it is only true if you keep it true.** With
+the flag on, this container will issue access tokens to anything that can reach it over plain HTTP.
+That is safe only while the container is unreachable except through a TLS terminator —
+`compose.prod.yaml` binds it to `127.0.0.1` for exactly this reason. If you ever publish port 8080 on
+a public interface, or put the container on a shared network, set the flag back to `false` first.
+
+Verified by controlled comparison against the same image, same request, only the flag differing:
+
+| `OpenIddict__TlsTerminatedUpstream` | Response to `POST /oauth/token` over plain HTTP |
+|---|---|
+| `false` (code default) | `400 invalid_request` — "This server only accepts HTTPS requests." (ID2083) |
+| `true` (both compose files) | `401 invalid_client` (ID2052) — past the transport gate, then blocked by the separate defect below |
+
+The alternative — `UseForwardedHeaders()` trusting the terminator's `X-Forwarded-Proto` — was
+considered and rejected for now. Container bridge addresses are dynamic, so it would require clearing
+`KnownNetworks`/`KnownProxies`, i.e. trusting that header from anyone who can reach the container.
+That is the same practical exposure as the flag above, with more moving parts. It becomes the stronger
+option once a terminator exists at a known address, and is worth revisiting then.
 
 **Known limitation — store-to-cloud authentication does not work end to end yet, independent of the
 TLS issue above.** Store registration (`RegisterStoreHandler`) writes OAuth2 client credentials —
