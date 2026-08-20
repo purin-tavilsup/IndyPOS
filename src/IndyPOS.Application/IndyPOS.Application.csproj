@@ -20,7 +20,7 @@
     <PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="10.0.3" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.3" />
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.3" />
-    <PackageReference Include="Nokpirab" Version="1.0.0" />
+    <PackageReference Include="Nokpirab" Version="1.1.0" />
     <PackageReference Include="Prism.Core" Version="9.0.537" />
     <PackageReference Include="System.Drawing.Common" Version="10.0.3" />
     <PackageReference Include="Throw" Version="1.4.0" />
