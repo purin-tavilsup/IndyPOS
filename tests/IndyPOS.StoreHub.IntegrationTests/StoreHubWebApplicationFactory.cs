@@ -1,3 +1,5 @@
+using System;
+using System.Security.Cryptography;
 using IndyPOS.Application.Common.Interfaces;
 using IndyPOS.Domain.Enums;
 using IndyPOS.Domain.ValueObjects;
@@ -32,6 +34,14 @@ public class StoreHubWebApplicationFactory : WebApplicationFactory<Program>, IAs
     {
         // Set environment to Testing and provide connection string
         builder.UseSetting("ConnectionStrings:storehub-db", _postgresContainer.GetConnectionString());
+
+        // The host refuses to start outside Development on the built-in default signing key.
+        // Tests obtain their tokens from the login endpoint, which signs server-side, so a random
+        // per-run key is invisible to them.
+        builder.UseSetting(
+            "LocalToken:SecretKey",
+            Convert.ToBase64String(RandomNumberGenerator.GetBytes(64)));
+
         builder.UseEnvironment("Testing");
 
         builder.ConfigureTestServices(services =>

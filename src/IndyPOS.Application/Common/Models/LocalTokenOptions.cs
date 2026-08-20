@@ -9,9 +9,23 @@ public class LocalTokenOptions
     public const string SectionName = "LocalToken";
 
     /// <summary>
+    /// The key this class falls back to when no LocalToken section is configured. It is published in
+    /// a public repository, so it is a placeholder for local development only — never a usable
+    /// secret. <see cref="LocalTokenOptionsValidator"/> refuses to start a host that still has it.
+    /// </summary>
+    public const string BuiltInDefaultSecretKey = "IndyPOS-StoreHub-Local-Auth-Secret-Key-2026";
+
+    /// <summary>
     /// Secret key for signing tokens. Must be at least 32 characters.
     /// </summary>
-    public string SecretKey { get; set; } = "IndyPOS-StoreHub-Local-Auth-Secret-Key-2026";
+    public string SecretKey { get; set; } = BuiltInDefaultSecretKey;
+
+    /// <summary>
+    /// True when this instance carries no usable secret — either the built-in default or nothing at
+    /// all. Both cases mean "the operator has not supplied a key".
+    /// </summary>
+    public bool UsesBuiltInDefaultSecretKey =>
+        string.IsNullOrWhiteSpace(SecretKey) || SecretKey == BuiltInDefaultSecretKey;
 
     /// <summary>
     /// Token issuer.

@@ -61,6 +61,10 @@ builder.Services.AddAuthentication(OpenIddictValidationAspNetCoreDefaults.Authen
 var localTokenOptions = builder.Configuration.GetSection(LocalTokenOptions.SectionName).Get<LocalTokenOptions>()
     ?? new LocalTokenOptions();
 
+LocalTokenOptionsValidator.EnsureProductionSafe(
+    localTokenOptions,
+    builder.Environment.IsDevelopment());
+
 builder.Services.AddAuthentication()
     .AddJwtBearer("StoreHubJwt", options =>
     {
