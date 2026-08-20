@@ -107,12 +107,19 @@ builder.Services.AddOpenApi();
 
 var app = builder.Build();
 
-// Auto-create database schema in development
+// Provision the database. Dev uses EnsureCreated for speed; production applies EF migrations, and
+// only when invoked explicitly as "migrate" so schema work never sits on the normal start path.
+// The compose one-shot runs this and must exit 0 before the API container is allowed to start.
 if (app.Environment.IsDevelopment())
 {
     using var scope = app.Services.CreateScope();
     var db = scope.ServiceProvider.GetRequiredService<CloudDbContext>();
     await db.Database.EnsureCreatedAsync();
+}
+else if (Array.Exists(args, a => string.Equals(a, "migrate", StringComparison.OrdinalIgnoreCase)))
+{
+    await app.MigrateCloudDatabaseAsync();
+    return;
 }
 
 // Map default endpoints (health, alive)
