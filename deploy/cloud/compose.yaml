@@ -11,6 +11,10 @@ x-cloudapi: &cloudapi
   env_file: .env.example
   environment:
     ConnectionStrings__cloud-db: "Host=postgres;Port=5432;Database=indypos_cloud;Username=cloud_app;Password=cloud_dev_password"
+    # Local-development-only value so this stack is self-contained without editing .env.example.
+    # environment: overrides env_file, so this wins over the (intentionally blank) template value.
+    # Never reuse this value anywhere real -- it is published in a public repository.
+    LocalToken__SecretKey: "indypos-cloudapi-local-compose-dev-secret-key-do-not-reuse-2026"
 
 services:
   postgres:
