@@ -3,8 +3,8 @@
 **Date:** 2026-08-20
 **Status:** Approved (Pond, 2026-08-20)
 **Epic:** I (Cloud infrastructure) — task I0, prerequisite for I1–I3
-**Branches:** `chore/bump-nokpirab-1.1.0` (PR 0), `feat/cloudapi-migrate-verb` (PR 1),
-`feat/cloudapi-docker` (PR 2)
+**Branches:** `chore/bump-nokpirab-1.1.0` (PR 0), `fix/reject-default-jwt-secret` (PR 1),
+`feat/cloudapi-migrate-verb` (PR 2), `feat/cloudapi-docker` (PR 3)
 
 ---
 
@@ -80,13 +80,39 @@ That key validates the `StoreHubJwt` scheme, which is the sole guard on the `Sys
 `CanManageUsers` policies — i.e. on `POST /admin/stores/register` and all of `/admin/users`. Anyone
 holding this repo can mint a token that registers stores and creates users on a public Droplet.
 
-The fix is a startup refusal, not a new default: outside Development, CloudApi must fail fast if the
+The fix is a startup refusal, not a new default: outside Development, the host must fail fast if the
 configured key is still the built-in one. Fail fast, fail clearly — the same posture the codebase
 already takes at other boundaries.
 
-⚠️ **StoreHub shares the defect and is deliberately out of scope here.** It is reachable only on a
-store LAN, its exposure is materially different, and mixing it in would put a WinForms-facing auth
-change inside a containerization PR. Flagged for its own PR.
+**Both hosts get the guard** (Pond, 2026-08-20). StoreHub reaches the same default through the same
+fallback at `StoreHub/Program.cs:130-131`, and its committed `appsettings.json` carries no
+`LocalToken` section either.
+
+**On an installed till the guard is a no-op, and that is verified, not assumed.** The installer
+generates the key per install — `DatabaseSetup.GenerateJwtSecret()` (`:145-150`) fills 64
+cryptographically random bytes — DPAPI-protects it via
+`SecretProtector.Protect("LocalToken:SecretKey", …)` (`:456`), writes it into StoreHub's
+`appsettings.json` and ACLs the file. `ConfigSnapshot` exists precisely because package extraction
+overwrites that file, so an in-place upgrade restores the real secret rather than reverting to the
+template. StoreHub decrypts it at `Program.cs:58-60` before any consumer reads it.
+
+Where the guard *does* fire, firing is the correct outcome: a fresh install whose `DatabaseSetup`
+step failed, or an upgrade whose snapshot restore failed, would otherwise start a service
+authenticating admin callers with a key published in a public repo.
+
+### Which environments the guard trusts
+
+⚠️ `StoreHubWebApplicationFactory.cs:35` calls `UseEnvironment("Testing")`, and supplies no
+`LocalToken` configuration. So `IsDevelopment()` is **false** across the whole StoreHub integration
+suite, and a naive `!IsDevelopment()` guard fails ~97 tests on contact.
+
+**Decision: fail closed — Development is the only exemption** (Pond, 2026-08-20). Every other
+environment name must supply a real key, including `Testing`, `Staging`, and any typo. The
+alternative, guarding on `IsProduction()` alone, leaves a mistyped `ASPNETCORE_ENVIRONMENT` running
+the known key on a public Droplet — silently, which is the failure mode this whole defect is about.
+
+The cost is one line in `StoreHubWebApplicationFactory` injecting a per-run secret into the test
+host's configuration. That is a fixture change, not a production concession.
 
 ### Defect I0-C — `/health/ready` is mapped twice
 
@@ -114,8 +140,10 @@ cheap probe by design, and it is unambiguously mapped once.
 
 ## Design
 
-Three PRs. The dependency bump lands first because it moves the CQRS backbone every other project
-compiles against; app-code changes next, so the packaging PR has something correct to package.
+Four PRs. The dependency bump lands first because it moves the CQRS backbone every other project
+compiles against. The auth fix comes next — it spans both hosts and is the one change here with a
+security consequence, so it is reviewed on its own rather than buried in packaging. Then the schema
+path, then the packaging that depends on both.
 
 ### PR 0 — `chore/bump-nokpirab-1.1.0`
 
@@ -133,9 +161,34 @@ and the real store databases present. The baseline to hold is **637 total, 636 p
 behavioural difference in the bump shows up as a delta against those numbers.
 
 If 1.1.0 turns out to carry a breaking API change, this PR grows to include the call-site updates and
-gets re-reviewed on its own merit — it does not silently expand into PR 1 or PR 2.
+gets re-reviewed on its own merit — it does not silently expand into the PRs that follow.
 
-### PR 1 — `feat/cloudapi-migrate-verb`
+### PR 1 — `fix/reject-default-jwt-secret`
+
+Closes defect I0-B on both hosts.
+
+**1. The predicate**, next to the options class in `IndyPOS.Application/Common/Models`, so it is
+unit-testable without hosting: does this `LocalTokenOptions` still carry the built-in default
+`SecretKey`? The default literal moves behind a named constant that both the property initialiser and
+the predicate read, so they cannot drift apart.
+
+**2. The refusal**, in both `CloudApi/Program.cs` and `StoreHub/Program.cs`, immediately after the
+options are bound and before `AddAuthentication` wires the key in. Throws when the environment is
+anything other than Development, with a message naming `LocalToken__SecretKey` and — for StoreHub —
+pointing at the installer step that normally provides it. A specific exception type, not `Exception`.
+
+**3. The fixture change:** `StoreHubWebApplicationFactory` injects a per-run secret, because it hosts
+as `Testing` and the guard is fail-closed.
+
+**Tests.** Predicate unit tests in `IndyPOS.Application.Tests` — default → true, configured → false,
+and the empty/whitespace cases, red first. The suite baselines below are the regression evidence that
+the refusal did not catch anything it should not have; the StoreHub integration suite in particular
+either stays at its current count or the fixture change is wrong.
+
+**Verify by running:** start StoreHub with `ASPNETCORE_ENVIRONMENT=Production` and no `LocalToken`
+section, and read the failure. Then confirm Aspire's dev loop is untouched.
+
+### PR 2 — `feat/cloudapi-migrate-verb`
 
 **1. Initial EF migration for `CloudDbContext`**, in `src/IndyPOS.CloudApi/Infrastructure/Migrations/`.
 Migrations live beside their context: StoreHub's are in `IndyPOS.Infrastructure` because
@@ -165,17 +218,10 @@ one-shot container that either succeeds or fails *before* the API is allowed to 
 
 Development behaviour is unchanged — `EnsureCreatedAsync` stays for Aspire's fast loop.
 
-**3. Refuse the default secret outside Development.** A predicate next to the options class in
-`IndyPOS.Application/Common/Models`, so it is unit-testable without hosting:
+**Verify by running:** `dotnet run --project src/IndyPOS.CloudApi -- migrate` against a throwaway
+`docker run postgres:16-alpine`, then inspect the created tables — OpenIddict's included.
 
-- returns true when the configured `SecretKey` equals the built-in default
-- CloudApi's `Program.cs` throws on it when `!app.Environment.IsDevelopment()`, with a message
-  naming the environment variable to set (`LocalToken__SecretKey`)
-
-Tests go in `IndyPOS.Application.Tests` — no new test project, and nothing new that depends on
-Docker.
-
-### PR 2 — `feat/cloudapi-docker`
+### PR 3 — `feat/cloudapi-docker`
 
 **Location: `deploy/cloud/`, not the repo root.**
 
@@ -247,6 +293,13 @@ What the container requires, and where each value comes from:
 project, and no new suite that needs Docker — the existing Docker-dependent count in `CLAUDE.md`
 stays accurate.
 
+**The suite baselines are the regression evidence**, and two of these four PRs can move them, so each
+is re-measured rather than assumed: **637 total, 636 pass, 1 skip** for the solution (Docker up, real
+store databases present), and **231 → 223 pass / 8 skip** for the installer, which `IndyPOS.sln`
+excludes and `dotnet test` therefore never touches. PR 0 can move any of them; PR 1 specifically must
+leave the **104** StoreHub integration tests where they are — that suite hosts as `Testing`, so it is
+the one the fail-closed guard is most likely to disturb.
+
 **By running, which is where this class of defect actually surfaces.** The console output and the
 container's behaviour have no automated coverage, and Epic 2 established that nearly every real
 defect was found by running the tool rather than by reading tests.
@@ -259,7 +312,8 @@ defect was found by running the tool rather than by reading tests.
 4. `curl` `/`, `/health/live`, `/health/ready`, `/sync/status`.
 5. Drive a real client-credentials exchange against `/oauth/token` and call one authorized endpoint
    with the token. This is the check that proves the RSA key path and the OpenIddict tables together.
-6. Start the API with the default `LocalToken__SecretKey` and confirm it refuses to boot.
+6. Start **both** hosts outside Development with no `LocalToken` section and confirm each refuses to
+   boot, naming the variable to set. Then confirm Aspire's dev loop still starts clean.
 
 **Observations to record while it is up** (open questions, not assumptions): whether
 `GET /health/ready` throws `AmbiguousMatchException`; and whether any `ready`-tagged check exists
@@ -271,8 +325,9 @@ behind that route. Both feed follow-up work, not this design.
 
 - **Provisioning anything.** No Droplet, no managed database, no DNS. That is I1–I3.
 - **TLS termination.** A seam, deliberately, until a domain exists.
-- **StoreHub's identical default-secret defect.** Flagged, separate PR.
-- **The full cloud deployment guide** (task I8). PR 2 adds only what is needed to run what it ships.
+- **Rotating an already-installed till's JWT secret.** The guard rejects the *default*; it does not
+  re-key a store that already has a real one. No store runs v4 yet, so there is nothing to rotate.
+- **The full cloud deployment guide** (task I8). PR 3 adds only what is needed to run what it ships.
 - **Multi-instance concerns** — load balancer, sticky anything, `EventProcessor` running in two
   containers at once. Phase 4 of the infrastructure guide, and the one-shot migrate pattern is
   already the right shape for it.
@@ -289,6 +344,13 @@ it repeats the mistake StoreHub already corrected. Rejected in favour of the one
 
 **A single combined PR.** Mixes an auth-behaviour change with packaging. Reviewable separately, so
 separated.
+
+**Guarding on `IsProduction()` only.** Costs no test changes, but leaves `Staging` and every
+mistyped `ASPNETCORE_ENVIRONMENT` authenticating admin callers with a key that is committed to a
+public repo. Rejected in favour of failing closed.
+
+**Changing the default `SecretKey` to something unguessable.** Moves the problem rather than solving
+it: the value would still be in the repo, and every install would still share one key. Rejected.
 
 **Alpine or chiseled base images.** Smaller, but Alpine needs ICU and tzdata added back for Thai text
 and Bangkok conversion, and chiseled has no shell for a health probe. The size saving does not pay for
