@@ -1,0 +1,59 @@
+# Local full stack. Run from this directory:
+#   docker compose up --build
+# Postgres is published on 5433 because the StoreHub dev stack at the repo root already holds 5432.
+name: indypos-cloud
+
+x-cloudapi: &cloudapi
+  build:
+    context: ../..
+    dockerfile: src/IndyPOS.CloudApi/Dockerfile
+  image: indypos-cloudapi:local
+  env_file: .env.example
+  environment:
+    ConnectionStrings__cloud-db: "Host=postgres;Port=5432;Database=indypos_cloud;Username=cloud_app;Password=cloud_dev_password"
+    # Local-development-only value so this stack is self-contained without editing .env.example.
+    # environment: overrides env_file, so this wins over the (intentionally blank) template value.
+    # Never reuse this value anywhere real -- it is published in a public repository.
+    LocalToken__SecretKey: "indypos-cloudapi-local-compose-dev-secret-key-do-not-reuse-2026"
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: indypos-cloud-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: cloud_app
+      POSTGRES_PASSWORD: cloud_dev_password
+      POSTGRES_DB: indypos_cloud
+    ports:
+      - "5433:5432"
+    volumes:
+      - cloud_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U cloud_app -d indypos_cloud"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # One-shot. Applies EF migrations and exits; the API is not allowed to start until it exits 0.
+  cloud-api-migrate:
+    <<: *cloudapi
+    container_name: indypos-cloud-api-migrate
+    command: ["migrate"]
+    restart: "no"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  cloud-api:
+    <<: *cloudapi
+    container_name: indypos-cloud-api
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    depends_on:
+      cloud-api-migrate:
+        condition: service_completed_successfully
+
+volumes:
+  cloud_postgres_data:

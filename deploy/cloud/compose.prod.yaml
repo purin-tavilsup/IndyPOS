@@ -1,0 +1,42 @@
+# Droplet deployment unit. On the box:
+#   docker compose -f compose.prod.yaml up -d --build
+# Requires a .env alongside this file (see .env.example). Never commit that file.
+name: indypos-cloud
+
+x-cloudapi: &cloudapi
+  build:
+    context: ../..
+    dockerfile: src/IndyPOS.CloudApi/Dockerfile
+  image: indypos-cloudapi:prod
+  env_file: .env
+  logging:
+    driver: json-file
+    options:
+      # The Droplet has a 50 GB disk. An uncapped container log is a slow outage.
+      max-size: "10m"
+      max-file: "5"
+
+services:
+  # One-shot. Must exit 0 before the API is allowed to start.
+  cloud-api-migrate:
+    <<: *cloudapi
+    container_name: indypos-cloud-api-migrate
+    command: ["migrate"]
+    restart: "no"
+
+  cloud-api:
+    <<: *cloudapi
+    container_name: indypos-cloud-api
+    restart: unless-stopped
+    # TLS TERMINATOR SEAM -----------------------------------------------------------------
+    # Bound to loopback on purpose: nothing here terminates TLS, and no domain is registered
+    # yet. The infrastructure guide's firewall opens 443 publicly and 22 to trusted IPs only.
+    # A terminator must: listen on 443 with a certificate for the API's domain, forward to
+    # this container's 8080, and set X-Forwarded-Proto / X-Forwarded-For. When a domain
+    # exists, add a Caddy service on an internal network and drop this ports mapping.
+    # -------------------------------------------------------------------------------------
+    ports:
+      - "127.0.0.1:8080:8080"
+    depends_on:
+      cloud-api-migrate:
+        condition: service_completed_successfully
