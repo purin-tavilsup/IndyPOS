@@ -19,9 +19,10 @@ proven *before* any of that is paid for.
 running Docker, an external managed PostgreSQL, a private VPC, port 443 public. What is missing is
 the container itself.
 
-Reading the code to size the task surfaced three defects that a production container hits on its
-first boot. They are in scope, because none of them can be discovered from a dev machine running
-Aspire, and all three are load-bearing for I3.
+Reading the code to size the task surfaced four defects. Three are hit by a production container on
+its first boot; the fourth (I0-D) predates containers and may break token issuance today. All are in
+scope, because none is discoverable from a dev machine running Aspire and every one is load-bearing
+for I3.
 
 ---
 
@@ -39,7 +40,7 @@ Aspire, and all three are load-bearing for I3.
 
 ---
 
-## The three defects
+## The four defects
 
 ### Defect I0-A — production has no schema path
 
@@ -57,8 +58,7 @@ if (app.Environment.IsDevelopment())
 `CloudDbContext` has **no `Migrations/` folder** — the only migrations in the repo are StoreHub's, at
 `src/IndyPOS.Infrastructure/Persistence/StoreHub/Migrations`. So a container started with
 `ASPNETCORE_ENVIRONMENT=Production` against a fresh managed PostgreSQL comes up with an empty
-database: every endpoint that touches `CloudDbContext` fails, and `/oauth/token` cannot work at all
-because OpenIddict's own EF tables are missing too.
+database: every endpoint that touches `CloudDbContext` fails.
 
 `EnsureCreatedAsync` is not the fix. It cannot upgrade an existing database, which makes every
 subsequent release a manual DDL exercise — and it would put CloudApi outside the forward-only
@@ -136,6 +136,30 @@ nothing behind it. Also to be observed, not assumed.
 **Consequence for this design:** the container's `HEALTHCHECK` targets `/health/live`. It is the
 cheap probe by design, and it is unambiguously mapped once.
 
+### Defect I0-D — OpenIddict's entities are not in the model
+
+`grep -rn "UseOpenIddict" src/` returns **nothing**, and `CloudDbContext.OnModelCreating` never calls
+`base.OnModelCreating` either. OpenIddict's EF Core integration requires `modelBuilder.UseOpenIddict()`
+to put its application, authorization, scope and token entities into the model — so they are absent,
+even though `AddCore().UseEntityFrameworkCore().UseDbContext<CloudDbContext>()` registers the EF
+stores against that same context, and nothing calls `DisableTokenStorage()`.
+
+Consequences, in order of confidence:
+
+- **Certain:** neither `EnsureCreatedAsync` nor a generated migration creates OpenIddict's tables,
+  because EF only emits what the model contains. An earlier revision of this spec claimed the
+  opposite; it was wrong.
+- **Likely, and deliberately not asserted:** `/oauth/token` fails at request time, in Development as
+  well as in a container. Client credentials are validated against `CloudStoreConfig` by
+  `TokenController` rather than OpenIddict's application store, so the failure point is uncertain —
+  OpenIddict's own request validation, or the token store on sign-in.
+
+**This is settled by running the flow, not by reading more code**, and it must be settled *before* the
+initial migration is generated — the migration's contents depend on the answer. Hence a probe task
+ahead of it in the plan. The two candidate fixes are `modelBuilder.UseOpenIddict()` (persisted
+tokens, revocable) or `DisableTokenStorage()` (stateless, nothing to migrate); which one is right
+depends on what the flow actually needs, and Epic I's sync design depends on tokens working at all.
+
 ---
 
 ## Design
@@ -195,9 +219,10 @@ Migrations live beside their context: StoreHub's are in `IndyPOS.Infrastructure`
 `StoreHubDbContext` is, and `CloudDbContext` is in CloudApi. Requires
 `Microsoft.EntityFrameworkCore.Design` on the csproj.
 
-The snapshot covers the nine `DbSet`s on `CloudDbContext` **and the OpenIddict EF tables** —
-`OnModelCreating` calls `UseOpenIddict()`, so applications, authorizations, scopes and tokens are
-part of the same model and the same migration.
+The snapshot covers the nine `DbSet`s on `CloudDbContext`. Whether it also covers OpenIddict's
+tables depends on how defect I0-D is resolved, which is why the probe lands first: if the fix is
+`modelBuilder.UseOpenIddict()`, applications, authorizations, scopes and tokens join the same model
+and the same migration; if it is `DisableTokenStorage()`, there is nothing extra to migrate.
 
 **2. A `migrate` verb, shaped like StoreHub's.** After `builder.Build()`, before any endpoint is
 mapped:
