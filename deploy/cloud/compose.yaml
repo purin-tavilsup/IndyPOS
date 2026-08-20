@@ -15,6 +15,10 @@ x-cloudapi: &cloudapi
     # environment: overrides env_file, so this wins over the (intentionally blank) template value.
     # Never reuse this value anywhere real -- it is published in a public repository.
     LocalToken__SecretKey: "indypos-cloudapi-local-compose-dev-secret-key-do-not-reuse-2026"
+    # OpenIddict rejects token requests that did not arrive over HTTPS (ID2083). This container
+    # serves plain HTTP and expects TLS to terminate in front of it, so the requirement is relaxed
+    # here. Defaults to false in code -- an unconfigured host stays strict.
+    OpenIddict__TlsTerminatedUpstream: "true"
 
 services:
   postgres:
