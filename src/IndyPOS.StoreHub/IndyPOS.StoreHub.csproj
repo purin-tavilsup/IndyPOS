@@ -11,6 +11,15 @@
     <PackageReference Include="BCrypt.Net-Next" Version="4.*" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.3" />
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.3" />
+    <!--
+      Referenced directly, on purpose. Microsoft.AspNetCore.OpenApi pulls Microsoft.OpenApi in
+      transitively but pins an old floor (2.0.0), which carries GHSA-v5pm-xwqc-g5wc (NU1903, high
+      severity: circular schema references can terminate OpenAPI parsing; patched in 2.7.5).
+      ASP.NET Core does not track this package's releases closely (see dotnet/aspnetcore#67505), so
+      owning the reference is what keeps us on current fixes instead of waiting for a framework bump.
+      Stay on 2.x: 3.x is a breaking change that does not compile against this integration.
+    -->
+    <PackageReference Include="Microsoft.OpenApi" Version="2.12.0" />
     <PackageReference Include="Microsoft.Extensions.Diagnostics.HealthChecks.EntityFrameworkCore" Version="10.0.3" />
     <PackageReference Include="Microsoft.Extensions.Hosting.WindowsServices" Version="10.0.3" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.5">
