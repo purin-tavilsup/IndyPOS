@@ -130,6 +130,10 @@ builder.Services.AddTransient<ICommandHandler<RecordPayLaterPaymentCommand, PayL
 var tokenOptions = builder.Configuration.GetSection(LocalTokenOptions.SectionName).Get<LocalTokenOptions>()
     ?? new LocalTokenOptions();
 
+LocalTokenOptionsValidator.EnsureProductionSafe(
+    tokenOptions,
+    builder.Environment.IsDevelopment());
+
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
        .AddJwtBearer(options =>
        {
