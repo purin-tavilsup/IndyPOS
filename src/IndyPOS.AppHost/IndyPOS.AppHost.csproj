@@ -17,6 +17,11 @@
     <PackageReference Include="CommunityToolkit.Aspire.Hosting.PostgreSQL.Extensions" Version="9.3.0" />
     <!-- Override KubernetesClient to fix vulnerability GHSA-w7r3-mgwf-4mqq -->
     <PackageReference Include="KubernetesClient" Version="17.0.14" />
+    <!-- Override MessagePack to fix vulnerabilities GHSA-hv8m-jj95-wg3x and GHSA-vh6j-jc39-fggf.
+         Reached via Aspire.Hosting -> StreamJsonRpc, which pins 2.5.192; patched in 2.5.301.
+         Pinned rather than bumping Aspire, whose current release is 13.x: that is a migration,
+         not a dependency fix. This host is dev-only tooling and never ships. -->
+    <PackageReference Include="MessagePack" Version="2.5.302" />
   </ItemGroup>
 
   <ItemGroup>
