@@ -148,3 +148,23 @@ database actually being reachable first. If the managed cluster is briefly unava
 Compose does not retry this on its own. Once the database is confirmed reachable again, re-run
 `docker compose -f compose.prod.yaml up -d` from the Droplet to retry the migration and bring the
 API up.
+
+## Follow-ups (post-I0-E, from the 2026-09-17 review)
+
+Surfaced by the independent review that closed I0-E. None block correctness; captured here because this
+repo tracks work in docs, not GitHub issues.
+
+1. **No automated test proves a *wrong* client secret is rejected end to end.** The property is correct
+   — the store's OpenIddict application is `Confidential`, so the server pipeline authenticates the
+   secret before `TokenController` runs — but it rests on that config plus the manual E2E, with no
+   regression cover. A `WebApplicationFactory` test hitting the real `/oauth/token` with a valid client
+   and a wrong secret, asserting the request fails, would pin it. A misconfiguration (e.g. the client
+   registered as `Public`, or a missing permission) could silently break the security property today
+   with no test failing.
+2. **`IsActive` gates token *issuance* only.** Deactivating a store blocks new tokens, but an
+   already-issued access token stays valid until it expires (15 min). Acceptable for 15-minute tokens;
+   documented so it is a known bound, not a surprise.
+3. **Endpoint authorization ignores scopes (pre-existing, not introduced by I0-E).** `/sync/*` and
+   `/master/*` use plain `[Authorize]` (authenticated-only) with no scope requirement, and every store
+   is granted both `sync.write` and `master.read`, so the scope separation is currently decorative.
+   Worth enforcing per-endpoint scopes when the sync/master split needs to mean something.
