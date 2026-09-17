@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using System.Text;
+using IndyPOS.Application.Abstractions.Cloud.Auth;
 using IndyPOS.Application.Abstractions.Cloud.Repositories;
 using IndyPOS.Application.Common.Authorization;
 using IndyPOS.Application.UseCases.Cloud.Stores.RegisterStore;
@@ -36,6 +37,7 @@ builder.AddNpgsqlDbContext<CloudDbContext>("cloud-db");
 // Add Cloud infrastructure services
 builder.Services.AddScoped<ISyncedEventRepository, DbSyncedEventRepository>();
 builder.Services.AddScoped<ICloudUserRepository, CloudUserRepository>();
+builder.Services.AddScoped<IStoreClientCredentialStore, OpenIddictStoreClientCredentialStore>();
 
 // Add EventProcessor background service
 builder.Services.AddHostedService<EventProcessor>();

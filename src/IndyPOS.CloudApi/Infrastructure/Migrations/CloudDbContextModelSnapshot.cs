@@ -277,10 +277,6 @@ namespace IndyPOS.CloudApi.Infrastructure.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
 
-                    b.Property<string>("ClientSecretHash")
-                        .HasMaxLength(200)
-                        .HasColumnType("character varying(200)");
-
                     b.Property<bool>("IsActive")
                         .HasColumnType("boolean");
 

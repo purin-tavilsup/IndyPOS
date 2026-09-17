@@ -1,5 +1,4 @@
 using System.Security.Claims;
-using BCrypt.Net;
 using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -79,21 +78,9 @@ public class TokenController : ControllerBase
                     }));
         }
 
-        // Verify secret using BCrypt
-        if (string.IsNullOrEmpty(storeConfig.ClientSecretHash) ||
-            !BCrypt.Net.BCrypt.Verify(clientSecret, storeConfig.ClientSecretHash))
-        {
-            _logger.LogWarning("Invalid client secret for store: {StoreId}", storeConfig.StoreId);
-            return Forbid(
-                authenticationSchemes: OpenIddictServerAspNetCoreDefaults.AuthenticationScheme,
-                properties: new Microsoft.AspNetCore.Authentication.AuthenticationProperties(
-                    new Dictionary<string, string?>
-                    {
-                        [OpenIddictServerAspNetCoreConstants.Properties.Error] = Errors.InvalidClient,
-                        [OpenIddictServerAspNetCoreConstants.Properties.ErrorDescription] =
-                            "The specified client credentials are invalid."
-                    }));
-        }
+        // OpenIddict has already validated the client secret against its application store before
+        // this action runs; the store no longer persists a secret to re-verify here. The IsActive
+        // gate above stays — OpenIddict knows nothing about it.
 
         // Update last authenticated timestamp
         storeConfig.LastAuthenticatedAtUtc = DateTime.UtcNow;
