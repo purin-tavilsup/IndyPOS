@@ -214,10 +214,10 @@ dotnet run --project src/IndyPOS.AppHost --launch-profile https
 # Dashboard: https://localhost:17222
 ```
 
-Solution suites total **637** with Docker running and the real store databases present (636 pass,
-1 skipped) — measured 2026-08-19. Per suite: Domain 36 · Vault 17 · MigrationTool 134 (133 pass,
-1 skip) · StoreHub.IntegrationTests 104 · Application 299 · Windows.Forms 47. Without the real
-store databases the suite discovers **617** (DERIVED as 637 − 20, not measured) — a skipped
+Solution suites total **648** with Docker running and the real store databases present (647 pass,
+1 skipped) — measured 2026-08-20. Per suite: Domain 36 · Vault 17 · MigrationTool 134 (133 pass,
+1 skip) · StoreHub.IntegrationTests 104 · Application 310 · Windows.Forms 47. Without the real
+store databases the suite discovers **628** (DERIVED as 648 − 20, not measured) — a skipped
 `[Theory]` is one entry, not one per row. See [`ONBOARDING.md`](ONBOARDING.md) for the per-suite
 breakdown, the dev-vs-installed port split, and the `/health` vs `/health/ready` trap.
 

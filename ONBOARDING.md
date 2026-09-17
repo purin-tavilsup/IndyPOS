@@ -106,12 +106,12 @@ reports `Skipped: 1` and writes nothing — which looks like success while leavi
 ### Expected counts
 
 Solution suites (`dotnet test` at the root), Docker running **and** the real store databases present
-— **637 total** (636 pass, 1 skipped) — measured 2026-08-19. Without those databases the total is
-**617** (**derived** as 637 − 20, not measured), still all green:
+— **648 total** (647 pass, 1 skipped) — measured 2026-08-20. Without those databases the total is
+**628** (**derived** as 648 − 20, not measured), still all green:
 
 | Suite | Tests |
 |---|---|
-| `IndyPOS.Application.Tests` | 299 |
+| `IndyPOS.Application.Tests` | 310 |
 | `IndyPOS.StoreHub.IntegrationTests` | 104 (Docker) |
 | `IndyPOS.MigrationTool.Tests` | 134 (Docker; 1 skipped. **114** without the real store data — Trap 3, derived) |
 | `IndyPOS.Domain.Tests` | 36 |
