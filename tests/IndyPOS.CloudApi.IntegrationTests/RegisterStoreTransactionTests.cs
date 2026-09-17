@@ -1,6 +1,7 @@
 using FluentAssertions;
 using IndyPOS.Application.Abstractions.Cloud.Auth;
 using IndyPOS.Application.UseCases.Cloud.Stores.RegisterStore;
+using IndyPOS.CloudApi.Domain;
 using IndyPOS.CloudApi.Infrastructure;
 using IndyPOS.CloudApi.Infrastructure.Auth;
 using Microsoft.EntityFrameworkCore;
@@ -59,5 +60,38 @@ public class RegisterStoreTransactionTests : IAsyncLifetime
         credentialStore.Verify(
             s => s.CreateAsync("store_tx-store-1", It.IsAny<string>(), "Tx Store", It.IsAny<CancellationToken>()),
             Times.Once);
+    }
+
+    [Fact]
+    public async Task HandleAsync_WhenInsertViolatesUniqueConstraint_ThrowsConflictNotDbError()
+    {
+        await using var db = CreateContext();
+        await db.Database.MigrateAsync();
+
+        // Pre-seed a row that already owns the ClientId the new registration will generate. The new
+        // command's StoreId differs, so the handler's StoreId existence check passes, but the insert
+        // then loses the race to the unique ClientId index — the TOCTOU path. It must surface as a
+        // conflict (InvalidOperationException -> 409), not a raw DbUpdateException (500).
+        db.StoreConfigs.Add(new CloudStoreConfig
+        {
+            StoreId = "existing-store",
+            StoreName = "Existing",
+            ClientId = "store_race-store",
+            IsActive = true,
+            LastModifiedAtUtc = DateTime.UtcNow
+        });
+        await db.SaveChangesAsync();
+
+        var credentialStore = new Mock<IStoreClientCredentialStore>();
+        credentialStore
+            .Setup(s => s.CreateAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .Returns(Task.CompletedTask);
+
+        var handler = new RegisterStoreHandler(db, credentialStore.Object, NullLogger<RegisterStoreHandler>.Instance);
+
+        var act = () => handler.HandleAsync(new RegisterStoreCommand("race-store", "Race Store", "Race Store Full"));
+
+        await act.Should().ThrowAsync<InvalidOperationException>()
+                 .WithMessage("*race-store*already exists*");
     }
 }

@@ -4,6 +4,7 @@ using IndyPOS.Application.UseCases.Cloud.Stores.RegisterStore;
 using IndyPOS.CloudApi.Domain;
 using Microsoft.EntityFrameworkCore;
 using Nokpirab;
+using Npgsql;
 
 namespace IndyPOS.CloudApi.Infrastructure.Auth;
 
@@ -61,25 +62,35 @@ public class RegisterStoreHandler : ICommandHandler<RegisterStoreCommand, Regist
         // BeginTransactionAsync unless the whole unit runs inside strategy.ExecuteAsync, so the retry
         // can replay it atomically. EF InMemory ignores the transaction, so this guarantee is proved
         // against real PostgreSQL (the plan's end-to-end task), not by a unit test.
-        var strategy = _dbContext.Database.CreateExecutionStrategy();
-        await strategy.ExecuteAsync(async () =>
+        try
         {
-            // The strategy replays this whole lambda on a transient fault without resetting the change
-            // tracker. Entities Added by a failed attempt (the StoreConfig row, and the OpenIddict
-            // application the credential store adds) would otherwise linger and be re-added on retry,
-            // colliding on the unique ClientId. Start each attempt from a clean tracker so a retry can
-            // actually recover instead of failing with a duplicate.
-            _dbContext.ChangeTracker.Clear();
+            var strategy = _dbContext.Database.CreateExecutionStrategy();
+            await strategy.ExecuteAsync(async () =>
+            {
+                // The strategy replays this whole lambda on a transient fault without resetting the
+                // change tracker. Entities Added by a failed attempt (the StoreConfig row, and the
+                // OpenIddict application the credential store adds) would otherwise linger and be
+                // re-added on retry, colliding on the unique ClientId. Start each attempt from a clean
+                // tracker so a retry can actually recover instead of failing with a duplicate.
+                _dbContext.ChangeTracker.Clear();
 
-            await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
+                await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
 
-            _dbContext.StoreConfigs.Add(storeConfig);
-            await _dbContext.SaveChangesAsync(cancellationToken);
+                _dbContext.StoreConfigs.Add(storeConfig);
+                await _dbContext.SaveChangesAsync(cancellationToken);
 
-            await _credentialStore.CreateAsync(clientId, clientSecret, command.StoreName, cancellationToken);
+                await _credentialStore.CreateAsync(clientId, clientSecret, command.StoreName, cancellationToken);
 
-            await transaction.CommitAsync(cancellationToken);
-        });
+                await transaction.CommitAsync(cancellationToken);
+            });
+        }
+        catch (DbUpdateException ex) when (ex.InnerException is PostgresException { SqlState: PostgresErrorCodes.UniqueViolation })
+        {
+            // A concurrent registration for the same store slipped past the existence check above and
+            // lost the race to the unique StoreId/ClientId constraint. Surface it as the same conflict
+            // the pre-check raises (409), not an unhandled 500.
+            throw new InvalidOperationException($"Store with ID '{command.StoreId}' already exists.", ex);
+        }
 
         _logger.LogInformation(
             "Registered store {StoreId} with ClientId {ClientId}",
