@@ -1,0 +1,16 @@
+**/bin/
+**/obj/
+**/.vs/
+**/*.user
+.git/
+.github/
+.claude/
+.superpowers/
+.planning/
+publish/
+tests/
+installer/
+docs/
+fonts/
+deploy/cloud/.env
+**/*.md

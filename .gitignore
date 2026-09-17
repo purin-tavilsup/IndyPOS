@@ -492,3 +492,6 @@ installer/IndyPOS.Bootstrapper/Resources/
 # v3.7.0 footprint captures (Get-V3Footprint.ps1) list real store paths.
 # This repo is public - never commit one.
 v3-footprint-*.json
+
+# Cloud deployment secrets — .env.example is the committed template
+deploy/cloud/.env

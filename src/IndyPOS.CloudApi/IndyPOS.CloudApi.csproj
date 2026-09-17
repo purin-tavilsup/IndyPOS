@@ -20,6 +20,10 @@
       Stay on 2.x: 3.x is a breaking change that does not compile against this integration.
     -->
     <PackageReference Include="Microsoft.OpenApi" Version="2.12.0" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="9.0.6">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
     <PackageReference Include="OpenIddict.AspNetCore" Version="6.*" />
     <PackageReference Include="OpenIddict.EntityFrameworkCore" Version="6.*" />
     <PackageReference Include="Scalar.AspNetCore" Version="2.*" />

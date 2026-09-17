@@ -147,5 +147,11 @@ public class CloudDbContext : DbContext
             entity.Property(e => e.FirstName).HasMaxLength(100);
             entity.Property(e => e.LastName).HasMaxLength(100);
         });
+
+        // OpenIddict's EF entities (application, authorization, scope, token) are
+        // registered against this context by AddCore().UseDbContext<CloudDbContext>(),
+        // so they must be in the model or its stores throw at runtime.
+        base.OnModelCreating(modelBuilder);
+        modelBuilder.UseOpenIddict();
     }
 }

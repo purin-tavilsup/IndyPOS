@@ -16,6 +16,12 @@ public static class OpenIddictExtensions
     /// </summary>
     public const string RsaSigningKeyEnvVar = "INDYPOS_RSA_SIGNING_KEY";
 
+    /// <summary>
+    /// Configuration key declaring that a reverse proxy terminates TLS in front of this host, so the
+    /// container itself only ever receives plain HTTP over an internal network.
+    /// </summary>
+    public const string TlsTerminatedUpstreamKey = "OpenIddict:TlsTerminatedUpstream";
+
     public static IServiceCollection AddOpenIddictServer(
         this IServiceCollection services,
         IConfiguration configuration)
@@ -23,6 +29,11 @@ public static class OpenIddictExtensions
         // Try to load RSA key from environment variable (production)
         var rsaKeyBase64 = Environment.GetEnvironmentVariable(RsaSigningKeyEnvVar)
             ?? configuration["OpenIddict:RsaSigningKey"];
+
+        // Defaults to false: strict transport security unless a deployment explicitly declares
+        // otherwise. An unconfigured host refuses to issue tokens over cleartext rather than doing
+        // it silently.
+        var tlsTerminatedUpstream = configuration.GetValue<bool>(TlsTerminatedUpstreamKey);
 
         RsaSecurityKey? rsaSecurityKey = null;
         if (!string.IsNullOrEmpty(rsaKeyBase64))
@@ -80,6 +91,19 @@ public static class OpenIddictExtensions
                 // ASP.NET Core integration
                 options.UseAspNetCore()
                        .EnableTokenEndpointPassthrough();
+
+                // OpenIddict rejects token requests that did not arrive over HTTPS (error ID2083).
+                // In the containerised deployment TLS terminates at a reverse proxy, so this host
+                // sees plain HTTP on an internal network the public cannot reach — the store-to-cloud
+                // leg is still HTTPS, because StoreHub's CloudApi:BaseUrl points at the proxy.
+                //
+                // This stays OFF by default. Turning it on without a terminator in front means
+                // tokens are issued over cleartext.
+                if (tlsTerminatedUpstream)
+                {
+                    options.UseAspNetCore()
+                           .DisableTransportSecurityRequirement();
+                }
             })
             .AddValidation(options =>
             {
