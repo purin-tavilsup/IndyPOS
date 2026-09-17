@@ -197,13 +197,14 @@ dotnet test
 # Build
 dotnet build
 
-# Docker must be RUNNING for two suites - they spin up a real Postgres container.
+# Docker must be RUNNING for three suites - they spin up a real Postgres container.
 # With Docker down they fail fast (each suite in under a second), which reads like a
-# code regression but is not. Expect 168 failures with Docker stopped, all here.
-# (168 is DERIVED as 97 + 71, not measured - both suites were last run with Docker up.)
+# code regression but is not. Expect 170 failures with Docker stopped, all here.
+# (170 is DERIVED as 97 + 71 + 2, not measured - all three suites were last run with Docker up.)
 #   tests/IndyPOS.StoreHub.IntegrationTests   (97 of 104; 7 need no container)
 #   tests/IndyPOS.MigrationTool.Tests         (71 of 134; 38 pure units, 24 need the
 #                                              gitignored real store .db files, 1 manual tool)
+#   tests/IndyPOS.CloudApi.IntegrationTests   (2 of 2; both need a container)
 
 # The installer is NOT in IndyPOS.sln, so the two commands above never touch it.
 # Run it explicitly (231 tests: 223 pass, 8 skipped):
@@ -214,10 +215,11 @@ dotnet run --project src/IndyPOS.AppHost --launch-profile https
 # Dashboard: https://localhost:17222
 ```
 
-Solution suites total **648** with Docker running and the real store databases present (647 pass,
-1 skipped) — measured 2026-08-20. Per suite: Domain 36 · Vault 17 · MigrationTool 134 (133 pass,
-1 skip) · StoreHub.IntegrationTests 104 · Application 310 · Windows.Forms 47. Without the real
-store databases the suite discovers **628** (DERIVED as 648 − 20, not measured) — a skipped
+Solution suites total **656** with Docker running and the real store databases present (655 pass,
+1 skipped) — measured 2026-09-17. Per suite: Domain 36 · Vault 17 · CloudApi 6 ·
+CloudApi.IntegrationTests 2 (Docker) · MigrationTool 134 (133 pass, 1 skip) ·
+StoreHub.IntegrationTests 104 · Application 310 · Windows.Forms 47. Without the real
+store databases the suite discovers **636** (DERIVED as 656 − 20, not measured) — a skipped
 `[Theory]` is one entry, not one per row. See [`ONBOARDING.md`](ONBOARDING.md) for the per-suite
 breakdown, the dev-vs-installed port split, and the `/health` vs `/health/ready` trap.
 
