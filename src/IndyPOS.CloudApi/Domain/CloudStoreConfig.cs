@@ -18,7 +18,6 @@ public class CloudStoreConfig
 
     // OAuth2 Client Credentials
     public string? ClientId { get; set; }
-    public string? ClientSecretHash { get; set; }
     public bool IsActive { get; set; } = true;
     public DateTime? LastAuthenticatedAtUtc { get; set; }
 }
