@@ -94,7 +94,7 @@ Verified by controlled comparison against the same image, same request, only the
 | `OpenIddict__TlsTerminatedUpstream` | Response to `POST /oauth/token` over plain HTTP |
 |---|---|
 | `false` (code default) | `400 invalid_request` — "This server only accepts HTTPS requests." (ID2083) |
-| `true` (both compose files) | `401 invalid_client` (ID2052) — past the transport gate, then blocked by the separate defect below |
+| `true` (both compose files) | past the transport gate — a registered store now receives `200` with an access token (defect I0-E fixed 2026-09-17) |
 
 The alternative — `UseForwardedHeaders()` trusting the terminator's `X-Forwarded-Proto` — was
 considered and rejected for now. Container bridge addresses are dynamic, so it would require clearing
@@ -102,18 +102,20 @@ considered and rejected for now. Container bridge addresses are dynamic, so it w
 That is the same practical exposure as the flag above, with more moving parts. It becomes the stronger
 option once a terminator exists at a known address, and is worth revisiting then.
 
-**Known limitation — store-to-cloud authentication does not work end to end yet, independent of the
-TLS issue above.** Store registration (`RegisterStoreHandler`) writes OAuth2 client credentials —
-a generated `ClientId` and a BCrypt-hashed `ClientSecret` — to this application's own `StoreConfigs`
-table, and `TokenController`'s `/oauth/token` handler verifies an incoming `client_id`/`client_secret`
-against that same table. But `AddOpenIddictServer` configures OpenIddict's core store
-(`OpenIddictExtensions.cs`) to use EF Core against `CloudDbContext`, which gives OpenIddict its own
-`OpenIddictApplications` table — and OpenIddict's server pipeline validates the incoming `client_id`
-against *that* table before the request ever reaches `TokenController`. Nothing in `src/` ever
-creates a row in `OpenIddictApplications`, so every token request is rejected with
-`401 invalid_client` regardless of whether the store registered successfully against `StoreConfigs`.
-Closing this belongs to Epic I task I4 (SyncWorker against the real CloudApi); until then, treat
-store-to-cloud authentication as not working end to end.
+**Store-to-cloud authentication now works end to end (defect I0-E, fixed 2026-09-17).** Registration
+writes exactly one client registry: `RegisterStoreHandler` creates the OpenIddict application (via
+`IStoreClientCredentialStore`) *and* the `StoreConfigs` row in a single transaction, so the
+`client_id` OpenIddict's server pipeline validates against `OpenIddictApplications` is always present.
+`CloudStoreConfig` no longer stores a `ClientSecretHash` — OpenIddict owns the secret — and
+`TokenController` no longer re-verifies it, keeping only its `IsActive` gate. Verified against real
+PostgreSQL: register → `POST /oauth/token` returns `200` with a persisted access token (was
+`401 invalid_client`).
+
+⚠️ **The transaction must run through the Npgsql retrying execution strategy.** Aspire's
+`AddNpgsqlDbContext` enables retry-on-failure, under which a bare `BeginTransactionAsync` throws
+`InvalidOperationException`. `RegisterStoreHandler` wraps the write in
+`Database.CreateExecutionStrategy().ExecuteAsync(...)`; do not unwrap it. The InMemory unit tests
+cannot catch a regression here (no retry strategy) — only a real-PostgreSQL run can.
 
 ## Schema changes
 
