@@ -71,18 +71,17 @@ public class TokenControllerTests
     }
 
     [Fact]
-    public async Task Exchange_ActiveStoreWithNoStoredHash_IssuesToken()
+    public async Task Exchange_ActiveStore_IssuesToken()
     {
-        // After Task 2, a registered store carries no ClientSecretHash — OpenIddict owns the secret
-        // and has already validated it before this controller runs. The controller must therefore
-        // issue a token without re-checking a secret it no longer stores.
+        // OpenIddict owns the client secret and has already validated it before this controller
+        // runs; the store persists no secret to re-check. An active, known store must therefore
+        // issue a token rather than be forbidden.
         await using var db = CreateInMemoryContext();
         db.StoreConfigs.Add(new CloudStoreConfig
         {
             StoreId = "store1",
             StoreName = "Test Store",
             ClientId = "store_store1",
-            ClientSecretHash = null,
             IsActive = true
         });
         await db.SaveChangesAsync();

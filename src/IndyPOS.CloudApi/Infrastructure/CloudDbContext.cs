@@ -131,7 +131,6 @@ public class CloudDbContext : DbContext
             // OAuth2 fields
             entity.Property(e => e.ClientId).HasMaxLength(100);
             entity.HasIndex(e => e.ClientId).IsUnique();
-            entity.Property(e => e.ClientSecretHash).HasMaxLength(200);
             entity.HasIndex(e => e.IsActive);
         });
 
