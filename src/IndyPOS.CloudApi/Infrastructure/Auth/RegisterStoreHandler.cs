@@ -64,6 +64,13 @@ public class RegisterStoreHandler : ICommandHandler<RegisterStoreCommand, Regist
         var strategy = _dbContext.Database.CreateExecutionStrategy();
         await strategy.ExecuteAsync(async () =>
         {
+            // The strategy replays this whole lambda on a transient fault without resetting the change
+            // tracker. Entities Added by a failed attempt (the StoreConfig row, and the OpenIddict
+            // application the credential store adds) would otherwise linger and be re-added on retry,
+            // colliding on the unique ClientId. Start each attempt from a clean tracker so a retry can
+            // actually recover instead of failing with a duplicate.
+            _dbContext.ChangeTracker.Clear();
+
             await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
 
             _dbContext.StoreConfigs.Add(storeConfig);
