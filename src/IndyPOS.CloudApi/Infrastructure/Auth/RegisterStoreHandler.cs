@@ -57,16 +57,22 @@ public class RegisterStoreHandler : ICommandHandler<RegisterStoreCommand, Regist
             LastModifiedAtUtc = DateTime.UtcNow
         };
 
-        // All-or-nothing. EF InMemory ignores this transaction; the guarantee is verified against
-        // real PostgreSQL (see the plan's end-to-end task), not by a unit test.
-        await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
+        // All-or-nothing. The Npgsql retrying execution strategy forbids a user-initiated
+        // BeginTransactionAsync unless the whole unit runs inside strategy.ExecuteAsync, so the retry
+        // can replay it atomically. EF InMemory ignores the transaction, so this guarantee is proved
+        // against real PostgreSQL (the plan's end-to-end task), not by a unit test.
+        var strategy = _dbContext.Database.CreateExecutionStrategy();
+        await strategy.ExecuteAsync(async () =>
+        {
+            await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
 
-        _dbContext.StoreConfigs.Add(storeConfig);
-        await _dbContext.SaveChangesAsync(cancellationToken);
+            _dbContext.StoreConfigs.Add(storeConfig);
+            await _dbContext.SaveChangesAsync(cancellationToken);
 
-        await _credentialStore.CreateAsync(clientId, clientSecret, command.StoreName, cancellationToken);
+            await _credentialStore.CreateAsync(clientId, clientSecret, command.StoreName, cancellationToken);
 
-        await transaction.CommitAsync(cancellationToken);
+            await transaction.CommitAsync(cancellationToken);
+        });
 
         _logger.LogInformation(
             "Registered store {StoreId} with ClientId {ClientId}",
