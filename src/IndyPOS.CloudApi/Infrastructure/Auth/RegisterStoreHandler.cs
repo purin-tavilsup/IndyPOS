@@ -1,5 +1,5 @@
 using System.Security.Cryptography;
-using BCrypt.Net;
+using IndyPOS.Application.Abstractions.Cloud.Auth;
 using IndyPOS.Application.UseCases.Cloud.Stores.RegisterStore;
 using IndyPOS.CloudApi.Domain;
 using Microsoft.EntityFrameworkCore;
@@ -8,17 +8,23 @@ using Nokpirab;
 namespace IndyPOS.CloudApi.Infrastructure.Auth;
 
 /// <summary>
-/// Handler for registering new stores with OAuth2 credentials.
-/// Generates ClientId/ClientSecret and stores BCrypt-hashed secret.
+/// Registers a new store. Writes the CloudStoreConfig row and creates the OpenIddict client the
+/// store authenticates as, in one transaction — a store with no credentials, or credentials with
+/// no store, are both broken states a partial failure would leave behind.
 /// </summary>
 public class RegisterStoreHandler : ICommandHandler<RegisterStoreCommand, RegisterStoreResponse>
 {
     private readonly CloudDbContext _dbContext;
+    private readonly IStoreClientCredentialStore _credentialStore;
     private readonly ILogger<RegisterStoreHandler> _logger;
 
-    public RegisterStoreHandler(CloudDbContext dbContext, ILogger<RegisterStoreHandler> logger)
+    public RegisterStoreHandler(
+        CloudDbContext dbContext,
+        IStoreClientCredentialStore credentialStore,
+        ILogger<RegisterStoreHandler> logger)
     {
         _dbContext = dbContext;
+        _credentialStore = credentialStore;
         _logger = logger;
     }
 
@@ -26,7 +32,6 @@ public class RegisterStoreHandler : ICommandHandler<RegisterStoreCommand, Regist
         RegisterStoreCommand command,
         CancellationToken cancellationToken = default)
     {
-        // Check if store already exists
         var existingStore = await _dbContext.StoreConfigs
             .FirstOrDefaultAsync(s => s.StoreId == command.StoreId, cancellationToken);
 
@@ -35,12 +40,9 @@ public class RegisterStoreHandler : ICommandHandler<RegisterStoreCommand, Regist
             throw new InvalidOperationException($"Store with ID '{command.StoreId}' already exists.");
         }
 
-        // Generate OAuth2 credentials
         var clientId = $"store_{command.StoreId}";
         var clientSecret = GenerateClientSecret();
-        var clientSecretHash = BCrypt.Net.BCrypt.HashPassword(clientSecret);
 
-        // Create store config
         var storeConfig = new CloudStoreConfig
         {
             StoreId = command.StoreId,
@@ -51,13 +53,20 @@ public class RegisterStoreHandler : ICommandHandler<RegisterStoreCommand, Regist
             PhoneNumber = command.PhoneNumber,
             PrinterName = command.PrinterName,
             ClientId = clientId,
-            ClientSecretHash = clientSecretHash,
             IsActive = true,
             LastModifiedAtUtc = DateTime.UtcNow
         };
 
+        // All-or-nothing. EF InMemory ignores this transaction; the guarantee is verified against
+        // real PostgreSQL (see the plan's end-to-end task), not by a unit test.
+        await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
+
         _dbContext.StoreConfigs.Add(storeConfig);
         await _dbContext.SaveChangesAsync(cancellationToken);
+
+        await _credentialStore.CreateAsync(clientId, clientSecret, command.StoreName, cancellationToken);
+
+        await transaction.CommitAsync(cancellationToken);
 
         _logger.LogInformation(
             "Registered store {StoreId} with ClientId {ClientId}",
@@ -73,7 +82,6 @@ public class RegisterStoreHandler : ICommandHandler<RegisterStoreCommand, Regist
 
     private static string GenerateClientSecret()
     {
-        // Generate 32 bytes of cryptographically secure random data
         var bytes = RandomNumberGenerator.GetBytes(32);
         return Convert.ToBase64String(bytes);
     }
