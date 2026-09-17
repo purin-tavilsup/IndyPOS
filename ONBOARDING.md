@@ -33,7 +33,7 @@ with it rather than upgrading it.
 | Requirement | Detail |
 |---|---|
 | **.NET SDK 10** | `global.json` pins `10.0.107` with `rollForward: latestMinor`, so any later 10.0.x works |
-| **Docker Desktop** | Required by **168** of the tests (71 + 97, derived — see Trap 1) and by Aspire |
+| **Docker Desktop** | Required by **170** of the tests (71 + 97 + 2, derived — see Trap 1) and by Aspire |
 | **Windows** | Several projects target `net10.0-windows`; the till is Windows Forms |
 | **FC Subject font** | In [`fonts/`](fonts/) — install `Regular` and `Bold`. Every panel names this family explicitly, so without it Windows substitutes a fallback and Thai captions clip |
 
@@ -46,18 +46,19 @@ dotnet build
 dotnet test
 ```
 
-### ⚠️ Trap 1 — two suites need Docker and fail loudly without it
+### ⚠️ Trap 1 — three suites need Docker and fail loudly without it
 
 They spin up a real PostgreSQL container via Testcontainers. With Docker stopped they fail **fast**
 (each suite in under a second), which reads exactly like a code regression but is not.
 
-Expect **168 failures** with Docker stopped, all from these two suites. That figure is **derived**
-(97 + 71 by construction), not measured — the suites were last run with Docker up:
+Expect **170 failures** with Docker stopped, all from these three suites. That figure is **derived**
+(97 + 71 + 2 by construction), not measured — the suites were last run with Docker up:
 
 | Suite | Total | Fails without Docker |
 |---|---|---|
 | `IndyPOS.MigrationTool.Tests` | 134 | **71** (of the other 63, see Trap 3) |
 | `IndyPOS.StoreHub.IntegrationTests` | 104 | **97** (7 need no container) |
+| `IndyPOS.CloudApi.IntegrationTests` | 2 | **2** (both need a container) |
 
 **Start Docker and re-run before investigating any of these.**
 
@@ -106,8 +107,8 @@ reports `Skipped: 1` and writes nothing — which looks like success while leavi
 ### Expected counts
 
 Solution suites (`dotnet test` at the root), Docker running **and** the real store databases present
-— **648 total** (647 pass, 1 skipped) — measured 2026-08-20. Without those databases the total is
-**628** (**derived** as 648 − 20, not measured), still all green:
+— **656 total** (655 pass, 1 skipped) — measured 2026-09-17. Without those databases the total is
+**636** (**derived** as 656 − 20, not measured), still all green:
 
 | Suite | Tests |
 |---|---|
@@ -117,6 +118,8 @@ Solution suites (`dotnet test` at the root), Docker running **and** the real sto
 | `IndyPOS.Domain.Tests` | 36 |
 | `IndyPOS.Windows.Forms.Tests` | 47 |
 | `IndyPOS.Vault.Tests` | 17 |
+| `IndyPOS.CloudApi.Tests` | 6 |
+| `IndyPOS.CloudApi.IntegrationTests` | 2 (Docker) |
 
 Outside the solution: `IndyPOS.Bootstrapper.Tests` — **231** (223 pass, 8 skipped).
 
