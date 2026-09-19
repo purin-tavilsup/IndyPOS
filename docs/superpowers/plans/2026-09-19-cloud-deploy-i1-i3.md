@@ -16,7 +16,7 @@
 - **No application code changes.** Only `deploy/cloud/*`, `scripts/cloud/*`, and `docs/operations/cloud-deployment.md`.
 - **The image is built on the dev box, not the Droplet** — only the finished CloudApi image is pulled on the box. The one exception is the thin Caddy image, built on the box because the free registry tier holds a single repo (reserved for CloudApi).
 - **`OpenIddict__TlsTerminatedUpstream: "true"` stays** in `compose.prod.yaml` — TLS terminates at Caddy, so this remains valid.
-- **ACME uses the DNS-01 challenge only** (the proxy breaks HTTP-01/TLS-ALPN-01). No inbound port 80.
+- **ACME uses DNS-01 only.** Port 80 stays closed and 443 is Cloudflare-only, so issuance/renewal must not require an origin HTTP challenge endpoint or bypassing the proxy. DNS-01 works unattended behind the proxy (TLS-ALPN-01 cannot work behind it at all; HTTP-01 would need port 80 open, which we refuse).
 - **Region `sgp1`.** Managed PostgreSQL from day one (no DB on the box).
 
 ---
@@ -47,12 +47,17 @@ Run `doctl registry login` first. Prints the CLOUDAPI_IMAGE line to paste into .
 [CmdletBinding()]
 param(
     [Parameter(Mandatory)] [string] $Registry,                              # DO registry name
-    [string] $Tag = (Get-Date -AsUTC -Format 'yyyyMMddHHmmss'),
+    [string] $Tag,                                                          # default: yyyyMMdd-<short sha>
     [switch] $SkipPush                                                      # build+tag only (local check)
 )
 $ErrorActionPreference = 'Stop'
 
 $repoRoot  = (Resolve-Path "$PSScriptRoot/../..").Path
+if (-not $Tag) {
+    # Immutable, traceable to source: date + short commit sha.
+    $sha = (git -C $repoRoot rev-parse --short HEAD).Trim()
+    $Tag = "{0}-{1}" -f (Get-Date -AsUTC -Format 'yyyyMMdd'), $sha
+}
 $imageBase = "registry.digitalocean.com/$Registry/indypos-cloudapi"
 $ref       = "${imageBase}:$Tag"
 
@@ -141,14 +146,20 @@ Add a Caddy reverse proxy that terminates TLS with a Let's Encrypt cert (DNS-01 
 
 - [ ] **Step 1: Create the custom Caddy build**
 
-`deploy/cloud/Caddy.Dockerfile`:
+First look up the current stable versions and pin them (the build runs on the production Droplet, so
+a floating tag could yield a different binary with no repo change):
+- Caddy release: latest stable `2.x.y` from https://hub.docker.com/_/caddy/tags
+- Plugin: latest release tag of https://github.com/caddy-dns/cloudflare
+
+`deploy/cloud/Caddy.Dockerfile` (replace each `<...>` with the versions you looked up):
 
 ```dockerfile
 # The stock caddy image does not bundle the Cloudflare DNS plugin needed for the DNS-01 challenge.
-FROM caddy:2-builder AS builder
-RUN xcaddy build --with github.com/caddy-dns/cloudflare
+# Versions are pinned for a reproducible rebuild.
+FROM caddy:<x.y.z>-builder AS builder
+RUN xcaddy build v<x.y.z> --with github.com/caddy-dns/cloudflare@<vA.B.C>
 
-FROM caddy:2
+FROM caddy:<x.y.z>
 COPY --from=builder /usr/bin/caddy /usr/bin/caddy
 ```
 
@@ -269,8 +280,11 @@ Append to `deploy/cloud/.env.example`:
 # The public hostname Caddy serves and requests a certificate for.
 CLOUDAPI_DOMAIN=api.indypos.com
 
-# Cloudflare API token scoped to Zone:DNS:Edit for the indypos.com zone ONLY. Caddy uses it for the
-# DNS-01 ACME challenge. Left blank on purpose (public repo); fill it in .env on the box.
+# Cloudflare API token scoped to the indypos.com zone ONLY. Required permissions:
+#   Zone -> Zone -> Read   (the plugin lists zones to resolve the zone id for _acme-challenge)
+#   Zone -> DNS  -> Edit   (write the challenge TXT record)
+# Caddy uses it for DNS-01 ACME issuance and renewal. Left blank on purpose (public repo); fill it
+# in .env on the box.
 CLOUDFLARE_API_TOKEN=
 ```
 
@@ -333,8 +347,9 @@ Prerequisites on the dev box: Docker, `doctl` (`doctl auth init`).
 ### 0. Domain (Cloudflare)
 
 Register `indypos.com` via **Cloudflare Registrar** (the zone lands on Cloudflare automatically).
-Create an API token scoped to **Zone → DNS → Edit** for the `indypos.com` zone only — Caddy uses it
-for the DNS-01 certificate challenge.
+Create an API token, resources limited to the `indypos.com` zone, with permissions
+**Zone → Zone → Read** and **Zone → DNS → Edit** — Caddy needs `Zone:Read` to resolve the zone id
+for the `_acme-challenge` record and `DNS:Edit` to write it.
 
 ### I1 — Droplet
 
@@ -385,7 +400,7 @@ SSL/TLS mode to **Full (strict)**.
 | `ConnectionStrings__cloud-db` | the I2 private connection string |
 | `CLOUDAPI_IMAGE` | `push-image.ps1` output |
 | `CLOUDAPI_DOMAIN` | `api.indypos.com` |
-| `CLOUDFLARE_API_TOKEN` | the scoped Cloudflare token |
+| `CLOUDFLARE_API_TOKEN` | the scoped Cloudflare token (`Zone:Read` + `DNS:Edit`, `indypos.com` only) |
 
 ### I3 — Deploy
 
@@ -396,8 +411,23 @@ docker compose -f compose.prod.yaml build caddy   # thin custom Caddy image, onc
 docker compose -f compose.prod.yaml up -d
 ```
 
-The migrate one-shot runs first and must exit 0; the API will not start otherwise. Then prune old
-layers to stay under the free 500 MiB cap: `doctl registry garbage-collection start`.
+The migrate one-shot runs first and must exit 0; the API will not start otherwise.
+
+### Registry retention (after the deploy verifies)
+
+DO Container Registry garbage collection only reaps **unreferenced** manifests, so every immutable
+timestamp tag stays referenced and counts against the 500 MiB Starter cap forever. Once the new
+release is verified healthy, delete old release tags down to a small rollback window, **then** GC:
+
+```bash
+# Keep latest + the current tag + the previous 2-3; delete older ones.
+doctl registry repository list-tags indypos-cloudapi
+doctl registry repository delete-tag indypos-cloudapi <old-tag>        # repeat per obsolete tag
+doctl registry garbage-collection start --include-untagged-manifests
+```
+
+(Confirm the exact `doctl` flags against your installed version; the sequence — delete obsolete
+release tags/manifests, then GC with untagged cleanup — is the invariant.)
 
 ### Verify (acceptance)
 
@@ -428,7 +458,22 @@ sits in front in Full (strict) mode, so traffic is encrypted till→Cloudflare a
 Keep the rest of the TLS section (the `OpenIddict__TlsTerminatedUpstream` explanation, the comparison
 table, the `UseForwardedHeaders` rationale, and the I0-E paragraph) unchanged — it is still accurate.
 
-- [ ] **Step 4: Verify no stale instructions remain**
+- [ ] **Step 4: Add two bullets to the "Operational notes" section**
+
+Append to the existing `## Operational notes` section (keep everything already there):
+
+```markdown
+**Never `docker compose down -v` in production.** `-v` deletes the named `caddy_data` volume, wiping
+Caddy's ACME account and issued certificate — a plain `docker compose down` leaves named volumes
+intact. Only pass `-v` when you intend to discard Caddy's TLS state.
+
+**The 443 firewall allowlist is recurring maintenance.** Cloudflare's published IPv4/IPv6 ranges
+change over time. Periodically compare the DO cloud firewall's 443 rule against Cloudflare's current
+published ranges and update it if they drift, or direct clients could be blocked / the origin could
+become reachable off-Cloudflare. Automating the sync is out of scope for I1–I3.
+```
+
+- [ ] **Step 5: Verify no stale instructions remain**
 
 ```bash
 grep -n "127.0.0.1:8080" docs/operations/cloud-deployment.md   # expect: no matches
@@ -440,7 +485,7 @@ grep -n "CLOUDAPI_DOMAIN\|CLOUDFLARE_API_TOKEN\|push-image" docs/operations/clou
 Confirm the "Operational notes" section (stale Aspire volume; migrate-does-not-self-heal) and the
 "Follow-ups" section are still present and unchanged.
 
-- [ ] **Step 5: Commit**
+- [ ] **Step 6: Commit**
 
 ```bash
 git add docs/operations/cloud-deployment.md
@@ -456,9 +501,11 @@ git commit -m "docs(cloud): rewrite deploy runbook for registry + Caddy + Cloudf
 - Caddy service, `Caddyfile`, `Caddy.Dockerfile`, internal network, cert-volume persistence, remove loopback port → Task 2. ✅
 - Three new `.env` keys (`CLOUDAPI_IMAGE` in Task 1; `CLOUDAPI_DOMAIN`, `CLOUDFLARE_API_TOKEN` in Task 2). ✅
 - DNS-01 via Cloudflare plugin (custom build) → Task 2 Steps 1, 4. ✅
-- Runbook (domain → I1 → I2 → registry → DNS → secrets → I3 → prune → verify), Droplet spec table, firewall, config contract, acceptance → Task 3. ✅
+- Runbook (domain → I1 → I2 → registry → DNS → secrets → I3 → retention → verify), Droplet spec table, firewall, config contract, acceptance, operational notes → Task 3. ✅
 - `OpenIddict__TlsTerminatedUpstream` retained → Task 2 Step 5 (anchor). ✅
 - Provisioning steps (create Droplet / managed PG / registry / A record) are **operator actions in the runbook**, executed by Pond, not code tasks — by design (spec "division of labour").
+
+**Review fold-in (Rev 2, 2026-09-19):** Cloudflare token now `Zone:Read` + `DNS:Edit` (Task 2 Step 6, Task 3 Step 1); registry retention step added before GC (Task 3 I3 section) — GC alone does not reap still-tagged manifests; Caddy versions pinned (Task 2 Step 1); DNS-01 rationale reworded (Global Constraints); image tag carries a git sha (Task 1 Step 1); `down -v` + IP-range operational notes (Task 3 Step 4). Deferred per reviewer: Caddy container health check (external `/health/live` already proves the path).
 
 **Placeholder scan:** `<registry-name>` / `<tag>` are operator-fill config values, not plan TODOs. No "TBD"/"implement later"/vague-error-handling steps.
 

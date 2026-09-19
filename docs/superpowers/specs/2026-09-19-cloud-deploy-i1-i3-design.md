@@ -5,6 +5,12 @@ Date: 2026-09-19
 Author: Pond (with Claude)
 Supersedes the "TLS terminator seam" TODO in `deploy/cloud/compose.prod.yaml:37-48`.
 
+Rev 2 (2026-09-19): folded in external review — Cloudflare token needs `Zone:Read` + `DNS:Edit`;
+registry needs explicit tag retention before GC (GC alone will not reap still-tagged manifests);
+DNS-01 rationale reworded; Caddy version pinning; IP-range refresh + `down -v` operational notes;
+Cloudflare-removal portability steps; image tags carry a git sha. Caddy container health check
+noted as a deferred optional.
+
 ## Goal
 
 Stand up `IndyPOS.CloudApi` in production on DigitalOcean so store tills can reach it over
@@ -46,14 +52,20 @@ step-by-step runbook.
 - **Origin TLS:** **Caddy** on the Droplet with a **publicly-trusted Let's Encrypt** certificate
   (not a Cloudflare Origin CA cert) — chosen for portability: the origin stays reachable and valid if
   Cloudflare is ever removed. Cloudflare SSL mode **Full (strict)**.
-- **ACME challenge:** **DNS-01 via the Cloudflare DNS plugin.** The default TLS-ALPN-01 / HTTP-01
-  challenges fail behind the Cloudflare proxy (validation hits Cloudflare's edge, never the origin).
-  DNS-01 proves control by writing a TXT record through the Cloudflare API — works behind the proxy,
-  needs no inbound challenge port, and still issues a real public cert.
+- **ACME challenge:** **DNS-01 via the Cloudflare DNS plugin.** DNS-01 is used deliberately so
+  certificate issuance and renewal never depend on an origin HTTP challenge endpoint: port 80 stays
+  closed, 443 stays restricted to Cloudflare, renewal runs unattended, and the Cloudflare proxy can
+  stay enabled throughout. (TLS-ALPN-01 additionally cannot work behind the proxy at all — Cloudflare
+  terminates the TLS handshake, so the challenge never reaches the origin. HTTP-01 could be coaxed to
+  work if port 80 were open and reachable, but we keep it closed by design.) DNS-01 also opens the
+  door to a wildcard cert later. It needs the custom Caddy build (§3) and a scoped Cloudflare API
+  token.
 - **Image delivery:** DO Container Registry, **Starter (free)** tier, one repo. Build the CloudApi
-  image on the dev box, push to the registry, pull on the Droplet. Prune old layers after each deploy
-  to stay under the 500 MiB cap. The Caddy image is built on the box (a small Go build) because the
-  free tier holds only one repo.
+  image on the dev box, push an **immutable tag** (date + short git sha, for traceability to source),
+  pull that exact tag on the Droplet. Because GC only reaps *unreferenced* manifests, staying under
+  the 500 MiB cap requires **explicitly deleting old release tags** down to a small rollback window,
+  *then* running GC — see the runbook. The Caddy image is built on the box (a small Go build) because
+  the free tier holds only one repo.
 - **Database:** DO Managed PostgreSQL from day one (not self-hosted on the box — the infra guide
   rejected that).
 - **Cloudflare Tunnel: rejected.** It hides the origin IP and needs no cert, but makes Cloudflare
@@ -112,7 +124,8 @@ No application code changes — deploy-only. Files under `deploy/cloud/` and one
 - **New `caddy` service:**
   - `build: { context: ., dockerfile: Caddy.Dockerfile }` (built on the box; see §3).
   - `ports: ["443:443"]` (no port 80 — DNS-01 needs no inbound challenge port).
-  - `env_file: .env` (reads `CLOUDAPI_DOMAIN` and `CLOUDFLARE_API_TOKEN`).
+  - `environment:` only `CLOUDAPI_DOMAIN` and `CLOUDFLARE_API_TOKEN` (substituted from `.env`), so
+    Caddy's process gets just the two values it needs, not the API's secrets.
   - `volumes:` a named `caddy_data` volume for `/data` (**must persist** cert + ACME account across
     restarts, or we risk Let's Encrypt rate limits) and `caddy_config` for `/config`; mount the
     `Caddyfile` read-only.
@@ -136,16 +149,23 @@ Caddy substitutes the `{$VAR}` values from the environment at load. Caddy sets
 ### 3. `deploy/cloud/Caddy.Dockerfile` (new)
 
 ```dockerfile
-FROM caddy:2-builder AS builder
-RUN xcaddy build --with github.com/caddy-dns/cloudflare
+# Pin both the Caddy release and the plugin version for a reproducible rebuild — see note below.
+FROM caddy:<pinned>-builder AS builder
+RUN xcaddy build v<pinned> --with github.com/caddy-dns/cloudflare@<pinned>
 
-FROM caddy:2
+FROM caddy:<pinned>
 COPY --from=builder /usr/bin/caddy /usr/bin/caddy
 ```
 
 The stock `caddy` image does not bundle the Cloudflare DNS plugin, so we build a thin custom image.
 It is built on the Droplet (a fast Go build), not pushed to the registry, because the free registry
 tier holds only one repository and that is reserved for the CloudApi image.
+
+**Pin the versions** (review item): `caddy:2-builder` / `caddy:2` and an unpinned plugin float, so a
+future rebuild on the box could produce a different binary with no repo change — worse because the
+build happens on the production Droplet. Pin the Caddy release (minor/patch) and the plugin version.
+The exact current-stable version strings are set at implementation time (verified by the build
+succeeding), not guessed here.
 
 ### 4. `deploy/cloud/.env.example` (edit — add three keys)
 
@@ -156,8 +176,11 @@ CLOUDAPI_IMAGE=registry.digitalocean.com/<registry-name>/indypos-cloudapi:<tag>
 # The public hostname Caddy serves and requests a certificate for.
 CLOUDAPI_DOMAIN=api.indypos.com
 
-# Cloudflare API token scoped to Zone:DNS:Edit for the indypos.com zone ONLY. Used by Caddy for the
-# DNS-01 ACME challenge. Left blank on purpose (public repo); fill it in .env on the box.
+# Cloudflare API token scoped to the indypos.com zone ONLY. Required permissions:
+#   Zone -> Zone -> Read   (the plugin lists zones to resolve the zone id for _acme-challenge)
+#   Zone -> DNS  -> Edit   (write the challenge TXT record)
+# Used by Caddy for DNS-01 ACME issuance and renewal. Left blank on purpose (public repo); fill it
+# in .env on the box.
 CLOUDFLARE_API_TOKEN=
 ```
 
@@ -168,8 +191,9 @@ entries are unchanged.
 
 A small Windows helper: build `src/IndyPOS.CloudApi/Dockerfile` from the repo root, tag it
 `registry.digitalocean.com/<registry>/indypos-cloudapi:<tag>` (and `:latest`), and `docker push` both.
-Parameters: `-Registry` and `-Tag` (default a UTC timestamp). It prints the full `CLOUDAPI_IMAGE`
-line to paste into `.env`. `doctl registry login` is a prerequisite the script checks for.
+Parameters: `-Registry` and `-Tag` (default `yyyyMMdd-<short git sha>`, so a running tag traces back
+to the exact source commit). It prints the full `CLOUDAPI_IMAGE` line to paste into `.env`.
+`doctl registry login` is a prerequisite the script checks for.
 
 ## Configuration contract (`.env` on the Droplet)
 
@@ -181,7 +205,7 @@ line to paste into `.env`. `doctl registry login` is a prerequisite the script c
 | `ConnectionStrings__cloud-db` | I2 managed-PG **private** connection string | mind the hyphen — matches `Program.cs:34` |
 | `CLOUDAPI_IMAGE` | `push-image.ps1` output | registry ref + tag |
 | `CLOUDAPI_DOMAIN` | fixed `api.indypos.com` | Caddy site + cert subject |
-| `CLOUDFLARE_API_TOKEN` | Cloudflare dashboard | Zone:DNS:Edit, `indypos.com` zone only |
+| `CLOUDFLARE_API_TOKEN` | Cloudflare dashboard | `Zone:Read` + `DNS:Edit`, `indypos.com` zone only |
 
 `.env` is gitignored and lives only on the box. This repo is public — no real secret is ever
 committed.
@@ -191,7 +215,8 @@ committed.
 Ordered, copy-pasteable. Prerequisites on the dev box: Docker, `doctl` (`doctl auth init`).
 
 1. **Domain (Cloudflare):** register `indypos.com` via Cloudflare Registrar; the zone lands on
-   Cloudflare automatically. Create the scoped API token (Zone:DNS:Edit).
+   Cloudflare automatically. Create the scoped API token — permissions `Zone:Read` + `DNS:Edit`,
+   resources limited to the `indypos.com` zone.
 2. **I1 — Droplet:** create the VPC in `sgp1` → create the Droplet to the spec below (Docker-from-
    Marketplace image, in the VPC, SSH key) → cloud firewall: allow **22** from the admin IP, allow
    **443** from the published **Cloudflare IPv4 + IPv6 ranges**, deny everything else. (No inbound 80.)
@@ -223,7 +248,11 @@ Ordered, copy-pasteable. Prerequisites on the dev box: Docker, `doctl` (`doctl a
    cloud-api) and `... build caddy` (builds the Caddy image once) → `... up -d` → watch
    `cloud-api-migrate` exit 0. **Re-run `up -d` once** if the managed DB was briefly unreachable at
    start — the one-shot has `restart: "no"` and is not gated on DB readiness.
-8. **Prune:** `doctl registry garbage-collection start` to stay under the free 500 MiB cap.
+8. **Retention + prune:** after the deploy verifies healthy, delete obsolete release tags/manifests
+   so only `latest`, the current tag, and the previous 2–3 remain, **then** run garbage collection
+   (`doctl registry garbage-collection start`). GC alone does **not** remove still-tagged release
+   manifests, so without the delete step the timestamp tags accumulate until the 500 MiB Starter cap
+   is hit.
 
 ## Firewall
 
@@ -236,9 +265,13 @@ Ordered, copy-pasteable. Prerequisites on the dev box: Docker, `doctl` (`doctl a
 ```
 
 Locking 443 to Cloudflare's ranges stops anyone bypassing the proxy to hit the origin directly.
-Cloudflare publishes the ranges; refreshing them is a periodic maintenance chore (candidate for a
-later script). SSH stays public-to-admin-IP for now; Tailscale/WireGuard to remove public SSH is a
-future hardening step, out of scope here.
+SSH stays public-to-admin-IP for now; Tailscale/WireGuard to remove public SSH is a future hardening
+step, out of scope here.
+
+**Operational maintenance (recurring):** Cloudflare's published IPv4/IPv6 ranges can change, so the
+443 allowlist is a standing checklist item, not a one-off — periodically compare the DO cloud
+firewall against Cloudflare's current published ranges and update it if they drift. Automating this
+sync stays out of scope for I1–I3.
 
 ## Acceptance criteria
 
@@ -266,12 +299,29 @@ Provisioning steps are verified by the acceptance checks above (there is nothing
   real cert path can't be exercised locally without the domain; its config is validated with
   `caddy validate`.)
 
+## Portability — removing Cloudflare later
+
+The only address a till knows is `https://api.indypos.com`, and the origin holds a publicly-trusted
+cert (not a Cloudflare-only Origin CA cert), so Cloudflare can be dropped without touching tills or
+app config. The migration would be:
+
+1. Change the DO firewall to allow the intended direct clients on 443 (instead of Cloudflare ranges).
+2. Move authoritative DNS elsewhere, or disable the Cloudflare proxy (grey-cloud), so `api.indypos.com`
+   resolves straight to the origin.
+3. Keep Caddy and its existing public TLS config — the cert stays valid; only the ACME challenge
+   plumbing changes (DNS-01 still works wherever DNS is hosted, or switch Caddy to HTTP-01 once 80 is
+   reachable).
+4. CloudApi is unchanged.
+
+No application-level Cloudflare dependency is introduced.
+
 ## Out of scope
 
 I4 (SyncWorker against the real CloudApi) and I5–I8; the `www` / `admin` / `dev-api` subdomains and
 the `Website 1` / `Website 2` containers (they slot behind the same Caddy via extra site blocks
-later); Tailscale/WireGuard SSH hardening; Redis / background-worker containers; automating the
-Cloudflare-IP-range firewall refresh. Each is a later, additive step.
+later); a Caddy container-level health check (external `/health/live` already proves the full request
+path, so this is a deferred nicety); Tailscale/WireGuard SSH hardening; Redis / background-worker
+containers; automating the Cloudflare-IP-range firewall refresh. Each is a later, additive step.
 
 ## Risks and caveats
 
@@ -279,7 +329,9 @@ Cloudflare-IP-range firewall refresh. Each is a later, additive step.
   time, the one-shot exits non-zero and `cloud-api` never starts; re-run `up -d` once. (Known I0
   behaviour; a future `depends_on`-style health gate could remove the manual step.)
 - **Caddy cert persistence** — the `caddy_data` volume must survive restarts, or repeated re-issuance
-  can hit Let's Encrypt rate limits. Named volume, not an anonymous one.
+  can hit Let's Encrypt rate limits. Named volume, not an anonymous one. **Never `docker compose down
+  -v` in production** — that deletes named volumes, wiping Caddy's ACME account and certs; plain
+  `down` leaves them intact.
 - **Cloudflare IP ranges drift** — the 443 firewall rule needs periodic refreshing against
   Cloudflare's published list.
 - **API token blast radius** — the Cloudflare token is scoped to DNS:Edit on the one zone and lives
