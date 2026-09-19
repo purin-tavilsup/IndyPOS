@@ -1,13 +1,11 @@
 # Droplet deployment unit. On the box:
-#   docker compose -f compose.prod.yaml up -d --build
+#   docker compose -f compose.prod.yaml pull
+#   docker compose -f compose.prod.yaml up -d
 # Requires a .env alongside this file (see .env.example). Never commit that file.
 name: indypos-cloud
 
 x-cloudapi: &cloudapi
-  build:
-    context: ../..
-    dockerfile: src/IndyPOS.CloudApi/Dockerfile
-  image: indypos-cloudapi:prod
+  image: ${CLOUDAPI_IMAGE}
   env_file: .env
   environment:
     # OpenIddict rejects token requests that did not arrive over HTTPS (ID2083). TLS terminates at
