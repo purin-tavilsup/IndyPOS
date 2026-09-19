@@ -22,9 +22,12 @@ $imageBase = "registry.digitalocean.com/$Registry/indypos-cloudapi"
 $ref       = "${imageBase}:$Tag"
 
 docker build -f "$repoRoot/src/IndyPOS.CloudApi/Dockerfile" -t $ref -t "${imageBase}:latest" $repoRoot
+if ($LASTEXITCODE -ne 0) { throw "docker build failed (exit $LASTEXITCODE)" }
 if (-not $SkipPush) {
     docker push $ref
+    if ($LASTEXITCODE -ne 0) { throw "docker push failed (exit $LASTEXITCODE)" }
     docker push "${imageBase}:latest"
+    if ($LASTEXITCODE -ne 0) { throw "docker push failed (exit $LASTEXITCODE)" }
 }
 
 Write-Host ""
