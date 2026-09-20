@@ -62,21 +62,22 @@ It prints the `CLOUDAPI_IMAGE=...` line for `.env`. The script refuses to push f
 tree (the image would not match its tag's commit) and tags each image `yyyyMMddTHHmmssZ-<sha>`, so a
 rebuild never overwrites an existing tag.
 
-The **Droplet only pulls**, so give it a **read-only** credential — not the read-write dev login.
-DO registry credentials expire, and an expired one makes a later `docker compose pull` fail with
-`unauthorized`. Two workable strategies:
+The **Droplet only pulls**, so give it a read-only credential rather than the read-write dev login.
+`doctl registry docker-config` already produces a **read-only** credential (that is its default),
+while `doctl registry login` credentials expire after **30 days** by default — and an expired one
+makes a later `docker compose pull` fail with `unauthorized`. Two workable strategies:
 
-- **Long-lived read-only docker config (simplest):** on the dev box, generate a read-only,
-  long-expiry credential and copy it into the Droplet's `~/.docker/config.json`:
+- **Long-lived docker config (simplest):** on the dev box, generate a read-only credential with an
+  explicit expiry and copy it into the Droplet's `~/.docker/config.json`:
   ```bash
-  doctl registry docker-config --read-only --expiry-seconds 15552000 > docker-config.json  # ~180d
+  doctl registry docker-config --expiry-seconds 15552000 > docker-config.json  # ~180d, read-only
   ```
   Note the expiry and diarise re-issuing before it lapses.
-- **Re-auth per deploy:** run `doctl registry login --read-only` (add `--expiry-seconds` to bound it)
-  on the Droplet as the first step of every deploy, so each pull uses a fresh credential.
+- **Re-auth per deploy:** run `doctl registry login --read-only=true --expiry-seconds <n>` on the
+  Droplet as the first step of every deploy, so each pull uses a fresh, bounded credential.
 
-(Confirm the exact `doctl` flags against your installed version; the invariant is *read-only on the
-Droplet, with a credential that is either long-lived-and-diarised or refreshed each deploy*.)
+(Confirm the exact flags against your installed `doctl`; the invariant is *read-only on the Droplet,
+with a credential that is either long-lived-and-diarised or refreshed each deploy*.)
 
 ### Cloudflare DNS
 
