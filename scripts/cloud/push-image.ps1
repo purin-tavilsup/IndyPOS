@@ -13,9 +13,12 @@ param(
 $ErrorActionPreference = 'Stop'
 
 # Prerequisite for `doctl registry login` -- fail fast with a clear message rather than
-# letting the docker push fail later with an opaque auth error.
-doctl account get | Out-Null
-if ($LASTEXITCODE -ne 0) { throw "doctl is not authenticated. Run 'doctl auth init' and 'doctl registry login' first." }
+# letting the docker push fail later with an opaque auth error. Only when pushing:
+# -SkipPush is a local build+tag check that never touches the registry.
+if (-not $SkipPush) {
+    doctl account get | Out-Null
+    if ($LASTEXITCODE -ne 0) { throw "doctl is not authenticated. Run 'doctl auth init' and 'doctl registry login' first." }
+}
 
 $repoRoot  = (Resolve-Path "$PSScriptRoot/../..").Path
 if (-not $Tag) {
