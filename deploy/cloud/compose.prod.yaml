@@ -7,8 +7,17 @@ name: indypos-cloud
 
 x-cloudapi: &cloudapi
   image: ${CLOUDAPI_IMAGE}
-  env_file: .env
+  # Map only the application variables. Deliberately NOT `env_file: .env`: that injects the WHOLE
+  # file -- including CLOUDFLARE_API_TOKEN, a DNS-write credential only Caddy needs -- into the app
+  # containers. Least privilege keeps that token out of cloud-api and the migrate one-shot.
   environment:
+    ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT}
+    LocalToken__SecretKey: ${LocalToken__SecretKey}
+    INDYPOS_RSA_SIGNING_KEY: ${INDYPOS_RSA_SIGNING_KEY}
+    # Sourced from CLOUD_DB_CONNECTION (hyphen-free) because compose reads ${NAME-x} as "NAME,
+    # default x" -- ${ConnectionStrings__cloud-db} would resolve to the literal "db". The container
+    # still gets the correctly-hyphenated key; this left-hand side is literal YAML, not interpolated.
+    ConnectionStrings__cloud-db: ${CLOUD_DB_CONNECTION}
     # OpenIddict rejects token requests that did not arrive over HTTPS (ID2083). TLS terminates at
     # Caddy in front of this container, so the requirement is relaxed here. Defaults to false in
     # code -- an unconfigured host stays strict and refuses to issue tokens over cleartext.
