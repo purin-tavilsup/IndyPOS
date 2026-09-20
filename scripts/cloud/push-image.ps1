@@ -12,20 +12,28 @@ param(
 )
 $ErrorActionPreference = 'Stop'
 
-# Prerequisite for `doctl registry login` -- fail fast with a clear message rather than
-# letting the docker push fail later with an opaque auth error. Only when pushing:
-# -SkipPush is a local build+tag check that never touches the registry.
+$repoRoot = (Resolve-Path "$PSScriptRoot/../..").Path
+
+# Pushing needs registry auth and a source-traceable image; a local -SkipPush build needs neither.
 if (-not $SkipPush) {
+    # Prerequisite for `doctl registry login` -- fail fast with a clear message rather than letting
+    # the docker push fail later with an opaque auth error.
     doctl account get | Out-Null
     if ($LASTEXITCODE -ne 0) { throw "doctl is not authenticated. Run 'doctl auth init' and 'doctl registry login' first." }
+
+    # docker builds the working tree, so a dirty tree would tag an image with a commit sha that does
+    # not match its contents. Refuse it, so a pushed tag always identifies the exact source.
+    $dirty = git -C $repoRoot status --porcelain
+    if ($LASTEXITCODE -ne 0) { throw "git status failed -- cannot confirm a clean tree for a production push." }
+    if ($dirty) { throw "Working tree is dirty -- refusing to push an image whose tag would not match its source. Commit or stash changes, or use -SkipPush for a local build." }
 }
 
-$repoRoot  = (Resolve-Path "$PSScriptRoot/../..").Path
 if (-not $Tag) {
-    # Immutable, traceable to source: date + short commit sha.
+    # Immutable and unique: UTC timestamp + short commit sha. The timestamp keeps a rebuild of the
+    # same commit from silently overwriting an existing tag.
     $sha = (git -C $repoRoot rev-parse --short HEAD).Trim()
     if ($LASTEXITCODE -ne 0 -or -not $sha) { throw "Not a git repository or git unavailable -- cannot derive image tag." }
-    $Tag = "{0}-{1}" -f (Get-Date -AsUTC -Format 'yyyyMMdd'), $sha
+    $Tag = "{0}-{1}" -f (Get-Date -AsUTC -Format "yyyyMMdd'T'HHmmss'Z'"), $sha
 }
 $imageBase = "registry.digitalocean.com/$Registry/indypos-cloudapi"
 $ref       = "${imageBase}:$Tag"
