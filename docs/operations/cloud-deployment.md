@@ -45,19 +45,38 @@ ranges, deny everything else. No inbound 80, 8080, or 5432.
 ### I2 — Managed PostgreSQL
 
 Create DO Managed PostgreSQL, smallest production tier, `sgp1`, in the same VPC. Restrict its trusted
-sources to the Droplet. Create the database and copy the **private** connection string — it becomes
-`ConnectionStrings__cloud-db` (the hyphen matters; it maps to `AddNpgsqlDbContext<CloudDbContext>("cloud-db")`).
+sources to the Droplet. Create the database and copy the **private** connection string — put it in
+`.env` as `CLOUD_DB_CONNECTION`; `compose.prod.yaml` maps it into the container as
+`ConnectionStrings__cloud-db` (the hyphen matters — it maps to `AddNpgsqlDbContext<CloudDbContext>("cloud-db")`).
 
 ### Registry + image
 
-Create a DO Container Registry (Starter tier). `doctl registry login` on the dev box and on the
-Droplet, then build and push:
+Create a DO Container Registry (Starter tier). On the **dev box**, `doctl registry login` (read-write
+— it builds and pushes), then build and push:
 
 ```powershell
 pwsh -File scripts/cloud/push-image.ps1 -Registry <registry-name>
 ```
 
-It prints the `CLOUDAPI_IMAGE=...` line for `.env`.
+It prints the `CLOUDAPI_IMAGE=...` line for `.env`. The script refuses to push from a dirty working
+tree (the image would not match its tag's commit) and tags each image `yyyyMMddTHHmmssZ-<sha>`, so a
+rebuild never overwrites an existing tag.
+
+The **Droplet only pulls**, so give it a **read-only** credential — not the read-write dev login.
+DO registry credentials expire, and an expired one makes a later `docker compose pull` fail with
+`unauthorized`. Two workable strategies:
+
+- **Long-lived read-only docker config (simplest):** on the dev box, generate a read-only,
+  long-expiry credential and copy it into the Droplet's `~/.docker/config.json`:
+  ```bash
+  doctl registry docker-config --read-only --expiry-seconds 15552000 > docker-config.json  # ~180d
+  ```
+  Note the expiry and diarise re-issuing before it lapses.
+- **Re-auth per deploy:** run `doctl registry login --read-only` (add `--expiry-seconds` to bound it)
+  on the Droplet as the first step of every deploy, so each pull uses a fresh credential.
+
+(Confirm the exact `doctl` flags against your installed version; the invariant is *read-only on the
+Droplet, with a credential that is either long-lived-and-diarised or refreshed each deploy*.)
 
 ### Cloudflare DNS
 
@@ -73,7 +92,7 @@ SSL/TLS mode to **Full (strict)**.
 | `ASPNETCORE_ENVIRONMENT` | fixed `Production` |
 | `LocalToken__SecretKey` | `openssl rand -base64 64` |
 | `INDYPOS_RSA_SIGNING_KEY` | `scripts/generate-rsa-key.ps1` |
-| `ConnectionStrings__cloud-db` | the I2 private connection string |
+| `CLOUD_DB_CONNECTION` | the I2 private connection string (mapped into the container as `ConnectionStrings__cloud-db`) |
 | `CLOUDAPI_IMAGE` | `push-image.ps1` output |
 | `CLOUDAPI_DOMAIN` | `api.indypos.com` |
 | `CLOUDFLARE_API_TOKEN` | the scoped Cloudflare token (`Zone:Read` + `DNS:Edit`, `indypos.com` only) |
