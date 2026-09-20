@@ -153,7 +153,8 @@ release tags/manifests, then GC with untagged cleanup — is the invariant.)
 ## TLS
 
 TLS is terminated by the `caddy` service in `compose.prod.yaml`, which obtains a publicly-trusted
-Let's Encrypt certificate via the Cloudflare DNS-01 challenge and reverse-proxies plain HTTP to
+certificate (Let's Encrypt, with ZeroSSL as Caddy's automatic fallback) via the Cloudflare DNS-01
+challenge and reverse-proxies plain HTTP to
 `cloud-api:8080` over the private `appnet` network. `cloud-api` publishes no host port. Cloudflare
 sits in front in Full (strict) mode, so traffic is encrypted till→Cloudflare and Cloudflare→Caddy.
 
@@ -174,8 +175,9 @@ same fail-closed posture as the JWT signing-key guard.
 
 ⚠️ **Turning it on is a statement about your topology, and it is only true if you keep it true.** With
 the flag on, this container will issue access tokens to anything that can reach it over plain HTTP.
-That is safe only while the container is unreachable except through a TLS terminator —
-`compose.prod.yaml` binds it to `127.0.0.1` for exactly this reason. If you ever publish port 8080 on
+That is safe only while the container is unreachable except through a TLS terminator — in
+`compose.prod.yaml`, `cloud-api` publishes no host port and sits on the private `appnet` network,
+reachable only through the `caddy` service, for exactly this reason. If you ever publish port 8080 on
 a public interface, or put the container on a shared network, set the flag back to `false` first.
 
 Verified by controlled comparison against the same image, same request, only the flag differing:

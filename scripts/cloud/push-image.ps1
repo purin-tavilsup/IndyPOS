@@ -12,10 +12,16 @@ param(
 )
 $ErrorActionPreference = 'Stop'
 
+# Prerequisite for `doctl registry login` -- fail fast with a clear message rather than
+# letting the docker push fail later with an opaque auth error.
+doctl account get | Out-Null
+if ($LASTEXITCODE -ne 0) { throw "doctl is not authenticated. Run 'doctl auth init' and 'doctl registry login' first." }
+
 $repoRoot  = (Resolve-Path "$PSScriptRoot/../..").Path
 if (-not $Tag) {
     # Immutable, traceable to source: date + short commit sha.
     $sha = (git -C $repoRoot rev-parse --short HEAD).Trim()
+    if ($LASTEXITCODE -ne 0 -or -not $sha) { throw "Not a git repository or git unavailable -- cannot derive image tag." }
     $Tag = "{0}-{1}" -f (Get-Date -AsUTC -Format 'yyyyMMdd'), $sha
 }
 $imageBase = "registry.digitalocean.com/$Registry/indypos-cloudapi"
