@@ -16,17 +16,124 @@ migrations in a one-shot container, then starts the API on <http://localhost:808
 The stack runs as `Production` on purpose — that is the path that ships. There is no Scalar/OpenAPI
 UI as a result; for that, use the Aspire dev loop instead.
 
-## Run it on the Droplet
+## Provision and deploy on DigitalOcean (Epic I: I1–I3)
 
-1. Copy the repository to the box, or build the image elsewhere and push it to a registry.
-2. `cp deploy/cloud/.env.example deploy/cloud/.env` and fill in every value.
-   - `ConnectionStrings__cloud-db` — the managed cluster's string. The hyphen matters.
-   - `LocalToken__SecretKey` — `openssl rand -base64 64`. The API refuses to start without it.
-   - `INDYPOS_RSA_SIGNING_KEY` — from `scripts/generate-rsa-key.ps1`. Without it, every restart
-     invalidates every issued token.
-3. `cd deploy/cloud && docker compose -f compose.prod.yaml up -d --build`
+Prerequisites on the dev box: Docker, `doctl` (`doctl auth init`).
+
+### 0. Domain (Cloudflare)
+
+Register `indypos.com` via **Cloudflare Registrar** (the zone lands on Cloudflare automatically).
+Create an API token, resources limited to the `indypos.com` zone, with permissions
+**Zone → Zone → Read** and **Zone → DNS → Edit** — Caddy needs `Zone:Read` to resolve the zone id
+for the `_acme-challenge` record and `DNS:Edit` to write it.
+
+### I1 — Droplet
+
+Create a VPC in `sgp1`, then a Droplet inside it:
+
+| Component | Recommendation |
+|---|---|
+| Droplet type | Basic — Premium AMD |
+| CPU / Memory / Disk | 1 vCPU / 2 GB / 50 GB SSD |
+| Runtime | Docker (DO Docker Marketplace image) |
+| Region | `sgp1` (Singapore) |
+| Backups | Enabled |
+
+Cloud firewall: allow **22** from your admin IP, allow **443** from Cloudflare's published IPv4 + IPv6
+ranges, deny everything else. No inbound 80, 8080, or 5432.
+
+### I2 — Managed PostgreSQL
+
+Create DO Managed PostgreSQL, smallest production tier, `sgp1`, in the same VPC. Restrict its trusted
+sources to the Droplet. Create the database and copy the **private** connection string — put it in
+`.env` as `CLOUD_DB_CONNECTION`; `compose.prod.yaml` maps it into the container as
+`ConnectionStrings__cloud-db` (the hyphen matters — it maps to `AddNpgsqlDbContext<CloudDbContext>("cloud-db")`).
+
+### Registry + image
+
+Create a DO Container Registry (Starter tier). On the **dev box**, `doctl registry login` (read-write
+— it builds and pushes), then build and push:
+
+```powershell
+pwsh -File scripts/cloud/push-image.ps1 -Registry <registry-name>
+```
+
+It prints the `CLOUDAPI_IMAGE=...` line for `.env`. The script refuses to push from a dirty working
+tree (the image would not match its tag's commit) and tags each image `yyyyMMddTHHmmssZ-<sha>`, so a
+rebuild never overwrites an existing tag.
+
+The **Droplet only pulls**, so give it a read-only credential rather than the read-write dev login.
+`doctl registry docker-config` already produces a **read-only** credential (that is its default),
+while `doctl registry login` credentials expire after **30 days** by default — and an expired one
+makes a later `docker compose pull` fail with `unauthorized`. Two workable strategies:
+
+- **Long-lived docker config (simplest):** on the dev box, generate a read-only credential with an
+  explicit expiry and copy it into the Droplet's `~/.docker/config.json`:
+  ```bash
+  doctl registry docker-config --expiry-seconds 15552000 > docker-config.json  # ~180d, read-only
+  ```
+  Note the expiry and diarise re-issuing before it lapses.
+- **Re-auth per deploy:** run `doctl registry login --read-only=true --expiry-seconds <n>` on the
+  Droplet as the first step of every deploy, so each pull uses a fresh, bounded credential.
+
+(Confirm the exact flags against your installed `doctl`; the invariant is *read-only on the Droplet,
+with a credential that is either long-lived-and-diarised or refreshed each deploy*.)
+
+### Cloudflare DNS
+
+Add an **A record** `api` → the Droplet's public IP, **proxied** (orange cloud). Set the zone's
+SSL/TLS mode to **Full (strict)**.
+
+### Secrets → `.env` on the box
+
+`cp deploy/cloud/.env.example deploy/cloud/.env` and fill every value:
+
+| Key | Source |
+|---|---|
+| `ASPNETCORE_ENVIRONMENT` | fixed `Production` |
+| `LocalToken__SecretKey` | `openssl rand -base64 64` |
+| `INDYPOS_RSA_SIGNING_KEY` | `scripts/generate-rsa-key.ps1` |
+| `CLOUD_DB_CONNECTION` | the I2 private connection string (mapped into the container as `ConnectionStrings__cloud-db`) |
+| `CLOUDAPI_IMAGE` | `push-image.ps1` output |
+| `CLOUDAPI_DOMAIN` | `api.indypos.com` |
+| `CLOUDFLARE_API_TOKEN` | the scoped Cloudflare token (`Zone:Read` + `DNS:Edit`, `indypos.com` only) |
+
+### I3 — Deploy
+
+```bash
+cd deploy/cloud
+docker compose -f compose.prod.yaml pull          # cloud-api from the registry
+docker compose -f compose.prod.yaml build caddy   # thin custom Caddy image, once
+docker compose -f compose.prod.yaml up -d
+```
 
 The migrate one-shot runs first and must exit 0; the API will not start otherwise.
+
+### Registry retention (after the deploy verifies)
+
+DO Container Registry garbage collection only reaps **unreferenced** manifests, so every immutable
+timestamp tag stays referenced and counts against the 500 MiB Starter cap forever. Once the new
+release is verified healthy, delete old release tags down to a small rollback window, **then** GC:
+
+```bash
+# Keep latest + the current tag + the previous 2-3; delete older ones.
+doctl registry repository list-tags indypos-cloudapi
+doctl registry repository delete-tag indypos-cloudapi <old-tag>        # repeat per obsolete tag
+doctl registry garbage-collection start --include-untagged-manifests
+```
+
+(Confirm the exact `doctl` flags against your installed version; the sequence — delete obsolete
+release tags/manifests, then GC with untagged cleanup — is the invariant.)
+
+### Verify (acceptance)
+
+1. `docker compose -f compose.prod.yaml ps` — migrate `Exited (0)`, `cloud-api` and `caddy` up.
+2. The managed database has the 13 expected tables.
+3. Caddy's log (`docker compose logs caddy`) shows a certificate obtained for `api.indypos.com`.
+4. `curl https://api.indypos.com/health/live` returns `200`.
+5. Register a store, then `POST https://api.indypos.com/oauth/token` returns `200` with a token.
+6. A direct request to the Droplet IP on 443 from a non-Cloudflare address is refused; 8080 is
+   unreachable off the box.
 
 ## Health
 
@@ -65,8 +172,11 @@ The migrate one-shot runs first and must exit 0; the API will not start otherwis
 
 ## TLS
 
-Nothing in these files terminates TLS, and no domain is registered yet, so `compose.prod.yaml` binds
-the API to `127.0.0.1:8080`. See the marked seam in that file for what a terminator must do.
+TLS is terminated by the `caddy` service in `compose.prod.yaml`, which obtains a publicly-trusted
+certificate (Let's Encrypt, with ZeroSSL as Caddy's automatic fallback) via the Cloudflare DNS-01
+challenge and reverse-proxies plain HTTP to
+`cloud-api:8080` over the private `appnet` network. `cloud-api` publishes no host port. Cloudflare
+sits in front in Full (strict) mode, so traffic is encrypted till→Cloudflare and Cloudflare→Caddy.
 
 **The token endpoint requires HTTPS, and the container serves HTTP — this is now configured, not
 broken.** OpenIddict rejects plain-HTTP token requests with `400` and
@@ -85,8 +195,9 @@ same fail-closed posture as the JWT signing-key guard.
 
 ⚠️ **Turning it on is a statement about your topology, and it is only true if you keep it true.** With
 the flag on, this container will issue access tokens to anything that can reach it over plain HTTP.
-That is safe only while the container is unreachable except through a TLS terminator —
-`compose.prod.yaml` binds it to `127.0.0.1` for exactly this reason. If you ever publish port 8080 on
+That is safe only while the container is unreachable except through a TLS terminator — in
+`compose.prod.yaml`, `cloud-api` publishes no host port and sits on the private `appnet` network,
+reachable only through the `caddy` service, for exactly this reason. If you ever publish port 8080 on
 a public interface, or put the container on a shared network, set the flag back to `false` first.
 
 Verified by controlled comparison against the same image, same request, only the flag differing:
@@ -148,6 +259,15 @@ database actually being reachable first. If the managed cluster is briefly unava
 Compose does not retry this on its own. Once the database is confirmed reachable again, re-run
 `docker compose -f compose.prod.yaml up -d` from the Droplet to retry the migration and bring the
 API up.
+
+**Never `docker compose down -v` in production.** `-v` deletes the named `caddy_data` volume, wiping
+Caddy's ACME account and issued certificate — a plain `docker compose down` leaves named volumes
+intact. Only pass `-v` when you intend to discard Caddy's TLS state.
+
+**The 443 firewall allowlist is recurring maintenance.** Cloudflare's published IPv4/IPv6 ranges
+change over time. Periodically compare the DO cloud firewall's 443 rule against Cloudflare's current
+published ranges and update it if they drift, or direct clients could be blocked / the origin could
+become reachable off-Cloudflare. Automating the sync is out of scope for I1–I3.
 
 ## Follow-ups (post-I0-E, from the 2026-09-17 review)
 
