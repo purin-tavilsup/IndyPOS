@@ -117,7 +117,7 @@ cd deploy/cloud
 cp .env.example .env                 # scratch; .env is gitignored
 # fill dummy values so `config` resolves:
 #   CLOUDAPI_IMAGE=registry.digitalocean.com/example/indypos-cloudapi:localtest
-#   LocalToken__SecretKey=dummy  INDYPOS_RSA_SIGNING_KEY=dummy  ConnectionStrings__cloud-db=dummy
+#   LocalToken__SecretKey=dummy  INDYPOS_RSA_SIGNING_KEY=dummy  CLOUD_DB_CONNECTION=dummy
 docker compose -f compose.prod.yaml config
 rm .env                              # MUST delete the scratch .env
 ```
@@ -210,8 +210,15 @@ name: indypos-cloud
 
 x-cloudapi: &cloudapi
   image: ${CLOUDAPI_IMAGE}
-  env_file: .env
+  # Map only the application variables -- NOT `env_file: .env`, which would also inject
+  # CLOUDFLARE_API_TOKEN (Caddy-only) into the app containers.
   environment:
+    ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT}
+    LocalToken__SecretKey: ${LocalToken__SecretKey}
+    INDYPOS_RSA_SIGNING_KEY: ${INDYPOS_RSA_SIGNING_KEY}
+    # CLOUD_DB_CONNECTION is hyphen-free so it interpolates; the container still gets the
+    # correctly-hyphenated ConnectionStrings__cloud-db key (left-hand side is literal YAML).
+    ConnectionStrings__cloud-db: ${CLOUD_DB_CONNECTION}
     # OpenIddict rejects token requests that did not arrive over HTTPS (ID2083). TLS terminates at
     # Caddy in front of this container, so the requirement is relaxed here. Defaults to false in
     # code -- an unconfigured host stays strict and refuses to issue tokens over cleartext.
@@ -312,7 +319,7 @@ docker network create indypos-cloud_appnet 2>/dev/null || true
 docker run -d --name dryrun-pg --network indypos-cloud_appnet \
   -e POSTGRES_PASSWORD=pw -e POSTGRES_DB=cloud postgres:16-alpine
 # scratch .env: CLOUDAPI_IMAGE=<the :localtest tag from Task 1>, real dummy secrets, and
-#   ConnectionStrings__cloud-db=Host=dryrun-pg;Database=cloud;Username=postgres;Password=pw
+#   CLOUD_DB_CONNECTION=Host=dryrun-pg;Database=cloud;Username=postgres;Password=pw
 docker compose -f compose.prod.yaml up -d cloud-api-migrate cloud-api
 docker compose -f compose.prod.yaml ps        # migrate Exited(0), cloud-api Up
 docker compose -f compose.prod.yaml down
@@ -372,8 +379,9 @@ ranges, deny everything else. No inbound 80, 8080, or 5432.
 ### I2 — Managed PostgreSQL
 
 Create DO Managed PostgreSQL, smallest production tier, `sgp1`, in the same VPC. Restrict its trusted
-sources to the Droplet. Create the database and copy the **private** connection string — it becomes
-`ConnectionStrings__cloud-db` (the hyphen matters; it maps to `AddNpgsqlDbContext<CloudDbContext>("cloud-db")`).
+sources to the Droplet. Create the database and copy the **private** connection string — put it in
+`.env` as `CLOUD_DB_CONNECTION`; `compose.prod.yaml` maps it into the container as
+`ConnectionStrings__cloud-db` (the hyphen matters — it maps to `AddNpgsqlDbContext<CloudDbContext>("cloud-db")`).
 
 ### Registry + image
 
@@ -400,7 +408,7 @@ SSL/TLS mode to **Full (strict)**.
 | `ASPNETCORE_ENVIRONMENT` | fixed `Production` |
 | `LocalToken__SecretKey` | `openssl rand -base64 64` |
 | `INDYPOS_RSA_SIGNING_KEY` | `scripts/generate-rsa-key.ps1` |
-| `ConnectionStrings__cloud-db` | the I2 private connection string |
+| `CLOUD_DB_CONNECTION` | the I2 private connection string (mapped into the container as `ConnectionStrings__cloud-db`) |
 | `CLOUDAPI_IMAGE` | `push-image.ps1` output |
 | `CLOUDAPI_DOMAIN` | `api.indypos.com` |
 | `CLOUDFLARE_API_TOKEN` | the scoped Cloudflare token (`Zone:Read` + `DNS:Edit`, `indypos.com` only) |

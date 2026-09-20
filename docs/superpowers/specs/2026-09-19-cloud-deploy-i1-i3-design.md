@@ -114,8 +114,10 @@ No application code changes — deploy-only. Files under `deploy/cloud/` and one
 
 ### 1. `deploy/cloud/compose.prod.yaml` (edit)
 
-- **`x-cloudapi` anchor:** remove the `build:` block; change `image:` to `${CLOUDAPI_IMAGE}`. Keep
-  `env_file`, the `OpenIddict__TlsTerminatedUpstream: "true"` environment entry, and the log caps.
+- **`x-cloudapi` anchor:** remove the `build:` block; change `image:` to `${CLOUDAPI_IMAGE}`. Do
+  **not** keep `env_file: .env` — it would inject `CLOUDFLARE_API_TOKEN` (Caddy-only) into the app
+  containers; map only the application variables explicitly instead. Keep the
+  `OpenIddict__TlsTerminatedUpstream: "true"` environment entry and the log caps.
 - **`cloud-api` service:** delete the "TLS TERMINATOR SEAM" comment and the
   `ports: ["127.0.0.1:8080:8080"]` mapping. Attach it to an internal `appnet` network only. Keep the
   `depends_on` gate on `cloud-api-migrate`.
@@ -184,16 +186,19 @@ CLOUDAPI_DOMAIN=api.indypos.com
 CLOUDFLARE_API_TOKEN=
 ```
 
-The existing `LocalToken__SecretKey`, `INDYPOS_RSA_SIGNING_KEY`, and `ConnectionStrings__cloud-db`
-entries are unchanged.
+The existing `LocalToken__SecretKey` and `INDYPOS_RSA_SIGNING_KEY` entries are unchanged. The
+connection string moves to a hyphen-free `CLOUD_DB_CONNECTION` key (Compose reads `${NAME-x}` as a
+default expression, so `${ConnectionStrings__cloud-db}` cannot interpolate); `compose.prod.yaml` maps
+it into the container as `ConnectionStrings__cloud-db`.
 
 ### 5. `scripts/cloud/push-image.ps1` (new)
 
 A small Windows helper: build `src/IndyPOS.CloudApi/Dockerfile` from the repo root, tag it
 `registry.digitalocean.com/<registry>/indypos-cloudapi:<tag>` (and `:latest`), and `docker push` both.
-Parameters: `-Registry` and `-Tag` (default `yyyyMMdd-<short git sha>`, so a running tag traces back
-to the exact source commit). It prints the full `CLOUDAPI_IMAGE` line to paste into `.env`.
-`doctl registry login` is a prerequisite the script checks for.
+Parameters: `-Registry`, `-Tag` (default `yyyyMMddTHHmmssZ-<short git sha>` — the UTC timestamp keeps a
+rebuild of the same commit from overwriting a tag), and `-SkipPush` (local build+tag only). It refuses
+to push from a dirty working tree (the image would not match its tagged commit), checks `doctl` is
+authenticated before pushing, and prints the full `CLOUDAPI_IMAGE` line to paste into `.env`.
 
 ## Configuration contract (`.env` on the Droplet)
 
@@ -202,7 +207,7 @@ to the exact source commit). It prints the full `CLOUDAPI_IMAGE` line to paste i
 | `ASPNETCORE_ENVIRONMENT` | fixed `Production` | already in the template |
 | `LocalToken__SecretKey` | `openssl rand -base64 64` | host refuses to start on blank/default outside Development |
 | `INDYPOS_RSA_SIGNING_KEY` | `scripts/generate-rsa-key.ps1` | blank ⇒ ephemeral keys ⇒ every restart invalidates all tokens |
-| `ConnectionStrings__cloud-db` | I2 managed-PG **private** connection string | mind the hyphen — matches `Program.cs:34` |
+| `CLOUD_DB_CONNECTION` | I2 managed-PG **private** connection string | mapped into the container as `ConnectionStrings__cloud-db` (matches `Program.cs:34`) |
 | `CLOUDAPI_IMAGE` | `push-image.ps1` output | registry ref + tag |
 | `CLOUDAPI_DOMAIN` | fixed `api.indypos.com` | Caddy site + cert subject |
 | `CLOUDFLARE_API_TOKEN` | Cloudflare dashboard | `Zone:Read` + `DNS:Edit`, `indypos.com` zone only |
