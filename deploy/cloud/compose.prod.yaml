@@ -1,19 +1,26 @@
 # Droplet deployment unit. On the box:
-#   docker compose -f compose.prod.yaml up -d --build
+#   docker compose -f compose.prod.yaml pull          # cloud-api from the registry
+#   docker compose -f compose.prod.yaml build caddy   # thin custom Caddy image, once
+#   docker compose -f compose.prod.yaml up -d
 # Requires a .env alongside this file (see .env.example). Never commit that file.
 name: indypos-cloud
 
 x-cloudapi: &cloudapi
-  build:
-    context: ../..
-    dockerfile: src/IndyPOS.CloudApi/Dockerfile
-  image: indypos-cloudapi:prod
-  env_file: .env
+  image: ${CLOUDAPI_IMAGE}
+  # Map only the application variables. Deliberately NOT `env_file: .env`: that injects the WHOLE
+  # file -- including CLOUDFLARE_API_TOKEN, a DNS-write credential only Caddy needs -- into the app
+  # containers. Least privilege keeps that token out of cloud-api and the migrate one-shot.
   environment:
+    ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT}
+    LocalToken__SecretKey: ${LocalToken__SecretKey}
+    INDYPOS_RSA_SIGNING_KEY: ${INDYPOS_RSA_SIGNING_KEY}
+    # Sourced from CLOUD_DB_CONNECTION (hyphen-free) because compose reads ${NAME-x} as "NAME,
+    # default x" -- ${ConnectionStrings__cloud-db} would resolve to the literal "db". The container
+    # still gets the correctly-hyphenated key; this left-hand side is literal YAML, not interpolated.
+    ConnectionStrings__cloud-db: ${CLOUD_DB_CONNECTION}
     # OpenIddict rejects token requests that did not arrive over HTTPS (ID2083). TLS terminates at
-    # the reverse proxy in front of this container, so the requirement is relaxed here. Defaults to
-    # false in code -- an unconfigured host stays strict and refuses to issue tokens over cleartext.
-    # If you run this stack WITHOUT a terminator, tokens go out in the clear.
+    # Caddy in front of this container, so the requirement is relaxed here. Defaults to false in
+    # code -- an unconfigured host stays strict and refuses to issue tokens over cleartext.
     OpenIddict__TlsTerminatedUpstream: "true"
   logging:
     driver: json-file
@@ -29,20 +36,46 @@ services:
     container_name: indypos-cloud-api-migrate
     command: ["migrate"]
     restart: "no"
+    networks: [appnet]
 
   cloud-api:
     <<: *cloudapi
     container_name: indypos-cloud-api
     restart: unless-stopped
-    # TLS TERMINATOR SEAM -----------------------------------------------------------------
-    # Bound to loopback on purpose: nothing here terminates TLS, and no domain is registered
-    # yet. The infrastructure guide's firewall opens 443 publicly and 22 to trusted IPs only.
-    # A terminator must: listen on 443 with a certificate for the API's domain, forward to
-    # this container's 8080, and set X-Forwarded-Proto / X-Forwarded-For. When a domain
-    # exists, add a Caddy service on an internal network and drop this ports mapping.
-    # -------------------------------------------------------------------------------------
-    ports:
-      - "127.0.0.1:8080:8080"
+    # No published host port: reachable only by Caddy over the private appnet network below.
+    networks: [appnet]
     depends_on:
       cloud-api-migrate:
         condition: service_completed_successfully
+
+  # TLS terminator + reverse proxy. The only container that publishes a host port.
+  # Obtains a publicly-trusted Let's Encrypt cert via the Cloudflare DNS-01 challenge.
+  caddy:
+    build:
+      context: .
+      dockerfile: Caddy.Dockerfile
+    image: indypos-caddy:prod
+    container_name: indypos-caddy
+    restart: unless-stopped
+    ports:
+      - "443:443"
+    environment:
+      CLOUDAPI_DOMAIN: ${CLOUDAPI_DOMAIN}
+      CLOUDFLARE_API_TOKEN: ${CLOUDFLARE_API_TOKEN}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      # caddy_data holds the ACME account + issued certs. It MUST persist across restarts,
+      # or repeated re-issuance can hit Let's Encrypt rate limits.
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - cloud-api
+    networks: [appnet]
+
+networks:
+  appnet:
+    driver: bridge
+
+volumes:
+  caddy_data:
+  caddy_config:
