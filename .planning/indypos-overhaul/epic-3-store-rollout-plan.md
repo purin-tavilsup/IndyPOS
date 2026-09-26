@@ -107,7 +107,7 @@ A-1 is green.
   box (port 5432 reuse) — a pre-existing instance is acceptable per decision.
 - Have the three real legacy DBs ready
   (`.planning/indypos-overhaul/sqlite_database/{MimyShop,MimyMart,GeneralHardware}/Store.db`).
-- **No Cloud API needed.** Run `migrate`/`verify` **without** `--cloud-api` / `--client-id` /
+- **No Cloud API needed.** Run the migration (root command) and `verify` **without** `--cloud-api` / `--client-id` /
   `--client-secret` — sync only fires when those are set (`Program.cs:163`) and has no effect on the
   exit code (`Program.cs:177`). The whole pipeline runs offline on local StoreHub + local Postgres.
 
@@ -139,12 +139,21 @@ against a live CloudApi (runtime task I4 is not yet verified E2E), so treat A-2 
 not just confirming.
 
 **Two distinct cloud mechanisms to test:**
-1. **Migration-time push** — re-run `MigrationTool migrate` **with** `--cloud-api <url> --client-id
-   <id> --client-secret <secret>`. On success (not dry-run) it calls `SyncToCloudAsync()`
-   (`Program.cs:163-171`) and pushes migrated history to the cloud in one shot.
-2. **Runtime sync** — StoreHub's `SyncWorker` hosted service drains the outbox via
-   `HttpCloudSyncClient` during normal operation (i.e. sales rung *after* go-live). It's wired only
-   when a cloud base URL is configured (`ConfigureServices.cs:114,134`); otherwise `StubCloudSyncClient`.
+1. **Migration-time push** — run `IndyPOS.MigrationTool` (migration is the **root** command; there
+   is no `migrate` sub-command) **with** `--cloud-api <url> --client-id <id> --client-secret <secret>`.
+   On success (not dry-run) it calls `SyncToCloudAsync()` (`Program.cs:163-171`) and pushes migrated
+   history to the cloud in one shot. **This cannot be a re-run** of an A-1 migration: Rule 1 — the
+   migrator refuses a second run against a migrated target. Start from `cleanup-v4.ps1` → Fresh →
+   install → migrate **once, with the cloud flags**.
+2. **Runtime sync** — StoreHub's `SyncWorker` drains the outbox via `HttpCloudSyncClient` during
+   normal operation (sales rung *after* go-live). A fresh install **turns it off**: the installer
+   writes `CloudApi.ClientId = ""` (so `AddStoreHubServices` picks `StubCloudSyncClient`) and
+   `SyncWorker.Enabled = false` (so the worker exits). To turn it on: set `CloudApi.ClientId` /
+   `ClientSecret` and `SyncWorker.Enabled = true` in StoreHub's `appsettings.json`, then restart the
+   service. ⚠️ **Blocked by a code bug (found 2026-09-26):** StoreHub never reads `CloudApi.BaseUrl`
+   — `ConfigureServices.cs:105-107` takes the base URL only from Aspire's
+   `services:cloud-api:*` keys, else `https+http://cloud-api`, which does not resolve on a store
+   PC. Fix and RED-test that before A-2.
 
 **Prerequisites**
 - A registered store client → `client_id` / `client_secret` (the I0-E client registry; OAuth2
@@ -156,7 +165,7 @@ not just confirming.
 ~140k rows to the cloud in a rehearsal.
 
 **Verify:** migrated rows land in the cloud Postgres; a post-go-live sale flows outbox → SyncWorker →
-cloud; the OAuth2 token exchange succeeds.
+cloud (after the runtime-sync config step above); the OAuth2 token exchange succeeds.
 
 **Cleanup:** wipe the cloud test dataset (and any pushed registry artefacts) after the run — cloud data
 is disposable by decision.
@@ -180,14 +189,16 @@ The canonical live cutover. Steps **0–2 and 8** are the production-only harden
 
 3. INSTALL     IndyPOS-Setup.exe --silent --store-id <ID> --store-type <T>
 
-4. DRY-RUN     IndyPOS.MigrationTool migrate -s <backup> -p <pg-conn> -i <ID> --dry-run
+4. DRY-RUN     IndyPOS.MigrationTool -s <backup> -p <pg-conn> -i <ID> --dry-run
 
-5. MIGRATE     IndyPOS.MigrationTool migrate -s <backup> -p <pg-conn> -i <ID>      # once (Rule 1)
+5. MIGRATE     IndyPOS.MigrationTool -s <backup> -p <pg-conn> -i <ID>      # once (Rule 1)
 
 6. VERIFY      IndyPOS.MigrationTool verify  -s <backup> -p <pg-conn> --store-id <ID>   # Rule 2
 
-7. SMOKE       smoke-test.ps1 -StoreHubUrl <url> -Username <u> -Password <p>
-               (health + auth + a controlled test sale — record then void the test invoice IDs)
+7. SMOKE       docs/operations/smoke-test.ps1 -StoreHubUrl <url> -Username <u> -Password <p>
+               READ-ONLY: health + auth + GETs. It writes nothing. NEVER run scripts/smoke-test.ps1
+               on a real store — it creates products, stock adjustments and sales. v4 has no
+               invoice-void route, so a test sale cannot be reversed (see step 9).
 
 8. BASELINE    Take a post-migration PostgreSQL dump (known-good v4 snapshot) before real trading.
 
