@@ -59,6 +59,17 @@ public class CashAuthorizationTests : IntegrationTestBase
     }
 
     [Fact]
+    public async Task GetSummary_WithTokenMissingUserId_ReturnsUnauthorized()
+    {
+        Client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", TokenWithoutUserId());
+
+        var response = await Client.GetAsync("/cash/summary");
+
+        response.StatusCode.Should()
+                           .Be(HttpStatusCode.Unauthorized);
+    }
+
+    [Fact]
     public async Task GetSummary_AsCashier_ReturnsOk()
     {
         await AuthenticateAsCashierAsync();

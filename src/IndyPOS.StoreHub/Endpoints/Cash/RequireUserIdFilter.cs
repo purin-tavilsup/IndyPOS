@@ -1,8 +1,10 @@
 namespace IndyPOS.StoreHub.Endpoints.Cash;
 
 /// <summary>
-/// Every cash write is stamped with the acting user, so a token without a usable user id is
-/// rejected up front (401) instead of failing later as a 500.
+/// Guards the whole /cash group — reads included, not just writes. Every cash write is stamped
+/// with the acting user, so a token without a usable user id is rejected up front (401) instead of
+/// failing later as a 500; reads are rejected too, so a token without an identity never reaches
+/// cash data at all.
 /// </summary>
 internal sealed class RequireUserIdFilter : IEndpointFilter
 {
