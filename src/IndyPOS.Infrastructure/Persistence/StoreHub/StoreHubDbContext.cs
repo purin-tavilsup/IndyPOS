@@ -24,6 +24,10 @@ public class StoreHubDbContext : DbContext
     public DbSet<StoreSetting> StoreSettings => Set<StoreSetting>();
     public DbSet<PaymentMethod> PaymentMethods => Set<PaymentMethod>();
     public DbSet<ProductCategory> ProductCategories => Set<ProductCategory>();
+    public DbSet<CashPayout> CashPayouts => Set<CashPayout>();
+    public DbSet<CashFloat> CashFloats => Set<CashFloat>();
+    public DbSet<DebtRepayment> DebtRepayments => Set<DebtRepayment>();
+    public DbSet<CashCount> CashCounts => Set<CashCount>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
