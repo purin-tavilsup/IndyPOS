@@ -33,4 +33,7 @@ public static class Capability
 
     // Report operations
     public const string ReportsView = "reports.view";
+
+    // Cash drawer (ลิ้นชักเก็บเงิน): add/edit/delete/view payouts, floats, repayments and counts
+    public const string CashManage = "cash.manage";
 }
