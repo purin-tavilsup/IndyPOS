@@ -26,6 +26,12 @@
   (`docs/superpowers/specs/2026-09-20-cash-payout-float-persistence-design.md` §12): each store's
   v4 DB gets the cash tables from day one, and no store runs v4 on the retired JSON + Drive CSV path.
   Phase A does **not** wait for it.
+- **An invoice-void feature must exist before Phase B** (decided 2026-09-26): step 9's test sale
+  from each terminal must be reversible, or it stays in the store's money totals. Needs its own
+  spec (it also starts the "admin sale corrections" item in the cash spec §11: void reverses stock,
+  keeps the original, records who/when, and needs a cloud event).
+- **The one-shot history push must be proven at scale in Phase A-2** — including GeneralHardware's
+  ~140k invoices — because Phase B pushes every store's history during its single migration run.
 - **The cloud is deployed (with the new cash event handlers) before the first store goes live**,
   because `EventProcessor` currently drops unknown event types. Phase A-2 should cover cash sync
   end to end.
@@ -161,8 +167,9 @@ not just confirming.
 - A CloudApi target. Local container is simplest; the deployed DO instance also works since **cloud
   test data is disposable** (reset/clean afterward).
 
-**Scope:** one small store (MimyShop) is enough to prove both paths — no need to push GeneralHardware's
-~140k rows to the cloud in a rehearsal.
+**Scope:** MimyShop first to prove both paths, then **GeneralHardware's ~140k invoices** for the
+history push — Phase B pushes every store's history in its one migration run, so the push must be
+proven at the largest store's scale first.
 
 **Verify:** migrated rows land in the cloud Postgres; a post-go-live sale flows outbox → SyncWorker →
 cloud (after the runtime-sync config step above); the OAuth2 token exchange succeeds.
@@ -191,7 +198,10 @@ The canonical live cutover. Steps **0–2 and 8** are the production-only harden
 
 4. DRY-RUN     IndyPOS.MigrationTool -s <backup> -p <pg-conn> -i <ID> --dry-run
 
-5. MIGRATE     IndyPOS.MigrationTool -s <backup> -p <pg-conn> -i <ID>      # once (Rule 1)
+5. MIGRATE     IndyPOS.MigrationTool -s <backup> -p <pg-conn> -i <ID>                  --cloud-api <url> --client-id <id> --client-secret <secret>   # once (Rule 1)
+               The cloud flags are REQUIRED in production: they push the store's history to the
+               cloud in the same run (decided 2026-09-26). Rule 1 means there is no second chance —
+               a store migrated without them never gets its history into the cloud.
 
 6. VERIFY      IndyPOS.MigrationTool verify  -s <backup> -p <pg-conn> --store-id <ID>   # Rule 2
 
@@ -203,7 +213,8 @@ The canonical live cutover. Steps **0–2 and 8** are the production-only harden
 8. BASELINE    Take a post-migration PostgreSQL dump (known-good v4 snapshot) before real trading.
 
 9. TERMINALS   Point each POS terminal at StoreHub (appsettings BaseUrl → host:5000, firewall);
-               ring a real test sale FROM EACH terminal.
+               ring a real test sale FROM EACH terminal, then VOID it with the invoice-void
+               feature and record both invoice ids in cutover-record.md.
 
 10. SIGN-OFF   Owner/operator confirms readiness.
 
