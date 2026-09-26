@@ -68,7 +68,7 @@ public class CashFloatHandlersTests
     }
 
     [Fact]
-    public async Task Add_WithValidCommand_StampsTodayAndWritesAFloatChangedEvent()
+    public async Task Add_WithValidCommand_StampsToday()
     {
         await using var c = new CashDrawerTestContext();
 
@@ -76,12 +76,21 @@ public class CashFloatHandlersTests
 
         result.BusinessDate.Should()
                            .Be(CashDrawerTestContext.Today);
+    }
+
+    [Fact]
+    public async Task Add_WithValidCommand_WritesAFloatChangedEvent()
+    {
+        await using var c = new CashDrawerTestContext();
+
+        await AddHandler(c).HandleAsync(new AddCashFloatCommand(CashDrawerTestContext.CashierId, 1000m, " ทอนเช้า "));
+
         c.OutboxEvents().Should()
                         .ContainSingle(e => e.Type == CashDrawerOutbox.CashFloatChanged);
     }
 
     [Fact]
-    public async Task Edit_WithTodaysFloat_UpdatesAmountAndEditor()
+    public async Task Edit_WithTodaysFloat_UpdatesTheAmount()
     {
         await using var c = new CashDrawerTestContext();
         var cashFloat = await SeedFloatAsync(c, CashDrawerTestContext.Today);
@@ -90,6 +99,16 @@ public class CashFloatHandlersTests
 
         result.Amount.Should()
                      .Be(700m);
+    }
+
+    [Fact]
+    public async Task Edit_WithTodaysFloat_RecordsTheEditor()
+    {
+        await using var c = new CashDrawerTestContext();
+        var cashFloat = await SeedFloatAsync(c, CashDrawerTestContext.Today);
+
+        var result = await EditHandler(c).HandleAsync(new EditCashFloatCommand(cashFloat.Id, CashDrawerTestContext.OtherCashierId, 700m, null));
+
         result.LastModifiedByUserId.Should()
                                    .Be(CashDrawerTestContext.OtherCashierId);
     }
