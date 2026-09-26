@@ -86,7 +86,7 @@ public class DebtRepaymentHandlersTests
     }
 
     [Fact]
-    public async Task Add_WithValidCommand_TrimsNameAndWritesARepaymentChangedEvent()
+    public async Task Add_WithValidCommand_TrimsTheCustomerName()
     {
         await using var c = new CashDrawerTestContext();
 
@@ -94,6 +94,15 @@ public class DebtRepaymentHandlersTests
 
         result.CustomerName.Should()
                            .Be(CustomerName);
+    }
+
+    [Fact]
+    public async Task Add_WithValidCommand_WritesARepaymentChangedEvent()
+    {
+        await using var c = new CashDrawerTestContext();
+
+        await AddHandler(c).HandleAsync(new AddDebtRepaymentCommand(CashDrawerTestContext.CashierId, "  ลุงสมชาย ", 300m));
+
         c.OutboxEvents().Should()
                         .ContainSingle(e => e.Type == CashDrawerOutbox.DebtRepaymentChanged);
     }
