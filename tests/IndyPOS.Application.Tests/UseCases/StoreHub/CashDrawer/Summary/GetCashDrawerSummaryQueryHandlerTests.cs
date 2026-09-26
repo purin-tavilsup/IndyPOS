@@ -45,6 +45,28 @@ public class GetCashDrawerSummaryQueryHandlerTests
         await c.Db.SaveChangesAsync();
     }
 
+    private static async Task AddCashFloatAsync(CashDrawerTestContext c, decimal amount, bool isDeleted = false)
+    {
+        c.Db.CashFloats.Add(new CashFloat
+        {
+            Id = Guid.NewGuid(), StoreId = c.StoreIdentity.StoreId, Amount = amount,
+            BusinessDate = CashDrawerTestContext.Today, CreatedByUserId = CashDrawerTestContext.CashierId,
+            IsDeleted = isDeleted
+        });
+        await c.Db.SaveChangesAsync();
+    }
+
+    private static async Task AddDebtRepaymentAsync(CashDrawerTestContext c, decimal amount, bool isDeleted = false)
+    {
+        c.Db.DebtRepayments.Add(new DebtRepayment
+        {
+            Id = Guid.NewGuid(), StoreId = c.StoreIdentity.StoreId, Amount = amount,
+            BusinessDate = CashDrawerTestContext.Today, CreatedByUserId = CashDrawerTestContext.CashierId,
+            CustomerName = "ลุงสมชาย", IsDeleted = isDeleted
+        });
+        await c.Db.SaveChangesAsync();
+    }
+
     [Fact]
     public async Task HandleAsync_WithNoCountToday_ReturnsNullDifference()
     {
@@ -78,6 +100,19 @@ public class GetCashDrawerSummaryQueryHandlerTests
 
         result.PayoutsTotal.Should()
                            .Be(100m);
+    }
+
+    [Fact]
+    public async Task HandleAsync_WithSoftDeletedCashFloat_ExcludesItFromTotals()
+    {
+        await using var c = new CashDrawerTestContext();
+        await AddCashFloatAsync(c, 100m);
+        await AddCashFloatAsync(c, 999m, isDeleted: true);
+
+        var result = await HandlerFor(c).HandleAsync(new GetCashDrawerSummaryQuery(null));
+
+        result.CashFloatsTotal.Should()
+                              .Be(100m);
     }
 
     [Fact]
@@ -154,5 +189,29 @@ public class GetCashDrawerSummaryQueryHandlerTests
 
         result.IsEditable.Should()
                          .BeTrue();
+    }
+
+    [Fact]
+    public async Task HandleAsync_WithCashFloat_AddsItToExpectedCash()
+    {
+        await using var c = new CashDrawerTestContext();
+        await AddCashFloatAsync(c, 1_000m);
+
+        var result = await HandlerFor(c).HandleAsync(new GetCashDrawerSummaryQuery(null));
+
+        result.ExpectedCash.Should()
+                           .Be(CashSales + 1_000m);
+    }
+
+    [Fact]
+    public async Task HandleAsync_WithDebtRepayment_AddsItToExpectedCash()
+    {
+        await using var c = new CashDrawerTestContext();
+        await AddDebtRepaymentAsync(c, 300m);
+
+        var result = await HandlerFor(c).HandleAsync(new GetCashDrawerSummaryQuery(null));
+
+        result.ExpectedCash.Should()
+                           .Be(CashSales + 300m);
     }
 }
