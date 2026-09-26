@@ -1,0 +1,13 @@
+namespace IndyPOS.StoreHub.Endpoints.Cash;
+
+/// <summary>
+/// Every cash write is stamped with the acting user, so a token without a usable user id is
+/// rejected up front (401) instead of failing later as a 500.
+/// </summary>
+internal sealed class RequireUserIdFilter : IEndpointFilter
+{
+    public ValueTask<object?> InvokeAsync(EndpointFilterInvocationContext context, EndpointFilterDelegate next) =>
+        context.HttpContext.User.FindUserId() is null
+            ? ValueTask.FromResult<object?>(Results.Unauthorized())
+            : next(context);
+}
