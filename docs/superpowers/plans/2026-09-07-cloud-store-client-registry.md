@@ -10,6 +10,17 @@
 
 **Spec:** `docs/superpowers/specs/2026-08-20-cloud-store-client-registry-design.md` — read it alongside this plan; the plan argues from it.
 
+> **Shipped in PR #93 — this plan is the historical record, and three of its steps were wrong.**
+> The shipped code fixed each; read the code, not these steps, if you are copying the pattern:
+> 1. **Task 2's bare `BeginTransactionAsync`** is rejected by Npgsql's retrying execution strategy.
+>    Shipped: the whole unit runs inside `Database.CreateExecutionStrategy().ExecuteAsync`
+>    (`RegisterStoreHandler.cs:62-77`).
+> 2. **A concurrent duplicate registration** passes the existence check and hits a unique violation
+>    → `500`. Shipped: `DbUpdateException` with `UniqueViolation` maps to `409` (commit `04bc03f`).
+> 3. **Task 1's EF Core InMemory 10** breaks CloudApi's EF 9 / OpenIddict stack with a
+>    `MissingMethodException`. Shipped: `Microsoft.EntityFrameworkCore.InMemory` `9.0.6`
+>    (`tests/IndyPOS.CloudApi.Tests/IndyPOS.CloudApi.Tests.csproj`).
+
 ## Global Constraints
 
 - **OpenIddict is pinned to `6.*`** in `src/IndyPOS.CloudApi/IndyPOS.CloudApi.csproj`. The 6.x handler layout is assumed throughout. (The spec's out-of-scope note flags pinning the exact version in a separate PR — do **not** do it here.)
