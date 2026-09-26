@@ -10,6 +10,7 @@ public class CashCountHandlersTests
 {
     private static readonly AddCashCountRequest MorningCount = new(1, 0, 5, 0, 0, 10, 0, 0, 3);   // 1×1000 + 5×100 + 10×10 + 3×1 = 1603
     private static readonly AddCashCountRequest EveningCount = new(2, 0, 0, 0, 0, 0, 0, 0, 0);    // 2000
+    private static readonly AddCashCountRequest EmptyDrawer = new(0, 0, 0, 0, 0, 0, 0, 0, 0);    // 0
 
     private static AddCashCountCommandHandler AddHandler(CashDrawerTestContext c) =>
         new(c.CountRepository(), c.Clock, c.StoreIdentity);
@@ -40,6 +41,30 @@ public class CashCountHandlersTests
 
         c.Db.CashCounts.Should()
                        .BeEmpty();
+    }
+
+    [Fact]
+    public async Task Add_WithANegativeDenomination_WritesNoEvent()
+    {
+        await using var c = new CashDrawerTestContext();
+        var negative = MorningCount with { Coin2Count = -1 };
+
+        try { await AddHandler(c).HandleAsync(new AddCashCountCommand(CashDrawerTestContext.CashierId, negative)); }
+        catch (CashEntryValidationException) { }
+
+        c.OutboxEvents().Should()
+                        .BeEmpty();
+    }
+
+    [Fact]
+    public async Task Add_WithAllZeroCounts_ReturnsZeroTotal()
+    {
+        await using var c = new CashDrawerTestContext();
+
+        var result = await AddHandler(c).HandleAsync(new AddCashCountCommand(CashDrawerTestContext.CashierId, EmptyDrawer));
+
+        result.CountedTotal.Should()
+                           .Be(0m);
     }
 
     [Fact]
@@ -86,6 +111,29 @@ public class CashCountHandlersTests
 
         c.OutboxEvents().Should()
                         .ContainSingle(e => e.Type == CashDrawerOutbox.CashCountChanged);
+    }
+
+    [Fact]
+    public async Task Get_WithNoCountsToday_ReturnsEmpty()
+    {
+        await using var c = new CashDrawerTestContext();
+
+        var result = await GetHandler(c).HandleAsync(new GetCashCountsQuery(null));
+
+        result.Should()
+              .BeEmpty();
+    }
+
+    [Fact]
+    public async Task Get_WithPastDate_ExcludesTodaysCounts()
+    {
+        await using var c = new CashDrawerTestContext();
+        await AddHandler(c).HandleAsync(new AddCashCountCommand(CashDrawerTestContext.CashierId, MorningCount));
+
+        var result = await GetHandler(c).HandleAsync(new GetCashCountsQuery(CashDrawerTestContext.Yesterday));
+
+        result.Should()
+              .BeEmpty();
     }
 
     [Fact]
