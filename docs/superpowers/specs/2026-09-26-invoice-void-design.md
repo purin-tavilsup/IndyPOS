@@ -120,6 +120,13 @@ writes to the same debt conflict whichever lands first. That closes three races 
 | Void lands, then a payment saves | Money recorded on a cancelled debt, or a `500` from `PayLaterRepository.UpdateAsync` re-reading a now-filtered row | Payment → `409` |
 | Two payments on one debt at once | Both read the old `PaidAmount`; one payment is **lost** (pre-existing bug) | Second payment → `409` |
 
+**The token only works if its original value is the one the calculation used.** Today the payment
+path reads the debt twice: `PayLaterRepository.GetByIdAsync` loads it untracked and the handler
+computes `PaidAmount + payment` from that, then `UpdateAsync` re-reads the row and saves. EF would
+compare against the *second* read, so a payment committed between the two reads would pass the check
+and still be lost. So every PayLater write — payment and void — **loads the debt once, tracked,
+changes that entity and saves it**; `UpdateAsync`'s second read is removed.
+
 The payment path therefore changes too:
 - A conflict, or a debt that vanished under the `"Voided"` filter between load and save, returns
   **`409`** "ข้อมูลหนี้เปลี่ยนแปลง กรุณาลองใหม่", never a `500`. Nothing is written.
@@ -186,6 +193,13 @@ POST /invoices/{id}/void      body { reason, note? }   → 201 + void record
   own security review).
 - **Ordering:** needs the `IndyPOS.Presentation` project from cash-drawer plan 3; if this feature
   is built first, its plan creates that project.
+- **Prerequisite — invoice history on v4 (separate spec).** On the v4 till the invoice list and
+  detail are not reachable today: every invoice method in `StoreHubReportService` is a stub (the
+  list returns empty; detail still takes legacy `int` ids and returns `StubInvoiceInfo`), although
+  StoreHub already serves `GET /reports/invoices` and `GET /reports/invoices/{id}`. A separate
+  spec moves that client and `SalesHistoryReportPanel` onto Guid ids and an
+  `InvoiceHistoryViewModel`. This feature's ยกเลิกบิล button plugs into that detail view; it does not
+  build its own lookup.
 
 ## 9. Testing
 
@@ -202,6 +216,8 @@ POST /invoices/{id}/void      body { reason, note? }   → 201 + void record
   - payment then void → the void gets `409`, and the payment stays;
   - void then payment → the payment gets `409`, and nothing is written;
   - two payments on one debt → one gets `409`, and `PaidAmount` equals the one that won (no lost ฿);
+  - payment A commits **after** payment B loads the debt but **before** B saves → B gets `409`
+    (pins the single-read rule);
   - payment on a debt voided before it started → not found.
 - One `InvoiceVoided` event in the same save; none on any rejected path.
 - Cloud: `InvoiceVoided` before `InvoiceCompleted` stays pending and succeeds after.
@@ -211,8 +227,10 @@ POST /invoices/{id}/void      body { reason, note? }   → 201 + void record
 ## 10. Timing
 
 A **Phase B prerequisite**: it must ship, with its cloud handler deployed, before the first store
-cuts over. It does not block Phase A. Suggested order: cash-drawer plans 1–3, then this (it reuses
-the Presentation project and the clock), unless Phase B is scheduled sooner.
+cuts over. It does not block Phase A. It **depends on the invoice-history-on-v4 spec** (§8), which
+is itself needed for Phase B, since managers must see sales history at go-live. Suggested order:
+invoice history on v4, cash-drawer plans 1–3, then this (it reuses the Presentation project and the
+clock), unless Phase B is scheduled sooner.
 
 ## 11. Open questions
 
