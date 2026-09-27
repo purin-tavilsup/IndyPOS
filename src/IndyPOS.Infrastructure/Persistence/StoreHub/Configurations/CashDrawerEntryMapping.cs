@@ -4,7 +4,10 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace IndyPOS.Infrastructure.Persistence.StoreHub.Configurations;
 
-/// <summary>Column mapping, soft-delete filter and day index shared by the three entry tables.</summary>
+/// <summary>
+/// Column mapping, soft-delete filter, day index and delete concurrency token shared by the three
+/// entry tables.
+/// </summary>
 internal static class CashDrawerEntryMapping
 {
     public static void MapCashDrawerEntry<TEntry>(this EntityTypeBuilder<TEntry> builder, string tableName)
@@ -21,7 +24,11 @@ internal static class CashDrawerEntryMapping
         builder.Property(e => e.LastModifiedUtc).HasColumnName("last_modified_utc").IsRequired();
         builder.Property(e => e.CreatedByUserId).HasColumnName("created_by_user_id").IsRequired();
         builder.Property(e => e.LastModifiedByUserId).HasColumnName("last_modified_by_user_id");
-        builder.Property(e => e.IsDeleted).HasColumnName("is_deleted").HasDefaultValue(false).IsRequired();
+        builder.Property(e => e.IsDeleted).HasColumnName("is_deleted").HasDefaultValue(false).IsRequired()
+               // Every UPDATE carries "AND is_deleted = <as loaded>", so a save that raced a delete
+               // matches no row and fails instead of rewriting the audit or emitting a second event.
+               // Edits never change the flag, so two edits still do not conflict (last save wins).
+               .IsConcurrencyToken();
         builder.Property(e => e.DeletedUtc).HasColumnName("deleted_utc");
 
         builder.HasQueryFilter(CashDrawerQueryFilters.SoftDelete, e => !e.IsDeleted);

@@ -34,9 +34,20 @@ public class CashEntryRepository<TEntry>(StoreHubDbContext db) : ICashEntryRepos
         await db.SaveChangesAsync(cancellationToken);
     }
 
-    public async Task SaveChangesAsync(OutboxEvent outboxEvent, CancellationToken cancellationToken = default)
+    public async Task<bool> TrySaveChangesAsync(OutboxEvent outboxEvent, CancellationToken cancellationToken = default)
     {
         db.OutboxEvents.Add(outboxEvent);
-        await db.SaveChangesAsync(cancellationToken);
+        try
+        {
+            await db.SaveChangesAsync(cancellationToken);
+            return true;
+        }
+        catch (DbUpdateConcurrencyException)
+        {
+            // The outbox INSERT shared the failed SaveChanges' transaction, so it was rolled back.
+            // Clear it from the tracker too, or a later save in this scope would retry it.
+            db.ChangeTracker.Clear();
+            return false;
+        }
     }
 }

@@ -19,6 +19,15 @@ public interface ICashEntryRepository<TEntry> where TEntry : CashDrawerEntry
 
     Task AddAsync(TEntry entry, OutboxEvent outboxEvent, CancellationToken cancellationToken = default);
 
-    /// <summary>Saves changes made to an entry loaded through this repository, plus its event.</summary>
-    Task SaveChangesAsync(OutboxEvent outboxEvent, CancellationToken cancellationToken = default);
+    /// <summary>
+    /// Saves changes made to an entry loaded through this repository, plus its event, in one
+    /// SaveChanges. The save is guarded by the deleted flag as it was loaded: if another request
+    /// deleted the entry after this one loaded it, nothing is written — not the entry, not the
+    /// event — and the pending changes are discarded.
+    /// </summary>
+    /// <returns>
+    /// True when the entry and its event were saved; false when the entry was deleted concurrently.
+    /// Two edits never conflict with each other: the later save wins.
+    /// </returns>
+    Task<bool> TrySaveChangesAsync(OutboxEvent outboxEvent, CancellationToken cancellationToken = default);
 }

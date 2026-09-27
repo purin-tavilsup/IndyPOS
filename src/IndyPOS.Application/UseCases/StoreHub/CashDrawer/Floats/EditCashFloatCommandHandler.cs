@@ -6,7 +6,10 @@ using Nokpirab;
 
 namespace IndyPOS.Application.UseCases.StoreHub.CashDrawer.Floats;
 
-/// <summary>Last save wins: no version check, by decision (one shared drawer).</summary>
+/// <summary>
+/// Last save wins against another edit: no version check, by decision (one shared drawer). An
+/// entry deleted after it was loaded is not found, the same as one deleted before.
+/// </summary>
 public class EditCashFloatCommandHandler(
     ICashEntryRepository<CashFloat> repository,
     ICashDrawerClock clock) : ICommandHandler<EditCashFloatCommand, CashFloatDto>
@@ -25,7 +28,9 @@ public class EditCashFloatCommandHandler(
         cashFloat.Description = description;
         cashFloat.Touch(command.UserId, now.Utc);
 
-        await repository.SaveChangesAsync(CashDrawerOutbox.Changed(cashFloat, now.Utc), cancellationToken);
+        if (!await repository.TrySaveChangesAsync(CashDrawerOutbox.Changed(cashFloat, now.Utc), cancellationToken))
+            throw new CashEntryNotFoundException(command.Id);
+
         return cashFloat.ToDto();
     }
 }

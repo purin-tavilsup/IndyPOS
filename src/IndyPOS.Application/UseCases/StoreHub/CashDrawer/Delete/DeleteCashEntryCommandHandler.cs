@@ -9,6 +9,8 @@ namespace IndyPOS.Application.UseCases.StoreHub.CashDrawer.Delete;
 /// <summary>
 /// Soft-deletes a payout, float or debt repayment. Idempotent: a repeat delete (double-click, retry
 /// after a network blip) changes nothing and writes no event, so the audit record is never rewritten.
+/// That holds for two deletes in flight at once too: the one that saves second finds the row
+/// already deleted and is a no-op.
 /// </summary>
 public class DeleteCashEntryCommandHandler<TEntry>(
     ICashEntryRepository<TEntry> repository,
@@ -28,6 +30,7 @@ public class DeleteCashEntryCommandHandler<TEntry>(
         CashDayGuard.EnsureEditable(entry.BusinessDate, now.BusinessDate);
 
         entry.MarkDeleted(command.UserId, now.Utc);
-        await repository.SaveChangesAsync(CashDrawerOutbox.Changed(entry, now.Utc), cancellationToken);
+        // False means a concurrent delete won; that is the idempotent outcome, so nothing to do.
+        await repository.TrySaveChangesAsync(CashDrawerOutbox.Changed(entry, now.Utc), cancellationToken);
     }
 }
