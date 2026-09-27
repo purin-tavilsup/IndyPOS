@@ -146,13 +146,14 @@ the second insert. Map the Npgsql unique violation to the same `409` (as I0-E le
 ## 6. API, permission, reports
 
 ```
-POST /invoices/{id}/void      body { reason, note? }   → 201 + void record
+POST /sales/{id:guid}/void    body { reason, note? }   → 201 + void record
 ```
 
 - New `Capability.SalesVoid = "sales.void"` for **StoreManager, SystemAdmin**; policy
   `CanVoidSales`. Cashier → `403`.
 - Same filters as `/cash`: a token without a usable user id → `401`; `{ error }` Thai bodies.
-- Routes in their own file, `src/IndyPOS.StoreHub/Endpoints/Sales/InvoiceVoidEndpoints.cs`.
+- Routes in their own file, `src/IndyPOS.StoreHub/Endpoints/Sales/InvoiceVoidEndpoints.cs`, under the
+  single `/sales` resource root (invoice-history spec §6; REST: one root per resource).
 - No "undo void" route.
 - **Existing PayLater payment route changes** (§5a): a write conflict now returns `409` with a Thai
   body instead of overwriting or failing with `500`.
@@ -181,7 +182,8 @@ POST /invoices/{id}/void      body { reason, note? }   → 201 + void record
 
 ## 8. UI (MVVM)
 
-- **Where:** Reports → invoice detail → **ยกเลิกบิล** button, visible only with `sales.void`,
+- **Where:** the invoice detail (`InvoiceDetailView` / `InvoiceDetailViewModel`, invoice-history
+  spec §7) → **ยกเลิกบิล** button, visible only with `sales.void`,
   enabled only for today's, not-yet-voided invoices.
 - **Dialog:** reason picker (4 Thai reasons), note box (required for อื่นๆ), summary
   "บิล #… ยอด ฿…", then a second confirmation — a void cannot be undone.
