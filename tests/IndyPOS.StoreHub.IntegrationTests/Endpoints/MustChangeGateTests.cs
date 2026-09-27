@@ -30,7 +30,7 @@ public class MustChangeGateTests : IntegrationTestBase
             db.StoreUsers.Add(new StoreUser
             {
                 Id = Guid.NewGuid(), StoreId = "test-store",
-                LegacyUserId = Random.Shared.Next(1000, 9999),
+                LegacyUserId = NextLegacyUserId(),
                 Username = username, PasswordHash = BCrypt.Net.BCrypt.HashPassword("Password123!"),
                 PasswordHashVersion = 2, FirstName = "MC", LastName = "Admin",
                 RoleId = (int)UserRole.SystemAdmin, IsActive = true,

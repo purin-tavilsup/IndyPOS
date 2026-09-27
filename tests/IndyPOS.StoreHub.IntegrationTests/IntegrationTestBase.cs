@@ -29,6 +29,16 @@ public abstract class IntegrationTestBase : IClassFixture<StoreHubWebApplication
         PropertyNameCaseInsensitive = true
     };
 
+    /// <summary>
+    /// A legacy user id no other test user in this run has. <c>store_user.legacy_user_id</c> is
+    /// unique and the shared test database is not reset between tests, so random ids collided once
+    /// enough users built up (the birthday problem) — a counter never repeats.
+    /// </summary>
+    protected static int NextLegacyUserId() => Interlocked.Increment(ref _lastLegacyUserId);
+
+    // Starts well clear of the small ids that seeders and migrated users carry.
+    private static int _lastLegacyUserId = 100_000;
+
     protected IntegrationTestBase(StoreHubWebApplicationFactory factory)
     {
         Factory = factory;
@@ -99,7 +109,7 @@ public abstract class IntegrationTestBase : IClassFixture<StoreHubWebApplication
         {
             Id = Guid.NewGuid(),
             StoreId = "test-store",
-            LegacyUserId = Random.Shared.Next(1000, 9999),
+            LegacyUserId = NextLegacyUserId(),
             Username = username,
             PasswordHash = BCrypt.Net.BCrypt.HashPassword(password),
             PasswordHashVersion = 2, // BCrypt
