@@ -16,8 +16,8 @@ public class EditCashPayoutCommandHandlerTests
     private static EditCashPayoutCommandHandler HandlerFor(CashDrawerTestContext context) =>
         new(context.EntryRepository<CashPayout>(), context.Clock);
 
-    private static EditCashPayoutCommand Command(Guid id, decimal amount = EditedAmount) =>
-        new(id, CashDrawerTestContext.OtherCashierId, amount, PayoutCategory.Hardware, "แก้ไข");
+    private static EditCashPayoutCommand Command(Guid id, decimal amount = EditedAmount, PayoutCategory? category = PayoutCategory.Hardware) =>
+        new(id, CashDrawerTestContext.OtherCashierId, amount, category, "แก้ไข");
 
     [Fact]
     public async Task HandleAsync_WithUnknownId_Throws()
@@ -89,6 +89,18 @@ public class EditCashPayoutCommandHandlerTests
         var payout = await context.SeedPayoutAsync(CashDrawerTestContext.Today);
 
         var act = () => HandlerFor(context).HandleAsync(Command(payout.Id, amount: -1m));
+
+        await act.Should()
+                 .ThrowAsync<CashEntryValidationException>();
+    }
+
+    [Fact]
+    public async Task HandleAsync_WithoutCategory_Throws()
+    {
+        await using var context = new CashDrawerTestContext();
+        var payout = await context.SeedPayoutAsync(CashDrawerTestContext.Today);
+
+        var act = () => HandlerFor(context).HandleAsync(Command(payout.Id, category: null));
 
         await act.Should()
                  .ThrowAsync<CashEntryValidationException>();
