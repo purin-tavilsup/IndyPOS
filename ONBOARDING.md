@@ -56,13 +56,14 @@ was **measured** with Docker down on 2026-09-27; the final-review test additions
 HTTP integration tests (`CashFloatEndpointsTests`, `DebtRepaymentEndpointsTests`, plus new cases in
 `CashAuthorizationTests` and `CashPayoutEndpointsTests`) and the concurrent-delete fix added 7
 real-Postgres race tests (`CashEntryConcurrencyTests`), all of which need Docker the same way, so its
-**148** is **derived** (128 + 20), not re-measured. The other two rows are still **derived** (neither
+**148** is **derived** (128 + 20), not re-measured. (`TestUserIdTests` was added after that and needs
+no container, so it does not change the 148.) The other two rows are still **derived** (neither
 suite changed since):
 
 | Suite | Total | Fails without Docker |
 |---|---|---|
 | `IndyPOS.MigrationTool.Tests` | 134 | **71** (of the other 63, see Trap 3) |
-| `IndyPOS.StoreHub.IntegrationTests` | 155 | **148** (7 need no container, derived for the 20 new tests) |
+| `IndyPOS.StoreHub.IntegrationTests` | 156 | **148** (8 need no container, derived for the 21 new tests) |
 | `IndyPOS.CloudApi.IntegrationTests` | 2 | **2** (both need a container) |
 
 **Start Docker and re-run before investigating any of these.**
@@ -112,15 +113,15 @@ reports `Skipped: 1` and writes nothing — which looks like success while leavi
 ### Expected counts
 
 Solution suites (`dotnet test` at the root), Docker running **and** the real store databases present
-— **852 total** (851 pass, 1 skipped) — measured 2026-09-27 (cash-drawer release, after the
-final-review test additions and the concurrent-delete fix; supersedes the 2026-09-17 measurement of
-656). Without those databases the total is **832** (**derived** as 852 − 20, not measured), still all
+— **853 total** (852 pass, 1 skipped) — measured 2026-09-27 (cash-drawer release, after the
+final-review test additions, the concurrent-delete fix and the test-user id fix; supersedes the 2026-09-17 measurement of
+656). Without those databases the total is **833** (**derived** as 853 − 20, not measured), still all
 green:
 
 | Suite | Tests |
 |---|---|
 | `IndyPOS.Application.Tests` | 435 |
-| `IndyPOS.StoreHub.IntegrationTests` | 155 (Docker) |
+| `IndyPOS.StoreHub.IntegrationTests` | 156 (Docker) |
 | `IndyPOS.MigrationTool.Tests` | 134 (Docker; 1 skipped. **114** without the real store data — Trap 3, derived) |
 | `IndyPOS.Domain.Tests` | 56 |
 | `IndyPOS.Windows.Forms.Tests` | 47 |
