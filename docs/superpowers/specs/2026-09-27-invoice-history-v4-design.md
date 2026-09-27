@@ -34,8 +34,8 @@ Both block **Epic 3 Phase B**:
   their v3 number, and v4 numbering carries on after it.
 - **Managers** can list bills by period or date range, find one by its number from any day, open
   its detail and reprint it.
-- **Cashiers** can find and reprint **today's** bills only, without seeing the store's sales
-  figures.
+- **Cashiers** can find and reprint **today's** bills only. They see today's figures (they already
+  need them to count the drawer) but never another day's; see §5.
 - **Reprints are marked and recorded.** Every reprint prints **สำเนา / COPY** and leaves an audit
   record that syncs to the cloud.
 - **Logic lives in ViewModels** in a new `IndyPOS.Presentation` project, unit-tested and reusable by
@@ -53,6 +53,7 @@ Both block **Epic 3 Phase B**:
 
 | Question | Decision | Why |
 |---|---|---|
+| What may a cashier see? *(after PR review)* | **Today's figures yes, other days no.** Today's bill amounts are listed, and `/cash/summary` for a past date now needs `reports.view` | Cashiers count the drawer, so today's expected cash is theirs to see. Past days were exposed by `/cash/summary?businessDate=` (merged in #97); this closes that gap |
 | Scope | Invoice list + detail + reprint, and the PayLater invoice popup; the other stubbed reports listed as gaps | What the void and go-live need, without a full reports migration |
 | Bill number | **Per-store running `bigint`**, assigned by a Postgres sequence **default**, continuing after the store's last v3 number | Staff know running numbers from v3, old paper receipts still match, and no overflow (10 digits ≈ 27,000 years at 1,000 bills/day) |
 | Finding a bill | Period filters **plus a bill-number search** | A manager holding a receipt gets to the bill in one step |
@@ -119,6 +120,12 @@ in `docs/operations/upgrade-procedure.md` as for earlier releases.
   - a list for any other date → `403`;
   - a bill from another day → `404`, so an old number's existence is not revealed.
 - **Reprint limits differ by role:** managers can reprint any day, cashiers only today.
+- **The cashier rule is "today's figures yes, other days no".** Cashiers count the drawer, so they
+  already see today's totals through `GET /cash/summary`. That same route also takes
+  `?businessDate=`, so today (`CashEndpoints.cs:21-25`, merged in #97) a cashier can read **any past
+  day's** sales totals. This spec closes that: `GET /cash/summary` for a date other than today
+  requires `reports.view` (→ `403`), and the rest of `/cash` is unchanged. This is a small fix to
+  shipped code, made before any till runs v4.
 - **Shared rules, as for `/cash`:**
   - the user id comes from the token, never the body;
   - a token without a usable user id → `401`;
@@ -139,7 +146,9 @@ sales).
 
 **Response bodies:**
 - **List items** carry: `Id`, `InvoiceNumber`, `CreatedUtc`, `TotalAmount`, `PrimaryPaymentMethod`,
-  `LineCount`. There is **no total across the page**, so a cashier sees no day figures.
+  `LineCount`. Per-bill amounts stay for today-only callers: they help a cashier find the right bill
+  ("the ฿350 one at 2 pm"), and today's figures are cashier-visible by design (§5). There is still no
+  page total, because the list is not a report.
 - **Detail** = today's `InvoiceDetailDto` plus what a receipt needs:
   - `InvoiceNumber` and the cashier's display name;
   - amount received, change given, and an `IsRefund` flag;
@@ -270,6 +279,11 @@ The other stubs stay (§9).
 **Cloud:**
 - **`InvoiceCompleted`** carries `InvoiceNumber`.
   - `cloud_invoice` gains a nullable `invoice_number` column, backfilled where known.
+- **Bulk migration carries the number too.** Migrated v3 history reaches the cloud once, through
+  `SqliteMigrationService.BuildBulkMigrationRequestAsync` → `BulkMigrationCommandHandler`, not through
+  `InvoiceCompleted`. So `MigratedInvoice` (`BulkMigrationCommand.cs:45`) gains a **nullable**
+  `InvoiceNumber`: the migrator fills it and the handler stores it. It is nullable so either side
+  can be older: an older cloud ignores the field, and an older migrator sends `null`.
 - **`InvoiceReprinted`** populates a new **insert-only `cloud_invoice_reprint`** mirror.
   - Idempotency comes from `ProcessedEvents`.
   - `HasComment` on the table and columns keeps it readable for dashboards and AI.
@@ -313,6 +327,8 @@ Negative-first, `Subject_WhenScenario_DirectVerbOutcome`, one behaviour per test
 - A reprint writes exactly one `invoice_reprint` row and one `InvoiceReprinted` event in the same
   save; a rejected request writes neither.
 - The list never includes a page total.
+- `/cash/summary` for a past `businessDate` → `403` for a caller without `reports.view`; for today
+  → `200` (regression test for the #97 gap).
 
 **Bill number:**
 - Two concurrent sales get distinct numbers.
@@ -341,8 +357,10 @@ Negative-first, `Subject_WhenScenario_DirectVerbOutcome`, one behaviour per test
 **`ReceiptDocumentFactory`:** bill number, original cashier, `IsCopy` and reprint line, refund,
 change.
 
-**Cloud:** `InvoiceReprinted` before `InvoiceCompleted` stays pending and succeeds after; a
-duplicate event is processed once.
+**Cloud:**
+- `InvoiceReprinted` before `InvoiceCompleted` stays pending, and succeeds after.
+- A duplicate event is processed once.
+- A bulk-migrated invoice lands in `cloud_invoice` with its v3 `invoice_number`.
 
 ## 11. Timing & ordering
 

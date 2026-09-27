@@ -408,6 +408,9 @@ constants for the boundary values:
 
 ## 11. Future considerations (out of scope)
 
+- **Blind cash count (idea, 2026-09-27):** the cashier types what they counted, and only a manager
+  sees expected cash and the difference. This is a common anti-theft practice. It would change who
+  may read `ExpectedCash` and the count difference from `/cash/summary`. Consider it after go-live.
 - **System-wide traceability review:** the `CreatedByUserId` / `LastModifiedByUserId` pattern adopted
   here is valuable beyond cash entries. A later pass should look for gaps — entities that mutate
   without recording *who* — and apply the same pattern where it earns its place. Not done here to keep
