@@ -2,6 +2,7 @@ using FluentAssertions;
 using IndyPOS.Application.Common.Exceptions;
 using IndyPOS.Application.UseCases.StoreHub.CashDrawer.Common;
 using IndyPOS.Application.UseCases.StoreHub.CashDrawer.Counts;
+using IndyPOS.Domain.Entities.Core;
 using Xunit;
 
 namespace IndyPOS.Application.Tests.UseCases.StoreHub.CashDrawer.Counts;
@@ -134,6 +135,25 @@ public class CashCountHandlersTests
 
         result.Should()
               .BeEmpty();
+    }
+
+    [Fact]
+    public async Task Get_WithPastDateHavingCounts_ReturnsThoseCounts()
+    {
+        await using var c = new CashDrawerTestContext();
+        c.Db.CashCounts.Add(new CashCount
+        {
+            Id = Guid.NewGuid(), StoreId = c.StoreIdentity.StoreId, BusinessDate = CashDrawerTestContext.Yesterday,
+            BankNote1000Count = 1, CreatedByUserId = CashDrawerTestContext.CashierId,
+            CreatedUtc = CashDrawerTestContext.TenAmBangkok.UtcDateTime.AddDays(-1),
+            LastModifiedUtc = CashDrawerTestContext.TenAmBangkok.UtcDateTime.AddDays(-1)
+        });
+        await c.Db.SaveChangesAsync();
+
+        var result = await GetHandler(c).HandleAsync(new GetCashCountsQuery(CashDrawerTestContext.Yesterday));
+
+        result.Should()
+              .ContainSingle(r => r.CountedTotal == 1000m);
     }
 
     [Fact]
