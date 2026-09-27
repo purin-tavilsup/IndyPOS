@@ -108,6 +108,28 @@ public class CashEntryConcurrencyTests : IntegrationTestBase
                                       .Be(SecondEditAmount);
     }
 
+    [Fact]
+    public async Task TrySaveChangesAsync_AfterLosingARace_LeavesNothingForALaterSaveToRetry()
+    {
+        var id = await SeedActivePayoutAsync();
+        await using var winnerScope = Factory.Services.CreateAsyncScope();
+        await using var loserScope = Factory.Services.CreateAsyncScope();
+        var loserDb = loserScope.ServiceProvider.GetRequiredService<StoreHubDbContext>();
+        var winner = new CashEntryRepository<CashPayout>(winnerScope.ServiceProvider.GetRequiredService<StoreHubDbContext>());
+        var loser = new CashEntryRepository<CashPayout>(loserDb);
+        var winnerEntry = (await winner.FindAsync(id))!;
+        var loserEntry = (await loser.FindAsync(id))!;
+        winnerEntry.MarkDeleted(FirstUserId, NowUtc);
+        loserEntry.MarkDeleted(SecondUserId, NowUtc);
+        await winner.TrySaveChangesAsync(CashDrawerOutbox.Changed(winnerEntry, NowUtc));
+        await loser.TrySaveChangesAsync(CashDrawerOutbox.Changed(loserEntry, NowUtc));
+
+        await loserDb.SaveChangesAsync();
+
+        (await CountEventsForAsync(id)).Should()
+                                       .Be(1);
+    }
+
     /// <summary>
     /// Runs both operations so each has loaded the entry before either saves, then lets the first
     /// save complete before the second saves. Returns what the second threw, or null.
@@ -209,10 +231,10 @@ public class CashEntryConcurrencyTests : IntegrationTestBase
         public Task AddAsync(CashPayout entry, OutboxEvent outboxEvent, CancellationToken cancellationToken = default) =>
             inner.AddAsync(entry, outboxEvent, cancellationToken);
 
-        public async Task SaveChangesAsync(OutboxEvent outboxEvent, CancellationToken cancellationToken = default)
+        public async Task<bool> TrySaveChangesAsync(OutboxEvent outboxEvent, CancellationToken cancellationToken = default)
         {
             await _saveReleased.Task;
-            await inner.SaveChangesAsync(outboxEvent, cancellationToken);
+            return await inner.TrySaveChangesAsync(outboxEvent, cancellationToken);
         }
     }
 }
