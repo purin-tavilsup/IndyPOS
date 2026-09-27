@@ -140,16 +140,26 @@ public class CashPayoutEndpointsTests : IntegrationTestBase
     }
 
     [Fact]
-    public async Task DeletePayout_Twice_ReturnsNoContentBothTimes()
+    public async Task DeletePayout_WhenDeletedTwice_ReturnsNoContentTheFirstTime()
     {
         await AuthenticateAsCashierAsync();
         var payout = await AddPayoutAsync();
 
         var first = await Client.DeleteAsync($"/cash/payouts/{payout.Id}");
-        var second = await Client.DeleteAsync($"/cash/payouts/{payout.Id}");
 
         first.StatusCode.Should()
                         .Be(HttpStatusCode.NoContent);
+    }
+
+    [Fact]
+    public async Task DeletePayout_WhenDeletedTwice_ReturnsNoContentTheSecondTime()
+    {
+        await AuthenticateAsCashierAsync();
+        var payout = await AddPayoutAsync();
+        await Client.DeleteAsync($"/cash/payouts/{payout.Id}");
+
+        var second = await Client.DeleteAsync($"/cash/payouts/{payout.Id}");
+
         second.StatusCode.Should()
                          .Be(HttpStatusCode.NoContent);
     }

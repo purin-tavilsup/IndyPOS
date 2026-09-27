@@ -34,7 +34,7 @@ public class CashEntryRulesTests
     }
 
     [Fact]
-    public void EnsureValidAmount_AboveMaximum_Throws()
+    public void EnsureValidAmount_WithAboveMaximum_Throws()
     {
         var act = () => CashEntryRules.EnsureValidAmount(JustAboveMaximum);
 
@@ -43,7 +43,7 @@ public class CashEntryRulesTests
     }
 
     [Fact]
-    public void NormalizeDescription_AboveMaximumLength_Throws()
+    public void NormalizeDescription_WithAboveMaximumLength_Throws()
     {
         var tooLong = new string('ก', CashEntryRules.MaxDescriptionLength + 1);
 
@@ -57,6 +57,7 @@ public class CashEntryRulesTests
     [InlineData(null)]
     [InlineData("")]
     [InlineData("   ")]
+    [InlineData("\t  \n")]
     public void NormalizeCustomerName_WithMissingOrBlank_Throws(string? customerName)
     {
         var act = () => CashEntryRules.NormalizeCustomerName(customerName);
@@ -66,16 +67,7 @@ public class CashEntryRulesTests
     }
 
     [Fact]
-    public void NormalizeCustomerName_WithWhitespaceOnly_Throws()
-    {
-        var act = () => CashEntryRules.NormalizeCustomerName("\t  \n");
-
-        act.Should()
-           .Throw<CashEntryValidationException>();
-    }
-
-    [Fact]
-    public void NormalizeCustomerName_AboveMaximumLength_Throws()
+    public void NormalizeCustomerName_WithAboveMaximumLength_Throws()
     {
         var tooLong = new string('ก', CashEntryRules.MaxCustomerNameLength + 1);
 
