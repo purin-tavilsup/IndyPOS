@@ -103,11 +103,15 @@ now waits for the condition instead. **An earlier note here blamed the number of
 that was wrong**; it recurred with only one container up, and the cause was always the fixed sleep.
 
 `ProductsEndpointTests.CreateProduct_WithValidData_ReturnsCreatedProduct` has flaked once under the
-same load and is **not** fixed — the cause is genuinely unknown, because the failure message was never
-captured. Two things were ruled out: it is not a barcode collision (they are random per test), and not
-a shared-catalogue race — every class touching the shared database is in the `Integration` collection,
-and the one migration class outside it uses its own Testcontainers instance. The assertion now prints
-the response body, so **the next occurrence will explain itself**. Capture that message.
+same load. Its failure message was never captured, but its likely cause was found on 2026-09-27, when a TRX capture caught
+`ProductsEndpointTests.AdjustQuantity_WithAZeroDelta_ShouldReturnBadRequest` failing in *setup*:
+`23505 duplicate key ... "IX_store_user_legacy_user_id"`. `CreateTestUserAsync` picked
+`LegacyUserId` at random from ~9,000 values, the column is unique, and the shared test database is
+**not reset between tests** — so users accumulated and ids collided (the birthday problem), in any
+test that signs in. It now comes from `IntegrationTestBase.NextLegacyUserId()`, a counter, pinned by
+`TestUserIdTests`. The `CreateProduct` flake signs in the same way, but its message was never captured,
+so that link is likely rather than proven. **Run the full solution with
+`--logger trx --results-directory <dir>`** so any further flake is caught with its message.
 
 ✅ **Defect 7b is fixed and its trip-wire is discharged.** `Core.Product` now carries `IsTrackable`
 and a sale of a non-trackable product moves no stock — the invoice line is still written, because the
@@ -164,8 +168,8 @@ must therefore be runnable against the *previous* release's binaries:
 A migration that breaks this makes the installer's rollback claim false.
 See `docs/operations/upgrade-procedure.md`, which now carries a **recipe for verifying the gate** —
 apply the release's schema, then write a complete sale using only the columns that existed before it.
-Verified for the 2026-08-17 release's three migrations; before that it had only ever been reasoned
-about.
+Verified for the 2026-08-17 release's three migrations and the cash-drawer release's
+`AddCashDrawerTables`; before that it had only ever been reasoned about.
 
 ### Method Chaining Style
 ```csharp
@@ -199,9 +203,13 @@ dotnet build
 
 # Docker must be RUNNING for three suites - they spin up a real Postgres container.
 # With Docker down they fail fast (each suite in under a second), which reads like a
-# code regression but is not. Expect 170 failures with Docker stopped, all here.
-# (170 is DERIVED as 97 + 71 + 2, not measured - all three suites were last run with Docker up.)
-#   tests/IndyPOS.StoreHub.IntegrationTests   (97 of 104; 7 need no container)
+# code regression but is not. Expect 221 failures with Docker stopped, all here.
+# (221 = 148 + 71 + 2. The StoreHub 128 was measured 2026-09-27 with Docker down; the
+# final-review test additions (+13, all HTTP integration tests) and the concurrent-delete
+# race tests (+7, all on real Postgres) all need Docker, bringing it to 148 -- DERIVED,
+# not re-measured with Docker down. The other two are unchanged from the earlier derivation.)
+#   tests/IndyPOS.StoreHub.IntegrationTests   (148 of 156; 8 need no container, derived
+#                                              for the 21 new tests)
 #   tests/IndyPOS.MigrationTool.Tests         (71 of 134; 38 pure units, 24 need the
 #                                              gitignored real store .db files, 1 manual tool)
 #   tests/IndyPOS.CloudApi.IntegrationTests   (2 of 2; both need a container)
@@ -215,13 +223,17 @@ dotnet run --project src/IndyPOS.AppHost --launch-profile https
 # Dashboard: https://localhost:17222
 ```
 
-Solution suites total **656** with Docker running and the real store databases present (655 pass,
-1 skipped) — measured 2026-09-17. Per suite: Domain 36 · Vault 17 · CloudApi 6 ·
-CloudApi.IntegrationTests 2 (Docker) · MigrationTool 134 (133 pass, 1 skip) ·
-StoreHub.IntegrationTests 104 · Application 310 · Windows.Forms 47. Without the real
-store databases the suite discovers **636** (DERIVED as 656 − 20, not measured) — a skipped
-`[Theory]` is one entry, not one per row. See [`ONBOARDING.md`](ONBOARDING.md) for the per-suite
-breakdown, the dev-vs-installed port split, and the `/health` vs `/health/ready` trap.
+Solution suites total **853** with Docker running and the real store databases present (852 pass,
+1 skipped) — measured 2026-09-27 (cash-drawer release, after the final-review test additions, the
+concurrent-delete fix and the test-user id fix). Per suite: Domain 56 · Vault 17 · CloudApi 6 · CloudApi.IntegrationTests 2
+(Docker) · MigrationTool 134 (133 pass, 1 skip) · StoreHub.IntegrationTests 156 · Application 435 ·
+Windows.Forms 47. The growth since the 2026-09-17 measurement (656 total) is the cash-drawer
+feature's own tests plus its final-review follow-up: Domain +20, Application +125,
+StoreHub.IntegrationTests +52. Without the real store databases the suite discovers **833**
+(DERIVED as 853 − 20, not measured) — a skipped
+`[Theory]` is one entry, not one per row.
+See [`ONBOARDING.md`](ONBOARDING.md) for the per-suite breakdown, the dev-vs-installed port split,
+and the `/health` vs `/health/ready` trap.
 
 ## Store Configuration (Required for Debug)
 

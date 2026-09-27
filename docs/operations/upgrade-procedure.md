@@ -273,6 +273,18 @@ took `NULL`, and a complete sale was written using only pre-release columns. Not
 the two `DropIndex` calls in the legacy-ids migration — they remove EF *convention* indexes superseded
 by composite ones leading with the same column, so no access path is lost.
 
+Result for the cash-drawer release (1 migration, `AddCashDrawerTables`): four new tables only
+(`cash_payout`, `cash_float`, `debt_repayment`, `cash_count`); no existing table changed; every
+pre-release `INSERT` succeeded and a complete sale was written using only pre-release columns.
+Verified 2026-09-27 with `postgres:16-alpine` in a throwaway `gate` container on port 55510. The
+schema was applied with `dotnet ef database update --project src/IndyPOS.Infrastructure
+--startup-project src/IndyPOS.StoreHub --context StoreHubDbContext --connection ...`, first up to
+the previous release's last migration (`20260817175930_AddProductIsTrackable`), then to the latest.
+A snapshot of `information_schema.columns` was taken at each step and diffed: the only difference
+was the 49 columns of the four new tables, and every existing column was unchanged. A full sale —
+`product` → `invoice` → `invoice_line` → `payment` → `inventory_movement` — was then written in one
+transaction, naming only the previous release's columns.
+
 ---
 
 ## Change Log
@@ -281,3 +293,4 @@ by composite ones leading with the same column, so no access path is lost.
 |------|--------|
 | 2026-07-29 | Initial in-place upgrade procedure |
 | 2026-08-17 | Added the forward-only gate verification, and ran it against the release's 3 migrations |
+| 2026-09-27 | Ran the gate against the cash-drawer release's 1 migration (`AddCashDrawerTables`) at 816 (815 pass, 1 skipped); the release's final-review fixes then brought the count to 841 (840 pass, 1 skipped) |

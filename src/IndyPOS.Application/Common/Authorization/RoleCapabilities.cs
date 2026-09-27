@@ -16,6 +16,7 @@ public static class RoleCapabilities
         [
             Capability.ProductsRead,
             Capability.SalesComplete,
+            Capability.CashManage,
         ],
 
         [UserRole.StoreManager] =
@@ -26,6 +27,7 @@ public static class RoleCapabilities
             Capability.SalesComplete,
             Capability.SyncViewStatus,
             Capability.ReportsView,
+            Capability.CashManage,
         ],
 
         [UserRole.SystemAdmin] =
@@ -42,6 +44,7 @@ public static class RoleCapabilities
             Capability.UsersDeactivate,
             Capability.ReportsView,
             Capability.PaymentMethodsManage,
+            Capability.CashManage,
         ]
     };
 
