@@ -167,8 +167,8 @@ must therefore be runnable against the *previous* release's binaries:
 A migration that breaks this makes the installer's rollback claim false.
 See `docs/operations/upgrade-procedure.md`, which now carries a **recipe for verifying the gate** —
 apply the release's schema, then write a complete sale using only the columns that existed before it.
-Verified for the 2026-08-17 release's three migrations; before that it had only ever been reasoned
-about.
+Verified for the 2026-08-17 release's three migrations and the cash-drawer release's
+`AddCashDrawerTables`; before that it had only ever been reasoned about.
 
 ### Method Chaining Style
 ```csharp
@@ -202,10 +202,13 @@ dotnet build
 
 # Docker must be RUNNING for three suites - they spin up a real Postgres container.
 # With Docker down they fail fast (each suite in under a second), which reads like a
-# code regression but is not. Expect 201 failures with Docker stopped, all here.
-# (201 = 128 + 71 + 2. The StoreHub 128 was measured 2026-09-27 with Docker down; the
-# other two are unchanged from the earlier derivation.)
-#   tests/IndyPOS.StoreHub.IntegrationTests   (128 of 135; 7 need no container)
+# code regression but is not. Expect 214 failures with Docker stopped, all here.
+# (214 = 141 + 71 + 2. The StoreHub 128 was measured 2026-09-27 with Docker down; the
+# final-review test additions (+13, all HTTP integration tests, so all need Docker)
+# bring it to 141 -- DERIVED, not re-measured with Docker down. The other two are
+# unchanged from the earlier derivation.)
+#   tests/IndyPOS.StoreHub.IntegrationTests   (141 of 148; 7 need no container, derived
+#                                              for the 13 new tests)
 #   tests/IndyPOS.MigrationTool.Tests         (71 of 134; 38 pure units, 24 need the
 #                                              gitignored real store .db files, 1 manual tool)
 #   tests/IndyPOS.CloudApi.IntegrationTests   (2 of 2; both need a container)
@@ -219,13 +222,14 @@ dotnet run --project src/IndyPOS.AppHost --launch-profile https
 # Dashboard: https://localhost:17222
 ```
 
-Solution suites total **816** with Docker running and the real store databases present (815 pass,
-1 skipped) — measured 2026-09-26 (cash-drawer release). Per suite: Domain 53 · Vault 17 · CloudApi 6 ·
-CloudApi.IntegrationTests 2 (Docker) · MigrationTool 134 (133 pass, 1 skip) ·
-StoreHub.IntegrationTests 135 · Application 422 · Windows.Forms 47. The growth since the
-2026-09-17 measurement (656 total) is the cash-drawer feature's own tests: Domain +17, Application
-+112, StoreHub.IntegrationTests +31. Without the real store databases the suite discovers
-**796** (DERIVED as 816 − 20, not measured) — a skipped `[Theory]` is one entry, not one per row.
+Solution suites total **841** with Docker running and the real store databases present (840 pass,
+1 skipped) — measured 2026-09-27 (cash-drawer release, after the final-review test additions). Per
+suite: Domain 56 · Vault 17 · CloudApi 6 · CloudApi.IntegrationTests 2 (Docker) · MigrationTool 134
+(133 pass, 1 skip) · StoreHub.IntegrationTests 148 · Application 431 · Windows.Forms 47. The growth
+since the 2026-09-17 measurement (656 total) is the cash-drawer feature's own tests plus its
+final-review follow-up: Domain +20, Application +121, StoreHub.IntegrationTests +44. Without the
+real store databases the suite discovers **821** (DERIVED as 841 − 20, not measured) — a skipped
+`[Theory]` is one entry, not one per row.
 See [`ONBOARDING.md`](ONBOARDING.md) for the per-suite breakdown, the dev-vs-installed port split,
 and the `/health` vs `/health/ready` trap.
 
