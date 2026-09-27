@@ -105,6 +105,18 @@ public class CashPayoutEndpointsTests : IntegrationTestBase
     }
 
     [Fact]
+    public async Task EditPayout_WithoutCategory_ReturnsBadRequest()
+    {
+        await AuthenticateAsCashierAsync();
+        var payout = await AddPayoutAsync();
+
+        var response = await Client.PutAsJsonAsync($"/cash/payouts/{payout.Id}", new { amount = 10m });
+
+        response.StatusCode.Should()
+                           .Be(HttpStatusCode.BadRequest);
+    }
+
+    [Fact]
     public async Task EditPayout_FromAPastDay_ReturnsConflict()
     {
         await AuthenticateAsCashierAsync();

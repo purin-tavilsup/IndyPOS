@@ -57,6 +57,15 @@ public static class CashEntryRules
         return category;
     }
 
+    /// <summary>An edit must name its category explicitly — unlike add, there is no default to fall back to.</summary>
+    public static PayoutCategory EnsureDefined(PayoutCategory? category)
+    {
+        if (category is null)
+            throw new CashEntryValidationException("กรุณาระบุหมวดหมู่รายจ่าย");
+
+        return EnsureDefined(category.Value);
+    }
+
     public static void EnsureValidCounts(params int[] counts)
     {
         if (counts.Any(c => c < 0))
