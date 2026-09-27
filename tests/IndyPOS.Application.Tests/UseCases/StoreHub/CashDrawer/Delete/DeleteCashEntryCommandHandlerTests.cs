@@ -4,6 +4,7 @@ using IndyPOS.Application.UseCases.StoreHub.CashDrawer.Common;
 using IndyPOS.Application.UseCases.StoreHub.CashDrawer.Delete;
 using IndyPOS.Domain.Entities.Core;
 using Microsoft.EntityFrameworkCore;
+using Moq;
 using Xunit;
 
 namespace IndyPOS.Application.Tests.UseCases.StoreHub.CashDrawer.Delete;
@@ -153,5 +154,19 @@ public class DeleteCashEntryCommandHandlerTests
         context.OutboxEvents().Should()
                               .ContainSingle(e => e.Type == CashDrawerOutbox.CashPayoutChanged
                                                   && e.PayloadJson.Contains("\"IsDeleted\":true"));
+    }
+
+    [Fact]
+    public async Task HandleAsync_WhenDeletedConcurrently_DoesNotThrow()
+    {
+        await using var context = new CashDrawerTestContext();
+        var payout = ConcurrentDeleteRepository.ActiveToday<CashPayout>();
+        var repository = ConcurrentDeleteRepository.For(payout);
+        var handler = new DeleteCashEntryCommandHandler<CashPayout>(repository.Object, context.Clock);
+
+        var act = () => handler.HandleAsync(Command(payout.Id));
+
+        await act.Should()
+                 .NotThrowAsync();
     }
 }
