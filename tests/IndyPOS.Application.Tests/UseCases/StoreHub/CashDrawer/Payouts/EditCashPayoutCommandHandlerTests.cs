@@ -5,6 +5,7 @@ using IndyPOS.Application.UseCases.StoreHub.CashDrawer.Payouts;
 using IndyPOS.Domain.Entities.Core;
 using IndyPOS.Domain.Enums;
 using Microsoft.EntityFrameworkCore;
+using Moq;
 using Xunit;
 
 namespace IndyPOS.Application.Tests.UseCases.StoreHub.CashDrawer.Payouts;
@@ -152,5 +153,19 @@ public class EditCashPayoutCommandHandlerTests
 
         context.OutboxEvents().Should()
                               .ContainSingle(e => e.Type == CashDrawerOutbox.CashPayoutChanged);
+    }
+
+    [Fact]
+    public async Task HandleAsync_WhenDeletedConcurrently_ThrowsNotFound()
+    {
+        await using var context = new CashDrawerTestContext();
+        var payout = ConcurrentDeleteRepository.ActiveToday<CashPayout>();
+        var repository = ConcurrentDeleteRepository.For(payout);
+        var handler = new EditCashPayoutCommandHandler(repository.Object, context.Clock);
+
+        var act = () => handler.HandleAsync(Command(payout.Id));
+
+        await act.Should()
+                 .ThrowAsync<CashEntryNotFoundException>();
     }
 }

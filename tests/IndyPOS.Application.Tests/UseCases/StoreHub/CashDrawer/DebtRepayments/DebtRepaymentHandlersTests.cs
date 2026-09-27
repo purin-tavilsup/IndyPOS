@@ -3,6 +3,7 @@ using IndyPOS.Application.Common.Exceptions;
 using IndyPOS.Application.UseCases.StoreHub.CashDrawer.Common;
 using IndyPOS.Application.UseCases.StoreHub.CashDrawer.DebtRepayments;
 using IndyPOS.Domain.Entities.Core;
+using Moq;
 using Xunit;
 
 namespace IndyPOS.Application.Tests.UseCases.StoreHub.CashDrawer.DebtRepayments;
@@ -118,5 +119,19 @@ public class DebtRepaymentHandlersTests
 
         result.Select(r => r.Id).Should()
                                 .Equal(todays.Id);
+    }
+
+    [Fact]
+    public async Task Edit_WhenDeletedConcurrently_ThrowsNotFound()
+    {
+        await using var c = new CashDrawerTestContext();
+        var repayment = ConcurrentDeleteRepository.ActiveToday<DebtRepayment>();
+        var repository = ConcurrentDeleteRepository.For(repayment);
+        var handler = new EditDebtRepaymentCommandHandler(repository.Object, c.Clock);
+
+        var act = () => handler.HandleAsync(new EditDebtRepaymentCommand(repayment.Id, CashDrawerTestContext.CashierId, CustomerName, 300m));
+
+        await act.Should()
+                 .ThrowAsync<CashEntryNotFoundException>();
     }
 }
