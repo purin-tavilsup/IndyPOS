@@ -293,4 +293,4 @@ transaction, naming only the previous release's columns.
 |------|--------|
 | 2026-07-29 | Initial in-place upgrade procedure |
 | 2026-08-17 | Added the forward-only gate verification, and ran it against the release's 3 migrations |
-| 2026-09-27 | Ran the gate against the cash-drawer release's 1 migration (`AddCashDrawerTables`); updated solution test counts to 816 (815 pass, 1 skipped) |
+| 2026-09-27 | Ran the gate against the cash-drawer release's 1 migration (`AddCashDrawerTables`) at 816 (815 pass, 1 skipped); the release's final-review fixes then brought the count to 841 (840 pass, 1 skipped) |
