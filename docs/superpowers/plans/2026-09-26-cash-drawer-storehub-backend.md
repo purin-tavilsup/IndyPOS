@@ -4815,7 +4815,7 @@ git commit -m "docs: record cash-drawer forward-only gate result and test counts
 - §10 tests: naming, negative-first, per-layer, count rules, tie-break, forward-only → every task + Task 10.
 - §12 timing → not code; honoured by the plan split (this plan can land any time before Phase B).
 
-**Deviations from the spec, called out:** `{ error }` body instead of ProblemDetails; explicit rules instead of FluentValidation validators; cash routes split across a `Endpoints/Cash/` folder instead of one `CashEndpoints.cs` file (one file per resource keeps each under ~60 lines); the summary handler lives in Infrastructure beside the other report handlers. Each is repo convention winning over a spec assumption the code proved wrong.
+**Deviations from the spec, called out:** `{ error }` body instead of ProblemDetails; explicit rules instead of FluentValidation validators; cash routes split across a `Endpoints/Cash/` folder instead of one `CashEndpoints.cs` file (one file per resource keeps each under ~60 lines); the summary handler lives in Infrastructure beside the other report handlers; one generic `ICashEntryRepository<TEntry>` instead of spec §4's three separate `ICashPayoutRepository` / `ICashFloatRepository` / `IDebtRepaymentRepository` interfaces, because the three entry types share every operation (add, find, list, soft-delete) and the generic form is what makes `DeleteCashEntryCommand<TEntry>` possible as a single handler instead of three near-identical ones. Each is repo convention winning over a spec assumption the code proved wrong.
 
 **Placeholder scan:** none left. Task 7's expected count total was re-checked by hand: 1×1000 + 5×100 + 10×10 + 3×1 = 1603.
 
