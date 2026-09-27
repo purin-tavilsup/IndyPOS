@@ -23,31 +23,16 @@ public class CashAuthorizationTests : IntegrationTestBase
     public CashAuthorizationTests(StoreHubWebApplicationFactory factory) : base(factory) { }
 
     /// <summary>
-    /// A correctly signed cashier token that carries a role but NO user-id claim — the capability
-    /// check passes, so only the user-id filter stands between it and a 500.
+    /// Signs a token through <see cref="LocalTokenOptions"/> (bound the same way <c>Program.cs</c>
+    /// binds it: <c>config.GetSection(LocalTokenOptions.SectionName).Get&lt;LocalTokenOptions&gt;()
+    /// ?? new LocalTokenOptions()</c>) rather than raw config indexing. The test host only sets
+    /// <c>LocalToken:SecretKey</c> via <c>UseSetting</c> — a raw <c>section["Issuer"]</c> /
+    /// <c>section["Audience"]</c> read comes back null, and a token minted with a null issuer/audience
+    /// fails JWT bearer authentication before authorization or any endpoint filter ever runs. Binding
+    /// through the options class picks up its Issuer/Audience defaults instead, so the token actually
+    /// authenticates and the claims below are what determine the outcome.
     /// </summary>
-    private string TokenWithoutUserId()
-    {
-        var config = Factory.Services.GetRequiredService<IConfiguration>();
-        var section = config.GetSection("LocalToken");
-        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(section["SecretKey"]!));
-        var token = new JwtSecurityToken(
-            issuer: section["Issuer"],
-            audience: section["Audience"],
-            claims: [new Claim("role_id", ((int)UserRole.Cashier).ToString()), new Claim("store_id", "test-store")],
-            expires: DateTime.UtcNow.AddMinutes(5),
-            signingCredentials: new SigningCredentials(key, SecurityAlgorithms.HmacSha256));
-        return new JwtSecurityTokenHandler().WriteToken(token);
-    }
-
-    /// <summary>
-    /// A fully-formed token (user id present) whose role simply lacks the <c>cash.manage</c> capability.
-    /// Bound through <see cref="LocalTokenOptions"/> rather than raw config indexing: the test host
-    /// never sets Issuer/Audience explicitly, so a raw <c>section["Issuer"]</c> read (as
-    /// <see cref="TokenWithoutUserId"/> above does) comes back null and the token fails validation
-    /// before authorization is ever reached.
-    /// </summary>
-    private string TokenWithRole(int roleId)
+    private string BuildToken(IEnumerable<Claim> claims)
     {
         var config = Factory.Services.GetRequiredService<IConfiguration>();
         var options = config.GetSection(LocalTokenOptions.SectionName).Get<LocalTokenOptions>() ?? new LocalTokenOptions();
@@ -55,16 +40,30 @@ public class CashAuthorizationTests : IntegrationTestBase
         var token = new JwtSecurityToken(
             issuer: options.Issuer,
             audience: options.Audience,
-            claims:
-            [
-                new Claim(JwtRegisteredClaimNames.Sub, Guid.NewGuid().ToString()),
-                new Claim("role_id", roleId.ToString()),
-                new Claim("store_id", "test-store")
-            ],
+            claims: claims,
             expires: DateTime.UtcNow.AddMinutes(5),
             signingCredentials: new SigningCredentials(key, SecurityAlgorithms.HmacSha256));
         return new JwtSecurityTokenHandler().WriteToken(token);
     }
+
+    /// <summary>
+    /// A token that AUTHENTICATES (cashier role, which has <c>cash.manage</c>) but carries NO
+    /// sub/NameIdentifier claim — the capability check passes, so <see cref="RequireUserIdFilter"/> is
+    /// the only thing standing between it and success. For a write (which calls
+    /// <c>ClaimsPrincipal.GetRequiredUserId()</c>) that means a 500 if the filter is missing; for a
+    /// read that never touches the user id it would otherwise succeed.
+    /// </summary>
+    private string TokenWithoutUserId() =>
+        BuildToken([new Claim("role_id", ((int)UserRole.Cashier).ToString()), new Claim("store_id", "test-store")]);
+
+    /// <summary>A fully-formed token (user id present) whose role simply lacks the <c>cash.manage</c> capability.</summary>
+    private string TokenWithRole(int roleId) =>
+        BuildToken(
+        [
+            new Claim(JwtRegisteredClaimNames.Sub, Guid.NewGuid().ToString()),
+            new Claim("role_id", roleId.ToString()),
+            new Claim("store_id", "test-store")
+        ]);
 
     [Fact]
     public async Task GetSummary_WithoutAuth_ReturnsUnauthorized()
