@@ -25,7 +25,7 @@ public class CashCountEndpointsTests : IntegrationTestBase
     }
 
     [Fact]
-    public async Task EditCount_WithAnyId_IsNotAllowed()
+    public async Task EditCount_WithAnyId_ReturnsNotFoundOrMethodNotAllowed()
     {
         await AuthenticateAsCashierAsync();
         var created = await (await Client.PostAsJsonAsync("/cash/counts", OneThousand)).Content
@@ -38,7 +38,7 @@ public class CashCountEndpointsTests : IntegrationTestBase
     }
 
     [Fact]
-    public async Task DeleteCount_WithAnyId_IsNotAllowed()
+    public async Task DeleteCount_WithAnyId_ReturnsNotFoundOrMethodNotAllowed()
     {
         await AuthenticateAsCashierAsync();
         var created = await (await Client.PostAsJsonAsync("/cash/counts", OneThousand)).Content
@@ -51,7 +51,7 @@ public class CashCountEndpointsTests : IntegrationTestBase
     }
 
     [Fact]
-    public async Task AddCount_Twice_ListsBothNewestFirst()
+    public async Task AddCount_WhenAddedTwice_ListsBothNewestFirst()
     {
         await ResetDatabaseAsync();
         await AuthenticateAsCashierAsync();

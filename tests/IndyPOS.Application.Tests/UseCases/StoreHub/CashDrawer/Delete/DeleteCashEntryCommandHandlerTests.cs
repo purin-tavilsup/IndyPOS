@@ -77,6 +77,17 @@ public class DeleteCashEntryCommandHandlerTests
         var stored = await StoredAsync(context, payout.Id);
         stored.LastModifiedByUserId.Should()
                                    .Be(CashDrawerTestContext.CashierId);
+    }
+
+    [Fact]
+    public async Task HandleAsync_WhenAlreadyDeleted_KeepsTheOriginalDeletionTime()
+    {
+        await using var context = new CashDrawerTestContext();
+        var payout = await context.SeedPayoutAsync(CashDrawerTestContext.Today, isDeleted: true);
+
+        await HandlerFor(context).HandleAsync(Command(payout.Id));
+
+        var stored = await StoredAsync(context, payout.Id);
         stored.DeletedUtc.Should()
                          .Be(payout.DeletedUtc);
     }
@@ -106,7 +117,7 @@ public class DeleteCashEntryCommandHandlerTests
     }
 
     [Fact]
-    public async Task HandleAsync_WithTodaysPayout_SoftDeletesIt()
+    public async Task HandleAsync_WithTodaysPayout_SetsTheDeletedFlag()
     {
         await using var context = new CashDrawerTestContext();
         var payout = await context.SeedPayoutAsync(CashDrawerTestContext.Today);
@@ -116,6 +127,17 @@ public class DeleteCashEntryCommandHandlerTests
         var stored = await StoredAsync(context, payout.Id);
         stored.IsDeleted.Should()
                         .BeTrue();
+    }
+
+    [Fact]
+    public async Task HandleAsync_WithTodaysPayout_RecordsTheDeleter()
+    {
+        await using var context = new CashDrawerTestContext();
+        var payout = await context.SeedPayoutAsync(CashDrawerTestContext.Today);
+
+        await HandlerFor(context).HandleAsync(Command(payout.Id));
+
+        var stored = await StoredAsync(context, payout.Id);
         stored.LastModifiedByUserId.Should()
                                    .Be(CashDrawerTestContext.OtherCashierId);
     }

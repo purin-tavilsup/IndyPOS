@@ -28,7 +28,7 @@ public class AddCashPayoutCommandHandlerTests
     }
 
     [Fact]
-    public async Task HandleAsync_WithZeroAmount_WritesNothing()
+    public async Task HandleAsync_WithZeroAmount_WritesNoRow()
     {
         await using var context = new CashDrawerTestContext();
 
@@ -36,6 +36,15 @@ public class AddCashPayoutCommandHandlerTests
 
         context.Db.CashPayouts.Should()
                               .BeEmpty();
+    }
+
+    [Fact]
+    public async Task HandleAsync_WithZeroAmount_WritesNoEvent()
+    {
+        await using var context = new CashDrawerTestContext();
+
+        try { await HandlerFor(context).HandleAsync(Command(amount: 0m)); } catch (CashEntryValidationException) { }
+
         context.OutboxEvents().Should()
                               .BeEmpty();
     }

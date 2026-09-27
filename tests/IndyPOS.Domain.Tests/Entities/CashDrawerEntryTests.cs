@@ -61,7 +61,7 @@ public class CashDrawerEntryTests
     }
 
     [Fact]
-    public void MarkDeleted_WhenActive_SetsDeletedFlagAndTime()
+    public void MarkDeleted_WhenActive_SetsDeletedFlag()
     {
         var entry = NewEntry();
 
@@ -69,6 +69,15 @@ public class CashDrawerEntryTests
 
         entry.IsDeleted.Should()
                        .BeTrue();
+    }
+
+    [Fact]
+    public void MarkDeleted_WhenActive_SetsDeletedTime()
+    {
+        var entry = NewEntry();
+
+        entry.MarkDeleted(EditorId, LaterUtc);
+
         entry.DeletedUtc.Should()
                         .Be(LaterUtc);
     }
@@ -82,12 +91,21 @@ public class CashDrawerEntryTests
 
         entry.LastModifiedByUserId.Should()
                                   .Be(EditorId);
+    }
+
+    [Fact]
+    public void MarkDeleted_WhenActive_RecordsWhenDeleted()
+    {
+        var entry = NewEntry();
+
+        entry.MarkDeleted(EditorId, LaterUtc);
+
         entry.LastModifiedUtc.Should()
                              .Be(LaterUtc);
     }
 
     [Fact]
-    public void Touch_WithEditor_RecordsEditorAndTime()
+    public void Touch_WithEditor_RecordsTheEditor()
     {
         var entry = NewEntry();
 
@@ -95,6 +113,15 @@ public class CashDrawerEntryTests
 
         entry.LastModifiedByUserId.Should()
                                   .Be(EditorId);
+    }
+
+    [Fact]
+    public void Touch_WithEditor_RecordsTheTime()
+    {
+        var entry = NewEntry();
+
+        entry.Touch(EditorId, LaterUtc);
+
         entry.LastModifiedUtc.Should()
                              .Be(LaterUtc);
     }
