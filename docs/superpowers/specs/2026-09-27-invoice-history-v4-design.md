@@ -53,7 +53,7 @@ Both block **Epic 3 Phase B**:
 
 | Question | Decision | Why |
 |---|---|---|
-| What may a cashier see? *(after PR review)* | **Today's figures yes, other days no.** Today's bill amounts are listed, and `/cash/summary` for a past date now needs `reports.view` | Cashiers count the drawer, so today's expected cash is theirs to see. Past days were exposed by `/cash/summary?businessDate=` (merged in #97); this closes that gap |
+| What may a cashier see? *(after PR review)* | **Today's figures yes, other days no.** Today's bill amounts are listed, and every `/cash` read for a past `businessDate` now needs `reports.view` | Cashiers count the drawer, so today's expected cash is theirs to see. Past days were exposed by `?businessDate=` on `/cash/summary` and its four sibling reads (merged in #97); this closes that gap |
 | Scope | Invoice list + detail + reprint, and the PayLater invoice popup; the other stubbed reports listed as gaps | What the void and go-live need, without a full reports migration |
 | Bill number | **Per-store running `bigint`**, assigned by a Postgres sequence **default**, continuing after the store's last v3 number | Staff know running numbers from v3, old paper receipts still match, and no overflow (10 digits ≈ 27,000 years at 1,000 bills/day) |
 | Finding a bill | Period filters **plus a bill-number search** | A manager holding a receipt gets to the bill in one step |
@@ -74,17 +74,22 @@ SEQUENCE invoice_number_seq  AS bigint
 ```
 
 - **The database assigns every number.** The column default fires for any `INSERT`, including one
-  from binaries restored by an installer rollback, which never mention the column. No C# code
-  picks a number, so two tills selling at once can never clash.
+  from binaries restored by an installer rollback, which never mention the column. Only the
+  database sequence picks a number, so two tills selling at once can never clash. The sale handler
+  may reserve its number with `nextval` before the save, so the `InvoiceCompleted` event can carry
+  it; that number still comes from the same sequence.
 - **Existing rows are backfilled in the same migration, in this order,** so the two kinds of number
   never collide on the unique index:
   1. rows with a `legacy_invoice_id` get that number;
   2. `setval` moves the sequence past the highest legacy number;
   3. the remaining v4-native rows get sequence values in `created_utc` order.
 
-  The column is never empty after the upgrade, although the schema allows `NULL`.
-- **Domain:** `Invoice.InvoiceNumber` is a `long`, database-generated and never set by application
-  code (`ValueGeneratedOnAdd`).
+  After the backfill the same migration makes the column `NOT NULL`. It keeps its sequence
+  default, so it is never empty and still passes the forward-only gate: an `INSERT` that omits the
+  column gets a number from the default.
+- **Domain:** `Invoice.InvoiceNumber` is a `long` that always comes from the database sequence
+  (`ValueGeneratedOnAdd`). A v4 sale only sets it to a value it reserved from that sequence;
+  the MigrationTool is the one exception, and keeps the legacy invoice id (§4, MigrationTool).
 
 **MigrationTool:**
 - It writes `invoice_number = LegacyInvoiceId` for each imported v3 invoice (next to
@@ -123,8 +128,11 @@ in `docs/operations/upgrade-procedure.md` as for earlier releases.
 - **The cashier rule is "today's figures yes, other days no".** Cashiers count the drawer, so they
   already see today's totals through `GET /cash/summary`. That same route also takes
   `?businessDate=`, so today (`CashEndpoints.cs:21-25`, merged in #97) a cashier can read **any past
-  day's** sales totals. This spec closes that: `GET /cash/summary` for a date other than today
-  requires `reports.view` (→ `403`), and the rest of `/cash` is unchanged. This is a small fix to
+  day's** sales totals. The four sibling reads (`/cash/counts`, `/cash/payouts`,
+  `/cash/floats`, `/cash/debt-repayments`) take the same parameter, and past counted cash is the most
+  sensitive figure of all. This spec closes all five: every `/cash` read whose `businessDate` is not
+  today requires `reports.view` (→ `403`), enforced once for the whole `/cash` group so a future
+  route cannot forget it. *(Widened from `/cash/summary` alone in plan review, 2026-09-29.)* This is a small fix to
   shipped code, made before any till runs v4.
 - **Shared rules, as for `/cash`:**
   - the user id comes from the token, never the body;
@@ -327,8 +335,9 @@ Negative-first, `Subject_WhenScenario_DirectVerbOutcome`, one behaviour per test
 - A reprint writes exactly one `invoice_reprint` row and one `InvoiceReprinted` event in the same
   save; a rejected request writes neither.
 - The list never includes a page total.
-- `/cash/summary` for a past `businessDate` → `403` for a caller without `reports.view`; for today
-  → `200` (regression test for the #97 gap).
+- Each of the five `/cash` reads for a past `businessDate` → `403` for a caller without
+  `reports.view`; a past date with `reports.view` → `200`; today → `200` (regression tests for the
+  #97 gap).
 
 **Bill number:**
 - Two concurrent sales get distinct numbers.

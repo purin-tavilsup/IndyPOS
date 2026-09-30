@@ -26,7 +26,7 @@ Copied verbatim from the spec (section in brackets); every task's requirements i
 - [§5] "`sales.reprint` (**new**) | Cashier, StoreManager, SystemAdmin | Bills of **today** (store business date) + reprint"
 - [§5] "**'Today'** is the server's Bangkok business date, from the same clock as the cash drawer (`ICashDrawerClock`)."
 - [§5] "A caller with `sales.reprint` but not `reports.view` is held to today: a list for any other date → `403`; a bill from another day → `404`, so an old number's existence is not revealed."
-- [§5] "`GET /cash/summary` for a date other than today requires `reports.view` (→ `403`), and the rest of `/cash` is unchanged."
+- [§5] "every `/cash` read whose `businessDate` is not today requires `reports.view` (→ `403`), enforced once for the whole `/cash` group so a future route cannot forget it." *(widened from `/cash/summary` alone in plan review, 2026-09-29)*
 - [§5] "the user id comes from the token, never the body; a token without a usable user id → `401`; no capability → `403`; Thai `{ error }` bodies."
 - [§6] "`GET /sales?from=&to=&page=&pageSize=` | List bills, newest first | … `from`/`to` default to today's business date; `pageSize` default 50, max 200"
 - [§6] "There is still no page total, because the list is not a report."
@@ -105,8 +105,9 @@ src/IndyPOS.Infrastructure/
 
 src/IndyPOS.StoreHub/
   Endpoints/Cash/ClaimsPrincipalExtensions.cs                MOD  + HasCapability
-  Endpoints/Cash/CashEndpoints.cs                            MOD  /summary past date needs reports.view
+  Endpoints/Cash/CashEndpoints.cs                            MOD  group gains TodayOnlyBusinessDateFilter
   Endpoints/Cash/CashExceptionFilter.cs                      MOD  OtherDayForbiddenException -> 403
+  Endpoints/Cash/TodayOnlyBusinessDateFilter.cs              NEW  past businessDate needs reports.view
   Endpoints/Sales/SalesEndpoints.cs                          NEW  group, policy, filters
   Endpoints/Sales/SaleQueryEndpoints.cs                      NEW  list / by id / by number / malformed
   Endpoints/Sales/SaleReprintEndpoints.cs                    NEW  POST /sales/{id}/reprints
@@ -1608,7 +1609,7 @@ git commit -m "feat(migration): verify bill numbers and the invoice sequence"
 
 ---
 
-### Task 5: `sales.reprint`, the today-only rule, and closing `/cash/summary`'s past-day gap
+### Task 5: `sales.reprint`, the today-only rule, and closing `/cash`'s past-day gap
 
 **Files:**
 - Modify: `src/IndyPOS.Application/Common/Authorization/Capability.cs` (add constant)
@@ -1616,12 +1617,13 @@ git commit -m "feat(migration): verify bill numbers and the invoice sequence"
 - Create: `src/IndyPOS.Application/Common/Authorization/TodayOnlyRule.cs`
 - Create: `src/IndyPOS.Application/Common/Exceptions/OtherDayForbiddenException.cs`
 - Modify: `src/IndyPOS.StoreHub/Endpoints/Cash/ClaimsPrincipalExtensions.cs` (add `HasCapability`)
-- Modify: `src/IndyPOS.StoreHub/Endpoints/Cash/CashEndpoints.cs:21-25`
+- Create: `src/IndyPOS.StoreHub/Endpoints/Cash/TodayOnlyBusinessDateFilter.cs`
+- Modify: `src/IndyPOS.StoreHub/Endpoints/Cash/CashEndpoints.cs:16-19` (add the filter to the group)
 - Modify: `src/IndyPOS.StoreHub/Endpoints/Cash/CashExceptionFilter.cs` (map to 403)
 - Modify: `tests/IndyPOS.Application.Tests/Common/Authorization/RoleCapabilitiesTests.cs:216-268` (counts 3→4, 7→8, 13→14)
 - Test: `tests/IndyPOS.Application.Tests/Common/Authorization/SalesReprintCapabilityTests.cs`
 - Test: `tests/IndyPOS.Application.Tests/Common/Authorization/TodayOnlyRuleTests.cs`
-- Test: `tests/IndyPOS.StoreHub.IntegrationTests/Endpoints/CashSummaryAccessTests.cs`
+- Test: `tests/IndyPOS.StoreHub.IntegrationTests/Endpoints/CashPastDayAccessTests.cs`
 
 **Interfaces:**
 - Consumes: `ICashDrawerClock` (`src/IndyPOS.Application/UseCases/StoreHub/CashDrawer/Common/ICashDrawerClock.cs`).
@@ -1632,10 +1634,11 @@ git commit -m "feat(migration): verify bill numbers and the invoice sequence"
   - `TodayOnlyRule.BusinessDateOf(DateTime utc, TimeZoneInfo storeTimeZone) : DateOnly`
   - `OtherDayForbiddenException` (Thai message) → `403` in both `CashExceptionFilter` and (Task 7) `SalesExceptionFilter`.
   - `ClaimsPrincipalExtensions.HasCapability(this ClaimsPrincipal user, string capability) : bool` (internal, namespace `IndyPOS.StoreHub.Endpoints.Cash`).
+  - `TodayOnlyBusinessDateFilter` — an `IEndpointFilter` on the whole `/cash` group.
 
 - [ ] **Step 1: Write the failing regression test for the #97 gap (RED first)**
 
-`tests/IndyPOS.StoreHub.IntegrationTests/Endpoints/CashSummaryAccessTests.cs`:
+`tests/IndyPOS.StoreHub.IntegrationTests/Endpoints/CashPastDayAccessTests.cs`:
 
 ```csharp
 using System.Net;
@@ -1646,70 +1649,84 @@ using Xunit;
 namespace IndyPOS.StoreHub.IntegrationTests.Endpoints;
 
 /// <summary>
-/// Spec §5: a cashier sees today's cash figures but never another day's. GET /cash/summary took
-/// ?businessDate= since #97 with no check, so any cashier could read any past day's sales totals.
+/// Spec §5: a cashier sees today's cash figures but never another day's. Since #97 every /cash read
+/// took ?businessDate= with no check, so any cashier could read any past day's sales totals, counted
+/// cash, payouts, floats and debt repayments. Each read is listed so a route cannot slip the rule.
 /// </summary>
 [Collection("Integration")]
-public class CashSummaryAccessTests : IntegrationTestBase
+public class CashPastDayAccessTests : IntegrationTestBase
 {
-    public CashSummaryAccessTests(StoreHubWebApplicationFactory factory) : base(factory) { }
+    public CashPastDayAccessTests(StoreHubWebApplicationFactory factory) : base(factory) { }
+
+    public static TheoryData<string> CashReads =>
+    [
+        "/cash/summary",
+        "/cash/counts",
+        "/cash/payouts",
+        "/cash/floats",
+        "/cash/debt-repayments",
+    ];
 
     private static DateOnly Today => DateOnly.FromDateTime(DateTime.Now);
 
-    private static string SummaryFor(DateOnly day) => $"/cash/summary?businessDate={day:yyyy-MM-dd}";
+    private static string For(string route, DateOnly day) => $"{route}?businessDate={day:yyyy-MM-dd}";
 
     private sealed record ErrorBody(string Error);
 
-    [Fact]
-    public async Task GetSummary_AsCashierForAPastDate_ReturnsForbidden()
+    [Theory]
+    [MemberData(nameof(CashReads))]
+    public async Task CashRead_AsCashierForAPastDate_ReturnsForbidden(string route)
     {
         await AuthenticateAsCashierAsync();
 
-        var response = await Client.GetAsync(SummaryFor(Today.AddDays(-1)));
+        var response = await Client.GetAsync(For(route, Today.AddDays(-1)));
+
+        response.StatusCode.Should()
+                           .Be(HttpStatusCode.Forbidden);
+    }
+
+    [Theory]
+    [MemberData(nameof(CashReads))]
+    public async Task CashRead_AsCashierForAFutureDate_ReturnsForbidden(string route)
+    {
+        await AuthenticateAsCashierAsync();
+
+        var response = await Client.GetAsync(For(route, Today.AddDays(1)));
 
         response.StatusCode.Should()
                            .Be(HttpStatusCode.Forbidden);
     }
 
     [Fact]
-    public async Task GetSummary_AsCashierForAFutureDate_ReturnsForbidden()
+    public async Task CashRead_AsCashierForAPastDate_ReturnsAThaiError()
     {
         await AuthenticateAsCashierAsync();
 
-        var response = await Client.GetAsync(SummaryFor(Today.AddDays(1)));
-
-        response.StatusCode.Should()
-                           .Be(HttpStatusCode.Forbidden);
-    }
-
-    [Fact]
-    public async Task GetSummary_AsCashierForAPastDate_ReturnsAThaiError()
-    {
-        await AuthenticateAsCashierAsync();
-
-        var response = await Client.GetAsync(SummaryFor(Today.AddDays(-1)));
+        var response = await Client.GetAsync(For("/cash/counts", Today.AddDays(-1)));
 
         (await response.Content.ReadFromJsonAsync<ErrorBody>(JsonOptions))!.Error.Should()
                                                                           .Contain("วันนี้");
     }
 
-    [Fact]
-    public async Task GetSummary_AsCashierForToday_ReturnsOk()
+    [Theory]
+    [MemberData(nameof(CashReads))]
+    public async Task CashRead_AsCashierForToday_ReturnsOk(string route)
     {
         await AuthenticateAsCashierAsync();
 
-        var response = await Client.GetAsync(SummaryFor(Today));
+        var response = await Client.GetAsync(For(route, Today));
 
         response.StatusCode.Should()
                            .Be(HttpStatusCode.OK);
     }
 
-    [Fact]
-    public async Task GetSummary_AsManagerForAPastDate_ReturnsOk()
+    [Theory]
+    [MemberData(nameof(CashReads))]
+    public async Task CashRead_AsManagerForAPastDate_ReturnsOk(string route)
     {
         await AuthenticateAsManagerAsync();
 
-        var response = await Client.GetAsync(SummaryFor(Today.AddDays(-1)));
+        var response = await Client.GetAsync(For(route, Today.AddDays(-1)));
 
         response.StatusCode.Should()
                            .Be(HttpStatusCode.OK);
@@ -1719,8 +1736,8 @@ public class CashSummaryAccessTests : IntegrationTestBase
 
 - [ ] **Step 2: Run to verify the gap is real**
 
-Run: `dotnet test tests/IndyPOS.StoreHub.IntegrationTests --filter "FullyQualifiedName~CashSummaryAccessTests"`
-Expected: `GetSummary_AsCashierForAPastDate_ReturnsForbidden`, `…ForAFutureDate…` and `…ReturnsAThaiError` FAIL (actual `200`); the two `ReturnsOk` tests PASS.
+Run: `dotnet test tests/IndyPOS.StoreHub.IntegrationTests --filter "FullyQualifiedName~CashPastDayAccessTests"`
+Expected: every `…ReturnsForbidden` row (5 past + 5 future) and `…ReturnsAThaiError` FAIL (actual `200`); the `ReturnsOk` rows (5 today + 5 manager) PASS.
 
 - [ ] **Step 3: Write the failing unit tests for the rule and the capability**
 
@@ -1894,7 +1911,7 @@ namespace IndyPOS.Application.Common.Authorization;
 
 /// <summary>
 /// "Today's figures yes, other days no" (spec §5). A caller without reports.view is held to the
-/// store's current business date. Shared by /sales and /cash/summary so the two cannot drift.
+/// store's current business date. Shared by /sales and /cash so the two cannot drift.
 /// </summary>
 public static class TodayOnlyRule
 {
@@ -1924,7 +1941,7 @@ public static class TodayOnlyRule
 Run: `dotnet test tests/IndyPOS.Application.Tests --filter "FullyQualifiedName~TodayOnlyRuleTests|FullyQualifiedName~SalesReprintCapabilityTests|FullyQualifiedName~RoleCapabilitiesTests|FullyQualifiedName~CashCapabilityTests"`
 Expected: PASS.
 
-- [ ] **Step 8: Gate the summary's past dates**
+- [ ] **Step 8: Gate every `/cash` read's past dates, once for the group**
 
 In `ClaimsPrincipalExtensions.cs`, add `using IndyPOS.Application.Common.Authorization;` and this member:
 
@@ -1936,23 +1953,52 @@ In `ClaimsPrincipalExtensions.cs`, add `using IndyPOS.Application.Common.Authori
         && RoleCapabilities.HasCapability(roleId, capability);
 ```
 
-In `CashEndpoints.cs`, add `using System.Security.Claims;`, `using IndyPOS.Application.Common.Authorization;`, `using IndyPOS.Application.UseCases.StoreHub.CashDrawer.Common;`, and replace the `/summary` mapping (lines 21-25) with:
+`src/IndyPOS.StoreHub/Endpoints/Cash/TodayOnlyBusinessDateFilter.cs`:
 
 ```csharp
-        cash.MapGet("/summary", async (
-            IQueryHandler<GetCashDrawerSummaryQuery, CashDrawerSummaryDto> handler,
-            ICashDrawerClock clock,
-            ClaimsPrincipal user,
-            DateOnly? businessDate,
-            CancellationToken cancellationToken) =>
-        {
-            // Spec §5: today's expected cash is the cashier's to count; another day's is a report.
-            if (businessDate is { } day)
-                TodayOnlyRule.EnsureAllowed(day, clock.Now().BusinessDate, user.HasCapability(Capability.ReportsView));
+using IndyPOS.Application.Common.Authorization;
+using IndyPOS.Application.UseCases.StoreHub.CashDrawer.Common;
 
-            return Results.Ok(await handler.HandleAsync(new GetCashDrawerSummaryQuery(businessDate), cancellationToken));
-        });
+namespace IndyPOS.StoreHub.Endpoints.Cash;
+
+/// <summary>
+/// Spec §5: today's cash figures are the cashier's to count; another day's are a report. Applied to
+/// the whole /cash group rather than per route, so a new read that takes a businessDate cannot
+/// forget the rule — five routes shipped in #97 without it.
+/// </summary>
+/// <remarks>
+/// The only <see cref="DateOnly"/> any /cash route binds is its <c>businessDate</c> query value; the
+/// writes take request records. A null (omitted) date means today and passes. A malformed date never
+/// gets here: binding answers it with 400 before any filter runs.
+/// </remarks>
+internal sealed class TodayOnlyBusinessDateFilter(ICashDrawerClock clock) : IEndpointFilter
+{
+    public ValueTask<object?> InvokeAsync(EndpointFilterInvocationContext context, EndpointFilterDelegate next)
+    {
+        foreach (var day in context.Arguments.OfType<DateOnly>())
+        {
+            TodayOnlyRule.EnsureAllowed(
+                day,
+                clock.Now().BusinessDate,
+                context.HttpContext.User.HasCapability(Capability.ReportsView));
+        }
+
+        return next(context);
+    }
+}
 ```
+
+In `CashEndpoints.cs`, add the filter to the group **after** `CashExceptionFilter`. Filters added earlier wrap the later ones, so this order lets the exception filter turn the throw into the 403:
+
+```csharp
+        var cash = app.MapGroup("/cash")
+                      .RequireAuthorization(Policy)
+                      .AddEndpointFilter<RequireUserIdFilter>()
+                      .AddEndpointFilter<CashExceptionFilter>()
+                      .AddEndpointFilter<TodayOnlyBusinessDateFilter>();
+```
+
+The `/summary` mapping itself is unchanged.
 
 In `CashExceptionFilter.cs`, add a catch after the `CashDayClosedException` one:
 
@@ -1965,14 +2011,14 @@ In `CashExceptionFilter.cs`, add a catch after the `CashDayClosedException` one:
 
 - [ ] **Step 9: Run the integration tests to verify they pass**
 
-Run: `dotnet test tests/IndyPOS.StoreHub.IntegrationTests --filter "FullyQualifiedName~CashSummaryAccessTests|FullyQualifiedName~CashAuthorizationTests|FullyQualifiedName~CashSummaryEndpointsTests"`
-Expected: PASS (5 new; the existing summary tests call without `businessDate` and are unaffected).
+Run: `dotnet test tests/IndyPOS.StoreHub.IntegrationTests --filter "FullyQualifiedName~Cash"`
+Expected: PASS — 21 new rows (4 theories × 5 routes + 1 fact). No existing `/cash` test sends a past `businessDate`; the one that sends `2026-13-01` (`CashPayoutEndpointsTests.cs:172`) still gets binding's `400`.
 
 - [ ] **Step 10: Commit**
 
 ```bash
-git add src/IndyPOS.Application/Common src/IndyPOS.StoreHub/Endpoints/Cash tests/IndyPOS.Application.Tests/Common/Authorization tests/IndyPOS.StoreHub.IntegrationTests/Endpoints/CashSummaryAccessTests.cs
-git commit -m "feat(auth): add sales.reprint and hold cashiers to today's cash summary"
+git add src/IndyPOS.Application/Common src/IndyPOS.StoreHub/Endpoints/Cash tests/IndyPOS.Application.Tests/Common/Authorization tests/IndyPOS.StoreHub.IntegrationTests/Endpoints/CashPastDayAccessTests.cs
+git commit -m "feat(auth): add sales.reprint and hold cashiers to today's cash figures"
 ```
 
 ---
@@ -3450,6 +3496,19 @@ public class SalesHistoryEndpointsTests : IntegrationTestBase
                            .Be(HttpStatusCode.BadRequest);
     }
 
+    // The /{value} catch-all must stay inside the authorised group: an anonymous caller gets 401,
+    // never the 400 that would confirm the route exists.
+    [Fact]
+    public async Task GetSaleByNumber_WithNonNumericValueWithoutAuth_ReturnsUnauthorized()
+    {
+        ClearAuthentication();
+
+        var response = await Client.GetAsync("/sales/abc");
+
+        response.StatusCode.Should()
+                           .Be(HttpStatusCode.Unauthorized);
+    }
+
     [Fact]
     public async Task GetSaleByNumber_WithOverflowingValue_ReturnsBadRequest()
     {
@@ -4589,20 +4648,20 @@ git commit -m "docs: record invoice-history forward-only gate result and test co
 **Spec coverage** (spec § → task):
 - §1 `0000000000` receipts → the number reaches the sale response in Task 2; the printer change itself is **plan 3**.
 - §4 schema, sequence, ordered backfill, unique `(store_id, invoice_number)`, `InvoiceNumber` long → Task 1. Sale response → Task 2. MigrationTool number = legacy id, native refusal (with the "does today's rule guarantee it?" answer: **no**), `setval` in the transaction → Task 3. `verify` checks → Task 4. Forward-only gate → Task 1 (`Insert_WithOnlyPreReleaseColumns_GetsANumberFromTheDefault`) + Task 9.
-- §5 `sales.reprint` for three roles, today from `ICashDrawerClock`, list → 403, bill → 404, reprint limits by role, `/cash/summary` past date → 403 with regression test, 401/403/Thai bodies → Tasks 5, 6, 7, 8.
+- §5 `sales.reprint` for three roles, today from `ICashDrawerClock`, list → 403, bill → 404, reprint limits by role, every `/cash` read's past date → 403 with regression tests, 401/403/Thai bodies → Tasks 5, 6, 7, 8.
 - §6 `GET /sales` (defaults, 50/200, newest first, no page total), `GET /sales/{id:guid}`, `GET /sales/{number:long}`, `POST /sales/{id:guid}/reprints` (201 + detail + record), detail fields checked against `ReceiptPrinterService` (table in Task 6), retirement of the two `/reports/invoices` routes with tests moved → Tasks 6, 7, 8. `invoice_reprint` append-only + `InvoiceReprinted` in one save → Task 8. `POST /sales/complete` rename → **not done** (route tidy-up PR), as the spec says.
 - §7, §8 → **plan 3**. §9 StoreHub side: `InvoiceCompleted` carries the number → Task 2; `MigratedInvoice.InvoiceNumber` → Task 3; `InvoiceReprinted` event → Task 8. Cloud side (mirror column/table, handler, ordering guard, `ProcessedEvents`, `HasComment`, bulk handler storing the number) → **plan 2**.
 - §10 server tests → Tasks 5-8; bill-number tests (concurrency, gate, backfill order, MigrationTool) → Tasks 1-4. Client/ViewModel/receipt/cloud tests → plans 2-3.
 - §11 → not code; this plan changes MigrationTool, so it must land before the Epic 3 Phase A rehearsal.
 
 **Deviations from the spec, called out:**
-- **D1 — the sale handler reserves its number** (`SELECT nextval('invoice_number_seq')`) and sets `Invoice.InvoiceNumber` before the save. The spec says the property is "never set by application code" and "no C# code picks a number". The database still picks it (same sequence, so no clash between tills), but C# does set the property. The spec's own requirements force this: `InvoiceCompleted` must carry the number (§9), and the row and event are one `SaveChangesAsync`, but the handler serialises the payload *before* the save. The alternatives were two saves (breaks the outbox guarantee) or an explicit transaction (retry-strategy risk, and EF's change tracker cannot re-run it). `ValueGeneratedOnAdd` is kept, so any insert that leaves the number at 0 (the MigrationTool before Task 3, the tests, restored older binaries) still gets it from the default.
-- **D2 — the column ends `NOT NULL`**, not `NULL`. EF cannot map a non-nullable `long` to an optional column (`IsRequired(false)` throws for value types), and the spec also wants the domain type to be `long`. `NOT NULL` with a default passes the forward-only gate (CLAUDE.md: "No new `NOT NULL` column without a default"). The spec's backfill guarantees the column is never empty anyway.
+- **D1 — the sale handler reserves its number** (approved by Pond 2026-09-29; spec §4 reworded to match) (`SELECT nextval('invoice_number_seq')`) and sets `Invoice.InvoiceNumber` before the save. The spec says the property is "never set by application code" and "no C# code picks a number". The database still picks it (same sequence, so no clash between tills), but C# does set the property. The spec's own requirements force this: `InvoiceCompleted` must carry the number (§9), and the row and event are one `SaveChangesAsync`, but the handler serialises the payload *before* the save. The alternatives were two saves (breaks the outbox guarantee) or an explicit transaction (retry-strategy risk, and EF's change tracker cannot re-run it). `ValueGeneratedOnAdd` is kept, so any insert that leaves the number at 0 (the MigrationTool before Task 3, the tests, restored older binaries) still gets it from the default.
+- **D2 — the column ends `NOT NULL`**, not `NULL` (approved by Pond 2026-09-29; spec §4 reworded to match). EF cannot map a non-nullable `long` to an optional column (`IsRequired(false)` throws for value types), and the spec also wants the domain type to be `long`. `NOT NULL` with a default passes the forward-only gate (CLAUDE.md: "No new `NOT NULL` column without a default"). The spec's backfill guarantees the column is never empty anyway.
 - **D3 — detail adds `PaymentDto.MethodDisplayName`.** The printer prints a payment *name* (`ReceiptPrinterService.cs:274`), and v4 stores only the code. It falls back to the code for a method no longer in the catalogue.
-- **D4 — the native-invoice refusal is per store**, not per database. Bill numbers are unique per store, so another store's v4 sales cannot collide. This matches the existing `AlreadyMigrated` guard and the two-stores-one-database test.
+- **D4 — the native-invoice refusal is per store**, not per database (approved by Pond 2026-09-29, both the refusal itself and its per-store scope; the Epic 3 runbook gains a "migrate before the first v4 sale" line). Bill numbers are unique per store, so another store's v4 sales cannot collide. This matches the existing `AlreadyMigrated` guard and the two-stores-one-database test.
 - **D5 — `setval` runs after the final `SaveChangesAsync`, just before `CommitAsync`**, not literally at the end of `MigrateInvoicesAsync`. The last batch of invoices only reaches the database at that save (`SqliteMigrationService.cs:118`). It is still inside the transaction.
 - **D6 — "no page total"** is read as no money total *and* no `TotalCount`/`TotalPages`: `SalesPage` has `HasMore` instead, fetched with page + 1 rows. The test pins the exact JSON property set.
-- **D7 — a lower-precedence `GET /sales/{value}` route** turns a malformed number into `400`. With typed constraints alone it would be `404`.
+- **D7 — a lower-precedence `GET /sales/{value}` route** turns a malformed number into `400` (approved by Pond 2026-09-29; Task 7 gains `GetSaleByNumber_WithNonNumericValueWithoutAuth_ReturnsUnauthorized` to pin it inside the authorised group). With typed constraints alone it would be `404`.
 - **D8 — `InvoiceCompletedEvent.InvoiceNumber` is `long?`**, so events queued before the upgrade read as null, not as the magic value 0.
 - **D9 — the reprint record returns `CreatedByUserId`, not a name.** The reprinter is always the caller, so plan 3 prints the logged-in user's name.
 - **D10 — the shared helpers stay in `Endpoints/Cash/`.** `RequireUserIdFilter` and `ClaimsPrincipalExtensions` (+ `HasCapability`) are reused by `/sales` through a `using`. Moving them is left to the route tidy-up PR, which moves the rest of `Program.cs`.
@@ -4615,6 +4674,6 @@ git commit -m "docs: record invoice-history forward-only gate result and test co
 **Review Focus check:** all five lines have tests in their owning tasks (listed in the section). Also considered and covered in tasks rather than listed there: concurrent sales (Task 2), two reprints (Task 8), an empty invoice table at migration time (Task 1), a lower-case PayLater code (Task 6), a same-instant paging tie (Task 6 `ThenByDescending(InvoiceNumber)`).
 
 **Found while planning, outside this plan's scope (flag, don't fix here):**
-- `GET /cash/counts|payouts|floats|debt-repayments?businessDate=` still return **past days** to a cashier. The spec closes only `/cash/summary` ("the rest of `/cash` is unchanged"), but past counts reveal that day's counted cash.
+- ~~`GET /cash/counts|payouts|floats|debt-repayments?businessDate=` still return past days to a cashier.~~ **Pulled into Task 5** in plan review (Pond, 2026-09-29): one group filter closes all five reads.
 - `POST /sales/complete` takes `UserId` from the **body** (`Program.cs:545-549`), against the "user id from the token" rule. This belongs to the route tidy-up PR.
 - v4 sales never write a `pay_later` row (only the MigrationTool does), and `SaleLineRequest` has no `Note`. So for v4 bills the PayLater marker comes from payments, and a line note is null.
