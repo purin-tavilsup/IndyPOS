@@ -1,8 +1,10 @@
 using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
+using System.Text.Json;
 using FluentAssertions;
 using IndyPOS.Application.Common.Enums;
+using IndyPOS.Application.UseCases.Cloud.Sync.Events;
 using IndyPOS.Application.UseCases.StoreHub.Sales;
 using IndyPOS.Infrastructure.Persistence.StoreHub;
 using Microsoft.EntityFrameworkCore;
@@ -232,5 +234,74 @@ public class SalesEndpointTests : IntegrationTestBase
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
+    }
+
+    // The body's UserId is ignored (the token decides), so any value will do.
+    private async Task<CompleteSaleRequest> OneCashSaleRequestAsync()
+    {
+        var product = await CreateTestProductAsync(unitPrice: 10m, initialStock: 100);
+        return new CompleteSaleRequest(
+            UserId: Guid.NewGuid(),
+            Lines: [new SaleLineRequest(product.Id, Quantity: 1, UnitPrice: 10m)],
+            Payments: [new SalePaymentRequest("Cash", Amount: 10m)]);
+    }
+
+    private async Task<CompleteSaleResponse> CompleteAsync(CompleteSaleRequest request)
+    {
+        var response = await Client.PostAsJsonAsync("/sales/complete", request);
+        response.EnsureSuccessStatusCode();
+        return (await response.Content.ReadFromJsonAsync<CompleteSaleResponse>(JsonOptions))!;
+    }
+
+    [Fact]
+    public async Task CompleteSale_WithTwoConcurrentSales_AssignsDistinctNumbers()
+    {
+        await AuthenticateAsCashierAsync();
+        var request = await OneCashSaleRequestAsync();
+
+        var results = await Task.WhenAll(CompleteAsync(request), CompleteAsync(request));
+
+        results.Select(r => r.InvoiceNumber).Should()
+                                            .OnlyHaveUniqueItems();
+    }
+
+    [Fact]
+    public async Task CompleteSale_WithValidData_ReturnsAPositiveInvoiceNumber()
+    {
+        await AuthenticateAsCashierAsync();
+
+        var result = await CompleteAsync(await OneCashSaleRequestAsync());
+
+        result.InvoiceNumber.Should()
+                            .BePositive();
+    }
+
+    [Fact]
+    public async Task CompleteSale_WithValidData_StoresTheReturnedNumberOnTheInvoice()
+    {
+        await AuthenticateAsCashierAsync();
+
+        var result = await CompleteAsync(await OneCashSaleRequestAsync());
+
+        await using var scope = Factory.Services.CreateAsyncScope();
+        var db = scope.ServiceProvider.GetRequiredService<StoreHubDbContext>();
+        (await db.Invoices.SingleAsync(i => i.Id == result.InvoiceId)).InvoiceNumber.Should()
+                                                                              .Be(result.InvoiceNumber);
+    }
+
+    [Fact]
+    public async Task CompleteSale_WithValidData_CarriesTheNumberInTheOutboxEvent()
+    {
+        await AuthenticateAsCashierAsync();
+
+        var result = await CompleteAsync(await OneCashSaleRequestAsync());
+
+        await using var scope = Factory.Services.CreateAsyncScope();
+        var db = scope.ServiceProvider.GetRequiredService<StoreHubDbContext>();
+        var outbox = await db.OutboxEvents.SingleAsync(e =>
+            e.Type == "InvoiceCompleted" && e.PayloadJson.Contains(result.InvoiceId.ToString()));
+        JsonSerializer.Deserialize<InvoiceCompletedEvent>(outbox.PayloadJson)!
+                      .InvoiceNumber.Should()
+                                    .Be(result.InvoiceNumber);
     }
 }

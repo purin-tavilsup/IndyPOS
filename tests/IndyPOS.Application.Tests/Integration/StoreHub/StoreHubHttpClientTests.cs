@@ -139,7 +139,8 @@ public class StoreHubHttpClientTests
         var expectedResponse = new CompleteSaleResponse(
             InvoiceId: Guid.NewGuid(),
             TotalAmount: 200m,
-            CreatedUtc: DateTime.UtcNow);
+            CreatedUtc: DateTime.UtcNow,
+            InvoiceNumber: 1001);
 
         SetupMockResponse(HttpStatusCode.OK, expectedResponse);
 

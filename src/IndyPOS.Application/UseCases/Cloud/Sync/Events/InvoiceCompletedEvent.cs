@@ -23,6 +23,12 @@ public record InvoiceCompletedEvent
     public decimal TotalAmount { get; init; }
     public DateTime CreatedAtUtc { get; init; }
 
+    /// <summary>
+    /// The bill number printed on the receipt. Null only for an event queued before this field
+    /// existed, so a consumer can tell "unknown" from a real number.
+    /// </summary>
+    public long? InvoiceNumber { get; init; }
+
     // Transaction details
     public IReadOnlyList<InvoiceLineSnapshot> Lines { get; init; } = [];
     public IReadOnlyList<PaymentSnapshot> Payments { get; init; } = [];
