@@ -1,3 +1,4 @@
+using IndyPOS.Application.Common.Exceptions;
 using IndyPOS.Application.UseCases.Cloud.Sync.BulkMigration;
 using IndyPOS.CloudApi.Domain;
 using Microsoft.EntityFrameworkCore;
@@ -33,6 +34,12 @@ public class BulkMigrationCommandHandler : ICommandHandler<BulkMigrationCommand,
     /// </remarks>
     public async Task<BulkMigrationResponse> HandleAsync(BulkMigrationCommand command, CancellationToken cancellationToken = default)
     {
+        // Checked before the strategy and its catch, so a push for another store is refused outright
+        // rather than reported as an import that happened to fail.
+        if (command.StoreId != command.AuthenticatedStoreId)
+            throw new StoreMismatchException(
+                $"This token authenticates store '{command.AuthenticatedStoreId}', so it cannot import history for store '{command.StoreId}'.");
+
         var strategy = _dbContext.Database.CreateExecutionStrategy();
 
         try
