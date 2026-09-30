@@ -224,14 +224,14 @@ dotnet run --project src/IndyPOS.AppHost --launch-profile https
 # Dashboard: https://localhost:17222
 ```
 
-Solution suites total **879** with Docker running and the real store databases present (878 pass,
-1 skipped) — measured 2026-09-30 (after the cloud event-pipeline repair and the sync store check; 853 on 2026-09-27, after the
+Solution suites total **887** with Docker running and the real store databases present (886 pass,
+1 skipped) — measured 2026-09-30 (after the cloud event-pipeline repair, the sync store check and the sync-client fix; 853 on 2026-09-27, after the
 cash-drawer release). Per suite: Domain 56 · Vault 17 · CloudApi 6 · CloudApi.IntegrationTests 22
-(Docker) · MigrationTool 134 (133 pass, 1 skip) · StoreHub.IntegrationTests 156 · Application 441 ·
+(Docker) · MigrationTool 134 (133 pass, 1 skip) · StoreHub.IntegrationTests 156 · Application 449 ·
 Windows.Forms 47. The growth since the 2026-09-17 measurement (656 total) is the cash-drawer
 feature's own tests plus its final-review follow-up: Domain +20, Application +125,
-StoreHub.IntegrationTests +52; the pipeline repair then added CloudApi.IntegrationTests +18, and the sync store check Application +6 and CloudApi.IntegrationTests +2. Without the
-real store databases the suite discovers **859** (DERIVED as 879 − 20, not measured) — a skipped
+StoreHub.IntegrationTests +52; the pipeline repair then added CloudApi.IntegrationTests +18, and the sync store check Application +6 and CloudApi.IntegrationTests +2, and the sync-client fix Application +8. Without the
+real store databases the suite discovers **867** (DERIVED as 887 − 20, not measured) — a skipped
 `[Theory]` is one entry, not one per row.
 See [`ONBOARDING.md`](ONBOARDING.md) for the per-suite breakdown, the dev-vs-installed port split,
 and the `/health` vs `/health/ready` trap.
