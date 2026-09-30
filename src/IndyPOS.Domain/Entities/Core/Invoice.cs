@@ -25,6 +25,18 @@ public class Invoice
     /// </remarks>
     public int? LegacyInvoiceId { get; set; }
 
+    /// <summary>
+    /// The bill number printed on the receipt: per store, running, never reused. Assigned by the
+    /// database from <c>invoice_number_seq</c>. A v3 bill keeps its v3 number and v4 carries on
+    /// after the store's last one.
+    /// </summary>
+    /// <remarks>
+    /// 0 means "not assigned yet": EF then leaves the column out of the INSERT and the column
+    /// default fills it. The same default is what lets the previous release's binaries, which never
+    /// mention the column, keep writing sales after an installer rollback.
+    /// </remarks>
+    public long InvoiceNumber { get; set; }
+
     // Navigation properties
     public ICollection<InvoiceLine> Lines { get; set; } = new List<InvoiceLine>();
     public ICollection<Payment> Payments { get; set; } = new List<Payment>();
