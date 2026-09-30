@@ -20,6 +20,35 @@ public class EventProcessorTests(CloudPostgresFixture postgres) : IClassFixture<
 {
     private const int BatchSize = 50;
 
+    // One DbContext serves the whole batch. A failed save leaves its rows tracked as Added, so the
+    // next event's save would try to insert them again and fail too.
+    [Fact]
+    public async Task ProcessPendingEventsAsync_WhenAnEventFails_StillStoresTheNextOne()
+    {
+        await using var pipeline = await Pipeline.CreateAsync(postgres);
+        var alreadyInCloud = await pipeline.AddCloudInvoiceAsync();
+        await pipeline.AddInvoiceCompletedAsync(alreadyInCloud);
+        var next = await pipeline.AddInvoiceCompletedAsync();
+
+        await pipeline.PollAsync();
+
+        (await pipeline.FindInvoiceAsync(next.InvoiceId)).Should()
+                                                         .NotBeNull(pipeline.LoggedErrors);
+    }
+
+    [Fact]
+    public async Task ProcessPendingEventsAsync_WhenAnEventFails_LeavesItUnprocessedToRetry()
+    {
+        await using var pipeline = await Pipeline.CreateAsync(postgres);
+        var alreadyInCloud = await pipeline.AddCloudInvoiceAsync();
+        await pipeline.AddInvoiceCompletedAsync(alreadyInCloud);
+
+        await pipeline.PollAsync();
+
+        (await pipeline.CountUnprocessedAsync()).Should()
+                                                .Be(1);
+    }
+
     [Fact]
     public async Task ProcessPendingEventsAsync_WithAnEventAlreadyInProcessedEvents_DoesNotStoreItAgain()
     {
@@ -159,6 +188,25 @@ public class EventProcessorTests(CloudPostgresFixture postgres) : IClassFixture<
             });
 
             return evt;
+        }
+
+        /// <summary>An invoice already in the cloud, so an event for the same id fails on its key.</summary>
+        public async Task<Guid> AddCloudInvoiceAsync()
+        {
+            var invoiceId = Guid.NewGuid();
+            await WithDbAsync(db =>
+            {
+                db.Invoices.Add(new CloudInvoice
+                {
+                    Id = invoiceId,
+                    StoreId = "1",
+                    CreatedAtUtc = DateTime.UtcNow,
+                    SyncedAtUtc = DateTime.UtcNow
+                });
+                return db.SaveChangesAsync();
+            });
+
+            return invoiceId;
         }
 
         public Task AddProcessedEventAsync(Guid eventId) =>
