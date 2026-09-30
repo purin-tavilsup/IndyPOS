@@ -7,6 +7,9 @@ using IndyPOS.Application.UseCases.StoreHub.PaymentMethods;
 using IndyPOS.Domain.Entities.Core;
 using Microsoft.Extensions.Logging;
 using Nokpirab;
+// Inside IndyPOS.Application.UseCases.StoreHub.*, the bare name PayLater binds to the sibling
+// namespace IndyPOS.Application.UseCases.StoreHub.PayLater, not to the entity.
+using PayLaterDebt = IndyPOS.Domain.Entities.Core.PayLater;
 
 namespace IndyPOS.Application.UseCases.StoreHub.Sales.Complete;
 
@@ -131,6 +134,11 @@ public class CompleteSaleCommandHandler : ICommandHandler<CompleteSaleCommand, C
             CreatedUtc = now
         }).ToList();
 
+        // Spec 2026-09-30 §4.1: the debt rides its payment's 1:1 navigation, so EF saves it in the
+        // same SaveChangesAsync as the sale. A credit sale can never exist without its debt.
+        foreach (var payment in payments.Where(p => SalePaymentRules.IsPayLater(p.Method)))
+            payment.PayLater = NewDebt(payment, now);
+
         // Build rich event payload (transaction snapshot)
         var eventId = Guid.NewGuid();
         var invoiceCompletedEvent = new InvoiceCompletedEvent
@@ -194,4 +202,18 @@ public class CompleteSaleCommandHandler : ICommandHandler<CompleteSaleCommand, C
             TotalAmount: invoice.TotalAmount,
             CreatedUtc: invoice.CreatedUtc);
     }
+
+    /// <summary>The shape the MigrationTool writes for a v3 debt: nothing paid yet.</summary>
+    private static PayLaterDebt NewDebt(Payment payment, DateTime now) => new()
+    {
+        Id = Guid.NewGuid(),
+        PaymentId = payment.Id,
+        InvoiceId = payment.InvoiceId,
+        Description = payment.Note!.Trim(),
+        PayLaterAmount = payment.Amount,
+        PaidAmount = 0m,
+        IsCompleted = false,
+        CreatedUtc = now,
+        LastModifiedUtc = now
+    };
 }
