@@ -1,5 +1,6 @@
 using IndyPOS.CloudApi.Infrastructure;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Npgsql;
 using Testcontainers.PostgreSql;
 using Xunit;
@@ -42,10 +43,11 @@ public sealed class CloudPostgresFixture : IAsyncLifetime
     public static void Configure(DbContextOptionsBuilder options, string connectionString) =>
         options.UseNpgsql(connectionString, npgsql => npgsql.EnableRetryOnFailure());
 
-    public static CloudDbContext CreateContext(string connectionString)
+    public static CloudDbContext CreateContext(string connectionString, params IInterceptor[] interceptors)
     {
         var options = new DbContextOptionsBuilder<CloudDbContext>();
         Configure(options, connectionString);
+        options.AddInterceptors(interceptors);
 
         return new CloudDbContext(options.Options);
     }
