@@ -1,5 +1,6 @@
 using System.Text.Json;
 using IndyPOS.Application.Abstractions.StoreHub.Repositories;
+using IndyPOS.Application.Common.Exceptions;
 using IndyPOS.Application.Common.Interfaces;
 using IndyPOS.Application.UseCases.Cloud.Sync.Events;
 using IndyPOS.Application.UseCases.StoreHub.PaymentMethods;
@@ -39,16 +40,20 @@ public class CompleteSaleCommandHandler : ICommandHandler<CompleteSaleCommand, C
             "Processing sale: StoreId={StoreId}, UserId={UserId}, Lines={LineCount}, Payments={PaymentCount}",
             command.StoreId, command.UserId, command.Lines.Count, command.Payments.Count);
 
-        // Validate all payment methods are offerable for this store (catalog is the single source of truth)
+        // Every payment rule runs before any lookup or save, so a refused sale writes nothing.
         var offerable = await _catalog.GetOfferableAsync(cancellationToken);
         var offerableCodes = offerable.Select(m => m.Code).ToHashSet(StringComparer.OrdinalIgnoreCase);
-        var rejected = command.Payments.FirstOrDefault(p => !offerableCodes.Contains(p.Method));
-        if (rejected is not null)
+        var invoiceTotal = command.Lines.Sum(l => l.Quantity * l.UnitPrice);
+
+        try
         {
-            _logger.LogWarning("Payment method rejected: Method={Method}, StoreType={StoreType}, UserId={UserId}",
-                rejected.Method, _storeIdentity.StoreType, command.UserId);
-            throw new InvalidOperationException(
-                $"Payment method '{rejected.Method}' is not available for {_storeIdentity.StoreType} stores.");
+            SalePaymentRules.EnsureValid(command.Payments, invoiceTotal, offerableCodes);
+        }
+        catch (SaleValidationException ex)
+        {
+            _logger.LogWarning("Sale refused: {Reason}, StoreType={StoreType}, UserId={UserId}",
+                ex.Message, _storeIdentity.StoreType, command.UserId);
+            throw;
         }
 
         var now = DateTime.UtcNow;
@@ -60,7 +65,7 @@ public class CompleteSaleCommandHandler : ICommandHandler<CompleteSaleCommand, C
             Id = invoiceId,
             StoreId = command.StoreId,
             UserId = command.UserId,
-            TotalAmount = command.Lines.Sum(l => l.Quantity * l.UnitPrice),
+            TotalAmount = invoiceTotal,
             CreatedUtc = now,
             LastModifiedUtc = now
         };
