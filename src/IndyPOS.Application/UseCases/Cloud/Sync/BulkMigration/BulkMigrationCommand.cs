@@ -6,11 +6,13 @@ namespace IndyPOS.Application.UseCases.Cloud.Sync.BulkMigration;
 /// Command to bulk migrate data from SQLite to Cloud.
 /// Used by the MigrationTool after loading data into StoreHub PostgreSQL.
 /// </summary>
+/// <param name="AuthenticatedStoreId">The store_id claim of the caller's token: the only store it may import for.</param>
 public record BulkMigrationCommand(
     string StoreId,
     IReadOnlyList<MigratedUser> Users,
     IReadOnlyList<MigratedProduct> Products,
-    IReadOnlyList<MigratedInvoice> Invoices) : ICommand<BulkMigrationResponse>;
+    IReadOnlyList<MigratedInvoice> Invoices,
+    string AuthenticatedStoreId) : ICommand<BulkMigrationResponse>;
 
 /// <summary>
 /// User data for migration sync.

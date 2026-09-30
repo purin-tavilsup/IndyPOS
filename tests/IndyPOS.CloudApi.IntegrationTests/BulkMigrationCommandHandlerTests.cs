@@ -1,5 +1,6 @@
 using System.Data.Common;
 using FluentAssertions;
+using IndyPOS.Application.Common.Exceptions;
 using IndyPOS.Application.UseCases.Cloud.Sync.BulkMigration;
 using IndyPOS.CloudApi.Domain;
 using IndyPOS.CloudApi.Infrastructure;
@@ -19,6 +20,38 @@ namespace IndyPOS.CloudApi.IntegrationTests;
 public class BulkMigrationCommandHandlerTests(CloudPostgresFixture postgres) : IClassFixture<CloudPostgresFixture>
 {
     private const string StoreId = "1";
+    private const string OtherStoreId = "2";
+
+    // The endpoint trusted the body's StoreId, so any registered store could import history as another.
+    [Fact]
+    public async Task HandleAsync_WithAPushForAnotherStore_ThrowsStoreMismatch()
+    {
+        await using var db = CloudPostgresFixture.CreateContext(await postgres.CreateDatabaseAsync());
+        var command = CommandWith(NewInvoice()) with { AuthenticatedStoreId = OtherStoreId };
+
+        var act = () => NewHandler(db).HandleAsync(command);
+
+        await act.Should()
+                 .ThrowAsync<StoreMismatchException>();
+    }
+
+    [Fact]
+    public async Task HandleAsync_WithAPushForAnotherStore_ImportsNothing()
+    {
+        var connectionString = await postgres.CreateDatabaseAsync();
+        await using (var db = CloudPostgresFixture.CreateContext(connectionString))
+        {
+            var command = CommandWith(NewInvoice()) with { AuthenticatedStoreId = OtherStoreId };
+            await FluentActions.Awaiting(() => NewHandler(db).HandleAsync(command))
+                               .Should()
+                               .ThrowAsync<StoreMismatchException>();
+        }
+
+        await using var check = CloudPostgresFixture.CreateContext(connectionString);
+
+        (await check.Invoices.CountAsync()).Should()
+                                           .Be(0);
+    }
 
     // A fresh invoice beside it, so a handler that imports nothing at all cannot pass.
     [Fact]
@@ -126,7 +159,7 @@ public class BulkMigrationCommandHandlerTests(CloudPostgresFixture postgres) : I
         new(db, NullLogger<BulkMigrationCommandHandler>.Instance);
 
     private static BulkMigrationCommand CommandWith(params MigratedInvoice[] invoices) =>
-        new(StoreId, Users: [], Products: [], Invoices: invoices);
+        new(StoreId, Users: [], Products: [], Invoices: invoices, AuthenticatedStoreId: StoreId);
 
     private static MigratedInvoice NewInvoice() =>
         new(Id: Guid.NewGuid(),
