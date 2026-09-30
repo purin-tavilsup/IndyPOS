@@ -1,5 +1,6 @@
 using System.Collections.Concurrent;
 using IndyPOS.Application.Abstractions.Cloud.Repositories;
+using IndyPOS.Application.Common.Exceptions;
 using IndyPOS.Application.UseCases.Cloud.Sync;
 using IndyPOS.Application.UseCases.Cloud.Sync.IngestEvents;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -9,6 +10,11 @@ namespace IndyPOS.Application.Tests.UseCases.Cloud.Sync;
 
 public class IngestEventsCommandHandlerTests
 {
+    // Real store ids are strings such as "STORE-001" or a UUID; the token carries the same one.
+    private const string OwnStoreId = "STORE-001";
+    private const string OtherStoreId = "STORE-002";
+    private const string OwnPayload = """{"StoreId":"STORE-001"}""";
+
     private readonly FakeSyncedEventRepository _repository;
     private readonly IngestEventsCommandHandler _handler;
 
@@ -18,6 +24,62 @@ public class IngestEventsCommandHandlerTests
         _handler = new IngestEventsCommandHandler(_repository, NullLogger<IngestEventsCommandHandler>.Instance);
     }
 
+    // Ingest trusted each event's store: any registered store could post sales as another store.
+    [Fact]
+    public async Task HandleAsync_WithAnEventForAnotherStore_ThrowsStoreMismatch()
+    {
+        var command = new IngestEventsCommand([EventWithPayload($$"""{"StoreId":"{{OtherStoreId}}"}""")], OwnStoreId);
+
+        await Assert.ThrowsAsync<StoreMismatchException>(() => _handler.HandleAsync(command));
+    }
+
+    [Fact]
+    public async Task HandleAsync_WithOneForeignEventInTheBatch_StoresNothing()
+    {
+        var command = new IngestEventsCommand(
+            [EventWithPayload(OwnPayload), EventWithPayload($$"""{"StoreId":"{{OtherStoreId}}"}""")], OwnStoreId);
+
+        await Assert.ThrowsAsync<StoreMismatchException>(() => _handler.HandleAsync(command));
+
+        Assert.Empty(_repository.Events);
+    }
+
+    [Fact]
+    public async Task HandleAsync_WithAPayloadWithoutAStoreId_ThrowsStoreMismatch()
+    {
+        var command = new IngestEventsCommand([EventWithPayload("{}")], OwnStoreId);
+
+        await Assert.ThrowsAsync<StoreMismatchException>(() => _handler.HandleAsync(command));
+    }
+
+    [Fact]
+    public async Task HandleAsync_WithAPayloadThatIsNotJson_ThrowsStoreMismatch()
+    {
+        var command = new IngestEventsCommand([EventWithPayload("not json")], OwnStoreId);
+
+        await Assert.ThrowsAsync<StoreMismatchException>(() => _handler.HandleAsync(command));
+    }
+
+    // JSON binding can put a runtime null into the non-nullable Payload; that is unreadable, not a 500.
+    [Fact]
+    public async Task HandleAsync_WithANullPayload_ThrowsStoreMismatch()
+    {
+        var command = new IngestEventsCommand([EventWithPayload(null!)], OwnStoreId);
+
+        await Assert.ThrowsAsync<StoreMismatchException>(() => _handler.HandleAsync(command));
+    }
+
+    [Fact]
+    public async Task HandleAsync_WithAStoreIdDifferingOnlyInCase_ThrowsStoreMismatch()
+    {
+        var command = new IngestEventsCommand([EventWithPayload("""{"StoreId":"store-001"}""")], OwnStoreId);
+
+        await Assert.ThrowsAsync<StoreMismatchException>(() => _handler.HandleAsync(command));
+    }
+
+    private static SyncEventRequest EventWithPayload(string payload) =>
+        new(Guid.NewGuid(), StoreId: 0, EventType: "InvoiceCompleted", Payload: payload, CreatedAtUtc: DateTime.UtcNow);
+
     [Fact]
     public async Task HandleAsync_NewEvent_ShouldAcceptAndStore()
     {
@@ -25,9 +87,9 @@ public class IngestEventsCommandHandlerTests
         var eventId = Guid.NewGuid();
         var events = new List<SyncEventRequest>
         {
-            new(eventId, StoreId: 1, EventType: "InvoiceCompleted", Payload: "{}", CreatedAtUtc: DateTime.UtcNow)
+            new(eventId, StoreId: 1, EventType: "InvoiceCompleted", Payload: OwnPayload, CreatedAtUtc: DateTime.UtcNow)
         };
-        var command = new IngestEventsCommand(events);
+        var command = new IngestEventsCommand(events, OwnStoreId);
 
         // Act
         var result = await _handler.HandleAsync(command);
@@ -48,9 +110,9 @@ public class IngestEventsCommandHandlerTests
 
         var events = new List<SyncEventRequest>
         {
-            new(eventId, StoreId: 1, EventType: "InvoiceCompleted", Payload: "{}", CreatedAtUtc: DateTime.UtcNow)
+            new(eventId, StoreId: 1, EventType: "InvoiceCompleted", Payload: OwnPayload, CreatedAtUtc: DateTime.UtcNow)
         };
-        var command = new IngestEventsCommand(events);
+        var command = new IngestEventsCommand(events, OwnStoreId);
 
         // Act
         var result = await _handler.HandleAsync(command);
@@ -76,11 +138,11 @@ public class IngestEventsCommandHandlerTests
 
         var events = new List<SyncEventRequest>
         {
-            new(existingEventId, StoreId: 1, EventType: "InvoiceCompleted", Payload: "{}", CreatedAtUtc: DateTime.UtcNow),
-            new(newEventId1, StoreId: 1, EventType: "InvoiceCompleted", Payload: "{}", CreatedAtUtc: DateTime.UtcNow),
-            new(newEventId2, StoreId: 2, EventType: "InventoryMovementRecorded", Payload: "{}", CreatedAtUtc: DateTime.UtcNow)
+            new(existingEventId, StoreId: 1, EventType: "InvoiceCompleted", Payload: OwnPayload, CreatedAtUtc: DateTime.UtcNow),
+            new(newEventId1, StoreId: 1, EventType: "InvoiceCompleted", Payload: OwnPayload, CreatedAtUtc: DateTime.UtcNow),
+            new(newEventId2, StoreId: 2, EventType: "InventoryMovementRecorded", Payload: OwnPayload, CreatedAtUtc: DateTime.UtcNow)
         };
-        var command = new IngestEventsCommand(events);
+        var command = new IngestEventsCommand(events, OwnStoreId);
 
         // Act
         var result = await _handler.HandleAsync(command);
@@ -96,7 +158,7 @@ public class IngestEventsCommandHandlerTests
     public async Task HandleAsync_EmptyBatch_ShouldReturnZeroCounts()
     {
         // Arrange
-        var command = new IngestEventsCommand(new List<SyncEventRequest>());
+        var command = new IngestEventsCommand(new List<SyncEventRequest>(), OwnStoreId);
 
         // Act
         var result = await _handler.HandleAsync(command);

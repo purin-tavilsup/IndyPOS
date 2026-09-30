@@ -3,6 +3,7 @@ using System.Text;
 using IndyPOS.Application.Abstractions.Cloud.Auth;
 using IndyPOS.Application.Abstractions.Cloud.Repositories;
 using IndyPOS.Application.Common.Authorization;
+using IndyPOS.Application.Common.Exceptions;
 using IndyPOS.Application.UseCases.Cloud.Stores.RegisterStore;
 using IndyPOS.Application.UseCases.Cloud.Sync;
 using IndyPOS.Application.UseCases.Cloud.Sync.IngestEvents;
@@ -149,11 +150,21 @@ app.MapGet("/", () => "IndyPOS Cloud API");
 app.MapPost("/sync/events", [Authorize] async (
     ICommandHandler<IngestEventsCommand, SyncEventsResponse> handler,
     SyncEventsRequest request,
+    ClaimsPrincipal user,
     CancellationToken cancellationToken) =>
 {
-    var command = new IngestEventsCommand(request.Events);
-    var response = await handler.HandleAsync(command, cancellationToken);
-    return Results.Ok(response);
+    var command = new IngestEventsCommand(request.Events, user.FindFirst("store_id")?.Value ?? string.Empty);
+
+    // 403, not a 200 with Accepted=false: HttpCloudSyncClient treats any 2xx as sent, so only a
+    // failure status makes the store keep the event and back off for manual review.
+    try
+    {
+        return Results.Ok(await handler.HandleAsync(command, cancellationToken));
+    }
+    catch (StoreMismatchException ex)
+    {
+        return Results.Problem(ex.Message, statusCode: StatusCodes.Status403Forbidden);
+    }
 }).RequireAuthorization();
 
 // Bulk migration endpoint - one-time sync from SQLite migration
@@ -161,15 +172,25 @@ app.MapPost("/sync/events", [Authorize] async (
 app.MapPost("/sync/bulk-migration", [Authorize] async (
     ICommandHandler<BulkMigrationCommand, BulkMigrationResponse> handler,
     BulkMigrationRequest request,
+    ClaimsPrincipal user,
     CancellationToken cancellationToken) =>
 {
     var command = new BulkMigrationCommand(
         request.StoreId,
         request.Users,
         request.Products,
-        request.Invoices);
-    var response = await handler.HandleAsync(command, cancellationToken);
-    return response.Success ? Results.Ok(response) : Results.BadRequest(response);
+        request.Invoices,
+        user.FindFirst("store_id")?.Value ?? string.Empty);
+
+    try
+    {
+        var response = await handler.HandleAsync(command, cancellationToken);
+        return response.Success ? Results.Ok(response) : Results.BadRequest(response);
+    }
+    catch (StoreMismatchException ex)
+    {
+        return Results.Problem(ex.Message, statusCode: StatusCodes.Status403Forbidden);
+    }
 }).RequireAuthorization();
 
 // Sync status endpoint
