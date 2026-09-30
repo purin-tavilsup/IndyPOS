@@ -67,30 +67,34 @@ public class EventProcessorTests(CloudPostgresFixture postgres) : IClassFixture<
                                                          .NotBeNull(pipeline.LoggedErrors);
     }
 
+    // A fresh event beside it, so a pipeline that processes nothing at all cannot pass.
     [Fact]
-    public async Task ProcessPendingEventsAsync_WhenAnEventFails_LeavesItUnprocessedToRetry()
+    public async Task ProcessPendingEventsAsync_WhenAnEventFails_LeavesOnlyItUnprocessedToRetry()
     {
         await using var pipeline = await Pipeline.CreateAsync(postgres);
         var alreadyInCloud = await pipeline.AddCloudInvoiceAsync();
         await pipeline.AddInvoiceCompletedAsync(alreadyInCloud);
+        await pipeline.AddInvoiceCompletedAsync();
 
         await pipeline.PollAsync();
 
         (await pipeline.CountUnprocessedAsync()).Should()
-                                                .Be(1);
+                                                .Be(1, pipeline.LoggedErrors);
     }
 
+    // A fresh event beside it, so a pipeline that stores nothing at all cannot pass.
     [Fact]
-    public async Task ProcessPendingEventsAsync_WithAnEventAlreadyInProcessedEvents_DoesNotStoreItAgain()
+    public async Task ProcessPendingEventsAsync_WithAnEventAlreadyInProcessedEvents_StoresOnlyTheFreshOne()
     {
         await using var pipeline = await Pipeline.CreateAsync(postgres);
-        var evt = await pipeline.AddInvoiceCompletedAsync();
-        await pipeline.AddProcessedEventAsync(evt.EventId);
+        var alreadyProcessed = await pipeline.AddInvoiceCompletedAsync();
+        await pipeline.AddProcessedEventAsync(alreadyProcessed.EventId);
+        await pipeline.AddInvoiceCompletedAsync();
 
         await pipeline.PollAsync();
 
         (await pipeline.CountInvoicesAsync()).Should()
-                                             .Be(0);
+                                             .Be(1, pipeline.LoggedErrors);
     }
 
     [Fact]
