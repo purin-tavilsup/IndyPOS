@@ -1,6 +1,7 @@
 using AutoFixture.Xunit2;
 using FluentAssertions;
 using IndyPOS.Application.Abstractions.StoreHub.Repositories;
+using IndyPOS.Application.Common.Exceptions;
 using IndyPOS.Application.Tests.Mocks.Attributes;
 using IndyPOS.Application.UseCases.StoreHub.PaymentMethods;
 using IndyPOS.Application.UseCases.StoreHub.Sales;
@@ -367,7 +368,7 @@ public class CompleteSaleCommandHandlerTests
         var act = () => sut.HandleAsync(command);
 
         // Assert
-        await act.Should().ThrowAsync<InvalidOperationException>();
+        await act.Should().ThrowAsync<SaleValidationException>();
     }
 
     [Theory]
