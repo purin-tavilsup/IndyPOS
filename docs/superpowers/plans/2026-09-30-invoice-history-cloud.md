@@ -18,7 +18,7 @@
   - `InvoiceReprintedEvent` and the type name `"InvoiceReprinted"` (plan 1 Task 8).
 
   Check before starting: `grep -n "InvoiceNumber" src/IndyPOS.Application/UseCases/Cloud/Sync/Events/InvoiceCompletedEvent.cs src/IndyPOS.Application/UseCases/Cloud/Sync/BulkMigration/BulkMigrationCommand.cs` prints two lines, and `src/IndyPOS.Application/UseCases/Cloud/Sync/Events/InvoiceReprintedEvent.cs` exists.
-- **PR #101 is merged** (the event-pipeline repair, 2026-09-30). Before it, no event was ever processed, so none of this plan could have worked. It also gives this plan `CloudPostgresFixture`, the `EventProcessorTests.Pipeline` harness and `HandledEventTypes`.
+- **PR #101 and the sync store-check fix are merged** (2026-09-30). #101 is the event-pipeline repair. Before it, no event was ever processed, so none of this plan could have worked. It also gives this plan `CloudPostgresFixture`, the `EventProcessorTests.Pipeline` harness and `HandledEventTypes`.
 - **Docker is running.** Every test in this plan runs on a real Postgres container, with the Npgsql retry strategy on, as Aspire configures it.
 
 ## Global Constraints
@@ -211,7 +211,7 @@ Expected: `No changes have been made to the model since the last migration.`
 - [ ] **Step 9: Run the tests to verify they pass**
 
 Run: `dotnet test tests/IndyPOS.CloudApi.IntegrationTests`
-Expected: PASS, 22 tests (the 20 from #101 plus 2 new). The fixture runs `MigrateAsync`, so the new migration is exercised by every test.
+Expected: PASS, 24 tests (the 22 already there plus 2 new). The fixture runs `MigrateAsync`, so the new migration is exercised by every test.
 
 - [ ] **Step 10: Commit**
 
@@ -293,7 +293,7 @@ In `BulkMigrationCommandHandler.ImportAsync`, in the `new CloudInvoice { … }` 
 - [ ] **Step 4: Run the tests to verify they pass**
 
 Run: `dotnet test tests/IndyPOS.CloudApi.IntegrationTests --filter "FullyQualifiedName~BulkMigrationCommandHandlerTests"`
-Expected: PASS, 7 tests (5 from #101 plus 2 new).
+Expected: PASS, 9 tests (the 7 already there plus 2 new).
 
 - [ ] **Step 5: Commit**
 
@@ -564,7 +564,7 @@ Expected: `No changes have been made to the model since the last migration.`
 - [ ] **Step 8: Run the tests to verify they pass**
 
 Run: `dotnet test tests/IndyPOS.CloudApi.IntegrationTests` and `dotnet test tests/IndyPOS.Application.Tests --filter "FullyQualifiedName~IngestEvents"`
-Expected: PASS. That is 31 cloud tests (24 + 7), and 4 ingest tests.
+Expected: PASS. That is 33 cloud tests (26 + 7), and 9 ingest tests.
 
 - [ ] **Step 9: Commit**
 
@@ -890,7 +890,7 @@ Expected: `No changes have been made to the model since the last migration.`
 - [ ] **Step 9: Run the tests to verify they pass**
 
 Run: `dotnet test tests/IndyPOS.CloudApi.IntegrationTests`
-Expected: PASS, 39 tests (31 after Task 3, plus 8 here).
+Expected: PASS, 41 tests (33 after Task 3, plus 8 here).
 
 - [ ] **Step 10: Write the deploy order into the rollout plan**
 
@@ -995,17 +995,17 @@ Then add this line to the `GetUnprocessedAsync` doc comment in `ISyncedEventRepo
 - [ ] **Step 4: Run the whole suite and measure**
 
 Run: `dotnet test --logger trx --results-directory <dir>` (Docker running, with the real store databases present).
-Expected: every suite green. `CloudApi.IntegrationTests` has **40**, and the solution has **892 total, 891 pass, 1 skipped**: 871 from #101, plus 21 from this plan. If the numbers differ, use the **measured** ones in the next step, and say in the commit which figure moved.
+Expected: every suite green. `CloudApi.IntegrationTests` has **42**, and the solution has **899 total, 898 pass, 1 skipped**: 878 before this plan, plus 21 from it. If the numbers differ, use the **measured** ones in the next step, and say in the commit which figure moved.
 
 - [ ] **Step 5: Update the documented counts**
 
 In `CLAUDE.md` and `ONBOARDING.md`, update the counts #101 set to the numbers measured in Step 4:
-- `CloudApi.IntegrationTests`: 20 → 40;
-- the solution total: 871 → 892, and pass 870 → 891;
-- without the store databases: 851 → 872 (derived as total − 20);
-- failures with Docker stopped: 239 → 259 (148 + 71 + 40, derived).
+- `CloudApi.IntegrationTests`: 22 → 42;
+- the solution total: 878 → 899, and pass 877 → 898;
+- without the store databases: 858 → 879 (derived as total − 20);
+- failures with Docker stopped: 241 → 261 (148 + 71 + 42, derived).
 
-Search each file for the old numbers (`grep -n "871\|870\|851\|239\| 20 " CLAUDE.md ONBOARDING.md`), and leave no old figure behind.
+Search each file for the old numbers (`grep -n "878\|877\|858\|241\| 22 " CLAUDE.md ONBOARDING.md`), and leave no old figure behind.
 
 - [ ] **Step 6: Commit**
 
@@ -1036,7 +1036,7 @@ git commit -m "fix(cloud): process one ingest batch in the order the store sent 
 - **P7: deferred retries (Task 3)** are not in the spec. Codex flagged (P1, PR #102) that Task 4's guard, which fails by design, could fill every batch and stop all sync. Pond chose to fix it here (2026-09-30), rather than in a separate spec.
 - **P8: the reprint guard matches the store as well as the invoice id** (Codex P2, PR #102). Ingest does not yet check an event's `StoreId` against the token (see below).
 
-**Placeholder scan:** none left. `<ts>` is generated by `dotnet ef`, and `<dir>` is any results folder. The expected counts are derived (22 → 24 → 31 → 39 → 40 cloud; 871 + 21 = 892), and Task 5 Step 4 replaces them with measured numbers.
+**Placeholder scan:** none left. `<ts>` is generated by `dotnet ef`, and `<dir>` is any results folder. The expected counts are derived (22 → 24 → 26 → 33 → 41 → 42 cloud; 878 + 21 = 899), and Task 5 Step 4 replaces them with measured numbers.
 
 **Type consistency:** `CloudInvoice.InvoiceNumber : long?` (Tasks 1, 2). `CloudInvoiceReprint { Id, InvoiceId, StoreId, CreatedByUserId, CreatedAtUtc, SyncedAtUtc }` and `CloudDbContext.InvoiceReprints` (Task 4, used in the `ReprintsOfAsync` helper). `Pipeline.AddInvoiceCompletedAsync(Guid? invoiceId = null, long? invoiceNumber = null)` (Task 1, used in Task 4). `Pipeline.AddInvoiceReprintedAsync(Guid invoiceId) : InvoiceReprintedEvent` and `ReprintsOfAsync(Guid)` (Task 4). `AddEventAsync(CloudDbContext, long id, DateTime receivedAtUtc)` (Task 5). `InvoiceReprintedEvent.CreatedUtc` → `CloudInvoiceReprint.CreatedAtUtc`: the cloud side follows the cloud's `…AtUtc` naming.
 
