@@ -2071,6 +2071,7 @@ public record GetSaleByIdQuery(Guid InvoiceId, bool CanViewAnyDay) : IQuery<Invo
 public record GetSaleByNumberQuery(long InvoiceNumber, bool CanViewAnyDay) : IQuery<InvoiceDetailDto?>;
 
 public static class SalesQueryRules { FirstPage = 1; DefaultPageSize = 50; MaxPageSize = 200; DateFormat = "yyyy-MM-dd";
+    EarliestDate = 2000-01-01; LatestDate = 2099-12-31;
     DateOnly? ParseDate(string? value); void EnsureValidRange(DateOnly from, DateOnly to);
     void EnsureValidPage(int page, int pageSize); void EnsureValidNumber(long number); string InvalidNumberMessage(string value); }
 public readonly record struct SalePayment(string Method, decimal Amount);
@@ -2118,6 +2119,35 @@ public class SalesQueryRulesTests
 
         act.Should()
            .Throw<SalesQueryValidationException>();
+    }
+
+    // ReportDateRange.ToUtcRange does toDate.AddDays(1) and converts from the store's timezone, so
+    // DateOnly.MaxValue overflows and DateOnly.MinValue underflows at +07:00 -- each a 500.
+    [Fact]
+    public void EnsureValidRange_WithTheLastRepresentableDate_Throws()
+    {
+        var act = () => SalesQueryRules.EnsureValidRange(DateOnly.MaxValue, DateOnly.MaxValue);
+
+        act.Should()
+           .Throw<SalesQueryValidationException>();
+    }
+
+    [Fact]
+    public void EnsureValidRange_WithTheFirstRepresentableDate_Throws()
+    {
+        var act = () => SalesQueryRules.EnsureValidRange(DateOnly.MinValue, Day);
+
+        act.Should()
+           .Throw<SalesQueryValidationException>();
+    }
+
+    [Fact]
+    public void EnsureValidRange_WithTheSupportedBounds_DoesNotThrow()
+    {
+        var act = () => SalesQueryRules.EnsureValidRange(SalesQueryRules.EarliestDate, SalesQueryRules.LatestDate);
+
+        act.Should()
+           .NotThrow();
     }
 
     [Fact]
@@ -2391,6 +2421,14 @@ public static class SalesQueryRules
     public const string DateFormat = "yyyy-MM-dd";
 
     /// <summary>
+    /// The dates a list may ask for. Well before any store opened and well after any till will run,
+    /// yet far enough from DateOnly's own limits that ReportDateRange.ToUtcRange -- which adds a day
+    /// and shifts by the store's offset -- can never overflow into a 500.
+    /// </summary>
+    public static readonly DateOnly EarliestDate = new(2000, 1, 1);
+    public static readonly DateOnly LatestDate = new(2099, 12, 31);
+
+    /// <summary>
     /// InvariantCulture is load-bearing: the server may run on a th-TH machine, whose Buddhist
     /// calendar would read 2026 as a Buddhist-era year.
     /// </summary>
@@ -2406,6 +2444,11 @@ public static class SalesQueryRules
 
     public static void EnsureValidRange(DateOnly from, DateOnly to)
     {
+        if (from < EarliestDate || to > LatestDate)
+            throw new SalesQueryValidationException(
+                $"วันที่ต้องอยู่ระหว่าง {EarliestDate.ToString(DateFormat, CultureInfo.InvariantCulture)} " +
+                $"ถึง {LatestDate.ToString(DateFormat, CultureInfo.InvariantCulture)}");
+
         if (to < from)
             throw new SalesQueryValidationException("วันที่เริ่มต้นต้องไม่อยู่หลังวันที่สิ้นสุด");
     }
@@ -2509,7 +2552,7 @@ public record GetSaleByNumberQuery(long InvoiceNumber, bool CanViewAnyDay) : IQu
 - [ ] **Step 4: Run the rule and figures tests to verify they pass**
 
 Run: `dotnet test tests/IndyPOS.Application.Tests --filter "FullyQualifiedName~SalesQueryRulesTests|FullyQualifiedName~SaleFiguresTests"`
-Expected: PASS (16 test cases).
+Expected: PASS (25 test cases: 20 facts + 5 theory rows).
 
 - [ ] **Step 5: Write the handler test context**
 
@@ -2995,6 +3038,24 @@ public class GetSaleQueryHandlerTests
                                                  .Be("เงินสด");
     }
 
+    // CompleteSaleCommandHandler accepts a method code case-insensitively and stores the caller's
+    // spelling, so "cash" is a valid stored code while the catalogue holds "Cash".
+    [Fact]
+    public async Task HandleById_WithALowerCaseCatalogueMethod_ReturnsItsDisplayName()
+    {
+        await using var c = new SalesHistoryTestContext();
+        await c.SeedPaymentMethodAsync(PaymentMethodCodes.Cash, "เงินสด");
+        var invoice = await c.SeedInvoiceAsync(new InvoiceSeed(KnownNumber, NineAmTodayUtc)
+        {
+            Payments = [new(PaymentMethodCodes.Cash.ToLowerInvariant(), 500m)],
+        });
+
+        var sale = await c.DetailHandler().HandleAsync(new GetSaleByIdQuery(invoice.Id, CanViewAnyDay: false));
+
+        sale!.Payments.Single().MethodDisplayName.Should()
+                                                 .Be("เงินสด");
+    }
+
     [Fact]
     public async Task HandleById_WithOverpayment_ReturnsTheChangeGiven()
     {
@@ -3208,14 +3269,20 @@ public class GetSaleQueryHandler(
                  .ToDictionaryAsync(c => c.Code, c => c.Kind, cancellationToken);
     }
 
-    private Task<Dictionary<string, string>> FindMethodNamesAsync(Invoice invoice, CancellationToken cancellationToken)
+    /// <remarks>
+    /// Matched ignoring case, as CompleteSaleCommandHandler validates codes: it stores the caller's
+    /// spelling, so "cash" is a valid stored code against the catalogue's "Cash". The whole store
+    /// catalogue is loaded (about ten rows) because a SQL IN would compare case-sensitively.
+    /// </remarks>
+    private async Task<Dictionary<string, string>> FindMethodNamesAsync(Invoice invoice, CancellationToken cancellationToken)
     {
-        var codes = invoice.Payments.Select(p => p.Method).Distinct().ToList();
+        var catalogue = await db.PaymentMethods
+                                .AsNoTracking()
+                                .Where(m => m.StoreId == invoice.StoreId)
+                                .Select(m => new { m.Code, m.DisplayName })
+                                .ToListAsync(cancellationToken);
 
-        return db.PaymentMethods
-                 .AsNoTracking()
-                 .Where(m => m.StoreId == invoice.StoreId && codes.Contains(m.Code))
-                 .ToDictionaryAsync(m => m.Code, m => m.DisplayName, cancellationToken);
+        return catalogue.ToDictionary(m => m.Code, m => m.DisplayName, StringComparer.OrdinalIgnoreCase);
     }
 
     private static InvoiceLineDto ToLineDto(InvoiceLine line, IReadOnlyDictionary<string, ProductCategoryKind> kinds) =>
@@ -3241,7 +3308,7 @@ public class GetSaleQueryHandler(
 - [ ] **Step 10: Run the handler tests to verify they pass**
 
 Run: `dotnet test tests/IndyPOS.Application.Tests --filter "FullyQualifiedName~ListSalesQueryHandlerTests|FullyQualifiedName~GetSaleQueryHandlerTests"`
-Expected: PASS (11 + 16).
+Expected: PASS (11 + 17).
 
 - [ ] **Step 11: Retire the old invoice queries, handlers, DTOs, registrations and routes**
 
@@ -4672,6 +4739,10 @@ git commit -m "docs: record invoice-history forward-only gate result and test co
 **Type consistency:** `ReserveInvoiceNumberAsync` (Tasks 2). `InvoiceNumberSequence.Name` (Tasks 1-4). `TodayOnlyRule.Allows/EnsureAllowed/BusinessDateOf` (Tasks 5, 6, 7). `SalesQueryRules.{FirstPage, DefaultPageSize, MaxPageSize, ParseDate, EnsureValidRange, EnsureValidPage, EnsureValidNumber, InvalidNumberMessage}` (Tasks 6, 7). `ListSalesQuery`/`GetSaleByIdQuery`/`GetSaleByNumberQuery` with `CanViewAnyDay` (Tasks 6, 7, 8). `InvoiceDetailDto`/`InvoiceSummaryDto`/`SalesPage` in `Sales.History` (Tasks 6, 7, 8). `InvoiceReprintOutbox.InvoiceReprinted` (Task 8 tests + code). `SalesEndpoints.Policy = "CanReprintSales"` (Task 7 Program.cs). `SeedInvoiceAsync` (Task 1 base, used in Tasks 7, 8). `TokenWithoutUserId(UserRole)`/`TokenWithRole(int)` (Task 7 base, used in Tasks 7, 8).
 
 **Review Focus check:** all five lines have tests in their owning tasks (listed in the section). Also considered and covered in tasks rather than listed there: concurrent sales (Task 2), two reprints (Task 8), an empty invoice table at migration time (Task 1), a lower-case PayLater code (Task 6), a same-instant paging tie (Task 6 `ThenByDescending(InvoiceNumber)`).
+
+**Codex review of PR #100 (both verified in code, both fixed in Task 6):**
+- A manager's `from`/`to` of `DateOnly.MaxValue` made `ReportDateRange.ToUtcRange` throw (`toDate.AddDays(1)`, `ReportDateRange.cs:17`) -- a 500. `SalesQueryRules` now bounds dates to 2000-01-01..2099-12-31 (400). The existing `/reports/*` handlers share the same helper and the same 500; that is left to the route tidy-up PR.
+- The payment display-name lookup compared codes case-sensitively, but `CompleteSaleCommandHandler.cs:44` validates them ignoring case and stores the caller's spelling (line 123). It now matches ignoring case. Normalising the stored code to the catalogue's spelling is a write-side fix, left with the other sale-handler bugs.
 
 **Found while planning, outside this plan's scope (flag, don't fix here):**
 - ~~`GET /cash/counts|payouts|floats|debt-repayments?businessDate=` still return past days to a cashier.~~ **Pulled into Task 5** in plan review (Pond, 2026-09-29): one group filter closes all five reads.
