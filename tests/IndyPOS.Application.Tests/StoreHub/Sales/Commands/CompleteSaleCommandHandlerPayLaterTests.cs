@@ -42,6 +42,30 @@ public class CompleteSaleCommandHandlerPayLaterTests
             Times.Never);
     }
 
+    // The refund check must use the LINES' total: a credit covering a refund's absolute value would
+    // otherwise record a debt for money the store owes (review, lens 2).
+    [Theory]
+    [CustomAutoData]
+    public async Task HandleAsync_WithPayLaterOnARefundInvoice_Throws(
+        [Frozen] Mock<ISaleRepository> saleRepository,
+        [Frozen] Mock<IProductRepository> productRepository,
+        [Frozen] Mock<IPaymentMethodCatalogService> catalog,
+        CompleteSaleCommandHandler sut)
+    {
+        Arrange(saleRepository, productRepository, catalog, out var productId);
+        var refund = new CompleteSaleCommand(
+            StoreId: "STORE-001",
+            UserId: Guid.NewGuid(),
+            Lines: [new SaleLineRequest(productId, Quantity: -1, UnitPrice: Price)],
+            Payments: [new SalePaymentRequest(PaymentMethodCodes.PayLater, Price, CustomerName)]);
+
+        var act = () => sut.HandleAsync(refund);
+
+        await act.Should()
+                 .ThrowAsync<SaleValidationException>()
+                 .WithMessage("ไม่สามารถลงบัญชีบิลคืนสินค้าได้");
+    }
+
     [Theory]
     [CustomAutoData]
     public async Task HandleAsync_WithACashSale_AttachesNoDebt(
