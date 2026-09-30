@@ -89,6 +89,11 @@ dry-run  ──► clean? ──► migrate (once)
 Never re-run the migrator against a partially-migrated PostgreSQL target. Only a full **reset to
 Fresh** makes a retry safe.
 
+**Rule 1b — migrate before the store's first v4 sale.** Once invoice history ships, the migrator
+also **refuses** a store that already has v4-native invoices, because their bill numbers would
+collide with the imported v3 numbers. So no go-live test sale may be rung before MIGRATE; if one was,
+reset to Fresh first.
+
 **Rule 2 — GeneralHardware's expected `verify` ✘ is an EXACT match, not "any exit 1."**
 Accept **only** this known mismatch (pre-accepted 2026-08-19):
 
