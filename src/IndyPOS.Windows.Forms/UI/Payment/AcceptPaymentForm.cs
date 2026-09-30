@@ -3,6 +3,7 @@ using IndyPOS.Application.Common.Constants;
 using IndyPOS.Application.Common.Extensions;
 using IndyPOS.Application.Common.Interfaces;
 using IndyPOS.Application.UseCases.StoreHub.PaymentMethods;
+using IndyPOS.Application.UseCases.StoreHub.Sales.Complete;
 using System.Diagnostics.CodeAnalysis;
 
 namespace IndyPOS.Windows.Forms.UI.Payment
@@ -168,8 +169,21 @@ namespace IndyPOS.Windows.Forms.UI.Payment
 
         private void PaymentMethodButton_Click(object? sender, EventArgs e)
         {
-            if (sender is Button { Tag: string code })
-                ChangePaymentType(code);
+            if (sender is not Button { Tag: string code })
+                return;
+
+            // The store's rule: a credit sale is paid wholly on credit. The v3 till allowed the mix by
+            // taking whatever balance remained, and cashiers slipped about 7 times a year (spec §3).
+            // Here, on the cashier's press, rather than in ChangePaymentType: ResetPaymentTypeSelection
+            // also calls that while the form opens, and must not pop a dialog.
+            if (SalePaymentRules.IsPayLater(code) && _saleService.Payments.Count > 0)
+            {
+                _messageForm.BringToFront();
+                _messageForm.ShowDialog("การลงบัญชีต้องไม่รวมกับการชำระแบบอื่น", "ลงบัญชีไม่ได้");
+                return;
+            }
+
+            ChangePaymentType(code);
         }
 
 		private void ConfigureFormForRegularPayment()
