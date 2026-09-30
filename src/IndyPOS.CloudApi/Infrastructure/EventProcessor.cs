@@ -63,6 +63,13 @@ public class EventProcessor : BackgroundService
                 _logger.LogError(ex, "Failed to process event {EventId} of type {EventType}",
                     syncedEvent.EventId, syncedEvent.EventType);
             }
+            finally
+            {
+                // One DbContext serves the whole batch. Rows an event added stay tracked after its
+                // save -- as Added if the save failed -- and the next event's save would insert them
+                // again, failing an innocent event. Each event starts from a clean tracker.
+                dbContext.ChangeTracker.Clear();
+            }
         }
     }
 
