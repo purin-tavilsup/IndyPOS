@@ -1,11 +1,15 @@
 using System.Text.Json;
 using IndyPOS.Application.Abstractions.StoreHub.Repositories;
+using IndyPOS.Application.Common.Exceptions;
 using IndyPOS.Application.Common.Interfaces;
 using IndyPOS.Application.UseCases.Cloud.Sync.Events;
 using IndyPOS.Application.UseCases.StoreHub.PaymentMethods;
 using IndyPOS.Domain.Entities.Core;
 using Microsoft.Extensions.Logging;
 using Nokpirab;
+// Inside IndyPOS.Application.UseCases.StoreHub.*, the bare name PayLater binds to the sibling
+// namespace IndyPOS.Application.UseCases.StoreHub.PayLater, not to the entity.
+using PayLaterDebt = IndyPOS.Domain.Entities.Core.PayLater;
 
 namespace IndyPOS.Application.UseCases.StoreHub.Sales.Complete;
 
@@ -39,16 +43,20 @@ public class CompleteSaleCommandHandler : ICommandHandler<CompleteSaleCommand, C
             "Processing sale: StoreId={StoreId}, UserId={UserId}, Lines={LineCount}, Payments={PaymentCount}",
             command.StoreId, command.UserId, command.Lines.Count, command.Payments.Count);
 
-        // Validate all payment methods are offerable for this store (catalog is the single source of truth)
+        // Every payment rule runs before any lookup or save, so a refused sale writes nothing.
         var offerable = await _catalog.GetOfferableAsync(cancellationToken);
         var offerableCodes = offerable.Select(m => m.Code).ToHashSet(StringComparer.OrdinalIgnoreCase);
-        var rejected = command.Payments.FirstOrDefault(p => !offerableCodes.Contains(p.Method));
-        if (rejected is not null)
+        var invoiceTotal = command.Lines.Sum(l => l.Quantity * l.UnitPrice);
+
+        try
         {
-            _logger.LogWarning("Payment method rejected: Method={Method}, StoreType={StoreType}, UserId={UserId}",
-                rejected.Method, _storeIdentity.StoreType, command.UserId);
-            throw new InvalidOperationException(
-                $"Payment method '{rejected.Method}' is not available for {_storeIdentity.StoreType} stores.");
+            SalePaymentRules.EnsureValid(command.Payments, invoiceTotal, offerableCodes);
+        }
+        catch (SaleValidationException ex)
+        {
+            _logger.LogWarning("Sale refused: {Reason}, StoreType={StoreType}, UserId={UserId}",
+                ex.Message, _storeIdentity.StoreType, command.UserId);
+            throw;
         }
 
         var now = DateTime.UtcNow;
@@ -60,7 +68,7 @@ public class CompleteSaleCommandHandler : ICommandHandler<CompleteSaleCommand, C
             Id = invoiceId,
             StoreId = command.StoreId,
             UserId = command.UserId,
-            TotalAmount = command.Lines.Sum(l => l.Quantity * l.UnitPrice),
+            TotalAmount = invoiceTotal,
             CreatedUtc = now,
             LastModifiedUtc = now
         };
@@ -126,6 +134,11 @@ public class CompleteSaleCommandHandler : ICommandHandler<CompleteSaleCommand, C
             CreatedUtc = now
         }).ToList();
 
+        // Spec 2026-09-30 §4.1: the debt rides its payment's 1:1 navigation, so EF saves it in the
+        // same SaveChangesAsync as the sale. A credit sale can never exist without its debt.
+        foreach (var payment in payments.Where(p => SalePaymentRules.IsPayLater(p.Method)))
+            payment.PayLater = NewDebt(payment, now);
+
         // Build rich event payload (transaction snapshot)
         var eventId = Guid.NewGuid();
         var invoiceCompletedEvent = new InvoiceCompletedEvent
@@ -189,4 +202,18 @@ public class CompleteSaleCommandHandler : ICommandHandler<CompleteSaleCommand, C
             TotalAmount: invoice.TotalAmount,
             CreatedUtc: invoice.CreatedUtc);
     }
+
+    /// <summary>The shape the MigrationTool writes for a v3 debt: nothing paid yet.</summary>
+    private static PayLaterDebt NewDebt(Payment payment, DateTime now) => new()
+    {
+        Id = Guid.NewGuid(),
+        PaymentId = payment.Id,
+        InvoiceId = payment.InvoiceId,
+        Description = payment.Note!.Trim(),
+        PayLaterAmount = payment.Amount,
+        PaidAmount = 0m,
+        IsCompleted = false,
+        CreatedUtc = now,
+        LastModifiedUtc = now
+    };
 }

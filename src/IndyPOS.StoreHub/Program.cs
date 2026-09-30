@@ -548,8 +548,15 @@ app.MapPost("/sales/complete", async (
         Lines: request.Lines,
         Payments: request.Payments);
 
-    var response = await handler.HandleAsync(command, cancellationToken);
-    return Results.Ok(response);
+    // A refused sale is the caller's mistake, not the server's: a Thai reason for the cashier.
+    try
+    {
+        return Results.Ok(await handler.HandleAsync(command, cancellationToken));
+    }
+    catch (SaleValidationException ex)
+    {
+        return Results.BadRequest(new { error = ex.Message });
+    }
 }).RequireAuthorization("CanCompleteSales");
 
 // Sync status endpoint (E4)
