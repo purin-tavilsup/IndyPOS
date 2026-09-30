@@ -46,8 +46,9 @@ and refuses (409) one with a repayment.
 **Non-goals**
 - **Backfill.** No store runs v4 in production yet (Phase B not done), so only test data has
   PayLater sales without a debt, and test databases are reset (rollout Rule 1). Decided 2026-09-30.
-- **Correcting the 30 mixed invoices already in GeneralHardware's v3 history** (§3). They migrate
-  as they are, so a report over one of those past days still counts that invoice wholly as credit.
+- **Correcting the 30 mixed invoices already in GeneralHardware's v3 history** (§3). They are past
+  cashier mistakes and migrate as they are, so a report over one of those days still counts that
+  invoice wholly as credit.
 - **A cloud mirror of PayLater debts.** `InvoiceCompleted` already carries the payment's method and
   note, so the cloud can see the credit. A debt mirror (balance, repayments) needs its own spec.
 - **`UserId` taken from the request body** on the same route. It belongs to the route tidy-up PR.
@@ -61,7 +62,7 @@ and refuses (409) one with a repayment.
 | Where is the debt created? | **In `CompleteSaleCommandHandler`, in the same `SaveChangesAsync`** as the invoice | A sale can never exist without its debt. A second step (event, second save) reopens the exact bug on a crash |
 | Derive debts from payments instead? | **No** | Migrated v3 debts carry `PaidAmount` progress that payments do not, and the void spec builds on the rows |
 | How many debts per sale? | **One per PayLater payment**, 1:1 with its `Payment` | The shape the MigrationTool already writes (`PaymentId` = that payment) |
-| Mix PayLater with another method? *(Codex P1 on PR #105; Pond's rule)* | **No: a PayLater sale is paid wholly on credit**, enforced as a 400 and on the till | The store has always discouraged it, because a mixed bill cannot be split honestly between general goods and hardware. The cash formula counts a credit invoice *wholly* as credit, so refusing the mix makes that rule exact rather than a drawer error. Measured in GeneralHardware's v3 data (2022-01 → 2026-03): 30 of 5,172 credit invoices were mixed (26 with cash, ฿4,761; 4 with คนละครึ่ง, ฿1,030), about 7 a year. For such a customer, put the whole bill on credit and record the cash part straight away as a repayment |
+| Mix PayLater with another method? *(Codex P1 on PR #105; Pond's rule)* | **No: a PayLater sale is paid wholly on credit**, enforced as a 400 and on the till | The store has always discouraged it, because a mixed bill cannot be split honestly between general goods and hardware. The cash formula counts a credit invoice *wholly* as credit, so refusing the mix makes that rule exact rather than a drawer error. Measured in GeneralHardware's v3 data (2022-01 → 2026-03): 30 of 5,172 credit invoices were mixed (26 with cash, ฿4,761; 4 with คนละครึ่ง, ฿1,030), about 7 a year. Per Pond, these are **cashier mistakes** that the till never guarded against (its ลงบัญชี button takes whatever balance remains), not a supported way to sell. The guard closes that gap rather than removing a feature |
 | PayLater on a refund? *(Codex P2 on PR #105)* | **No: refused when the invoice total is ≤ 0** | The server derives the total from the lines, so a client could send a refund with a positive PayLater and create a debt for money the store owes. Hiding the button on the till is not a rule |
 | Customer name | **The PayLater payment's `Note`, trimmed** | It is what the till collects and what v3 stored |
 | Backfill | **None** | Only test data is affected (see non-goals) |
