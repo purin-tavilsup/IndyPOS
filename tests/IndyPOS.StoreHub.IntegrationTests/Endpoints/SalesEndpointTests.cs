@@ -1,7 +1,12 @@
 using System.Net;
+using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using FluentAssertions;
+using IndyPOS.Application.Common.Enums;
 using IndyPOS.Application.UseCases.StoreHub.Sales;
+using IndyPOS.Infrastructure.Persistence.StoreHub;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
 namespace IndyPOS.StoreHub.IntegrationTests.Endpoints;
@@ -22,6 +27,60 @@ public class SalesEndpointTests : IntegrationTestBase
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
+    }
+
+    // The route took UserId from the body, so any caller could ring a sale up as anyone. The token is
+    // the only authority; the body's UserId is ignored.
+    [Fact]
+    public async Task CompleteSale_WithAnotherUsersIdInTheBody_RecordsTheSaleUnderTheTokensUser()
+    {
+        var cashier = $"cashier_{Guid.NewGuid():N}";
+        await AuthenticateAsAsync(cashier, "Password123!", UserRole.Cashier);
+        var someoneElse = await CreateTestUserAsync($"other_{Guid.NewGuid():N}", "Password123!");
+        var product = await CreateTestProductAsync(unitPrice: 100m, initialStock: 10);
+        var request = new CompleteSaleRequest(
+            UserId: someoneElse.Id,
+            Lines: [new SaleLineRequest(product.Id, Quantity: 1, UnitPrice: 100m)],
+            Payments: [new SalePaymentRequest("Cash", Amount: 100m)]);
+
+        var response = await Client.PostAsJsonAsync("/sales/complete", request);
+
+        response.EnsureSuccessStatusCode();
+        var sale = await response.Content.ReadFromJsonAsync<CompleteSaleResponse>(JsonOptions);
+        (await RecordedUserOfAsync(sale!.InvoiceId)).Should()
+                                                    .Be(await UserIdOfAsync(cashier));
+    }
+
+    [Fact]
+    public async Task CompleteSale_WithATokenWithoutAUserId_ReturnsUnauthorized()
+    {
+        var product = await CreateTestProductAsync(unitPrice: 100m, initialStock: 10);
+        Client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", TokenWithoutUserId());
+        var request = new CompleteSaleRequest(
+            UserId: Guid.NewGuid(),
+            Lines: [new SaleLineRequest(product.Id, Quantity: 1, UnitPrice: 100m)],
+            Payments: [new SalePaymentRequest("Cash", Amount: 100m)]);
+
+        var response = await Client.PostAsJsonAsync("/sales/complete", request);
+
+        response.StatusCode.Should()
+                           .Be(HttpStatusCode.Unauthorized);
+    }
+
+    private async Task<Guid> RecordedUserOfAsync(Guid invoiceId)
+    {
+        await using var scope = Factory.Services.CreateAsyncScope();
+        var db = scope.ServiceProvider.GetRequiredService<StoreHubDbContext>();
+
+        return await db.Invoices.Where(i => i.Id == invoiceId).Select(i => i.UserId).SingleAsync();
+    }
+
+    private async Task<Guid> UserIdOfAsync(string username)
+    {
+        await using var scope = Factory.Services.CreateAsyncScope();
+        var db = scope.ServiceProvider.GetRequiredService<StoreHubDbContext>();
+
+        return await db.StoreUsers.Where(u => u.Username == username).Select(u => u.Id).SingleAsync();
     }
 
     [Fact]
