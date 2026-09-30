@@ -16,9 +16,11 @@ public interface ISyncedEventRepository
     Task AddAsync(SyncedEventEntity entity, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Get unprocessed events for processing.
+    /// Get unprocessed events of the given types, oldest first. Events of any other type are left
+    /// alone, so they neither get dropped nor take a place in the batch until a handler exists.
     /// </summary>
     Task<IReadOnlyList<SyncedEventEntity>> GetUnprocessedAsync(
+        IReadOnlyCollection<string> eventTypes,
         int limit = 100,
         CancellationToken cancellationToken = default);
 

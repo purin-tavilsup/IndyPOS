@@ -121,8 +121,8 @@ public class IngestEventsCommandHandlerTests
             return Task.CompletedTask;
         }
 
-        public Task<IReadOnlyList<SyncedEventEntity>> GetUnprocessedAsync(int limit = 100, CancellationToken cancellationToken = default)
-            => Task.FromResult<IReadOnlyList<SyncedEventEntity>>(Events.Values.Where(e => e.ProcessedAtUtc == null).ToList());
+        public Task<IReadOnlyList<SyncedEventEntity>> GetUnprocessedAsync(IReadOnlyCollection<string> eventTypes, int limit = 100, CancellationToken cancellationToken = default)
+            => Task.FromResult<IReadOnlyList<SyncedEventEntity>>(Events.Values.Where(e => e.ProcessedAtUtc == null && eventTypes.Contains(e.EventType)).ToList());
 
         public Task MarkProcessedAsync(Guid eventId, CancellationToken cancellationToken = default)
         {
