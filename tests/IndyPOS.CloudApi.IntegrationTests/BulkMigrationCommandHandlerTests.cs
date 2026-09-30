@@ -1,9 +1,12 @@
+using System.Data.Common;
 using FluentAssertions;
 using IndyPOS.Application.UseCases.Cloud.Sync.BulkMigration;
 using IndyPOS.CloudApi.Domain;
 using IndyPOS.CloudApi.Infrastructure;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Logging.Abstractions;
+using Npgsql;
 using Xunit;
 
 namespace IndyPOS.CloudApi.IntegrationTests;
@@ -29,6 +32,35 @@ public class BulkMigrationCommandHandlerTests(CloudPostgresFixture postgres) : I
 
         response.InvoicesImported.Should()
                                  .Be(0, string.Join(" | ", response.Errors));
+    }
+
+    // The handler's catch-all sat inside strategy.ExecuteAsync, so a transient fault came back as a
+    // "Transaction failed" response and the strategy never saw anything to retry.
+    [Fact]
+    public async Task HandleAsync_WhenTheFirstAttemptHitsATransientFault_StillImportsTheInvoice()
+    {
+        var connectionString = await postgres.CreateDatabaseAsync();
+        var invoice = NewInvoice();
+        var transientFault = new FailFirstInsert(new NpgsqlException("Simulated connection drop", new IOException()));
+        await using (var db = CloudPostgresFixture.CreateContext(connectionString, transientFault))
+            await NewHandler(db).HandleAsync(CommandWith(invoice));
+
+        await using var check = CloudPostgresFixture.CreateContext(connectionString);
+
+        (await check.Invoices.AnyAsync(i => i.Id == invoice.Id)).Should()
+                                                                .BeTrue();
+    }
+
+    [Fact]
+    public async Task HandleAsync_WhenCancelledMidImport_ThrowsOperationCanceled()
+    {
+        var cancelled = new FailFirstInsert(new OperationCanceledException());
+        await using var db = CloudPostgresFixture.CreateContext(await postgres.CreateDatabaseAsync(), cancelled);
+
+        var act = () => NewHandler(db).HandleAsync(CommandWith(NewInvoice()));
+
+        await act.Should()
+                 .ThrowAsync<OperationCanceledException>();
     }
 
     [Fact]
@@ -58,6 +90,35 @@ public class BulkMigrationCommandHandlerTests(CloudPostgresFixture postgres) : I
 
         (stored.Lines.Count, stored.Payments.Count).Should()
                                                    .Be((1, 1));
+    }
+
+    /// <summary>Throws the given exception from the first INSERT only, so any retry runs clean.</summary>
+    private sealed class FailFirstInsert(Exception fault) : DbCommandInterceptor
+    {
+        private int _thrown;
+
+        public override ValueTask<InterceptionResult<DbDataReader>> ReaderExecutingAsync(
+            DbCommand command, CommandEventData eventData, InterceptionResult<DbDataReader> result,
+            CancellationToken cancellationToken = default)
+        {
+            ThrowOnFirstInsert(command);
+            return base.ReaderExecutingAsync(command, eventData, result, cancellationToken);
+        }
+
+        public override ValueTask<InterceptionResult<int>> NonQueryExecutingAsync(
+            DbCommand command, CommandEventData eventData, InterceptionResult<int> result,
+            CancellationToken cancellationToken = default)
+        {
+            ThrowOnFirstInsert(command);
+            return base.NonQueryExecutingAsync(command, eventData, result, cancellationToken);
+        }
+
+        private void ThrowOnFirstInsert(DbCommand command)
+        {
+            if (command.CommandText.Contains("INSERT", StringComparison.OrdinalIgnoreCase)
+                && Interlocked.Exchange(ref _thrown, 1) == 0)
+                throw fault;
+        }
     }
 
     private static BulkMigrationCommandHandler NewHandler(CloudDbContext db) =>
