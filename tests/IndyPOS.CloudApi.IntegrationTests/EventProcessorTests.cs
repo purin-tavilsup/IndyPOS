@@ -1,0 +1,304 @@
+using System.Text.Json;
+using FluentAssertions;
+using IndyPOS.Application.Abstractions.Cloud.Repositories;
+using IndyPOS.Application.UseCases.Cloud.Sync.Events;
+using IndyPOS.CloudApi.Domain;
+using IndyPOS.CloudApi.Infrastructure;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using Xunit;
+
+namespace IndyPOS.CloudApi.IntegrationTests;
+
+/// <summary>
+/// Drives one poll of the real EventProcessor against PostgreSQL with the retry strategy on. Its
+/// InvoiceCompleted handler opened a bare BeginTransactionAsync, which that strategy rejects, so
+/// no v4 sale ever reached cloud_invoice.
+/// </summary>
+public class EventProcessorTests(CloudPostgresFixture postgres) : IClassFixture<CloudPostgresFixture>
+{
+    private const int BatchSize = 50;
+
+    // A real event type the store already sends (cash drawer, #97) and the cloud cannot handle yet.
+    private const string EventTypeWithoutAHandler = "CashCountChanged";
+
+    // Marking an unhandled event processed drops it for good, before its handler ships.
+    [Fact]
+    public async Task ProcessPendingEventsAsync_WithAnEventTypeItCannotHandle_LeavesItUnprocessed()
+    {
+        await using var pipeline = await Pipeline.CreateAsync(postgres);
+        await pipeline.AddEventAsync(EventTypeWithoutAHandler);
+
+        await pipeline.PollAsync();
+
+        (await pipeline.CountUnprocessedAsync()).Should()
+                                                .Be(1);
+    }
+
+    // Left unprocessed but still fetched, unhandled events would fill the batch and starve sales.
+    [Fact]
+    public async Task ProcessPendingEventsAsync_WithABatchOfEventsItCannotHandle_StillStoresAnInvoiceBehindThem()
+    {
+        await using var pipeline = await Pipeline.CreateAsync(postgres);
+        for (var i = 0; i < BatchSize + 1; i++)
+            await pipeline.AddEventAsync(EventTypeWithoutAHandler);
+        var sale = await pipeline.AddInvoiceCompletedAsync();
+
+        await pipeline.PollAsync();
+
+        (await pipeline.FindInvoiceAsync(sale.InvoiceId)).Should()
+                                                         .NotBeNull(pipeline.LoggedErrors);
+    }
+
+    // One DbContext serves the whole batch. A failed save leaves its rows tracked as Added, so the
+    // next event's save would try to insert them again and fail too.
+    [Fact]
+    public async Task ProcessPendingEventsAsync_WhenAnEventFails_StillStoresTheNextOne()
+    {
+        await using var pipeline = await Pipeline.CreateAsync(postgres);
+        var alreadyInCloud = await pipeline.AddCloudInvoiceAsync();
+        await pipeline.AddInvoiceCompletedAsync(alreadyInCloud);
+        var next = await pipeline.AddInvoiceCompletedAsync();
+
+        await pipeline.PollAsync();
+
+        (await pipeline.FindInvoiceAsync(next.InvoiceId)).Should()
+                                                         .NotBeNull(pipeline.LoggedErrors);
+    }
+
+    // A fresh event beside it, so a pipeline that processes nothing at all cannot pass.
+    [Fact]
+    public async Task ProcessPendingEventsAsync_WhenAnEventFails_LeavesOnlyItUnprocessedToRetry()
+    {
+        await using var pipeline = await Pipeline.CreateAsync(postgres);
+        var alreadyInCloud = await pipeline.AddCloudInvoiceAsync();
+        await pipeline.AddInvoiceCompletedAsync(alreadyInCloud);
+        await pipeline.AddInvoiceCompletedAsync();
+
+        await pipeline.PollAsync();
+
+        (await pipeline.CountUnprocessedAsync()).Should()
+                                                .Be(1, pipeline.LoggedErrors);
+    }
+
+    // A fresh event beside it, so a pipeline that stores nothing at all cannot pass.
+    [Fact]
+    public async Task ProcessPendingEventsAsync_WithAnEventAlreadyInProcessedEvents_StoresOnlyTheFreshOne()
+    {
+        await using var pipeline = await Pipeline.CreateAsync(postgres);
+        var alreadyProcessed = await pipeline.AddInvoiceCompletedAsync();
+        await pipeline.AddProcessedEventAsync(alreadyProcessed.EventId);
+        await pipeline.AddInvoiceCompletedAsync();
+
+        await pipeline.PollAsync();
+
+        (await pipeline.CountInvoicesAsync()).Should()
+                                             .Be(1, pipeline.LoggedErrors);
+    }
+
+    [Fact]
+    public async Task ProcessPendingEventsAsync_WithAnEventAlreadyInProcessedEvents_MarksItProcessed()
+    {
+        await using var pipeline = await Pipeline.CreateAsync(postgres);
+        var evt = await pipeline.AddInvoiceCompletedAsync();
+        await pipeline.AddProcessedEventAsync(evt.EventId);
+
+        await pipeline.PollAsync();
+
+        (await pipeline.CountUnprocessedAsync()).Should()
+                                                .Be(0);
+    }
+
+    [Fact]
+    public async Task ProcessPendingEventsAsync_WithMoreEventsThanOneBatch_ProcessesThemAllOverTwoPolls()
+    {
+        await using var pipeline = await Pipeline.CreateAsync(postgres);
+        for (var i = 0; i < BatchSize + 1; i++)
+            await pipeline.AddInvoiceCompletedAsync();
+
+        await pipeline.PollAsync();
+        await pipeline.PollAsync();
+
+        (await pipeline.CountInvoicesAsync()).Should()
+                                             .Be(BatchSize + 1, pipeline.LoggedErrors);
+    }
+
+    [Fact]
+    public async Task ProcessPendingEventsAsync_WithAnInvoiceCompletedEvent_StoresTheInvoice()
+    {
+        await using var pipeline = await Pipeline.CreateAsync(postgres);
+        var evt = await pipeline.AddInvoiceCompletedAsync();
+
+        await pipeline.PollAsync();
+
+        (await pipeline.FindInvoiceAsync(evt.InvoiceId)).Should()
+                                                        .NotBeNull(pipeline.LoggedErrors);
+    }
+
+    [Fact]
+    public async Task ProcessPendingEventsAsync_WithAnInvoiceCompletedEvent_StoresItsLineAndPayment()
+    {
+        await using var pipeline = await Pipeline.CreateAsync(postgres);
+        var evt = await pipeline.AddInvoiceCompletedAsync();
+
+        await pipeline.PollAsync();
+
+        var invoice = await pipeline.FindInvoiceAsync(evt.InvoiceId);
+        (invoice?.Lines.Count, invoice?.Payments.Count).Should()
+                                                       .Be((1, 1), pipeline.LoggedErrors);
+    }
+
+    [Fact]
+    public async Task ProcessPendingEventsAsync_WithAnInvoiceCompletedEvent_MarksTheEventProcessed()
+    {
+        await using var pipeline = await Pipeline.CreateAsync(postgres);
+        await pipeline.AddInvoiceCompletedAsync();
+
+        await pipeline.PollAsync();
+
+        (await pipeline.CountUnprocessedAsync()).Should()
+                                                .Be(0, pipeline.LoggedErrors);
+    }
+
+    /// <summary>A migrated cloud database, an inbox, and the processor wired as Program.cs wires it.</summary>
+    private sealed class Pipeline : IAsyncDisposable
+    {
+        private readonly ServiceProvider _services;
+        private readonly EventProcessor _processor;
+        private readonly RecordingLogger _logger = new();
+        private DateTime _nextReceivedAtUtc = DateTime.UtcNow;
+
+        private Pipeline(ServiceProvider services)
+        {
+            _services = services;
+            _processor = new EventProcessor(
+                services.GetRequiredService<IServiceScopeFactory>(),
+                _logger);
+        }
+
+        public static async Task<Pipeline> CreateAsync(CloudPostgresFixture postgres)
+        {
+            var connectionString = await postgres.CreateDatabaseAsync();
+            var services = new ServiceCollection();
+            services.AddDbContext<CloudDbContext>(o => CloudPostgresFixture.Configure(o, connectionString));
+            services.AddScoped<ISyncedEventRepository, DbSyncedEventRepository>();
+
+            return new Pipeline(services.BuildServiceProvider());
+        }
+
+        /// <summary>The processor logs and swallows a failed event; this puts the reason in the assertion.</summary>
+        public string LoggedErrors => "the processor logged: " + string.Join(" | ", _logger.Errors);
+
+        public Task PollAsync() => _processor.ProcessPendingEventsAsync(CancellationToken.None);
+
+        public async Task<InvoiceCompletedEvent> AddInvoiceCompletedAsync(Guid? invoiceId = null)
+        {
+            var evt = new InvoiceCompletedEvent
+            {
+                EventId = Guid.NewGuid(),
+                InvoiceId = invoiceId ?? Guid.NewGuid(),
+                StoreId = "1",
+                UserId = Guid.NewGuid(),
+                TotalAmount = 35m,
+                CreatedAtUtc = DateTime.UtcNow,
+                Lines = [new InvoiceLineSnapshot { LineId = Guid.NewGuid(), ProductId = Guid.NewGuid(), ProductName = "Nail", Quantity = 1, UnitPrice = 35m }],
+                Payments = [new PaymentSnapshot { PaymentId = Guid.NewGuid(), Method = "Cash", Amount = 35m }]
+            };
+
+            await AddEventAsync("InvoiceCompleted", evt.EventId, JsonSerializer.Serialize(evt));
+
+            return evt;
+        }
+
+        public Task AddEventAsync(string eventType) => AddEventAsync(eventType, Guid.NewGuid(), "{}");
+
+        private Task AddEventAsync(string eventType, Guid eventId, string payload)
+        {
+            // Distinct receive times, so the inbox's oldest-first order is the order added.
+            _nextReceivedAtUtc = _nextReceivedAtUtc.AddMilliseconds(1);
+            var receivedAtUtc = _nextReceivedAtUtc;
+
+            return WithDbAsync(db =>
+            {
+                db.SyncedEvents.Add(new SyncedEventEntity
+                {
+                    EventId = eventId,
+                    StoreId = 1,
+                    EventType = eventType,
+                    Payload = payload,
+                    CreatedAtUtc = receivedAtUtc,
+                    ReceivedAtUtc = receivedAtUtc
+                });
+                return db.SaveChangesAsync();
+            });
+        }
+
+        /// <summary>An invoice already in the cloud, so an event for the same id fails on its key.</summary>
+        public async Task<Guid> AddCloudInvoiceAsync()
+        {
+            var invoiceId = Guid.NewGuid();
+            await WithDbAsync(db =>
+            {
+                db.Invoices.Add(new CloudInvoice
+                {
+                    Id = invoiceId,
+                    StoreId = "1",
+                    CreatedAtUtc = DateTime.UtcNow,
+                    SyncedAtUtc = DateTime.UtcNow
+                });
+                return db.SaveChangesAsync();
+            });
+
+            return invoiceId;
+        }
+
+        public Task AddProcessedEventAsync(Guid eventId) =>
+            WithDbAsync(db =>
+            {
+                db.ProcessedEvents.Add(new ProcessedEvent
+                {
+                    EventId = eventId,
+                    EventType = "InvoiceCompleted",
+                    StoreId = "1",
+                    ProcessedAtUtc = DateTime.UtcNow
+                });
+                return db.SaveChangesAsync();
+            });
+
+        public Task<int> CountInvoicesAsync() => WithDbAsync(db => db.Invoices.CountAsync());
+
+        public Task<int> CountUnprocessedAsync() =>
+            WithDbAsync(db => db.SyncedEvents.CountAsync(e => e.ProcessedAtUtc == null));
+
+        public Task<CloudInvoice?> FindInvoiceAsync(Guid invoiceId) =>
+            WithDbAsync(db => db.Invoices
+                                .Include(i => i.Lines)
+                                .Include(i => i.Payments)
+                                .SingleOrDefaultAsync(i => i.Id == invoiceId));
+
+        public ValueTask DisposeAsync() => _services.DisposeAsync();
+
+        private sealed class RecordingLogger : ILogger<EventProcessor>
+        {
+            public List<string> Errors { get; } = [];
+
+            public IDisposable? BeginScope<TState>(TState state) where TState : notnull => null;
+
+            public bool IsEnabled(LogLevel logLevel) => logLevel >= LogLevel.Error;
+
+            public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception? exception,
+                Func<TState, Exception?, string> formatter)
+            {
+                if (IsEnabled(logLevel))
+                    Errors.Add($"{formatter(state, exception)}: {exception?.Message}");
+            }
+        }
+
+        private async Task<T> WithDbAsync<T>(Func<CloudDbContext, Task<T>> action)
+        {
+            using var scope = _services.CreateScope();
+            return await action(scope.ServiceProvider.GetRequiredService<CloudDbContext>());
+        }
+    }
+}

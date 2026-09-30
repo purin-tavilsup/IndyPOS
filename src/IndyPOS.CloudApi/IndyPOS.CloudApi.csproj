@@ -33,4 +33,8 @@
     <ProjectReference Include="..\IndyPOS.Application\IndyPOS.Application.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <InternalsVisibleTo Include="IndyPOS.CloudApi.IntegrationTests" />
+  </ItemGroup>
+
 </Project>

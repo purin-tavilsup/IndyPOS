@@ -16,6 +16,14 @@ public class EventProcessor : BackgroundService
     private readonly ILogger<EventProcessor> _logger;
     private readonly TimeSpan _pollInterval = TimeSpan.FromSeconds(5);
 
+    /// <summary>
+    /// The event types this processor has a handler for. Only these are fetched from the inbox:
+    /// stores already send types the cloud cannot handle yet (the cash-drawer events), and those
+    /// must wait for their handler rather than be marked processed and lost, or fill the batch and
+    /// starve the sales behind them. A new handler goes here and in the switch together.
+    /// </summary>
+    internal static readonly IReadOnlyCollection<string> HandledEventTypes = ["InvoiceCompleted"];
+
     public EventProcessor(IServiceScopeFactory scopeFactory, ILogger<EventProcessor> logger)
     {
         _scopeFactory = scopeFactory;
@@ -43,13 +51,14 @@ public class EventProcessor : BackgroundService
         _logger.LogInformation("EventProcessor stopped");
     }
 
-    private async Task ProcessPendingEventsAsync(CancellationToken cancellationToken)
+    /// <summary>One poll: processes up to one batch of unprocessed events. Internal so tests can drive it.</summary>
+    internal async Task ProcessPendingEventsAsync(CancellationToken cancellationToken)
     {
         using var scope = _scopeFactory.CreateScope();
         var eventRepository = scope.ServiceProvider.GetRequiredService<ISyncedEventRepository>();
         var dbContext = scope.ServiceProvider.GetRequiredService<CloudDbContext>();
 
-        var pendingEvents = await eventRepository.GetUnprocessedAsync(limit: 50, cancellationToken);
+        var pendingEvents = await eventRepository.GetUnprocessedAsync(HandledEventTypes, limit: 50, cancellationToken);
 
         foreach (var syncedEvent in pendingEvents)
         {
@@ -61,6 +70,13 @@ public class EventProcessor : BackgroundService
             {
                 _logger.LogError(ex, "Failed to process event {EventId} of type {EventType}",
                     syncedEvent.EventId, syncedEvent.EventType);
+            }
+            finally
+            {
+                // One DbContext serves the whole batch. Rows an event added stay tracked after its
+                // save -- as Added if the save failed -- and the next event's save would insert them
+                // again, failing an innocent event. Each event starts from a clean tracker.
+                dbContext.ChangeTracker.Clear();
             }
         }
     }
@@ -89,12 +105,15 @@ public class EventProcessor : BackgroundService
                 await ProcessInvoiceCompletedAsync(syncedEvent, dbContext, cancellationToken);
                 break;
 
+            // Only HandledEventTypes are fetched, so this means the list and the switch disagree.
+            // Throwing leaves the event unprocessed to retry; marking it would drop it for good.
             default:
-                _logger.LogWarning("Unknown event type: {EventType}", syncedEvent.EventType);
-                break;
+                throw new InvalidOperationException(
+                    $"No handler for event type '{syncedEvent.EventType}'. Add it to {nameof(HandledEventTypes)} and this switch together.");
         }
 
-        // Mark as processed in both tables (atomic)
+        // A separate statement, after the handler's save. If the process dies in between, the
+        // ProcessedEvents check above marks the event on the next poll instead of storing it twice.
         await eventRepository.MarkProcessedAsync(syncedEvent.EventId, cancellationToken);
 
         _logger.LogInformation("Processed event {EventId} of type {EventType}",
@@ -115,86 +134,61 @@ public class EventProcessor : BackgroundService
 
         var now = DateTime.UtcNow;
 
-        // Use transaction for atomicity
-        await using var transaction = await dbContext.Database.BeginTransactionAsync(cancellationToken);
-
-        try
+        dbContext.Invoices.Add(new CloudInvoice
         {
-            // Create invoice
-            var invoice = new CloudInvoice
-            {
-                Id = eventData.InvoiceId,
-                StoreId = eventData.StoreId,
-                UserId = eventData.UserId,
-                TotalAmount = eventData.TotalAmount,
-                CreatedAtUtc = eventData.CreatedAtUtc,
-                SyncedAtUtc = now
-            };
-            dbContext.Invoices.Add(invoice);
+            Id = eventData.InvoiceId,
+            StoreId = eventData.StoreId,
+            UserId = eventData.UserId,
+            TotalAmount = eventData.TotalAmount,
+            CreatedAtUtc = eventData.CreatedAtUtc,
+            SyncedAtUtc = now
+        });
 
-            // Create invoice lines
-            foreach (var lineSnapshot in eventData.Lines)
-            {
-                var line = new CloudInvoiceLine
-                {
-                    Id = lineSnapshot.LineId,
-                    InvoiceId = eventData.InvoiceId,
-                    ProductId = lineSnapshot.ProductId,
-                    ProductName = lineSnapshot.ProductName,
-                    Quantity = lineSnapshot.Quantity,
-                    UnitPrice = lineSnapshot.UnitPrice
-                };
-                dbContext.InvoiceLines.Add(line);
-            }
-
-            // Create payments
-            foreach (var paymentSnapshot in eventData.Payments)
-            {
-                var payment = new CloudPayment
-                {
-                    Id = paymentSnapshot.PaymentId,
-                    InvoiceId = eventData.InvoiceId,
-                    Method = paymentSnapshot.Method,
-                    Amount = paymentSnapshot.Amount,
-                    Note = paymentSnapshot.Note
-                };
-                dbContext.Payments.Add(payment);
-            }
-
-            // Create inventory movements
-            foreach (var movementSnapshot in eventData.InventoryMovements)
-            {
-                var movement = new CloudInventoryMovement
-                {
-                    Id = movementSnapshot.MovementId,
-                    StoreId = eventData.StoreId,
-                    ProductId = movementSnapshot.ProductId,
-                    QuantityDelta = movementSnapshot.QuantityDelta,
-                    Reason = movementSnapshot.Reason,
-                    ReferenceId = eventData.InvoiceId,
-                    CreatedAtUtc = eventData.CreatedAtUtc,
-                    SyncedAtUtc = now
-                };
-                dbContext.InventoryMovements.Add(movement);
-            }
-
-            // Record processed event for idempotency
-            var processedEvent = new ProcessedEvent
-            {
-                EventId = eventData.EventId,
-                EventType = "InvoiceCompleted",
-                StoreId = eventData.StoreId,
-                ProcessedAtUtc = now
-            };
-            dbContext.ProcessedEvents.Add(processedEvent);
-
-            await dbContext.SaveChangesAsync(cancellationToken);
-            await transaction.CommitAsync(cancellationToken);
-        }
-        catch
+        dbContext.InvoiceLines.AddRange(eventData.Lines.Select(line => new CloudInvoiceLine
         {
-            await transaction.RollbackAsync(cancellationToken);
-            throw;
-        }
+            Id = line.LineId,
+            InvoiceId = eventData.InvoiceId,
+            ProductId = line.ProductId,
+            ProductName = line.ProductName,
+            Quantity = line.Quantity,
+            UnitPrice = line.UnitPrice
+        }));
+
+        dbContext.Payments.AddRange(eventData.Payments.Select(payment => new CloudPayment
+        {
+            Id = payment.PaymentId,
+            InvoiceId = eventData.InvoiceId,
+            Method = payment.Method,
+            Amount = payment.Amount,
+            Note = payment.Note
+        }));
+
+        dbContext.InventoryMovements.AddRange(eventData.InventoryMovements.Select(movement => new CloudInventoryMovement
+        {
+            Id = movement.MovementId,
+            StoreId = eventData.StoreId,
+            ProductId = movement.ProductId,
+            QuantityDelta = movement.QuantityDelta,
+            Reason = movement.Reason,
+            ReferenceId = eventData.InvoiceId,
+            CreatedAtUtc = eventData.CreatedAtUtc,
+            SyncedAtUtc = now
+        }));
+
+        // Recorded with the rows it guards, so a crash can never store the invoice without it.
+        dbContext.ProcessedEvents.Add(new ProcessedEvent
+        {
+            EventId = eventData.EventId,
+            EventType = "InvoiceCompleted",
+            StoreId = eventData.StoreId,
+            ProcessedAtUtc = now
+        });
+
+        // One SaveChangesAsync is already one database transaction, and the Npgsql retrying
+        // strategy (on under Aspire's AddNpgsqlDbContext) can replay it safely. The explicit
+        // BeginTransactionAsync that used to wrap it was redundant, and that strategy rejects a
+        // user-initiated transaction outright -- so it threw on every event and no v4 sale ever
+        // reached cloud_invoice.
+        await dbContext.SaveChangesAsync(cancellationToken);
     }
 }
