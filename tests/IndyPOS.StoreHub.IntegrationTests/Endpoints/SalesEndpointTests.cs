@@ -45,6 +45,7 @@ public class SalesEndpointTests : IntegrationTestBase
 
         var response = await Client.PostAsJsonAsync("/sales/complete", request);
 
+        response.EnsureSuccessStatusCode();
         var sale = await response.Content.ReadFromJsonAsync<CompleteSaleResponse>(JsonOptions);
         (await RecordedUserOfAsync(sale!.InvoiceId)).Should()
                                                     .Be(await UserIdOfAsync(cashier));
