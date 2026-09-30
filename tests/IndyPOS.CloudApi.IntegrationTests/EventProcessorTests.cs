@@ -20,6 +20,37 @@ public class EventProcessorTests(CloudPostgresFixture postgres) : IClassFixture<
 {
     private const int BatchSize = 50;
 
+    // A real event type the store already sends (cash drawer, #97) and the cloud cannot handle yet.
+    private const string EventTypeWithoutAHandler = "CashCountChanged";
+
+    // Marking an unhandled event processed drops it for good, before its handler ships.
+    [Fact]
+    public async Task ProcessPendingEventsAsync_WithAnEventTypeItCannotHandle_LeavesItUnprocessed()
+    {
+        await using var pipeline = await Pipeline.CreateAsync(postgres);
+        await pipeline.AddEventAsync(EventTypeWithoutAHandler);
+
+        await pipeline.PollAsync();
+
+        (await pipeline.CountUnprocessedAsync()).Should()
+                                                .Be(1);
+    }
+
+    // Left unprocessed but still fetched, unhandled events would fill the batch and starve sales.
+    [Fact]
+    public async Task ProcessPendingEventsAsync_WithABatchOfEventsItCannotHandle_StillStoresAnInvoiceBehindThem()
+    {
+        await using var pipeline = await Pipeline.CreateAsync(postgres);
+        for (var i = 0; i < BatchSize + 1; i++)
+            await pipeline.AddEventAsync(EventTypeWithoutAHandler);
+        var sale = await pipeline.AddInvoiceCompletedAsync();
+
+        await pipeline.PollAsync();
+
+        (await pipeline.FindInvoiceAsync(sale.InvoiceId)).Should()
+                                                         .NotBeNull(pipeline.LoggedErrors);
+    }
+
     // One DbContext serves the whole batch. A failed save leaves its rows tracked as Added, so the
     // next event's save would try to insert them again and fail too.
     [Fact]
@@ -171,23 +202,32 @@ public class EventProcessorTests(CloudPostgresFixture postgres) : IClassFixture<
                 Payments = [new PaymentSnapshot { PaymentId = Guid.NewGuid(), Method = "Cash", Amount = 35m }]
             };
 
+            await AddEventAsync("InvoiceCompleted", evt.EventId, JsonSerializer.Serialize(evt));
+
+            return evt;
+        }
+
+        public Task AddEventAsync(string eventType) => AddEventAsync(eventType, Guid.NewGuid(), "{}");
+
+        private Task AddEventAsync(string eventType, Guid eventId, string payload)
+        {
             // Distinct receive times, so the inbox's oldest-first order is the order added.
             _nextReceivedAtUtc = _nextReceivedAtUtc.AddMilliseconds(1);
-            await WithDbAsync(db =>
+            var receivedAtUtc = _nextReceivedAtUtc;
+
+            return WithDbAsync(db =>
             {
                 db.SyncedEvents.Add(new SyncedEventEntity
                 {
-                    EventId = evt.EventId,
+                    EventId = eventId,
                     StoreId = 1,
-                    EventType = "InvoiceCompleted",
-                    Payload = JsonSerializer.Serialize(evt),
-                    CreatedAtUtc = evt.CreatedAtUtc,
-                    ReceivedAtUtc = _nextReceivedAtUtc
+                    EventType = eventType,
+                    Payload = payload,
+                    CreatedAtUtc = receivedAtUtc,
+                    ReceivedAtUtc = receivedAtUtc
                 });
                 return db.SaveChangesAsync();
             });
-
-            return evt;
         }
 
         /// <summary>An invoice already in the cloud, so an event for the same id fails on its key.</summary>

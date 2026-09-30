@@ -16,6 +16,14 @@ public class EventProcessor : BackgroundService
     private readonly ILogger<EventProcessor> _logger;
     private readonly TimeSpan _pollInterval = TimeSpan.FromSeconds(5);
 
+    /// <summary>
+    /// The event types this processor has a handler for. Only these are fetched from the inbox:
+    /// stores already send types the cloud cannot handle yet (the cash-drawer events), and those
+    /// must wait for their handler rather than be marked processed and lost, or fill the batch and
+    /// starve the sales behind them. A new handler goes here and in the switch together.
+    /// </summary>
+    internal static readonly IReadOnlyCollection<string> HandledEventTypes = ["InvoiceCompleted"];
+
     public EventProcessor(IServiceScopeFactory scopeFactory, ILogger<EventProcessor> logger)
     {
         _scopeFactory = scopeFactory;
@@ -50,7 +58,7 @@ public class EventProcessor : BackgroundService
         var eventRepository = scope.ServiceProvider.GetRequiredService<ISyncedEventRepository>();
         var dbContext = scope.ServiceProvider.GetRequiredService<CloudDbContext>();
 
-        var pendingEvents = await eventRepository.GetUnprocessedAsync(limit: 50, cancellationToken);
+        var pendingEvents = await eventRepository.GetUnprocessedAsync(HandledEventTypes, limit: 50, cancellationToken);
 
         foreach (var syncedEvent in pendingEvents)
         {
@@ -97,9 +105,11 @@ public class EventProcessor : BackgroundService
                 await ProcessInvoiceCompletedAsync(syncedEvent, dbContext, cancellationToken);
                 break;
 
+            // Only HandledEventTypes are fetched, so this means the list and the switch disagree.
+            // Throwing leaves the event unprocessed to retry; marking it would drop it for good.
             default:
-                _logger.LogWarning("Unknown event type: {EventType}", syncedEvent.EventType);
-                break;
+                throw new InvalidOperationException(
+                    $"No handler for event type '{syncedEvent.EventType}'. Add it to {nameof(HandledEventTypes)} and this switch together.");
         }
 
         // Mark as processed in both tables (atomic)

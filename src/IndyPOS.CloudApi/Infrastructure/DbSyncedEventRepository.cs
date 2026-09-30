@@ -28,11 +28,12 @@ public class DbSyncedEventRepository : ISyncedEventRepository
     }
 
     public async Task<IReadOnlyList<SyncedEventEntity>> GetUnprocessedAsync(
+        IReadOnlyCollection<string> eventTypes,
         int limit = 100,
         CancellationToken cancellationToken = default)
     {
         return await _dbContext.SyncedEvents
-            .Where(e => e.ProcessedAtUtc == null)
+            .Where(e => e.ProcessedAtUtc == null && eventTypes.Contains(e.EventType))
             .OrderBy(e => e.ReceivedAtUtc)
             .Take(limit)
             .ToListAsync(cancellationToken);
