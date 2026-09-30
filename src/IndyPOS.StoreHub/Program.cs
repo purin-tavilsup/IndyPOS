@@ -539,12 +539,15 @@ app.MapPost("/products/next-barcode", async (
 app.MapPost("/sales/complete", async (
     ICommandHandler<CompleteSaleCommand, CompleteSaleResponse> handler,
     IStoreIdentityService storeIdentity,
+    ClaimsPrincipal user,
     CompleteSaleRequest request,
     CancellationToken cancellationToken) =>
 {
+    // The seller is whoever the token says, never the body: a body UserId let any caller ring a sale
+    // up as someone else. request.UserId is ignored, and goes in the route tidy-up (POST /sales).
     var command = new CompleteSaleCommand(
         StoreId: storeIdentity.StoreId,
-        UserId: request.UserId,
+        UserId: user.GetRequiredUserId(),
         Lines: request.Lines,
         Payments: request.Payments);
 
@@ -557,7 +560,8 @@ app.MapPost("/sales/complete", async (
     {
         return Results.BadRequest(new { error = ex.Message });
     }
-}).RequireAuthorization("CanCompleteSales");
+}).RequireAuthorization("CanCompleteSales")
+  .AddEndpointFilter<RequireUserIdFilter>();
 
 // Sync status endpoint (E4)
 app.MapGet("/sync/status", async (
