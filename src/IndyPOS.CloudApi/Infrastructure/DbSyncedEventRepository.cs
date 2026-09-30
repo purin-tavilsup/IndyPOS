@@ -38,14 +38,18 @@ public class DbSyncedEventRepository : ISyncedEventRepository
             .ToListAsync(cancellationToken);
     }
 
+    /// <remarks>
+    /// Matched on <see cref="SyncedEventEntity.EventId"/>, not the key: the inbox key is a long
+    /// <c>Id</c>, and a FindAsync by the Guid threw on every call, so no event was ever marked.
+    /// An unknown id updates nothing.
+    /// </remarks>
     public async Task MarkProcessedAsync(Guid eventId, CancellationToken cancellationToken = default)
     {
-        var entity = await _dbContext.SyncedEvents.FindAsync([eventId], cancellationToken);
-        if (entity is not null)
-        {
-            entity.ProcessedAtUtc = DateTime.UtcNow;
-            await _dbContext.SaveChangesAsync(cancellationToken);
-        }
+        var processedAtUtc = DateTime.UtcNow;
+
+        await _dbContext.SyncedEvents
+                        .Where(e => e.EventId == eventId)
+                        .ExecuteUpdateAsync(s => s.SetProperty(e => e.ProcessedAtUtc, processedAtUtc), cancellationToken);
     }
 
     public async Task<int> GetTotalCountAsync(CancellationToken cancellationToken = default)
