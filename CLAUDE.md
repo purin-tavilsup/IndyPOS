@@ -203,16 +203,17 @@ dotnet build
 
 # Docker must be RUNNING for three suites - they spin up a real Postgres container.
 # With Docker down they fail fast (each suite in under a second), which reads like a
-# code regression but is not. Expect 221 failures with Docker stopped, all here.
-# (221 = 148 + 71 + 2. The StoreHub 128 was measured 2026-09-27 with Docker down; the
+# code regression but is not. Expect 232 failures with Docker stopped, all here.
+# (232 = 148 + 71 + 13. The StoreHub 128 was measured 2026-09-27 with Docker down; the
 # final-review test additions (+13, all HTTP integration tests) and the concurrent-delete
 # race tests (+7, all on real Postgres) all need Docker, bringing it to 148 -- DERIVED,
-# not re-measured with Docker down. The other two are unchanged from the earlier derivation.)
+# not re-measured with Docker down. CloudApi.IntegrationTests grew 2 -> 13 on 2026-09-30 with the
+# event-pipeline repair, all on real Postgres -- also DERIVED. MigrationTool is unchanged.)
 #   tests/IndyPOS.StoreHub.IntegrationTests   (148 of 156; 8 need no container, derived
 #                                              for the 21 new tests)
 #   tests/IndyPOS.MigrationTool.Tests         (71 of 134; 38 pure units, 24 need the
 #                                              gitignored real store .db files, 1 manual tool)
-#   tests/IndyPOS.CloudApi.IntegrationTests   (2 of 2; both need a container)
+#   tests/IndyPOS.CloudApi.IntegrationTests   (13 of 13; all need a container)
 
 # The installer is NOT in IndyPOS.sln, so the two commands above never touch it.
 # Run it explicitly (231 tests: 223 pass, 8 skipped):
@@ -223,14 +224,14 @@ dotnet run --project src/IndyPOS.AppHost --launch-profile https
 # Dashboard: https://localhost:17222
 ```
 
-Solution suites total **853** with Docker running and the real store databases present (852 pass,
-1 skipped) — measured 2026-09-27 (cash-drawer release, after the final-review test additions, the
-concurrent-delete fix and the test-user id fix). Per suite: Domain 56 · Vault 17 · CloudApi 6 · CloudApi.IntegrationTests 2
+Solution suites total **864** with Docker running and the real store databases present (863 pass,
+1 skipped) — measured 2026-09-30 (after the cloud event-pipeline repair; 853 on 2026-09-27, after the
+cash-drawer release). Per suite: Domain 56 · Vault 17 · CloudApi 6 · CloudApi.IntegrationTests 13
 (Docker) · MigrationTool 134 (133 pass, 1 skip) · StoreHub.IntegrationTests 156 · Application 435 ·
 Windows.Forms 47. The growth since the 2026-09-17 measurement (656 total) is the cash-drawer
 feature's own tests plus its final-review follow-up: Domain +20, Application +125,
-StoreHub.IntegrationTests +52. Without the real store databases the suite discovers **833**
-(DERIVED as 853 − 20, not measured) — a skipped
+StoreHub.IntegrationTests +52; the pipeline repair then added CloudApi.IntegrationTests +11. Without the
+real store databases the suite discovers **844** (DERIVED as 864 − 20, not measured) — a skipped
 `[Theory]` is one entry, not one per row.
 See [`ONBOARDING.md`](ONBOARDING.md) for the per-suite breakdown, the dev-vs-installed port split,
 and the `/health` vs `/health/ready` trap.
