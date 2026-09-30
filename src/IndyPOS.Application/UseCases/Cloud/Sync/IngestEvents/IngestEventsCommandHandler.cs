@@ -96,8 +96,16 @@ public class IngestEventsCommandHandler(
     }
 
     /// <summary>The payload's top-level string StoreId, or null when there is none to read.</summary>
-    private static string? PayloadStoreId(string payload)
+    /// <remarks>
+    /// The payload is null-checked, although its type says it cannot be null: JSON binding puts a
+    /// runtime null there for "payload": null, and JsonDocument.Parse would throw on it -- a 500
+    /// instead of the 403 for an unreadable payload.
+    /// </remarks>
+    private static string? PayloadStoreId(string? payload)
     {
+        if (payload is null)
+            return null;
+
         try
         {
             using var document = JsonDocument.Parse(payload);

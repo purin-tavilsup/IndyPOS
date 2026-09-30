@@ -60,6 +60,15 @@ public class IngestEventsCommandHandlerTests
         await Assert.ThrowsAsync<StoreMismatchException>(() => _handler.HandleAsync(command));
     }
 
+    // JSON binding can put a runtime null into the non-nullable Payload; that is unreadable, not a 500.
+    [Fact]
+    public async Task HandleAsync_WithANullPayload_ThrowsStoreMismatch()
+    {
+        var command = new IngestEventsCommand([EventWithPayload(null!)], OwnStoreId);
+
+        await Assert.ThrowsAsync<StoreMismatchException>(() => _handler.HandleAsync(command));
+    }
+
     [Fact]
     public async Task HandleAsync_WithAStoreIdDifferingOnlyInCase_ThrowsStoreMismatch()
     {
