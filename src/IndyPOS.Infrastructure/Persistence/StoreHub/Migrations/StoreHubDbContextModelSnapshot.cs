@@ -22,6 +22,8 @@ namespace IndyPOS.Infrastructure.Persistence.StoreHub.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
+            modelBuilder.HasSequence("invoice_number_seq");
+
             modelBuilder.Entity("IndyPOS.Domain.Entities.Core.CashCount", b =>
                 {
                     b.Property<Guid>("Id")
@@ -126,6 +128,7 @@ namespace IndyPOS.Infrastructure.Persistence.StoreHub.Migrations
                         .HasColumnName("description");
 
                     b.Property<bool>("IsDeleted")
+                        .IsConcurrencyToken()
                         .ValueGeneratedOnAdd()
                         .HasColumnType("boolean")
                         .HasDefaultValue(false)
@@ -193,6 +196,7 @@ namespace IndyPOS.Infrastructure.Persistence.StoreHub.Migrations
                         .HasColumnName("description");
 
                     b.Property<bool>("IsDeleted")
+                        .IsConcurrencyToken()
                         .ValueGeneratedOnAdd()
                         .HasColumnType("boolean")
                         .HasDefaultValue(false)
@@ -253,6 +257,7 @@ namespace IndyPOS.Infrastructure.Persistence.StoreHub.Migrations
                         .HasColumnName("deleted_utc");
 
                     b.Property<bool>("IsDeleted")
+                        .IsConcurrencyToken()
                         .ValueGeneratedOnAdd()
                         .HasColumnType("boolean")
                         .HasDefaultValue(false)
@@ -341,6 +346,12 @@ namespace IndyPOS.Infrastructure.Persistence.StoreHub.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("created_utc");
 
+                    b.Property<long>("InvoiceNumber")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("invoice_number")
+                        .HasDefaultValueSql("nextval('invoice_number_seq')");
+
                     b.Property<DateTime>("LastModifiedUtc")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("last_modified_utc");
@@ -369,6 +380,9 @@ namespace IndyPOS.Infrastructure.Persistence.StoreHub.Migrations
                     b.HasIndex("CreatedUtc");
 
                     b.HasIndex("StoreId");
+
+                    b.HasIndex("StoreId", "InvoiceNumber")
+                        .IsUnique();
 
                     b.HasIndex("StoreId", "LegacyInvoiceId")
                         .IsUnique();

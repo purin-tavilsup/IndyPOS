@@ -31,6 +31,7 @@ public class StoreHubDbContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        modelBuilder.HasSequence<long>(InvoiceNumberSequence.Name);
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(StoreHubDbContext).Assembly);
     }
 }
