@@ -133,7 +133,8 @@ public class SalePaymentRulesTests
     public void EnsureValid_WithPayLaterAndAWhitespaceNote_Throws()
     {
         Validate(Total, Credit(note: "   ")).Should()
-                                            .Throw<SaleValidationException>();
+                                            .Throw<SaleValidationException>()
+                                            .WithMessage("กรุณาใส่ชื่อลูกค้าสำหรับการลงบัญชี");
     }
 
     [Fact]
@@ -236,6 +237,16 @@ public class SalePaymentRulesTests
                                            .NotThrow();
     }
 
+    // Codex P2 (PR #106): each emoji is two UTF-16 code units but one varchar character.
+    [Fact]
+    public void EnsureValid_WithA500CharacterNameOfEmoji_DoesNotThrow()
+    {
+        var name = string.Concat(Enumerable.Repeat("🙂", SalePaymentRules.MaxCustomerNameLength));
+
+        Validate(Total, Credit(note: name)).Should()
+                                           .NotThrow();
+    }
+
     [Fact]
     public void EnsureValid_WithCashAndMoneyTransfer_DoesNotThrow()
     {
@@ -331,7 +342,9 @@ public static class SalePaymentRules
         if (string.IsNullOrEmpty(name))
             throw new SaleValidationException("กรุณาใส่ชื่อลูกค้าสำหรับการลงบัญชี");
 
-        if (name.Length > MaxCustomerNameLength)
+        // Counted as PostgreSQL's varchar counts: one per character, where string.Length counts an
+        // emoji twice (two UTF-16 code units) and would refuse a name the column accepts.
+        if (name.EnumerateRunes().Count() > MaxCustomerNameLength)
             throw new SaleValidationException($"ชื่อลูกค้ายาวเกิน {MaxCustomerNameLength} ตัวอักษร");
     }
 }
@@ -349,7 +362,7 @@ For example, `Credit(amount: 0m)` on a ฿0 bill reports the refund/empty messag
 - [ ] **Step 5: Run the rule tests to verify they pass**
 
 Run: `dotnet test tests/IndyPOS.Application.Tests --filter "FullyQualifiedName~SalePaymentRulesTests"`
-Expected: PASS, 16 tests.
+Expected: PASS, 17 tests.
 
 - [ ] **Step 6: Call the rules from the handler**
 
@@ -375,6 +388,9 @@ In `CompleteSaleCommandHandler.cs`, add `using IndyPOS.Application.Common.Except
 
 In the `new Invoice { … }` initializer below, replace `TotalAmount = command.Lines.Sum(l => l.Quantity * l.UnitPrice),` with `TotalAmount = invoiceTotal,`, so the total is computed once.
 
+Now run `dotnet test tests/IndyPOS.Application.Tests --filter "FullyQualifiedName~Sales"`.
+Expected: exactly 1 FAIL, `HandleAsync_WhenPaymentMethodNotOfferable_ShouldReject`, with "Expected a <System.InvalidOperationException> to be thrown, but found <…SaleValidationException>". That failure proves the handler now uses the rules, and Step 7 fixes it.
+
 - [ ] **Step 7: Update the existing not-offerable test**
 
 In `CompleteSaleCommandHandlerTests.cs:370`, change:
@@ -394,7 +410,7 @@ and add `using IndyPOS.Application.Common.Exceptions;` at the top. The test's ow
 - [ ] **Step 8: Run the Application tests**
 
 Run: `dotnet test tests/IndyPOS.Application.Tests --filter "FullyQualifiedName~Sales"`
-Expected: PASS. Before Step 7, the not-offerable test failed with "Expected InvalidOperationException, but SaleValidationException was thrown". That failure is the proof the handler now uses the rules.
+Expected: PASS, with nothing failing. (Measured at plan review: 33 tests in the Sales filter.)
 
 - [ ] **Step 9: Commit**
 
@@ -780,7 +796,20 @@ Add to `PayLaterSaleEndpointTests.cs`, **above** the regression test, so the neg
                            .Be(HttpStatusCode.BadRequest);
     }
 
-    // Was an unmapped InvalidOperationException: a 500.
+    [Fact]
+    public async Task CompleteSale_WithPayLaterMixedWithCash_SavesNoInvoice()
+    {
+        await AuthenticateAsCashierAsync();
+        var request = await CreditSaleAsync(CustomerName, new SalePaymentRequest(PaymentMethodCodes.Cash, 1m));
+        var before = await CountInvoicesAsync();
+
+        await Client.PostAsJsonAsync("/sales/complete", request);
+
+        (await CountInvoicesAsync()).Should()
+                                    .Be(before);
+    }
+
+    // Was an unmapped InvalidOperationException: a 500 in production (TestServer rethrows it instead).
     [Fact]
     public async Task CompleteSale_WithAMethodNotOfferable_ReturnsBadRequest()
     {
@@ -857,10 +886,10 @@ Add these `using`s: `IndyPOS.Application.UseCases.StoreHub.PayLater;` and `IndyP
 - [ ] **Step 2: Run to verify they fail**
 
 Run: `dotnet test tests/IndyPOS.StoreHub.IntegrationTests --filter "FullyQualifiedName~PayLaterSaleEndpointTests"`
-Expected:
-- `…WithoutANote_ReturnsBadRequest`, `…WithoutANote_ReturnsTheThaiReason`, `…MixedWithCash…` and `…NotOfferable…` FAIL, with `500 InternalServerError`;
-- `…SavesNoInvoice` PASSES already, because the rules throw before any save (Task 1). It pins that guarantee;
-- the regression test and the three positive tests PASS, because Task 2 created the debt.
+Expected (measured at plan review): **6 FAIL, 4 PASS.**
+- **The six that fail:** the four 400 tests (`…WithoutANote_ReturnsBadRequest`, `…WithoutANote_ReturnsTheThaiReason`, `…MixedWithCash_ReturnsBadRequest`, `…NotOfferable…`) and both `…SavesNoInvoice` tests.
+- **How they fail:** with `SaleValidationException` thrown out of `PostAsJsonAsync`, not with a status. The route has no mapping yet, and TestServer rethrows an unhandled exception to the caller. In production the same thing is a 500.
+- **The four that pass:** the regression test and the three positive tests, because Task 2 created the debt.
 
 The RED for the positive tests was the regression test in Task 2. To see these three fail too, run them once with Task 2's `foreach` commented out, then restore it.
 
@@ -892,7 +921,7 @@ Add `using IndyPOS.Application.Common.Exceptions;` if `Program.cs` does not alre
 - [ ] **Step 4: Run the tests to verify they pass**
 
 Run: `dotnet test tests/IndyPOS.StoreHub.IntegrationTests --filter "FullyQualifiedName~PayLaterSaleEndpointTests|FullyQualifiedName~SalesEndpointTests"`
-Expected: PASS, 9 PayLater tests. The existing `SalesEndpointTests` still pass: none of them sends PayLater.
+Expected: PASS, 10 PayLater tests (plus the 7 existing `SalesEndpointTests`). The existing `SalesEndpointTests` still pass: none of them sends PayLater.
 
 - [ ] **Step 5: Commit**
 
@@ -906,7 +935,7 @@ git commit -m "fix(sales): answer a refused sale with a Thai 400, not a 500"
 ### Task 4: The till refuses ลงบัญชี once the sale has a payment
 
 **Files:**
-- Modify: `src/IndyPOS.Windows.Forms/UI/Payment/AcceptPaymentForm.cs:284-287` (the top of `ChangePaymentType`)
+- Modify: `src/IndyPOS.Windows.Forms/UI/Payment/AcceptPaymentForm.cs:169-173` (`PaymentMethodButton_Click`)
 - Modify: `CLAUDE.md`, `ONBOARDING.md` (suite counts)
 
 **Interfaces:**
@@ -917,20 +946,30 @@ git commit -m "fix(sales): answer a refused sale with a Thai 400, not a 500"
 
 - [ ] **Step 1: Add the guard**
 
-In `AcceptPaymentForm.ChangePaymentType`, insert this as the **first** statement, above `_selectedMethodCode = methodCode;` (`:286`), so a refused PayLater never becomes the selected method:
+Replace `PaymentMethodButton_Click` (`:169-173`) with:
 
 ```csharp
-			// The store's rule: a credit sale is paid wholly on credit. The v3 till allowed the mix by
-			// taking whatever balance remained, and cashiers slipped about 7 times a year (spec §3).
-			if (SalePaymentRules.IsPayLater(methodCode) && _saleService.Payments.Count > 0)
-			{
-				_messageForm.ShowDialog("การลงบัญชีต้องไม่รวมกับการชำระแบบอื่น", "ลงบัญชีไม่ได้");
-				return;
-			}
+        private void PaymentMethodButton_Click(object? sender, EventArgs e)
+        {
+            if (sender is not Button { Tag: string code })
+                return;
 
+            // The store's rule: a credit sale is paid wholly on credit. The v3 till allowed the mix by
+            // taking whatever balance remained, and cashiers slipped about 7 times a year (spec §3).
+            // Here, on the cashier's press, rather than in ChangePaymentType: ResetPaymentTypeSelection
+            // also calls that while the form opens, and must not pop a dialog.
+            if (SalePaymentRules.IsPayLater(code) && _saleService.Payments.Count > 0)
+            {
+                _messageForm.BringToFront();
+                _messageForm.ShowDialog("การลงบัญชีต้องไม่รวมกับการชำระแบบอื่น", "ลงบัญชีไม่ได้");
+                return;
+            }
+
+            ChangePaymentType(code);
+        }
 ```
 
-Add `using IndyPOS.Application.UseCases.StoreHub.Sales.Complete;`, and match the file's tab indentation. Using `IsPayLater` keeps one definition of "is this PayLater", the same one the server uses.
+Add `using IndyPOS.Application.UseCases.StoreHub.Sales.Complete;`. `BringToFront` matches the file's other dialogs (`:62`, `:226`, `:234`). Using `IsPayLater` keeps one definition of "is this PayLater", the same one the server uses.
 
 - [ ] **Step 2: Build**
 
@@ -950,11 +989,11 @@ Record the result in the PR description.
 - [ ] **Step 4: Run the whole suite and measure**
 
 Run: `dotnet test --logger trx --results-directory <dir>`, with Docker running and the real store databases present.
-Expected: all green. Application gains 21 (16 rules + 5 handler), and StoreHub.IntegrationTests gains 9. Use the **measured** numbers in the next step, not these.
+Expected: all green. Application gains 22 (17 rules + 5 handler), and StoreHub.IntegrationTests gains 10. Use the **measured** numbers in the next step, not these.
 
 - [ ] **Step 5: Update the documented counts**
 
-In `CLAUDE.md` and `ONBOARDING.md`, update the total, the pass count, `Application`, `StoreHub.IntegrationTests`, the without-store-databases figure (the total − 20, derived), and the Docker-down figure. StoreHub.IntegrationTests' 9 new tests all need a container, so the Docker-down total grows by 9. Leave no old figure behind: `grep -n` each old number in both files.
+In `CLAUDE.md` and `ONBOARDING.md`, update the total, the pass count, `Application`, `StoreHub.IntegrationTests`, the without-store-databases figure (the total − 20, derived), and the Docker-down figure. StoreHub.IntegrationTests' 10 new tests all need a container, so the Docker-down total grows by 10. Leave no old figure behind: `grep -n` each old number in both files.
 
 - [ ] **Step 6: Commit**
 
@@ -977,7 +1016,7 @@ git commit -m "fix(till): refuse PayLater once the sale already has a payment"
 **Deviations from the spec, called out:**
 - **D1: no new `ISaleRepository.CompleteSaleAsync` parameter.** The debt rides `Payment.PayLater`, the existing 1:1 navigation, into the same `SaveChangesAsync`. It is atomic, as §4.1 requires, and it keeps the signature that 7 Moq setups and invoice-history plan 1 depend on.
 - **D2: the rules live in `SalePaymentRules`,** a pure static class, rather than inline in the handler. The handler stays short, and the rules get plain unit tests.
-- **D3: the till refuses at the method button, with a message,** rather than hiding ลงบัญชี. Hiding it would leave the cashier with no button to press and no reason why.
+- **D3: the till refuses at the method button, with a message,** rather than hiding ลงบัญชี. Hiding it would leave the cashier with no button to press and no reason why. The check sits in the click handler, so opening the form never triggers it.
 
 **Placeholder scan:** none left. `<dir>` is any results folder. The Task 4 counts are derived, and Step 5 uses the measured ones.
 
