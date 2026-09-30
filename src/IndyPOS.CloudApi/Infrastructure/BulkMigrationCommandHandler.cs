@@ -20,7 +20,25 @@ public class BulkMigrationCommandHandler : ICommandHandler<BulkMigrationCommand,
         _logger = logger;
     }
 
+    /// <remarks>
+    /// The Npgsql retrying strategy (on under Aspire's AddNpgsqlDbContext) rejects a user-initiated
+    /// BeginTransactionAsync unless the whole unit runs inside strategy.ExecuteAsync, so it can be
+    /// replayed as one. Without this wrapper every push came back "Transaction failed" having
+    /// imported nothing. The strategy does not reset the change tracker between attempts, so each
+    /// attempt starts from a clean one; the counters restart with it inside ImportAsync.
+    /// </remarks>
     public async Task<BulkMigrationResponse> HandleAsync(BulkMigrationCommand command, CancellationToken cancellationToken = default)
+    {
+        var strategy = _dbContext.Database.CreateExecutionStrategy();
+
+        return await strategy.ExecuteAsync(async () =>
+        {
+            _dbContext.ChangeTracker.Clear();
+            return await ImportAsync(command, cancellationToken);
+        });
+    }
+
+    private async Task<BulkMigrationResponse> ImportAsync(BulkMigrationCommand command, CancellationToken cancellationToken)
     {
         var errors = new List<string>();
         var usersImported = 0;
