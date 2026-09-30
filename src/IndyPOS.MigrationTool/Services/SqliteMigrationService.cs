@@ -17,6 +17,13 @@ public class SqliteMigrationService
     /// <summary>The only movement reason the migration writes.</summary>
     private const string InitialStockReason = "Migration:InitialStock";
 
+    /// <summary>
+    /// Moves the bill-number sequence to the highest number present. HAVING skips the call when there
+    /// are no invoices, where MAX is NULL and setval would fail.
+    /// </summary>
+    private const string AdvanceInvoiceNumberSequenceSql =
+        $"SELECT setval('{InvoiceNumberSequence.Name}', MAX(invoice_number)) FROM invoice HAVING MAX(invoice_number) IS NOT NULL";
+
     private readonly MigrationOptions _options;
     private readonly ILogger<SqliteMigrationService> _logger;
     private MigrationResult _result = new();
@@ -87,6 +94,24 @@ public class SqliteMigrationService
             return _result;
         }
 
+        // An invoice v4 created itself drew its bill number from the sequence, starting at 1 -- the
+        // same range the imported v3 numbers occupy -- so importing on top of it would collide on
+        // (store_id, invoice_number) as an opaque 23505. Refused up front, per store like the guard
+        // above: another store's sales hold numbers in another store's range.
+        if (!_options.DryRun && await CountNativeInvoicesAsync(context, ct) is var native and > 0)
+        {
+            _result.AddPhaseFailure("NativeInvoices",
+                $"Store '{_options.StoreId}' already has {native} invoice(s) created by v4 itself. " +
+                "Their bill numbers would collide with the imported v3 numbers, so nothing was " +
+                "written. Migrate into a database that has not yet taken a v4 sale for this store.");
+
+            _logger.LogError(
+                "Migration REFUSED. Store {StoreId} already has {Count} v4-native invoice(s).",
+                _options.StoreId, native);
+
+            return _result;
+        }
+
         // ONE transaction around every phase. The migration used to be held entirely in memory until
         // a single SaveChangesAsync, which is what made defect 12's all-or-nothing guarantee true by
         // construction -- and what peaked at 2.8 GB on GeneralHardware, measured, against a documented
@@ -116,6 +141,12 @@ public class SqliteMigrationService
         if (!_options.DryRun && _result.PhaseFailures.Count == 0)
         {
             await context.SaveChangesAsync(ct);
+
+            // Runs after the final save, not at the end of MigrateInvoicesAsync, because the last
+            // batch of invoices only reaches the database here. It must precede the commit so the
+            // till's next sale continues after the highest v3 number. setval itself is not rolled
+            // back if the commit then fails -- harmless, it only leaves a gap in the numbering.
+            await context.Database.ExecuteSqlRawAsync(AdvanceInvoiceNumberSequenceSql, ct);
             await transaction!.CommitAsync(ct);
         }
 
@@ -165,13 +196,18 @@ public class SqliteMigrationService
     /// How many invoices this store has already migrated into the target.
     /// </summary>
     /// <remarks>
-    /// Counted by <see cref="Invoice.LegacyInvoiceId"/> being set, not by invoices existing: a store
-    /// that has been trading in v4 has invoices of its own, and refusing to migrate because the till
-    /// made a sale would be wrong. Only a row that came from SQLite blocks a second migration.
+    /// Counted by <see cref="Invoice.LegacyInvoiceId"/> being set. v4-native invoices are refused by
+    /// the separate <see cref="CountNativeInvoicesAsync"/> check, with its own message, because the
+    /// problem is a different one: bill-number collision, not duplicated history.
     /// </remarks>
     private async Task<int> CountMigratedInvoicesAsync(StoreHubDbContext context, CancellationToken ct) =>
         await context.Invoices
             .CountAsync(i => i.StoreId == _options.StoreId && i.LegacyInvoiceId != null, ct);
+
+    /// <summary>How many invoices this store's till created in v4 (no legacy id).</summary>
+    private async Task<int> CountNativeInvoicesAsync(StoreHubDbContext context, CancellationToken ct) =>
+        await context.Invoices
+            .CountAsync(i => i.StoreId == _options.StoreId && i.LegacyInvoiceId == null, ct);
 
     /// <summary>
     /// Runs one migration phase, turning a phase-level throw into a recorded failure so the remaining
@@ -508,6 +544,9 @@ public class SqliteMigrationService
                     Id = Guid.NewGuid(),
                     StoreId = _options.StoreId,
                     LegacyInvoiceId = (int)invoice.InvoiceId,
+                    // The v3 number IS the bill number, so an old paper receipt still finds its bill.
+                    // Set explicitly, so EF sends it instead of letting the default draw one.
+                    InvoiceNumber = invoice.InvoiceId,
                     UserId = userId,
                     TotalAmount = (decimal)invoice.Total,
                     CreatedUtc = createdUtc,
@@ -759,7 +798,7 @@ public class SqliteMigrationService
         }
     }
 
-    private async Task<BulkMigrationRequest> BuildBulkMigrationRequestAsync(CancellationToken ct)
+    internal async Task<BulkMigrationRequest> BuildBulkMigrationRequestAsync(CancellationToken ct)
     {
         var dbOptions = new DbContextOptionsBuilder<StoreHubDbContext>()
             .UseNpgsql(_options.PostgresConnectionString)
@@ -789,7 +828,8 @@ public class SqliteMigrationService
                 i.TotalAmount,
                 i.CreatedUtc,
                 i.Lines.Select(l => new MigratedInvoiceLine(l.Id, l.ProductId, l.ProductName, l.Quantity, l.UnitPrice)).ToList(),
-                i.Payments.Select(p => new MigratedPayment(p.Id, p.Method, p.Amount, p.Note)).ToList()))
+                i.Payments.Select(p => new MigratedPayment(p.Id, p.Method, p.Amount, p.Note)).ToList(),
+                i.InvoiceNumber))
             .ToListAsync(ct);
 
         return new BulkMigrationRequest(_options.StoreId, users, products, invoices);
