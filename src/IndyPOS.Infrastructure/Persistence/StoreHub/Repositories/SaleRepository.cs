@@ -1,5 +1,6 @@
 using IndyPOS.Application.Abstractions.StoreHub.Repositories;
 using IndyPOS.Domain.Entities.Core;
+using Microsoft.EntityFrameworkCore;
 
 namespace IndyPOS.Infrastructure.Persistence.StoreHub.Repositories;
 
@@ -55,4 +56,12 @@ public class SaleRepository : ISaleRepository
 
         return invoice;
     }
+
+    /// <summary>A constant, so EF's raw-SQL analyzer has nothing to warn about.</summary>
+    private const string NextInvoiceNumberSql = $"SELECT nextval('{InvoiceNumberSequence.Name}') AS \"Value\"";
+
+    public Task<long> ReserveInvoiceNumberAsync(CancellationToken cancellationToken = default) =>
+        _dbContext.Database
+                  .SqlQueryRaw<long>(NextInvoiceNumberSql)
+                  .SingleAsync(cancellationToken);
 }
