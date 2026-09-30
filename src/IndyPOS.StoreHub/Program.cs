@@ -544,7 +544,7 @@ app.MapPost("/sales/complete", async (
     CancellationToken cancellationToken) =>
 {
     // The seller is whoever the token says, never the body: a body UserId let any caller ring a sale
-    // up as someone else. request.UserId is ignored, and goes in the route tidy-up (POST /sales).
+    // up as someone else. request.UserId is deprecated and ignored.
     var command = new CompleteSaleCommand(
         StoreId: storeIdentity.StoreId,
         UserId: user.GetRequiredUserId(),

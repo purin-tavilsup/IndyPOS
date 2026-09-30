@@ -4,9 +4,9 @@ namespace IndyPOS.Application.UseCases.StoreHub.Sales;
 /// Request to complete a sale in StoreHub.
 /// </summary>
 /// <param name="UserId">
-/// Ignored. StoreHub records the sale under the user in the caller's token; a body value let any
-/// caller ring a sale up as someone else. Kept only so existing tills keep sending a valid body, and
-/// removed with the route tidy-up (POST /sales).
+/// Deprecated and ignored. StoreHub records the sale under the user in the caller's token; a body
+/// value let any caller ring a sale up as someone else. Kept only so existing tills keep sending a
+/// valid body.
 /// </param>
 public record CompleteSaleRequest(
     Guid UserId,
