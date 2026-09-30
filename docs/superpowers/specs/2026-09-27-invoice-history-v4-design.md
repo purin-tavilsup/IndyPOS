@@ -68,7 +68,7 @@ Both block **Epic 3 Phase B**:
 **Schema** (one additive migration, forward-only-safe):
 
 ```
-invoice.invoice_number   bigint NULL  DEFAULT nextval('invoice_number_seq')
+invoice.invoice_number   bigint NOT NULL  DEFAULT nextval('invoice_number_seq')   -- NOT NULL after the backfill (D2)
 UNIQUE INDEX (store_id, invoice_number)
 SEQUENCE invoice_number_seq  AS bigint
 ```
