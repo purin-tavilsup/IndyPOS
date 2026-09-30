@@ -1,6 +1,7 @@
 using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
+using System.Text.Json;
 using IndyPOS.Application.Abstractions.StoreHub.Services;
 using IndyPOS.Application.UseCases.Cloud.Sync;
 using IndyPOS.Application.UseCases.StoreHub.Users;
@@ -84,7 +85,7 @@ public class HttpCloudSyncClient : ICloudSyncClient
 
             if (response.IsSuccessStatusCode)
             {
-                return true;
+                return await WasStoredAsync(response, request, cancellationToken);
             }
 
             // Handle 401 - token may have expired
@@ -105,7 +106,8 @@ public class HttpCloudSyncClient : ICloudSyncClient
                 retryRequest.Content = JsonContent.Create(request);
 
                 var retryResponse = await _httpClient.SendAsync(retryRequest, cancellationToken);
-                return retryResponse.IsSuccessStatusCode;
+                return retryResponse.IsSuccessStatusCode
+                       && await WasStoredAsync(retryResponse, request, cancellationToken);
             }
 
             var errorBody = await response.Content.ReadAsStringAsync(cancellationToken);
@@ -126,6 +128,40 @@ public class HttpCloudSyncClient : ICloudSyncClient
             _logger.LogWarning(ex, "Request to Cloud API timed out");
             return false;
         }
+    }
+
+    /// <remarks>
+    /// A 2xx means only that the batch was read. The cloud reports each event's outcome in the body,
+    /// and answers 200 even when it failed to store one. Counting the status as success let
+    /// SyncWorker mark a failed event Sent, and a single ingest failure lost it for good. So only
+    /// the cloud's own "accepted" for this event counts; anything else is a failure and retries.
+    /// </remarks>
+    private async Task<bool> WasStoredAsync(
+        HttpResponseMessage response,
+        SyncEventsRequest request,
+        CancellationToken cancellationToken)
+    {
+        var eventId = request.Events.Single().EventId;
+
+        try
+        {
+            var body = await response.Content.ReadFromJsonAsync<SyncEventsResponse>(cancellationToken);
+            var result = body?.Results?.FirstOrDefault(r => r.EventId == eventId);
+
+            if (result is { Accepted: true })
+                return true;
+
+            _logger.LogWarning(
+                "Cloud API did not store event {EventId}: {Reason}",
+                eventId,
+                result?.Reason ?? "no result for this event in the response");
+        }
+        catch (JsonException ex)
+        {
+            _logger.LogWarning(ex, "Cloud API sent an unreadable sync response for event {EventId}", eventId);
+        }
+
+        return false;
     }
 
     private static int ParseStoreId(string storeId)
