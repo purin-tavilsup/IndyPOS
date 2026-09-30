@@ -172,15 +172,25 @@ app.MapPost("/sync/events", [Authorize] async (
 app.MapPost("/sync/bulk-migration", [Authorize] async (
     ICommandHandler<BulkMigrationCommand, BulkMigrationResponse> handler,
     BulkMigrationRequest request,
+    ClaimsPrincipal user,
     CancellationToken cancellationToken) =>
 {
     var command = new BulkMigrationCommand(
         request.StoreId,
         request.Users,
         request.Products,
-        request.Invoices);
-    var response = await handler.HandleAsync(command, cancellationToken);
-    return response.Success ? Results.Ok(response) : Results.BadRequest(response);
+        request.Invoices,
+        user.FindFirst("store_id")?.Value ?? string.Empty);
+
+    try
+    {
+        var response = await handler.HandleAsync(command, cancellationToken);
+        return response.Success ? Results.Ok(response) : Results.BadRequest(response);
+    }
+    catch (StoreMismatchException ex)
+    {
+        return Results.Problem(ex.Message, statusCode: StatusCodes.Status403Forbidden);
+    }
 }).RequireAuthorization();
 
 // Sync status endpoint
