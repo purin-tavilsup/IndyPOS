@@ -21,6 +21,16 @@ public class MigrationVerifier
     /// <summary>Payments the migration cannot attach, because their invoice does not exist.</summary>
     private const string NoInvoicePaymentCheckName = "Payments (no invoice)";
 
+    /// <summary>Migrated invoices must carry their v3 number as their bill number.</summary>
+    private const string InvoiceNumberCheckName = "Invoice numbers";
+
+    /// <summary>The next bill number must be above every existing one, or the next sale fails.</summary>
+    private const string InvoiceSequenceCheckName = "Invoice number sequence";
+
+    /// <summary>Reads the sequence's next value WITHOUT consuming it, as nextval() would.</summary>
+    private const string NextInvoiceNumberSql =
+        $"SELECT CASE WHEN is_called THEN last_value + 1 ELSE last_value END AS \"Value\" FROM {InvoiceNumberSequence.Name}";
+
     /// <summary>
     /// Restricts a <c>Payment</c> query to rows the migration is actually able to migrate.
     /// </summary>
@@ -117,6 +127,10 @@ public class MigrationVerifier
         // as long as it did. This is the only check that looks at what was actually written.
         await VerifyCategoriesAsync(sqliteConnection, context, result, ct);
 
+        // Spec §4: an old paper receipt must find its bill, and the next v4 sale must not collide.
+        await VerifyInvoiceNumbersAsync(context, result, ct);
+        await VerifyInvoiceSequenceAsync(context, result, ct);
+
         // Verify total amounts match (within tolerance)
         var sqliteTotalAmount = await sqliteConnection.ExecuteScalarAsync<decimal>(
             "SELECT COALESCE(SUM(Total), 0) FROM Invoice");
@@ -142,7 +156,8 @@ public class MigrationVerifier
         foreach (var check in result.Checks.Where(c => !c.IsValid))
         {
             if (check.EntityName is not ("Total Revenue" or StockCheckName or CategoryCheckName
-                                        or BarcodeKeyCheckName or NoInvoicePaymentCheckName))
+                                        or BarcodeKeyCheckName or NoInvoicePaymentCheckName
+                                        or InvoiceNumberCheckName or InvoiceSequenceCheckName))
             {
                 result.Errors.Add($"{check.EntityName}: SQLite has {check.SqliteCount}, PostgreSQL has {check.PostgresCount}");
             }
@@ -415,6 +430,72 @@ public class MigrationVerifier
             result.Errors.Add($"  ... and {mismatches.Count - MaxMismatchesReported} more");
         }
     }
+
+    /// <summary>
+    /// Every migrated invoice of this store carries its v3 number as its bill number. Counts are of
+    /// migrated invoices, so the row also reads as coverage.
+    /// </summary>
+    private async Task VerifyInvoiceNumbersAsync(StoreHubDbContext context, VerificationResult result, CancellationToken ct)
+    {
+        var migrated = context.Invoices.Where(i => i.StoreId == _options.StoreId && i.LegacyInvoiceId != null);
+        var mismatched = migrated.Where(i => i.InvoiceNumber != (long)i.LegacyInvoiceId!.Value);
+
+        var total = await migrated.CountAsync(ct);
+        var mismatchCount = await mismatched.CountAsync(ct);
+
+        result.Checks.Add(new VerificationCheck(InvoiceNumberCheckName, total, total - mismatchCount, mismatchCount == 0));
+
+        if (mismatchCount == 0)
+        {
+            return;
+        }
+
+        result.Errors.Add(
+            $"{mismatchCount} migrated invoice(s) do not carry their v3 number as their bill number, " +
+            "so their old paper receipts will not find them.");
+
+        var examples = await mismatched.OrderBy(i => i.LegacyInvoiceId)
+                                       .Take(MaxMismatchesReported)
+                                       .Select(i => new { i.LegacyInvoiceId, i.InvoiceNumber })
+                                       .ToListAsync(ct);
+
+        foreach (var row in examples)
+        {
+            result.Errors.Add($"  legacy invoice {row.LegacyInvoiceId}: bill number {row.InvoiceNumber}");
+        }
+
+        if (mismatchCount > MaxMismatchesReported)
+        {
+            result.Errors.Add($"  ... and {mismatchCount - MaxMismatchesReported} more");
+        }
+    }
+
+    /// <summary>
+    /// The sequence's next value is above the highest bill number in the database. Database-wide,
+    /// because the sequence is: a behind sequence makes the next sale fail on the unique index.
+    /// </summary>
+    /// <remarks>
+    /// Reported in the count columns as (highest number, next value) -- not counts, but the two
+    /// figures the operator needs to see.
+    /// </remarks>
+    private static async Task VerifyInvoiceSequenceAsync(StoreHubDbContext context, VerificationResult result, CancellationToken ct)
+    {
+        var highest = await context.Invoices.MaxAsync(i => (long?)i.InvoiceNumber, ct);
+        var next = await context.Database.SqlQueryRaw<long>(NextInvoiceNumberSql).SingleAsync(ct);
+        var isValid = highest is null || next > highest;
+
+        result.Checks.Add(new VerificationCheck(
+            InvoiceSequenceCheckName, ClampToInt(highest ?? 0), ClampToInt(next), isValid));
+
+        if (!isValid)
+        {
+            result.Errors.Add(
+                $"The next bill number would be {next}, but bill number {highest} already exists, so " +
+                $"the next sale would fail. Fix with: SELECT setval('{InvoiceNumberSequence.Name}', {highest});");
+        }
+    }
+
+    private static int ClampToInt(long value) => (int)Math.Min(value, int.MaxValue);
 
     /// <summary>
     /// Compares PayLater counts, tolerating stores that have no such table.
