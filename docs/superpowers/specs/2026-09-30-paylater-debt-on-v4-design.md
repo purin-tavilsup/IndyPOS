@@ -48,7 +48,8 @@ and refuses (409) one with a repayment.
   PayLater sales without a debt, and test databases are reset (rollout Rule 1). Decided 2026-09-30.
 - **Correcting the 30 mixed invoices already in GeneralHardware's v3 history** (§3). They are past
   cashier mistakes and migrate as they are, so a report over one of those days still counts that
-  invoice wholly as credit.
+  invoice wholly as credit. They are real sales, and all 30 debts are fully repaid (฿3,805, nothing
+  owed), so neither skipping them nor listing them in a migration report is worth it (Pond, 2026-09-30).
 - **A cloud mirror of PayLater debts.** `InvoiceCompleted` already carries the payment's method and
   note, so the cloud can see the credit. A debt mirror (balance, repayments) needs its own spec.
 - **`UserId` taken from the request body** on the same route. It belongs to the route tidy-up PR.
