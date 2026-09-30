@@ -174,9 +174,11 @@ namespace IndyPOS.Windows.Forms.UI.Payment
 
             // The store's rule: a credit sale is paid wholly on credit. The v3 till allowed the mix by
             // taking whatever balance remained, and cashiers slipped about 7 times a year (spec §3).
-            // Here, on the cashier's press, rather than in ChangePaymentType: ResetPaymentTypeSelection
-            // also calls that while the form opens, and must not pop a dialog.
-            if (SalePaymentRules.IsPayLater(code) && _saleService.Payments.Count > 0)
+            // Checked both ways round: ลงบัญชี after a payment, and any other payment after ลงบัญชี
+            // (say the customer adds one more item). Here, on the cashier's press, rather than in
+            // ChangePaymentType: ResetPaymentTypeSelection also calls that while the form opens.
+            var existingMethods = _saleService.Payments.Select(p => p.Method ?? string.Empty).ToList();
+            if (SalePaymentRules.WouldMixPayLater(code, existingMethods))
             {
                 _messageForm.BringToFront();
                 _messageForm.ShowDialog("การลงบัญชีต้องไม่รวมกับการชำระแบบอื่น", "ลงบัญชีไม่ได้");

@@ -68,6 +68,51 @@ public class SalePaymentRulesTests
                                                                                                     .WithMessage("การลงบัญชีต้องไม่รวมกับการชำระแบบอื่น");
     }
 
+    // The v3 slip itself: cash taken first, then ลงบัญชี for whatever was left (review, lens 2).
+    [Fact]
+    public void EnsureValid_WithCashThenPayLater_Throws()
+    {
+        Validate(Total, new SalePaymentRequest(PaymentMethodCodes.Cash, 150m), Credit(amount: 200m)).Should()
+                                                                                                    .Throw<SaleValidationException>()
+                                                                                                    .WithMessage("การลงบัญชีต้องไม่รวมกับการชำระแบบอื่น");
+    }
+
+    // The till asks before adding a payment, in either order (review, lenses 1 and 3).
+    [Fact]
+    public void WouldMixPayLater_WithPayLaterAfterCash_ReturnsTrue()
+    {
+        SalePaymentRules.WouldMixPayLater(PaymentMethodCodes.PayLater, [PaymentMethodCodes.Cash]).Should()
+                                                                                                .BeTrue();
+    }
+
+    [Fact]
+    public void WouldMixPayLater_WithCashAfterPayLater_ReturnsTrue()
+    {
+        SalePaymentRules.WouldMixPayLater(PaymentMethodCodes.Cash, [PaymentMethodCodes.PayLater]).Should()
+                                                                                                .BeTrue();
+    }
+
+    [Fact]
+    public void WouldMixPayLater_WithALowerCasePayLaterAlreadyAdded_ReturnsTrue()
+    {
+        SalePaymentRules.WouldMixPayLater(PaymentMethodCodes.Cash, ["paylater"]).Should()
+                                                                               .BeTrue();
+    }
+
+    [Fact]
+    public void WouldMixPayLater_WithPayLaterOnASaleWithNoPayments_ReturnsFalse()
+    {
+        SalePaymentRules.WouldMixPayLater(PaymentMethodCodes.PayLater, []).Should()
+                                                                          .BeFalse();
+    }
+
+    [Fact]
+    public void WouldMixPayLater_WithCashAfterMoneyTransfer_ReturnsFalse()
+    {
+        SalePaymentRules.WouldMixPayLater(PaymentMethodCodes.Cash, [PaymentMethodCodes.MoneyTransfer]).Should()
+                                                                                                     .BeFalse();
+    }
+
     [Fact]
     public void EnsureValid_WithTwoPayLaterPayments_Throws()
     {

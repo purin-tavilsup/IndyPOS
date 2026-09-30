@@ -31,6 +31,15 @@ public static class SalePaymentRules
     public static bool IsPayLater(string method) =>
         string.Equals(method, PaymentMethodCodes.PayLater, StringComparison.OrdinalIgnoreCase);
 
+    /// <summary>
+    /// Whether adding a <paramref name="method"/> payment to a sale that already has
+    /// <paramref name="existingMethods"/> would mix PayLater with another payment, in either order.
+    /// The till asks before it adds a payment, so a cashier is stopped at the button rather than by
+    /// the server's 400 at checkout.
+    /// </summary>
+    public static bool WouldMixPayLater(string method, IReadOnlyCollection<string> existingMethods) =>
+        existingMethods.Count > 0 && (IsPayLater(method) || existingMethods.Any(IsPayLater));
+
     private static void EnsureWhollyOnCredit(IReadOnlyList<SalePaymentRequest> payments, decimal invoiceTotal)
     {
         if (payments.Count > 1)
