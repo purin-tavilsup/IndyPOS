@@ -1,4 +1,6 @@
+using System.Text.Json;
 using IndyPOS.Application.Abstractions.Cloud.Repositories;
+using IndyPOS.Application.Common.Exceptions;
 using Microsoft.Extensions.Logging;
 using Nokpirab;
 
@@ -18,6 +20,8 @@ public class IngestEventsCommandHandler(
         CancellationToken cancellationToken = default)
     {
         logger.LogDebug("Ingesting {EventCount} events", command.Events.Count);
+
+        EnsureAllForAuthenticatedStore(command);
 
         var results = new List<SyncEventResult>();
         var acceptedCount = 0;
@@ -74,5 +78,39 @@ public class IngestEventsCommandHandler(
             acceptedCount, duplicateCount, failedCount);
 
         return new SyncEventsResponse(acceptedCount, duplicateCount, failedCount, results);
+    }
+
+    /// <remarks>
+    /// The payload's StoreId is what EventProcessor materialises under, so that is what must match
+    /// the token. The envelope's int StoreId cannot be used: real store ids are strings such as
+    /// "STORE-001" or a UUID, and HttpCloudSyncClient.ParseStoreId sends 0 for all of them.
+    /// Checked for the whole batch before anything is stored, so a rejected batch leaves no trace.
+    /// </remarks>
+    private static void EnsureAllForAuthenticatedStore(IngestEventsCommand command)
+    {
+        var foreign = command.Events.FirstOrDefault(e => PayloadStoreId(e.Payload) != command.AuthenticatedStoreId);
+
+        if (foreign is not null)
+            throw new StoreMismatchException(
+                $"Event {foreign.EventId} is not for store '{command.AuthenticatedStoreId}', the store this token authenticates.");
+    }
+
+    /// <summary>The payload's top-level string StoreId, or null when there is none to read.</summary>
+    private static string? PayloadStoreId(string payload)
+    {
+        try
+        {
+            using var document = JsonDocument.Parse(payload);
+
+            return document.RootElement.ValueKind == JsonValueKind.Object
+                   && document.RootElement.TryGetProperty("StoreId", out var storeId)
+                   && storeId.ValueKind == JsonValueKind.String
+                ? storeId.GetString()
+                : null;
+        }
+        catch (JsonException)
+        {
+            return null;
+        }
     }
 }
