@@ -20,18 +20,19 @@ public class BulkMigrationCommandHandlerTests(CloudPostgresFixture postgres) : I
 {
     private const string StoreId = "1";
 
+    // A fresh invoice beside it, so a handler that imports nothing at all cannot pass.
     [Fact]
-    public async Task HandleAsync_WithAnInvoiceAlreadyInTheCloud_DoesNotImportItAgain()
+    public async Task HandleAsync_WithAnInvoiceAlreadyInTheCloud_ImportsOnlyTheFreshOne()
     {
         await using var db = CloudPostgresFixture.CreateContext(await postgres.CreateDatabaseAsync());
-        var invoice = NewInvoice();
-        db.Invoices.Add(new CloudInvoice { Id = invoice.Id, StoreId = StoreId, CreatedAtUtc = DateTime.UtcNow, SyncedAtUtc = DateTime.UtcNow });
+        var alreadyInCloud = NewInvoice();
+        db.Invoices.Add(new CloudInvoice { Id = alreadyInCloud.Id, StoreId = StoreId, CreatedAtUtc = DateTime.UtcNow, SyncedAtUtc = DateTime.UtcNow });
         await db.SaveChangesAsync();
 
-        var response = await NewHandler(db).HandleAsync(CommandWith(invoice));
+        var response = await NewHandler(db).HandleAsync(CommandWith(alreadyInCloud, NewInvoice()));
 
         response.InvoicesImported.Should()
-                                 .Be(0, string.Join(" | ", response.Errors));
+                                 .Be(1, string.Join(" | ", response.Errors));
     }
 
     // The handler's catch-all sat inside strategy.ExecuteAsync, so a transient fault came back as a
@@ -124,8 +125,8 @@ public class BulkMigrationCommandHandlerTests(CloudPostgresFixture postgres) : I
     private static BulkMigrationCommandHandler NewHandler(CloudDbContext db) =>
         new(db, NullLogger<BulkMigrationCommandHandler>.Instance);
 
-    private static BulkMigrationCommand CommandWith(MigratedInvoice invoice) =>
-        new(StoreId, Users: [], Products: [], Invoices: [invoice]);
+    private static BulkMigrationCommand CommandWith(params MigratedInvoice[] invoices) =>
+        new(StoreId, Users: [], Products: [], Invoices: invoices);
 
     private static MigratedInvoice NewInvoice() =>
         new(Id: Guid.NewGuid(),
