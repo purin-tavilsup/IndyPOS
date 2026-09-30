@@ -411,6 +411,10 @@ is useful, keep it.
 > because it used to silently **double** the store's recorded turnover — measured on a real store: 15
 > invoices and ฿1,056 became 30 and ฿2,112.
 >
+> It is also **refused** if this store's database already holds a sale made in v4
+> (`Migration REFUSED … v4-native invoice(s)`): those bills took numbers from 1 upward, the same
+> range the imported v3 bill numbers use. Migrate before the till makes its first v4 sale.
+>
 > **A non-zero exit code does not mean "try again".** Only one of the four outcomes wrote nothing and
 > is safe to re-run:
 >

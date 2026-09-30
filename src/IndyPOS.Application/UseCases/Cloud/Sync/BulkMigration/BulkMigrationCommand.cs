@@ -44,13 +44,18 @@ public record MigratedProduct(
 /// <summary>
 /// Invoice data for migration sync.
 /// </summary>
+/// <param name="InvoiceNumber">
+/// The bill number (a v3 invoice's v3 number). Nullable so either side can be older: an older cloud
+/// ignores the field, and an older migrator sends null.
+/// </param>
 public record MigratedInvoice(
     Guid Id,
     Guid UserId,
     decimal TotalAmount,
     DateTime CreatedAtUtc,
     IReadOnlyList<MigratedInvoiceLine> Lines,
-    IReadOnlyList<MigratedPayment> Payments);
+    IReadOnlyList<MigratedPayment> Payments,
+    long? InvoiceNumber = null);
 
 /// <summary>
 /// Invoice line data for migration sync.
