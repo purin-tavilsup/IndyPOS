@@ -112,7 +112,8 @@ public class EventProcessor : BackgroundService
                     $"No handler for event type '{syncedEvent.EventType}'. Add it to {nameof(HandledEventTypes)} and this switch together.");
         }
 
-        // Mark as processed in both tables (atomic)
+        // A separate statement, after the handler's save. If the process dies in between, the
+        // ProcessedEvents check above marks the event on the next poll instead of storing it twice.
         await eventRepository.MarkProcessedAsync(syncedEvent.EventId, cancellationToken);
 
         _logger.LogInformation("Processed event {EventId} of type {EventType}",
