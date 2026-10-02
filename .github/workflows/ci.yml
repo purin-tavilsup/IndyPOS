@@ -71,8 +71,10 @@ jobs:
       - name: Test solution
         run: dotnet test IndyPOS.sln -c Release --no-build --logger trx --results-directory TestResults
 
-      # The installer is not part of IndyPOS.sln.
+      # The installer is not part of IndyPOS.sln. It builds itself and is independent of the
+      # solution's tests, so it still runs (and reports) when a solution test fails.
       - name: Test installer
+        if: ${{ !cancelled() }}
         run: dotnet test tests/IndyPOS.Bootstrapper.Tests -c Release --logger trx --results-directory TestResults
 
       - name: Upload test results
