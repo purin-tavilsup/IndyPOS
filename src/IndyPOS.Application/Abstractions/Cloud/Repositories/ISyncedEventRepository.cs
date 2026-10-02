@@ -20,6 +20,8 @@ public interface ISyncedEventRepository
     /// alone, so they neither get dropped nor take a place in the batch until a handler exists.
     /// Events whose <see cref="SyncedEventEntity.NextAttemptAtUtc"/> is in the future are skipped
     /// too, so a failed event waits its turn instead of holding a batch slot.
+    /// Ties on ReceivedAtUtc (one ingest batch) are broken by the inbox Id, which is the order the
+    /// store sent them in, so an invoice is handled before a reprint of it that came in the same batch.
     /// </summary>
     Task<IReadOnlyList<SyncedEventEntity>> GetUnprocessedAsync(
         IReadOnlyCollection<string> eventTypes,
