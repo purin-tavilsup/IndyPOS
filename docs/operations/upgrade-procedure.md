@@ -319,7 +319,8 @@ The `${env:...}` line is PowerShell. In bash, a variable name containing a hyphe
 so pass it through `env` for that one command instead:
 
 ```bash
-env 'ConnectionStrings__cloud-db=Host=localhost;Port=55511;Database=cloud;Username=postgres;Password=pass' \n  dotnet ef database update <previous release's last cloud migration> --project src/IndyPOS.CloudApi
+env 'ConnectionStrings__cloud-db=Host=localhost;Port=55511;Database=cloud;Username=postgres;Password=pass' \
+  dotnet ef database update <previous release's last cloud migration> --project src/IndyPOS.CloudApi
 ```
 
 Indexes are not in `information_schema.columns`, so snapshot `pg_indexes` (`schemaname = 'public'`)
