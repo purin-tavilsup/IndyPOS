@@ -32,9 +32,11 @@ using IndyPOS.Infrastructure.Persistence.StoreHub;
 using IndyPOS.Infrastructure.Services.StoreHub;
 using IndyPOS.ServiceDefaults;
 using IndyPOS.StoreHub.Configuration;
+using IndyPOS.StoreHub.Endpoints.Auth;
 using IndyPOS.StoreHub.Endpoints.Cash;
 using IndyPOS.StoreHub.Endpoints.Common;
 using IndyPOS.StoreHub.Endpoints.Sales;
+using IndyPOS.StoreHub.Endpoints.SystemInfo;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.IdentityModel.Tokens;
@@ -256,81 +258,11 @@ if (app.Environment.IsDevelopment())
     app.MapScalarApiReference();
 }
 
-// Minimal API endpoints
-app.MapGet("/", () => "IndyPOS StoreHub API");
-
-// Auth endpoints
-app.MapPost("/auth/login", async (
-    ICommandHandler<LoginCommand, LoginResponse> handler,
-    LoginRequest request,
-    CancellationToken cancellationToken) =>
-{
-    var command = new LoginCommand(request.Username, request.Password);
-    var response = await handler.HandleAsync(command, cancellationToken);
-
-    return response.Success
-        ? Results.Ok(response)
-        : Results.Unauthorized();
-});
-
-app.MapGet("/auth/me", (HttpContext context) =>
-{
-    var user = context.User;
-    if (user.Identity?.IsAuthenticated != true)
-    {
-        return Results.Unauthorized();
-    }
-
-    return Results.Ok(new
-    {
-        userId = user.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? user.FindFirst("sub")?.Value,
-        username = user.FindFirst("unique_name")?.Value,
-        roleId = user.FindFirst("role_id")?.Value,
-        storeId = user.FindFirst("store_id")?.Value,
-        firstName = user.FindFirst("first_name")?.Value,
-        lastName = user.FindFirst("last_name")?.Value
-    });
-}).RequireAuthorization();
-
-app.MapPost("/auth/change-password", async (
-    ICommandHandler<ChangePasswordCommand, ChangePasswordResponse> handler,
-    HttpContext context,
-    ChangePasswordRequest request,
-    CancellationToken cancellationToken) =>
-{
-    var idValue = context.User.FindFirst(ClaimTypes.NameIdentifier)?.Value
-                  ?? context.User.FindFirst("sub")?.Value;
-
-    if (!Guid.TryParse(idValue, out var userId))
-    {
-        return Results.Unauthorized();
-    }
-
-    var command = new ChangePasswordCommand(userId, request.CurrentPassword, request.NewPassword);
-    var response = await handler.HandleAsync(command, cancellationToken);
-
-    return response.Success
-        ? Results.Ok(response)
-        : Results.BadRequest(new { error = response.ErrorMessage });
-}).RequireAuthorization();
-
-// /health/ready is now served by ServiceDefaults.MapDefaultEndpoints (tag
-// filter on "ready"), backed by the DbContextCheck registered above.
-
-// Version endpoint (Velopack prep - used for update checks)
-app.MapGet("/version", () =>
-{
-    var versionInfo = IndyPOS.Application.Common.AppVersion.GetVersionInfo(typeof(Program).Assembly);
-
-    return Results.Ok(new
-    {
-        version = versionInfo.DisplayVersion,
-        assemblyVersion = versionInfo.AssemblyVersion,
-        fullVersion = versionInfo.InformationalVersion,
-        name = "IndyPOS.StoreHub",
-        environment = app.Environment.EnvironmentName
-    });
-});
+// Routes, one file per area under Endpoints/. /health/ready is served by
+// ServiceDefaults.MapDefaultEndpoints (tag filter on "ready"), backed by the DbContextCheck
+// registered above.
+app.MapSystemInfoEndpoints();
+app.MapAuthEndpoints();
 
 // Products endpoint
 app.MapGet("/products", async (
