@@ -174,6 +174,7 @@ public class BulkMigrationCommandHandler : ICommandHandler<BulkMigrationCommand,
                     UserId = invoice.UserId,
                     TotalAmount = invoice.TotalAmount,
                     CreatedAtUtc = invoice.CreatedAtUtc,
+                    InvoiceNumber = invoice.InvoiceNumber,
                     SyncedAtUtc = now
                 };
 
