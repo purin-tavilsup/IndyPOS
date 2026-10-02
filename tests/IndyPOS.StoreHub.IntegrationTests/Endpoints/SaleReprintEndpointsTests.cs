@@ -16,6 +16,9 @@ public class SaleReprintEndpointsTests : IntegrationTestBase
 {
     public SaleReprintEndpointsTests(StoreHubWebApplicationFactory factory) : base(factory) { }
 
+    // A role id with no entry in RoleCapabilities, so it holds no capability at all.
+    private const int RoleWithoutSalesReprint = 99;
+
     private static DateTime TwoDaysAgoUtc => DateTime.UtcNow.AddDays(-2);
 
     private Task<HttpResponseMessage> ReprintAsync(Guid invoiceId) =>
@@ -57,6 +60,20 @@ public class SaleReprintEndpointsTests : IntegrationTestBase
 
         response.StatusCode.Should()
                            .Be(HttpStatusCode.Unauthorized);
+    }
+
+    [Fact]
+    public async Task Reprint_WithRoleLackingSalesReprint_ReturnsForbidden()
+    {
+        var today = await SeedInvoiceAsync(DateTime.UtcNow);
+        Client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", TokenWithRole(RoleWithoutSalesReprint));
+
+        var response = await ReprintAsync(today.Id);
+
+        response.StatusCode.Should()
+                           .Be(HttpStatusCode.Forbidden);
+        (await response.Content.ReadAsStringAsync()).Should()
+                                                    .BeEmpty();
     }
 
     [Fact]

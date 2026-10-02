@@ -18,12 +18,10 @@ public static class TodayOnlyRule
     }
 
     /// <summary>
-    /// The store-local calendar date an instant falls on — the same boundary (plain midnight in the
-    /// store's timezone) the cash-drawer clock uses. Unspecified kind is read as UTC.
+    /// The store-local calendar date an instant falls on: plain midnight in the store's timezone,
+    /// the boundary the cash-drawer clock uses. An Unspecified value is read as UTC (ConvertTimeFromUtc's
+    /// own rule). A Local value throws ArgumentException rather than being silently misread.
     /// </summary>
-    public static DateOnly BusinessDateOf(DateTime utc, TimeZoneInfo storeTimeZone)
-    {
-        var asUtc = DateTime.SpecifyKind(utc, DateTimeKind.Utc);
-        return DateOnly.FromDateTime(TimeZoneInfo.ConvertTimeFromUtc(asUtc, storeTimeZone));
-    }
+    public static DateOnly BusinessDateOf(DateTime utc, TimeZoneInfo storeTimeZone) =>
+        DateOnly.FromDateTime(TimeZoneInfo.ConvertTimeFromUtc(utc, storeTimeZone));
 }
