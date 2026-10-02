@@ -1,6 +1,7 @@
 using System.Net;
 using System.Net.Http.Json;
 using FluentAssertions;
+using IndyPOS.Application.Common.Validation;
 using IndyPOS.Application.UseCases.StoreHub.Reports;
 using Xunit;
 
@@ -13,6 +14,26 @@ namespace IndyPOS.StoreHub.IntegrationTests.Endpoints;
 public class ReportsEndpointTests : IntegrationTestBase
 {
     public ReportsEndpointTests(StoreHubWebApplicationFactory factory) : base(factory) { }
+
+    private const string AValidDay = "2026-10-01";
+    private const string TheDayBefore = "2026-09-30";
+    private const string JustBeforeTheEarliestDate = "1999-12-31";
+
+    // DateOnly.AddDays(1) overflows here inside ReportDateRange.ToUtcRange: a 500 before this fix.
+    private const string BeyondTheLatestDate = "9999-12-31";
+
+    private const string TheEarliestDate = "2000-01-01";
+    private const string TheLatestDate = "2099-12-31";
+
+    public static TheoryData<string> DatedReportRoutes => new()
+    {
+        "/reports/sales-summary",
+        "/reports/product-sales",
+        "/reports/legacy/sales-summary",
+        "/reports/legacy/payments-summary"
+    };
+
+    private sealed record ErrorResponse(string Error);
 
     [Fact]
     public async Task GetSalesSummary_WithoutAuth_ReturnsUnauthorized()
@@ -38,6 +59,68 @@ public class ReportsEndpointTests : IntegrationTestBase
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.Forbidden);
+    }
+
+    // A swapped range threw ArgumentException in ReportDateRange.ToUtcRange: a 500.
+    [Theory]
+    [MemberData(nameof(DatedReportRoutes))]
+    public async Task DatedReport_WithToBeforeFrom_ReturnsBadRequest(string route)
+    {
+        await AuthenticateAsManagerAsync();
+
+        var response = await Client.GetAsync($"{route}?fromDate={AValidDay}&toDate={TheDayBefore}");
+
+        response.StatusCode.Should()
+                           .Be(HttpStatusCode.BadRequest);
+    }
+
+    [Theory]
+    [MemberData(nameof(DatedReportRoutes))]
+    public async Task DatedReport_WithToBeforeFrom_ExplainsInThai(string route)
+    {
+        await AuthenticateAsManagerAsync();
+
+        var response = await Client.GetAsync($"{route}?fromDate={AValidDay}&toDate={TheDayBefore}");
+
+        (await response.Content.ReadFromJsonAsync<ErrorResponse>(JsonOptions))!.Error.Should()
+                                                                               .Be(DateRangeRule.ToBeforeFromMessage);
+    }
+
+    [Theory]
+    [MemberData(nameof(DatedReportRoutes))]
+    public async Task DatedReport_WithADateBeyondTheLatest_ReturnsBadRequest(string route)
+    {
+        await AuthenticateAsManagerAsync();
+
+        var response = await Client.GetAsync($"{route}?fromDate={AValidDay}&toDate={BeyondTheLatestDate}");
+
+        response.StatusCode.Should()
+                           .Be(HttpStatusCode.BadRequest);
+    }
+
+    // Does not crash today; it must be refused by the same rule rather than slip through as a 200.
+    [Theory]
+    [MemberData(nameof(DatedReportRoutes))]
+    public async Task DatedReport_WithADateBeforeTheEarliest_ReturnsBadRequest(string route)
+    {
+        await AuthenticateAsManagerAsync();
+
+        var response = await Client.GetAsync($"{route}?fromDate={JustBeforeTheEarliestDate}&toDate={AValidDay}");
+
+        response.StatusCode.Should()
+                           .Be(HttpStatusCode.BadRequest);
+    }
+
+    [Theory]
+    [MemberData(nameof(DatedReportRoutes))]
+    public async Task DatedReport_WithTheSupportedBounds_ReturnsOk(string route)
+    {
+        await AuthenticateAsManagerAsync();
+
+        var response = await Client.GetAsync($"{route}?fromDate={TheEarliestDate}&toDate={TheLatestDate}");
+
+        response.StatusCode.Should()
+                           .Be(HttpStatusCode.OK);
     }
 
     [Fact]

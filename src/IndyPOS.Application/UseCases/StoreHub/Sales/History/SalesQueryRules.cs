@@ -1,5 +1,6 @@
 using System.Globalization;
 using IndyPOS.Application.Common.Exceptions;
+using IndyPOS.Application.Common.Validation;
 
 namespace IndyPOS.Application.UseCases.StoreHub.Sales.History;
 
@@ -9,15 +10,7 @@ public static class SalesQueryRules
     public const int FirstPage = 1;
     public const int DefaultPageSize = 50;
     public const int MaxPageSize = 200;
-    public const string DateFormat = "yyyy-MM-dd";
-
-    /// <summary>
-    /// The dates a list may ask for. Well before any store opened and well after any till will run,
-    /// yet far enough from DateOnly's own limits that ReportDateRange.ToUtcRange -- which adds a day
-    /// and shifts by the store's offset -- can never overflow into a 500.
-    /// </summary>
-    public static readonly DateOnly EarliestDate = new(2000, 1, 1);
-    public static readonly DateOnly LatestDate = new(2099, 12, 31);
+    public const string DateFormat = DateRangeRule.DateFormat;
 
     /// <summary>
     /// InvariantCulture is load-bearing: the server may run on a th-TH machine, whose Buddhist
@@ -35,13 +28,8 @@ public static class SalesQueryRules
 
     public static void EnsureValidRange(DateOnly from, DateOnly to)
     {
-        if (from < EarliestDate || to > LatestDate)
-            throw new SalesQueryValidationException(
-                $"วันที่ต้องอยู่ระหว่าง {EarliestDate.ToString(DateFormat, CultureInfo.InvariantCulture)} " +
-                $"ถึง {LatestDate.ToString(DateFormat, CultureInfo.InvariantCulture)}");
-
-        if (to < from)
-            throw new SalesQueryValidationException("วันที่เริ่มต้นต้องไม่อยู่หลังวันที่สิ้นสุด");
+        if (DateRangeRule.FindViolation(from, to) is { } reason)
+            throw new SalesQueryValidationException(reason);
     }
 
     public static void EnsureValidPage(int page, int pageSize)

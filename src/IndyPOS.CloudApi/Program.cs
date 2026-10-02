@@ -12,6 +12,7 @@ using IndyPOS.Application.UseCases.Cloud.Users.UpdateUser;
 using IndyPOS.Application.UseCases.Cloud.Users.DeactivateUser;
 using IndyPOS.Application.UseCases.Cloud.Users.GetUsers;
 using IndyPOS.Application.UseCases.Cloud.Sync.BulkMigration;
+using IndyPOS.CloudApi.Endpoints;
 using IndyPOS.CloudApi.Domain;
 using IndyPOS.CloudApi.Infrastructure;
 using IndyPOS.CloudApi.Infrastructure.Auth;
@@ -193,25 +194,7 @@ app.MapPost("/sync/bulk-migration", [Authorize] async (
     }
 }).RequireAuthorization();
 
-// Sync status endpoint
-app.MapGet("/sync/status", async (CloudDbContext db, CancellationToken cancellationToken) =>
-{
-    var totalEvents = await db.SyncedEvents.CountAsync(cancellationToken);
-    var unprocessedEvents = await db.SyncedEvents.CountAsync(e => e.ProcessedAtUtc == null, cancellationToken);
-    var processedEvents = await db.ProcessedEvents.CountAsync(cancellationToken);
-    var totalInvoices = await db.Invoices.CountAsync(cancellationToken);
-
-    return Results.Ok(new
-    {
-        status = "running",
-        storage = "postgresql",
-        totalEvents,
-        unprocessedEvents,
-        processedEvents,
-        totalInvoices,
-        timestamp = DateTime.UtcNow
-    });
-});
+app.MapSyncStatus();
 
 // Health/ready endpoint with database check
 app.MapGet("/health/ready", async (CloudDbContext db) =>

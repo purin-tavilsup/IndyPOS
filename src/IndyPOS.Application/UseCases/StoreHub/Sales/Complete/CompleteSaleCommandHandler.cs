@@ -116,7 +116,7 @@ public class CompleteSaleCommandHandler : ICommandHandler<CompleteSaleCommand, C
                 continue;
             }
 
-            // Create inventory movement (negative for sale)
+            // Create inventory movement (negative for sale), stamped with the seller
             var movement = new InventoryMovement
             {
                 Id = Guid.NewGuid(),
@@ -125,6 +125,7 @@ public class CompleteSaleCommandHandler : ICommandHandler<CompleteSaleCommand, C
                 QuantityDelta = -lineRequest.Quantity,
                 Reason = "Sale",
                 ReferenceId = invoiceId,
+                CreatedByUserId = command.UserId,
                 CreatedUtc = now
             };
             inventoryMovements.Add(movement);

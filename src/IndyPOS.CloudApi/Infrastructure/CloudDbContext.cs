@@ -46,6 +46,10 @@ public class CloudDbContext : DbContext
             entity.HasIndex(e => new { e.StoreId, e.EventType });
             entity.HasIndex(e => e.ProcessedAtUtc);
             entity.Property(e => e.EventType).HasMaxLength(100);
+            entity.Property(e => e.SourceStoreId)
+                  .HasMaxLength(50)
+                  .HasComment("The store that sent this event: the store_id of the ingest token, already matched against the payload's StoreId. NULL for events ingested before this column existed (not counted for any store). Use this, not StoreId, which is 0 for every real store.");
+            entity.HasIndex(e => e.SourceStoreId);
         });
 
         // CloudInvoice

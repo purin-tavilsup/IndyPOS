@@ -168,8 +168,12 @@ must therefore be runnable against the *previous* release's binaries:
 A migration that breaks this makes the installer's rollback claim false.
 See `docs/operations/upgrade-procedure.md`, which now carries a **recipe for verifying the gate** —
 apply the release's schema, then write a complete sale using only the columns that existed before it.
-Verified for the 2026-08-17 release's three migrations and the cash-drawer release's
-`AddCashDrawerTables`; before that it had only ever been reasoned about.
+Verified for the 2026-08-17 release's three migrations, the cash-drawer release's
+`AddCashDrawerTables`, the invoice-history release's `AddInvoiceNumber` and `AddInvoiceReprintTable`,
+invoice-history plan 2's cloud `AddInvoiceNumberToInvoices`, `AddInboxRetrySchedule` and
+`AddInvoiceReprints`, and the route tidy-up release's StoreHub `AddInventoryMovementUser` and cloud
+`AddSyncedEventSourceStore` (the cloud variant of the recipe is in the same doc). Before the
+2026-08-17 release the gate had only ever been reasoned about.
 
 ### Method Chaining Style
 ```csharp
@@ -203,19 +207,19 @@ dotnet build
 
 # Docker must be RUNNING for three suites - they spin up a real Postgres container.
 # With Docker down they fail fast (each suite in under a second), which reads like a
-# code regression but is not. Expect 359 failures with Docker stopped, all here.
-# (359 = 233 + 82 + 44. The StoreHub 128 was measured 2026-09-27 with Docker down; the
+# code regression but is not. Expect 390 failures with Docker stopped, all here.
+# (390 = 259 + 82 + 49. The StoreHub 128 was measured 2026-09-27 with Docker down; the
 # final-review test additions (+13, all HTTP integration tests) and the concurrent-delete
 # race tests (+7, all on real Postgres) all need Docker, bringing it to 148, and the PayLater-debt fix's +10 (all HTTP
 # integration tests) to 158, and the sale-user fix's +2 to 160 -- DERIVED, not re-measured with Docker down. CloudApi.IntegrationTests grew 2 -> 22 on 2026-09-30 with the
 # event-pipeline repair and the sync store check, all on real Postgres -- also DERIVED. The invoice-history plan then added 71
 # StoreHub tests (HTTP and persistence tests on real Postgres) and 11 MigrationTool tests (all on the Postgres fixture),
-# bringing them to 231 and 82 -- DERIVED too; the final-review fix added one more (the reprint 403 test) for 232, and the Codex route fix one more for 233. Invoice-history plan 2 then took CloudApi.IntegrationTests from 22 to 44 (22 more, all on real Postgres) -- DERIVED the same way. The per-suite totals were measured; only the Docker-down split was not.)
-#   tests/IndyPOS.StoreHub.IntegrationTests   (233 of 241; 8 need no container, unchanged since 2026-09-27, derived
+# bringing them to 231 and 82 -- DERIVED too; the final-review fix added one more (the reprint 403 test) for 232, and the Codex route fix one more for 233. Invoice-history plan 2 then took CloudApi.IntegrationTests from 22 to 44 (22 more, all on real Postgres) -- DERIVED the same way. The route tidy-up PR A (2026-10-02) then added 26 StoreHub tests and 5 CloudApi tests, all needing a container, for 259 and 49 -- DERIVED, not re-measured with Docker down. The per-suite totals were measured; only the Docker-down split was not.)
+#   tests/IndyPOS.StoreHub.IntegrationTests   (259 of 267; 8 need no container, unchanged since 2026-09-27, derived
 #                                              -- not individually named)
 #   tests/IndyPOS.MigrationTool.Tests         (82 of 145; 38 pure units, 24 need the
 #                                              gitignored real store .db files, 1 manual tool)
-#   tests/IndyPOS.CloudApi.IntegrationTests   (44 of 44; all need a container)
+#   tests/IndyPOS.CloudApi.IntegrationTests   (49 of 49; all need a container)
 
 # The installer is NOT in IndyPOS.sln, so the two commands above never touch it.
 # Run it explicitly (231 tests: 223 pass, 8 skipped):
@@ -226,15 +230,15 @@ dotnet run --project src/IndyPOS.AppHost --launch-profile https
 # Dashboard: https://localhost:17222
 ```
 
-Solution suites total **1111** with Docker running and the real store databases present (1110 pass,
-1 skipped) — measured 2026-10-02 (after invoice-history plan 2: the cloud mirror of bill numbers
-and reprints, and inbox retry backoff; 1089 on 2026-10-01, 928 on 2026-09-30, 853 on 2026-09-27, after the
-cash-drawer release). Per suite: Domain 56 · Vault 17 · CloudApi 6 · CloudApi.IntegrationTests 44
-(Docker) · MigrationTool 145 (144 pass, 1 skip) · StoreHub.IntegrationTests 241 · Application 555 ·
-Windows.Forms 47. The growth since the 2026-09-30 measurement (928 total) is the invoice-history
-plans' own tests: Application +77, StoreHub.IntegrationTests +73, MigrationTool +11, and
-CloudApi.IntegrationTests +22 (plan 2). Without the
-real store databases the suite discovers **1091** (DERIVED as 1111 − 20, not measured) — a skipped
+Solution suites total **1152** with Docker running and the real store databases present (1151 pass,
+1 skipped) — measured 2026-10-02 (after route tidy-up A: routes moved out of Program.cs, the
+stock-adjustment and sale user, report dates, the store-scoped cloud /sync/status; 1111 earlier on
+2026-10-02 after invoice-history plan 2, 1089 on 2026-10-01, 928 on 2026-09-30, 853 on 2026-09-27, after the
+cash-drawer release). Per suite: Domain 56 · Vault 17 · CloudApi 6 · CloudApi.IntegrationTests 49
+(Docker) · MigrationTool 145 (144 pass, 1 skip) · StoreHub.IntegrationTests 267 · Application 565 ·
+Windows.Forms 47. The growth since the 1111 measurement is route tidy-up A's own tests:
+Application +10, StoreHub.IntegrationTests +26 and CloudApi.IntegrationTests +5 (1111 + 41 = 1152). Without the
+real store databases the suite discovers **1132** (DERIVED as 1152 − 20, not measured) — a skipped
 `[Theory]` is one entry, not one per row.
 See [`ONBOARDING.md`](ONBOARDING.md) for the per-suite breakdown, the dev-vs-installed port split,
 and the `/health` vs `/health/ready` trap.

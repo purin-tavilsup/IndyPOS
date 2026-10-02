@@ -1,11 +1,11 @@
 using IndyPOS.Application.UseCases.StoreHub.CashDrawer.Summary;
+using IndyPOS.StoreHub.Endpoints.Common;
 using Nokpirab;
 
 namespace IndyPOS.StoreHub.Endpoints.Cash;
 
 /// <summary>
-/// The ลิ้นชักเก็บเงิน API. Cash routes live here rather than inline in Program.cs; moving the
-/// existing routes out is a separate clean-up.
+/// The ลิ้นชักเก็บเงิน API: every /cash route, behind one policy and the group's three filters.
 /// </summary>
 public static class CashEndpoints
 {

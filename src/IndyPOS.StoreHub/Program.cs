@@ -1,12 +1,12 @@
-using System.Security.Claims;
 using System.Text;
-using IndyPOS.Application.Abstractions.StoreHub.Repositories;
 using IndyPOS.Application.Common.Authorization;
-using IndyPOS.Application.Common.Exceptions;
-using IndyPOS.Application.Common.Interfaces;
+using IndyPOS.Application.Common.Models;
 using IndyPOS.Application.UseCases.StoreHub.Auth;
 using IndyPOS.Application.UseCases.StoreHub.Auth.ChangePassword;
 using IndyPOS.Application.UseCases.StoreHub.Auth.Login;
+using IndyPOS.Application.UseCases.StoreHub.PayLater;
+using IndyPOS.Application.UseCases.StoreHub.PaymentMethods;
+using IndyPOS.Application.UseCases.StoreHub.ProductCategories;
 using IndyPOS.Application.UseCases.StoreHub.Products;
 using IndyPOS.Application.UseCases.StoreHub.Products.AdjustQuantity;
 using IndyPOS.Application.UseCases.StoreHub.Products.Create;
@@ -15,25 +15,28 @@ using IndyPOS.Application.UseCases.StoreHub.Products.GenerateBarcode;
 using IndyPOS.Application.UseCases.StoreHub.Products.Get;
 using IndyPOS.Application.UseCases.StoreHub.Products.GetStock;
 using IndyPOS.Application.UseCases.StoreHub.Products.Update;
-using IndyPOS.Application.UseCases.StoreHub.PaymentMethods;
-using IndyPOS.Application.UseCases.StoreHub.ProductCategories;
 using IndyPOS.Application.UseCases.StoreHub.Reports;
+using IndyPOS.Application.UseCases.StoreHub.Reports.GetLegacyPaymentsSummary;
+using IndyPOS.Application.UseCases.StoreHub.Reports.GetLegacySalesSummary;
 using IndyPOS.Application.UseCases.StoreHub.Reports.GetPayLaterReport;
 using IndyPOS.Application.UseCases.StoreHub.Reports.GetProductSales;
 using IndyPOS.Application.UseCases.StoreHub.Reports.GetSalesSummary;
-using IndyPOS.Application.UseCases.StoreHub.Reports.GetLegacySalesSummary;
-using IndyPOS.Application.UseCases.StoreHub.Reports.GetLegacyPaymentsSummary;
-using IndyPOS.Application.Common.Models;
-using IndyPOS.Application.UseCases.StoreHub.PayLater;
 using IndyPOS.Application.UseCases.StoreHub.Sales;
 using IndyPOS.Application.UseCases.StoreHub.Sales.Complete;
-using IndyPOS.Infrastructure.QueryHandlers.Reports;
 using IndyPOS.Infrastructure.Persistence.StoreHub;
-using IndyPOS.Infrastructure.Services.StoreHub;
+using IndyPOS.Infrastructure.QueryHandlers.Reports;
 using IndyPOS.ServiceDefaults;
 using IndyPOS.StoreHub.Configuration;
+using IndyPOS.StoreHub.Endpoints.Auth;
 using IndyPOS.StoreHub.Endpoints.Cash;
+using IndyPOS.StoreHub.Endpoints.Catalogue;
+using IndyPOS.StoreHub.Endpoints.PayLater;
+using IndyPOS.StoreHub.Endpoints.PaymentMethods;
+using IndyPOS.StoreHub.Endpoints.Products;
+using IndyPOS.StoreHub.Endpoints.Reports;
 using IndyPOS.StoreHub.Endpoints.Sales;
+using IndyPOS.StoreHub.Endpoints.Sync;
+using IndyPOS.StoreHub.Endpoints.SystemInfo;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.IdentityModel.Tokens;
@@ -255,489 +258,19 @@ if (app.Environment.IsDevelopment())
     app.MapScalarApiReference();
 }
 
-// Minimal API endpoints
-app.MapGet("/", () => "IndyPOS StoreHub API");
-
-// Auth endpoints
-app.MapPost("/auth/login", async (
-    ICommandHandler<LoginCommand, LoginResponse> handler,
-    LoginRequest request,
-    CancellationToken cancellationToken) =>
-{
-    var command = new LoginCommand(request.Username, request.Password);
-    var response = await handler.HandleAsync(command, cancellationToken);
-
-    return response.Success
-        ? Results.Ok(response)
-        : Results.Unauthorized();
-});
-
-app.MapGet("/auth/me", (HttpContext context) =>
-{
-    var user = context.User;
-    if (user.Identity?.IsAuthenticated != true)
-    {
-        return Results.Unauthorized();
-    }
-
-    return Results.Ok(new
-    {
-        userId = user.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? user.FindFirst("sub")?.Value,
-        username = user.FindFirst("unique_name")?.Value,
-        roleId = user.FindFirst("role_id")?.Value,
-        storeId = user.FindFirst("store_id")?.Value,
-        firstName = user.FindFirst("first_name")?.Value,
-        lastName = user.FindFirst("last_name")?.Value
-    });
-}).RequireAuthorization();
-
-app.MapPost("/auth/change-password", async (
-    ICommandHandler<ChangePasswordCommand, ChangePasswordResponse> handler,
-    HttpContext context,
-    ChangePasswordRequest request,
-    CancellationToken cancellationToken) =>
-{
-    var idValue = context.User.FindFirst(ClaimTypes.NameIdentifier)?.Value
-                  ?? context.User.FindFirst("sub")?.Value;
-
-    if (!Guid.TryParse(idValue, out var userId))
-    {
-        return Results.Unauthorized();
-    }
-
-    var command = new ChangePasswordCommand(userId, request.CurrentPassword, request.NewPassword);
-    var response = await handler.HandleAsync(command, cancellationToken);
-
-    return response.Success
-        ? Results.Ok(response)
-        : Results.BadRequest(new { error = response.ErrorMessage });
-}).RequireAuthorization();
-
-// /health/ready is now served by ServiceDefaults.MapDefaultEndpoints (tag
-// filter on "ready"), backed by the DbContextCheck registered above.
-
-// Version endpoint (Velopack prep - used for update checks)
-app.MapGet("/version", () =>
-{
-    var versionInfo = IndyPOS.Application.Common.AppVersion.GetVersionInfo(typeof(Program).Assembly);
-
-    return Results.Ok(new
-    {
-        version = versionInfo.DisplayVersion,
-        assemblyVersion = versionInfo.AssemblyVersion,
-        fullVersion = versionInfo.InformationalVersion,
-        name = "IndyPOS.StoreHub",
-        environment = app.Environment.EnvironmentName
-    });
-});
-
-// Products endpoint
-app.MapGet("/products", async (
-    IQueryHandler<GetProductsQuery, IReadOnlyList<ProductDto>> handler,
-    bool? activeOnly,
-    string? category,
-    string? search,
-    CancellationToken cancellationToken) =>
-{
-    var query = new GetProductsQuery(
-        ActiveOnly: activeOnly ?? true,
-        Category: category,
-        SearchTerm: search);
-
-    var products = await handler.HandleAsync(query, cancellationToken);
-    return Results.Ok(products);
-}).RequireAuthorization("CanReadProducts");
-
-// Current stock per product. Separate from /products on purpose: the POS caches
-// products for the session, and a quantity on that record would go stale at the
-// first sale on either terminal.
-app.MapGet("/products/stock", async (
-    IQueryHandler<GetProductStockQuery, IReadOnlyList<ProductStockDto>> handler,
-    Guid? productId,
-    CancellationToken cancellationToken) =>
-{
-    var stock = await handler.HandleAsync(new GetProductStockQuery(productId), cancellationToken);
-    return Results.Ok(stock);
-}).RequireAuthorization("CanReadProducts");
-
-// Payment methods endpoint (offerable methods for this store)
-app.MapGet("/payment-methods", async (
-    IQueryHandler<GetOfferablePaymentMethodsQuery, IReadOnlyList<PaymentMethodDto>> handler,
-    CancellationToken cancellationToken) =>
-{
-    var methods = await handler.HandleAsync(new GetOfferablePaymentMethodsQuery(), cancellationToken);
-    return Results.Ok(methods);
-}).RequireAuthorization("CanReadProducts");
-
-// Product categories for this store (the POS renders pickers from this)
-app.MapGet("/product-categories", async (
-    IQueryHandler<GetProductCategoriesQuery, IReadOnlyList<ProductCategoryDto>> handler,
-    CancellationToken cancellationToken) =>
-{
-    var categories = await handler.HandleAsync(new GetProductCategoriesQuery(), cancellationToken);
-    return Results.Ok(categories);
-}).RequireAuthorization("CanReadProducts");
-
-// Store feature flags (store-type gating for WinForms clients)
-app.MapGet("/store/features", (IStoreIdentityService storeIdentity) =>
-{
-    var f = storeIdentity.Features;
-    return Results.Ok(new StoreFeaturesDto(f.PayLaterEnabled, f.MultipleProductTypesEnabled));
-}).RequireAuthorization();
-
-// Admin: list all payment methods (enabled + disabled)
-app.MapGet("/admin/payment-methods", async (
-    IQueryHandler<GetAllPaymentMethodsQuery, IReadOnlyList<PaymentMethodDto>> handler,
-    CancellationToken cancellationToken) =>
-{
-    var methods = await handler.HandleAsync(new GetAllPaymentMethodsQuery(), cancellationToken);
-    return Results.Ok(methods);
-}).RequireAuthorization("CanManagePaymentMethods");
-
-// Admin: add a government-campaign payment method
-app.MapPost("/admin/payment-methods", async (
-    ICommandHandler<AddCampaignPaymentMethodCommand, PaymentMethodMutationResponse> handler,
-    AddCampaignPaymentMethodRequest request,
-    CancellationToken cancellationToken) =>
-{
-    try
-    {
-        var command = new AddCampaignPaymentMethodCommand(request.Code, request.DisplayName, request.DisplayOrder);
-        var result = await handler.HandleAsync(command, cancellationToken);
-        return Results.Ok(result);
-    }
-    catch (InvalidOperationException ex)
-    {
-        return Results.Conflict(new { error = ex.Message });
-    }
-}).RequireAuthorization("CanManagePaymentMethods");
-
-// Admin: toggle enabled state and/or edit display of a payment method
-app.MapPatch("/admin/payment-methods/{code}", async (
-    ICommandHandler<TogglePaymentMethodCommand, PaymentMethodMutationResponse> toggleHandler,
-    ICommandHandler<EditPaymentMethodDisplayCommand, PaymentMethodMutationResponse> editHandler,
-    string code,
-    UpdatePaymentMethodRequest request,
-    CancellationToken cancellationToken) =>
-{
-    try
-    {
-        if (request.IsEnabled is bool enabled)
-        {
-            await toggleHandler.HandleAsync(new TogglePaymentMethodCommand(code, enabled), cancellationToken);
-        }
-
-        if (request.DisplayName is not null)
-        {
-            await editHandler.HandleAsync(
-                new EditPaymentMethodDisplayCommand(code, request.DisplayName, request.DisplayOrder),
-                cancellationToken);
-        }
-
-        return Results.Ok();
-    }
-    catch (InvalidOperationException ex)
-    {
-        return Results.NotFound(new { error = ex.Message });
-    }
-}).RequireAuthorization("CanManagePaymentMethods");
-
-// Create product
-app.MapPost("/products", async (
-    ICommandHandler<CreateProductCommand, ProductDto> handler,
-    CreateProductCommand command,
-    CancellationToken cancellationToken) =>
-{
-    try
-    {
-        var result = await handler.HandleAsync(command, cancellationToken);
-        return Results.Created($"/products/{result.Id}", result);
-    }
-    catch (UnknownProductCategoryException ex)
-    {
-        return Results.BadRequest(new { error = ex.Message });
-    }
-    catch (InvalidOperationException ex)
-    {
-        return Results.Conflict(new { error = ex.Message });
-    }
-}).RequireAuthorization("CanManageProducts");
-
-// Update product
-app.MapPut("/products/{id:guid}", async (
-    ICommandHandler<UpdateProductCommand, ProductDto> handler,
-    Guid id,
-    UpdateProductCommand command,
-    CancellationToken cancellationToken) =>
-{
-    // Ensure ID matches
-    if (id != command.Id)
-    {
-        return Results.BadRequest("Product ID in URL does not match body");
-    }
-
-    try
-    {
-        var result = await handler.HandleAsync(command, cancellationToken);
-        return Results.Ok(result);
-    }
-    catch (ProductNotFoundException ex)
-    {
-        return Results.NotFound(new { error = ex.Message });
-    }
-    catch (UnknownProductCategoryException ex)
-    {
-        return Results.BadRequest(new { error = ex.Message });
-    }
-    catch (InvalidOperationException ex)
-    {
-        // Duplicate barcode or a store-type violation — both genuine conflicts.
-        return Results.Conflict(new { error = ex.Message });
-    }
-}).RequireAuthorization("CanManageProducts");
-
-// Delete product (soft delete)
-app.MapDelete("/products/{id:guid}", async (
-    ICommandHandler<DeleteProductCommand> handler,
-    Guid id,
-    CancellationToken cancellationToken) =>
-{
-    await handler.HandleAsync(new DeleteProductCommand(id), cancellationToken);
-    return Results.NoContent();
-}).RequireAuthorization("CanManageProducts");
-
-// Adjust product quantity by a signed delta
-app.MapPost("/products/{id:guid}/adjust-quantity", async (
-    ICommandHandler<AdjustProductQuantityCommand, int> handler,
-    Guid id,
-    AdjustQuantityRequest request,
-    CancellationToken cancellationToken) =>
-{
-    if (request.Delta == 0)
-    {
-        return Results.BadRequest(new { error = "Delta must not be zero." });
-    }
-
-    var command = new AdjustProductQuantityCommand
-    {
-        ProductId = id,
-        Delta = request.Delta,
-        Reason = request.Reason
-    };
-
-    var newBalance = await handler.HandleAsync(command, cancellationToken);
-    return Results.Ok(new AdjustQuantityResponse(id, newBalance));
-}).RequireAuthorization("CanAdjustInventory");
-
-// Generate next barcode
-app.MapPost("/products/next-barcode", async (
-    IQueryHandler<GenerateBarcodeQuery, string> handler,
-    CancellationToken cancellationToken) =>
-{
-    var barcode = await handler.HandleAsync(new GenerateBarcodeQuery(), cancellationToken);
-    return Results.Ok(new { barcode });
-}).RequireAuthorization("CanManageProducts");
-
-// Sales endpoint
-app.MapPost("/sales/complete", async (
-    ICommandHandler<CompleteSaleCommand, CompleteSaleResponse> handler,
-    IStoreIdentityService storeIdentity,
-    ClaimsPrincipal user,
-    CompleteSaleRequest request,
-    CancellationToken cancellationToken) =>
-{
-    // The seller is whoever the token says, never the body: a body UserId let any caller ring a sale
-    // up as someone else. request.UserId is deprecated and ignored.
-    var command = new CompleteSaleCommand(
-        StoreId: storeIdentity.StoreId,
-        UserId: user.GetRequiredUserId(),
-        Lines: request.Lines,
-        Payments: request.Payments);
-
-    // A refused sale is the caller's mistake, not the server's: a Thai reason for the cashier.
-    try
-    {
-        return Results.Ok(await handler.HandleAsync(command, cancellationToken));
-    }
-    catch (SaleValidationException ex)
-    {
-        return Results.BadRequest(new { error = ex.Message });
-    }
-}).RequireAuthorization("CanCompleteSales")
-  .AddEndpointFilter<RequireUserIdFilter>();
-
-// Sync status endpoint (E4)
-app.MapGet("/sync/status", async (
-    IOutboxRepository outboxRepository,
-    CancellationToken cancellationToken) =>
-{
-    var pendingCount = await outboxRepository.GetPendingCountAsync(cancellationToken);
-    var failedCount = await outboxRepository.GetFailedCountAsync(cancellationToken);
-
-    return Results.Ok(new
-    {
-        status = pendingCount == 0 ? "synced" : "pending",
-        pending = pendingCount,
-        failed = failedCount,
-        timestamp = DateTime.UtcNow
-    });
-}).RequireAuthorization("CanViewSyncStatus");
-
-// ========================
-// Report endpoints
-// ========================
-
-// Sales summary (daily/weekly/monthly dashboard)
-app.MapGet("/reports/sales-summary", async (
-    IQueryHandler<GetSalesSummaryQuery, SalesSummaryDto> handler,
-    DateOnly fromDate,
-    DateOnly toDate,
-    int? topProductsCount,
-    CancellationToken cancellationToken) =>
-{
-    var query = new GetSalesSummaryQuery(
-        FromDate: fromDate,
-        ToDate: toDate,
-        TopProductsCount: topProductsCount ?? 10);
-
-    var result = await handler.HandleAsync(query, cancellationToken);
-    return Results.Ok(result);
-}).RequireAuthorization("CanViewReports");
-
-// PayLater (accounts receivable) report
-app.MapGet("/reports/pay-later", async (
-    IQueryHandler<GetPayLaterReportQuery, PayLaterReportDto> handler,
-    bool? includeCompleted,
-    int? page,
-    int? pageSize,
-    CancellationToken cancellationToken) =>
-{
-    var query = new GetPayLaterReportQuery(
-        IncludeCompleted: includeCompleted ?? false,
-        Page: page ?? 1,
-        PageSize: pageSize ?? 50);
-
-    var result = await handler.HandleAsync(query, cancellationToken);
-    return Results.Ok(result);
-}).RequireAuthorization("CanViewReports");
-
-// Product sales report
-app.MapGet("/reports/product-sales", async (
-    IQueryHandler<GetProductSalesQuery, PagedResult<ProductSalesDto>> handler,
-    DateOnly fromDate,
-    DateOnly toDate,
-    string? category,
-    int? page,
-    int? pageSize,
-    CancellationToken cancellationToken) =>
-{
-    var query = new GetProductSalesQuery(
-        FromDate: fromDate,
-        ToDate: toDate,
-        Category: category,
-        Page: page ?? 1,
-        PageSize: pageSize ?? 50);
-
-    var result = await handler.HandleAsync(query, cancellationToken);
-    return Results.Ok(result);
-}).RequireAuthorization("CanViewReports");
-
-// ========================
-// Legacy Report Endpoints (for WinForms compatibility)
-// ========================
-
-// Legacy sales summary (returns SalesSummary model)
-app.MapGet("/reports/legacy/sales-summary", async (
-    IQueryHandler<GetLegacySalesSummaryQuery, SalesSummary> handler,
-    DateOnly fromDate,
-    DateOnly toDate,
-    CancellationToken cancellationToken) =>
-{
-    var query = new GetLegacySalesSummaryQuery(fromDate, toDate);
-    var result = await handler.HandleAsync(query, cancellationToken);
-    return Results.Ok(result);
-}).RequireAuthorization("CanViewReports");
-
-// Legacy payments summary (returns PaymentsSummary model)
-app.MapGet("/reports/legacy/payments-summary", async (
-    IQueryHandler<GetLegacyPaymentsSummaryQuery, PaymentsSummary> handler,
-    DateOnly fromDate,
-    DateOnly toDate,
-    CancellationToken cancellationToken) =>
-{
-    var query = new GetLegacyPaymentsSummaryQuery(fromDate, toDate);
-    var result = await handler.HandleAsync(query, cancellationToken);
-    return Results.Ok(result);
-}).RequireAuthorization("CanViewReports");
-
-// ========================
-// PayLater endpoints (for cashiers to view and update pay-later accounts)
-// ========================
-
-// List pay-later records
-app.MapGet("/pay-later", async (
-    IQueryHandler<GetPayLaterQuery, GetPayLaterResponse> handler,
-    bool? includeCompleted,
-    string? search,
-    CancellationToken cancellationToken) =>
-{
-    var query = new GetPayLaterQuery(
-        IncludeCompleted: includeCompleted ?? false,
-        SearchTerm: search);
-
-    var result = await handler.HandleAsync(query, cancellationToken);
-    return Results.Ok(result);
-}).RequireAuthorization();
-
-// Get single pay-later record
-app.MapGet("/pay-later/{id:guid}", async (
-    IQueryHandler<GetPayLaterByIdQuery, PayLaterDto> handler,
-    Guid id,
-    CancellationToken cancellationToken) =>
-{
-    try
-    {
-        var result = await handler.HandleAsync(new GetPayLaterByIdQuery(id), cancellationToken);
-        return Results.Ok(result);
-    }
-    catch (PayLaterPaymentNotFoundException)
-    {
-        return Results.NotFound();
-    }
-}).RequireAuthorization();
-
-// Record payment against pay-later
-app.MapPost("/pay-later/{id:guid}/record-payment", async (
-    ICommandHandler<RecordPayLaterPaymentCommand, PayLaterDto> handler,
-    Guid id,
-    RecordPaymentRequest request,
-    CancellationToken cancellationToken) =>
-{
-    try
-    {
-        var command = new RecordPayLaterPaymentCommand(id, request.PaymentAmount);
-        var result = await handler.HandleAsync(command, cancellationToken);
-        return Results.Ok(result);
-    }
-    catch (PayLaterPaymentNotFoundException)
-    {
-        return Results.NotFound();
-    }
-    catch (PayLaterPaymentNotUpdatedException ex)
-    {
-        return Results.BadRequest(new { error = ex.Message });
-    }
-    catch (ArgumentException ex)
-    {
-        return Results.BadRequest(new { error = ex.Message });
-    }
-}).RequireAuthorization();
-
-// Cash drawer routes (/cash/...)
-app.MapCashEndpoints();
-
-// Sales history routes (/sales/...). POST /sales/complete above is unchanged.
+// Routes, one file per area under Endpoints/. /health/ready is served by
+// ServiceDefaults.MapDefaultEndpoints (tag filter on "ready"), backed by the DbContextCheck
+// registered above.
+app.MapSystemInfoEndpoints();
+app.MapAuthEndpoints();
+app.MapProductsEndpoints();
+app.MapPaymentMethodsEndpoints();
+app.MapCatalogueEndpoints();
 app.MapSalesEndpoints();
+app.MapSyncEndpoints();
+app.MapReportsEndpoints();
+app.MapPayLaterEndpoints();
+app.MapCashEndpoints();
 
 app.Run();
 

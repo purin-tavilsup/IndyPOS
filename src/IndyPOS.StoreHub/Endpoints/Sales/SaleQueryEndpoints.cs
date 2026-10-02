@@ -2,7 +2,7 @@ using System.Security.Claims;
 using IndyPOS.Application.Common.Authorization;
 using IndyPOS.Application.Common.Exceptions;
 using IndyPOS.Application.UseCases.StoreHub.Sales.History;
-using IndyPOS.StoreHub.Endpoints.Cash;
+using IndyPOS.StoreHub.Endpoints.Common;
 using Nokpirab;
 
 namespace IndyPOS.StoreHub.Endpoints.Sales;

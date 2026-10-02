@@ -42,9 +42,8 @@ public class SalesHistoryEndpointsTests : IntegrationTestBase
     private async Task<CompleteSaleResponse> SellOneAsync()
     {
         var product = await CreateTestProductAsync(unitPrice: 350m, initialStock: 10);
-        var seller = await CreateTestUserAsync($"seller_{Guid.NewGuid():N}", "Password123!");
         var response = await Client.PostAsJsonAsync("/sales/complete", new CompleteSaleRequest(
-            seller.Id, [new SaleLineRequest(product.Id, 1, 350m)], [new SalePaymentRequest("Cash", 500m)]));
+            [new SaleLineRequest(product.Id, 1, 350m)], [new SalePaymentRequest("Cash", 500m)]));
         response.EnsureSuccessStatusCode();
         return (await response.Content.ReadFromJsonAsync<CompleteSaleResponse>(JsonOptions))!;
     }

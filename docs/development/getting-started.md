@@ -311,7 +311,6 @@ curl -X POST http://localhost:5012/sales/complete \
   -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
   -d '{
-    "userId": "USER_GUID_HERE",
     "lines": [{"productId": "PRODUCT_GUID", "quantity": 2, "unitPrice": 15.00}],
     "payments": [{"method": "Cash", "amount": 30.00}]
   }'
