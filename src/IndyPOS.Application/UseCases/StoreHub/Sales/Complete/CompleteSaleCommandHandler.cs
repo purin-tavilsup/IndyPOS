@@ -62,12 +62,19 @@ public class CompleteSaleCommandHandler : ICommandHandler<CompleteSaleCommand, C
         var now = DateTime.UtcNow;
         var invoiceId = Guid.NewGuid();
 
+        // Reserved only after the payment rules pass, so a sale they refuse burns no number. A failure
+        // after this point (a failed or cancelled save) does burn one: Postgres never hands a sequence
+        // value back, so bill numbers can have gaps but never duplicates. Same sequence as the column
+        // default, so the database still decides and two tills cannot clash.
+        var invoiceNumber = await _saleRepository.ReserveInvoiceNumberAsync(cancellationToken);
+
         // Build invoice
         var invoice = new Invoice
         {
             Id = invoiceId,
             StoreId = command.StoreId,
             UserId = command.UserId,
+            InvoiceNumber = invoiceNumber,
             TotalAmount = invoiceTotal,
             CreatedUtc = now,
             LastModifiedUtc = now
@@ -148,6 +155,7 @@ public class CompleteSaleCommandHandler : ICommandHandler<CompleteSaleCommand, C
             StoreId = command.StoreId,
             UserId = command.UserId,
             TotalAmount = invoice.TotalAmount,
+            InvoiceNumber = invoice.InvoiceNumber,
             CreatedAtUtc = now,
             Lines = lines.Select(l => new InvoiceLineSnapshot
             {
@@ -200,7 +208,8 @@ public class CompleteSaleCommandHandler : ICommandHandler<CompleteSaleCommand, C
         return new CompleteSaleResponse(
             InvoiceId: invoice.Id,
             TotalAmount: invoice.TotalAmount,
-            CreatedUtc: invoice.CreatedUtc);
+            CreatedUtc: invoice.CreatedUtc,
+            InvoiceNumber: invoice.InvoiceNumber);
     }
 
     /// <summary>The shape the MigrationTool writes for a v3 debt: nothing paid yet.</summary>

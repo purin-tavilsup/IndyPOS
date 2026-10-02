@@ -207,7 +207,8 @@ public class StoreHubE2ETests : IDisposable
         var response = new CompleteSaleResponse(
             InvoiceId: invoiceId,
             TotalAmount: 14m,
-            CreatedUtc: DateTime.UtcNow);
+            CreatedUtc: DateTime.UtcNow,
+            InvoiceNumber: 1001);
 
         _server.Given(
             Request.Create()

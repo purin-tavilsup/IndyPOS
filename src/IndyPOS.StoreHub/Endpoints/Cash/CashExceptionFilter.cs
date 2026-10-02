@@ -19,6 +19,10 @@ internal sealed class CashExceptionFilter : IEndpointFilter
         {
             return Results.NotFound(new { error = ex.Message });
         }
+        catch (OtherDayForbiddenException ex)
+        {
+            return Results.Json(new { error = ex.Message }, statusCode: StatusCodes.Status403Forbidden);
+        }
         catch (CashDayClosedException ex)
         {
             return Results.Conflict(new { error = ex.Message });

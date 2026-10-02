@@ -19,4 +19,11 @@ public interface ISaleRepository
         IReadOnlyList<InventoryMovement> inventoryMovements,
         OutboxEvent outboxEvent,
         CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Takes the next bill number from the same database sequence the invoice column defaults to.
+    /// The database still picks the number (no clash between tills); reserving it before the save
+    /// is what lets the InvoiceCompleted payload carry it in the same SaveChangesAsync.
+    /// </summary>
+    Task<long> ReserveInvoiceNumberAsync(CancellationToken cancellationToken = default);
 }

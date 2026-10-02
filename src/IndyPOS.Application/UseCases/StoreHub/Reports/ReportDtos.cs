@@ -33,48 +33,6 @@ public record TopProductDto(
     decimal Revenue);
 
 /// <summary>
-/// Invoice summary for list views.
-/// </summary>
-public record InvoiceSummaryDto(
-    Guid Id,
-    decimal TotalAmount,
-    string PrimaryPaymentMethod,
-    int LineCount,
-    DateTime CreatedUtc);
-
-/// <summary>
-/// Full invoice detail with lines and payments.
-/// </summary>
-public record InvoiceDetailDto(
-    Guid Id,
-    string StoreId,
-    Guid UserId,
-    decimal TotalAmount,
-    DateTime CreatedUtc,
-    IReadOnlyList<InvoiceLineDto> Lines,
-    IReadOnlyList<PaymentDto> Payments);
-
-/// <summary>
-/// Invoice line item.
-/// </summary>
-public record InvoiceLineDto(
-    Guid Id,
-    Guid ProductId,
-    string ProductName,
-    int Quantity,
-    decimal UnitPrice,
-    decimal LineTotal);
-
-/// <summary>
-/// Payment record.
-/// </summary>
-public record PaymentDto(
-    Guid Id,
-    string Method,
-    decimal Amount,
-    string? Note);
-
-/// <summary>
 /// PayLater (accounts receivable) summary.
 /// </summary>
 public record PayLaterSummaryDto(

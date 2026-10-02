@@ -18,8 +18,6 @@ using IndyPOS.Application.UseCases.StoreHub.Products.Update;
 using IndyPOS.Application.UseCases.StoreHub.PaymentMethods;
 using IndyPOS.Application.UseCases.StoreHub.ProductCategories;
 using IndyPOS.Application.UseCases.StoreHub.Reports;
-using IndyPOS.Application.UseCases.StoreHub.Reports.GetInvoiceDetail;
-using IndyPOS.Application.UseCases.StoreHub.Reports.GetInvoices;
 using IndyPOS.Application.UseCases.StoreHub.Reports.GetPayLaterReport;
 using IndyPOS.Application.UseCases.StoreHub.Reports.GetProductSales;
 using IndyPOS.Application.UseCases.StoreHub.Reports.GetSalesSummary;
@@ -35,6 +33,7 @@ using IndyPOS.Infrastructure.Services.StoreHub;
 using IndyPOS.ServiceDefaults;
 using IndyPOS.StoreHub.Configuration;
 using IndyPOS.StoreHub.Endpoints.Cash;
+using IndyPOS.StoreHub.Endpoints.Sales;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.IdentityModel.Tokens;
@@ -113,8 +112,6 @@ builder.Services.AddTransient<ICommandHandler<EditPaymentMethodDisplayCommand, P
 
 // Register Report query handlers (in Infrastructure layer)
 builder.Services.AddTransient<IQueryHandler<GetSalesSummaryQuery, SalesSummaryDto>, GetSalesSummaryQueryHandler>();
-builder.Services.AddTransient<IQueryHandler<GetInvoicesQuery, PagedResult<InvoiceSummaryDto>>, GetInvoicesQueryHandler>();
-builder.Services.AddTransient<IQueryHandler<GetInvoiceDetailQuery, InvoiceDetailDto?>, GetInvoiceDetailQueryHandler>();
 builder.Services.AddTransient<IQueryHandler<GetPayLaterReportQuery, PayLaterReportDto>, GetPayLaterReportQueryHandler>();
 builder.Services.AddTransient<IQueryHandler<GetProductSalesQuery, PagedResult<ProductSalesDto>>, GetProductSalesQueryHandler>();
 
@@ -129,6 +126,9 @@ builder.Services.AddTransient<ICommandHandler<RecordPayLaterPaymentCommand, PayL
 
 // Cash drawer (ลิ้นชักเก็บเงิน): clock + handlers
 builder.Services.AddCashDrawer();
+
+// Sales history (/sales): list, detail, reprint
+builder.Services.AddSalesHistory();
 
 // Add JWT authentication
 var tokenOptions = builder.Configuration.GetSection(LocalTokenOptions.SectionName).Get<LocalTokenOptions>()
@@ -183,7 +183,10 @@ builder.Services.AddAuthorizationBuilder()
               .AddRequirements(new CapabilityRequirement(Capability.PaymentMethodsManage)))
     .AddPolicy(CashEndpoints.Policy, policy =>
         policy.RequireAuthenticatedUser()
-              .AddRequirements(new CapabilityRequirement(Capability.CashManage)));
+              .AddRequirements(new CapabilityRequirement(Capability.CashManage)))
+    .AddPolicy(SalesEndpoints.Policy, policy =>
+        policy.RequireAuthenticatedUser()
+              .AddRequirements(new CapabilityRequirement(Capability.SalesReprint)));
 
 // Add OpenAPI
 builder.Services.AddOpenApi();
@@ -601,39 +604,6 @@ app.MapGet("/reports/sales-summary", async (
     return Results.Ok(result);
 }).RequireAuthorization("CanViewReports");
 
-// Invoice list (paginated)
-app.MapGet("/reports/invoices", async (
-    IQueryHandler<GetInvoicesQuery, PagedResult<InvoiceSummaryDto>> handler,
-    DateOnly fromDate,
-    DateOnly toDate,
-    int? page,
-    int? pageSize,
-    CancellationToken cancellationToken) =>
-{
-    var query = new GetInvoicesQuery(
-        FromDate: fromDate,
-        ToDate: toDate,
-        Page: page ?? 1,
-        PageSize: pageSize ?? 50);
-
-    var result = await handler.HandleAsync(query, cancellationToken);
-    return Results.Ok(result);
-}).RequireAuthorization("CanViewReports");
-
-// Invoice detail
-app.MapGet("/reports/invoices/{invoiceId:guid}", async (
-    IQueryHandler<GetInvoiceDetailQuery, InvoiceDetailDto?> handler,
-    Guid invoiceId,
-    CancellationToken cancellationToken) =>
-{
-    var query = new GetInvoiceDetailQuery(invoiceId);
-    var result = await handler.HandleAsync(query, cancellationToken);
-
-    return result is null
-        ? Results.NotFound()
-        : Results.Ok(result);
-}).RequireAuthorization("CanViewReports");
-
 // PayLater (accounts receivable) report
 app.MapGet("/reports/pay-later", async (
     IQueryHandler<GetPayLaterReportQuery, PayLaterReportDto> handler,
@@ -765,6 +735,9 @@ app.MapPost("/pay-later/{id:guid}/record-payment", async (
 
 // Cash drawer routes (/cash/...)
 app.MapCashEndpoints();
+
+// Sales history routes (/sales/...). POST /sales/complete above is unchanged.
+app.MapSalesEndpoints();
 
 app.Run();
 

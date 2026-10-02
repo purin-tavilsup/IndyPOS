@@ -9,6 +9,9 @@ public static class Capability
     // Sales operations
     public const string SalesComplete = "sales.complete";
 
+    // Find and reprint bills. Alone it is held to today's bills; reports.view lifts that.
+    public const string SalesReprint = "sales.reprint";
+
     // Product operations
     public const string ProductsRead = "products.read";
     public const string ProductsManage = "products.manage";

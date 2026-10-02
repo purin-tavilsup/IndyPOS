@@ -411,6 +411,10 @@ is useful, keep it.
 > because it used to silently **double** the store's recorded turnover — measured on a real store: 15
 > invoices and ฿1,056 became 30 and ฿2,112.
 >
+> It is also **refused** if this store's database already holds a sale made in v4
+> (`Migration REFUSED … v4-native invoice(s)`): those bills took numbers from 1 upward, the same
+> range the imported v3 bill numbers use. Migrate before the till makes its first v4 sale.
+>
 > **A non-zero exit code does not mean "try again".** Only one of the four outcomes wrote nothing and
 > is safe to re-run:
 >
@@ -440,7 +444,7 @@ is useful, keep it.
     --store-id "STORE-001"
 ```
 
-Every row should read ✓. Four rows check **values** rather than counts, and are the ones worth reading
+Every row should read ✓. Six rows check **values** rather than counts, and are the ones worth reading
 closely:
 
 | Row | A ✗ means |
@@ -449,6 +453,8 @@ closely:
 | `Categories` | A product carries the wrong catalogue code, or a raw legacy id. A real problem |
 | `Barcode keys` | Two products share their barcode's first 50 characters and cannot both migrate. Shorten one **in the legacy database** |
 | `Payments (no invoice)` | Payments point at an invoice that no longer exists, so nothing can hold them. **Not fixable by the tool** and re-running will not help — settle the amount by hand |
+| `Invoice numbers` | A migrated bill does not carry its v3 number, so its old paper receipt will not find it. A real problem |
+| `Invoice number sequence` | The next bill number is not above the highest one, so the next sale would fail. The error prints the one-line `setval` fix |
 
 ⚠️ **GeneralHardware is expected to fail `Payments (no invoice)` permanently** — two payments totalling
 ฿1,000, with every other row green. That is a known inconsistency in that store's legacy data, not a

@@ -22,6 +22,8 @@ namespace IndyPOS.Infrastructure.Persistence.StoreHub.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
+            modelBuilder.HasSequence("invoice_number_seq");
+
             modelBuilder.Entity("IndyPOS.Domain.Entities.Core.CashCount", b =>
                 {
                     b.Property<Guid>("Id")
@@ -126,6 +128,7 @@ namespace IndyPOS.Infrastructure.Persistence.StoreHub.Migrations
                         .HasColumnName("description");
 
                     b.Property<bool>("IsDeleted")
+                        .IsConcurrencyToken()
                         .ValueGeneratedOnAdd()
                         .HasColumnType("boolean")
                         .HasDefaultValue(false)
@@ -193,6 +196,7 @@ namespace IndyPOS.Infrastructure.Persistence.StoreHub.Migrations
                         .HasColumnName("description");
 
                     b.Property<bool>("IsDeleted")
+                        .IsConcurrencyToken()
                         .ValueGeneratedOnAdd()
                         .HasColumnType("boolean")
                         .HasDefaultValue(false)
@@ -253,6 +257,7 @@ namespace IndyPOS.Infrastructure.Persistence.StoreHub.Migrations
                         .HasColumnName("deleted_utc");
 
                     b.Property<bool>("IsDeleted")
+                        .IsConcurrencyToken()
                         .ValueGeneratedOnAdd()
                         .HasColumnType("boolean")
                         .HasDefaultValue(false)
@@ -341,6 +346,12 @@ namespace IndyPOS.Infrastructure.Persistence.StoreHub.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("created_utc");
 
+                    b.Property<long>("InvoiceNumber")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("invoice_number")
+                        .HasDefaultValueSql("nextval('invoice_number_seq')");
+
                     b.Property<DateTime>("LastModifiedUtc")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("last_modified_utc");
@@ -369,6 +380,9 @@ namespace IndyPOS.Infrastructure.Persistence.StoreHub.Migrations
                     b.HasIndex("CreatedUtc");
 
                     b.HasIndex("StoreId");
+
+                    b.HasIndex("StoreId", "InvoiceNumber")
+                        .IsUnique();
 
                     b.HasIndex("StoreId", "LegacyInvoiceId")
                         .IsUnique();
@@ -437,6 +451,43 @@ namespace IndyPOS.Infrastructure.Persistence.StoreHub.Migrations
                         .IsUnique();
 
                     b.ToTable("invoice_line", (string)null);
+                });
+
+            modelBuilder.Entity("IndyPOS.Domain.Entities.Core.InvoiceReprint", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid>("CreatedByUserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("created_by_user_id");
+
+                    b.Property<DateTime>("CreatedUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_utc");
+
+                    b.Property<Guid>("InvoiceId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("invoice_id");
+
+                    b.Property<DateTime>("LastModifiedUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("last_modified_utc");
+
+                    b.Property<string>("StoreId")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("store_id");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("InvoiceId");
+
+                    b.HasIndex("StoreId", "CreatedUtc");
+
+                    b.ToTable("invoice_reprint", (string)null);
                 });
 
             modelBuilder.Entity("IndyPOS.Domain.Entities.Core.OutboxEvent", b =>
@@ -949,6 +1000,15 @@ namespace IndyPOS.Infrastructure.Persistence.StoreHub.Migrations
                     b.Navigation("Invoice");
 
                     b.Navigation("Product");
+                });
+
+            modelBuilder.Entity("IndyPOS.Domain.Entities.Core.InvoiceReprint", b =>
+                {
+                    b.HasOne("IndyPOS.Domain.Entities.Core.Invoice", null)
+                        .WithMany()
+                        .HasForeignKey("InvoiceId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("IndyPOS.Domain.Entities.Core.PayLater", b =>

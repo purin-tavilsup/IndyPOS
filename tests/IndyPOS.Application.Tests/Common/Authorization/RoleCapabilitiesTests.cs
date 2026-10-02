@@ -224,7 +224,8 @@ public class RoleCapabilitiesTests
         Assert.Contains(Capability.CashManage, capabilities);
         Assert.DoesNotContain(Capability.SyncViewStatus, capabilities);
         Assert.DoesNotContain(Capability.AdminStoresRegister, capabilities);
-        Assert.Equal(3, capabilities.Count);
+        Assert.Contains(Capability.SalesReprint, capabilities);
+        Assert.Equal(4, capabilities.Count);
     }
 
     [Fact]
@@ -242,7 +243,8 @@ public class RoleCapabilitiesTests
         Assert.Contains(Capability.ReportsView, capabilities);
         Assert.Contains(Capability.CashManage, capabilities);
         Assert.DoesNotContain(Capability.AdminStoresRegister, capabilities);
-        Assert.Equal(7, capabilities.Count);
+        Assert.Contains(Capability.SalesReprint, capabilities);
+        Assert.Equal(8, capabilities.Count);
     }
 
     [Fact]
@@ -265,7 +267,8 @@ public class RoleCapabilitiesTests
         Assert.Contains(Capability.ReportsView, capabilities);
         Assert.Contains(Capability.PaymentMethodsManage, capabilities);
         Assert.Contains(Capability.CashManage, capabilities);
-        Assert.Equal(13, capabilities.Count);
+        Assert.Contains(Capability.SalesReprint, capabilities);
+        Assert.Equal(14, capabilities.Count);
     }
 
     [Fact]

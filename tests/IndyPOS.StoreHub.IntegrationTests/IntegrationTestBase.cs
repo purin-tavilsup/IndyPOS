@@ -307,6 +307,32 @@ public abstract class IntegrationTestBase : IClassFixture<StoreHubWebApplication
     }
 
     /// <summary>
+    /// Writes an invoice straight to the database — no lines, no payments — leaving
+    /// <see cref="Invoice.InvoiceNumber"/> at 0 so the column default assigns it. For bills on
+    /// another day, which the sale endpoint cannot create.
+    /// </summary>
+    protected async Task<Invoice> SeedInvoiceAsync(DateTime createdUtc, decimal totalAmount = 350m, Guid? userId = null)
+    {
+        await using var scope = Factory.Services.CreateAsyncScope();
+        var db = scope.ServiceProvider.GetRequiredService<StoreHubDbContext>();
+
+        var invoice = new Invoice
+        {
+            Id = Guid.NewGuid(),
+            StoreId = TestStoreIdentityService.TestStoreId,
+            UserId = userId ?? Guid.NewGuid(),
+            TotalAmount = totalAmount,
+            CreatedUtc = createdUtc,
+            LastModifiedUtc = createdUtc
+        };
+
+        db.Invoices.Add(invoice);
+        await db.SaveChangesAsync();
+
+        return invoice;
+    }
+
+    /// <summary>
     /// Gets the database context for direct database operations.
     /// </summary>
     protected StoreHubDbContext GetDbContext()
