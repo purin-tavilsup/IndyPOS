@@ -311,8 +311,8 @@ This document contains detailed ASCII diagrams for all major flows in the IndyPO
 ```
  POS Terminal       StoreHub API        PostgreSQL           SyncWorker        Cloud API
       │                  │                  │                    │                 │
-      │ POST /sales/complete               │                    │                 │
-      │ {userId, lines, payments}           │                    │                 │
+      │ POST /sales/complete                │                    │                 │
+      │ {lines, payments}                   │                    │                 │
       ├─────────────────►│                  │                    │                 │
       │                  │                  │                    │                 │
       │                  │ BEGIN TRANSACTION│                    │                 │
@@ -320,47 +320,47 @@ This document contains detailed ASCII diagrams for all major flows in the IndyPO
       │                  │                  │                    │                 │
       │                  │                  │                    │                 │
       │                  │  ┌───────────────┴───────────────┐    │                 │
-      │                  │  │ 1. Generate Invoice Number     │    │                 │
-      │                  │  │    (sequential, store-specific) │    │                 │
+      │                  │  │ 1. Generate Invoice Number    │    │                 │
+      │                  │  │    (sequential, per store)    │    │                 │
       │                  │  └───────────────┬───────────────┘    │                 │
       │                  │                  │                    │                 │
       │                  │  ┌───────────────┴───────────────┐    │                 │
-      │                  │  │ 2. INSERT Invoice              │    │                 │
-      │                  │  │    - Id (Guid)                 │    │                 │
-      │                  │  │    - InvoiceNumber             │    │                 │
-      │                  │  │    - TotalAmount               │    │                 │
-      │                  │  │    - UserId                    │    │                 │
-      │                  │  │    - CreatedUtc                │    │                 │
+      │                  │  │ 2. INSERT Invoice             │    │                 │
+      │                  │  │    - Id (Guid)                │    │                 │
+      │                  │  │    - InvoiceNumber            │    │                 │
+      │                  │  │    - TotalAmount              │    │                 │
+      │                  │  │    - UserId                   │    │                 │
+      │                  │  │    - CreatedUtc               │    │                 │
       │                  │  └───────────────┬───────────────┘    │                 │
       │                  │                  │                    │                 │
       │                  │  ┌───────────────┴───────────────┐    │                 │
-      │                  │  │ 3. INSERT InvoiceLines         │    │                 │
-      │                  │  │    (for each product in cart)  │    │                 │
-      │                  │  │    - ProductId                 │    │                 │
-      │                  │  │    - Quantity                  │    │                 │
-      │                  │  │    - UnitPrice                 │    │                 │
-      │                  │  │    - ProductName (snapshot)    │    │                 │
+      │                  │  │ 3. INSERT InvoiceLines        │    │                 │
+      │                  │  │    (for each product in cart) │    │                 │
+      │                  │  │    - ProductId                │    │                 │
+      │                  │  │    - Quantity                 │    │                 │
+      │                  │  │    - UnitPrice                │    │                 │
+      │                  │  │    - ProductName (snapshot)   │    │                 │
       │                  │  └───────────────┬───────────────┘    │                 │
       │                  │                  │                    │                 │
       │                  │  ┌───────────────┴───────────────┐    │                 │
-      │                  │  │ 4. INSERT Payments             │    │                 │
-      │                  │  │    - Method (Cash/PayLater)    │    │                 │
-      │                  │  │    - Amount                    │    │                 │
+      │                  │  │ 4. INSERT Payments            │    │                 │
+      │                  │  │    - Method (Cash/PayLater)   │    │                 │
+      │                  │  │    - Amount                   │    │                 │
       │                  │  └───────────────┬───────────────┘    │                 │
       │                  │                  │                    │                 │
       │                  │  ┌───────────────┴───────────────┐    │                 │
-      │                  │  │ 5. INSERT InventoryMovements   │    │                 │
-      │                  │  │    (for each line)             │    │                 │
-      │                  │  │    - ProductId                 │    │                 │
-      │                  │  │    - Quantity (negative)       │    │                 │
-      │                  │  │    - MovementType: Sale        │    │                 │
+      │                  │  │ 5. INSERT InventoryMovements  │    │                 │
+      │                  │  │    (for each line)            │    │                 │
+      │                  │  │    - ProductId                │    │                 │
+      │                  │  │    - Quantity (negative)      │    │                 │
+      │                  │  │    - MovementType: Sale       │    │                 │
       │                  │  └───────────────┬───────────────┘    │                 │
       │                  │                  │                    │                 │
       │                  │  ┌───────────────┴───────────────┐    │                 │
-      │                  │  │ 6. INSERT OutboxEvent          │    │                 │
-      │                  │  │    - EventType: InvoiceCompleted   │                 │
-      │                  │  │    - Payload: Full invoice JSON    │                 │
-      │                  │  │    - SentAt: null              │    │                 │
+      │                  │  │ 6. INSERT OutboxEvent         │    │                 │
+      │                  │  │    - Type: InvoiceCompleted   │    │                 │
+      │                  │  │    - Payload: Invoice JSON    │    │                 │
+      │                  │  │    - SentAt: null             │    │                 │
       │                  │  └───────────────┬───────────────┘    │                 │
       │                  │                  │                    │                 │
       │                  │ COMMIT           │                    │                 │

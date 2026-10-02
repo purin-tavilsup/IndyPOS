@@ -176,10 +176,8 @@ public class PayLaterSaleEndpointTests : IntegrationTestBase
     private async Task<CompleteSaleRequest> CreditSaleAsync(string? note, params SalePaymentRequest[] extraPayments)
     {
         var product = await CreateTestProductAsync(unitPrice: Price, initialStock: 10);
-        var seller = await CreateTestUserAsync($"seller_{Guid.NewGuid():N}", "Password123!");
 
         return new CompleteSaleRequest(
-            UserId: seller.Id,
             Lines: [new SaleLineRequest(product.Id, Quantity: 1, UnitPrice: Price)],
             Payments: [new SalePaymentRequest(PaymentMethodCodes.PayLater, Price, note), .. extraPayments]);
     }

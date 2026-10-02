@@ -1,8 +1,10 @@
+using System.Globalization;
 using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
 using FluentAssertions;
 using IndyPOS.Application.Common.Enums;
+using IndyPOS.Application.Common.Models;
 using IndyPOS.Application.UseCases.StoreHub.Auth;
 using IndyPOS.Application.UseCases.StoreHub.Products;
 using IndyPOS.Application.UseCases.StoreHub.Sales;
@@ -126,7 +128,6 @@ public class StoreHubHttpClientTests
         _sut.SetAuthToken("valid-token");
 
         var request = new CompleteSaleRequest(
-            UserId: Guid.NewGuid(),
             Lines: new List<SaleLineRequest>
             {
                 new(ProductId: Guid.NewGuid(), Quantity: 2, UnitPrice: 100m)
@@ -203,6 +204,73 @@ public class StoreHubHttpClientTests
 
         // Assert
         _sut.IsAuthenticated.Should().BeFalse();
+    }
+
+    [Fact]
+    public async Task GetLegacySalesSummaryAsync_WithAThaiCulture_SendsGregorianDates()
+    {
+        // Arrange
+        _sut.SetAuthToken("valid-token");
+        var requestUri = CaptureRequestUri(new SalesSummary());
+
+        // Act
+        await RunUnderThaiCultureAsync(() => _sut.GetLegacySalesSummaryAsync(
+            new DateOnly(2026, 10, 2), new DateOnly(2026, 10, 3)));
+
+        // Assert
+        requestUri().Should()
+                    .Contain("fromDate=2026-10-02")
+                    .And.Contain("toDate=2026-10-03");
+    }
+
+    [Fact]
+    public async Task GetLegacyPaymentsSummaryAsync_WithAThaiCulture_SendsGregorianDates()
+    {
+        // Arrange
+        _sut.SetAuthToken("valid-token");
+        var requestUri = CaptureRequestUri(new PaymentsSummary());
+
+        // Act
+        await RunUnderThaiCultureAsync(() => _sut.GetLegacyPaymentsSummaryAsync(
+            new DateOnly(2026, 10, 2), new DateOnly(2026, 10, 3)));
+
+        // Assert
+        requestUri().Should()
+                    .Contain("fromDate=2026-10-02")
+                    .And.Contain("toDate=2026-10-03");
+    }
+
+    private static async Task RunUnderThaiCultureAsync(Func<Task> action)
+    {
+        var original = CultureInfo.CurrentCulture;
+        try
+        {
+            CultureInfo.CurrentCulture = new CultureInfo("th-TH");
+            await action();
+        }
+        finally
+        {
+            CultureInfo.CurrentCulture = original;
+        }
+    }
+
+    private Func<string> CaptureRequestUri<T>(T responseBody)
+    {
+        string? captured = null;
+        var response = new HttpResponseMessage(HttpStatusCode.OK)
+        {
+            Content = JsonContent.Create(responseBody)
+        };
+
+        _mockHandler.Protected()
+            .Setup<Task<HttpResponseMessage>>(
+                "SendAsync",
+                ItExpr.IsAny<HttpRequestMessage>(),
+                ItExpr.IsAny<CancellationToken>())
+            .Callback<HttpRequestMessage, CancellationToken>((request, _) => captured = request.RequestUri!.ToString())
+            .ReturnsAsync(response);
+
+        return () => captured!;
     }
 
     private void SetupMockResponse<T>(HttpStatusCode statusCode, T content)

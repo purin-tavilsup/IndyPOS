@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
@@ -379,7 +380,7 @@ public class StoreHubHttpClient : IStoreHubClient
         DateOnly toDate,
         CancellationToken cancellationToken = default)
     {
-        var url = $"/reports/legacy/sales-summary?fromDate={fromDate:yyyy-MM-dd}&toDate={toDate:yyyy-MM-dd}";
+        var url = $"/reports/legacy/sales-summary?{DateRangeQuery(fromDate, toDate)}";
 
         var result = await SendAuthenticatedAsync<SalesSummary>(
             HttpMethod.Get, url, content: null, cancellationToken);
@@ -393,7 +394,7 @@ public class StoreHubHttpClient : IStoreHubClient
         DateOnly toDate,
         CancellationToken cancellationToken = default)
     {
-        var url = $"/reports/legacy/payments-summary?fromDate={fromDate:yyyy-MM-dd}&toDate={toDate:yyyy-MM-dd}";
+        var url = $"/reports/legacy/payments-summary?{DateRangeQuery(fromDate, toDate)}";
 
         var result = await SendAuthenticatedAsync<PaymentsSummary>(
             HttpMethod.Get, url, content: null, cancellationToken);
@@ -403,6 +404,14 @@ public class StoreHubHttpClient : IStoreHubClient
     }
 
     #region Private Helpers
+
+    /// <summary>
+    /// The invariant culture is load-bearing: a Thai till formats years in the Buddhist calendar
+    /// (2569), which StoreHub rejects as out of range.
+    /// </summary>
+    private static string DateRangeQuery(DateOnly fromDate, DateOnly toDate) =>
+        $"fromDate={fromDate.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)}" +
+        $"&toDate={toDate.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)}";
 
     /// <summary>
     /// Send an authenticated request and deserialize the response.

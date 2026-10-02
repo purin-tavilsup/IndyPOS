@@ -80,6 +80,21 @@ public class IngestEventsCommandHandlerTests
     private static SyncEventRequest EventWithPayload(string payload) =>
         new(Guid.NewGuid(), StoreId: 0, EventType: "InvoiceCompleted", Payload: payload, CreatedAtUtc: DateTime.UtcNow);
 
+    // /sync/status counts a store's inbox by this stamp. The envelope's int StoreId cannot be used:
+    // HttpCloudSyncClient.ParseStoreId sends 0 for every real store id.
+    [Fact]
+    public async Task HandleAsync_WithAnEventForItsOwnStore_StampsTheTokensStore()
+    {
+        var eventId = Guid.NewGuid();
+        var command = new IngestEventsCommand(
+            [new SyncEventRequest(eventId, StoreId: 0, EventType: "InvoiceCompleted", Payload: OwnPayload, CreatedAtUtc: DateTime.UtcNow)],
+            OwnStoreId);
+
+        await _handler.HandleAsync(command);
+
+        Assert.Equal(OwnStoreId, _repository.Events[eventId].SourceStoreId);
+    }
+
     [Fact]
     public async Task HandleAsync_NewEvent_ShouldAcceptAndStore()
     {

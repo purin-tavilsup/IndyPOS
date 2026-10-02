@@ -57,6 +57,11 @@ namespace IndyPOS.CloudApi.Infrastructure.Migrations
                     b.Property<DateTime>("ReceivedAtUtc")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<string>("SourceStoreId")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasComment("The store that sent this event: the store_id of the ingest token, already matched against the payload's StoreId. NULL for events ingested before this column existed (not counted for any store). Use this, not StoreId, which is 0 for every real store.");
+
                     b.Property<int>("StoreId")
                         .HasColumnType("integer");
 
@@ -66,6 +71,8 @@ namespace IndyPOS.CloudApi.Infrastructure.Migrations
                         .IsUnique();
 
                     b.HasIndex("ProcessedAtUtc");
+
+                    b.HasIndex("SourceStoreId");
 
                     b.HasIndex("StoreId", "EventType");
 
