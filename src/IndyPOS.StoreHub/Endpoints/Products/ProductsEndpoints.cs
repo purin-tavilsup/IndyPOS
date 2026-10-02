@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using IndyPOS.Application.Common.Exceptions;
 using IndyPOS.Application.UseCases.StoreHub.Products;
 using IndyPOS.Application.UseCases.StoreHub.Products.AdjustQuantity;
@@ -7,6 +8,7 @@ using IndyPOS.Application.UseCases.StoreHub.Products.GenerateBarcode;
 using IndyPOS.Application.UseCases.StoreHub.Products.Get;
 using IndyPOS.Application.UseCases.StoreHub.Products.GetStock;
 using IndyPOS.Application.UseCases.StoreHub.Products.Update;
+using IndyPOS.StoreHub.Endpoints.Common;
 using Nokpirab;
 
 namespace IndyPOS.StoreHub.Endpoints.Products;
@@ -131,11 +133,12 @@ public static class ProductsEndpoints
         }).RequireAuthorization("CanManageProducts");
     }
 
-    // Adjust product quantity by a signed delta
+    // Adjust product quantity by a signed delta. The adjuster is the token's user, never the body's.
     private static void MapAdjustQuantity(IEndpointRouteBuilder app)
     {
         app.MapPost("/products/{id:guid}/adjust-quantity", async (
             ICommandHandler<AdjustProductQuantityCommand, int> handler,
+            ClaimsPrincipal user,
             Guid id,
             AdjustQuantityRequest request,
             CancellationToken cancellationToken) =>
@@ -149,12 +152,14 @@ public static class ProductsEndpoints
             {
                 ProductId = id,
                 Delta = request.Delta,
-                Reason = request.Reason
+                Reason = request.Reason,
+                UserId = user.GetRequiredUserId()
             };
 
             var newBalance = await handler.HandleAsync(command, cancellationToken);
             return Results.Ok(new AdjustQuantityResponse(id, newBalance));
-        }).RequireAuthorization("CanAdjustInventory");
+        }).RequireAuthorization("CanAdjustInventory")
+          .AddEndpointFilter<RequireUserIdFilter>();
     }
 
     private static void MapNextBarcode(IEndpointRouteBuilder app)
