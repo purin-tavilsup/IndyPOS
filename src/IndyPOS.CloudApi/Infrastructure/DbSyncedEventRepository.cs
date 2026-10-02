@@ -32,9 +32,14 @@ public class DbSyncedEventRepository : ISyncedEventRepository
         int limit = 100,
         CancellationToken cancellationToken = default)
     {
+        var now = DateTime.UtcNow;
+
         return await _dbContext.SyncedEvents
-            .Where(e => e.ProcessedAtUtc == null && eventTypes.Contains(e.EventType))
+            .Where(e => e.ProcessedAtUtc == null
+                        && eventTypes.Contains(e.EventType)
+                        && (e.NextAttemptAtUtc == null || e.NextAttemptAtUtc <= now))
             .OrderBy(e => e.ReceivedAtUtc)
+            .ThenBy(e => e.Id)
             .Take(limit)
             .ToListAsync(cancellationToken);
     }
@@ -51,6 +56,14 @@ public class DbSyncedEventRepository : ISyncedEventRepository
         await _dbContext.SyncedEvents
                         .Where(e => e.EventId == eventId)
                         .ExecuteUpdateAsync(s => s.SetProperty(e => e.ProcessedAtUtc, processedAtUtc), cancellationToken);
+    }
+
+    public async Task MarkFailedAsync(Guid eventId, DateTime nextAttemptAtUtc, CancellationToken cancellationToken = default)
+    {
+        await _dbContext.SyncedEvents
+                        .Where(e => e.EventId == eventId)
+                        .ExecuteUpdateAsync(s => s.SetProperty(e => e.Attempts, e => e.Attempts + 1)
+                                                  .SetProperty(e => e.NextAttemptAtUtc, nextAttemptAtUtc), cancellationToken);
     }
 
     public async Task<int> GetTotalCountAsync(CancellationToken cancellationToken = default)

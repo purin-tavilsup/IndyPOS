@@ -22,6 +22,9 @@ public class BulkMigrationCommandHandlerTests(CloudPostgresFixture postgres) : I
     private const string StoreId = "1";
     private const string OtherStoreId = "2";
 
+    // A v3 invoice id, which the migrator sends as the bill number (spec §4).
+    private const long LegacyInvoiceNumber = 6999;
+
     // The endpoint trusted the body's StoreId, so any registered store could import history as another.
     [Fact]
     public async Task HandleAsync_WithAPushForAnotherStore_ThrowsStoreMismatch()
@@ -124,6 +127,38 @@ public class BulkMigrationCommandHandlerTests(CloudPostgresFixture postgres) : I
 
         (stored.Lines.Count, stored.Payments.Count).Should()
                                                    .Be((1, 1));
+    }
+
+    // Spec §9: "an older migrator sends null".
+    [Fact]
+    public async Task HandleAsync_WithAnInvoiceFromAnOlderMigrator_StoresANullNumber()
+    {
+        var connectionString = await postgres.CreateDatabaseAsync();
+        var invoice = NewInvoice() with { InvoiceNumber = null };
+        await using (var db = CloudPostgresFixture.CreateContext(connectionString))
+            await NewHandler(db).HandleAsync(CommandWith(invoice));
+
+        await using var check = CloudPostgresFixture.CreateContext(connectionString);
+        var stored = await check.Invoices.SingleOrDefaultAsync(i => i.Id == invoice.Id);
+
+        stored.Should()
+              .NotBeNull();
+        stored!.InvoiceNumber.Should()
+                             .BeNull();
+    }
+
+    [Fact]
+    public async Task HandleAsync_WithAMigratedInvoice_StoresItsV3Number()
+    {
+        var connectionString = await postgres.CreateDatabaseAsync();
+        var invoice = NewInvoice() with { InvoiceNumber = LegacyInvoiceNumber };
+        await using (var db = CloudPostgresFixture.CreateContext(connectionString))
+            await NewHandler(db).HandleAsync(CommandWith(invoice));
+
+        await using var check = CloudPostgresFixture.CreateContext(connectionString);
+
+        (await check.Invoices.SingleAsync(i => i.Id == invoice.Id)).InvoiceNumber.Should()
+                                                                   .Be(LegacyInvoiceNumber);
     }
 
     /// <summary>Throws the given exception from the first INSERT only, so any retry runs clean.</summary>

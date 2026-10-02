@@ -30,6 +30,9 @@ namespace IndyPOS.CloudApi.Infrastructure.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
 
+                    b.Property<int>("Attempts")
+                        .HasColumnType("integer");
+
                     b.Property<DateTime>("CreatedAtUtc")
                         .HasColumnType("timestamp with time zone");
 
@@ -40,6 +43,9 @@ namespace IndyPOS.CloudApi.Infrastructure.Migrations
                         .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
+
+                    b.Property<DateTime?>("NextAttemptAtUtc")
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("Payload")
                         .IsRequired()
@@ -115,6 +121,10 @@ namespace IndyPOS.CloudApi.Infrastructure.Migrations
                     b.Property<DateTime>("CreatedAtUtc")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<long?>("InvoiceNumber")
+                        .HasColumnType("bigint")
+                        .HasComment("Bill number printed on the receipt, per store; v3 history keeps its v3 number. NULL for a sale synced before bill numbers existed.");
+
                     b.Property<string>("StoreId")
                         .IsRequired()
                         .HasMaxLength(50)
@@ -135,6 +145,8 @@ namespace IndyPOS.CloudApi.Infrastructure.Migrations
                     b.HasIndex("CreatedAtUtc");
 
                     b.HasIndex("StoreId");
+
+                    b.HasIndex("StoreId", "InvoiceNumber");
 
                     b.ToTable("Invoices");
                 });
@@ -168,6 +180,47 @@ namespace IndyPOS.CloudApi.Infrastructure.Migrations
                     b.HasIndex("InvoiceId");
 
                     b.ToTable("InvoiceLines");
+                });
+
+            modelBuilder.Entity("IndyPOS.CloudApi.Domain.CloudInvoiceReprint", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasComment("The store's reprint id (invoice_reprint.id on the till).");
+
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasComment("When reprint was pressed, UTC.");
+
+                    b.Property<Guid>("CreatedByUserId")
+                        .HasColumnType("uuid")
+                        .HasComment("The user who pressed reprint.");
+
+                    b.Property<Guid>("InvoiceId")
+                        .HasColumnType("uuid")
+                        .HasComment("The reprinted bill; Invoices.Id.");
+
+                    b.Property<string>("StoreId")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasComment("The store that reprinted the bill.");
+
+                    b.Property<DateTime>("SyncedAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasComment("When this row reached the cloud, UTC.");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("InvoiceId");
+
+                    b.HasIndex("StoreId", "CreatedAtUtc");
+
+                    b.ToTable("InvoiceReprints", t =>
+                        {
+                            t.HasComment("Every bill reprint a store requested (insert-only audit). One row per press of reprint; a failed print still counts.");
+                        });
                 });
 
             modelBuilder.Entity("IndyPOS.CloudApi.Domain.CloudPayment", b =>
@@ -610,6 +663,15 @@ namespace IndyPOS.CloudApi.Infrastructure.Migrations
                         .IsRequired();
 
                     b.Navigation("Invoice");
+                });
+
+            modelBuilder.Entity("IndyPOS.CloudApi.Domain.CloudInvoiceReprint", b =>
+                {
+                    b.HasOne("IndyPOS.CloudApi.Domain.CloudInvoice", null)
+                        .WithMany()
+                        .HasForeignKey("InvoiceId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("IndyPOS.CloudApi.Domain.CloudPayment", b =>
