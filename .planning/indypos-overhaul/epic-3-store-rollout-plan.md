@@ -96,9 +96,12 @@ reset to Fresh first.
 
 **Rule 1c — the cloud upgrades before the stores.** Deploy the CloudApi that holds invoice-history
 plan 2 (bill numbers + the `InvoiceReprints` mirror) **before** any StoreHub running invoice-history
-plan 1. A store's `InvoiceReprinted` events are not lost if it upgrades first: the processor only
-fetches the types it can handle, so they wait in the inbox. But they reach no dashboard until the
-cloud has the handler.
+plan 1. If a store upgrades first, an older cloud still stores its sales but drops their bill
+numbers: those `Invoices` rows keep `InvoiceNumber` NULL for good, because nothing backfills them
+later. Its `InvoiceReprinted` events are not lost: the processor only fetches the types it can
+handle, so they wait in the inbox. But they reach no dashboard until the cloud has the handler.
+A reprint that reached the cloud before its invoice is retried on a backoff capped at one hour, so
+it can appear on the dashboard up to an hour after its invoice.
 
 **Rule 2 — GeneralHardware's expected `verify` ✘ is an EXACT match, not "any exit 1."**
 Accept **only** this known mismatch (pre-accepted 2026-08-19):
