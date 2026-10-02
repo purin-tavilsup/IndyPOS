@@ -35,6 +35,7 @@ using IndyPOS.StoreHub.Configuration;
 using IndyPOS.StoreHub.Endpoints.Auth;
 using IndyPOS.StoreHub.Endpoints.Cash;
 using IndyPOS.StoreHub.Endpoints.Common;
+using IndyPOS.StoreHub.Endpoints.Products;
 using IndyPOS.StoreHub.Endpoints.Sales;
 using IndyPOS.StoreHub.Endpoints.SystemInfo;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -263,35 +264,7 @@ if (app.Environment.IsDevelopment())
 // registered above.
 app.MapSystemInfoEndpoints();
 app.MapAuthEndpoints();
-
-// Products endpoint
-app.MapGet("/products", async (
-    IQueryHandler<GetProductsQuery, IReadOnlyList<ProductDto>> handler,
-    bool? activeOnly,
-    string? category,
-    string? search,
-    CancellationToken cancellationToken) =>
-{
-    var query = new GetProductsQuery(
-        ActiveOnly: activeOnly ?? true,
-        Category: category,
-        SearchTerm: search);
-
-    var products = await handler.HandleAsync(query, cancellationToken);
-    return Results.Ok(products);
-}).RequireAuthorization("CanReadProducts");
-
-// Current stock per product. Separate from /products on purpose: the POS caches
-// products for the session, and a quantity on that record would go stale at the
-// first sale on either terminal.
-app.MapGet("/products/stock", async (
-    IQueryHandler<GetProductStockQuery, IReadOnlyList<ProductStockDto>> handler,
-    Guid? productId,
-    CancellationToken cancellationToken) =>
-{
-    var stock = await handler.HandleAsync(new GetProductStockQuery(productId), cancellationToken);
-    return Results.Ok(stock);
-}).RequireAuthorization("CanReadProducts");
+app.MapProductsEndpoints();
 
 // Payment methods endpoint (offerable methods for this store)
 app.MapGet("/payment-methods", async (
@@ -374,102 +347,6 @@ app.MapPatch("/admin/payment-methods/{code}", async (
         return Results.NotFound(new { error = ex.Message });
     }
 }).RequireAuthorization("CanManagePaymentMethods");
-
-// Create product
-app.MapPost("/products", async (
-    ICommandHandler<CreateProductCommand, ProductDto> handler,
-    CreateProductCommand command,
-    CancellationToken cancellationToken) =>
-{
-    try
-    {
-        var result = await handler.HandleAsync(command, cancellationToken);
-        return Results.Created($"/products/{result.Id}", result);
-    }
-    catch (UnknownProductCategoryException ex)
-    {
-        return Results.BadRequest(new { error = ex.Message });
-    }
-    catch (InvalidOperationException ex)
-    {
-        return Results.Conflict(new { error = ex.Message });
-    }
-}).RequireAuthorization("CanManageProducts");
-
-// Update product
-app.MapPut("/products/{id:guid}", async (
-    ICommandHandler<UpdateProductCommand, ProductDto> handler,
-    Guid id,
-    UpdateProductCommand command,
-    CancellationToken cancellationToken) =>
-{
-    // Ensure ID matches
-    if (id != command.Id)
-    {
-        return Results.BadRequest("Product ID in URL does not match body");
-    }
-
-    try
-    {
-        var result = await handler.HandleAsync(command, cancellationToken);
-        return Results.Ok(result);
-    }
-    catch (ProductNotFoundException ex)
-    {
-        return Results.NotFound(new { error = ex.Message });
-    }
-    catch (UnknownProductCategoryException ex)
-    {
-        return Results.BadRequest(new { error = ex.Message });
-    }
-    catch (InvalidOperationException ex)
-    {
-        // Duplicate barcode or a store-type violation — both genuine conflicts.
-        return Results.Conflict(new { error = ex.Message });
-    }
-}).RequireAuthorization("CanManageProducts");
-
-// Delete product (soft delete)
-app.MapDelete("/products/{id:guid}", async (
-    ICommandHandler<DeleteProductCommand> handler,
-    Guid id,
-    CancellationToken cancellationToken) =>
-{
-    await handler.HandleAsync(new DeleteProductCommand(id), cancellationToken);
-    return Results.NoContent();
-}).RequireAuthorization("CanManageProducts");
-
-// Adjust product quantity by a signed delta
-app.MapPost("/products/{id:guid}/adjust-quantity", async (
-    ICommandHandler<AdjustProductQuantityCommand, int> handler,
-    Guid id,
-    AdjustQuantityRequest request,
-    CancellationToken cancellationToken) =>
-{
-    if (request.Delta == 0)
-    {
-        return Results.BadRequest(new { error = "Delta must not be zero." });
-    }
-
-    var command = new AdjustProductQuantityCommand
-    {
-        ProductId = id,
-        Delta = request.Delta,
-        Reason = request.Reason
-    };
-
-    var newBalance = await handler.HandleAsync(command, cancellationToken);
-    return Results.Ok(new AdjustQuantityResponse(id, newBalance));
-}).RequireAuthorization("CanAdjustInventory");
-
-// Generate next barcode
-app.MapPost("/products/next-barcode", async (
-    IQueryHandler<GenerateBarcodeQuery, string> handler,
-    CancellationToken cancellationToken) =>
-{
-    var barcode = await handler.HandleAsync(new GenerateBarcodeQuery(), cancellationToken);
-    return Results.Ok(new { barcode });
-}).RequireAuthorization("CanManageProducts");
 
 // Sales endpoint
 app.MapPost("/sales/complete", async (
