@@ -56,11 +56,22 @@ public class TodayOnlyRuleTests
     [Fact]
     public void BusinessDateOf_WithUnspecifiedKind_TreatsItAsUtc()
     {
-        // InMemory and some Npgsql paths hand back Unspecified; ConvertTimeFromUtc would throw on Local.
+        // EF InMemory can hand back Unspecified; ConvertTimeFromUtc reads it as UTC.
         var unspecified = DateTime.SpecifyKind(JustAfterBangkokMidnightUtc, DateTimeKind.Unspecified);
 
         TodayOnlyRule.BusinessDateOf(unspecified, Bangkok).Should()
                                                           .Be(Today);
+    }
+
+    [Fact]
+    public void BusinessDateOf_WithLocalKind_Throws()
+    {
+        var local = DateTime.SpecifyKind(JustAfterBangkokMidnightUtc, DateTimeKind.Local);
+
+        var act = () => TodayOnlyRule.BusinessDateOf(local, Bangkok);
+
+        act.Should()
+           .Throw<ArgumentException>();
     }
 
     [Fact]
