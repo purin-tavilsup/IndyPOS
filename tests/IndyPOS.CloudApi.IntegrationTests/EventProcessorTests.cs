@@ -106,21 +106,21 @@ public class EventProcessorTests(CloudPostgresFixture postgres) : IClassFixture<
     }
 
     [Fact]
-    public void RetryDelay_WithNoEarlierFailures_IsTheFirstRetryDelay()
+    public void RetryDelay_WithNoEarlierFailures_ReturnsTheFirstRetryDelay()
     {
         EventProcessor.RetryDelay(earlierFailures: 0).Should()
                                                      .Be(EventProcessor.FirstRetryDelay);
     }
 
     [Fact]
-    public void RetryDelay_AfterManyFailures_IsCappedAtTheMaximum()
+    public void RetryDelay_WithManyEarlierFailures_ReturnsTheMaximum()
     {
         EventProcessor.RetryDelay(earlierFailures: 64).Should()
                                                       .Be(EventProcessor.MaxRetryDelay);
     }
 
     [Fact]
-    public void RetryDelay_AfterOneFailure_Doubles()
+    public void RetryDelay_WithOneEarlierFailure_ReturnsTwiceTheFirstDelay()
     {
         EventProcessor.RetryDelay(earlierFailures: 1).Should()
                                                      .Be(EventProcessor.FirstRetryDelay * 2);
@@ -368,7 +368,7 @@ public class EventProcessorTests(CloudPostgresFixture postgres) : IClassFixture<
     }
 
     [Fact]
-    public async Task ProcessPendingEventsAsync_WithAReprint_StoresWhoReprintedItAndWhen()
+    public async Task ProcessPendingEventsAsync_WithAReprint_CopiesTheReprintFields()
     {
         await using var pipeline = await Pipeline.CreateAsync(postgres);
         var sale = await pipeline.AddInvoiceCompletedAsync();
@@ -441,9 +441,20 @@ public class EventProcessorTests(CloudPostgresFixture postgres) : IClassFixture<
                 Payments = [new PaymentSnapshot { PaymentId = Guid.NewGuid(), Method = "Cash", Amount = 35m }]
             };
 
-            await AddEventAsync("InvoiceCompleted", evt.EventId, JsonSerializer.Serialize(evt));
+            await AddEventAsync("InvoiceCompleted", evt.EventId, SerializeAsTheStoreDid(evt, invoiceNumber));
 
             return evt;
+        }
+
+        // A till from before bill numbers sent no InvoiceNumber key at all, not an explicit null.
+        private static string SerializeAsTheStoreDid(InvoiceCompletedEvent evt, long? invoiceNumber)
+        {
+            var payload = JsonSerializer.SerializeToNode(evt)!.AsObject();
+
+            if (invoiceNumber is null)
+                payload.Remove(nameof(InvoiceCompletedEvent.InvoiceNumber));
+
+            return payload.ToJsonString();
         }
 
         public async Task<InvoiceReprintedEvent> AddInvoiceReprintedAsync(Guid invoiceId)
