@@ -77,6 +77,7 @@ public class SalesEndpointTests : IntegrationTestBase
         var db = scope.ServiceProvider.GetRequiredService<StoreHubDbContext>();
         var movement = await db.InventoryMovements.SingleAsync(m => m.ReferenceId == sale!.InvoiceId
                                                                     && m.ProductId == product.Id);
+
         movement.CreatedByUserId.Should()
                                 .Be(await UserIdOfAsync(cashier));
     }

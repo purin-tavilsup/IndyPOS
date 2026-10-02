@@ -319,7 +319,7 @@ The `${env:...}` line is PowerShell. In bash, a variable name containing a hyphe
 so pass it through `env` for that one command instead:
 
 ```bash
-env 'ConnectionStrings__cloud-db=Host=localhost;Port=55511;Database=cloud;Username=postgres;Password=pass'     dotnet ef database update <previous release's last cloud migration> --project src/IndyPOS.CloudApi
+env 'ConnectionStrings__cloud-db=Host=localhost;Port=55511;Database=cloud;Username=postgres;Password=pass' \n  dotnet ef database update <previous release's last cloud migration> --project src/IndyPOS.CloudApi
 ```
 
 Indexes are not in `information_schema.columns`, so snapshot `pg_indexes` (`schemaname = 'public'`)
@@ -330,9 +330,9 @@ processed with an `UPDATE`, as the old `IngestEventsCommandHandler` and `EventPr
 
 Result for the route tidy-up release, cloud (1 migration, `AddSyncedEventSourceStore`): `SyncedEvents`
 gained one column, `SourceStoreId character varying(50) NULL` with a comment, and one index (the index
-was checked separately through `pg_indexes`, not the columns snapshot); no other column changed. A row inserted naming only the previous release's columns (from
-`20261002073625_AddInvoiceReprints`) and then marked processed succeeded, and its `SourceStoreId`
-stayed `NULL`. Such a row is counted for no store by `/sync/status`. Verified 2026-10-02
+was checked separately through `pg_indexes`, not the columns snapshot); no other column changed.
+A row inserted naming only the previous release's columns (from `20261002073625_AddInvoiceReprints`)
+and then marked processed succeeded, and its `SourceStoreId` stayed `NULL`. Such a row is counted for no store by `/sync/status`. Verified 2026-10-02
 with `postgres:16-alpine` in a throwaway `gate-cloud` container on port 55511.
 
 When finished, remove the throwaway pieces: `docker rm -f gate-cloud`, and in PowerShell
@@ -351,6 +351,10 @@ snapshots differed only by `IX_Invoices_StoreId_InvoiceNumber` (non-unique) and 
 `NULL`), a `SyncedEvents` row (`Attempts` 0, `NextAttemptAtUtc` `NULL`), the processed `UPDATE`
 and a `ProcessedEvents` row all succeeded. Verified 2026-10-02 with `postgres:16-alpine` in a throwaway
 `gate-cloud2` container on port 55514. `AddSyncedEventSourceStore` is not part of this run.
+
+Together with the route tidy-up run above, this covers a rollback from the latest cloud schema to
+`RemoveClientSecretHash`-era binaries: every column added since is nullable or has a default, so an
+INSERT naming only that era's columns succeeds against the latest schema.
 
 ---
 
