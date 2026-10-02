@@ -18,8 +18,6 @@ using IndyPOS.Application.UseCases.StoreHub.Products.Update;
 using IndyPOS.Application.UseCases.StoreHub.PaymentMethods;
 using IndyPOS.Application.UseCases.StoreHub.ProductCategories;
 using IndyPOS.Application.UseCases.StoreHub.Reports;
-using IndyPOS.Application.UseCases.StoreHub.Reports.GetInvoiceDetail;
-using IndyPOS.Application.UseCases.StoreHub.Reports.GetInvoices;
 using IndyPOS.Application.UseCases.StoreHub.Reports.GetPayLaterReport;
 using IndyPOS.Application.UseCases.StoreHub.Reports.GetProductSales;
 using IndyPOS.Application.UseCases.StoreHub.Reports.GetSalesSummary;
@@ -113,8 +111,6 @@ builder.Services.AddTransient<ICommandHandler<EditPaymentMethodDisplayCommand, P
 
 // Register Report query handlers (in Infrastructure layer)
 builder.Services.AddTransient<IQueryHandler<GetSalesSummaryQuery, SalesSummaryDto>, GetSalesSummaryQueryHandler>();
-builder.Services.AddTransient<IQueryHandler<GetInvoicesQuery, PagedResult<InvoiceSummaryDto>>, GetInvoicesQueryHandler>();
-builder.Services.AddTransient<IQueryHandler<GetInvoiceDetailQuery, InvoiceDetailDto?>, GetInvoiceDetailQueryHandler>();
 builder.Services.AddTransient<IQueryHandler<GetPayLaterReportQuery, PayLaterReportDto>, GetPayLaterReportQueryHandler>();
 builder.Services.AddTransient<IQueryHandler<GetProductSalesQuery, PagedResult<ProductSalesDto>>, GetProductSalesQueryHandler>();
 
@@ -599,39 +595,6 @@ app.MapGet("/reports/sales-summary", async (
 
     var result = await handler.HandleAsync(query, cancellationToken);
     return Results.Ok(result);
-}).RequireAuthorization("CanViewReports");
-
-// Invoice list (paginated)
-app.MapGet("/reports/invoices", async (
-    IQueryHandler<GetInvoicesQuery, PagedResult<InvoiceSummaryDto>> handler,
-    DateOnly fromDate,
-    DateOnly toDate,
-    int? page,
-    int? pageSize,
-    CancellationToken cancellationToken) =>
-{
-    var query = new GetInvoicesQuery(
-        FromDate: fromDate,
-        ToDate: toDate,
-        Page: page ?? 1,
-        PageSize: pageSize ?? 50);
-
-    var result = await handler.HandleAsync(query, cancellationToken);
-    return Results.Ok(result);
-}).RequireAuthorization("CanViewReports");
-
-// Invoice detail
-app.MapGet("/reports/invoices/{invoiceId:guid}", async (
-    IQueryHandler<GetInvoiceDetailQuery, InvoiceDetailDto?> handler,
-    Guid invoiceId,
-    CancellationToken cancellationToken) =>
-{
-    var query = new GetInvoiceDetailQuery(invoiceId);
-    var result = await handler.HandleAsync(query, cancellationToken);
-
-    return result is null
-        ? Results.NotFound()
-        : Results.Ok(result);
 }).RequireAuthorization("CanViewReports");
 
 // PayLater (accounts receivable) report
