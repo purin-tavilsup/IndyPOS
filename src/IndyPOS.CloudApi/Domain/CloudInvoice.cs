@@ -14,8 +14,10 @@ public class CloudInvoice
     public DateTime SyncedAtUtc { get; set; }
 
     /// <summary>
-    /// The bill number printed on the receipt, unique within a store. Migrated v3 history keeps
-    /// its v3 number. Null for a sale synced before bill numbers existed.
+    /// The bill number printed on the receipt. The till keeps it unique within a store; the cloud does
+    /// not enforce that, because a store reset to Fresh and migrated again re-imports the same numbers
+    /// under new invoice ids. Migrated v3 history keeps its v3 number. Null for a sale synced before
+    /// bill numbers existed.
     /// </summary>
     public long? InvoiceNumber { get; set; }
 
