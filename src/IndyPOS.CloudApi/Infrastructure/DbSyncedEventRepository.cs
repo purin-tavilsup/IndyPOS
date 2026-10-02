@@ -39,6 +39,7 @@ public class DbSyncedEventRepository : ISyncedEventRepository
                         && eventTypes.Contains(e.EventType)
                         && (e.NextAttemptAtUtc == null || e.NextAttemptAtUtc <= now))
             .OrderBy(e => e.ReceivedAtUtc)
+            .ThenBy(e => e.Id)
             .Take(limit)
             .ToListAsync(cancellationToken);
     }
