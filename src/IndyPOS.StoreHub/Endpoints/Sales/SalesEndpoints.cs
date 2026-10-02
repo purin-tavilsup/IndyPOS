@@ -1,4 +1,4 @@
-using IndyPOS.StoreHub.Endpoints.Cash;
+using IndyPOS.StoreHub.Endpoints.Common;
 
 namespace IndyPOS.StoreHub.Endpoints.Sales;
 

@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using IndyPOS.Application.UseCases.StoreHub.CashDrawer.Counts;
+using IndyPOS.StoreHub.Endpoints.Common;
 using Nokpirab;
 
 namespace IndyPOS.StoreHub.Endpoints.Cash;

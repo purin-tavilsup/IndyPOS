@@ -1,4 +1,5 @@
 using IndyPOS.Application.UseCases.StoreHub.CashDrawer.Summary;
+using IndyPOS.StoreHub.Endpoints.Common;
 using Nokpirab;
 
 namespace IndyPOS.StoreHub.Endpoints.Cash;
