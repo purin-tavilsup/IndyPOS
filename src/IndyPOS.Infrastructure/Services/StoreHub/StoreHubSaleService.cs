@@ -333,7 +333,6 @@ public class StoreHubSaleService : ISaleService
         )).ToList();
 
         return new CompleteSaleRequest(
-            UserId: _loggedInUser!.UserId,
             Lines: lines,
             Payments: payments);
     }

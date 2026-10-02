@@ -312,7 +312,7 @@ This document contains detailed ASCII diagrams for all major flows in the IndyPO
  POS Terminal       StoreHub API        PostgreSQL           SyncWorker        Cloud API
       │                  │                  │                    │                 │
       │ POST /sales/complete               │                    │                 │
-      │ {userId, lines, payments}           │                    │                 │
+      │ {lines, payments}                   │                    │                 │
       ├─────────────────►│                  │                    │                 │
       │                  │                  │                    │                 │
       │                  │ BEGIN TRANSACTION│                    │                 │
