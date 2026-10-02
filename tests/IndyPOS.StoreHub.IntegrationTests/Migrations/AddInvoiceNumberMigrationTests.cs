@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Npgsql;
-using Testcontainers.PostgreSql;
+using IndyPOS.Testing.Postgres;
 using Xunit;
 
 namespace IndyPOS.StoreHub.IntegrationTests.Migrations;
@@ -93,8 +93,6 @@ public class AddInvoiceNumberMigrationTests
         /// <summary>The last migration of the previous (cash-drawer) release.</summary>
         private const string MigrationBeforeInvoiceNumber = "20260926152602_AddCashDrawerTables";
 
-        private const string EmptyDatabase = "storehub_empty";
-
         private const string NextValueSql =
             $"SELECT CASE WHEN is_called THEN last_value + 1 ELSE last_value END FROM {InvoiceNumberSequence.Name}";
 
@@ -104,12 +102,7 @@ public class AddInvoiceNumberMigrationTests
         public static readonly Guid OlderNative = Guid.Parse("30000000-0000-0000-0000-000000000001");
         public static readonly Guid NewerNative = Guid.Parse("30000000-0000-0000-0000-000000000002");
 
-        private readonly PostgreSqlContainer _postgres = new PostgreSqlBuilder()
-            .WithImage("postgres:16-alpine")
-            .WithDatabase("storehub_backfill_test")
-            .WithUsername("test_user")
-            .WithPassword("test_password")
-            .Build();
+        private TestPostgres? _postgres;
 
         public Dictionary<Guid, (string StoreId, long? InvoiceNumber)> Rows { get; } = new();
 
@@ -119,8 +112,8 @@ public class AddInvoiceNumberMigrationTests
 
         public async Task InitializeAsync()
         {
-            await _postgres.StartAsync();
-            var connectionString = _postgres.GetConnectionString();
+            _postgres = await TestPostgres.StartAsync();
+            var connectionString = _postgres.ConnectionString;
 
             await using (var context = NewContext(connectionString))
             {
@@ -132,10 +125,16 @@ public class AddInvoiceNumberMigrationTests
 
             await LoadRowsAsync(connectionString);
             NextValue = await ScalarAsync<long>(connectionString, NextValueSql);
-            FirstNumberOnEmptyTable = await MigrateEmptyDatabaseAndInsertAsync(connectionString);
+            FirstNumberOnEmptyTable = await MigrateEmptyDatabaseAndInsertAsync(await _postgres.CreateDatabaseAsync());
         }
 
-        public async Task DisposeAsync() => await _postgres.DisposeAsync();
+        public async Task DisposeAsync()
+        {
+            if (_postgres is not null)
+            {
+                await _postgres.DisposeAsync();
+            }
+        }
 
         /// <summary>
         /// Pre-release columns only (no invoice_number yet). The newer native row goes in FIRST, so
@@ -169,11 +168,8 @@ public class AddInvoiceNumberMigrationTests
             }
         }
 
-        private static async Task<long> MigrateEmptyDatabaseAndInsertAsync(string connectionString)
+        private static async Task<long> MigrateEmptyDatabaseAndInsertAsync(string emptyConnectionString)
         {
-            await ScalarAsync<object>(connectionString, $"CREATE DATABASE {EmptyDatabase}");
-            var emptyConnectionString = new NpgsqlConnectionStringBuilder(connectionString) { Database = EmptyDatabase }.ConnectionString;
-
             await using (var context = NewContext(emptyConnectionString))
             {
                 await context.Database.MigrateAsync();

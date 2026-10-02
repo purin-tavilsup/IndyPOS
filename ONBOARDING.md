@@ -67,6 +67,25 @@ no container, so it does not change the count.) The invoice-history plan (2026-1
 
 **Start Docker and re-run before investigating any of these.**
 
+### Continuous integration and running without Docker
+
+GitHub Actions (`.github/workflows/ci.yml`) builds the solution and runs every suite, installer
+included, on each PR to `development` and on each push to it. The job runs on Windows, which cannot
+run Linux containers, so it uses the PostgreSQL service preinstalled on the runner instead of Docker.
+
+The seam is `tests/IndyPOS.Testing.Postgres`. If the environment variable `INDYPOS_TEST_POSTGRES`
+holds a full Npgsql connection string, each fixture creates its own empty `indypos_test_<guid>`
+database on that server and drops it afterwards. If it is unset, each fixture starts a container as
+before. To reproduce CI locally (any PostgreSQL 16+ will do):
+
+```bash
+docker run -d --name ci-pg -e POSTGRES_PASSWORD=pass -p 55520:5432 postgres:17-alpine
+export INDYPOS_TEST_POSTGRES='Host=localhost;Port=55520;Username=postgres;Password=pass'
+dotnet test            # the Docker-dependent suites now use ci-pg
+dotnet test tests/IndyPOS.Bootstrapper.Tests
+docker rm -f ci-pg
+```
+
 ### ⚠️ Trap 2 — the installer is not in the solution
 
 `IndyPOS.sln` contains 18 projects and **excludes `installer/IndyPOS.Bootstrapper` and
@@ -114,7 +133,7 @@ reports `Skipped: 1` and writes nothing — which looks like success while leavi
 Solution suites (`dotnet test` at the root), Docker running **and** the real store databases present
 — **1152 total** (1151 pass, 1 skipped) — measured 2026-10-02 (after route tidy-up A: routes moved out of Program.cs, the stock-adjustment and sale user, report dates, the store-scoped cloud /sync/status;
 supersedes 1111 earlier on 2026-10-02, 1089 on 2026-10-01, 928 on 2026-09-30, 853 on 2026-09-27 and 656 on 2026-09-17). Without those databases the total is **1132**
-(**derived** as 1152 − 20, not measured), still all
+(measured by CI's first run on 2026-10-02, which has no store databases: 1132 = 1152 − 20), still all
 green:
 
 | Suite | Tests |
