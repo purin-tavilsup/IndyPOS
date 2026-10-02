@@ -35,7 +35,7 @@ using IndyPOS.StoreHub.Configuration;
 using IndyPOS.StoreHub.Endpoints.Auth;
 using IndyPOS.StoreHub.Endpoints.Cash;
 using IndyPOS.StoreHub.Endpoints.Catalogue;
-using IndyPOS.StoreHub.Endpoints.Common;
+using IndyPOS.StoreHub.Endpoints.Sync;
 using IndyPOS.StoreHub.Endpoints.PaymentMethods;
 using IndyPOS.StoreHub.Endpoints.Products;
 using IndyPOS.StoreHub.Endpoints.Sales;
@@ -269,51 +269,8 @@ app.MapAuthEndpoints();
 app.MapProductsEndpoints();
 app.MapPaymentMethodsEndpoints();
 app.MapCatalogueEndpoints();
-
-// Sales endpoint
-app.MapPost("/sales/complete", async (
-    ICommandHandler<CompleteSaleCommand, CompleteSaleResponse> handler,
-    IStoreIdentityService storeIdentity,
-    ClaimsPrincipal user,
-    CompleteSaleRequest request,
-    CancellationToken cancellationToken) =>
-{
-    // The seller is whoever the token says, never the body: a body UserId let any caller ring a sale
-    // up as someone else. request.UserId is deprecated and ignored.
-    var command = new CompleteSaleCommand(
-        StoreId: storeIdentity.StoreId,
-        UserId: user.GetRequiredUserId(),
-        Lines: request.Lines,
-        Payments: request.Payments);
-
-    // A refused sale is the caller's mistake, not the server's: a Thai reason for the cashier.
-    try
-    {
-        return Results.Ok(await handler.HandleAsync(command, cancellationToken));
-    }
-    catch (SaleValidationException ex)
-    {
-        return Results.BadRequest(new { error = ex.Message });
-    }
-}).RequireAuthorization("CanCompleteSales")
-  .AddEndpointFilter<RequireUserIdFilter>();
-
-// Sync status endpoint (E4)
-app.MapGet("/sync/status", async (
-    IOutboxRepository outboxRepository,
-    CancellationToken cancellationToken) =>
-{
-    var pendingCount = await outboxRepository.GetPendingCountAsync(cancellationToken);
-    var failedCount = await outboxRepository.GetFailedCountAsync(cancellationToken);
-
-    return Results.Ok(new
-    {
-        status = pendingCount == 0 ? "synced" : "pending",
-        pending = pendingCount,
-        failed = failedCount,
-        timestamp = DateTime.UtcNow
-    });
-}).RequireAuthorization("CanViewSyncStatus");
+app.MapSalesEndpoints();
+app.MapSyncEndpoints();
 
 // ========================
 // Report endpoints
@@ -467,9 +424,6 @@ app.MapPost("/pay-later/{id:guid}/record-payment", async (
 
 // Cash drawer routes (/cash/...)
 app.MapCashEndpoints();
-
-// Sales history routes (/sales/...). POST /sales/complete above is unchanged.
-app.MapSalesEndpoints();
 
 app.Run();
 
