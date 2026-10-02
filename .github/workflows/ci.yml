@@ -18,9 +18,6 @@ jobs:
   build-and-test:
     runs-on: windows-latest
     timeout-minutes: 30
-    env:
-      # Throwaway: the server lives only for this job and is never reachable from outside it.
-      TEST_PG_PASSWORD: ci-throwaway-password
     steps:
       - uses: actions/checkout@v7
 
@@ -46,27 +43,26 @@ jobs:
           Set-Service -Name $service.Name -StartupType Manual
           Start-Service -Name $service.Name
 
-          # Resolve the binaries from PGBIN when the image sets it, else from the install on PATH.
+          # Resolve psql from PGBIN when the image sets it, else from PATH.
           $psql = if ($env:PGBIN) { Join-Path $env:PGBIN 'psql.exe' } else { (Get-Command psql).Source }
-          $env:PGHOST = 'localhost'
 
-          # Wait for the server to accept connections (the image's own PGUSER/PGPASSWORD apply).
+          # The runner image documents user postgres with password root. It is a throwaway
+          # loopback server on a disposable VM, so the well-known password is fine.
+          $env:PGPASSWORD = 'root'
+
+          $output = ''
           $ready = $false
           foreach ($attempt in 1..30) {
-            & $psql -d postgres -c 'select 1' *> $null
+            $output = & $psql -h localhost -U postgres -d postgres -c 'select 1' 2>&1 | Out-String
             if ($LASTEXITCODE -eq 0) { $ready = $true; break }
             Start-Sleep -Seconds 2
           }
-          if (-not $ready) { throw 'PostgreSQL did not become ready in 60 seconds.' }
+          if (-not $ready) { throw "PostgreSQL did not accept connections within 60 seconds. Last error: $output" }
 
-          & $psql -d postgres -c "ALTER USER postgres PASSWORD '$env:TEST_PG_PASSWORD'"
-          if ($LASTEXITCODE -ne 0) { throw 'Could not set the postgres password.' }
+          & $psql -h localhost -U postgres -d postgres -c 'select version()'
+          if ($LASTEXITCODE -ne 0) { throw 'select version() failed.' }
 
-          $env:PGPASSWORD = $env:TEST_PG_PASSWORD
-          & $psql -d postgres -c 'select version()'
-          if ($LASTEXITCODE -ne 0) { throw 'psql could not connect with the new password.' }
-
-          "INDYPOS_TEST_POSTGRES=Host=localhost;Port=5432;Username=postgres;Password=$env:TEST_PG_PASSWORD" |
+          'INDYPOS_TEST_POSTGRES=Host=localhost;Port=5432;Username=postgres;Password=root' |
             Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
 
       - name: Build
