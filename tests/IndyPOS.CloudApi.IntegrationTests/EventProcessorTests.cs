@@ -23,6 +23,12 @@ public class EventProcessorTests(CloudPostgresFixture postgres) : IClassFixture<
     // A real event type the store already sends (cash drawer, #97) and the cloud cannot handle yet.
     private const string EventTypeWithoutAHandler = "CashCountChanged";
 
+    // A v4 number continuing a v3 store's history (spec §4).
+    private const long KnownInvoiceNumber = 7008;
+
+    // The harness's events belong to store "1" unless a test says otherwise.
+    private const string OtherStoreId = "2";
+
     // Marking an unhandled event processed drops it for good, before its handler ships.
     [Fact]
     public async Task ProcessPendingEventsAsync_WithAnEventTypeItCannotHandle_LeavesItUnprocessed()
@@ -161,6 +167,37 @@ public class EventProcessorTests(CloudPostgresFixture postgres) : IClassFixture<
                                                 .Be(0, pipeline.LoggedErrors);
     }
 
+    // Spec §9: a till queues InvoiceCompleted before it upgrades, so its payload has no number.
+    [Fact]
+    public async Task ProcessPendingEventsAsync_WithAnEventFromBeforeBillNumbers_StoresANullNumber()
+    {
+        await using var pipeline = await Pipeline.CreateAsync(postgres);
+        var evt = await pipeline.AddInvoiceCompletedAsync(invoiceNumber: null);
+
+        await pipeline.PollAsync();
+
+        var invoice = await pipeline.FindInvoiceAsync(evt.InvoiceId);
+        invoice.Should()
+               .NotBeNull(pipeline.LoggedErrors);
+        invoice!.InvoiceNumber.Should()
+                              .BeNull();
+    }
+
+    [Fact]
+    public async Task ProcessPendingEventsAsync_WithABillNumber_StoresIt()
+    {
+        await using var pipeline = await Pipeline.CreateAsync(postgres);
+        var evt = await pipeline.AddInvoiceCompletedAsync(invoiceNumber: KnownInvoiceNumber);
+
+        await pipeline.PollAsync();
+
+        var invoice = await pipeline.FindInvoiceAsync(evt.InvoiceId);
+        invoice.Should()
+               .NotBeNull(pipeline.LoggedErrors);
+        invoice!.InvoiceNumber.Should()
+                              .Be(KnownInvoiceNumber);
+    }
+
     /// <summary>A migrated cloud database, an inbox, and the processor wired as Program.cs wires it.</summary>
     private sealed class Pipeline : IAsyncDisposable
     {
@@ -192,13 +229,15 @@ public class EventProcessorTests(CloudPostgresFixture postgres) : IClassFixture<
 
         public Task PollAsync() => _processor.ProcessPendingEventsAsync(CancellationToken.None);
 
-        public async Task<InvoiceCompletedEvent> AddInvoiceCompletedAsync(Guid? invoiceId = null)
+        public async Task<InvoiceCompletedEvent> AddInvoiceCompletedAsync(
+            Guid? invoiceId = null, long? invoiceNumber = null, string storeId = "1")
         {
             var evt = new InvoiceCompletedEvent
             {
                 EventId = Guid.NewGuid(),
                 InvoiceId = invoiceId ?? Guid.NewGuid(),
-                StoreId = "1",
+                InvoiceNumber = invoiceNumber,
+                StoreId = storeId,
                 UserId = Guid.NewGuid(),
                 TotalAmount = 35m,
                 CreatedAtUtc = DateTime.UtcNow,

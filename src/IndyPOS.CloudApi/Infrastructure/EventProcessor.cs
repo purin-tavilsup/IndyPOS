@@ -141,6 +141,7 @@ public class EventProcessor : BackgroundService
             UserId = eventData.UserId,
             TotalAmount = eventData.TotalAmount,
             CreatedAtUtc = eventData.CreatedAtUtc,
+            InvoiceNumber = eventData.InvoiceNumber,
             SyncedAtUtc = now
         });
 
