@@ -73,6 +73,7 @@ public static class ConfigureServices
 		        .AddScoped<IProductCategoryRepository, ProductCategoryRepository>()
 		        .AddScoped(typeof(ICashEntryRepository<>), typeof(CashEntryRepository<>))
 		        .AddScoped<ICashCountRepository, CashCountRepository>()
+		        .AddScoped<IInvoiceReprintRepository, InvoiceReprintRepository>()
 		        .AddScoped<IPaymentMethodCatalogService, PaymentMethodCatalogService>();
 
 		// SyncWorker configuration

@@ -28,6 +28,7 @@ public class StoreHubDbContext : DbContext
     public DbSet<CashFloat> CashFloats => Set<CashFloat>();
     public DbSet<DebtRepayment> DebtRepayments => Set<DebtRepayment>();
     public DbSet<CashCount> CashCounts => Set<CashCount>();
+    public DbSet<InvoiceReprint> InvoiceReprints => Set<InvoiceReprint>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
