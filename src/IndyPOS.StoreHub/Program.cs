@@ -33,6 +33,7 @@ using IndyPOS.Infrastructure.Services.StoreHub;
 using IndyPOS.ServiceDefaults;
 using IndyPOS.StoreHub.Configuration;
 using IndyPOS.StoreHub.Endpoints.Cash;
+using IndyPOS.StoreHub.Endpoints.Sales;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.IdentityModel.Tokens;
@@ -126,6 +127,9 @@ builder.Services.AddTransient<ICommandHandler<RecordPayLaterPaymentCommand, PayL
 // Cash drawer (ลิ้นชักเก็บเงิน): clock + handlers
 builder.Services.AddCashDrawer();
 
+// Sales history (/sales): list, detail, reprint
+builder.Services.AddSalesHistory();
+
 // Add JWT authentication
 var tokenOptions = builder.Configuration.GetSection(LocalTokenOptions.SectionName).Get<LocalTokenOptions>()
     ?? new LocalTokenOptions();
@@ -179,7 +183,10 @@ builder.Services.AddAuthorizationBuilder()
               .AddRequirements(new CapabilityRequirement(Capability.PaymentMethodsManage)))
     .AddPolicy(CashEndpoints.Policy, policy =>
         policy.RequireAuthenticatedUser()
-              .AddRequirements(new CapabilityRequirement(Capability.CashManage)));
+              .AddRequirements(new CapabilityRequirement(Capability.CashManage)))
+    .AddPolicy(SalesEndpoints.Policy, policy =>
+        policy.RequireAuthenticatedUser()
+              .AddRequirements(new CapabilityRequirement(Capability.SalesReprint)));
 
 // Add OpenAPI
 builder.Services.AddOpenApi();
@@ -728,6 +735,9 @@ app.MapPost("/pay-later/{id:guid}/record-payment", async (
 
 // Cash drawer routes (/cash/...)
 app.MapCashEndpoints();
+
+// Sales history routes (/sales/...). POST /sales/complete above is unchanged.
+app.MapSalesEndpoints();
 
 app.Run();
 
