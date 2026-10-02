@@ -1,5 +1,6 @@
 using IndyPOS.Application.Common.Authorization;
 using IndyPOS.Application.UseCases.StoreHub.CashDrawer.Common;
+using IndyPOS.StoreHub.Endpoints.Common;
 
 namespace IndyPOS.StoreHub.Endpoints.Cash;
 

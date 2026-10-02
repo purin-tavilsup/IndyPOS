@@ -1,7 +1,7 @@
 using System.Security.Claims;
 using IndyPOS.Application.Common.Authorization;
 
-namespace IndyPOS.StoreHub.Endpoints.Cash;
+namespace IndyPOS.StoreHub.Endpoints.Common;
 
 internal static class ClaimsPrincipalExtensions
 {
