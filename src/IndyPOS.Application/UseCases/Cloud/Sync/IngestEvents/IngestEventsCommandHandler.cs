@@ -46,10 +46,13 @@ public class IngestEventsCommandHandler(
                 }
 
                 // Store the event
+                // SourceStoreId is safe to take from the token: EnsureAllForAuthenticatedStore above has
+                // already refused the batch unless every payload names this store.
                 var entity = new SyncedEventEntity
                 {
                     EventId = eventRequest.EventId,
                     StoreId = eventRequest.StoreId,
+                    SourceStoreId = command.AuthenticatedStoreId,
                     EventType = eventRequest.EventType,
                     Payload = eventRequest.Payload,
                     CreatedAtUtc = eventRequest.CreatedAtUtc,
