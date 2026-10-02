@@ -1,0 +1,88 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [development]
+  push:
+    branches: [development]
+
+# A newer push to the same ref makes the older run's result irrelevant.
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  build-and-test:
+    runs-on: windows-latest
+    timeout-minutes: 30
+    env:
+      # Throwaway: the server lives only for this job and is never reachable from outside it.
+      TEST_PG_PASSWORD: ci-throwaway-password
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-dotnet@v6
+        with:
+          global-json-file: global.json
+          cache: true
+          cache-dependency-path: |
+            **/*.csproj
+            Directory.Build.props
+            global.json
+
+      # Windows runners cannot run Linux containers, so Testcontainers' postgres image cannot start.
+      # The runner image ships PostgreSQL as a disabled service; the test suites use it through
+      # INDYPOS_TEST_POSTGRES and create one throwaway database per fixture.
+      - name: Start PostgreSQL service
+        shell: pwsh
+        run: |
+          $service = Get-Service -Name '*postgres*' | Select-Object -First 1
+          if (-not $service) { throw 'No PostgreSQL service found on this runner image.' }
+          Write-Host "Using service $($service.Name)"
+
+          Set-Service -Name $service.Name -StartupType Manual
+          Start-Service -Name $service.Name
+
+          # Resolve the binaries from PGBIN when the image sets it, else from the install on PATH.
+          $psql = if ($env:PGBIN) { Join-Path $env:PGBIN 'psql.exe' } else { (Get-Command psql).Source }
+          $env:PGHOST = 'localhost'
+
+          # Wait for the server to accept connections (the image's own PGUSER/PGPASSWORD apply).
+          $ready = $false
+          foreach ($attempt in 1..30) {
+            & $psql -d postgres -c 'select 1' *> $null
+            if ($LASTEXITCODE -eq 0) { $ready = $true; break }
+            Start-Sleep -Seconds 2
+          }
+          if (-not $ready) { throw 'PostgreSQL did not become ready in 60 seconds.' }
+
+          & $psql -d postgres -c "ALTER USER postgres PASSWORD '$env:TEST_PG_PASSWORD'"
+          if ($LASTEXITCODE -ne 0) { throw 'Could not set the postgres password.' }
+
+          $env:PGPASSWORD = $env:TEST_PG_PASSWORD
+          & $psql -d postgres -c 'select version()'
+          if ($LASTEXITCODE -ne 0) { throw 'psql could not connect with the new password.' }
+
+          "INDYPOS_TEST_POSTGRES=Host=localhost;Port=5432;Username=postgres;Password=$env:TEST_PG_PASSWORD" |
+            Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+
+      - name: Build
+        run: dotnet build IndyPOS.sln -c Release
+
+      - name: Test solution
+        run: dotnet test IndyPOS.sln -c Release --no-build --logger trx --results-directory TestResults
+
+      # The installer is not part of IndyPOS.sln.
+      - name: Test installer
+        run: dotnet test tests/IndyPOS.Bootstrapper.Tests -c Release --logger trx --results-directory TestResults
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: test-results
+          path: TestResults
+          if-no-files-found: ignore
