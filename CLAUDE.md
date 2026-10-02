@@ -221,6 +221,12 @@ dotnet build
 #                                              gitignored real store .db files, 1 manual tool)
 #   tests/IndyPOS.CloudApi.IntegrationTests   (49 of 49; all need a container)
 
+# CI (.github/workflows/ci.yml) runs the build and every suite on each PR to `development`. It sets
+# INDYPOS_TEST_POSTGRES to a full Npgsql connection string so the Postgres suites use that server
+# (one throwaway indypos_test_<guid> database per fixture) instead of Docker. Reproduce it locally:
+#   export INDYPOS_TEST_POSTGRES='Host=localhost;Port=55520;Username=postgres;Password=pass'
+# (see ONBOARDING.md, "Continuous integration and running without Docker")
+
 # The installer is NOT in IndyPOS.sln, so the two commands above never touch it.
 # Run it explicitly (231 tests: 223 pass, 8 skipped):
 dotnet test tests/IndyPOS.Bootstrapper.Tests
