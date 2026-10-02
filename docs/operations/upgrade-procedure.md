@@ -332,8 +332,8 @@ Result for the route tidy-up release, cloud (1 migration, `AddSyncedEventSourceS
 gained one column, `SourceStoreId character varying(50) NULL` with a comment, and one index (the index
 was checked separately through `pg_indexes`, not the columns snapshot); no other column changed.
 A row inserted naming only the previous release's columns (from `20261002073625_AddInvoiceReprints`)
-and then marked processed succeeded, and its `SourceStoreId` stayed `NULL`. Such a row is counted for no store by `/sync/status`. Verified 2026-10-02
-with `postgres:16-alpine` in a throwaway `gate-cloud` container on port 55511.
+and then marked processed succeeded, and its `SourceStoreId` stayed `NULL`. Such a row is counted for no store by `/sync/status`.
+Verified 2026-10-02 with `postgres:16-alpine` in a throwaway `gate-cloud` container on port 55511.
 
 When finished, remove the throwaway pieces: `docker rm -f gate-cloud`, and in PowerShell
 `Remove-Item Env:\ConnectionStrings__cloud-db` (bash needs no cleanup, since `env` scoped the variable
