@@ -203,15 +203,15 @@ dotnet build
 
 # Docker must be RUNNING for three suites - they spin up a real Postgres container.
 # With Docker down they fail fast (each suite in under a second), which reads like a
-# code regression but is not. Expect 336 failures with Docker stopped, all here.
-# (336 = 232 + 82 + 22. The StoreHub 128 was measured 2026-09-27 with Docker down; the
+# code regression but is not. Expect 337 failures with Docker stopped, all here.
+# (337 = 233 + 82 + 22. The StoreHub 128 was measured 2026-09-27 with Docker down; the
 # final-review test additions (+13, all HTTP integration tests) and the concurrent-delete
 # race tests (+7, all on real Postgres) all need Docker, bringing it to 148, and the PayLater-debt fix's +10 (all HTTP
 # integration tests) to 158, and the sale-user fix's +2 to 160 -- DERIVED, not re-measured with Docker down. CloudApi.IntegrationTests grew 2 -> 22 on 2026-09-30 with the
 # event-pipeline repair and the sync store check, all on real Postgres -- also DERIVED. The invoice-history plan then added 71
 # StoreHub tests (HTTP and persistence tests on real Postgres) and 11 MigrationTool tests (all on the Postgres fixture),
-# bringing them to 231 and 82 -- DERIVED too; the final-review fix added one more (the reprint 403 test) for 232. The per-suite totals were measured; only the Docker-down split was not.)
-#   tests/IndyPOS.StoreHub.IntegrationTests   (232 of 240; 8 need no container, unchanged since 2026-09-27, derived
+# bringing them to 231 and 82 -- DERIVED too; the final-review fix added one more (the reprint 403 test) for 232, and the Codex route fix one more for 233. The per-suite totals were measured; only the Docker-down split was not.)
+#   tests/IndyPOS.StoreHub.IntegrationTests   (233 of 241; 8 need no container, unchanged since 2026-09-27, derived
 #                                              -- not individually named)
 #   tests/IndyPOS.MigrationTool.Tests         (82 of 145; 38 pure units, 24 need the
 #                                              gitignored real store .db files, 1 manual tool)
@@ -226,14 +226,14 @@ dotnet run --project src/IndyPOS.AppHost --launch-profile https
 # Dashboard: https://localhost:17222
 ```
 
-Solution suites total **1088** with Docker running and the real store databases present (1087 pass,
+Solution suites total **1089** with Docker running and the real store databases present (1088 pass,
 1 skipped) — measured 2026-10-01 (after invoice-history plan 1: bill numbers, the sales history
 and reprint endpoints, and the cash past-day rule; 928 on 2026-09-30, 853 on 2026-09-27, after the
 cash-drawer release). Per suite: Domain 56 · Vault 17 · CloudApi 6 · CloudApi.IntegrationTests 22
-(Docker) · MigrationTool 145 (144 pass, 1 skip) · StoreHub.IntegrationTests 240 · Application 555 ·
+(Docker) · MigrationTool 145 (144 pass, 1 skip) · StoreHub.IntegrationTests 241 · Application 555 ·
 Windows.Forms 47. The growth since the 2026-09-30 measurement (928 total) is the invoice-history
-plan's own tests: Application +75, StoreHub.IntegrationTests +71, MigrationTool +11. Without the
-real store databases the suite discovers **1068** (DERIVED as 1088 − 20, not measured) — a skipped
+plan's own tests: Application +77, StoreHub.IntegrationTests +73, MigrationTool +11. Without the
+real store databases the suite discovers **1069** (DERIVED as 1089 − 20, not measured) — a skipped
 `[Theory]` is one entry, not one per row.
 See [`ONBOARDING.md`](ONBOARDING.md) for the per-suite breakdown, the dev-vs-installed port split,
 and the `/health` vs `/health/ready` trap.
