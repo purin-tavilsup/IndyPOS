@@ -48,8 +48,10 @@ internal static class SaleQueryEndpoints
                        ?? throw new SaleNotFoundException(number)));
 
         // Typed constraints alone answer "/sales/abc" or an overflowing number with 404 (no route
-        // matched). An unconstrained parameter has LOWER routing precedence than the two above, so
-        // it only catches what they reject, and turns it into the 400 the spec asks for.
+        // matched). An unconstrained parameter has LOWER routing precedence than the two above, so it
+        // only catches what they reject, and turns it into the 400 the spec asks for. Zero and negative
+        // numbers are valid longs: they match {number:long} and are rejected in the handler by
+        // SalesQueryRules.EnsureValidNumber, with the same Thai message.
         sales.MapGet("/{value}", (string value) =>
             Results.BadRequest(new { error = SalesQueryRules.InvalidNumberMessage(value) }));
     }

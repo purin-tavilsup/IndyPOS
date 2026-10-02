@@ -62,8 +62,10 @@ public class CompleteSaleCommandHandler : ICommandHandler<CompleteSaleCommand, C
         var now = DateTime.UtcNow;
         var invoiceId = Guid.NewGuid();
 
-        // Reserved AFTER validation, so a rejected sale burns no number, and from the same sequence
-        // the column defaults to, so the database still decides and two tills cannot clash.
+        // Reserved only after the payment rules pass, so a sale they refuse burns no number. A failure
+        // after this point (a failed or cancelled save) does burn one: Postgres never hands a sequence
+        // value back, so bill numbers can have gaps but never duplicates. Same sequence as the column
+        // default, so the database still decides and two tills cannot clash.
         var invoiceNumber = await _saleRepository.ReserveInvoiceNumberAsync(cancellationToken);
 
         // Build invoice
