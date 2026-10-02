@@ -285,6 +285,14 @@ was the 49 columns of the four new tables, and every existing column was unchang
 `product` → `invoice` → `invoice_line` → `payment` → `inventory_movement` — was then written in one
 transaction, naming only the previous release's columns.
 
+Result for the invoice-history release (2 migrations, `AddInvoiceNumber` and `AddInvoiceReprintTable`):
+`invoice` gained one column, `invoice_number bigint NOT NULL DEFAULT nextval('invoice_number_seq')`,
+backfilled in the migration (legacy ids first, then `setval`, then native rows by `created_utc`); one
+new table, `invoice_reprint`. No other column changed. A complete sale written with only pre-release
+columns succeeded and its invoice row took a number from the default, above every backfilled one, with
+no duplicate `(store_id, invoice_number)`. The column is `NOT NULL`, which the gate allows because it
+has a default. Verified 2026-10-01 with `postgres:16-alpine` in a throwaway `gate` container on port 55510.
+
 ---
 
 ## Change Log
@@ -294,3 +302,4 @@ transaction, naming only the previous release's columns.
 | 2026-07-29 | Initial in-place upgrade procedure |
 | 2026-08-17 | Added the forward-only gate verification, and ran it against the release's 3 migrations |
 | 2026-09-27 | Ran the gate against the cash-drawer release's 1 migration (`AddCashDrawerTables`) at 816 (815 pass, 1 skipped); the release's final-review fixes then brought the count to 841 (840 pass, 1 skipped) |
+| 2026-10-01 | Ran the gate against the invoice-history release's 2 migrations (AddInvoiceNumber, AddInvoiceReprintTable) |
