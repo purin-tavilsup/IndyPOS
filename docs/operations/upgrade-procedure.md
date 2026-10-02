@@ -312,18 +312,45 @@ the new schema. `CloudDbContextDesignTimeFactory` reads `ConnectionStrings__clou
 docker run -d --name gate-cloud -e POSTGRES_PASSWORD=pass -e POSTGRES_DB=cloud -p 55511:5432 postgres:16-alpine
 ${env:ConnectionStrings__cloud-db} = "Host=localhost;Port=55511;Database=cloud;Username=postgres;Password=pass"
 dotnet ef database update <previous release's last cloud migration> --project src/IndyPOS.CloudApi
-# snapshot information_schema.columns, update to the latest, snapshot again and diff
+# snapshot information_schema.columns and pg_indexes, update to the latest, snapshot again and diff
 ```
+
+The `${env:...}` line is PowerShell. In bash, a variable name containing a hyphen cannot be exported,
+so pass it through `env` for that one command instead:
+
+```bash
+env 'ConnectionStrings__cloud-db=Host=localhost;Port=55511;Database=cloud;Username=postgres;Password=pass'     dotnet ef database update <previous release's last cloud migration> --project src/IndyPOS.CloudApi
+```
+
+Indexes are not in `information_schema.columns`, so snapshot `pg_indexes` (`schemaname = 'public'`)
+before and after as well, and diff both.
 
 Then `INSERT` a `"SyncedEvents"` row naming only the previous release's columns, and mark it
 processed with an `UPDATE`, as the old `IngestEventsCommandHandler` and `EventProcessor` do.
 
 Result for the route tidy-up release, cloud (1 migration, `AddSyncedEventSourceStore`): `SyncedEvents`
-gained one column, `SourceStoreId character varying(50) NULL` with a comment, and one index; no other
-column changed. A row inserted naming only the previous release's columns (from
+gained one column, `SourceStoreId character varying(50) NULL` with a comment, and one index (the index
+was checked separately through `pg_indexes`, not the columns snapshot); no other column changed. A row inserted naming only the previous release's columns (from
 `20261002073625_AddInvoiceReprints`) and then marked processed succeeded, and its `SourceStoreId`
 stayed `NULL`. Such a row is counted for no store by `/sync/status`. Verified 2026-10-02
 with `postgres:16-alpine` in a throwaway `gate-cloud` container on port 55511.
+
+When finished, remove the throwaway pieces: `docker rm -f gate-cloud`, and in PowerShell
+`Remove-Item Env:\ConnectionStrings__cloud-db` (bash needs no cleanup, since `env` scoped the variable
+to one command).
+
+Result for invoice-history plan 2, cloud (3 migrations: `AddInvoiceNumberToInvoices`,
+`AddInboxRetrySchedule`, `AddInvoiceReprints`): the schema was applied up to the previous release's
+last cloud migration (`20260917082326_RemoveClientSecretHash`) and then to `20261002073625_AddInvoiceReprints`.
+The `information_schema.columns` snapshots differed only by `Invoices.InvoiceNumber bigint NULL`,
+`SyncedEvents.Attempts integer NOT NULL DEFAULT 0`, `SyncedEvents.NextAttemptAtUtc timestamptz NULL`,
+and the new `InvoiceReprints` table (foreign key to `Invoices`, `ON DELETE RESTRICT`). The `pg_indexes`
+snapshots differed only by `IX_Invoices_StoreId_InvoiceNumber` (non-unique) and the three
+`InvoiceReprints` indexes. Rows seeded before the update survived, and the old `SyncedEvents` row read
+`Attempts = 0`. Then, naming only the previous release's columns, an `Invoices` row (`InvoiceNumber`
+`NULL`), a `SyncedEvents` row (`Attempts` 0, `NextAttemptAtUtc` `NULL`), the processed `UPDATE`
+and a `ProcessedEvents` row all succeeded. Verified 2026-10-02 with `postgres:16-alpine` in a throwaway
+`gate-cloud2` container on port 55514. `AddSyncedEventSourceStore` is not part of this run.
 
 ---
 
@@ -336,3 +363,4 @@ with `postgres:16-alpine` in a throwaway `gate-cloud` container on port 55511.
 | 2026-09-27 | Ran the gate against the cash-drawer release's 1 migration (`AddCashDrawerTables`) at 816 (815 pass, 1 skipped); the release's final-review fixes then brought the count to 841 (840 pass, 1 skipped) |
 | 2026-10-01 | Ran the gate against the invoice-history release's 2 migrations (AddInvoiceNumber, AddInvoiceReprintTable) |
 | 2026-10-02 | Ran the gate against the route tidy-up release's 2 migrations (StoreHub `AddInventoryMovementUser`, cloud `AddSyncedEventSourceStore`); added the cloud variant of the recipe |
+| 2026-10-02 | Ran the gate against invoice-history plan 2's 3 cloud migrations (`AddInvoiceNumberToInvoices`, `AddInboxRetrySchedule`, `AddInvoiceReprints`); the cloud recipe now covers bash, `pg_indexes` and cleanup |
