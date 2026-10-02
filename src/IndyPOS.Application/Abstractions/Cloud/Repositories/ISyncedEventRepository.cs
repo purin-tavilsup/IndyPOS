@@ -48,6 +48,13 @@ public class SyncedEventEntity
     public long Id { get; set; }
     public Guid EventId { get; set; }
     public int StoreId { get; set; }
+
+    /// <summary>
+    /// The store the ingest token authenticated: its store_id claim, which ingest has already matched
+    /// against the payload. Null for an event ingested before this column existed; such an event is
+    /// counted for no store. Not the int StoreId above, which carries 0 for every real store.
+    /// </summary>
+    public string? SourceStoreId { get; set; }
     public string EventType { get; set; } = string.Empty;
     public string Payload { get; set; } = string.Empty;
     public DateTime CreatedAtUtc { get; set; }
