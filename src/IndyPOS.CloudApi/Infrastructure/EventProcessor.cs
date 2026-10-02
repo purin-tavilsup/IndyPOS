@@ -249,7 +249,7 @@ public class EventProcessor : BackgroundService
 
         if (!invoiceArrived)
             throw new InvalidOperationException(
-                $"Reprint {eventData.ReprintId} has no invoice {eventData.InvoiceId} in store {eventData.StoreId} yet; it is retried.");
+                $"Reprint {eventData.ReprintId} has no invoice {eventData.InvoiceId} in store {eventData.StoreId} yet; it is retried. If this keeps failing, the invoice may belong to another store.");
 
         var now = DateTime.UtcNow;
 

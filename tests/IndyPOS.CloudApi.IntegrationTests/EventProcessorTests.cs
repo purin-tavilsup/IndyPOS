@@ -245,8 +245,11 @@ public class EventProcessorTests(CloudPostgresFixture postgres) : IClassFixture<
 
         await pipeline.PollAsync();
 
+        // Unprocessed alone also holds with no handler; one failed attempt proves it was fetched and refused.
         (await pipeline.CountUnprocessedAsync()).Should()
                                                 .Be(1);
+        (await pipeline.FailedAttemptsAsync()).Should()
+                                              .Be(1);
     }
 
     [Fact]
@@ -493,6 +496,9 @@ public class EventProcessorTests(CloudPostgresFixture postgres) : IClassFixture<
             });
 
         public Task<int> CountInvoicesAsync() => WithDbAsync(db => db.Invoices.CountAsync());
+
+        public Task<int> FailedAttemptsAsync() =>
+            WithDbAsync(db => db.SyncedEvents.SumAsync(e => e.Attempts));
 
         public Task<int> CountUnprocessedAsync() =>
             WithDbAsync(db => db.SyncedEvents.CountAsync(e => e.ProcessedAtUtc == null));

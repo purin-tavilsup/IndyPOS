@@ -117,7 +117,8 @@ public class CloudDbContext : DbContext
             // A backstop to the handler's ordering guard: no reprint row without its bill.
             entity.HasOne<CloudInvoice>()
                   .WithMany()
-                  .HasForeignKey(e => e.InvoiceId);
+                  .HasForeignKey(e => e.InvoiceId)
+                  .OnDelete(DeleteBehavior.Restrict);
         });
 
         // ProcessedEvent - for idempotency
