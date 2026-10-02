@@ -1,13 +1,16 @@
 using System.Net;
+using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using FluentAssertions;
 using IndyPOS.Application.Common.Constants;
+using IndyPOS.Application.Common.Enums;
 using IndyPOS.Application.UseCases.StoreHub.Products;
 using IndyPOS.Application.UseCases.StoreHub.Products.AdjustQuantity;
 using IndyPOS.Application.UseCases.StoreHub.Products.Create;
 using IndyPOS.Application.UseCases.StoreHub.Products.Update;
 using IndyPOS.Domain.Entities.Core;
 using IndyPOS.Infrastructure.Persistence.StoreHub;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
@@ -19,6 +22,9 @@ namespace IndyPOS.StoreHub.IntegrationTests.Endpoints;
 [Collection("Integration")]
 public class ProductsEndpointTests : IntegrationTestBase
 {
+    private const int Restock = 5;
+    private const string AdjustmentReason = "Adjustment";
+
     public ProductsEndpointTests(StoreHubWebApplicationFactory factory) : base(factory) { }
 
     [Fact]
@@ -293,6 +299,49 @@ public class ProductsEndpointTests : IntegrationTestBase
                                                 .Be(150);
     }
 
+    // The adjustment now records who made it, so a token without a usable user id is refused up front:
+    // a 401, not a 200 with a NULL user and not a 500 from GetRequiredUserId.
+    [Fact]
+    public async Task AdjustQuantity_WithATokenWithoutAUserId_ReturnsUnauthorized()
+    {
+        var product = await CreateTestProductAsync(initialStock: 100);
+        Client.DefaultRequestHeaders.Authorization =
+            new AuthenticationHeaderValue("Bearer", TokenWithoutUserId(UserRole.StoreManager));
+
+        var response = await Client.PostAsJsonAsync($"/products/{product.Id}/adjust-quantity", new { delta = Restock });
+
+        response.StatusCode.Should()
+                           .Be(HttpStatusCode.Unauthorized);
+    }
+
+    [Fact]
+    public async Task AdjustQuantity_WithATokenWithoutAUserId_WritesNoMovement()
+    {
+        var product = await CreateTestProductAsync(initialStock: 100);
+        Client.DefaultRequestHeaders.Authorization =
+            new AuthenticationHeaderValue("Bearer", TokenWithoutUserId(UserRole.StoreManager));
+
+        await Client.PostAsJsonAsync($"/products/{product.Id}/adjust-quantity", new { delta = Restock });
+
+        (await AdjustmentsOfAsync(product.Id)).Should()
+                                              .BeEmpty();
+    }
+
+    [Fact]
+    public async Task AdjustQuantity_WithAValidToken_RecordsTheCaller()
+    {
+        var manager = $"manager_{Guid.NewGuid():N}";
+        await AuthenticateAsAsync(manager, "Manager123!", UserRole.StoreManager);
+        var product = await CreateTestProductAsync(initialStock: 100);
+
+        await Client.PostAsJsonAsync($"/products/{product.Id}/adjust-quantity", new { delta = Restock });
+
+        (await AdjustmentsOfAsync(product.Id)).Should()
+                                              .ContainSingle()
+                                              .Which.CreatedByUserId.Should()
+                                                                    .Be(await UserIdOfAsync(manager));
+    }
+
     [Fact]
     public async Task AdjustQuantity_WithASaleInBetween_ShouldNotSwallowTheSale()
     {
@@ -361,6 +410,27 @@ public class ProductsEndpointTests : IntegrationTestBase
         var result = await response.Content.ReadFromJsonAsync<NextBarcodeResponse>(JsonOptions);
         result.Should().NotBeNull();
         result!.Barcode.Should().NotBeNullOrEmpty();
+    }
+
+    // Only this product's rows: the shared test database is never reset between tests.
+    private async Task<List<InventoryMovement>> AdjustmentsOfAsync(Guid productId)
+    {
+        await using var scope = Factory.Services.CreateAsyncScope();
+        var db = scope.ServiceProvider.GetRequiredService<StoreHubDbContext>();
+
+        return await db.InventoryMovements.AsNoTracking()
+                                          .Where(m => m.ProductId == productId && m.Reason == AdjustmentReason)
+                                          .ToListAsync();
+    }
+
+    private async Task<Guid> UserIdOfAsync(string username)
+    {
+        await using var scope = Factory.Services.CreateAsyncScope();
+        var db = scope.ServiceProvider.GetRequiredService<StoreHubDbContext>();
+
+        return await db.StoreUsers.Where(u => u.Username == username)
+                                  .Select(u => u.Id)
+                                  .SingleAsync();
     }
 
     private record NextBarcodeResponse(string Barcode);

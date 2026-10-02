@@ -11,4 +11,7 @@ public record AdjustProductQuantityCommand : ICommand<int>
     public required Guid ProductId { get; init; }
     public required int Delta { get; init; }
     public string? Reason { get; init; }
+
+    /// <summary>Who made the adjustment: the user in the caller's token, never a value from the body.</summary>
+    public required Guid UserId { get; init; }
 }

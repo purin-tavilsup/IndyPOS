@@ -41,6 +41,9 @@ public class InventoryMovementConfiguration : IEntityTypeConfiguration<Inventory
             .HasColumnName("note")
             .HasMaxLength(500);
 
+        builder.Property(e => e.CreatedByUserId)
+            .HasColumnName("created_by_user_id");
+
         builder.Property(e => e.CreatedUtc)
             .HasColumnName("created_utc")
             .IsRequired();
