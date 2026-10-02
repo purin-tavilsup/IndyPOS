@@ -1,4 +1,5 @@
 using FluentAssertions;
+using IndyPOS.Application.Common.Constants;
 using IndyPOS.Application.Common.Exceptions;
 using IndyPOS.Application.UseCases.StoreHub.Sales.History;
 using Xunit;
@@ -155,5 +156,22 @@ public class ListSalesQueryHandlerTests
 
         page.Items.Select(i => i.InvoiceNumber).Should()
                                                .Equal(1001);
+    }
+
+    [Fact]
+    public async Task Handle_WithTwoEqualPayments_PicksTheMethodThatSortsFirst()
+    {
+        await using var c = new SalesHistoryTestContext();
+        await c.SeedInvoiceAsync(new InvoiceSeed(1001, NineAmTodayUtc)
+        {
+            Payments = [new(PaymentMethodCodes.MoneyTransfer, 175m), new(PaymentMethodCodes.Cash, 175m)]
+        });
+
+        var page = await c.ListHandler().HandleAsync(TodayOnly());
+
+        page.Items.Should()
+                  .ContainSingle()
+                  .Which.PrimaryPaymentMethod.Should()
+                                             .Be(PaymentMethodCodes.Cash);
     }
 }

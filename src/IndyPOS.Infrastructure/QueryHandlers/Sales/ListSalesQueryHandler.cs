@@ -52,7 +52,10 @@ public class ListSalesQueryHandler(
               i.InvoiceNumber,
               i.CreatedUtc,
               i.TotalAmount,
-              i.Payments.OrderByDescending(p => p.Amount).Select(p => p.Method).FirstOrDefault() ?? "Unknown",
+              i.Payments.OrderByDescending(p => p.Amount)
+                        .ThenBy(p => p.Method)   // equal amounts: same method every time
+                        .Select(p => p.Method)
+                        .FirstOrDefault() ?? "Unknown",
               i.Lines.Count))
           .ToListAsync(cancellationToken);
 }

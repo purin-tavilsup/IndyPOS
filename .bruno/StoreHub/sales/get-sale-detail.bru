@@ -1,0 +1,31 @@
+meta {
+  name: Get Sale Detail
+  type: http
+  seq: 4
+}
+
+get {
+  url: {{baseUrl}}/sales/{{invoiceId}}
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+vars:pre-request {
+  invoiceId: 00000000-0000-0000-0000-000000000001
+}
+
+docs {
+  Get one bill with everything its receipt prints, by id.
+  The same bill is also reachable by its number: GET /sales/{number}.
+
+  Returns:
+  - Header (id, invoiceNumber, storeId, userId, cashierName, totals, createdUtc)
+  - lines: product, quantity, unit price, line total
+  - payments: method, display name, amount, note
+
+  Returns 404 if the bill is not found, or is another day's bill and the caller lacks reports.view.
+}
