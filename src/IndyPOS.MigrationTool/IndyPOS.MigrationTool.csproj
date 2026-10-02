@@ -21,4 +21,8 @@
     <ProjectReference Include="..\IndyPOS.Infrastructure\IndyPOS.Infrastructure.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <InternalsVisibleTo Include="IndyPOS.MigrationTool.Tests" />
+  </ItemGroup>
+
 </Project>

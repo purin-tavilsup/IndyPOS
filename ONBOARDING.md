@@ -33,7 +33,7 @@ with it rather than upgrading it.
 | Requirement | Detail |
 |---|---|
 | **.NET SDK 10** | `global.json` pins `10.0.107` with `rollForward: latestMinor`, so any later 10.0.x works |
-| **Docker Desktop** | Required by **253** of the tests (71 + 160 + 22, derived — see Trap 1) and by Aspire |
+| **Docker Desktop** | Required by **337** of the tests (82 + 233 + 22, derived — see Trap 1) and by Aspire |
 | **Windows** | Several projects target `net10.0-windows`; the till is Windows Forms |
 | **FC Subject font** | In [`fonts/`](fonts/) — install `Regular` and `Bold`. Every panel names this family explicitly, so without it Windows substitutes a fallback and Thai captions clip |
 
@@ -51,19 +51,18 @@ dotnet test
 They spin up a real PostgreSQL container via Testcontainers. With Docker stopped they fail **fast**
 (each suite in under a second), which reads exactly like a code regression but is not.
 
-Expect **253 failures** with Docker stopped, all from these three suites. The StoreHub row's **128**
+Expect **337 failures** with Docker stopped, all from these three suites. The StoreHub row's **128**
 was **measured** with Docker down on 2026-09-27; the final-review test additions then added 13 more
 HTTP integration tests (`CashFloatEndpointsTests`, `DebtRepaymentEndpointsTests`, plus new cases in
 `CashAuthorizationTests` and `CashPayoutEndpointsTests`) and the concurrent-delete fix added 7
 real-Postgres race tests (`CashEntryConcurrencyTests`), all of which need Docker the same way, so its
 **148** is **derived** (128 + 20), not re-measured; the PayLater-debt fix then added 10 more HTTP integration tests (`PayLaterSaleEndpointTests`), bringing it to **158**, and the sale-user fix 2 more, bringing it to **160**, all derived. (`TestUserIdTests` was added after that and needs
-no container, so it does not change the count.) The other two rows are **derived** too: MigrationTool is
-unchanged, and CloudApi's 20 new tests (2026-09-30, the event-pipeline repair and the sync store check) all run on a container:
+no container, so it does not change the count.) The invoice-history plan (2026-10-01) then added 71 more StoreHub tests (HTTP and persistence tests on real Postgres), bringing it to **231**, derived on the same assumption that every new one needs a container; the final-review fix added one more HTTP test (the reprint route's 403), making **232**, and the Codex route fix (one HTTP test, 2026-10-01) **233**, both derived the same way. The other two rows are **derived** too: MigrationTool's 11 new tests all use the Postgres fixture (**71 + 11 = 82**), and CloudApi's 20 new tests (2026-09-30, the event-pipeline repair and the sync store check) all run on a container. The per-suite totals were measured with Docker up; only the Docker-down split was not:
 
 | Suite | Total | Fails without Docker |
 |---|---|---|
-| `IndyPOS.MigrationTool.Tests` | 134 | **71** (of the other 63, see Trap 3) |
-| `IndyPOS.StoreHub.IntegrationTests` | 168 | **160** (8 need no container, derived) |
+| `IndyPOS.MigrationTool.Tests` | 145 | **82** (of the other 63, see Trap 3) |
+| `IndyPOS.StoreHub.IntegrationTests` | 241 | **233** (8 need no container, derived) |
 | `IndyPOS.CloudApi.IntegrationTests` | 22 | **22** (all need a container) |
 
 **Start Docker and re-run before investigating any of these.**
@@ -89,12 +88,12 @@ returned early instead, so 8 tests reported *Passed* on every machine but one, i
 tests also used one-directional `Should().Contain(...)` column checks, which a table with extra
 columns satisfies — so they could not have detected a dropped column even when they did run.
 
-So `IndyPOS.MigrationTool.Tests`'s 134 break down as: **71** need Docker, **24** need those real
+So `IndyPOS.MigrationTool.Tests`'s 145 break down as: **82** need Docker, **24** need those real
 databases, **38** are pure units needing neither, and **1** is the manual schema extractor (Trap 3b).
 
 **The total itself changes.** A skipped `[Theory]` is one skipped entry, not one per data row, so the
 21-case artefact comparison collapses to a single entry. On a fresh clone the suite therefore
-discovers **114**, not 134 (**derived** as 134 − 20, not measured — the same 20-row collapse described
+discovers **125**, not 145 (**derived** as 145 − 20, not measured — the same 20-row collapse described
 above). Nothing turns red.
 
 ### ⚠️ Trap 3b — regenerating the schema artefacts needs an environment variable
@@ -113,16 +112,16 @@ reports `Skipped: 1` and writes nothing — which looks like success while leavi
 ### Expected counts
 
 Solution suites (`dotnet test` at the root), Docker running **and** the real store databases present
-— **928 total** (927 pass, 1 skipped) — measured 2026-09-30 (after the cloud event-pipeline repair, the sync store check, the sync-client fix, the PayLater-debt fix and the sale-user fix;
-supersedes 853 on 2026-09-27 and 656 on 2026-09-17). Without those databases the total is **908**
-(**derived** as 928 − 20, not measured), still all
+— **1089 total** (1088 pass, 1 skipped) — measured 2026-10-01 (after invoice-history plan 1: bill numbers, the sales history and reprint endpoints, and the cash past-day rule;
+supersedes 928 on 2026-09-30, 853 on 2026-09-27 and 656 on 2026-09-17). Without those databases the total is **1069**
+(**derived** as 1089 − 20, not measured), still all
 green:
 
 | Suite | Tests |
 |---|---|
-| `IndyPOS.Application.Tests` | 478 |
-| `IndyPOS.StoreHub.IntegrationTests` | 168 (Docker) |
-| `IndyPOS.MigrationTool.Tests` | 134 (Docker; 1 skipped. **114** without the real store data — Trap 3, derived) |
+| `IndyPOS.Application.Tests` | 555 |
+| `IndyPOS.StoreHub.IntegrationTests` | 241 (Docker) |
+| `IndyPOS.MigrationTool.Tests` | 145 (Docker; 1 skipped. **125** without the real store data — Trap 3, derived) |
 | `IndyPOS.Domain.Tests` | 56 |
 | `IndyPOS.Windows.Forms.Tests` | 47 |
 | `IndyPOS.Vault.Tests` | 17 |

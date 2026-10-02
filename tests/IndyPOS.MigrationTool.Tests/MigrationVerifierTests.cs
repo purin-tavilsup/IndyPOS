@@ -555,6 +555,91 @@ public class MigrationVerifierTests : IAsyncLifetime
 
     private const string NoPayLaterTableCheckName = "PayLater (no legacy table)";
 
+    private const string InvoiceNumberCheck = "Invoice numbers";
+    private const string SequenceCheck = "Invoice number sequence";
+    private const int TamperedLegacyInvoiceId = 3;
+
+    private async Task<MigrationOptions> MigrateTenInvoicesAsync()
+    {
+        await SeedManyAsync(userCount: 1, productCount: 2, invoiceCount: 10);
+        var options = CreateOptions();
+        await new SqliteMigrationService(options, NullLogger<SqliteMigrationService>.Instance)
+            .MigrateAllAsync();
+        return options;
+    }
+
+    private async Task<VerificationResult> VerifyAsync(MigrationOptions options) =>
+        await new MigrationVerifier(options, NullLogger<MigrationVerifier>.Instance).VerifyAsync();
+
+    private async Task TamperWithBillNumberAsync()
+    {
+        await using var db = _postgres.CreateDbContext();
+        await db.Database.ExecuteSqlRawAsync(
+            $"UPDATE invoice SET invoice_number = invoice_number + 100000 WHERE legacy_invoice_id = {TamperedLegacyInvoiceId}");
+    }
+
+    [Fact]
+    public async Task VerifyAsync_WhenAMigratedBillNumberDiffersFromItsLegacyId_FailsTheInvoiceNumberCheck()
+    {
+        // Non-vacuity: proves the check can fail.
+        var options = await MigrateTenInvoicesAsync();
+        await TamperWithBillNumberAsync();
+
+        var result = await VerifyAsync(options);
+
+        result.Checks.Single(c => c.EntityName == InvoiceNumberCheck).IsValid.Should()
+                                                                            .BeFalse();
+    }
+
+    [Fact]
+    public async Task VerifyAsync_WhenAMigratedBillNumberDiffersFromItsLegacyId_NamesTheInvoice()
+    {
+        var options = await MigrateTenInvoicesAsync();
+        await TamperWithBillNumberAsync();
+
+        var result = await VerifyAsync(options);
+
+        result.Errors.Should()
+                     .Contain(e => e.Contains($"legacy invoice {TamperedLegacyInvoiceId}: bill number 100003"));
+    }
+
+    [Fact]
+    public async Task VerifyAsync_WhenTheSequenceIsBehindTheHighestBillNumber_FailsTheSequenceCheck()
+    {
+        var options = await MigrateTenInvoicesAsync();
+        await using (var db = _postgres.CreateDbContext())
+        {
+            await db.Database.ExecuteSqlRawAsync("SELECT setval('invoice_number_seq', 1)");
+        }
+
+        var result = await VerifyAsync(options);
+
+        result.Checks.Single(c => c.EntityName == SequenceCheck).IsValid.Should()
+                                                                        .BeFalse();
+    }
+
+    [Fact]
+    public async Task VerifyAsync_AfterSuccessfulMigration_PassesTheInvoiceNumberCheck()
+    {
+        var options = await MigrateTenInvoicesAsync();
+
+        var result = await VerifyAsync(options);
+
+        result.Checks.Single(c => c.EntityName == InvoiceNumberCheck).IsValid.Should()
+                                                                            .BeTrue();
+    }
+
+    [Fact]
+    public async Task VerifyAsync_AfterSuccessfulMigration_PassesTheSequenceCheck()
+    {
+        var options = await MigrateTenInvoicesAsync();
+
+        var result = await VerifyAsync(options);
+
+        result.Checks.Single(c => c.EntityName == SequenceCheck).IsValid.Should()
+                                                                        .BeTrue();
+    }
+
     private MigrationOptions CreateOptions() => CreateOptions(_store.Path);
 
     private MigrationOptions CreateOptions(string sqlitePath)

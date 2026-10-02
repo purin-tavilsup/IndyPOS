@@ -1,0 +1,31 @@
+meta {
+  name: List Sales
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{baseUrl}}/sales?page=1&pageSize=20
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+docs {
+  List bills, newest first. Defaults to today's bills.
+
+  Returns:
+  - items: bill summaries (id, invoiceNumber, createdUtc, totalAmount, primaryPaymentMethod, lineCount)
+  - page, pageSize, hasMore (no total count: the list is for finding a bill, not a report)
+
+  Query params (all optional):
+  - from, to: yyyy-MM-dd. Default: today. A malformed date returns 400.
+  - page: Page number (default: 1)
+  - pageSize: Items per page (default: 50, max: 200)
+
+  Roles: Cashier sees today's bills only (another day returns 403).
+  StoreManager and SystemAdmin (reports.view) can query any day.
+}

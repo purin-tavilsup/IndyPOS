@@ -16,6 +16,7 @@ public static class RoleCapabilities
         [
             Capability.ProductsRead,
             Capability.SalesComplete,
+            Capability.SalesReprint,
             Capability.CashManage,
         ],
 
@@ -25,6 +26,7 @@ public static class RoleCapabilities
             Capability.ProductsManage,
             Capability.InventoryAdjust,
             Capability.SalesComplete,
+            Capability.SalesReprint,
             Capability.SyncViewStatus,
             Capability.ReportsView,
             Capability.CashManage,
@@ -36,6 +38,7 @@ public static class RoleCapabilities
             Capability.ProductsManage,
             Capability.InventoryAdjust,
             Capability.SalesComplete,
+            Capability.SalesReprint,
             Capability.SyncViewStatus,
             Capability.AdminStoresRegister,
             Capability.UsersRead,

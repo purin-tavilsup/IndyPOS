@@ -203,15 +203,17 @@ dotnet build
 
 # Docker must be RUNNING for three suites - they spin up a real Postgres container.
 # With Docker down they fail fast (each suite in under a second), which reads like a
-# code regression but is not. Expect 253 failures with Docker stopped, all here.
-# (253 = 160 + 71 + 22. The StoreHub 128 was measured 2026-09-27 with Docker down; the
+# code regression but is not. Expect 337 failures with Docker stopped, all here.
+# (337 = 233 + 82 + 22. The StoreHub 128 was measured 2026-09-27 with Docker down; the
 # final-review test additions (+13, all HTTP integration tests) and the concurrent-delete
 # race tests (+7, all on real Postgres) all need Docker, bringing it to 148, and the PayLater-debt fix's +10 (all HTTP
 # integration tests) to 158, and the sale-user fix's +2 to 160 -- DERIVED, not re-measured with Docker down. CloudApi.IntegrationTests grew 2 -> 22 on 2026-09-30 with the
-# event-pipeline repair and the sync store check, all on real Postgres -- also DERIVED. MigrationTool is unchanged.)
-#   tests/IndyPOS.StoreHub.IntegrationTests   (160 of 168; 8 need no container, derived
-#                                              for the 21 new tests)
-#   tests/IndyPOS.MigrationTool.Tests         (71 of 134; 38 pure units, 24 need the
+# event-pipeline repair and the sync store check, all on real Postgres -- also DERIVED. The invoice-history plan then added 71
+# StoreHub tests (HTTP and persistence tests on real Postgres) and 11 MigrationTool tests (all on the Postgres fixture),
+# bringing them to 231 and 82 -- DERIVED too; the final-review fix added one more (the reprint 403 test) for 232, and the Codex route fix one more for 233. The per-suite totals were measured; only the Docker-down split was not.)
+#   tests/IndyPOS.StoreHub.IntegrationTests   (233 of 241; 8 need no container, unchanged since 2026-09-27, derived
+#                                              -- not individually named)
+#   tests/IndyPOS.MigrationTool.Tests         (82 of 145; 38 pure units, 24 need the
 #                                              gitignored real store .db files, 1 manual tool)
 #   tests/IndyPOS.CloudApi.IntegrationTests   (22 of 22; all need a container)
 
@@ -224,14 +226,14 @@ dotnet run --project src/IndyPOS.AppHost --launch-profile https
 # Dashboard: https://localhost:17222
 ```
 
-Solution suites total **928** with Docker running and the real store databases present (927 pass,
-1 skipped) — measured 2026-09-30 (after the cloud event-pipeline repair, the sync store check, the sync-client fix, the PayLater-debt fix and the sale-user fix; 853 on 2026-09-27, after the
+Solution suites total **1089** with Docker running and the real store databases present (1088 pass,
+1 skipped) — measured 2026-10-01 (after invoice-history plan 1: bill numbers, the sales history
+and reprint endpoints, and the cash past-day rule; 928 on 2026-09-30, 853 on 2026-09-27, after the
 cash-drawer release). Per suite: Domain 56 · Vault 17 · CloudApi 6 · CloudApi.IntegrationTests 22
-(Docker) · MigrationTool 134 (133 pass, 1 skip) · StoreHub.IntegrationTests 168 · Application 478 ·
-Windows.Forms 47. The growth since the 2026-09-17 measurement (656 total) is the cash-drawer
-feature's own tests plus its final-review follow-up: Domain +20, Application +125,
-StoreHub.IntegrationTests +52; the pipeline repair then added CloudApi.IntegrationTests +18, and the sync store check Application +6 and CloudApi.IntegrationTests +2, the sync-client fix Application +8, and the PayLater-debt fix Application +29 and StoreHub.IntegrationTests +10, and the sale-user fix StoreHub.IntegrationTests +2. Without the
-real store databases the suite discovers **908** (DERIVED as 928 − 20, not measured) — a skipped
+(Docker) · MigrationTool 145 (144 pass, 1 skip) · StoreHub.IntegrationTests 241 · Application 555 ·
+Windows.Forms 47. The growth since the 2026-09-30 measurement (928 total) is the invoice-history
+plan's own tests: Application +77, StoreHub.IntegrationTests +73, MigrationTool +11. Without the
+real store databases the suite discovers **1069** (DERIVED as 1089 − 20, not measured) — a skipped
 `[Theory]` is one entry, not one per row.
 See [`ONBOARDING.md`](ONBOARDING.md) for the per-suite breakdown, the dev-vs-installed port split,
 and the `/health` vs `/health/ready` trap.

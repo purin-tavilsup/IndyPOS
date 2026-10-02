@@ -16,7 +16,8 @@ public static class CashEndpoints
         var cash = app.MapGroup("/cash")
                       .RequireAuthorization(Policy)
                       .AddEndpointFilter<RequireUserIdFilter>()
-                      .AddEndpointFilter<CashExceptionFilter>();
+                      .AddEndpointFilter<CashExceptionFilter>()
+                      .AddEndpointFilter<TodayOnlyBusinessDateFilter>();
 
         cash.MapGet("/summary", async (
             IQueryHandler<GetCashDrawerSummaryQuery, CashDrawerSummaryDto> handler,

@@ -374,13 +374,13 @@ if ($script:Token -and $script:CreatedProductId) {
     # Test: Verify invoice in reports
     if ($script:CreatedInvoiceId) {
         try {
-            $today = Get-Date -Format "yyyy-MM-dd"
-            $result = Invoke-ApiRequest -Endpoint "/reports/invoices?date=$today" -Headers (Get-AuthHeaders) -IgnoreError $true
-            $found = $result.Data | Where-Object { $_.id -eq $script:CreatedInvoiceId }
-            Write-TestResult -TestName "Verify invoice in reports" -Passed ($null -ne $found) -Details "Invoice found in today's report"
+            # GET /sales defaults to today and wraps the bills in .items
+            $result = Invoke-ApiRequest -Endpoint "/sales" -Headers (Get-AuthHeaders) -IgnoreError $true
+            $found = $result.Data.items | Where-Object { $_.id -eq $script:CreatedInvoiceId }
+            Write-TestResult -TestName "Verify invoice in sales history" -Passed ($null -ne $found) -Details "Invoice found in today's sales list"
         }
         catch {
-            Write-TestResult -TestName "Verify invoice in reports" -Passed $false -Details $_.Exception.Message
+            Write-TestResult -TestName "Verify invoice in sales history" -Passed $false -Details $_.Exception.Message
         }
     }
 } else {
@@ -475,15 +475,14 @@ if ($script:Token) {
         Write-TestResult -TestName "GET /reports/sales-summary" -Passed $false -Details $_.Exception.Message
     }
 
-    # Test: Get invoices
+    # Test: Get sales (today by default; the bills are in .items, which can be empty)
     try {
-        $today = Get-Date -Format "yyyy-MM-dd"
-        $result = Invoke-ApiRequest -Endpoint "/reports/invoices?date=$today" -Headers (Get-AuthHeaders) -IgnoreError $true
-        $isArray = $result.Success -and $result.Data -is [array]
-        Write-TestResult -TestName "GET /reports/invoices" -Passed $isArray -Details "Invoices endpoint works"
+        $result = Invoke-ApiRequest -Endpoint "/sales" -Headers (Get-AuthHeaders) -IgnoreError $true
+        $hasItems = $result.Success -and ($null -ne $result.Data.PSObject.Properties["items"])
+        Write-TestResult -TestName "GET /sales" -Passed $hasItems -Details "Sales endpoint works"
     }
     catch {
-        Write-TestResult -TestName "GET /reports/invoices" -Passed $false -Details $_.Exception.Message
+        Write-TestResult -TestName "GET /sales" -Passed $false -Details $_.Exception.Message
     }
 
     # Test: Get product sales
