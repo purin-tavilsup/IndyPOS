@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Npgsql;
-using Testcontainers.PostgreSql;
+using IndyPOS.Testing.Postgres;
 using Xunit;
 
 namespace IndyPOS.StoreHub.IntegrationTests.Migrations;
@@ -107,12 +107,7 @@ public class ReclassifyPaymentMethodKindsMigrationTests
         private const int LegacyGovernmentCampaign = 2;
         private const int AlreadySpecial = 3;
 
-        private readonly PostgreSqlContainer _postgres = new PostgreSqlBuilder()
-            .WithImage("postgres:16-alpine")
-            .WithDatabase("storehub_migration_test")
-            .WithUsername("test_user")
-            .WithPassword("test_password")
-            .Build();
+        private TestPostgres? _postgres;
 
         public Dictionary<(string StoreId, string Code), (int Kind, bool IsEnabled)> Rows { get; } = new();
 
@@ -122,7 +117,7 @@ public class ReclassifyPaymentMethodKindsMigrationTests
 
         public async Task InitializeAsync()
         {
-            await _postgres.StartAsync();
+            _postgres = await TestPostgres.StartAsync();
 
             await using var context = NewContext();
             var migrator = context.GetService<IMigrator>();
@@ -136,11 +131,17 @@ public class ReclassifyPaymentMethodKindsMigrationTests
             await LoadRowsAsync(Rows);
         }
 
-        public async Task DisposeAsync() => await _postgres.DisposeAsync();
+        public async Task DisposeAsync()
+        {
+            if (_postgres is not null)
+            {
+                await _postgres.DisposeAsync();
+            }
+        }
 
         private StoreHubDbContext NewContext() =>
             new(new DbContextOptionsBuilder<StoreHubDbContext>()
-                .UseNpgsql(_postgres.GetConnectionString())
+                .UseNpgsql(_postgres!.ConnectionString)
                 .Options);
 
         /// <summary>
@@ -167,7 +168,7 @@ public class ReclassifyPaymentMethodKindsMigrationTests
         private async Task LoadRowsAsync(
             Dictionary<(string StoreId, string Code), (int Kind, bool IsEnabled)> into)
         {
-            await using var connection = new NpgsqlConnection(_postgres.GetConnectionString());
+            await using var connection = new NpgsqlConnection(_postgres!.ConnectionString);
             await connection.OpenAsync();
 
             await using var command = new NpgsqlCommand(

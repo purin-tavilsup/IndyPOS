@@ -2,33 +2,34 @@ using IndyPOS.CloudApi.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Npgsql;
-using Testcontainers.PostgreSql;
+using IndyPOS.Testing.Postgres;
 using Xunit;
 
 namespace IndyPOS.CloudApi.IntegrationTests;
 
 /// <summary>
-/// One PostgreSQL container per test class, and a fresh migrated database per test, so tests share
-/// the slow container start but never each other's rows.
+/// One PostgreSQL server per test class, and a fresh migrated database per test, so tests share
+/// the slow server start but never each other's rows.
 ///
-/// Requires Docker (Testcontainers spins up postgres:16-alpine).
+/// Needs Docker, or INDYPOS_TEST_POSTGRES pointing at a server (see TestPostgres).
 /// </summary>
 public sealed class CloudPostgresFixture : IAsyncLifetime
 {
-    private readonly PostgreSqlContainer _postgres = new PostgreSqlBuilder()
-        .WithImage("postgres:16-alpine")
-        .Build();
+    private TestPostgres? _postgres;
 
-    public Task InitializeAsync() => _postgres.StartAsync();
+    public async Task InitializeAsync() => _postgres = await TestPostgres.StartAsync();
 
-    public Task DisposeAsync() => _postgres.DisposeAsync().AsTask();
+    public async Task DisposeAsync()
+    {
+        if (_postgres is not null)
+        {
+            await _postgres.DisposeAsync();
+        }
+    }
 
     public async Task<string> CreateDatabaseAsync()
     {
-        var connectionString = new NpgsqlConnectionStringBuilder(_postgres.GetConnectionString())
-        {
-            Database = $"cloud_{Guid.NewGuid():N}"
-        }.ConnectionString;
+        var connectionString = await _postgres!.CreateDatabaseAsync();
 
         await using var db = CreateContext(connectionString);
         await db.Database.MigrateAsync();

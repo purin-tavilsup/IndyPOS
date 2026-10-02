@@ -1,31 +1,21 @@
 using IndyPOS.Infrastructure.Persistence.StoreHub;
 using Microsoft.EntityFrameworkCore;
-using Testcontainers.PostgreSql;
+using IndyPOS.Testing.Postgres;
 
 namespace IndyPOS.MigrationTool.Tests.Fixtures;
 
 /// <summary>
-/// Shared PostgreSQL container fixture for migration tests.
+/// Shared PostgreSQL fixture (container or CI server) for migration tests.
 /// </summary>
 public class PostgresFixture : IAsyncLifetime
 {
-    private readonly PostgreSqlContainer _container;
+    private TestPostgres? _postgres;
 
-    public string ConnectionString => _container.GetConnectionString();
-
-    public PostgresFixture()
-    {
-        _container = new PostgreSqlBuilder()
-            .WithImage("postgres:16-alpine")
-            .WithDatabase("indypos_test")
-            .WithUsername("test")
-            .WithPassword("test")
-            .Build();
-    }
+    public string ConnectionString => _postgres!.ConnectionString;
 
     public async Task InitializeAsync()
     {
-        await _container.StartAsync();
+        _postgres = await TestPostgres.StartAsync();
 
         // Apply EF Core migrations
         var options = new DbContextOptionsBuilder<StoreHubDbContext>()
@@ -38,7 +28,10 @@ public class PostgresFixture : IAsyncLifetime
 
     public async Task DisposeAsync()
     {
-        await _container.DisposeAsync();
+        if (_postgres is not null)
+        {
+            await _postgres.DisposeAsync();
+        }
     }
 
     /// <summary>

@@ -63,6 +63,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{827E0CD3-B72
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IndyPOS.CloudApi.IntegrationTests", "tests\IndyPOS.CloudApi.IntegrationTests\IndyPOS.CloudApi.IntegrationTests.csproj", "{CD091988-2B9B-4E99-88CE-3AEC5B728B24}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IndyPOS.Testing.Postgres", "tests\IndyPOS.Testing.Postgres\IndyPOS.Testing.Postgres.csproj", "{23959195-D5E8-494D-959B-54E05A15FFFD}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -301,6 +303,18 @@ Global
 		{CD091988-2B9B-4E99-88CE-3AEC5B728B24}.Release|Any CPU.Build.0 = Release|Any CPU
 		{CD091988-2B9B-4E99-88CE-3AEC5B728B24}.Release|x86.ActiveCfg = Release|Any CPU
 		{CD091988-2B9B-4E99-88CE-3AEC5B728B24}.Release|x86.Build.0 = Release|Any CPU
+		{23959195-D5E8-494D-959B-54E05A15FFFD}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{23959195-D5E8-494D-959B-54E05A15FFFD}.Debug|x64.Build.0 = Debug|Any CPU
+		{23959195-D5E8-494D-959B-54E05A15FFFD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{23959195-D5E8-494D-959B-54E05A15FFFD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{23959195-D5E8-494D-959B-54E05A15FFFD}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{23959195-D5E8-494D-959B-54E05A15FFFD}.Debug|x86.Build.0 = Debug|Any CPU
+		{23959195-D5E8-494D-959B-54E05A15FFFD}.Release|x64.ActiveCfg = Release|Any CPU
+		{23959195-D5E8-494D-959B-54E05A15FFFD}.Release|x64.Build.0 = Release|Any CPU
+		{23959195-D5E8-494D-959B-54E05A15FFFD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{23959195-D5E8-494D-959B-54E05A15FFFD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{23959195-D5E8-494D-959B-54E05A15FFFD}.Release|x86.ActiveCfg = Release|Any CPU
+		{23959195-D5E8-494D-959B-54E05A15FFFD}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -329,6 +343,7 @@ Global
 		{F5327D9D-5D8A-44DF-9050-C78E1909EAAC} = {A1B2C3D4-6666-6666-6666-000000000006}
 		{85C867C1-CBF8-4FBF-BB5E-9A455DF82D8C} = {A1B2C3D4-6666-6666-6666-000000000006}
 		{CD091988-2B9B-4E99-88CE-3AEC5B728B24} = {A1B2C3D4-6666-6666-6666-000000000006}
+		{23959195-D5E8-494D-959B-54E05A15FFFD} = {A1B2C3D4-6666-6666-6666-000000000006}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {8DF2657F-A964-43CB-BD74-99381ADA31E6}

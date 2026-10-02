@@ -10,30 +10,25 @@ using Microsoft.AspNetCore.TestHost;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
-using Testcontainers.PostgreSql;
+using IndyPOS.Testing.Postgres;
 using Xunit;
 
 namespace IndyPOS.StoreHub.IntegrationTests;
 
 /// <summary>
-/// WebApplicationFactory for StoreHub integration tests using Testcontainers PostgreSQL.
+/// WebApplicationFactory for StoreHub integration tests against a real PostgreSQL (a container, or the CI server).
 /// Provides a real PostgreSQL database for realistic integration testing.
 /// </summary>
 public class StoreHubWebApplicationFactory : WebApplicationFactory<Program>, IAsyncLifetime
 {
-    private readonly PostgreSqlContainer _postgresContainer = new PostgreSqlBuilder()
-        .WithImage("postgres:16-alpine")
-        .WithDatabase("storehub_test")
-        .WithUsername("test_user")
-        .WithPassword("test_password")
-        .Build();
+    private TestPostgres? _postgres;
 
-    public string ConnectionString => _postgresContainer.GetConnectionString();
+    public string ConnectionString => _postgres!.ConnectionString;
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
         // Set environment to Testing and provide connection string
-        builder.UseSetting("ConnectionStrings:storehub-db", _postgresContainer.GetConnectionString());
+        builder.UseSetting("ConnectionStrings:storehub-db", ConnectionString);
 
         // The host refuses to start outside Development on the built-in default signing key.
         // Tests obtain their tokens from the login endpoint, which signs server-side, so a random
@@ -64,7 +59,7 @@ public class StoreHubWebApplicationFactory : WebApplicationFactory<Program>, IAs
             // Add fresh DbContext WITHOUT pooling to avoid complexity
             services.AddDbContext<StoreHubDbContext>(options =>
             {
-                options.UseNpgsql(_postgresContainer.GetConnectionString());
+                options.UseNpgsql(ConnectionString);
             }, ServiceLifetime.Scoped, ServiceLifetime.Scoped);
 
             // Replace IStoreIdentityService with test implementation
@@ -75,12 +70,16 @@ public class StoreHubWebApplicationFactory : WebApplicationFactory<Program>, IAs
 
     public async Task InitializeAsync()
     {
-        await _postgresContainer.StartAsync();
+        _postgres = await TestPostgres.StartAsync();
     }
 
     public new async Task DisposeAsync()
     {
-        await _postgresContainer.DisposeAsync();
+        if (_postgres is not null)
+        {
+            await _postgres.DisposeAsync();
+        }
+
         await base.DisposeAsync();
     }
 }

@@ -7,7 +7,7 @@ using IndyPOS.CloudApi.Infrastructure.Auth;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
-using Testcontainers.PostgreSql;
+using IndyPOS.Testing.Postgres;
 using Xunit;
 
 namespace IndyPOS.CloudApi.IntegrationTests;
@@ -19,21 +19,25 @@ namespace IndyPOS.CloudApi.IntegrationTests;
 /// unit tests cannot reproduce (no retry strategy, transactions ignored). This test fails if the
 /// handler's CreateExecutionStrategy().ExecuteAsync wrapper is ever removed.
 ///
-/// Requires Docker (Testcontainers spins up postgres:16-alpine).
+/// Needs Docker, or INDYPOS_TEST_POSTGRES pointing at a server (see TestPostgres).
 /// </summary>
 public class RegisterStoreTransactionTests : IAsyncLifetime
 {
-    private readonly PostgreSqlContainer _postgres = new PostgreSqlBuilder()
-        .WithImage("postgres:16-alpine")
-        .Build();
+    private TestPostgres? _postgres;
 
-    public Task InitializeAsync() => _postgres.StartAsync();
+    public async Task InitializeAsync() => _postgres = await TestPostgres.StartAsync();
 
-    public Task DisposeAsync() => _postgres.DisposeAsync().AsTask();
+    public async Task DisposeAsync()
+    {
+        if (_postgres is not null)
+        {
+            await _postgres.DisposeAsync();
+        }
+    }
 
     private CloudDbContext CreateContext() =>
         new(new DbContextOptionsBuilder<CloudDbContext>()
-            .UseNpgsql(_postgres.GetConnectionString(), npgsql => npgsql.EnableRetryOnFailure())
+            .UseNpgsql(_postgres!.ConnectionString, npgsql => npgsql.EnableRetryOnFailure())
             .Options);
 
     [Fact]
