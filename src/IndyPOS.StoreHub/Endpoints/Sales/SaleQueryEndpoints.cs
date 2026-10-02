@@ -39,7 +39,10 @@ internal static class SaleQueryEndpoints
             Results.Ok(await handler.HandleAsync(new GetSaleByIdQuery(id, CanViewAnyDay(user)), cancellationToken)
                        ?? throw new SaleNotFoundException()));
 
-        sales.MapGet("/{number:long}", async (
+        // maxlength(19) keeps this route disjoint from {id:guid}: a 32-digit segment is a valid
+        // "N"-format GUID that also parses as a long, and two equal matches would be a 500. No bill
+        // number needs more digits than long.MaxValue's 19.
+        sales.MapGet("/{number:long:maxlength(19)}", async (
             IQueryHandler<GetSaleByNumberQuery, InvoiceDetailDto?> handler,
             ClaimsPrincipal user,
             long number,
@@ -47,8 +50,9 @@ internal static class SaleQueryEndpoints
             Results.Ok(await handler.HandleAsync(new GetSaleByNumberQuery(number, CanViewAnyDay(user)), cancellationToken)
                        ?? throw new SaleNotFoundException(number)));
 
-        // Typed constraints alone answer "/sales/abc" or an overflowing number with 404 (no route
-        // matched). An unconstrained parameter has LOWER routing precedence than the two above, so it
+        // Typed constraints alone answer "/sales/abc", an overflowing number or a number longer than
+        // 19 characters (unless it is also a GUID) with 404, because no route matched. An
+        // unconstrained parameter has LOWER routing precedence than the two above, so it
         // only catches what they reject, and turns it into the 400 the spec asks for. Zero and negative
         // numbers are valid longs: they match {number:long} and are rejected in the handler by
         // SalesQueryRules.EnsureValidNumber, with the same Thai message.
