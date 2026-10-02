@@ -1,4 +1,5 @@
 using IndyPOS.Application.Common.Models;
+using IndyPOS.Application.Common.Validation;
 using IndyPOS.Application.UseCases.StoreHub.Reports;
 using IndyPOS.Application.UseCases.StoreHub.Reports.GetLegacyPaymentsSummary;
 using IndyPOS.Application.UseCases.StoreHub.Reports.GetLegacySalesSummary;
@@ -35,6 +36,11 @@ public static class ReportsEndpoints
             int? topProductsCount,
             CancellationToken cancellationToken) =>
         {
+            if (RejectInvalidRange(fromDate, toDate) is { } rejection)
+            {
+                return rejection;
+            }
+
             var query = new GetSalesSummaryQuery(
                 FromDate: fromDate,
                 ToDate: toDate,
@@ -77,6 +83,11 @@ public static class ReportsEndpoints
             int? pageSize,
             CancellationToken cancellationToken) =>
         {
+            if (RejectInvalidRange(fromDate, toDate) is { } rejection)
+            {
+                return rejection;
+            }
+
             var query = new GetProductSalesQuery(
                 FromDate: fromDate,
                 ToDate: toDate,
@@ -98,6 +109,11 @@ public static class ReportsEndpoints
             DateOnly toDate,
             CancellationToken cancellationToken) =>
         {
+            if (RejectInvalidRange(fromDate, toDate) is { } rejection)
+            {
+                return rejection;
+            }
+
             var query = new GetLegacySalesSummaryQuery(fromDate, toDate);
             var result = await handler.HandleAsync(query, cancellationToken);
             return Results.Ok(result);
@@ -113,9 +129,21 @@ public static class ReportsEndpoints
             DateOnly toDate,
             CancellationToken cancellationToken) =>
         {
+            if (RejectInvalidRange(fromDate, toDate) is { } rejection)
+            {
+                return rejection;
+            }
+
             var query = new GetLegacyPaymentsSummaryQuery(fromDate, toDate);
             var result = await handler.HandleAsync(query, cancellationToken);
             return Results.Ok(result);
         }).RequireAuthorization("CanViewReports");
     }
+
+    // Checked before the handler runs: ReportDateRange.ToUtcRange throws on a swapped range and
+    // overflows on 9999-12-31, and either escaped as a 500.
+    private static IResult? RejectInvalidRange(DateOnly fromDate, DateOnly toDate) =>
+        DateRangeRule.FindViolation(fromDate, toDate) is { } error
+            ? Results.BadRequest(new { error })
+            : null;
 }

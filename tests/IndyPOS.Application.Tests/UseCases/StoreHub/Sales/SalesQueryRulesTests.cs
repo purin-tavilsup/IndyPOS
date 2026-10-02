@@ -1,5 +1,6 @@
 using FluentAssertions;
 using IndyPOS.Application.Common.Exceptions;
+using IndyPOS.Application.Common.Validation;
 using IndyPOS.Application.UseCases.StoreHub.Sales.History;
 using Xunit;
 
@@ -55,7 +56,7 @@ public class SalesQueryRulesTests
     [Fact]
     public void EnsureValidRange_WithTheSupportedBounds_DoesNotThrow()
     {
-        var act = () => SalesQueryRules.EnsureValidRange(SalesQueryRules.EarliestDate, SalesQueryRules.LatestDate);
+        var act = () => SalesQueryRules.EnsureValidRange(DateRangeRule.EarliestDate, DateRangeRule.LatestDate);
 
         act.Should()
            .NotThrow();
