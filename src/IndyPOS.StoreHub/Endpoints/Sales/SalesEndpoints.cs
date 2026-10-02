@@ -18,6 +18,7 @@ public static class SalesEndpoints
                        .AddEndpointFilter<SalesExceptionFilter>();
 
         sales.MapSaleQueries();
+        sales.MapSaleReprints();
         return app;
     }
 }

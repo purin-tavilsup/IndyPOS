@@ -453,6 +453,43 @@ namespace IndyPOS.Infrastructure.Persistence.StoreHub.Migrations
                     b.ToTable("invoice_line", (string)null);
                 });
 
+            modelBuilder.Entity("IndyPOS.Domain.Entities.Core.InvoiceReprint", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid>("CreatedByUserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("created_by_user_id");
+
+                    b.Property<DateTime>("CreatedUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_utc");
+
+                    b.Property<Guid>("InvoiceId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("invoice_id");
+
+                    b.Property<DateTime>("LastModifiedUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("last_modified_utc");
+
+                    b.Property<string>("StoreId")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("store_id");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("InvoiceId");
+
+                    b.HasIndex("StoreId", "CreatedUtc");
+
+                    b.ToTable("invoice_reprint", (string)null);
+                });
+
             modelBuilder.Entity("IndyPOS.Domain.Entities.Core.OutboxEvent", b =>
                 {
                     b.Property<Guid>("Id")
@@ -963,6 +1000,15 @@ namespace IndyPOS.Infrastructure.Persistence.StoreHub.Migrations
                     b.Navigation("Invoice");
 
                     b.Navigation("Product");
+                });
+
+            modelBuilder.Entity("IndyPOS.Domain.Entities.Core.InvoiceReprint", b =>
+                {
+                    b.HasOne("IndyPOS.Domain.Entities.Core.Invoice", null)
+                        .WithMany()
+                        .HasForeignKey("InvoiceId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("IndyPOS.Domain.Entities.Core.PayLater", b =>

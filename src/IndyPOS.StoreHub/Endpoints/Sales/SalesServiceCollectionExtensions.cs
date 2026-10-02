@@ -1,5 +1,6 @@
 using IndyPOS.Application.UseCases.StoreHub.CashDrawer.Common;
 using IndyPOS.Application.UseCases.StoreHub.Sales.History;
+using IndyPOS.Application.UseCases.StoreHub.Sales.Reprints;
 using IndyPOS.Infrastructure.QueryHandlers.Sales;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Nokpirab;
@@ -18,6 +19,7 @@ public static class SalesServiceCollectionExtensions
         services.AddTransient<IQueryHandler<ListSalesQuery, SalesPage>, ListSalesQueryHandler>();
         services.AddTransient<IQueryHandler<GetSaleByIdQuery, InvoiceDetailDto?>, GetSaleQueryHandler>();
         services.AddTransient<IQueryHandler<GetSaleByNumberQuery, InvoiceDetailDto?>, GetSaleQueryHandler>();
+        services.AddTransient<ICommandHandler<CreateInvoiceReprintCommand, InvoiceReprintResultDto>, CreateInvoiceReprintCommandHandler>();
         return services;
     }
 }
