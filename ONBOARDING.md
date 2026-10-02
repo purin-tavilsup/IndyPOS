@@ -133,7 +133,7 @@ reports `Skipped: 1` and writes nothing — which looks like success while leavi
 Solution suites (`dotnet test` at the root), Docker running **and** the real store databases present
 — **1152 total** (1151 pass, 1 skipped) — measured 2026-10-02 (after route tidy-up A: routes moved out of Program.cs, the stock-adjustment and sale user, report dates, the store-scoped cloud /sync/status;
 supersedes 1111 earlier on 2026-10-02, 1089 on 2026-10-01, 928 on 2026-09-30, 853 on 2026-09-27 and 656 on 2026-09-17). Without those databases the total is **1132**
-(**derived** as 1152 − 20, not measured), still all
+(measured by CI's first run on 2026-10-02, which has no store databases: 1132 = 1152 − 20), still all
 green:
 
 | Suite | Tests |
