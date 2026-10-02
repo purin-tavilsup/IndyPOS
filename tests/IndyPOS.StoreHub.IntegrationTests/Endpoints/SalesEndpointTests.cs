@@ -53,6 +53,30 @@ public class SalesEndpointTests : IntegrationTestBase
                                                     .Be(await UserIdOfAsync(cashier));
     }
 
+    // Reads the real inventory_movement row, so it proves the save itself writes created_by_user_id.
+    [Fact]
+    public async Task CompleteSale_WithATrackableLine_StoresTheTokensUserOnTheMovement()
+    {
+        var cashier = $"cashier_{Guid.NewGuid():N}";
+        await AuthenticateAsAsync(cashier, "Password123!", UserRole.Cashier);
+        var product = await CreateTestProductAsync(unitPrice: 100m, initialStock: 10);
+        var request = new CompleteSaleRequest(
+            UserId: Guid.NewGuid(),
+            Lines: [new SaleLineRequest(product.Id, Quantity: 1, UnitPrice: 100m)],
+            Payments: [new SalePaymentRequest("Cash", Amount: 100m)]);
+
+        var response = await Client.PostAsJsonAsync("/sales/complete", request);
+
+        response.EnsureSuccessStatusCode();
+        var sale = await response.Content.ReadFromJsonAsync<CompleteSaleResponse>(JsonOptions);
+        await using var scope = Factory.Services.CreateAsyncScope();
+        var db = scope.ServiceProvider.GetRequiredService<StoreHubDbContext>();
+        var movement = await db.InventoryMovements.SingleAsync(m => m.ReferenceId == sale!.InvoiceId
+                                                                    && m.ProductId == product.Id);
+        movement.CreatedByUserId.Should()
+                                .Be(await UserIdOfAsync(cashier));
+    }
+
     [Fact]
     public async Task CompleteSale_WithATokenWithoutAUserId_ReturnsUnauthorized()
     {

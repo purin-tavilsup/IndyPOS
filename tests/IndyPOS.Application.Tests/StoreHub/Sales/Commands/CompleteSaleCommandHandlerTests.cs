@@ -223,6 +223,49 @@ public class CompleteSaleCommandHandlerTests
 
     [Theory]
     [CustomAutoData]
+    public async Task HandleAsync_WithATrackableLine_StampsTheSellerOnItsMovement(
+        [Frozen] Mock<ISaleRepository> saleRepository,
+        [Frozen] Mock<IProductRepository> productRepository,
+        [Frozen] Mock<IPaymentMethodCatalogService> catalog,
+        CompleteSaleCommandHandler sut)
+    {
+        var seller = Guid.NewGuid();
+        var productId = Guid.NewGuid();
+        productRepository.Setup(x => x.GetByIdAsync(productId, It.IsAny<CancellationToken>()))
+                         .ReturnsAsync(CreateTestProduct(productId));
+        catalog.Setup(c => c.GetOfferableAsync(It.IsAny<CancellationToken>()))
+               .ReturnsAsync(OfferableWith("Cash"));
+        IReadOnlyList<InventoryMovement>? capturedMovements = null;
+        saleRepository.Setup(x => x.CompleteSaleAsync(
+                It.IsAny<Invoice>(),
+                It.IsAny<IReadOnlyList<InvoiceLine>>(),
+                It.IsAny<IReadOnlyList<Payment>>(),
+                It.IsAny<IReadOnlyList<InventoryMovement>>(),
+                It.IsAny<OutboxEvent>(),
+                It.IsAny<CancellationToken>()))
+            .Callback((Invoice _, IReadOnlyList<InvoiceLine> _, IReadOnlyList<Payment> _,
+                IReadOnlyList<InventoryMovement> movements, OutboxEvent _, CancellationToken _) =>
+            {
+                capturedMovements = movements;
+            })
+            .ReturnsAsync((Invoice inv, IReadOnlyList<InvoiceLine> _, IReadOnlyList<Payment> _,
+                IReadOnlyList<InventoryMovement> _, OutboxEvent _, CancellationToken _) => inv);
+        var command = new CompleteSaleCommand(
+            StoreId: "STORE-001",
+            UserId: seller,
+            Lines: new List<SaleLineRequest> { new(ProductId: productId, Quantity: 1, UnitPrice: 100m) },
+            Payments: new List<SalePaymentRequest> { new(Method: "Cash", Amount: 100m) });
+
+        await sut.HandleAsync(command);
+
+        capturedMovements.Should()
+                         .ContainSingle()
+                         .Which.CreatedByUserId.Should()
+                                               .Be(seller);
+    }
+
+    [Theory]
+    [CustomAutoData]
     public async Task HandleAsync_ShouldCreateOutboxEvent(
         [Frozen] Mock<ISaleRepository> saleRepository,
         [Frozen] Mock<IProductRepository> productRepository,
