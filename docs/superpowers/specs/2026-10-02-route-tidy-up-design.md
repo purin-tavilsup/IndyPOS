@@ -78,14 +78,25 @@ for a while a till could be older than its server. But that only matters once a 
    - `src/IndyPOS.CloudApi/Program.cs` maps it with no authorization. Its counts (events, unprocessed,
      processed, invoices) cover **all** stores.
    - It will require the same store token as `/sync/events` and count only that token's store.
-     No token gives **401**.
+     No token gives **401**. A token without a `store_id` gives **403**.
+   - **How the inbox is scoped (Pond, 2026-10-02):** a new nullable column
+     `SyncedEvents.SourceStoreId` (CloudApi migration `AddSyncedEventSourceStore`, with a
+     `HasComment`). Ingest sets it from the token's `store_id`, after the existing check that every
+     payload names that store. `/sync/status` counts inbox rows `WHERE SourceStoreId = <token store>`.
+     Events ingested before the release keep `NULL` and are counted for no store. `ProcessedEvents`
+     and `Invoices` already carry a string `StoreId` and are filtered by it.
    - The StoreHub `/sync/status` already requires `CanViewSyncStatus` and is unchanged.
 
 ### 3.3 Migration gate
 
-`AddInventoryMovementUser` is additive: one nullable column. The forward-only recipe in
-`docs/operations/upgrade-procedure.md` is run and recorded. Previous-release binaries can still write a
-sale and an adjustment.
+PR A has two additive migrations, each one nullable column:
+- StoreHub `AddInventoryMovementUser`. Previous-release binaries can still write a sale and an
+  adjustment.
+- CloudApi `AddSyncedEventSourceStore`. A previous-release CloudApi can still ingest an event into
+  `SyncedEvents` and mark it processed.
+
+The forward-only recipe in `docs/operations/upgrade-procedure.md` is run for both databases. It gains a
+short cloud variant, since the existing recipe covers StoreHub only. Both results are recorded.
 
 ## 4. PR B — renames (hard) and conventions
 
@@ -152,6 +163,11 @@ This breaks "sync is the core". The fix needs:
 
 That is a feature, not a tidy-up.
 
+**`HttpCloudSyncClient.ParseStoreId` sends `0` as the envelope `StoreId` for every real store.** Real
+store ids are strings, and the inbox's `StoreId` column is an `int`. This is still a bug, and it stays
+separate. PR A leaves the column and the client alone. Its new `SyncedEvents.SourceStoreId` makes the bug
+irrelevant to `/sync/status`, but not to anything else that reads the int column.
+
 ## 8. Testing (negative cases first; `Subject_WhenScenario_DirectVerbOutcome`)
 
 **PR A:**
@@ -164,7 +180,8 @@ That is a feature, not a tidy-up.
   - `…_WithADateBeyondTheLatest_ReturnsBadRequest`
 - `SyncStatus_WithoutAToken_ReturnsUnauthorized`
 - `SyncStatus_WithAStoreToken_CountsOnlyThatStore`
-- The migration gate is recorded.
+- Ingest stamps the token's store on `SourceStoreId`; another store's row and a legacy `NULL` row are not counted.
+- The migration gate is recorded for both databases.
 
 **PR B:**
 - For each renamed route:
