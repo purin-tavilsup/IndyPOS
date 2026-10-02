@@ -236,6 +236,130 @@ public class EventProcessorTests(CloudPostgresFixture postgres) : IClassFixture<
                               .Be(KnownInvoiceNumber);
     }
 
+    // Spec §9: a reprint that arrives before its InvoiceCompleted fails so it retries.
+    [Fact]
+    public async Task ProcessPendingEventsAsync_WithAReprintBeforeItsInvoice_LeavesItUnprocessed()
+    {
+        await using var pipeline = await Pipeline.CreateAsync(postgres);
+        await pipeline.AddInvoiceReprintedAsync(Guid.NewGuid());
+
+        await pipeline.PollAsync();
+
+        (await pipeline.CountUnprocessedAsync()).Should()
+                                                .Be(1);
+    }
+
+    [Fact]
+    public async Task ProcessPendingEventsAsync_WithAReprintBeforeItsInvoice_StoresNoReprint()
+    {
+        await using var pipeline = await Pipeline.CreateAsync(postgres);
+        var invoiceId = Guid.NewGuid();
+        await pipeline.AddInvoiceReprintedAsync(invoiceId);
+
+        await pipeline.PollAsync();
+
+        (await pipeline.ReprintsOfAsync(invoiceId)).Should()
+                                                   .BeEmpty();
+    }
+
+    // The failed reprint is held back (Task 3), so the poll that stores the late invoice skips it;
+    // once its retry is due, the next poll stores it.
+    [Fact]
+    public async Task ProcessPendingEventsAsync_WithAReprintWhoseInvoiceArrivesLater_StoresItOnceItsRetryIsDue()
+    {
+        await using var pipeline = await Pipeline.CreateAsync(postgres);
+        var invoiceId = Guid.NewGuid();
+        await pipeline.AddInvoiceReprintedAsync(invoiceId);
+        await pipeline.PollAsync();
+        await pipeline.AddInvoiceCompletedAsync(invoiceId);
+        await pipeline.PollAsync();
+        await pipeline.ElapseRetryDelaysAsync();
+
+        await pipeline.PollAsync();
+
+        (await pipeline.ReprintsOfAsync(invoiceId)).Should()
+                                                   .ContainSingle(pipeline.LoggedErrors);
+    }
+
+    // A payload can pair its own StoreId with another store's InvoiceId, so the guard matches the
+    // invoice id AND the store. The fresh reprint beside it is stored, so a handler that stores
+    // nothing at all cannot pass.
+    [Fact]
+    public async Task ProcessPendingEventsAsync_WithAReprintOfAnotherStoresInvoice_StoresNoReprint()
+    {
+        await using var pipeline = await Pipeline.CreateAsync(postgres);
+        var otherStoresSale = await pipeline.AddInvoiceCompletedAsync(storeId: OtherStoreId);
+        var ownSale = await pipeline.AddInvoiceCompletedAsync();
+        await pipeline.AddInvoiceReprintedAsync(otherStoresSale.InvoiceId);
+        await pipeline.AddInvoiceReprintedAsync(ownSale.InvoiceId);
+
+        await pipeline.PollAsync();
+
+        var stored = (await pipeline.ReprintsOfAsync(ownSale.InvoiceId)).Count
+                     + (await pipeline.ReprintsOfAsync(otherStoresSale.InvoiceId)).Count;
+        stored.Should()
+              .Be(1, pipeline.LoggedErrors);
+        (await pipeline.ReprintsOfAsync(otherStoresSale.InvoiceId)).Should()
+                                                                   .BeEmpty();
+    }
+
+    [Fact]
+    public async Task ProcessPendingEventsAsync_WithAReprintAlreadyInProcessedEvents_StoresOnlyTheFreshOne()
+    {
+        await using var pipeline = await Pipeline.CreateAsync(postgres);
+        var sale = await pipeline.AddInvoiceCompletedAsync();
+        var alreadyProcessed = await pipeline.AddInvoiceReprintedAsync(sale.InvoiceId);
+        await pipeline.AddProcessedEventAsync(alreadyProcessed.EventId);
+        await pipeline.AddInvoiceReprintedAsync(sale.InvoiceId);
+
+        await pipeline.PollAsync();
+
+        (await pipeline.ReprintsOfAsync(sale.InvoiceId)).Should()
+                                                        .ContainSingle(pipeline.LoggedErrors);
+    }
+
+    // Spec §6: pressing reprint again writes a second record, and the owner sees both.
+    [Fact]
+    public async Task ProcessPendingEventsAsync_WithTwoReprintsOfOneInvoice_StoresBoth()
+    {
+        await using var pipeline = await Pipeline.CreateAsync(postgres);
+        var sale = await pipeline.AddInvoiceCompletedAsync();
+        await pipeline.AddInvoiceReprintedAsync(sale.InvoiceId);
+        await pipeline.AddInvoiceReprintedAsync(sale.InvoiceId);
+
+        await pipeline.PollAsync();
+
+        (await pipeline.ReprintsOfAsync(sale.InvoiceId)).Should()
+                                                        .HaveCount(2, pipeline.LoggedErrors);
+    }
+
+    [Fact]
+    public async Task ProcessPendingEventsAsync_WithAReprint_StoresWhoReprintedItAndWhen()
+    {
+        await using var pipeline = await Pipeline.CreateAsync(postgres);
+        var sale = await pipeline.AddInvoiceCompletedAsync();
+        var reprint = await pipeline.AddInvoiceReprintedAsync(sale.InvoiceId);
+
+        await pipeline.PollAsync();
+
+        var stored = (await pipeline.ReprintsOfAsync(sale.InvoiceId)).SingleOrDefault();
+        (stored?.Id, stored?.CreatedByUserId, stored?.CreatedAtUtc).Should()
+                                                                   .Be((reprint.ReprintId, reprint.CreatedByUserId, reprint.CreatedUtc), pipeline.LoggedErrors);
+    }
+
+    [Fact]
+    public async Task ProcessPendingEventsAsync_WithAReprintOfAStoredInvoice_MarksTheEventProcessed()
+    {
+        await using var pipeline = await Pipeline.CreateAsync(postgres);
+        var sale = await pipeline.AddInvoiceCompletedAsync();
+        await pipeline.AddInvoiceReprintedAsync(sale.InvoiceId);
+
+        await pipeline.PollAsync();
+
+        (await pipeline.CountUnprocessedAsync()).Should()
+                                                .Be(0, pipeline.LoggedErrors);
+    }
+
     /// <summary>A migrated cloud database, an inbox, and the processor wired as Program.cs wires it.</summary>
     private sealed class Pipeline : IAsyncDisposable
     {
@@ -287,6 +411,31 @@ public class EventProcessorTests(CloudPostgresFixture postgres) : IClassFixture<
 
             return evt;
         }
+
+        public async Task<InvoiceReprintedEvent> AddInvoiceReprintedAsync(Guid invoiceId)
+        {
+            // Postgres keeps microseconds; a DateTime has 100-ns ticks, so round-trips compare equal only at this precision.
+            var now = DateTime.UtcNow;
+            var evt = new InvoiceReprintedEvent
+            {
+                EventId = Guid.NewGuid(),
+                ReprintId = Guid.NewGuid(),
+                InvoiceId = invoiceId,
+                StoreId = "1",
+                CreatedUtc = new DateTime(now.Ticks - now.Ticks % 10, DateTimeKind.Utc),
+                CreatedByUserId = Guid.NewGuid()
+            };
+
+            await AddEventAsync("InvoiceReprinted", evt.EventId, JsonSerializer.Serialize(evt));
+
+            return evt;
+        }
+
+        public Task<List<CloudInvoiceReprint>> ReprintsOfAsync(Guid invoiceId) =>
+            WithDbAsync(db => db.InvoiceReprints
+                                .AsNoTracking()
+                                .Where(r => r.InvoiceId == invoiceId)
+                                .ToListAsync());
 
         public Task AddEventAsync(string eventType) => AddEventAsync(eventType, Guid.NewGuid(), "{}");
 

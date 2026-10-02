@@ -94,6 +94,12 @@ also **refuses** a store that already has v4-native invoices, because their bill
 collide with the imported v3 numbers. So no go-live test sale may be rung before MIGRATE; if one was,
 reset to Fresh first.
 
+**Rule 1c — the cloud upgrades before the stores.** Deploy the CloudApi that holds invoice-history
+plan 2 (bill numbers + the `InvoiceReprints` mirror) **before** any StoreHub running invoice-history
+plan 1. A store's `InvoiceReprinted` events are not lost if it upgrades first: the processor only
+fetches the types it can handle, so they wait in the inbox. But they reach no dashboard until the
+cloud has the handler.
+
 **Rule 2 — GeneralHardware's expected `verify` ✘ is an EXACT match, not "any exit 1."**
 Accept **only** this known mismatch (pre-accepted 2026-08-19):
 
