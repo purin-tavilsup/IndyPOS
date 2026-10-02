@@ -670,7 +670,7 @@ namespace IndyPOS.CloudApi.Infrastructure.Migrations
                     b.HasOne("IndyPOS.CloudApi.Domain.CloudInvoice", null)
                         .WithMany()
                         .HasForeignKey("InvoiceId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
                 });
 

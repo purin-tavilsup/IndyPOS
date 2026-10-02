@@ -30,7 +30,7 @@ namespace IndyPOS.CloudApi.Infrastructure.Migrations
                         column: x => x.InvoiceId,
                         principalTable: "Invoices",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Restrict);
                 },
                 comment: "Every bill reprint a store requested (insert-only audit). One row per press of reprint; a failed print still counts.");
 

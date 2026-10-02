@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace IndyPOS.CloudApi.Infrastructure.Migrations
 {
     [DbContext(typeof(CloudDbContext))]
-    [Migration("20261002073018_AddInvoiceReprints")]
+    [Migration("20261002073625_AddInvoiceReprints")]
     partial class AddInvoiceReprints
     {
         /// <inheritdoc />
@@ -673,7 +673,7 @@ namespace IndyPOS.CloudApi.Infrastructure.Migrations
                     b.HasOne("IndyPOS.CloudApi.Domain.CloudInvoice", null)
                         .WithMany()
                         .HasForeignKey("InvoiceId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
                 });
 
