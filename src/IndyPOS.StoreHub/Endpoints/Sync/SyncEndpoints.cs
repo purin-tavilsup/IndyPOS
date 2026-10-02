@@ -7,7 +7,6 @@ public static class SyncEndpoints
 {
     public static IEndpointRouteBuilder MapSyncEndpoints(this IEndpointRouteBuilder app)
     {
-        // Sync status endpoint
         app.MapGet("/sync/status", async (
             IOutboxRepository outboxRepository,
             CancellationToken cancellationToken) =>

@@ -17,8 +17,8 @@ public class InventoryMovement
 
     /// <summary>
     /// Who moved the stock: the seller for a sale, the caller for an adjustment. Null for rows written
-    /// before the column existed, and for movements no signed-in user makes (initial stock on product
-    /// creation, migrated v3 history).
+    /// before the column existed, for migrated v3 history, and for the initial stock written when a
+    /// product is created, which does not record its creator yet.
     /// </summary>
     public Guid? CreatedByUserId { get; set; }
     public DateTime CreatedUtc { get; set; }

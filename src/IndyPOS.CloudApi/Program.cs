@@ -194,7 +194,6 @@ app.MapPost("/sync/bulk-migration", [Authorize] async (
     }
 }).RequireAuthorization();
 
-// Sync status endpoint
 app.MapSyncStatus();
 
 // Health/ready endpoint with database check

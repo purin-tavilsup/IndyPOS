@@ -74,7 +74,6 @@ public class ReportsEndpointTests : IntegrationTestBase
                            .Be(HttpStatusCode.BadRequest);
     }
 
-
     [Theory]
     [MemberData(nameof(DatedReportRoutes))]
     public async Task DatedReport_WithToBeforeFrom_ExplainsInThai(string route)
