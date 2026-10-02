@@ -49,6 +49,45 @@ public class DbSyncedEventRepositoryTests(CloudPostgresFixture postgres) : IClas
                                                        .BeNull();
     }
 
+    [Fact]
+    public async Task GetUnprocessedAsync_WithAnEventNotYetDueForRetry_SkipsIt()
+    {
+        await using var db = CloudPostgresFixture.CreateContext(await postgres.CreateDatabaseAsync());
+        var waiting = await AddEventAsync(db);
+        await new DbSyncedEventRepository(db).MarkFailedAsync(waiting.EventId, DateTime.UtcNow.AddHours(1));
+
+        var batch = await new DbSyncedEventRepository(db).GetUnprocessedAsync(["InvoiceCompleted"]);
+
+        batch.Should()
+             .BeEmpty();
+    }
+
+    [Fact]
+    public async Task GetUnprocessedAsync_WithAnEventWhoseRetryIsDue_ReturnsIt()
+    {
+        await using var db = CloudPostgresFixture.CreateContext(await postgres.CreateDatabaseAsync());
+        var due = await AddEventAsync(db);
+        await new DbSyncedEventRepository(db).MarkFailedAsync(due.EventId, DateTime.UtcNow.AddSeconds(-1));
+
+        var batch = await new DbSyncedEventRepository(db).GetUnprocessedAsync(["InvoiceCompleted"]);
+
+        batch.Select(e => e.EventId).Should()
+                                    .Equal(due.EventId);
+    }
+
+    [Fact]
+    public async Task MarkFailedAsync_WithAStoredEvent_CountsTheAttempt()
+    {
+        await using var db = CloudPostgresFixture.CreateContext(await postgres.CreateDatabaseAsync());
+        var failed = await AddEventAsync(db);
+
+        await new DbSyncedEventRepository(db).MarkFailedAsync(failed.EventId, DateTime.UtcNow);
+        await new DbSyncedEventRepository(db).MarkFailedAsync(failed.EventId, DateTime.UtcNow);
+
+        (await db.SyncedEvents.AsNoTracking().SingleAsync(e => e.EventId == failed.EventId)).Attempts.Should()
+                                                                                                    .Be(2);
+    }
+
     private static async Task<SyncedEventEntity> AddEventAsync(CloudDbContext db)
     {
         var entity = new SyncedEventEntity

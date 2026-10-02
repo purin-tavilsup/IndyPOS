@@ -88,6 +88,44 @@ public class EventProcessorTests(CloudPostgresFixture postgres) : IClassFixture<
                                                 .Be(1, pipeline.LoggedErrors);
     }
 
+    // Codex P1 (PR #102): failed events stayed the oldest, so a full batch of them was fetched on
+    // every poll and the events that would unblock them never were.
+    [Fact]
+    public async Task ProcessPendingEventsAsync_WithABatchOfFailingEvents_StillStoresAnInvoiceBehindThem()
+    {
+        await using var pipeline = await Pipeline.CreateAsync(postgres);
+        for (var i = 0; i < BatchSize; i++)
+            await pipeline.AddInvoiceCompletedAsync(await pipeline.AddCloudInvoiceAsync());
+        var sale = await pipeline.AddInvoiceCompletedAsync();
+        await pipeline.PollAsync();
+
+        await pipeline.PollAsync();
+
+        (await pipeline.FindInvoiceAsync(sale.InvoiceId)).Should()
+                                                         .NotBeNull(pipeline.LoggedErrors);
+    }
+
+    [Fact]
+    public void RetryDelay_WithNoEarlierFailures_IsTheFirstRetryDelay()
+    {
+        EventProcessor.RetryDelay(earlierFailures: 0).Should()
+                                                     .Be(EventProcessor.FirstRetryDelay);
+    }
+
+    [Fact]
+    public void RetryDelay_AfterManyFailures_IsCappedAtTheMaximum()
+    {
+        EventProcessor.RetryDelay(earlierFailures: 64).Should()
+                                                      .Be(EventProcessor.MaxRetryDelay);
+    }
+
+    [Fact]
+    public void RetryDelay_AfterOneFailure_Doubles()
+    {
+        EventProcessor.RetryDelay(earlierFailures: 1).Should()
+                                                     .Be(EventProcessor.FirstRetryDelay * 2);
+    }
+
     // A fresh event beside it, so a pipeline that stores nothing at all cannot pass.
     [Fact]
     public async Task ProcessPendingEventsAsync_WithAnEventAlreadyInProcessedEvents_StoresOnlyTheFreshOne()
@@ -316,6 +354,10 @@ public class EventProcessorTests(CloudPostgresFixture postgres) : IClassFixture<
                                 .Include(i => i.Payments)
                                 .SingleOrDefaultAsync(i => i.Id == invoiceId));
 
+        /// <summary>Stands in for the retry delays passing, so a test need not wait for real time.</summary>
+        public Task ElapseRetryDelaysAsync() =>
+            WithDbAsync(db => db.SyncedEvents.ExecuteUpdateAsync(s => s.SetProperty(e => e.NextAttemptAtUtc, (DateTime?)null)));
+
         public ValueTask DisposeAsync() => _services.DisposeAsync();
 
         private sealed class RecordingLogger : ILogger<EventProcessor>
@@ -324,7 +366,7 @@ public class EventProcessorTests(CloudPostgresFixture postgres) : IClassFixture<
 
             public IDisposable? BeginScope<TState>(TState state) where TState : notnull => null;
 
-            public bool IsEnabled(LogLevel logLevel) => logLevel >= LogLevel.Error;
+            public bool IsEnabled(LogLevel logLevel) => logLevel >= LogLevel.Warning;
 
             public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception? exception,
                 Func<TState, Exception?, string> formatter)

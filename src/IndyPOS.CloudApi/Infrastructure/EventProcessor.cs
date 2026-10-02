@@ -24,6 +24,22 @@ public class EventProcessor : BackgroundService
     /// </summary>
     internal static readonly IReadOnlyCollection<string> HandledEventTypes = ["InvoiceCompleted"];
 
+    /// <summary>
+    /// Backoff for a failed event, as the store outbox does (SyncWorker): fast at first, because a
+    /// reprint usually waits only seconds for its invoice, then doubling to an hourly retry.
+    /// Nothing is ever dropped. From ManualReviewAfterAttempts on, each failure is an Error.
+    /// </summary>
+    internal static readonly TimeSpan FirstRetryDelay = TimeSpan.FromSeconds(5);
+    internal static readonly TimeSpan MaxRetryDelay = TimeSpan.FromHours(1);
+    internal const int ManualReviewAfterAttempts = 10;
+
+    internal static TimeSpan RetryDelay(int earlierFailures)
+    {
+        var seconds = FirstRetryDelay.TotalSeconds * Math.Pow(2, earlierFailures);
+
+        return seconds >= MaxRetryDelay.TotalSeconds ? MaxRetryDelay : TimeSpan.FromSeconds(seconds);
+    }
+
     public EventProcessor(IServiceScopeFactory scopeFactory, ILogger<EventProcessor> logger)
     {
         _scopeFactory = scopeFactory;
@@ -66,10 +82,24 @@ public class EventProcessor : BackgroundService
             {
                 await ProcessEventAsync(syncedEvent, dbContext, eventRepository, cancellationToken);
             }
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+            {
+                // Shutting down is not a failed attempt; it must not count against the event.
+                throw;
+            }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Failed to process event {EventId} of type {EventType}",
-                    syncedEvent.EventId, syncedEvent.EventType);
+                var attempts = syncedEvent.Attempts + 1;
+                var nextAttemptAtUtc = DateTime.UtcNow + RetryDelay(syncedEvent.Attempts);
+
+                // Waiting until then, the event is not fetched, so it cannot starve the batch.
+                await eventRepository.MarkFailedAsync(syncedEvent.EventId, nextAttemptAtUtc, cancellationToken);
+
+                _logger.Log(
+                    attempts >= ManualReviewAfterAttempts ? LogLevel.Error : LogLevel.Warning,
+                    ex,
+                    "Event {EventId} of type {EventType} failed (attempt {Attempts}); retrying at {NextAttemptAtUtc}",
+                    syncedEvent.EventId, syncedEvent.EventType, attempts, nextAttemptAtUtc);
             }
             finally
             {
