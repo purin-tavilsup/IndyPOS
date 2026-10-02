@@ -227,4 +227,19 @@ public class GetSaleQueryHandlerTests
         sale!.Lines.Single().Note.Should()
                                  .Be("ถุงใหญ่");
     }
+
+    // The catalogue key (StoreId, Code) is case-sensitive, so a store can hold both "Cash" and "cash".
+    [Fact]
+    public async Task HandleById_WithCatalogueCodesDifferingOnlyByCase_ReturnsTheBill()
+    {
+        await using var c = new SalesHistoryTestContext();
+        await c.SeedPaymentMethodAsync(PaymentMethodCodes.Cash, "เงินสด");
+        await c.SeedPaymentMethodAsync(PaymentMethodCodes.Cash.ToLowerInvariant(), "เงินสด (เก่า)");
+        var invoice = await c.SeedInvoiceAsync(new InvoiceSeed(KnownNumber, NineAmTodayUtc));
+
+        var sale = await c.DetailHandler().HandleAsync(new GetSaleByIdQuery(invoice.Id, CanViewAnyDay: false));
+
+        sale.Should()
+            .NotBeNull();
+    }
 }
