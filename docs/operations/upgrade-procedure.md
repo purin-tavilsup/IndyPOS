@@ -293,6 +293,38 @@ columns succeeded and its invoice row took a number from the default, above ever
 no duplicate `(store_id, invoice_number)`. The column is `NOT NULL`, which the gate allows because it
 has a default. Verified 2026-10-01 with `postgres:16-alpine` in a throwaway `gate` container on port 55510.
 
+Result for the route tidy-up release, StoreHub (1 migration, `AddInventoryMovementUser`):
+`inventory_movement` gained one column, `created_by_user_id uuid NULL`, with no default; no other
+column changed. The schema was applied up to the previous release's last migration
+(`20261002044203_AddInvoiceReprintTable`), then to the latest, and the two
+`information_schema.columns` snapshots differed only by that column. A complete sale (`product` ->
+`invoice` -> `invoice_line` -> `payment` -> `inventory_movement`) and a stock adjustment were then
+written in one transaction, naming only the previous release's columns; both movements took `NULL`
+for the new column. Verified 2026-10-02 with `postgres:16-alpine` in a throwaway `gate`
+container on port 55510.
+
+**The cloud database needs the same gate** whenever a release adds a CloudApi migration: a cloud
+rollback restores binaries, not schema, so the previous CloudApi must still ingest and process into
+the new schema. `CloudDbContextDesignTimeFactory` reads `ConnectionStrings__cloud-db`, so point
+`dotnet ef` at a throwaway database that way:
+
+```powershell
+docker run -d --name gate-cloud -e POSTGRES_PASSWORD=pass -e POSTGRES_DB=cloud -p 55511:5432 postgres:16-alpine
+${env:ConnectionStrings__cloud-db} = "Host=localhost;Port=55511;Database=cloud;Username=postgres;Password=pass"
+dotnet ef database update <previous release's last cloud migration> --project src/IndyPOS.CloudApi
+# snapshot information_schema.columns, update to the latest, snapshot again and diff
+```
+
+Then `INSERT` a `"SyncedEvents"` row naming only the previous release's columns, and mark it
+processed with an `UPDATE`, as the old `IngestEventsCommandHandler` and `EventProcessor` do.
+
+Result for the route tidy-up release, cloud (1 migration, `AddSyncedEventSourceStore`): `SyncedEvents`
+gained one column, `SourceStoreId character varying(50) NULL` with a comment, and one index; no other
+column changed. A row inserted naming only the previous release's columns (from
+`20261002073625_AddInvoiceReprints`) and then marked processed succeeded, and its `SourceStoreId`
+stayed `NULL`. Such a row is counted for no store by `/sync/status`. Verified 2026-10-02
+with `postgres:16-alpine` in a throwaway `gate-cloud` container on port 55511.
+
 ---
 
 ## Change Log
@@ -303,3 +335,4 @@ has a default. Verified 2026-10-01 with `postgres:16-alpine` in a throwaway `gat
 | 2026-08-17 | Added the forward-only gate verification, and ran it against the release's 3 migrations |
 | 2026-09-27 | Ran the gate against the cash-drawer release's 1 migration (`AddCashDrawerTables`) at 816 (815 pass, 1 skipped); the release's final-review fixes then brought the count to 841 (840 pass, 1 skipped) |
 | 2026-10-01 | Ran the gate against the invoice-history release's 2 migrations (AddInvoiceNumber, AddInvoiceReprintTable) |
+| 2026-10-02 | Ran the gate against the route tidy-up release's 2 migrations (StoreHub `AddInventoryMovementUser`, cloud `AddSyncedEventSourceStore`); added the cloud variant of the recipe |
