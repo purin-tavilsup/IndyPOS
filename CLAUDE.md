@@ -170,9 +170,10 @@ See `docs/operations/upgrade-procedure.md`, which now carries a **recipe for ver
 apply the release's schema, then write a complete sale using only the columns that existed before it.
 Verified for the 2026-08-17 release's three migrations, the cash-drawer release's
 `AddCashDrawerTables`, the invoice-history release's `AddInvoiceNumber` and `AddInvoiceReprintTable`,
-and the route tidy-up release's StoreHub `AddInventoryMovementUser` and cloud
-`AddSyncedEventSourceStore` (the cloud variant of the recipe is in the same doc); before that it had
-only ever been reasoned about.
+invoice-history plan 2's cloud `AddInvoiceNumberToInvoices`, `AddInboxRetrySchedule` and
+`AddInvoiceReprints`, and the route tidy-up release's StoreHub `AddInventoryMovementUser` and cloud
+`AddSyncedEventSourceStore` (the cloud variant of the recipe is in the same doc). Before the
+2026-08-17 release the gate had only ever been reasoned about.
 
 ### Method Chaining Style
 ```csharp
