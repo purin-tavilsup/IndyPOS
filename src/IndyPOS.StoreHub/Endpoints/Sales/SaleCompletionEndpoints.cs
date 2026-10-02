@@ -19,8 +19,8 @@ internal static class SaleCompletionEndpoints
             CompleteSaleRequest request,
             CancellationToken cancellationToken) =>
         {
-            // The seller is whoever the token says, never the body: a body UserId let any caller ring a sale
-            // up as someone else. request.UserId is deprecated and ignored.
+            // The seller is whoever the token says. The body has no user field: one once let any caller
+            // ring a sale up as someone else.
             var command = new CompleteSaleCommand(
                 StoreId: storeIdentity.StoreId,
                 UserId: user.GetRequiredUserId(),

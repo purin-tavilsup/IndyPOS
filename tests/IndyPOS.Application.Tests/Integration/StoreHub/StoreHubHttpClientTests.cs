@@ -126,7 +126,6 @@ public class StoreHubHttpClientTests
         _sut.SetAuthToken("valid-token");
 
         var request = new CompleteSaleRequest(
-            UserId: Guid.NewGuid(),
             Lines: new List<SaleLineRequest>
             {
                 new(ProductId: Guid.NewGuid(), Quantity: 2, UnitPrice: 100m)

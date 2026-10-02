@@ -31,8 +31,8 @@ public class SalesEndpointTests : IntegrationTestBase
         response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
     }
 
-    // The route took UserId from the body, so any caller could ring a sale up as anyone. The token is
-    // the only authority; the body's UserId is ignored.
+    // The route once took UserId from the body, so any caller could ring a sale up as anyone. The token is
+    // the only authority: a till that still sends a userId is ignored.
     [Fact]
     public async Task CompleteSale_WithAnotherUsersIdInTheBody_RecordsTheSaleUnderTheTokensUser()
     {
@@ -40,10 +40,12 @@ public class SalesEndpointTests : IntegrationTestBase
         await AuthenticateAsAsync(cashier, "Password123!", UserRole.Cashier);
         var someoneElse = await CreateTestUserAsync($"other_{Guid.NewGuid():N}", "Password123!");
         var product = await CreateTestProductAsync(unitPrice: 100m, initialStock: 10);
-        var request = new CompleteSaleRequest(
-            UserId: someoneElse.Id,
-            Lines: [new SaleLineRequest(product.Id, Quantity: 1, UnitPrice: 100m)],
-            Payments: [new SalePaymentRequest("Cash", Amount: 100m)]);
+        var request = new
+        {
+            userId = someoneElse.Id,
+            lines = new[] { new SaleLineRequest(product.Id, Quantity: 1, UnitPrice: 100m) },
+            payments = new[] { new SalePaymentRequest("Cash", Amount: 100m) }
+        };
 
         var response = await Client.PostAsJsonAsync("/sales/complete", request);
 
@@ -60,10 +62,12 @@ public class SalesEndpointTests : IntegrationTestBase
         var cashier = $"cashier_{Guid.NewGuid():N}";
         await AuthenticateAsAsync(cashier, "Password123!", UserRole.Cashier);
         var product = await CreateTestProductAsync(unitPrice: 100m, initialStock: 10);
-        var request = new CompleteSaleRequest(
-            UserId: Guid.NewGuid(),
-            Lines: [new SaleLineRequest(product.Id, Quantity: 1, UnitPrice: 100m)],
-            Payments: [new SalePaymentRequest("Cash", Amount: 100m)]);
+        var request = new
+        {
+            userId = Guid.NewGuid(),
+            lines = new[] { new SaleLineRequest(product.Id, Quantity: 1, UnitPrice: 100m) },
+            payments = new[] { new SalePaymentRequest("Cash", Amount: 100m) }
+        };
 
         var response = await Client.PostAsJsonAsync("/sales/complete", request);
 
@@ -83,7 +87,6 @@ public class SalesEndpointTests : IntegrationTestBase
         var product = await CreateTestProductAsync(unitPrice: 100m, initialStock: 10);
         Client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", TokenWithoutUserId());
         var request = new CompleteSaleRequest(
-            UserId: Guid.NewGuid(),
             Lines: [new SaleLineRequest(product.Id, Quantity: 1, UnitPrice: 100m)],
             Payments: [new SalePaymentRequest("Cash", Amount: 100m)]);
 
@@ -91,6 +94,26 @@ public class SalesEndpointTests : IntegrationTestBase
 
         response.StatusCode.Should()
                            .Be(HttpStatusCode.Unauthorized);
+    }
+
+    // A till older than this release still sends userId. The request no longer has the member, and
+    // System.Text.Json ignores an unknown one by default, so the sale must still go through.
+    [Fact]
+    public async Task CompleteSale_WithAStaleUserIdInTheBody_AcceptsTheSale()
+    {
+        await AuthenticateAsCashierAsync();
+        var product = await CreateTestProductAsync(unitPrice: 100m, initialStock: 10);
+        var body = new
+        {
+            userId = Guid.NewGuid(),
+            lines = new[] { new { productId = product.Id, quantity = 1, unitPrice = 100m } },
+            payments = new[] { new { method = "Cash", amount = 100m } }
+        };
+
+        var response = await Client.PostAsJsonAsync("/sales/complete", body);
+
+        response.StatusCode.Should()
+                           .Be(HttpStatusCode.OK);
     }
 
     private async Task<Guid> RecordedUserOfAsync(Guid invoiceId)
@@ -115,10 +138,8 @@ public class SalesEndpointTests : IntegrationTestBase
         // Arrange
         await AuthenticateAsCashierAsync();
         var product = await CreateTestProductAsync(unitPrice: 100m, initialStock: 50);
-        var user = await CreateTestUserAsync($"seller_{Guid.NewGuid():N}", "Password123!");
 
         var request = new CompleteSaleRequest(
-            UserId: user.Id,
             Lines: [new SaleLineRequest(product.Id, Quantity: 2, UnitPrice: 100m)],
             Payments: [new SalePaymentRequest("Cash", Amount: 200m)]);
 
@@ -140,10 +161,8 @@ public class SalesEndpointTests : IntegrationTestBase
         // Arrange
         await AuthenticateAsCashierAsync();
         var product = await CreateTestProductAsync(unitPrice: 150m, initialStock: 100);
-        var user = await CreateTestUserAsync($"seller_{Guid.NewGuid():N}", "Password123!");
 
         var request = new CompleteSaleRequest(
-            UserId: user.Id,
             Lines: [new SaleLineRequest(product.Id, Quantity: 2, UnitPrice: 150m)],
             Payments:
             [
@@ -169,10 +188,8 @@ public class SalesEndpointTests : IntegrationTestBase
         await AuthenticateAsCashierAsync();
         var product1 = await CreateTestProductAsync(name: "Product1", unitPrice: 50m, initialStock: 100);
         var product2 = await CreateTestProductAsync(name: "Product2", unitPrice: 75m, initialStock: 100);
-        var user = await CreateTestUserAsync($"seller_{Guid.NewGuid():N}", "Password123!");
 
         var request = new CompleteSaleRequest(
-            UserId: user.Id,
             Lines:
             [
                 new SaleLineRequest(product1.Id, Quantity: 3, UnitPrice: 50m),  // 150
@@ -197,11 +214,9 @@ public class SalesEndpointTests : IntegrationTestBase
         // Arrange
         await AuthenticateAsCashierAsync();
         var product = await CreateTestProductAsync(unitPrice: 100m, initialStock: 50);
-        var user = await CreateTestUserAsync($"seller_{Guid.NewGuid():N}", "Password123!");
         var initialStock = await GetProductStockAsync(product.Id);
 
         var request = new CompleteSaleRequest(
-            UserId: user.Id,
             Lines: [new SaleLineRequest(product.Id, Quantity: 5, UnitPrice: 100m)],
             Payments: [new SalePaymentRequest("Cash", Amount: 500m)]);
 
@@ -221,10 +236,8 @@ public class SalesEndpointTests : IntegrationTestBase
     {
         // Arrange
         await AuthenticateAsCashierAsync();
-        var user = await CreateTestUserAsync($"seller_{Guid.NewGuid():N}", "Password123!");
 
         var request = new CompleteSaleRequest(
-            UserId: user.Id,
             Lines: [],
             Payments: [new SalePaymentRequest("Cash", Amount: 0m)]);
 
@@ -246,10 +259,8 @@ public class SalesEndpointTests : IntegrationTestBase
         // Arrange
         await AuthenticateAsManagerAsync();
         var product = await CreateTestProductAsync(unitPrice: 200m, initialStock: 20);
-        var user = await CreateTestUserAsync($"seller_{Guid.NewGuid():N}", "Password123!");
 
         var request = new CompleteSaleRequest(
-            UserId: user.Id,
             Lines: [new SaleLineRequest(product.Id, Quantity: 1, UnitPrice: 200m)],
             Payments: [new SalePaymentRequest("Cash", Amount: 200m)]);
 
@@ -260,12 +271,11 @@ public class SalesEndpointTests : IntegrationTestBase
         response.StatusCode.Should().Be(HttpStatusCode.OK);
     }
 
-    // The body's UserId is ignored (the token decides), so any value will do.
+    // The token decides the seller; the body carries only lines and payments.
     private async Task<CompleteSaleRequest> OneCashSaleRequestAsync()
     {
         var product = await CreateTestProductAsync(unitPrice: 10m, initialStock: 100);
         return new CompleteSaleRequest(
-            UserId: Guid.NewGuid(),
             Lines: [new SaleLineRequest(product.Id, Quantity: 1, UnitPrice: 10m)],
             Payments: [new SalePaymentRequest("Cash", Amount: 10m)]);
     }

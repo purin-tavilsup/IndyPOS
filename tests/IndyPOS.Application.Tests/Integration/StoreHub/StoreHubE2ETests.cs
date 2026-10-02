@@ -70,7 +70,6 @@ public class StoreHubE2ETests : IDisposable
 
         // Act 3 - Complete Sale
         var saleRequest = new CompleteSaleRequest(
-            UserId: userId,
             Lines: new List<SaleLineRequest>
             {
                 new(ProductId: productId, Quantity: 2, UnitPrice: 7m)

@@ -20,7 +20,6 @@ headers {
 
 body:json {
   {
-    "userId": "{{userId}}",
     "lines": [
       {
         "productId": "{{productId}}",
@@ -38,7 +37,6 @@ body:json {
 }
 
 vars:pre-request {
-  userId: 00000000-0000-0000-0000-000000000000
   productId: 00000000-0000-0000-0000-000000000000
 }
 
@@ -52,9 +50,10 @@ docs {
   **How to use:**
   1. Login first (to set `token`)
   2. Call "Get All Products" to get real `productId`
-  3. Update `userId` from login response
-  4. Update `productId` in the request body
-  5. Execute this request
+  3. Update `productId` in the request body
+  4. Execute this request
+
+  The seller comes from the token.
 
   **Payment methods:**
   - `Cash`
