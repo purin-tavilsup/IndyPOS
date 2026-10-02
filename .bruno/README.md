@@ -109,6 +109,10 @@ API collection for testing IndyPOS StoreHub API using [Bruno](https://www.usebru
 | Method | Endpoint | Description | Role |
 |--------|----------|-------------|------|
 | POST | /sales/complete | Complete a sale | Cashier+ |
+| GET | /sales | List bills (defaults to today) | Cashier+ |
+| GET | /sales/{id} | Bill detail by id | Cashier+ |
+| GET | /sales/{number} | Bill detail by bill number | Cashier+ |
+| POST | /sales/{id}/reprints | Record a reprint | Cashier+ |
 
 ### Pay Later (Credit)
 | Method | Endpoint | Description | Role |
@@ -121,8 +125,6 @@ API collection for testing IndyPOS StoreHub API using [Bruno](https://www.usebru
 | Method | Endpoint | Description | Role |
 |--------|----------|-------------|------|
 | GET | /reports/sales-summary | Sales summary | Manager+ |
-| GET | /reports/invoices | List invoices | Manager+ |
-| GET | /reports/invoices/{id} | Invoice detail | Manager+ |
 | GET | /reports/pay-later | Pay-later report | Manager+ |
 | GET | /reports/product-sales | Product sales | Manager+ |
 
