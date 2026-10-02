@@ -22,6 +22,9 @@ public class SalesHistoryEndpointsTests : IntegrationTestBase
     private const int PageSizeAboveMaximum = SalesQueryRules.MaxPageSize + 1;
     private const string OverflowingNumber = "99999999999999999999";
 
+    // 32 digits: a valid "N"-format GUID that also parses as the long 1, so it fits both typed routes.
+    private const string DigitsOnlyGuid = "00000000000000000000000000000001";
+
     public SalesHistoryEndpointsTests(StoreHubWebApplicationFactory factory) : base(factory) { }
 
     private static DateOnly Today => DateOnly.FromDateTime(DateTime.Now);
@@ -219,6 +222,17 @@ public class SalesHistoryEndpointsTests : IntegrationTestBase
 
         response.StatusCode.Should()
                            .Be(HttpStatusCode.BadRequest);
+    }
+
+    [Fact]
+    public async Task GetSale_WithADigitsOnlyGuid_ReturnsNotFound()
+    {
+        await AuthenticateAsManagerAsync();
+
+        var response = await Client.GetAsync($"/sales/{DigitsOnlyGuid}");
+
+        response.StatusCode.Should()
+                           .Be(HttpStatusCode.NotFound);
     }
 
     [Fact]
