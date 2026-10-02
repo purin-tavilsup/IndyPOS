@@ -56,6 +56,11 @@ public class EventProcessor : BackgroundService
             {
                 await ProcessPendingEventsAsync(stoppingToken);
             }
+            catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
+            {
+                // Shutdown, not a failure: leave the loop quietly instead of logging an Error.
+                break;
+            }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error processing events");
@@ -92,14 +97,15 @@ public class EventProcessor : BackgroundService
                 var attempts = syncedEvent.Attempts + 1;
                 var nextAttemptAtUtc = DateTime.UtcNow + RetryDelay(syncedEvent.Attempts);
 
-                // Waiting until then, the event is not fetched, so it cannot starve the batch.
-                await eventRepository.MarkFailedAsync(syncedEvent.EventId, nextAttemptAtUtc, cancellationToken);
-
+                // Logged first, so the handler's exception survives even if the mark below throws.
                 _logger.Log(
                     attempts >= ManualReviewAfterAttempts ? LogLevel.Error : LogLevel.Warning,
                     ex,
                     "Event {EventId} of type {EventType} failed (attempt {Attempts}); retrying at {NextAttemptAtUtc}",
                     syncedEvent.EventId, syncedEvent.EventType, attempts, nextAttemptAtUtc);
+
+                // Waiting until then, the event is not fetched, so it cannot starve the batch.
+                await eventRepository.MarkFailedAsync(syncedEvent.EventId, nextAttemptAtUtc, cancellationToken);
             }
             finally
             {
@@ -154,17 +160,14 @@ public class EventProcessor : BackgroundService
             syncedEvent.EventId, syncedEvent.EventType);
     }
 
-    private async Task ProcessInvoiceCompletedAsync(
+    private static async Task ProcessInvoiceCompletedAsync(
         SyncedEventEntity syncedEvent,
         CloudDbContext dbContext,
         CancellationToken cancellationToken)
     {
-        var eventData = JsonSerializer.Deserialize<InvoiceCompletedEvent>(syncedEvent.Payload);
-        if (eventData is null)
-        {
-            _logger.LogError("Failed to deserialize InvoiceCompletedEvent for {EventId}", syncedEvent.EventId);
-            return;
-        }
+        // Throwing leaves the event unprocessed to retry; returning would mark it and lose the sale.
+        var eventData = JsonSerializer.Deserialize<InvoiceCompletedEvent>(syncedEvent.Payload)
+            ?? throw new InvalidOperationException($"InvoiceCompleted {syncedEvent.EventId} has an empty payload.");
 
         var now = DateTime.UtcNow;
 
