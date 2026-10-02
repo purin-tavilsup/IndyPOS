@@ -55,6 +55,13 @@ public class CloudDbContext : DbContext
             entity.HasIndex(e => e.CreatedAtUtc);
             entity.Property(e => e.StoreId).HasMaxLength(50);
             entity.Property(e => e.TotalAmount).HasPrecision(18, 2);
+
+            // Not unique, on purpose. A store reset to Fresh and migrated again (rollout Rule 1)
+            // re-imports the same numbers under new invoice ids. A unique index would turn that into
+            // an event that fails forever and holds an inbox batch slot. Duplicates stay queryable.
+            entity.Property(e => e.InvoiceNumber)
+                  .HasComment("Bill number printed on the receipt, per store; v3 history keeps its v3 number. NULL for a sale synced before bill numbers existed.");
+            entity.HasIndex(e => new { e.StoreId, e.InvoiceNumber });
         });
 
         // CloudInvoiceLine

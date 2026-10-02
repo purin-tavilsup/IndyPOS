@@ -13,6 +13,12 @@ public class CloudInvoice
     public DateTime CreatedAtUtc { get; set; }
     public DateTime SyncedAtUtc { get; set; }
 
+    /// <summary>
+    /// The bill number printed on the receipt, unique within a store. Migrated v3 history keeps
+    /// its v3 number. Null for a sale synced before bill numbers existed.
+    /// </summary>
+    public long? InvoiceNumber { get; set; }
+
     // Navigation properties
     public ICollection<CloudInvoiceLine> Lines { get; set; } = new List<CloudInvoiceLine>();
     public ICollection<CloudPayment> Payments { get; set; } = new List<CloudPayment>();

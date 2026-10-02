@@ -115,6 +115,10 @@ namespace IndyPOS.CloudApi.Infrastructure.Migrations
                     b.Property<DateTime>("CreatedAtUtc")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<long?>("InvoiceNumber")
+                        .HasColumnType("bigint")
+                        .HasComment("Bill number printed on the receipt, per store; v3 history keeps its v3 number. NULL for a sale synced before bill numbers existed.");
+
                     b.Property<string>("StoreId")
                         .IsRequired()
                         .HasMaxLength(50)
@@ -135,6 +139,8 @@ namespace IndyPOS.CloudApi.Infrastructure.Migrations
                     b.HasIndex("CreatedAtUtc");
 
                     b.HasIndex("StoreId");
+
+                    b.HasIndex("StoreId", "InvoiceNumber");
 
                     b.ToTable("Invoices");
                 });
