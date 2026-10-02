@@ -26,6 +26,7 @@ public class CloudDbContext : DbContext
     public DbSet<CloudInvoiceLine> InvoiceLines => Set<CloudInvoiceLine>();
     public DbSet<CloudPayment> Payments => Set<CloudPayment>();
     public DbSet<CloudInventoryMovement> InventoryMovements => Set<CloudInventoryMovement>();
+    public DbSet<CloudInvoiceReprint> InvoiceReprints => Set<CloudInvoiceReprint>();
 
     // Master data - distributed to stores
     public DbSet<CloudProduct> Products => Set<CloudProduct>();
@@ -55,6 +56,13 @@ public class CloudDbContext : DbContext
             entity.HasIndex(e => e.CreatedAtUtc);
             entity.Property(e => e.StoreId).HasMaxLength(50);
             entity.Property(e => e.TotalAmount).HasPrecision(18, 2);
+
+            // Not unique, on purpose. A store reset to Fresh and migrated again (rollout Rule 1)
+            // re-imports the same numbers under new invoice ids. A unique index would turn that into
+            // an event that fails forever and holds an inbox batch slot. Duplicates stay queryable.
+            entity.Property(e => e.InvoiceNumber)
+                  .HasComment("Bill number printed on the receipt, per store; v3 history keeps its v3 number. NULL for a sale synced before bill numbers existed.");
+            entity.HasIndex(e => new { e.StoreId, e.InvoiceNumber });
         });
 
         // CloudInvoiceLine
@@ -90,6 +98,27 @@ public class CloudDbContext : DbContext
             entity.HasIndex(e => e.ReferenceId);
             entity.Property(e => e.StoreId).HasMaxLength(50);
             entity.Property(e => e.Reason).HasMaxLength(50);
+        });
+
+        // CloudInvoiceReprint - insert-only audit mirror, read by dashboards and AI agents
+        modelBuilder.Entity<CloudInvoiceReprint>(entity =>
+        {
+            entity.ToTable(t => t.HasComment("Every bill reprint a store requested (insert-only audit). One row per press of reprint; a failed print still counts."));
+            entity.HasKey(e => e.Id);
+            entity.HasIndex(e => e.InvoiceId);
+            entity.HasIndex(e => new { e.StoreId, e.CreatedAtUtc });
+            entity.Property(e => e.Id).HasComment("The store's reprint id (invoice_reprint.id on the till).");
+            entity.Property(e => e.InvoiceId).HasComment("The reprinted bill; Invoices.Id.");
+            entity.Property(e => e.StoreId).HasMaxLength(50).HasComment("The store that reprinted the bill.");
+            entity.Property(e => e.CreatedByUserId).HasComment("The user who pressed reprint.");
+            entity.Property(e => e.CreatedAtUtc).HasComment("When reprint was pressed, UTC.");
+            entity.Property(e => e.SyncedAtUtc).HasComment("When this row reached the cloud, UTC.");
+
+            // A backstop to the handler's ordering guard: no reprint row without its bill.
+            entity.HasOne<CloudInvoice>()
+                  .WithMany()
+                  .HasForeignKey(e => e.InvoiceId)
+                  .OnDelete(DeleteBehavior.Restrict);
         });
 
         // ProcessedEvent - for idempotency

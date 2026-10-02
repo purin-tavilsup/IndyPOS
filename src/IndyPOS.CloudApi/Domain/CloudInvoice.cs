@@ -13,6 +13,14 @@ public class CloudInvoice
     public DateTime CreatedAtUtc { get; set; }
     public DateTime SyncedAtUtc { get; set; }
 
+    /// <summary>
+    /// The bill number printed on the receipt. The till keeps it unique within a store; the cloud does
+    /// not enforce that, because a store reset to Fresh and migrated again re-imports the same numbers
+    /// under new invoice ids. Migrated v3 history keeps its v3 number. Null for a sale synced before
+    /// bill numbers existed.
+    /// </summary>
+    public long? InvoiceNumber { get; set; }
+
     // Navigation properties
     public ICollection<CloudInvoiceLine> Lines { get; set; } = new List<CloudInvoiceLine>();
     public ICollection<CloudPayment> Payments { get; set; } = new List<CloudPayment>();

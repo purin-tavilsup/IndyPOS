@@ -49,6 +49,60 @@ public class DbSyncedEventRepositoryTests(CloudPostgresFixture postgres) : IClas
                                                        .BeNull();
     }
 
+    [Fact]
+    public async Task GetUnprocessedAsync_WithAnEventNotYetDueForRetry_SkipsIt()
+    {
+        await using var db = CloudPostgresFixture.CreateContext(await postgres.CreateDatabaseAsync());
+        var waiting = await AddEventAsync(db);
+        await new DbSyncedEventRepository(db).MarkFailedAsync(waiting.EventId, DateTime.UtcNow.AddHours(1));
+
+        var batch = await new DbSyncedEventRepository(db).GetUnprocessedAsync(["InvoiceCompleted"]);
+
+        batch.Should()
+             .BeEmpty();
+    }
+
+    [Fact]
+    public async Task GetUnprocessedAsync_WithAnEventWhoseRetryIsDue_ReturnsIt()
+    {
+        await using var db = CloudPostgresFixture.CreateContext(await postgres.CreateDatabaseAsync());
+        var due = await AddEventAsync(db);
+        await new DbSyncedEventRepository(db).MarkFailedAsync(due.EventId, DateTime.UtcNow.AddSeconds(-1));
+
+        var batch = await new DbSyncedEventRepository(db).GetUnprocessedAsync(["InvoiceCompleted"]);
+
+        batch.Select(e => e.EventId).Should()
+                                    .Equal(due.EventId);
+    }
+
+    // Ingest stamps one ReceivedAtUtc on a whole batch; only the identity Id keeps the store's order.
+    [Fact]
+    public async Task GetUnprocessedAsync_WithEventsReceivedAtTheSameInstant_ReturnsThemInArrivalOrder()
+    {
+        await using var db = CloudPostgresFixture.CreateContext(await postgres.CreateDatabaseAsync());
+        var receivedAtUtc = DateTime.UtcNow;
+        var sentSecond = await AddEventAsync(db, id: 2, receivedAtUtc);
+        var sentFirst = await AddEventAsync(db, id: 1, receivedAtUtc);
+
+        var batch = await new DbSyncedEventRepository(db).GetUnprocessedAsync(["InvoiceCompleted"]);
+
+        batch.Select(e => e.EventId).Should()
+                                    .Equal(sentFirst.EventId, sentSecond.EventId);
+    }
+
+    [Fact]
+    public async Task MarkFailedAsync_WithAStoredEvent_CountsTheAttempt()
+    {
+        await using var db = CloudPostgresFixture.CreateContext(await postgres.CreateDatabaseAsync());
+        var failed = await AddEventAsync(db);
+
+        await new DbSyncedEventRepository(db).MarkFailedAsync(failed.EventId, DateTime.UtcNow);
+        await new DbSyncedEventRepository(db).MarkFailedAsync(failed.EventId, DateTime.UtcNow);
+
+        (await db.SyncedEvents.AsNoTracking().SingleAsync(e => e.EventId == failed.EventId)).Attempts.Should()
+                                                                                                    .Be(2);
+    }
+
     private static async Task<SyncedEventEntity> AddEventAsync(CloudDbContext db)
     {
         var entity = new SyncedEventEntity
@@ -59,6 +113,24 @@ public class DbSyncedEventRepositoryTests(CloudPostgresFixture postgres) : IClas
             Payload = "{}",
             CreatedAtUtc = DateTime.UtcNow,
             ReceivedAtUtc = DateTime.UtcNow
+        };
+        db.SyncedEvents.Add(entity);
+        await db.SaveChangesAsync();
+
+        return entity;
+    }
+
+    private static async Task<SyncedEventEntity> AddEventAsync(CloudDbContext db, long id, DateTime receivedAtUtc)
+    {
+        var entity = new SyncedEventEntity
+        {
+            Id = id,
+            EventId = Guid.NewGuid(),
+            StoreId = 1,
+            EventType = "InvoiceCompleted",
+            Payload = "{}",
+            CreatedAtUtc = receivedAtUtc,
+            ReceivedAtUtc = receivedAtUtc
         };
         db.SyncedEvents.Add(entity);
         await db.SaveChangesAsync();

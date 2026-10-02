@@ -22,7 +22,23 @@ public class EventProcessor : BackgroundService
     /// must wait for their handler rather than be marked processed and lost, or fill the batch and
     /// starve the sales behind them. A new handler goes here and in the switch together.
     /// </summary>
-    internal static readonly IReadOnlyCollection<string> HandledEventTypes = ["InvoiceCompleted"];
+    internal static readonly IReadOnlyCollection<string> HandledEventTypes = ["InvoiceCompleted", "InvoiceReprinted"];
+
+    /// <summary>
+    /// Backoff for a failed event, as the store outbox does (SyncWorker): fast at first, because a
+    /// reprint usually waits only seconds for its invoice, then doubling to an hourly retry.
+    /// Nothing is ever dropped. From ManualReviewAfterAttempts on, each failure is an Error.
+    /// </summary>
+    internal static readonly TimeSpan FirstRetryDelay = TimeSpan.FromSeconds(5);
+    internal static readonly TimeSpan MaxRetryDelay = TimeSpan.FromHours(1);
+    internal const int ManualReviewAfterAttempts = 10;
+
+    internal static TimeSpan RetryDelay(int earlierFailures)
+    {
+        var seconds = FirstRetryDelay.TotalSeconds * Math.Pow(2, earlierFailures);
+
+        return seconds >= MaxRetryDelay.TotalSeconds ? MaxRetryDelay : TimeSpan.FromSeconds(seconds);
+    }
 
     public EventProcessor(IServiceScopeFactory scopeFactory, ILogger<EventProcessor> logger)
     {
@@ -39,6 +55,11 @@ public class EventProcessor : BackgroundService
             try
             {
                 await ProcessPendingEventsAsync(stoppingToken);
+            }
+            catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
+            {
+                // Shutdown, not a failure: leave the loop quietly instead of logging an Error.
+                break;
             }
             catch (Exception ex)
             {
@@ -66,10 +87,25 @@ public class EventProcessor : BackgroundService
             {
                 await ProcessEventAsync(syncedEvent, dbContext, eventRepository, cancellationToken);
             }
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+            {
+                // Shutting down is not a failed attempt; it must not count against the event.
+                throw;
+            }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Failed to process event {EventId} of type {EventType}",
-                    syncedEvent.EventId, syncedEvent.EventType);
+                var attempts = syncedEvent.Attempts + 1;
+                var nextAttemptAtUtc = DateTime.UtcNow + RetryDelay(syncedEvent.Attempts);
+
+                // Logged first, so the handler's exception survives even if the mark below throws.
+                _logger.Log(
+                    attempts >= ManualReviewAfterAttempts ? LogLevel.Error : LogLevel.Warning,
+                    ex,
+                    "Event {EventId} of type {EventType} failed (attempt {Attempts}); retrying at {NextAttemptAtUtc}",
+                    syncedEvent.EventId, syncedEvent.EventType, attempts, nextAttemptAtUtc);
+
+                // Waiting until then, the event is not fetched, so it cannot starve the batch.
+                await eventRepository.MarkFailedAsync(syncedEvent.EventId, nextAttemptAtUtc, cancellationToken);
             }
             finally
             {
@@ -105,6 +141,10 @@ public class EventProcessor : BackgroundService
                 await ProcessInvoiceCompletedAsync(syncedEvent, dbContext, cancellationToken);
                 break;
 
+            case "InvoiceReprinted":
+                await ProcessInvoiceReprintedAsync(syncedEvent, dbContext, cancellationToken);
+                break;
+
             // Only HandledEventTypes are fetched, so this means the list and the switch disagree.
             // Throwing leaves the event unprocessed to retry; marking it would drop it for good.
             default:
@@ -120,17 +160,14 @@ public class EventProcessor : BackgroundService
             syncedEvent.EventId, syncedEvent.EventType);
     }
 
-    private async Task ProcessInvoiceCompletedAsync(
+    private static async Task ProcessInvoiceCompletedAsync(
         SyncedEventEntity syncedEvent,
         CloudDbContext dbContext,
         CancellationToken cancellationToken)
     {
-        var eventData = JsonSerializer.Deserialize<InvoiceCompletedEvent>(syncedEvent.Payload);
-        if (eventData is null)
-        {
-            _logger.LogError("Failed to deserialize InvoiceCompletedEvent for {EventId}", syncedEvent.EventId);
-            return;
-        }
+        // Throwing leaves the event unprocessed to retry; returning would mark it and lose the sale.
+        var eventData = JsonSerializer.Deserialize<InvoiceCompletedEvent>(syncedEvent.Payload)
+            ?? throw new InvalidOperationException($"InvoiceCompleted {syncedEvent.EventId} has an empty payload.");
 
         var now = DateTime.UtcNow;
 
@@ -141,6 +178,7 @@ public class EventProcessor : BackgroundService
             UserId = eventData.UserId,
             TotalAmount = eventData.TotalAmount,
             CreatedAtUtc = eventData.CreatedAtUtc,
+            InvoiceNumber = eventData.InvoiceNumber,
             SyncedAtUtc = now
         });
 
@@ -189,6 +227,53 @@ public class EventProcessor : BackgroundService
         // BeginTransactionAsync that used to wrap it was redundant, and that strategy rejects a
         // user-initiated transaction outright -- so it threw on every event and no v4 sale ever
         // reached cloud_invoice.
+        await dbContext.SaveChangesAsync(cancellationToken);
+    }
+
+    /// <remarks>
+    /// Ordering guard (spec §9): a reprint can reach the inbox before its invoice. Throwing leaves
+    /// the event unprocessed, so the retry backoff tries it again once InvoiceCompleted has landed;
+    /// marking it would lose the reprint. The ProcessedEvent row is keyed by the inbox's EventId,
+    /// the id the idempotency check reads, and is saved with the reprint in one SaveChangesAsync.
+    /// </remarks>
+    private static async Task ProcessInvoiceReprintedAsync(
+        SyncedEventEntity syncedEvent,
+        CloudDbContext dbContext,
+        CancellationToken cancellationToken)
+    {
+        var eventData = JsonSerializer.Deserialize<InvoiceReprintedEvent>(syncedEvent.Payload)
+            ?? throw new InvalidOperationException($"InvoiceReprinted {syncedEvent.EventId} has an empty payload.");
+
+        // Ingest checks the event's StoreId against the token, but a payload can still pair its own
+        // StoreId with another store's InvoiceId. Matching the invoice id and the store keeps that
+        // reprint out of both stores' audit trails.
+        var invoiceArrived = await dbContext.Invoices.AnyAsync(
+            i => i.Id == eventData.InvoiceId && i.StoreId == eventData.StoreId, cancellationToken);
+
+        if (!invoiceArrived)
+            throw new InvalidOperationException(
+                $"Reprint {eventData.ReprintId} has no invoice {eventData.InvoiceId} in store {eventData.StoreId} yet; it is retried. If this keeps failing, the invoice may belong to another store.");
+
+        var now = DateTime.UtcNow;
+
+        dbContext.InvoiceReprints.Add(new CloudInvoiceReprint
+        {
+            Id = eventData.ReprintId,
+            InvoiceId = eventData.InvoiceId,
+            StoreId = eventData.StoreId,
+            CreatedByUserId = eventData.CreatedByUserId,
+            CreatedAtUtc = eventData.CreatedUtc,
+            SyncedAtUtc = now
+        });
+
+        dbContext.ProcessedEvents.Add(new ProcessedEvent
+        {
+            EventId = syncedEvent.EventId,
+            EventType = "InvoiceReprinted",
+            StoreId = eventData.StoreId,
+            ProcessedAtUtc = now
+        });
+
         await dbContext.SaveChangesAsync(cancellationToken);
     }
 }

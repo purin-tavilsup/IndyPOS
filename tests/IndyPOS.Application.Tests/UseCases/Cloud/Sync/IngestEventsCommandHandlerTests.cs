@@ -184,12 +184,22 @@ public class IngestEventsCommandHandlerTests
         }
 
         public Task<IReadOnlyList<SyncedEventEntity>> GetUnprocessedAsync(IReadOnlyCollection<string> eventTypes, int limit = 100, CancellationToken cancellationToken = default)
-            => Task.FromResult<IReadOnlyList<SyncedEventEntity>>(Events.Values.Where(e => e.ProcessedAtUtc == null && eventTypes.Contains(e.EventType)).ToList());
+            => Task.FromResult<IReadOnlyList<SyncedEventEntity>>(Events.Values.Where(e => e.ProcessedAtUtc == null && eventTypes.Contains(e.EventType) && (e.NextAttemptAtUtc == null || e.NextAttemptAtUtc <= DateTime.UtcNow)).ToList());
 
         public Task MarkProcessedAsync(Guid eventId, CancellationToken cancellationToken = default)
         {
             if (Events.TryGetValue(eventId, out var entity))
                 entity.ProcessedAtUtc = DateTime.UtcNow;
+            return Task.CompletedTask;
+        }
+
+        public Task MarkFailedAsync(Guid eventId, DateTime nextAttemptAtUtc, CancellationToken cancellationToken = default)
+        {
+            if (Events.TryGetValue(eventId, out var entity))
+            {
+                entity.Attempts++;
+                entity.NextAttemptAtUtc = nextAttemptAtUtc;
+            }
             return Task.CompletedTask;
         }
     }
