@@ -210,9 +210,9 @@ dotnet build
 # integration tests) to 158, and the sale-user fix's +2 to 160 -- DERIVED, not re-measured with Docker down. CloudApi.IntegrationTests grew 2 -> 22 on 2026-09-30 with the
 # event-pipeline repair and the sync store check, all on real Postgres -- also DERIVED. The invoice-history plan then added 71
 # StoreHub tests (HTTP and persistence tests on real Postgres) and 11 MigrationTool tests (all on the Postgres fixture),
-# bringing them to 231 and 82 -- DERIVED too. Only the total was measured.)
-#   tests/IndyPOS.StoreHub.IntegrationTests   (231 of 239; 8 need no container, derived
-#                                              for the 21 new tests)
+# bringing them to 231 and 82 -- DERIVED too. The per-suite totals were measured; only the Docker-down split was not.)
+#   tests/IndyPOS.StoreHub.IntegrationTests   (231 of 239; 8 need no container, unchanged since 2026-09-27, derived
+#                                              -- not individually named)
 #   tests/IndyPOS.MigrationTool.Tests         (82 of 145; 38 pure units, 24 need the
 #                                              gitignored real store .db files, 1 manual tool)
 #   tests/IndyPOS.CloudApi.IntegrationTests   (22 of 22; all need a container)

@@ -57,7 +57,7 @@ HTTP integration tests (`CashFloatEndpointsTests`, `DebtRepaymentEndpointsTests`
 `CashAuthorizationTests` and `CashPayoutEndpointsTests`) and the concurrent-delete fix added 7
 real-Postgres race tests (`CashEntryConcurrencyTests`), all of which need Docker the same way, so its
 **148** is **derived** (128 + 20), not re-measured; the PayLater-debt fix then added 10 more HTTP integration tests (`PayLaterSaleEndpointTests`), bringing it to **158**, and the sale-user fix 2 more, bringing it to **160**, all derived. (`TestUserIdTests` was added after that and needs
-no container, so it does not change the count.) The invoice-history plan (2026-10-01) then added 71 more StoreHub tests (HTTP and persistence tests on real Postgres), bringing it to **231**, derived on the same assumption that every new one needs a container. The other two rows are **derived** too: MigrationTool's 11 new tests all use the Postgres fixture (**71 + 11 = 82**), and CloudApi's 20 new tests (2026-09-30, the event-pipeline repair and the sync store check) all run on a container. Only the total was measured with Docker up:
+no container, so it does not change the count.) The invoice-history plan (2026-10-01) then added 71 more StoreHub tests (HTTP and persistence tests on real Postgres), bringing it to **231**, derived on the same assumption that every new one needs a container. The other two rows are **derived** too: MigrationTool's 11 new tests all use the Postgres fixture (**71 + 11 = 82**), and CloudApi's 20 new tests (2026-09-30, the event-pipeline repair and the sync store check) all run on a container. The per-suite totals were measured with Docker up; only the Docker-down split was not:
 
 | Suite | Total | Fails without Docker |
 |---|---|---|
