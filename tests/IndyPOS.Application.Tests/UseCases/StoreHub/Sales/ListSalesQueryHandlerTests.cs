@@ -142,4 +142,18 @@ public class ListSalesQueryHandlerTests
         page.Items.Should()
                   .ContainSingle(i => i.InvoiceNumber == 1001);
     }
+
+    [Fact]
+    public async Task Handle_OnTheSecondPage_ReturnsTheOlderBill()
+    {
+        await using var c = new SalesHistoryTestContext();
+        await c.SeedInvoiceAsync(new InvoiceSeed(1001, NineAmTodayUtc));
+        await c.SeedInvoiceAsync(new InvoiceSeed(1002, HalfPastNineTodayUtc));
+        var secondPage = TodayOnly(pageSize: PageSizeOfOne) with { Page = 2 };
+
+        var page = await c.ListHandler().HandleAsync(secondPage);
+
+        page.Items.Select(i => i.InvoiceNumber).Should()
+                                               .Equal(1001);
+    }
 }
