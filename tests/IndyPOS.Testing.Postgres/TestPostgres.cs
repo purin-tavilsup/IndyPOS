@@ -70,16 +70,38 @@ public sealed class TestPostgres : IAsyncDisposable
         // Pooled connections would make DROP DATABASE wait on idle sessions, so close them first.
         NpgsqlConnection.ClearAllPools();
 
+        try
+        {
+            // A container takes its databases with it; only a shared server needs cleaning.
+            if (_container is null)
+            {
+                await DropDatabasesBestEffortAsync();
+            }
+        }
+        finally
+        {
+            NpgsqlConnection.ClearAllPools();
+
+            if (_container is not null)
+            {
+                await _container.DisposeAsync();
+            }
+        }
+    }
+
+    private async Task DropDatabasesBestEffortAsync()
+    {
         foreach (var name in _createdDatabases)
         {
-            await ExecuteAdminAsync($"DROP DATABASE IF EXISTS {name} WITH (FORCE)", CancellationToken.None);
-        }
-
-        NpgsqlConnection.ClearAllPools();
-
-        if (_container is not null)
-        {
-            await _container.DisposeAsync();
+            try
+            {
+                await ExecuteAdminAsync($"DROP DATABASE IF EXISTS {name} WITH (FORCE)", CancellationToken.None);
+            }
+            catch (Exception exception) when (exception is NpgsqlException or InvalidOperationException)
+            {
+                // Cleanup must not fail a test run; one stuck database should not block the others.
+                Console.Error.WriteLine($"TestPostgres: could not drop {name}: {exception.Message}");
+            }
         }
     }
 
@@ -96,7 +118,15 @@ public sealed class TestPostgres : IAsyncDisposable
 
     private async Task ExecuteAdminAsync(string sql, CancellationToken cancellationToken)
     {
-        await using var connection = new NpgsqlConnection(_adminConnectionString);
+        var builder = new NpgsqlConnectionStringBuilder(_adminConnectionString);
+
+        // Without a database Npgsql would target one named after the user, which may not exist.
+        if (string.IsNullOrEmpty(builder.Database))
+        {
+            builder.Database = "postgres";
+        }
+
+        await using var connection = new NpgsqlConnection(builder.ConnectionString);
         await connection.OpenAsync(cancellationToken);
         await using var command = new NpgsqlCommand(sql, connection);
         await command.ExecuteNonQueryAsync(cancellationToken);
