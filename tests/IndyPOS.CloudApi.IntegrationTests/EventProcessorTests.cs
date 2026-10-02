@@ -236,6 +236,37 @@ public class EventProcessorTests(CloudPostgresFixture postgres) : IClassFixture<
                               .Be(KnownInvoiceNumber);
     }
 
+    // A literal-null payload was logged and then marked processed, so the sale never reached the cloud.
+    [Fact]
+    public async Task ProcessPendingEventsAsync_WithAnInvoiceCompletedWhosePayloadIsNull_LeavesItUnprocessed()
+    {
+        await using var pipeline = await Pipeline.CreateAsync(postgres);
+        await pipeline.AddEventAsync("InvoiceCompleted", payload: "null");
+
+        await pipeline.PollAsync();
+
+        // Unprocessed alone also holds with no handler; one failed attempt proves it was fetched and refused.
+        (await pipeline.CountUnprocessedAsync()).Should()
+                                                .Be(1);
+        (await pipeline.FailedAttemptsAsync()).Should()
+                                              .Be(1);
+    }
+
+    // The reprint handler already throws on a null payload; this pins it against becoming "log and return".
+    [Fact]
+    public async Task ProcessPendingEventsAsync_WithAnInvoiceReprintedWhosePayloadIsNull_LeavesItUnprocessed()
+    {
+        await using var pipeline = await Pipeline.CreateAsync(postgres);
+        await pipeline.AddEventAsync("InvoiceReprinted", payload: "null");
+
+        await pipeline.PollAsync();
+
+        (await pipeline.CountUnprocessedAsync()).Should()
+                                                .Be(1);
+        (await pipeline.FailedAttemptsAsync()).Should()
+                                              .Be(1);
+    }
+
     // Spec §9: a reprint that arrives before its InvoiceCompleted fails so it retries.
     [Fact]
     public async Task ProcessPendingEventsAsync_WithAReprintBeforeItsInvoice_LeavesItUnprocessed()
@@ -441,6 +472,8 @@ public class EventProcessorTests(CloudPostgresFixture postgres) : IClassFixture<
                                 .ToListAsync());
 
         public Task AddEventAsync(string eventType) => AddEventAsync(eventType, Guid.NewGuid(), "{}");
+
+        public Task AddEventAsync(string eventType, string payload) => AddEventAsync(eventType, Guid.NewGuid(), payload);
 
         private Task AddEventAsync(string eventType, Guid eventId, string payload)
         {
