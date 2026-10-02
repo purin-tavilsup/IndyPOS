@@ -1,12 +1,12 @@
-using System.Security.Claims;
 using System.Text;
-using IndyPOS.Application.Abstractions.StoreHub.Repositories;
 using IndyPOS.Application.Common.Authorization;
-using IndyPOS.Application.Common.Exceptions;
-using IndyPOS.Application.Common.Interfaces;
+using IndyPOS.Application.Common.Models;
 using IndyPOS.Application.UseCases.StoreHub.Auth;
 using IndyPOS.Application.UseCases.StoreHub.Auth.ChangePassword;
 using IndyPOS.Application.UseCases.StoreHub.Auth.Login;
+using IndyPOS.Application.UseCases.StoreHub.PayLater;
+using IndyPOS.Application.UseCases.StoreHub.PaymentMethods;
+using IndyPOS.Application.UseCases.StoreHub.ProductCategories;
 using IndyPOS.Application.UseCases.StoreHub.Products;
 using IndyPOS.Application.UseCases.StoreHub.Products.AdjustQuantity;
 using IndyPOS.Application.UseCases.StoreHub.Products.Create;
@@ -15,30 +15,27 @@ using IndyPOS.Application.UseCases.StoreHub.Products.GenerateBarcode;
 using IndyPOS.Application.UseCases.StoreHub.Products.Get;
 using IndyPOS.Application.UseCases.StoreHub.Products.GetStock;
 using IndyPOS.Application.UseCases.StoreHub.Products.Update;
-using IndyPOS.Application.UseCases.StoreHub.PaymentMethods;
-using IndyPOS.Application.UseCases.StoreHub.ProductCategories;
 using IndyPOS.Application.UseCases.StoreHub.Reports;
+using IndyPOS.Application.UseCases.StoreHub.Reports.GetLegacyPaymentsSummary;
+using IndyPOS.Application.UseCases.StoreHub.Reports.GetLegacySalesSummary;
 using IndyPOS.Application.UseCases.StoreHub.Reports.GetPayLaterReport;
 using IndyPOS.Application.UseCases.StoreHub.Reports.GetProductSales;
 using IndyPOS.Application.UseCases.StoreHub.Reports.GetSalesSummary;
-using IndyPOS.Application.UseCases.StoreHub.Reports.GetLegacySalesSummary;
-using IndyPOS.Application.UseCases.StoreHub.Reports.GetLegacyPaymentsSummary;
-using IndyPOS.Application.Common.Models;
-using IndyPOS.Application.UseCases.StoreHub.PayLater;
 using IndyPOS.Application.UseCases.StoreHub.Sales;
 using IndyPOS.Application.UseCases.StoreHub.Sales.Complete;
-using IndyPOS.Infrastructure.QueryHandlers.Reports;
 using IndyPOS.Infrastructure.Persistence.StoreHub;
-using IndyPOS.Infrastructure.Services.StoreHub;
+using IndyPOS.Infrastructure.QueryHandlers.Reports;
 using IndyPOS.ServiceDefaults;
 using IndyPOS.StoreHub.Configuration;
 using IndyPOS.StoreHub.Endpoints.Auth;
 using IndyPOS.StoreHub.Endpoints.Cash;
 using IndyPOS.StoreHub.Endpoints.Catalogue;
-using IndyPOS.StoreHub.Endpoints.Sync;
+using IndyPOS.StoreHub.Endpoints.PayLater;
 using IndyPOS.StoreHub.Endpoints.PaymentMethods;
 using IndyPOS.StoreHub.Endpoints.Products;
+using IndyPOS.StoreHub.Endpoints.Reports;
 using IndyPOS.StoreHub.Endpoints.Sales;
+using IndyPOS.StoreHub.Endpoints.Sync;
 using IndyPOS.StoreHub.Endpoints.SystemInfo;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
@@ -271,158 +268,8 @@ app.MapPaymentMethodsEndpoints();
 app.MapCatalogueEndpoints();
 app.MapSalesEndpoints();
 app.MapSyncEndpoints();
-
-// ========================
-// Report endpoints
-// ========================
-
-// Sales summary (daily/weekly/monthly dashboard)
-app.MapGet("/reports/sales-summary", async (
-    IQueryHandler<GetSalesSummaryQuery, SalesSummaryDto> handler,
-    DateOnly fromDate,
-    DateOnly toDate,
-    int? topProductsCount,
-    CancellationToken cancellationToken) =>
-{
-    var query = new GetSalesSummaryQuery(
-        FromDate: fromDate,
-        ToDate: toDate,
-        TopProductsCount: topProductsCount ?? 10);
-
-    var result = await handler.HandleAsync(query, cancellationToken);
-    return Results.Ok(result);
-}).RequireAuthorization("CanViewReports");
-
-// PayLater (accounts receivable) report
-app.MapGet("/reports/pay-later", async (
-    IQueryHandler<GetPayLaterReportQuery, PayLaterReportDto> handler,
-    bool? includeCompleted,
-    int? page,
-    int? pageSize,
-    CancellationToken cancellationToken) =>
-{
-    var query = new GetPayLaterReportQuery(
-        IncludeCompleted: includeCompleted ?? false,
-        Page: page ?? 1,
-        PageSize: pageSize ?? 50);
-
-    var result = await handler.HandleAsync(query, cancellationToken);
-    return Results.Ok(result);
-}).RequireAuthorization("CanViewReports");
-
-// Product sales report
-app.MapGet("/reports/product-sales", async (
-    IQueryHandler<GetProductSalesQuery, PagedResult<ProductSalesDto>> handler,
-    DateOnly fromDate,
-    DateOnly toDate,
-    string? category,
-    int? page,
-    int? pageSize,
-    CancellationToken cancellationToken) =>
-{
-    var query = new GetProductSalesQuery(
-        FromDate: fromDate,
-        ToDate: toDate,
-        Category: category,
-        Page: page ?? 1,
-        PageSize: pageSize ?? 50);
-
-    var result = await handler.HandleAsync(query, cancellationToken);
-    return Results.Ok(result);
-}).RequireAuthorization("CanViewReports");
-
-// ========================
-// Legacy Report Endpoints (for WinForms compatibility)
-// ========================
-
-// Legacy sales summary (returns SalesSummary model)
-app.MapGet("/reports/legacy/sales-summary", async (
-    IQueryHandler<GetLegacySalesSummaryQuery, SalesSummary> handler,
-    DateOnly fromDate,
-    DateOnly toDate,
-    CancellationToken cancellationToken) =>
-{
-    var query = new GetLegacySalesSummaryQuery(fromDate, toDate);
-    var result = await handler.HandleAsync(query, cancellationToken);
-    return Results.Ok(result);
-}).RequireAuthorization("CanViewReports");
-
-// Legacy payments summary (returns PaymentsSummary model)
-app.MapGet("/reports/legacy/payments-summary", async (
-    IQueryHandler<GetLegacyPaymentsSummaryQuery, PaymentsSummary> handler,
-    DateOnly fromDate,
-    DateOnly toDate,
-    CancellationToken cancellationToken) =>
-{
-    var query = new GetLegacyPaymentsSummaryQuery(fromDate, toDate);
-    var result = await handler.HandleAsync(query, cancellationToken);
-    return Results.Ok(result);
-}).RequireAuthorization("CanViewReports");
-
-// ========================
-// PayLater endpoints (for cashiers to view and update pay-later accounts)
-// ========================
-
-// List pay-later records
-app.MapGet("/pay-later", async (
-    IQueryHandler<GetPayLaterQuery, GetPayLaterResponse> handler,
-    bool? includeCompleted,
-    string? search,
-    CancellationToken cancellationToken) =>
-{
-    var query = new GetPayLaterQuery(
-        IncludeCompleted: includeCompleted ?? false,
-        SearchTerm: search);
-
-    var result = await handler.HandleAsync(query, cancellationToken);
-    return Results.Ok(result);
-}).RequireAuthorization();
-
-// Get single pay-later record
-app.MapGet("/pay-later/{id:guid}", async (
-    IQueryHandler<GetPayLaterByIdQuery, PayLaterDto> handler,
-    Guid id,
-    CancellationToken cancellationToken) =>
-{
-    try
-    {
-        var result = await handler.HandleAsync(new GetPayLaterByIdQuery(id), cancellationToken);
-        return Results.Ok(result);
-    }
-    catch (PayLaterPaymentNotFoundException)
-    {
-        return Results.NotFound();
-    }
-}).RequireAuthorization();
-
-// Record payment against pay-later
-app.MapPost("/pay-later/{id:guid}/record-payment", async (
-    ICommandHandler<RecordPayLaterPaymentCommand, PayLaterDto> handler,
-    Guid id,
-    RecordPaymentRequest request,
-    CancellationToken cancellationToken) =>
-{
-    try
-    {
-        var command = new RecordPayLaterPaymentCommand(id, request.PaymentAmount);
-        var result = await handler.HandleAsync(command, cancellationToken);
-        return Results.Ok(result);
-    }
-    catch (PayLaterPaymentNotFoundException)
-    {
-        return Results.NotFound();
-    }
-    catch (PayLaterPaymentNotUpdatedException ex)
-    {
-        return Results.BadRequest(new { error = ex.Message });
-    }
-    catch (ArgumentException ex)
-    {
-        return Results.BadRequest(new { error = ex.Message });
-    }
-}).RequireAuthorization();
-
-// Cash drawer routes (/cash/...)
+app.MapReportsEndpoints();
+app.MapPayLaterEndpoints();
 app.MapCashEndpoints();
 
 app.Run();
