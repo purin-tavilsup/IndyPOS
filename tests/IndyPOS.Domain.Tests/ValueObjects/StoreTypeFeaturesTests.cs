@@ -25,14 +25,42 @@ public class StoreTypeFeaturesTests
         f.MultipleProductTypesEnabled.Should().BeFalse();
     }
 
-    [Fact]
-    public void For_WithMimyShop_ShouldMatchMinimart()
+    [Theory]
+    [InlineData(StoreType.GeneralHardware, false)]
+    [InlineData(StoreType.Minimart, false)]
+    [InlineData(StoreType.MimyShop, true)]
+    public void For_EachStoreType_EnablesServiceProductsOnlyForMimyShop(StoreType storeType, bool expected)
     {
-        // MimyShop differs from a minimart only in its seeded category set today. Modelling it
-        // as a real store type is deliberate (services and reporting will diverge), so this
-        // test pins that the flags are intentionally identical rather than accidentally copied.
-        StoreTypeFeatures.For(StoreType.MimyShop)
-            .Should().BeEquivalentTo(StoreTypeFeatures.For(StoreType.Minimart));
+        StoreTypeFeatures.For(storeType).ServiceProductsEnabled.Should()
+                                                               .Be(expected);
+    }
+
+    // The sale panel puts the service buttons in the hardware button's slot.
+    [Fact]
+    public void For_EachStoreType_NeverEnablesHardwareAndServicesTogether()
+    {
+        var both = Enum.GetValues<StoreType>()
+                       .Select(StoreTypeFeatures.For)
+                       .Where(f => f.ServiceProductsEnabled && f.MultipleProductTypesEnabled);
+
+        both.Should()
+            .BeEmpty();
+    }
+
+    [Fact]
+    public void For_WithMimyShop_DiffersFromMinimartOnlyInServiceProducts()
+    {
+        // Modelling MimyShop as its own store type was deliberate: it sells services. Every other
+        // flag must stay identical to a minimart's, so this pins that the difference is just that one.
+        StoreTypeFeatures.For(StoreType.MimyShop).Should()
+                                                 .Be(StoreTypeFeatures.For(StoreType.Minimart) with { ServiceProductsEnabled = true });
+    }
+
+    [Fact]
+    public void ServiceProductBarcodes_All_AreMimyShopsRealBarcodes()
+    {
+        ServiceProductBarcodes.All.Should()
+                                  .Equal("2002500000014", "2002500000021");
     }
 
     [Fact]
