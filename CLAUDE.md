@@ -136,6 +136,7 @@ fixture no store had, the root of defects 2 and 3.
 | Security spec | `.planning/indypos-overhaul/security/` | For auth/security work |
 | Diagrams | `.planning/indypos-overhaul/diagrams/` | For architecture visuals |
 | Operations | `docs/operations/` | For deployment/runbook |
+| API conventions | `docs/architecture/api-conventions.md` | Before adding or changing a StoreHub route |
 
 ## Coding Standards
 

@@ -221,6 +221,7 @@ running in Debug — see the *Store Configuration* section of `CLAUDE.md` for th
 | `CLAUDE.md` | Architecture, layer rules, naming, entity and migration conventions |
 | `.planning/indypos-overhaul/PLAN.md` | Roadmap, epics, open defects |
 | `docs/architecture/`, `docs/development/` | Design and dev-environment docs |
+| `docs/architecture/api-conventions.md` | StoreHub route rules, and how to rename a route after go-live |
 | `docs/operations/` | Runbook, upgrade procedure, pilot checklist |
 | `docs/superpowers/specs/`, `docs/superpowers/plans/` | Per-feature design specs and implementation plans |
 | `.planning/indypos-overhaul/diagrams/` | Architecture and schema diagrams |
