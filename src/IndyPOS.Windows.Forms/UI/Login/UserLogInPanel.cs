@@ -104,6 +104,7 @@ public partial class UserLogInPanel : UserControl
 		UsersComboBox.Visible = true;
 		UserInputPanel.Visible = true;
 		LogInButton.Text = "Log In";
+		UsersComboBox.FocusInput();
 	}
 
 	private void HideUserInput()
@@ -118,6 +119,8 @@ public partial class UserLogInPanel : UserControl
 	private void ClearUserInput()
 	{
 		UserSecretTextBox.Texts = string.Empty;
-		UsersComboBox.Texts = "ผู้ใช้งาน";
+		// Empty, not a hint: the "Username" label already names the box, and a hint stored as text
+		// was in the way while typing and was sent as the username when nothing was typed.
+		UsersComboBox.Clear();
 	}
 }

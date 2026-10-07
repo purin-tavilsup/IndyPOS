@@ -154,7 +154,7 @@
             this.UsersComboBox.SelectedItem = null;
             this.UsersComboBox.Size = new System.Drawing.Size(317, 49);
             this.UsersComboBox.TabIndex = 83;
-            this.UsersComboBox.Texts = "ผู้ใช้งาน";
+            this.UsersComboBox.Texts = "";
             // 
             // pictureBox1
             // 
