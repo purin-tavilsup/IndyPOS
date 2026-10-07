@@ -15,6 +15,20 @@ public class PageReaderTests
                  .ThrowAsync<InvalidOperationException>();
     }
 
+    // GeneralHardware has sold 325,780 lines in all (PLAN.md, defect 6): 1,629 pages of 200. A wide date range
+    // must read them all, not hit the runaway cap and throw away what it fetched.
+    [Fact]
+    public async Task ReadAllAsync_WithEveryLineGeneralHardwareHasSold_ReadsThemAll()
+    {
+        const int pagesOfEveryLineSold = 1_700;
+
+        var items = await PageReader.ReadAllAsync<int>(page =>
+            Task.FromResult<(IReadOnlyList<int>, bool)>(([page], page < pagesOfEveryLineSold)));
+
+        items.Count.Should()
+                   .Be(pagesOfEveryLineSold);
+    }
+
     [Fact]
     public async Task ReadAllAsync_WithAnEmptyFirstPage_ReturnsNothing()
     {
