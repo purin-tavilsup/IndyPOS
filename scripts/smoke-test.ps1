@@ -264,11 +264,10 @@ if ($script:Token) {
     try {
         $result = Invoke-ApiRequest -Method "POST" -Endpoint "/products" -Headers (Get-AuthHeaders) -Body @{
             barcode = $testBarcode
-            description = "E2E Test Product"
+            name = "E2E Test Product"
             unitPrice = 99.99
-            category = "Test"
-            quantityInStock = 100
-            isActive = $true
+            category = "Miscellaneous"
+            initialQuantity = 100
         } -IgnoreError $true
 
         if ($result.Success -and $result.Data.id) {
@@ -286,12 +285,11 @@ if ($script:Token) {
     if ($script:CreatedProductId) {
         try {
             $result = Invoke-ApiRequest -Method "PUT" -Endpoint "/products/$($script:CreatedProductId)" -Headers (Get-AuthHeaders) -Body @{
+                id = $script:CreatedProductId
                 barcode = $testBarcode
-                description = "E2E Test Product (Updated)"
+                name = "E2E Test Product (Updated)"
                 unitPrice = 149.99
-                category = "Test"
-                quantityInStock = 100
-                isActive = $true
+                category = "Miscellaneous"
             } -IgnoreError $true
 
             $updated = $result.Success -and $result.Data.unitPrice -eq 149.99
@@ -301,18 +299,17 @@ if ($script:Token) {
             Write-TestResult -TestName "PUT /products/{id} (update)" -Passed $false -Details $_.Exception.Message
         }
 
-        # Test: Adjust inventory
+        # Test: Record a stock adjustment
         try {
-            $result = Invoke-ApiRequest -Method "POST" -Endpoint "/inventory/adjust" -Headers (Get-AuthHeaders) -Body @{
-                productId = $script:CreatedProductId
-                adjustment = -10
+            $result = Invoke-ApiRequest -Method "POST" -Endpoint "/products/$($script:CreatedProductId)/stock-adjustments" -Headers (Get-AuthHeaders) -Body @{
+                delta = -10
                 reason = "E2E Test adjustment"
             } -IgnoreError $true
 
-            Write-TestResult -TestName "POST /inventory/adjust" -Passed $result.Success -Details "Adjusted by -10"
+            Write-TestResult -TestName "POST /products/{id}/stock-adjustments" -Passed $result.Success -Details "Adjusted by -10"
         }
         catch {
-            Write-TestResult -TestName "POST /inventory/adjust" -Passed $false -Details $_.Exception.Message
+            Write-TestResult -TestName "POST /products/{id}/stock-adjustments" -Passed $false -Details $_.Exception.Message
         }
     }
 } else {
@@ -328,8 +325,8 @@ $script:CreatedInvoiceId = $null
 if ($script:Token -and $script:CreatedProductId) {
     # Test: Complete a sale
     try {
-        $result = Invoke-ApiRequest -Method "POST" -Endpoint "/sales/complete" -Headers (Get-AuthHeaders) -Body @{
-            items = @(
+        $result = Invoke-ApiRequest -Method "POST" -Endpoint "/sales" -Headers (Get-AuthHeaders) -Body @{
+            lines = @(
                 @{
                     productId = $script:CreatedProductId
                     quantity = 2
@@ -338,7 +335,7 @@ if ($script:Token -and $script:CreatedProductId) {
             )
             payments = @(
                 @{
-                    paymentType = "Cash"
+                    method = "Cash"
                     amount = 299.98
                 }
             )
@@ -346,23 +343,23 @@ if ($script:Token -and $script:CreatedProductId) {
 
         if ($result.Success -and $result.Data.invoiceId) {
             $script:CreatedInvoiceId = $result.Data.invoiceId
-            Write-TestResult -TestName "POST /sales/complete" -Passed $true -Details "Invoice: $($result.Data.invoiceId)"
+            Write-TestResult -TestName "POST /sales" -Passed $true -Details "Invoice: $($result.Data.invoiceId)"
         } else {
-            Write-TestResult -TestName "POST /sales/complete" -Passed $false -Details "No invoice ID returned"
+            Write-TestResult -TestName "POST /sales" -Passed $false -Details "No invoice ID returned"
         }
     }
     catch {
-        Write-TestResult -TestName "POST /sales/complete" -Passed $false -Details $_.Exception.Message
+        Write-TestResult -TestName "POST /sales" -Passed $false -Details $_.Exception.Message
     }
 
     # Test: Verify inventory was deducted
     if ($script:CreatedProductId) {
         try {
-            $result = Invoke-ApiRequest -Endpoint "/products" -Headers (Get-AuthHeaders) -IgnoreError $true
-            $product = $result.Data | Where-Object { $_.id -eq $script:CreatedProductId }
+            $result = Invoke-ApiRequest -Endpoint "/products/stock?productId=$($script:CreatedProductId)" -Headers (Get-AuthHeaders) -IgnoreError $true
+            $stock = $result.Data | Where-Object { $_.productId -eq $script:CreatedProductId }
             # Started with 100, adjusted -10, sold 2 = 88
             $expectedQty = 88
-            $actualQty = $product.quantityInStock
+            $actualQty = $stock.quantity
             $correct = $actualQty -eq $expectedQty
             Write-TestResult -TestName "Verify inventory deducted" -Passed $correct -Details "Expected: $expectedQty, Actual: $actualQty"
         }
@@ -396,8 +393,8 @@ $script:PayLaterId = $null
 if ($script:Token -and $script:CreatedProductId) {
     # Test: Create pay later sale
     try {
-        $result = Invoke-ApiRequest -Method "POST" -Endpoint "/sales/complete" -Headers (Get-AuthHeaders) -Body @{
-            items = @(
+        $result = Invoke-ApiRequest -Method "POST" -Endpoint "/sales" -Headers (Get-AuthHeaders) -Body @{
+            lines = @(
                 @{
                     productId = $script:CreatedProductId
                     quantity = 1
@@ -406,31 +403,32 @@ if ($script:Token -and $script:CreatedProductId) {
             )
             payments = @(
                 @{
-                    paymentType = "PayLater"
+                    method = "PayLater"
                     amount = 149.99
-                    payLaterAccountName = "E2E Test Customer"
+                    note = "E2E Test Customer"
                 }
             )
         } -IgnoreError $true
 
         if ($result.Success) {
-            Write-TestResult -TestName "POST /sales/complete (pay later)" -Passed $true -Details "Pay later sale created"
+            Write-TestResult -TestName "POST /sales (pay later)" -Passed $true -Details "Pay later sale created"
         } else {
-            Write-TestResult -TestName "POST /sales/complete (pay later)" -Passed $false -Details "Failed to create"
+            Write-TestResult -TestName "POST /sales (pay later)" -Passed $false -Details "Failed to create"
         }
     }
     catch {
-        Write-TestResult -TestName "POST /sales/complete (pay later)" -Passed $false -Details $_.Exception.Message
+        Write-TestResult -TestName "POST /sales (pay later)" -Passed $false -Details $_.Exception.Message
     }
 
     # Test: List pay later accounts
     try {
         $result = Invoke-ApiRequest -Endpoint "/pay-later" -Headers (Get-AuthHeaders) -IgnoreError $true
-        $isArray = $result.Success -and $result.Data -is [array]
-        $count = if ($isArray) { $result.Data.Count } else { 0 }
+        # A summary object; the debts are in .items. The sale's payment note becomes the description.
+        $isArray = $result.Success -and ($null -ne $result.Data.PSObject.Properties["items"])
+        $count = if ($isArray) { @($result.Data.items).Count } else { 0 }
 
         # Find our test account
-        $testAccount = $result.Data | Where-Object { $_.accountName -eq "E2E Test Customer" } | Select-Object -First 1
+        $testAccount = @($result.Data.items) | Where-Object { $_.description -eq "E2E Test Customer" -and -not $_.isCompleted } | Select-Object -First 1
         if ($testAccount) {
             $script:PayLaterId = $testAccount.id
         }
@@ -445,8 +443,7 @@ if ($script:Token -and $script:CreatedProductId) {
     if ($script:PayLaterId) {
         try {
             $result = Invoke-ApiRequest -Method "POST" -Endpoint "/pay-later/$($script:PayLaterId)/payments" -Headers (Get-AuthHeaders) -Body @{
-                amount = 50.00
-                note = "E2E Test partial payment"
+                paymentAmount = 50.00
             } -IgnoreError $true
 
             Write-TestResult -TestName "POST /pay-later/{id}/payments" -Passed $result.Success -Details "Recorded $50 payment"
@@ -468,7 +465,7 @@ if ($script:Token) {
     # Test: Get sales summary
     try {
         $today = Get-Date -Format "yyyy-MM-dd"
-        $result = Invoke-ApiRequest -Endpoint "/reports/sales-summary?date=$today" -Headers (Get-AuthHeaders) -IgnoreError $true
+        $result = Invoke-ApiRequest -Endpoint "/reports/sales-summary?fromDate=$today&toDate=$today" -Headers (Get-AuthHeaders) -IgnoreError $true
         Write-TestResult -TestName "GET /reports/sales-summary" -Passed $result.Success -Details "Date: $today"
     }
     catch {
@@ -488,8 +485,9 @@ if ($script:Token) {
     # Test: Get product sales
     try {
         $today = Get-Date -Format "yyyy-MM-dd"
-        $result = Invoke-ApiRequest -Endpoint "/reports/product-sales?startDate=$today&endDate=$today" -Headers (Get-AuthHeaders) -IgnoreError $true
-        $isArray = $result.Success -and $result.Data -is [array]
+        $result = Invoke-ApiRequest -Endpoint "/reports/product-sales?fromDate=$today&toDate=$today" -Headers (Get-AuthHeaders) -IgnoreError $true
+        # A page object; the rows are in .items.
+        $isArray = $result.Success -and ($null -ne $result.Data.PSObject.Properties["items"])
         Write-TestResult -TestName "GET /reports/product-sales" -Passed $isArray -Details "Product sales endpoint works"
     }
     catch {

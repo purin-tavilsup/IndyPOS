@@ -39,7 +39,7 @@ dotnet run --project src/IndyPOS.Windows.Forms
 |----------|--------|-------------|
 | `/auth/login` | POST | Authenticate user, get JWT |
 | `/products` | GET | List products |
-| `/sales/complete` | POST | Complete a sale |
+| `/sales` | POST | Ring up a sale (201) |
 | `/sync/status` | GET | Check sync status |
 | `/health/ready` | GET | Health check |
 

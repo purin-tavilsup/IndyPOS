@@ -1,11 +1,11 @@
 meta {
-  name: Adjust Product Quantity
+  name: Create Stock Adjustment
   type: http
-  seq: 1
+  seq: 6
 }
 
 post {
-  url: {{baseUrl}}/products/{{productId}}/adjust-quantity
+  url: {{baseUrl}}/products/{{productId}}/stock-adjustments
   body: json
   auth: bearer
 }
@@ -22,9 +22,9 @@ body:json {
 }
 
 docs {
-  # Adjust Product Quantity
+  # Create Stock Adjustment
 
-  Adjusts the quantity of a product by creating an inventory movement record.
+  Records a stock adjustment: one inventory movement with a signed delta.
 
   ## Path Parameters
 

@@ -207,7 +207,7 @@ public class StoreHubHttpClient : IStoreHubClient
             productId, request.Delta);
 
         var result = await SendAuthenticatedAsync<AdjustQuantityResponse>(
-            HttpMethod.Post, $"/products/{productId}/adjust-quantity", request, cancellationToken);
+            HttpMethod.Post, $"/products/{productId}/stock-adjustments", request, cancellationToken);
 
         _logger.LogInformation("Product stock adjusted. Id: {Id}, Delta: {Delta}, Balance: {Balance}",
             productId, request.Delta, result.Quantity);
@@ -234,7 +234,7 @@ public class StoreHubHttpClient : IStoreHubClient
             request.Lines.Count, request.Payments.Count);
 
         var result = await SendAuthenticatedAsync<CompleteSaleResponse>(
-            HttpMethod.Post, "/sales/complete", request, cancellationToken);
+            HttpMethod.Post, "/sales", request, cancellationToken);
 
         _logger.LogInformation("Sale completed successfully. InvoiceId: {InvoiceId}, Total: {Total}",
             result.InvoiceId, result.TotalAmount);
@@ -302,7 +302,7 @@ public class StoreHubHttpClient : IStoreHubClient
 
         var request = new RecordPaymentRequest(paymentAmount);
         var result = await SendAuthenticatedAsync<PayLaterDto>(
-            HttpMethod.Post, $"/pay-later/{payLaterId}/record-payment", request, cancellationToken);
+            HttpMethod.Post, $"/pay-later/{payLaterId}/payments", request, cancellationToken);
 
         _logger.LogInformation("Payment recorded for PayLater: {Id}, New Paid Amount: {PaidAmount}, Completed: {IsCompleted}",
             result.Id, result.PaidAmount, result.IsCompleted);
@@ -321,7 +321,7 @@ public class StoreHubHttpClient : IStoreHubClient
     public Task<IReadOnlyList<PaymentMethodDto>> GetAllPaymentMethodsAsync(
         CancellationToken cancellationToken = default) =>
         SendAuthenticatedAsync<IReadOnlyList<PaymentMethodDto>>(
-            HttpMethod.Get, "/admin/payment-methods", content: null, cancellationToken);
+            HttpMethod.Get, "/payment-methods?include=all", content: null, cancellationToken);
 
     public Task AddCampaignPaymentMethodAsync(
         string code,
@@ -330,7 +330,7 @@ public class StoreHubHttpClient : IStoreHubClient
         CancellationToken cancellationToken = default) =>
         SendAuthenticatedAsync(
             HttpMethod.Post,
-            "/admin/payment-methods",
+            "/payment-methods",
             new AddCampaignPaymentMethodRequest(code, displayName, displayOrder),
             cancellationToken);
 
@@ -340,7 +340,7 @@ public class StoreHubHttpClient : IStoreHubClient
         CancellationToken cancellationToken = default) =>
         SendAuthenticatedAsync(
             HttpMethod.Patch,
-            $"/admin/payment-methods/{Uri.EscapeDataString(code)}",
+            $"/payment-methods/{Uri.EscapeDataString(code)}",
             new UpdatePaymentMethodRequest(IsEnabled: enabled, DisplayName: null, DisplayOrder: null),
             cancellationToken);
 
@@ -351,7 +351,7 @@ public class StoreHubHttpClient : IStoreHubClient
         CancellationToken cancellationToken = default) =>
         SendAuthenticatedAsync(
             HttpMethod.Patch,
-            $"/admin/payment-methods/{Uri.EscapeDataString(code)}",
+            $"/payment-methods/{Uri.EscapeDataString(code)}",
             new UpdatePaymentMethodRequest(IsEnabled: null, DisplayName: displayName, DisplayOrder: displayOrder),
             cancellationToken);
 

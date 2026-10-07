@@ -12,7 +12,7 @@ internal static class SaleCompletionEndpoints
 {
     public static void MapSaleCompletion(this IEndpointRouteBuilder app)
     {
-        app.MapPost("/sales/complete", async (
+        app.MapPost("/sales", async (
             ICommandHandler<CompleteSaleCommand, CompleteSaleResponse> handler,
             IStoreIdentityService storeIdentity,
             ClaimsPrincipal user,
@@ -30,7 +30,8 @@ internal static class SaleCompletionEndpoints
             // A refused sale is the caller's mistake, not the server's: a Thai reason for the cashier.
             try
             {
-                return Results.Ok(await handler.HandleAsync(command, cancellationToken));
+                var sale = await handler.HandleAsync(command, cancellationToken);
+                return Results.Created($"/sales/{sale.InvoiceId}", sale);
             }
             catch (SaleValidationException ex)
             {

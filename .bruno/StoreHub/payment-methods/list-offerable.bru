@@ -1,0 +1,25 @@
+meta {
+  name: List Offerable Payment Methods
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/payment-methods
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+docs {
+  # List Offerable Payment Methods
+
+  The methods this store's till may offer: enabled, and allowed for the store type.
+
+  ## Authorization
+
+  Requires `products.read` (Cashier, Manager, Admin).
+}

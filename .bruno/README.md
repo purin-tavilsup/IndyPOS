@@ -27,26 +27,31 @@ API collection for testing IndyPOS StoreHub API using [Bruno](https://www.usebru
 │   │   ├── get-product-by-barcode.bru
 │   │   ├── create-product.bru
 │   │   ├── update-product.bru
-│   │   └── delete-product.bru
-│   ├── inventory/
-│   │   ├── adjust-quantity.bru
+│   │   ├── delete-product.bru
+│   │   ├── create-stock-adjustment.bru
 │   │   └── generate-barcode.bru
+│   ├── payment-methods/
+│   │   ├── list-offerable.bru
+│   │   ├── list-catalogue.bru
+│   │   ├── add-campaign.bru
+│   │   └── update-method.bru
 │   ├── sales/
-│   │   ├── complete-sale.bru
-│   │   └── complete-sale-example.bru
+│   │   ├── create-sale.bru
+│   │   ├── create-sale-example.bru
+│   │   ├── list-sales.bru
+│   │   └── get-sale-detail.bru
 │   ├── pay-later/
 │   │   ├── list-pay-later.bru
 │   │   ├── get-pay-later-detail.bru
-│   │   └── record-payment.bru
+│   │   └── create-payment.bru
 │   ├── sync/
 │   │   └── get-sync-status.bru
 │   ├── reports/
 │   │   ├── get-sales-summary.bru
-│   │   ├── get-invoices.bru
-│   │   ├── get-invoice-detail.bru
 │   │   ├── get-pay-later.bru
 │   │   └── get-product-sales.bru
 │   └── health/
+│       ├── get-version.bru
 │       ├── health-ready.bru
 │       └── health-live.bru
 └── README.md
@@ -64,7 +69,7 @@ API collection for testing IndyPOS StoreHub API using [Bruno](https://www.usebru
 3. Run requests in order:
    - **Login (Manager)** → Sets `token` variable automatically
    - **Get All Products** → View available products
-   - **Complete Sale** → Create a sale
+   - **Create Sale** → Ring up a sale
 
 ## Test Users
 
@@ -82,6 +87,7 @@ API collection for testing IndyPOS StoreHub API using [Bruno](https://www.usebru
 | `token` | JWT auth token | Login requests (auto) |
 | `productId` | Product GUID for update/delete | Manual or script |
 | `payLaterId` | Pay-later record GUID | Manual or script |
+| `paymentMethodCode` | Campaign code for add/update | Manual |
 
 ## API Endpoints
 
@@ -98,17 +104,21 @@ API collection for testing IndyPOS StoreHub API using [Bruno](https://www.usebru
 | POST | /products | Create product | Manager+ |
 | PUT | /products/{id} | Update product | Manager+ |
 | DELETE | /products/{id} | Soft delete product | Manager+ |
+| POST | /products/{id}/stock-adjustments | Record a stock adjustment | Manager+ |
+| POST | /products/next-barcode | Generate barcode | Manager+ |
 
-### Inventory
+### Payment Methods
 | Method | Endpoint | Description | Role |
 |--------|----------|-------------|------|
-| POST | /products/{id}/adjust-quantity | Adjust stock | Manager+ |
-| POST | /products/next-barcode | Generate barcode | Manager+ |
+| GET | /payment-methods | What the till may offer | Cashier+ |
+| GET | /payment-methods?include=all | The whole catalogue | Admin |
+| POST | /payment-methods | Add a campaign method | Admin |
+| PATCH | /payment-methods/{code} | Enable, disable or rename | Admin |
 
 ### Sales
 | Method | Endpoint | Description | Role |
 |--------|----------|-------------|------|
-| POST | /sales/complete | Complete a sale | Cashier+ |
+| POST | /sales | Ring up a sale (201 + Location) | Cashier+ |
 | GET | /sales | List bills (defaults to today) | Cashier+ |
 | GET | /sales/{id} | Bill detail by id | Cashier+ |
 | GET | /sales/{number} | Bill detail by bill number | Cashier+ |
@@ -119,7 +129,7 @@ API collection for testing IndyPOS StoreHub API using [Bruno](https://www.usebru
 |--------|----------|-------------|------|
 | GET | /pay-later | List credit records | Manager+ |
 | GET | /pay-later/{id} | Get credit detail | Manager+ |
-| POST | /pay-later/{id}/record-payment | Record payment | Cashier+ |
+| POST | /pay-later/{id}/payments | Record a repayment | Cashier+ |
 
 ### Reports
 | Method | Endpoint | Description | Role |
