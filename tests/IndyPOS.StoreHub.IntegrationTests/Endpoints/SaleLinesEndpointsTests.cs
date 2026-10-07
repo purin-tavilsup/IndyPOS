@@ -44,6 +44,20 @@ public class SaleLinesEndpointsTests : IntegrationTestBase
     private async Task<SaleLinesPage> LinesAsync(string query) =>
         (await Client.GetFromJsonAsync<SaleLinesPage>($"/sales/lines?{query}", JsonOptions))!;
 
+    // Every page of today's lines. The shared test database is never reset, so today's lines grow with
+    // every test that sells; reading only page 1 would one day miss the sale a test just made.
+    private async Task<List<SaleLineRowDto>> AllTodaysLinesAsync()
+    {
+        var lines = new List<SaleLineRowDto>();
+        for (var page = 1; ; page++)
+        {
+            var result = await LinesAsync($"page={page}&pageSize={SalesQueryRules.MaxPageSize}");
+            lines.AddRange(result.Items);
+            if (!result.HasMore)
+                return lines;
+        }
+    }
+
     [Fact]
     public async Task ListSaleLines_WithAMalformedDate_ReturnsTheThaiDateError()
     {
@@ -95,14 +109,14 @@ public class SaleLinesEndpointsTests : IntegrationTestBase
         await AuthenticateAsCashierAsync();
         var sale = await SellAsync(("Traced Product", 120m));
 
-        var page = await LinesAsync($"pageSize={SalesQueryRules.MaxPageSize}");
+        var lines = await AllTodaysLinesAsync();
 
-        page.Items.Should()
-                  .Contain(l => l.InvoiceId == sale.InvoiceId
-                             && l.InvoiceNumber == sale.InvoiceNumber
-                             && l.ProductName == "Traced Product"
-                             && l.Quantity == 1
-                             && l.LineTotal == 120m);
+        lines.Should()
+             .Contain(l => l.InvoiceId == sale.InvoiceId
+                        && l.InvoiceNumber == sale.InvoiceNumber
+                        && l.ProductName == "Traced Product"
+                        && l.Quantity == 1
+                        && l.LineTotal == 120m);
     }
 
     [Fact]
@@ -112,9 +126,9 @@ public class SaleLinesEndpointsTests : IntegrationTestBase
         var sale = await SellAsync(("Detail Check", 75m));
 
         var detail = (await Client.GetFromJsonAsync<InvoiceDetailDto>($"/sales/{sale.InvoiceId}", JsonOptions))!;
-        var page = await LinesAsync($"pageSize={SalesQueryRules.MaxPageSize}");
+        var lines = await AllTodaysLinesAsync();
 
-        page.Items.Single(l => l.InvoiceId == sale.InvoiceId).LineTotal.Should()
+        lines.Single(l => l.InvoiceId == sale.InvoiceId).LineTotal.Should()
                                                                        .Be(detail.Lines.Single().LineTotal);
     }
 
@@ -143,8 +157,7 @@ public class SaleLinesEndpointsTests : IntegrationTestBase
         var first = await SellAsync(("Order First", 10m));
         var second = await SellAsync(("Order Second", 10m));
 
-        var page = await LinesAsync($"pageSize={SalesQueryRules.MaxPageSize}");
-        var ids = page.Items.Select(l => l.InvoiceId).ToList();
+        var ids = (await AllTodaysLinesAsync()).Select(l => l.InvoiceId).ToList();
 
         ids.IndexOf(first.InvoiceId).Should()
                                     .BeLessThan(ids.IndexOf(second.InvoiceId));
