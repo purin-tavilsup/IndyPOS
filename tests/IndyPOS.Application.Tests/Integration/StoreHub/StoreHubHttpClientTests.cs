@@ -154,6 +154,20 @@ public class StoreHubHttpClientTests
         result.TotalAmount.Should().Be(200m);
     }
 
+    // The till only ever saw a 200 from a sale. A 201 must still be a success, with its body read.
+    [Fact]
+    public async Task CompleteSaleAsync_WithACreatedResponse_ReturnsTheSale()
+    {
+        _sut.SetAuthToken("valid-token");
+        var invoiceId = Guid.NewGuid();
+        SetupMockResponse(HttpStatusCode.Created, new CompleteSaleResponse(invoiceId, 14m, DateTime.UtcNow, 1001));
+
+        var result = await _sut.CompleteSaleAsync(new CompleteSaleRequest([], []));
+
+        result.InvoiceId.Should()
+                        .Be(invoiceId);
+    }
+
     [Fact]
     public async Task IsHealthyAsync_WhenApiHealthy_ReturnsTrue()
     {
@@ -251,6 +265,7 @@ public class StoreHubHttpClientTests
     [InlineData("AddCampaignPaymentMethod", "POST", "/payment-methods")]
     [InlineData("SetPaymentMethodEnabled", "PATCH", "/payment-methods/Campaign2569")]
     [InlineData("UpdatePaymentMethodDisplay", "PATCH", "/payment-methods/Campaign2569")]
+    [InlineData("CompleteSale", "POST", "/sales")]
     public async Task RenamedCall_WithTheClient_SendsTheNewRoute(
         string call, string expectedMethod, string expectedPathAndQuery)
     {
@@ -270,6 +285,7 @@ public class StoreHubHttpClientTests
         "AddCampaignPaymentMethod" => _sut.AddCampaignPaymentMethodAsync(CampaignCode, "โครงการ", 9),
         "SetPaymentMethodEnabled" => _sut.SetPaymentMethodEnabledAsync(CampaignCode, enabled: false),
         "UpdatePaymentMethodDisplay" => _sut.UpdatePaymentMethodDisplayAsync(CampaignCode, "โครงการ", 9),
+        "CompleteSale" => _sut.CompleteSaleAsync(new CompleteSaleRequest([], [])),
         _ => throw new ArgumentOutOfRangeException(nameof(call), call, "No such client call.")
     };
 

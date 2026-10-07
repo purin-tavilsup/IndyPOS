@@ -211,11 +211,11 @@ public class StoreHubE2ETests : IDisposable
 
         _server.Given(
             Request.Create()
-                .WithPath("/sales/complete")
+                .WithPath("/sales")
                 .UsingPost())
             .RespondWith(
                 Response.Create()
-                    .WithStatusCode(200)
+                    .WithStatusCode(201)
                     .WithHeader("Content-Type", "application/json")
                     .WithBody(JsonSerializer.Serialize(response, _jsonOptions)));
     }

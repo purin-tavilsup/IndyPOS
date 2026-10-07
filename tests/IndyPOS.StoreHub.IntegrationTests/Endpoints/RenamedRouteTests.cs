@@ -30,6 +30,19 @@ public class RenamedRouteTests : IntegrationTestBase
                            .Be(HttpStatusCode.NotFound);
     }
 
+    // Not 404: the /sales group's catch-all GET /sales/{value} still matches this path, so routing
+    // answers 405 for the POST. The route is just as gone.
+    [Fact]
+    public async Task CompleteSale_OnTheOldPath_ReturnsMethodNotAllowed()
+    {
+        await AuthenticateAsAdminAsync();
+
+        var response = await SendAsync("POST", "/sales/complete");
+
+        response.StatusCode.Should()
+                           .Be(HttpStatusCode.MethodNotAllowed);
+    }
+
     private Task<HttpResponseMessage> SendAsync(string method, string path)
     {
         var request = new HttpRequestMessage(new HttpMethod(method), path.Replace("{id}", AnyId));
