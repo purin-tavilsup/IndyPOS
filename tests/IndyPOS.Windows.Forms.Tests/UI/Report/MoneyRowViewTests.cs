@@ -33,4 +33,18 @@ public class MoneyRowViewTests
         panel.Controls.Count.Should()
                             .Be(2);
     }
+
+    // More than three lines bring a scrollbar; the rows must still sit three to a line, at any display scale
+    // (the panel scales with the display, the rows are built in code).
+    [Fact]
+    public void Replace_WithAScrollbar_KeepsThreeRowsToALine()
+    {
+        using var panel = new FlowLayoutPanel { Width = 1240, Height = 170, AutoScroll = true };
+
+        MoneyRowView.Replace(panel, Enumerable.Range(1, 12).Select(i => new MoneyRow($"row {i}", i)).ToList());
+
+        var row = panel.Controls[0];
+        (MoneyRowView.RowsPerLine * (row.Width + row.Margin.Horizontal)).Should()
+                                                                       .BeLessThanOrEqualTo(panel.Width - SystemInformation.VerticalScrollBarWidth);
+    }
 }
