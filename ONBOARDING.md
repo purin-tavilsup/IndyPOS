@@ -132,18 +132,18 @@ reports `Skipped: 1` and writes nothing — which looks like success while leavi
 ### Expected counts
 
 Solution suites (`dotnet test` at the root), Docker running **and** the real store databases present
-— **1269 total** (1268 pass, 1 skipped) — measured 2026-10-07 (after the dev store profiles and their EnsureCreated-database check;
-supersedes 1209 earlier on 2026-10-07 after the health-check convention, 1186 earlier on 2026-10-07 after the till startup fix, 1183 on 2026-10-06 after route tidy-up B, 1152 on 2026-10-02 after route tidy-up A, 1111 earlier on 2026-10-02, 1089 on 2026-10-01, 928 on 2026-09-30, 853 on 2026-09-27 and 656 on 2026-09-17). Without those databases the total is **1249**
-(derived as 1269 − 20; CI measured 1166 = 1186 − 20 on PR #114, 2026-10-07, which has no store databases), still all
+— **1291 total** (1290 pass, 1 skipped) — measured 2026-10-07 (after per-store UI slice 1;
+supersedes 1269 earlier on 2026-10-07 after the dev store profiles and their EnsureCreated-database check, 1209 earlier on 2026-10-07 after the health-check convention, 1186 earlier on 2026-10-07 after the till startup fix, 1183 on 2026-10-06 after route tidy-up B, 1152 on 2026-10-02 after route tidy-up A, 1111 earlier on 2026-10-02, 1089 on 2026-10-01, 928 on 2026-09-30, 853 on 2026-09-27 and 656 on 2026-09-17). Without those databases the total is **1271**
+(derived as 1291 − 20; CI measured 1166 = 1186 − 20 on PR #114, 2026-10-07, which has no store databases), still all
 green:
 
 | Suite | Tests |
 |---|---|
-| `IndyPOS.Application.Tests` | 608 |
+| `IndyPOS.Application.Tests` | 613 |
 | `IndyPOS.StoreHub.IntegrationTests` | 317 (Docker) |
 | `IndyPOS.MigrationTool.Tests` | 145 (Docker; 1 skipped. **125** without the real store data — Trap 3, derived) |
-| `IndyPOS.Domain.Tests` | 56 |
-| `IndyPOS.Windows.Forms.Tests` | 54 |
+| `IndyPOS.Domain.Tests` | 61 |
+| `IndyPOS.Windows.Forms.Tests` | 66 |
 | `IndyPOS.Vault.Tests` | 17 |
 | `IndyPOS.CloudApi.Tests` | 6 |
 | `IndyPOS.CloudApi.IntegrationTests` | 58 (Docker) |
@@ -191,6 +191,10 @@ so no local PostgreSQL install is needed.
   applies migrations on start. The old `storehub-db` and `cloud-db` databases are no longer used; drop them
   if you like. They were built by `EnsureCreated` and cannot be migrated, so a direct StoreHub or CloudApi
   run pointed at one stops at start with a message saying so, instead of a "relation already exists" error.
+- **The till follows the store type** (`GET /store/features`, applied by `TillLayout`):
+  - the sale panel's ฮาร์ดแวร์ button shows only for GeneralHardware;
+  - the จัดส่ง / เอกสาร service buttons show only for MimyShop;
+  - the รายการลงบัญชี menu shows only for GeneralHardware, and the buttons below it move up.
 - **Dev stores sync** with a fixed dev secret that CloudApi registers in Development only.
 - **The till's receipt header** comes from a generated file under `src/IndyPOS.AppHost/obj/dev-stores/`.
   Your `C:\ProgramData\IndyPOS\Config\StoreConfiguration.json` is not used.
