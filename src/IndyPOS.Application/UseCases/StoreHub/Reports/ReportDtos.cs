@@ -9,7 +9,20 @@ public record SalesSummaryDto(
     int InvoiceCount,
     decimal TotalRevenue,
     PaymentBreakdownDto PaymentBreakdown,
-    IReadOnlyList<TopProductDto> TopProducts);
+    IReadOnlyList<TopProductDto> TopProducts)
+{
+    /// <summary>One row per catalogue method that is enabled or had sales in the range, in display order.</summary>
+    public IReadOnlyList<PaymentMethodTotalDto> PaymentsByMethod { get; init; } = [];
+
+    /// <summary>The service products' sales (จัดส่ง, เอกสาร). Empty for a store without services.</summary>
+    public IReadOnlyList<ServiceSaleDto> ServiceSales { get; init; } = [];
+}
+
+/// <summary>Takings by payment method, named as the store's catalogue names it.</summary>
+public record PaymentMethodTotalDto(string Code, string DisplayName, decimal Total);
+
+/// <summary>Sales of one service product.</summary>
+public record ServiceSaleDto(string Barcode, string Name, decimal Total);
 
 /// <summary>
 /// Breakdown of payments by method.
