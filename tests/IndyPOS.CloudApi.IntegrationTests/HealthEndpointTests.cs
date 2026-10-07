@@ -13,7 +13,7 @@ namespace IndyPOS.CloudApi.IntegrationTests;
 
 /// <summary>
 /// CloudApi's health wiring on its real Program, in Development: OpenIddict and the production-safety
-/// check need no certificates there, and EnsureCreated runs on this fixture's own database.
+/// check need no certificates there, and the migrations run on this fixture's own database.
 /// </summary>
 public class HealthEndpointTests : IAsyncLifetime
 {

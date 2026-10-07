@@ -227,15 +227,12 @@ Never hand-write one.
 
 ## Operational notes
 
-**Stale Aspire dev volume won't gain new tables.** `src/IndyPOS.AppHost/Program.cs` mounts the
-`cloud-db` Postgres with `WithDataVolume("indypos-postgres-data")`, and CloudApi's dev startup path
-provisions the schema with `EnsureCreatedAsync()` (`Program.cs`), which is a no-op once the database
-already has any tables. So an Aspire dev `cloud-db` volume created before the OpenIddict entities
-existed will NOT gain the four new `OpenIddict*` tables on a later run, and `/oauth/token` (and
-anything else touching those tables) will keep failing with a 500 there until the volume is dropped.
-To fix it: stop the AppHost, then remove the named volume (`docker volume rm indypos-postgres-data`,
-or find its actual name with `docker volume ls` if Aspire suffixed it) and restart the AppHost so the
-container is recreated empty and `EnsureCreatedAsync()` builds the full schema fresh.
+**Dev databases now migrate (2026-10).** CloudApi and StoreHub used to provision their Aspire dev
+databases with `EnsureCreatedAsync()`, which never adds a table or column to an existing database, so a
+dev volume went stale after every schema change (missing `OpenIddict*` tables, `/oauth/token` failing
+with a 500; StoreHub crashing while seeding). Development now applies the EF migrations on start, on
+fresh database names (`cloud`, `storehub-<store>`). An old `cloud-db` or `storehub-db` database left in
+the `indypos-postgres-data` volume is no longer used and can be dropped.
 
 **A migrate failure on the managed cluster does not self-heal.** `compose.prod.yaml`'s
 `cloud-api-migrate` one-shot has `restart: "no"` and nothing gates it on the external managed
