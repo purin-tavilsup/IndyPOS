@@ -131,14 +131,14 @@ reports `Skipped: 1` and writes nothing — which looks like success while leavi
 ### Expected counts
 
 Solution suites (`dotnet test` at the root), Docker running **and** the real store databases present
-— **1183 total** (1182 pass, 1 skipped) — measured 2026-10-06 (after route tidy-up B: the hard route renames;
-supersedes 1152 on 2026-10-02 after route tidy-up A, 1111 earlier on 2026-10-02, 1089 on 2026-10-01, 928 on 2026-09-30, 853 on 2026-09-27 and 656 on 2026-09-17). Without those databases the total is **1163**
-(measured by CI on PR #113, 2026-10-06, which has no store databases: 1163 = 1183 − 20), still all
+— **1186 total** (1185 pass, 1 skipped) — measured 2026-10-07 (after the till startup fix;
+supersedes 1183 on 2026-10-06 after route tidy-up B, 1152 on 2026-10-02 after route tidy-up A, 1111 earlier on 2026-10-02, 1089 on 2026-10-01, 928 on 2026-09-30, 853 on 2026-09-27 and 656 on 2026-09-17). Without those databases the total is **1166**
+(derived as 1186 − 20; CI measured the same −20 on PR #113, 2026-10-06, which has no store databases), still all
 green:
 
 | Suite | Tests |
 |---|---|
-| `IndyPOS.Application.Tests` | 574 |
+| `IndyPOS.Application.Tests` | 577 |
 | `IndyPOS.StoreHub.IntegrationTests` | 289 (Docker) |
 | `IndyPOS.MigrationTool.Tests` | 145 (Docker; 1 skipped. **125** without the real store data — Trap 3, derived) |
 | `IndyPOS.Domain.Tests` | 56 |
