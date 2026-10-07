@@ -131,7 +131,7 @@ public class PayLaterSaleEndpointTests : IntegrationTestBase
         var debt = (await Client.GetFromJsonAsync<GetPayLaterResponse>("/pay-later", JsonOptions))!
                    .Items.Single(d => d.InvoiceId == sale.InvoiceId);
 
-        var response = await Client.PostAsJsonAsync($"/pay-later/{debt.Id}/record-payment", new RecordPaymentRequest(100m));
+        var response = await Client.PostAsJsonAsync($"/pay-later/{debt.Id}/payments", new RecordPaymentRequest(100m));
 
         (await response.Content.ReadFromJsonAsync<PayLaterDto>(JsonOptions))!.RemainingAmount.Should()
                                                                              .Be(Price - 100m);

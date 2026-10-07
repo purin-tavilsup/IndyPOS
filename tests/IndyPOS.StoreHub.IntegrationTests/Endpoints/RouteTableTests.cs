@@ -48,7 +48,7 @@ public class RouteTableTests : IntegrationTestBase
         "GET /reports/legacy/payments-summary CanViewReports",
         $"GET /pay-later {AnyAuthenticatedUser}",
         $"GET /pay-later/{{id:guid}} {AnyAuthenticatedUser}",
-        $"POST /pay-later/{{id:guid}}/record-payment {AnyAuthenticatedUser}"
+        $"POST /pay-later/{{id:guid}}/payments {AnyAuthenticatedUser}"
     ];
 
     // Hard renames (no alias before go-live). A task that renames a route adds its old pattern here.
@@ -57,7 +57,8 @@ public class RouteTableTests : IntegrationTestBase
         "GET /admin/payment-methods CanManagePaymentMethods",
         "POST /admin/payment-methods CanManagePaymentMethods",
         "PATCH /admin/payment-methods/{code} CanManagePaymentMethods",
-        "POST /sales/complete CanCompleteSales"
+        "POST /sales/complete CanCompleteSales",
+        $"POST /pay-later/{{id:guid}}/record-payment {AnyAuthenticatedUser}"
     ];
 
     public RouteTableTests(StoreHubWebApplicationFactory factory) : base(factory) { }

@@ -302,7 +302,7 @@ public class StoreHubHttpClient : IStoreHubClient
 
         var request = new RecordPaymentRequest(paymentAmount);
         var result = await SendAuthenticatedAsync<PayLaterDto>(
-            HttpMethod.Post, $"/pay-later/{payLaterId}/record-payment", request, cancellationToken);
+            HttpMethod.Post, $"/pay-later/{payLaterId}/payments", request, cancellationToken);
 
         _logger.LogInformation("Payment recorded for PayLater: {Id}, New Paid Amount: {PaidAmount}, Completed: {IsCompleted}",
             result.Id, result.PaidAmount, result.IsCompleted);
