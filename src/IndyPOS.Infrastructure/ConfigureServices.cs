@@ -83,10 +83,13 @@ public static class ConfigureServices
 		services.Configure<CloudTokenOptions>(configuration.GetSection(CloudTokenOptions.SectionName));
 
 		// DPAPI secret storage for secure credential storage (S5b)
-		// Stores encrypted secrets in %ProgramData%\IndyPOS\Secrets
-		var secretsDirectory = Path.Combine(
-			Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData),
-			"IndyPOS", "Secrets");
+		// Stores encrypted secrets in %ProgramData%\IndyPOS\Secrets. Secrets:Directory overrides it so a
+		// dev store never reads an installed StoreHub's secrets on the same machine (they are read
+		// before config).
+		var secretsDirectory = configuration["Secrets:Directory"]
+			?? Path.Combine(
+				Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData),
+				"IndyPOS", "Secrets");
 		services.AddSingleton<ISecretStorage>(sp =>
 			new DpapiSecretStorage(
 				secretsDirectory,
