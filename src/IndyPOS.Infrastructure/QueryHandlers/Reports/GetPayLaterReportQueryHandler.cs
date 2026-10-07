@@ -1,3 +1,4 @@
+using IndyPOS.Application.Common.Interfaces;
 using IndyPOS.Application.UseCases.StoreHub.Reports;
 using IndyPOS.Application.UseCases.StoreHub.Reports.GetPayLaterReport;
 using IndyPOS.Infrastructure.Persistence.StoreHub;
@@ -14,11 +15,16 @@ namespace IndyPOS.Infrastructure.QueryHandlers.Reports;
 public class GetPayLaterReportQueryHandler : IQueryHandler<GetPayLaterReportQuery, PayLaterReportDto>
 {
     private readonly StoreHubDbContext _dbContext;
+    private readonly IStoreIdentityService _storeIdentity;
     private readonly ILogger<GetPayLaterReportQueryHandler> _logger;
 
-    public GetPayLaterReportQueryHandler(StoreHubDbContext dbContext, ILogger<GetPayLaterReportQueryHandler> logger)
+    public GetPayLaterReportQueryHandler(
+        StoreHubDbContext dbContext,
+        IStoreIdentityService storeIdentity,
+        ILogger<GetPayLaterReportQueryHandler> logger)
     {
         _dbContext = dbContext;
+        _storeIdentity = storeIdentity;
         _logger = logger;
     }
 
@@ -33,6 +39,12 @@ public class GetPayLaterReportQueryHandler : IQueryHandler<GetPayLaterReportQuer
         if (!query.IncludeCompleted)
         {
             baseQuery = baseQuery.Where(p => !p.IsCompleted);
+        }
+
+        if (query.FromDate is { } from && query.ToDate is { } to)
+        {
+            var range = ReportDateRange.ToUtcRange(from, to, _storeIdentity.TimeZone);
+            baseQuery = baseQuery.Where(p => p.CreatedUtc >= range.StartUtc && p.CreatedUtc < range.EndExclusiveUtc);
         }
 
         // Get all matching records for aggregation

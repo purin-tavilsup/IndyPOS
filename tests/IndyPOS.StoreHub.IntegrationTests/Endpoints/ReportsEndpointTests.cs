@@ -3,6 +3,8 @@ using System.Net.Http.Json;
 using FluentAssertions;
 using IndyPOS.Application.Common.Validation;
 using IndyPOS.Application.UseCases.StoreHub.Reports;
+using IndyPOS.Application.UseCases.StoreHub.Reports.GetPayLaterReport;
+using IndyPOS.Domain.Entities.Core;
 using Xunit;
 
 namespace IndyPOS.StoreHub.IntegrationTests.Endpoints;
@@ -244,5 +246,86 @@ public class ReportsEndpointTests : IntegrationTestBase
 
         var result = await response.Content.ReadFromJsonAsync<PagedResult<ProductSalesDto>>(JsonOptions);
         result.Should().NotBeNull();
+    }
+
+    private static string Day(DateTime utc) => DateOnly.FromDateTime(utc.ToLocalTime()).ToString("yyyy-MM-dd");
+
+    private async Task SeedDebtAsync(string customer, DateTime createdUtc, decimal amount = 200m)
+    {
+        var invoice = await SeedInvoiceAsync(createdUtc, amount);
+        await using var db = GetDbContext();
+        var payment = new Payment { Id = Guid.NewGuid(), InvoiceId = invoice.Id, Method = "PayLater", Amount = amount, CreatedUtc = createdUtc };
+        db.Payments.Add(payment);
+        db.PayLaters.Add(new PayLater
+        {
+            Id = Guid.NewGuid(), PaymentId = payment.Id, InvoiceId = invoice.Id, Description = customer,
+            PayLaterAmount = amount, PaidAmount = 0m, CreatedUtc = createdUtc, LastModifiedUtc = createdUtc
+        });
+        await db.SaveChangesAsync();
+    }
+
+    [Fact]
+    public async Task GetPayLaterReport_WithOnlyAFromDate_ReturnsBadRequest()
+    {
+        await AuthenticateAsManagerAsync();
+
+        var response = await Client.GetAsync("/reports/pay-later?fromDate=2026-10-01");
+
+        response.StatusCode.Should()
+                           .Be(HttpStatusCode.BadRequest);
+    }
+
+    [Fact]
+    public async Task GetPayLaterReport_WithASwappedRange_ReturnsBadRequest()
+    {
+        await AuthenticateAsManagerAsync();
+
+        var response = await Client.GetAsync("/reports/pay-later?fromDate=2026-10-05&toDate=2026-10-01");
+
+        response.StatusCode.Should()
+                           .Be(HttpStatusCode.BadRequest);
+    }
+
+    [Fact]
+    public async Task GetPayLaterReport_WithARange_LeavesOutADebtFromAnotherDay()
+    {
+        var oldDay = DateTime.UtcNow.AddDays(-2);
+        var todaysCustomer = $"today-{Guid.NewGuid():N}";
+        await SeedDebtAsync(todaysCustomer, DateTime.UtcNow);
+        await AuthenticateAsManagerAsync();
+
+        var report = await Client.GetFromJsonAsync<PayLaterReportDto>(
+            $"/reports/pay-later?includeCompleted=true&pageSize=500&fromDate={Day(oldDay)}&toDate={Day(oldDay)}", JsonOptions);
+
+        report!.Customers.Items.Should()
+                               .NotContain(c => c.CustomerName == todaysCustomer);
+    }
+
+    [Fact]
+    public async Task GetPayLaterReport_WithARange_ListsADebtFromThatDay()
+    {
+        var oldDay = DateTime.UtcNow.AddDays(-2);
+        var customer = $"old-{Guid.NewGuid():N}";
+        await SeedDebtAsync(customer, oldDay);
+        await AuthenticateAsManagerAsync();
+
+        var report = await Client.GetFromJsonAsync<PayLaterReportDto>(
+            $"/reports/pay-later?includeCompleted=true&pageSize=500&fromDate={Day(oldDay)}&toDate={Day(oldDay)}", JsonOptions);
+
+        report!.Customers.Items.Should()
+                               .Contain(c => c.CustomerName == customer && c.RemainingBalance == 200m);
+    }
+
+    [Fact]
+    public async Task GetPayLaterReport_WithoutDates_ListsADebtFromAnyDay()
+    {
+        var customer = $"any-{Guid.NewGuid():N}";
+        await SeedDebtAsync(customer, DateTime.UtcNow.AddDays(-40));
+        await AuthenticateAsManagerAsync();
+
+        var report = await Client.GetFromJsonAsync<PayLaterReportDto>("/reports/pay-later?pageSize=500", JsonOptions);
+
+        report!.Customers.Items.Should()
+                               .Contain(c => c.CustomerName == customer);
     }
 }
