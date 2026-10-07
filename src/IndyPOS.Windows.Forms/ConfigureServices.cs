@@ -53,7 +53,6 @@ internal static class ConfigureServices
 
 		// Update services
 		services.AddSingleton<IUpdateService, UpdateService>();
-		services.AddSingleton<IStoreHubUpdateService, StoreHubUpdateService>();
 
 		services.AddSingleton<IMachine, Machine>();
 
