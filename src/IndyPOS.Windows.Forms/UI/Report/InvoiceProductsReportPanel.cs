@@ -59,6 +59,13 @@ public partial class InvoiceProductsReportPanel : UserControl
 		InitializeComponent();
 		InitializeInvoiceProductsDataView();
 
+		// Follow the store as soon as the panel shows, not only after the first fetch.
+		VisibleChanged += async (_, _) =>
+		{
+			if (Visible)
+				await ApplyStoreLayoutAsync();
+		};
+
 		StartDatePicker.Value = DateTime.Today;
 		EndDatePicker.Value = DateTime.Today;
 	}
@@ -157,8 +164,11 @@ public partial class InvoiceProductsReportPanel : UserControl
 		var startDate = StartDatePicker.Value.ToDateOnly();
 		var endDate = EndDatePicker.Value.ToDateOnly();
 
-		await RefreshHardwareCodesAsync();
-		await ApplyStoreLayoutAsync();
+		// The layout first: a store without the hardware split needs no category catalogue, and a failed
+		// catalogue fetch must not leave GeneralHardware's filter showing.
+		var layout = await ApplyStoreLayoutAsync();
+		if (layout.ShowProductTypeSplit)
+			await RefreshHardwareCodesAsync();
 
 		return await PageReader.ReadAllAsync(async page =>
 		{
@@ -167,7 +177,7 @@ public partial class InvoiceProductsReportPanel : UserControl
 		});
 	}
 
-	private async Task ApplyStoreLayoutAsync()
+	private async Task<TillLayout> ApplyStoreLayoutAsync()
 	{
 		TillLayout layout;
 		try
@@ -184,6 +194,8 @@ public partial class InvoiceProductsReportPanel : UserControl
 		InvoiceProductsDataView.Columns[(int)ProductColumn.Category].Visible = layout.ShowProductTypeSplit;
 		if (!layout.ShowProductTypeSplit)
 			AllProductGroupsButton.Checked = true;
+
+		return layout;
 	}
 
 	private async Task RefreshHardwareCodesAsync()
