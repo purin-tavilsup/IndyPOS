@@ -11,6 +11,12 @@ public record SalesSummaryDto(
     PaymentBreakdownDto PaymentBreakdown,
     IReadOnlyList<TopProductDto> TopProducts)
 {
+    /// <summary>
+    /// The sold lines' total, summed the way the legacy summary's InvoiceTotal is, so the overview's total-sales
+    /// tile reads the same figure from either.
+    /// </summary>
+    public decimal LinesTotal { get; init; }
+
     /// <summary>One row per catalogue method that is enabled or had sales in the range, in display order.</summary>
     public IReadOnlyList<PaymentMethodTotalDto> PaymentsByMethod { get; init; } = [];
 

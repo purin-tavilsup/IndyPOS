@@ -101,6 +101,7 @@ public class GetSalesSummaryQueryHandler : IQueryHandler<GetSalesSummaryQuery, S
             PaymentBreakdown: paymentBreakdown,
             TopProducts: topProductsWithCategory)
         {
+            LinesTotal = invoices.SelectMany(i => i.Lines).Sum(l => l.LineTotal),
             PaymentsByMethod = PaymentMethodTotals.Build(catalogue, payments),
             ServiceSales = serviceSales
         };
