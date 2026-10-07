@@ -368,7 +368,7 @@ Invoke-RestMethod -Uri "http://localhost:5000/version"
 
 Expected output:
 ```json
-{"status":"healthy","database":"connected"}
+Healthy
 {"version":"1.0.0","assemblyVersion":"1.0.0.0",...}
 ```
 

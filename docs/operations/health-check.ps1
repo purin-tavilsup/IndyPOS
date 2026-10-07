@@ -83,8 +83,9 @@ function Test-StoreHubHealth {
     try {
         $response = Invoke-RestMethod -Uri "$StoreHubUrl/health/ready" -TimeoutSec 10
 
-        if ($response.status -ne "Healthy") {
-            Write-Alert "StoreHub health check returned non-healthy status: $($response | ConvertTo-Json -Compress)" -EventId $EVENT_HEALTH_FAILED
+        # /health/ready answers the plain text "Healthy" (a 503 lands in the catch below).
+        if ($response -ne "Healthy") {
+            Write-Alert "StoreHub health check returned non-healthy status: $response" -EventId $EVENT_HEALTH_FAILED
             return $false
         }
 
