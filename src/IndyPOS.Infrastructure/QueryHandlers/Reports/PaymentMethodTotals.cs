@@ -12,15 +12,16 @@ public static class PaymentMethodTotals
     public static IReadOnlyList<PaymentMethodTotalDto> Build(IReadOnlyList<PaymentMethod> catalogue,
                                                              IReadOnlyList<Payment> payments)
     {
-        var totals = payments.GroupBy(p => p.Method)
-                             .ToDictionary(g => g.Key, g => g.Sum(p => p.Amount));
+        // Case-insensitive, as a sale accepts its codes: it stores the caller's spelling, so "cash" is Cash.
+        var totals = payments.GroupBy(p => p.Method, StringComparer.OrdinalIgnoreCase)
+                             .ToDictionary(g => g.Key, g => g.Sum(p => p.Amount), StringComparer.OrdinalIgnoreCase);
 
         var known = catalogue.Where(m => m.IsEnabled || totals.ContainsKey(m.Code))
                              .OrderBy(m => m.DisplayOrder)
                              .Select(m => new PaymentMethodTotalDto(m.Code, m.DisplayName, totals.GetValueOrDefault(m.Code)));
 
         // A code no catalogue row names (an old "Card", say) still counts, under its own code, last.
-        var catalogueCodes = catalogue.Select(m => m.Code).ToHashSet();
+        var catalogueCodes = catalogue.Select(m => m.Code).ToHashSet(StringComparer.OrdinalIgnoreCase);
         var unknown = totals.Where(t => !catalogueCodes.Contains(t.Key))
                             .OrderBy(t => t.Key, StringComparer.Ordinal)
                             .Select(t => new PaymentMethodTotalDto(t.Key, t.Key, t.Value));

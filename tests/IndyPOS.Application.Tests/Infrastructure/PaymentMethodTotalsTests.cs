@@ -30,6 +30,16 @@ public class PaymentMethodTotalsTests
               .Contain(new PaymentMethodTotalDto("WeWin", "เราชนะ", 40m));
     }
 
+    // A sale accepts a method code in any case and stores the caller's spelling, so "cash" is Cash.
+    [Fact]
+    public void Build_WithADifferentlyCasedCode_CountsItUnderTheCatalogueMethod()
+    {
+        var totals = PaymentMethodTotals.Build([Cash], [Pay("cash", 100m), Pay("Cash", 20m)]);
+
+        totals.Should()
+              .Equal(new PaymentMethodTotalDto("Cash", "เงินสด", 120m));
+    }
+
     [Fact]
     public void Build_WithACodeOutsideTheCatalogue_ListsItLastUnderItsCode()
     {
