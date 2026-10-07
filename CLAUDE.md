@@ -40,6 +40,7 @@ src/
   IndyPOS.MigrationTool/     # SQLite -> PostgreSQL migration
   IndyPOS.AppHost/           # Aspire orchestrator
   IndyPOS.ServiceDefaults/   # Shared health checks, OpenTelemetry
+  IndyPOS.StoreProfiles/     # Dev store profiles (AppHost --store, dev seeding, per-store tests)
 
 installer/
   IndyPOS.Bootstrapper/      # Installer: fresh install + in-place upgrade
@@ -237,6 +238,10 @@ dotnet test tests/IndyPOS.Bootstrapper.Tests
 # Run with Aspire (requires Docker)
 dotnet run --project src/IndyPOS.AppHost --launch-profile https
 # Dashboard: https://localhost:17222
+
+# Run as a dev store (own database, products, methods and receipt header; see ONBOARDING "Running as a store")
+dotnet run --project src/IndyPOS.AppHost -- --store MimyMart     # or GeneralHardware (default), MimyShop
+dotnet run --project src/IndyPOS.AppHost -- --store all          # all three on :5012/:5013/:5014, one CloudApi
 ```
 
 Solution suites total **1209** with Docker running and the real store databases present (1208 pass,
@@ -253,7 +258,8 @@ and the `/health` vs `/health/ready` trap.
 
 ## Store Configuration (Required for Debug)
 
-Create `C:\ProgramData\IndyPOS\Config\StoreConfiguration.json`:
+Needed only when running the till without Aspire; the AppHost generates one per store. Create
+`C:\ProgramData\IndyPOS\Config\StoreConfiguration.json`:
 
 ```json
 {
