@@ -1,11 +1,11 @@
 meta {
-  name: Complete Sale (Example)
+  name: Create Sale (Example)
   type: http
   seq: 2
 }
 
 post {
-  url: {{baseUrl}}/sales/complete
+  url: {{baseUrl}}/sales
   body: json
   auth: bearer
 }
@@ -42,7 +42,7 @@ body:json {
 }
 
 docs {
-  # Complete Sale (Example with multiple items)
+  # Create Sale (Example with multiple items)
 
   Example sale with 2 different products:
   - 2x น้ำดื่ม @ 7 baht = 14 baht

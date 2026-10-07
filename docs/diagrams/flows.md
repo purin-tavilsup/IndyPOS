@@ -311,7 +311,7 @@ This document contains detailed ASCII diagrams for all major flows in the IndyPO
 ```
  POS Terminal       StoreHub API        PostgreSQL           SyncWorker        Cloud API
       │                  │                  │                    │                 │
-      │ POST /sales/complete                │                    │                 │
+      │ POST /sales                         │                    │                 │
       │ {lines, payments}                   │                    │                 │
       ├─────────────────►│                  │                    │                 │
       │                  │                  │                    │                 │
@@ -830,8 +830,8 @@ This document contains detailed ASCII diagrams for all major flows in the IndyPO
     │  reason: "Restock")  │                       │                    │
     ├─────────────────────►│                       │                    │
     │                      │                       │                    │
-    │                      │ POST /products/{id}/adjust-quantity        │
-    │                      │ {quantity: 10, reason: "Restock"}          │
+    │                      │ POST /products/{id}/stock-adjustments      │
+    │                      │ {delta: 10, reason: "Restock"}             │
     │                      ├──────────────────────►│                    │
     │                      │                       │                    │
     │                      │                       │ INSERT INTO        │
