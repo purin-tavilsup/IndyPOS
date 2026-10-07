@@ -195,6 +195,13 @@ public static class ConfigureServices
 		});
 		services.AddSingleton<IStoreHubClient>(sp => sp.GetRequiredService<StoreHubHttpClient>());
 
+		// The first-run wizard's "Test connection": the configured StoreHub, a short timeout.
+		services.AddHttpClient<IStoreHubConnectionCheck, StoreHubConnectionCheck>(client =>
+		{
+			client.BaseAddress = new Uri(storeHubOptions.BaseUrl);
+			client.Timeout = StoreHubConnectionCheck.Timeout;
+		});
+
 		// Product cache service (in-memory)
 		services.AddSingleton<IProductCacheService, ProductCacheService>();
 

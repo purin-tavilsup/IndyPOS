@@ -40,8 +40,8 @@ EXPOSE 8080
 # Non-root. The aspnet images define APP_UID for exactly this.
 USER $APP_UID
 
-# /health/live, not /health/ready: it is the cheap probe by design, and it is mapped exactly once
-# (see defect I0-C in the spec).
+# /health/live, not /health/ready: it is the cheap probe and never touches the database, so a database
+# outage does not get a healthy process restarted.
 HEALTHCHECK --interval=15s --timeout=3s --start-period=20s --retries=3 \
   CMD curl -fsS http://localhost:8080/health/live || exit 1
 

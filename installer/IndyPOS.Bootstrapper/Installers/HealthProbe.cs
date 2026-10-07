@@ -8,34 +8,56 @@ namespace IndyPOS.Bootstrapper.Installers;
 /// </summary>
 public static class HealthProbe
 {
-    public static async Task<bool> IsReadyAsync(
-        int port,
-        int attempts = 5,
-        CancellationToken cancellationToken = default)
+    // Long enough for PostgreSQL to come up after a reboot. Bounded by time, not attempts: StoreHub's
+    // readiness check fails within about 3 seconds, so a fixed number of attempts would end the wait
+    // too soon and roll an upgrade back while the database is still starting.
+    private static readonly TimeSpan Deadline = TimeSpan.FromSeconds(60);
+    private static readonly TimeSpan RetryGap = TimeSpan.FromSeconds(2);
+    private static readonly TimeSpan AttemptTimeout = TimeSpan.FromSeconds(10);
+
+    public static Task<bool> IsReadyAsync(int port, CancellationToken cancellationToken = default) =>
+        // /health/ready is StoreHub's readiness probe (its own database). /health is mapped in
+        // Development only, so an installed StoreHub answers it with 404.
+        IsReadyAsync(new Uri($"http://localhost:{port}/health/ready"), new HttpClientHandler(),
+                     TimeProvider.System, (gap, ct) => Task.Delay(gap, ct), cancellationToken);
+
+    internal static async Task<bool> IsReadyAsync(
+        Uri readyUrl,
+        HttpMessageHandler handler,
+        TimeProvider clock,
+        Func<TimeSpan, CancellationToken, Task> delay,
+        CancellationToken cancellationToken)
     {
-        using var client = new HttpClient { Timeout = TimeSpan.FromSeconds(10) };
-        // /health/ready is StoreHub's DB-aware readiness probe. /health and /alive are
-        // dev-only (Aspire's IsDevelopment() guard in ServiceDefaults).
-        var healthUrl = $"http://localhost:{port}/health/ready";
+        using var client = new HttpClient(handler) { Timeout = AttemptTimeout };
+        var giveUpAt = clock.GetUtcNow() + Deadline;
 
-        for (var i = 0; i < attempts; i++)
+        while (true)
         {
-            try
-            {
-                var response = await client.GetAsync(healthUrl, cancellationToken);
-                if (response.IsSuccessStatusCode)
-                {
-                    return true;
-                }
-            }
-            catch
-            {
-                // Retry
-            }
+            cancellationToken.ThrowIfCancellationRequested();
+            if (await AnswersReadyAsync(client, readyUrl, cancellationToken))
+                return true;
 
-            await Task.Delay(2000, cancellationToken);
+            if (clock.GetUtcNow() + RetryGap > giveUpAt)
+                return false;
+
+            await delay(RetryGap, cancellationToken);
         }
+    }
 
-        return false;
+    private static async Task<bool> AnswersReadyAsync(HttpClient client, Uri readyUrl, CancellationToken cancellationToken)
+    {
+        try
+        {
+            using var response = await client.GetAsync(readyUrl, cancellationToken);
+            return response.IsSuccessStatusCode;
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            throw;
+        }
+        catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException)
+        {
+            return false;
+        }
     }
 }
