@@ -245,7 +245,7 @@ cash-drawer release). Per suite: Domain 56 · Vault 17 · CloudApi 6 · CloudApi
 (Docker) · MigrationTool 145 (144 pass, 1 skip) · StoreHub.IntegrationTests 289 · Application 574 ·
 Windows.Forms 47. The growth since the 1152 measurement is route tidy-up B's own tests:
 Application +9 and StoreHub.IntegrationTests +22 (1152 + 31 = 1183). Without the
-real store databases the suite discovers **1163** (1183 − 20, DERIVED: CI measured the same −20 on 2026-10-02, when the total was 1152 and it found 1132) — a skipped
+real store databases the suite discovers **1163** (1183 − 20, measured by CI on PR #113, 2026-10-06, which has no store databases) — a skipped
 `[Theory]` is one entry, not one per row.
 See [`ONBOARDING.md`](ONBOARDING.md) for the per-suite breakdown, the dev-vs-installed port split,
 and the `/health` vs `/health/ready` trap.
