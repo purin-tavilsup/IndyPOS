@@ -5,6 +5,7 @@ using IndyPOS.Application.Common.Models;
 using IndyPOS.Application.UseCases.StoreHub.PaymentMethods;
 using IndyPOS.Application.Events;
 using IndyPOS.Domain.Events;
+using IndyPOS.Domain.ValueObjects;
 using IndyPOS.Windows.Forms.Enums;
 using IndyPOS.Windows.Forms.Events;
 using IndyPOS.Windows.Forms.Extensions;
@@ -269,7 +270,10 @@ public partial class SalePanel : UserControl
         {
             var features = await _storeHubClient.GetStoreFeaturesAsync();
 
-            AddHardwareProductButton.Visible = features.MultipleProductTypesEnabled;
+            var layout = TillLayout.For(features);
+            AddHardwareProductButton.Visible = layout.ShowHardwareButton;
+            DeliveryServiceButton.Visible = layout.ShowServiceButtons;
+            DocumentServiceButton.Visible = layout.ShowServiceButtons;
             _storeFeaturesApplied = true;
         }
         catch (Exception ex)
@@ -282,7 +286,8 @@ public partial class SalePanel : UserControl
                 _messageForm.ShowDialog($"ไม่สามารถโหลดการตั้งค่าร้านค้าได้ Error: {ex.Message}", "ข้อผิดพลาด");
             }
 
-            // Leave the button as designed (visible) on failure — server guard still blocks Hardware creation.
+            // Leave the buttons as designed on failure: hardware visible (the server guard still blocks
+            // Hardware creation) and the service buttons hidden.
         }
     }
 
@@ -433,6 +438,16 @@ public partial class SalePanel : UserControl
     private async void AddHardwareProductButton_Click(object sender, EventArgs e)
     {
         await _addInvoiceProductForm.ShowDialog(HardwareBarcode);
+    }
+
+    private async void DeliveryServiceButton_Click(object sender, EventArgs e)
+    {
+        await _addInvoiceProductForm.ShowDialog(ServiceProductBarcodes.Delivery);
+    }
+
+    private async void DocumentServiceButton_Click(object sender, EventArgs e)
+    {
+        await _addInvoiceProductForm.ShowDialog(ServiceProductBarcodes.Documents);
     }
 
     private void LookUpProductButton_Click(object sender, EventArgs e)
