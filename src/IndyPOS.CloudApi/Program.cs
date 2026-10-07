@@ -34,7 +34,10 @@ builder.AddServiceDefaults();
 
 // Add PostgreSQL with EF Core via Aspire
 // Connection name must match AppHost: postgres.AddDatabase("cloud-db")
-builder.AddNpgsqlDbContext<CloudDbContext>("cloud-db");
+// Aspire's own database check is off: readiness is the one bounded check below.
+builder.AddNpgsqlDbContext<CloudDbContext>("cloud-db",
+    settings => settings.DisableHealthChecks = true);
+builder.AddDatabaseReadinessCheck("cloud-db");
 
 // Add Cloud infrastructure services
 builder.Services.AddScoped<ISyncedEventRepository, DbSyncedEventRepository>();
@@ -126,7 +129,8 @@ else if (Array.Exists(args, a => string.Equals(a, "migrate", StringComparison.Or
     return;
 }
 
-// Map default endpoints (health, alive)
+// Health probes (/health/live, /health/ready); their request timeout needs the middleware.
+app.UseRequestTimeouts();
 app.MapDefaultEndpoints();
 
 // Authentication & Authorization middleware
@@ -195,20 +199,6 @@ app.MapPost("/sync/bulk-migration", [Authorize] async (
 }).RequireAuthorization();
 
 app.MapSyncStatus();
-
-// Health/ready endpoint with database check
-app.MapGet("/health/ready", async (CloudDbContext db) =>
-{
-    try
-    {
-        await db.Database.CanConnectAsync();
-        return Results.Ok(new { status = "healthy", database = "connected" });
-    }
-    catch (Exception ex)
-    {
-        return Results.Problem($"Database connection failed: {ex.Message}");
-    }
-});
 
 // ============================================
 // Master Data Endpoints (F4)
@@ -489,3 +479,5 @@ public record CloudUserSyncResponse(
     List<CloudUserDto> Users,
     long MaxVersion,
     DateTime Timestamp);
+
+public partial class Program;
