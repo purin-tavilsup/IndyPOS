@@ -13,8 +13,9 @@ public static class ConfigureServices
 	{
 		var assembly = Assembly.GetExecutingAssembly();
 		services.AddValidatorsFromAssembly(assembly);
+		var firstScanned = services.Count;
 		services.AddNokpirabFromAssembly(assembly);
-		RemoveOpenGenericHandlers(services);
+		RemoveOpenGenericHandlers(services, firstScanned);
 
 		return services;
     }
@@ -23,14 +24,14 @@ public static class ConfigureServices
 	// DeleteCashEntryCommandHandler<TEntry> for ICommandHandler<DeleteCashEntryCommand<TEntry>>. The
 	// container cannot build that shape and throws while building, which stopped the till at startup.
 	// Hosts that need a generic handler register its closed forms themselves (StoreHub's cash drawer).
-	private static void RemoveOpenGenericHandlers(IServiceCollection services)
+	// Only the scan's own registrations are touched: the host may already hold valid open generics,
+	// such as ILogger<> -> Logger<>, registered before this runs.
+	private static void RemoveOpenGenericHandlers(IServiceCollection services, int firstScanned)
 	{
-		var openGenerics = services.Where(d => d.ImplementationType is { IsGenericTypeDefinition: true })
-								   .ToList();
-
-		foreach (var descriptor in openGenerics)
+		for (var i = services.Count - 1; i >= firstScanned; i--)
 		{
-			services.Remove(descriptor);
+			if (services[i].ImplementationType is { IsGenericTypeDefinition: true })
+				services.RemoveAt(i);
 		}
 	}
 }

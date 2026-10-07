@@ -1,5 +1,6 @@
 using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Xunit;
 
 namespace IndyPOS.Application.Tests;
@@ -20,6 +21,21 @@ public class ConfigureServicesTests
 
         build.Should()
              .NotThrow();
+    }
+
+    // The till's host registers logging (ILogger<> -> Logger<>, a valid open generic) before this runs.
+    // Only the scan's own broken registrations may go.
+    [Fact]
+    public void AddApplicationServices_WithLoggingAlreadyRegistered_KeepsTheGenericLogger()
+    {
+        var services = new ServiceCollection().AddLogging()
+                                              .AddApplicationServices();
+
+        using var provider = services.BuildServiceProvider();
+
+        provider.GetService<ILogger<ConfigureServicesTests>>()
+                .Should()
+                .NotBeNull();
     }
 
     [Fact]
