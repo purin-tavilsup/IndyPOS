@@ -65,6 +65,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IndyPOS.CloudApi.Integratio
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IndyPOS.Testing.Postgres", "tests\IndyPOS.Testing.Postgres\IndyPOS.Testing.Postgres.csproj", "{23959195-D5E8-494D-959B-54E05A15FFFD}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IndyPOS.ServiceDefaults.Tests", "tests\IndyPOS.ServiceDefaults.Tests\IndyPOS.ServiceDefaults.Tests.csproj", "{1376C99C-975C-4543-8D59-BDD0B20FDD65}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -315,6 +317,18 @@ Global
 		{23959195-D5E8-494D-959B-54E05A15FFFD}.Release|Any CPU.Build.0 = Release|Any CPU
 		{23959195-D5E8-494D-959B-54E05A15FFFD}.Release|x86.ActiveCfg = Release|Any CPU
 		{23959195-D5E8-494D-959B-54E05A15FFFD}.Release|x86.Build.0 = Release|Any CPU
+		{1376C99C-975C-4543-8D59-BDD0B20FDD65}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{1376C99C-975C-4543-8D59-BDD0B20FDD65}.Debug|x64.Build.0 = Debug|Any CPU
+		{1376C99C-975C-4543-8D59-BDD0B20FDD65}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1376C99C-975C-4543-8D59-BDD0B20FDD65}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1376C99C-975C-4543-8D59-BDD0B20FDD65}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{1376C99C-975C-4543-8D59-BDD0B20FDD65}.Debug|x86.Build.0 = Debug|Any CPU
+		{1376C99C-975C-4543-8D59-BDD0B20FDD65}.Release|x64.ActiveCfg = Release|Any CPU
+		{1376C99C-975C-4543-8D59-BDD0B20FDD65}.Release|x64.Build.0 = Release|Any CPU
+		{1376C99C-975C-4543-8D59-BDD0B20FDD65}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1376C99C-975C-4543-8D59-BDD0B20FDD65}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1376C99C-975C-4543-8D59-BDD0B20FDD65}.Release|x86.ActiveCfg = Release|Any CPU
+		{1376C99C-975C-4543-8D59-BDD0B20FDD65}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -344,6 +358,7 @@ Global
 		{85C867C1-CBF8-4FBF-BB5E-9A455DF82D8C} = {A1B2C3D4-6666-6666-6666-000000000006}
 		{CD091988-2B9B-4E99-88CE-3AEC5B728B24} = {A1B2C3D4-6666-6666-6666-000000000006}
 		{23959195-D5E8-494D-959B-54E05A15FFFD} = {A1B2C3D4-6666-6666-6666-000000000006}
+		{1376C99C-975C-4543-8D59-BDD0B20FDD65} = {A1B2C3D4-6666-6666-6666-000000000063}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {8DF2657F-A964-43CB-BD74-99381ADA31E6}
