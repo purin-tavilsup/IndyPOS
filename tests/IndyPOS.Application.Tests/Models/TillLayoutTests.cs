@@ -13,7 +13,8 @@ public class TillLayoutTests
     {
         TillLayout.WhenFeaturesUnavailable.Should()
                                           .Be(new TillLayout(ShowHardwareButton: true, ShowServiceButtons: false,
-                                                             ShowAccountsReceivableMenu: true));
+                                                             ShowAccountsReceivableMenu: true, ShowPayLaterReports: true,
+                                                             ShowProductTypeSplit: true));
     }
 
     [Fact]
@@ -23,7 +24,8 @@ public class TillLayoutTests
                                                          ServiceProductsEnabled: false));
 
         layout.Should()
-              .Be(new TillLayout(ShowHardwareButton: false, ShowServiceButtons: false, ShowAccountsReceivableMenu: false));
+              .Be(new TillLayout(ShowHardwareButton: false, ShowServiceButtons: false, ShowAccountsReceivableMenu: false,
+                                 ShowPayLaterReports: false, ShowProductTypeSplit: false));
     }
 
     [Fact]
@@ -33,7 +35,8 @@ public class TillLayoutTests
                                                          ServiceProductsEnabled: true));
 
         layout.Should()
-              .Be(new TillLayout(ShowHardwareButton: false, ShowServiceButtons: true, ShowAccountsReceivableMenu: false));
+              .Be(new TillLayout(ShowHardwareButton: false, ShowServiceButtons: true, ShowAccountsReceivableMenu: false,
+                                 ShowPayLaterReports: false, ShowProductTypeSplit: false));
     }
 
     [Fact]
@@ -43,6 +46,7 @@ public class TillLayoutTests
                                                          ServiceProductsEnabled: false));
 
         layout.Should()
-              .Be(new TillLayout(ShowHardwareButton: true, ShowServiceButtons: false, ShowAccountsReceivableMenu: true));
+              .Be(new TillLayout(ShowHardwareButton: true, ShowServiceButtons: false, ShowAccountsReceivableMenu: true,
+                                 ShowPayLaterReports: true, ShowProductTypeSplit: true));
     }
 }
