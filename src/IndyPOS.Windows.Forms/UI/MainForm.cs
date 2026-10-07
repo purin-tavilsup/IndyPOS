@@ -34,9 +34,9 @@ public partial class MainForm : Form
 	private readonly IStoreHubClient _storeHubClient;
 	private bool _showAccountsReceivableMenu = true;
 
-	// The designer's menu: the first button's top, and one 115 px button plus a 6 px gap per slot.
-	private const int MenuTop = 3;
-	private const int MenuPitch = 121;
+	// The menu buttons' tops as laid out, after any display scaling, so stacking never uses design pixels.
+	// Recorded at the first login: the form is shown and scaled by then, and no button has moved yet.
+	private int[]? _menuSlotTops;
 
 	private UserControl _activePanel;
 	private bool _isUserLoggedIn;
@@ -308,14 +308,17 @@ public partial class MainForm : Form
 		}
 
 		AccountsReceivableButton.Visible = _showAccountsReceivableMenu;
-		MenuLayout.Stack(ShownMenuButtons(), MenuTop, MenuPitch);
+		_menuSlotTops ??= AllMenuButtons().Select(button => button.Top).ToArray();
+		MenuLayout.Stack(ShownMenuButtons(), _menuSlotTops);
 	}
 
+	private Control[] AllMenuButtons() =>
+		[SaleButton, InventoryButton, UsersButton, ReportsButton, AccountsReceivableButton,
+		 SettingsButton, LogInButton, CloseApplicationButton];
+
 	private Control[] ShownMenuButtons() =>
-		new Control[] { SaleButton, InventoryButton, UsersButton, ReportsButton, AccountsReceivableButton,
-						SettingsButton, LogInButton, CloseApplicationButton }
-			.Where(button => button != AccountsReceivableButton || _showAccountsReceivableMenu)
-			.ToArray();
+		AllMenuButtons().Where(button => button != AccountsReceivableButton || _showAccountsReceivableMenu)
+						.ToArray();
 
 	private void OnUserLoggedOut()
 	{
