@@ -67,6 +67,9 @@ public class GetPayLaterReportQueryHandler : IQueryHandler<GetPayLaterReportQuer
                 InvoiceCount: g.Count(),
                 OldestInvoiceDate: g.Min(p => p.CreatedUtc)))
             .OrderByDescending(c => c.RemainingBalance)
+            // A tie-break, so pages keep one order across requests: the till reads every page, and an
+            // unstable order could show a customer twice and drop another.
+            .ThenBy(c => c.CustomerName, StringComparer.Ordinal)
             .ToList();
 
         var totalCount = customerGroups.Count;
