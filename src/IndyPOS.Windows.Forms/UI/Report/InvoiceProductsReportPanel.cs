@@ -1,8 +1,10 @@
 ﻿using IndyPOS.Application.Abstractions.StoreHub;
 using IndyPOS.Application.Common.Extensions;
-using IndyPOS.Application.Common.Interfaces;
 using IndyPOS.Application.Common.Models;
+using IndyPOS.Application.UseCases.StoreHub.Sales.History;
 using IndyPOS.Domain.Enums;
+using IndyPOS.Windows.Forms.Services;
+using Serilog;
 using System.Diagnostics.CodeAnalysis;
 using IndyPOS.Windows.Forms.UI;
 
@@ -11,10 +13,12 @@ namespace IndyPOS.Windows.Forms.UI.Report;
 [ExcludeFromCodeCoverage]
 public partial class InvoiceProductsReportPanel : UserControl
 {
-	private readonly IReportService _reportService;
+	private const int LinesPerPage = 200;
+
 	private readonly IStoreHubClient _storeHubClient;
 	private readonly MessageForm _messageForm;
-	private IEnumerable<InvoiceProductDto> _products;
+	private readonly IStoreFeaturesProvider _storeFeatures;
+	private IReadOnlyList<SaleLineRowDto> _products;
 
 	/// <summary>
 	/// Catalogue codes classified as Hardware, refreshed alongside each report fetch. This panel
@@ -43,14 +47,14 @@ public partial class InvoiceProductsReportPanel : UserControl
 		Note
 	}
 
-	public InvoiceProductsReportPanel(IReportService reportService,
-									  IStoreHubClient storeHubClient,
+	public InvoiceProductsReportPanel(IStoreHubClient storeHubClient,
+									  IStoreFeaturesProvider storeFeatures,
 									  MessageForm messageForm)
 	{
-		_reportService = reportService;
 		_storeHubClient = storeHubClient;
+		_storeFeatures = storeFeatures;
 		_messageForm = messageForm;
-		_products = Enumerable.Empty<InvoiceProductDto>();
+		_products = [];
 
 		InitializeComponent();
 		InitializeInvoiceProductsDataView();
@@ -66,7 +70,7 @@ public partial class InvoiceProductsReportPanel : UserControl
 		InvoiceProductsDataView.Columns.Clear();
 		InvoiceProductsDataView.ColumnCount = 9;
 
-		InvoiceProductsDataView.Columns[(int)ProductColumn.InvoiceId].Name = "Invoice ID";
+		InvoiceProductsDataView.Columns[(int)ProductColumn.InvoiceId].Name = "เลขที่บิล";
 		InvoiceProductsDataView.Columns[(int)ProductColumn.InvoiceId].Width = 200;
 		InvoiceProductsDataView.Columns[(int)ProductColumn.InvoiceId].ReadOnly = true;
 
@@ -107,21 +111,20 @@ public partial class InvoiceProductsReportPanel : UserControl
 		#endregion
 	}
 
-	private void AddProductToInvoiceDataView(InvoiceProductDto product)
+	private void AddProductToInvoiceDataView(SaleLineRowDto line)
 	{
 		var columnCount = InvoiceProductsDataView.ColumnCount;
 		var productRow = new object[columnCount];
-		var total = product.GetTotal();
 
-		productRow[(int) ProductColumn.InvoiceId] = product.InvoiceId;
-		productRow[(int) ProductColumn.ProductCode] = product.Barcode;
-		productRow[(int) ProductColumn.Description] = product.Description;
-		productRow[(int) ProductColumn.Quantity] = product.Quantity;
-		productRow[(int) ProductColumn.UnitPrice] = product.UnitPrice;
-		productRow[(int) ProductColumn.Total] = total;
-		productRow[(int) ProductColumn.Category] = IsHardwareProductGroup(product) ? "Hardware" : "General";
-		productRow[(int) ProductColumn.DateCreated] = product.DateCreated;
-		productRow[(int) ProductColumn.Note] = product.Note;
+		productRow[(int) ProductColumn.InvoiceId] = line.InvoiceNumber;
+		productRow[(int) ProductColumn.ProductCode] = line.Barcode;
+		productRow[(int) ProductColumn.Description] = line.ProductName;
+		productRow[(int) ProductColumn.Quantity] = line.Quantity;
+		productRow[(int) ProductColumn.UnitPrice] = line.UnitPrice;
+		productRow[(int) ProductColumn.Total] = line.LineTotal;
+		productRow[(int) ProductColumn.Category] = IsHardwareProductGroup(line) ? "Hardware" : "General";
+		productRow[(int) ProductColumn.DateCreated] = line.CreatedUtc.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss");
+		productRow[(int) ProductColumn.Note] = line.Note;
 
 		var rowIndex = InvoiceProductsDataView.Rows.Add(productRow);
 		var rowBackColor = rowIndex % 2 == 0 ? Color.FromArgb(38,38,38) : Color.FromArgb(48, 48, 48);
@@ -129,17 +132,17 @@ public partial class InvoiceProductsReportPanel : UserControl
 		InvoiceProductsDataView.Rows[rowIndex].DefaultCellStyle.BackColor = rowBackColor;
 	}
 
-	private bool IsHardwareProductGroup(InvoiceProductDto product)
+	private bool IsHardwareProductGroup(SaleLineRowDto line)
 	{
-		return !string.IsNullOrEmpty(product.Category) && _hardwareCodes.Contains(product.Category);
+		return !string.IsNullOrEmpty(line.CategoryCode) && _hardwareCodes.Contains(line.CategoryCode);
 	}
 
-	private bool IsGeneralProductGroup(InvoiceProductDto product)
+	private bool IsGeneralProductGroup(SaleLineRowDto line)
 	{
-		return !IsHardwareProductGroup(product);
+		return !IsHardwareProductGroup(line);
 	}
 
-	private void ShowInvoiceProducts(IEnumerable<InvoiceProductDto> products)
+	private void ShowInvoiceProducts(IEnumerable<SaleLineRowDto> products)
 	{
 		InvoiceProductsDataView.Rows.Clear();
 
@@ -149,14 +152,38 @@ public partial class InvoiceProductsReportPanel : UserControl
 		}
 	}
 
-	private async Task<IEnumerable<InvoiceProductDto>> GetInvoiceProductsAsync()
+	private async Task<IReadOnlyList<SaleLineRowDto>> GetSoldLinesAsync()
 	{
 		var startDate = StartDatePicker.Value.ToDateOnly();
 		var endDate = EndDatePicker.Value.ToDateOnly();
 
 		await RefreshHardwareCodesAsync();
+		await ApplyStoreLayoutAsync();
 
-		return await _reportService.GetInvoiceProductsByDateRangeAsync(startDate, endDate);
+		return await PageReader.ReadAllAsync(async page =>
+		{
+			var result = await _storeHubClient.ListSaleLinesAsync(startDate, endDate, page, LinesPerPage);
+			return (result.Items, result.HasMore);
+		});
+	}
+
+	private async Task ApplyStoreLayoutAsync()
+	{
+		TillLayout layout;
+		try
+		{
+			layout = TillLayout.For(await _storeFeatures.GetAsync());
+		}
+		catch (Exception ex)
+		{
+			Log.Warning(ex, "Could not load store features for products sold");
+			layout = TillLayout.WhenFeaturesUnavailable;
+		}
+
+		groupBox1.Visible = layout.ShowProductTypeSplit;
+		InvoiceProductsDataView.Columns[(int)ProductColumn.Category].Visible = layout.ShowProductTypeSplit;
+		if (!layout.ShowProductTypeSplit)
+			AllProductGroupsButton.Checked = true;
 	}
 
 	private async Task RefreshHardwareCodesAsync()
@@ -179,13 +206,13 @@ public partial class InvoiceProductsReportPanel : UserControl
 		}
 	}
 
-	private async Task ShowCachedProductsAsync(Func<IEnumerable<InvoiceProductDto>, IEnumerable<InvoiceProductDto>> filter)
+	private async Task ShowCachedProductsAsync(Func<IEnumerable<SaleLineRowDto>, IEnumerable<SaleLineRowDto>> filter)
 	{
 		try
 		{
-			if (!_products.Any())
+			if (_products.Count == 0)
 			{
-				_products = await GetInvoiceProductsAsync();
+				_products = await GetSoldLinesAsync();
 			}
 
 			ShowInvoiceProducts(filter(_products));
@@ -215,7 +242,7 @@ public partial class InvoiceProductsReportPanel : UserControl
 	{
 		try
 		{
-			_products = await GetInvoiceProductsAsync();
+			_products = await GetSoldLinesAsync();
 
 			if (AllProductGroupsButton.Checked)
 			{
