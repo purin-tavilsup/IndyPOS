@@ -234,7 +234,7 @@ public class StoreHubHttpClient : IStoreHubClient
             request.Lines.Count, request.Payments.Count);
 
         var result = await SendAuthenticatedAsync<CompleteSaleResponse>(
-            HttpMethod.Post, "/sales/complete", request, cancellationToken);
+            HttpMethod.Post, "/sales", request, cancellationToken);
 
         _logger.LogInformation("Sale completed successfully. InvoiceId: {InvoiceId}, Total: {Total}",
             result.InvoiceId, result.TotalAmount);

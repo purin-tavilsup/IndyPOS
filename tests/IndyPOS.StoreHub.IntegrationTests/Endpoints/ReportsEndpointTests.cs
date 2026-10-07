@@ -158,7 +158,7 @@ public class ReportsEndpointTests : IntegrationTestBase
             Lines = new[] { new { ProductId = product.Id, Quantity = 3, UnitPrice = 100m } },
             Payments = new[] { new { Method = "Cash", Amount = 300m } }
         };
-        var saleResponse = await Client.PostAsJsonAsync("/sales/complete", saleRequest);
+        var saleResponse = await Client.PostAsJsonAsync("/sales", saleRequest);
         saleResponse.EnsureSuccessStatusCode();
 
         // Use local date since ReportDateRange converts using local timezone

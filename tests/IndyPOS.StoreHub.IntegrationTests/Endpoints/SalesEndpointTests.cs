@@ -6,6 +6,7 @@ using FluentAssertions;
 using IndyPOS.Application.Common.Enums;
 using IndyPOS.Application.UseCases.Cloud.Sync.Events;
 using IndyPOS.Application.UseCases.StoreHub.Sales;
+using IndyPOS.Application.UseCases.StoreHub.Sales.History;
 using IndyPOS.Infrastructure.Persistence.StoreHub;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -25,10 +26,39 @@ public class SalesEndpointTests : IntegrationTestBase
     public async Task CompleteSale_WithoutAuth_ReturnsUnauthorized()
     {
         // Act
-        var response = await Client.PostAsJsonAsync("/sales/complete", new { });
+        var response = await Client.PostAsJsonAsync("/sales", new { });
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
+    }
+
+    [Fact]
+    public async Task CreateSale_WithAValidSale_ReturnsCreatedWithItsLocation()
+    {
+        await AuthenticateAsCashierAsync();
+        var request = await OneCashLineAsync();
+
+        var response = await Client.PostAsJsonAsync("/sales", request);
+
+        var sale = await response.Content.ReadFromJsonAsync<CompleteSaleResponse>(JsonOptions);
+        response.StatusCode.Should()
+                           .Be(HttpStatusCode.Created);
+        response.Headers.Location!.OriginalString.Should()
+                                                 .Be($"/sales/{sale!.InvoiceId}");
+    }
+
+    // The Location must name a real resource, readable by the same cashier who rang the sale up.
+    [Fact]
+    public async Task CreateSale_WithAValidSale_LocationResolvesToTheSale()
+    {
+        await AuthenticateAsCashierAsync();
+        var created = await Client.PostAsJsonAsync("/sales", await OneCashLineAsync());
+        var sale = await created.Content.ReadFromJsonAsync<CompleteSaleResponse>(JsonOptions);
+
+        var detail = await Client.GetFromJsonAsync<InvoiceDetailDto>(created.Headers.Location, JsonOptions);
+
+        detail!.Id.Should()
+                  .Be(sale!.InvoiceId);
     }
 
     // The route once took UserId from the body, so any caller could ring a sale up as anyone. The token is
@@ -47,7 +77,7 @@ public class SalesEndpointTests : IntegrationTestBase
             payments = new[] { new SalePaymentRequest("Cash", Amount: 100m) }
         };
 
-        var response = await Client.PostAsJsonAsync("/sales/complete", request);
+        var response = await Client.PostAsJsonAsync("/sales", request);
 
         response.EnsureSuccessStatusCode();
         var sale = await response.Content.ReadFromJsonAsync<CompleteSaleResponse>(JsonOptions);
@@ -69,7 +99,7 @@ public class SalesEndpointTests : IntegrationTestBase
             payments = new[] { new SalePaymentRequest("Cash", Amount: 100m) }
         };
 
-        var response = await Client.PostAsJsonAsync("/sales/complete", request);
+        var response = await Client.PostAsJsonAsync("/sales", request);
 
         response.EnsureSuccessStatusCode();
         var sale = await response.Content.ReadFromJsonAsync<CompleteSaleResponse>(JsonOptions);
@@ -91,7 +121,7 @@ public class SalesEndpointTests : IntegrationTestBase
             Lines: [new SaleLineRequest(product.Id, Quantity: 1, UnitPrice: 100m)],
             Payments: [new SalePaymentRequest("Cash", Amount: 100m)]);
 
-        var response = await Client.PostAsJsonAsync("/sales/complete", request);
+        var response = await Client.PostAsJsonAsync("/sales", request);
 
         response.StatusCode.Should()
                            .Be(HttpStatusCode.Unauthorized);
@@ -111,10 +141,18 @@ public class SalesEndpointTests : IntegrationTestBase
             payments = new[] { new { method = "Cash", amount = 100m } }
         };
 
-        var response = await Client.PostAsJsonAsync("/sales/complete", body);
+        var response = await Client.PostAsJsonAsync("/sales", body);
 
         response.StatusCode.Should()
-                           .Be(HttpStatusCode.OK);
+                           .Be(HttpStatusCode.Created);
+    }
+
+    private async Task<CompleteSaleRequest> OneCashLineAsync()
+    {
+        var product = await CreateTestProductAsync(unitPrice: 100m, initialStock: 10);
+        return new CompleteSaleRequest(
+            Lines: [new SaleLineRequest(product.Id, Quantity: 1, UnitPrice: 100m)],
+            Payments: [new SalePaymentRequest("Cash", Amount: 100m)]);
     }
 
     private async Task<Guid> RecordedUserOfAsync(Guid invoiceId)
@@ -145,10 +183,10 @@ public class SalesEndpointTests : IntegrationTestBase
             Payments: [new SalePaymentRequest("Cash", Amount: 200m)]);
 
         // Act
-        var response = await Client.PostAsJsonAsync("/sales/complete", request);
+        var response = await Client.PostAsJsonAsync("/sales", request);
 
         // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        response.StatusCode.Should().Be(HttpStatusCode.Created);
 
         var result = await response.Content.ReadFromJsonAsync<CompleteSaleResponse>(JsonOptions);
         result.Should().NotBeNull();
@@ -172,10 +210,10 @@ public class SalesEndpointTests : IntegrationTestBase
             ]);
 
         // Act
-        var response = await Client.PostAsJsonAsync("/sales/complete", request);
+        var response = await Client.PostAsJsonAsync("/sales", request);
 
         // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        response.StatusCode.Should().Be(HttpStatusCode.Created);
 
         var result = await response.Content.ReadFromJsonAsync<CompleteSaleResponse>(JsonOptions);
         result.Should().NotBeNull();
@@ -199,10 +237,10 @@ public class SalesEndpointTests : IntegrationTestBase
             Payments: [new SalePaymentRequest("Cash", Amount: 300m)]);
 
         // Act
-        var response = await Client.PostAsJsonAsync("/sales/complete", request);
+        var response = await Client.PostAsJsonAsync("/sales", request);
 
         // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        response.StatusCode.Should().Be(HttpStatusCode.Created);
 
         var result = await response.Content.ReadFromJsonAsync<CompleteSaleResponse>(JsonOptions);
         result.Should().NotBeNull();
@@ -222,10 +260,10 @@ public class SalesEndpointTests : IntegrationTestBase
             Payments: [new SalePaymentRequest("Cash", Amount: 500m)]);
 
         // Act
-        var response = await Client.PostAsJsonAsync("/sales/complete", request);
+        var response = await Client.PostAsJsonAsync("/sales", request);
 
         // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        response.StatusCode.Should().Be(HttpStatusCode.Created);
 
         // Verify inventory was deducted
         var newStock = await GetProductStockAsync(product.Id);
@@ -243,11 +281,11 @@ public class SalesEndpointTests : IntegrationTestBase
             Payments: [new SalePaymentRequest("Cash", Amount: 0m)]);
 
         // Act
-        var response = await Client.PostAsJsonAsync("/sales/complete", request);
+        var response = await Client.PostAsJsonAsync("/sales", request);
 
         // Assert
         // API currently allows empty sales with zero total
-        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        response.StatusCode.Should().Be(HttpStatusCode.Created);
 
         var result = await response.Content.ReadFromJsonAsync<CompleteSaleResponse>(JsonOptions);
         result.Should().NotBeNull();
@@ -266,10 +304,10 @@ public class SalesEndpointTests : IntegrationTestBase
             Payments: [new SalePaymentRequest("Cash", Amount: 200m)]);
 
         // Act
-        var response = await Client.PostAsJsonAsync("/sales/complete", request);
+        var response = await Client.PostAsJsonAsync("/sales", request);
 
         // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        response.StatusCode.Should().Be(HttpStatusCode.Created);
     }
 
     // The token decides the seller; the body carries only lines and payments.
@@ -283,7 +321,7 @@ public class SalesEndpointTests : IntegrationTestBase
 
     private async Task<CompleteSaleResponse> CompleteAsync(CompleteSaleRequest request)
     {
-        var response = await Client.PostAsJsonAsync("/sales/complete", request);
+        var response = await Client.PostAsJsonAsync("/sales", request);
         response.EnsureSuccessStatusCode();
         return (await response.Content.ReadFromJsonAsync<CompleteSaleResponse>(JsonOptions))!;
     }
