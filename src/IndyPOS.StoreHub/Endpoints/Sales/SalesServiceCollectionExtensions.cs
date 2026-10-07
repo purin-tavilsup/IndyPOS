@@ -17,6 +17,7 @@ public static class SalesServiceCollectionExtensions
         services.TryAddScoped<ICashDrawerClock, CashDrawerClock>();
 
         services.AddTransient<IQueryHandler<ListSalesQuery, SalesPage>, ListSalesQueryHandler>();
+        services.AddTransient<IQueryHandler<ListSaleLinesQuery, SaleLinesPage>, ListSaleLinesQueryHandler>();
         services.AddTransient<IQueryHandler<GetSaleByIdQuery, InvoiceDetailDto?>, GetSaleQueryHandler>();
         services.AddTransient<IQueryHandler<GetSaleByNumberQuery, InvoiceDetailDto?>, GetSaleQueryHandler>();
         services.AddTransient<ICommandHandler<CreateInvoiceReprintCommand, InvoiceReprintResultDto>, CreateInvoiceReprintCommandHandler>();
