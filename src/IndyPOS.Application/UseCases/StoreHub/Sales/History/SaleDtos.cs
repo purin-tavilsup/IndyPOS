@@ -57,3 +57,18 @@ public record PaymentDto(
     string MethodDisplayName,
     decimal Amount,
     string? Note);
+
+/// <summary>One sold line, with its bill, so a product can be traced to the bill it was sold on.</summary>
+public record SaleLineRowDto(
+    Guid InvoiceId,
+    long InvoiceNumber,
+    string Barcode,
+    string ProductName,
+    int Quantity,
+    decimal UnitPrice,
+    decimal LineTotal,
+    string? CategoryCode,
+    DateTime CreatedUtc,
+    string? Note);
+
+public record SaleLinesPage(IReadOnlyList<SaleLineRowDto> Items, int Page, int PageSize, bool HasMore);
