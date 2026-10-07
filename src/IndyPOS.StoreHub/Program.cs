@@ -73,13 +73,14 @@ builder.Services.AddWindowsService(options =>
 builder.AddServiceDefaults();
 
 // Add PostgreSQL with EF Core via Aspire
-// Connection name must match AppHost: postgres.AddDatabase("storehub-db")
-builder.AddNpgsqlDbContext<StoreHubDbContext>("storehub-db");
+// Connection name must match AppHost: postgres.AddDatabase("storehub-db"). Aspire's own database
+// check is off: readiness is the one bounded check below.
+builder.AddNpgsqlDbContext<StoreHubDbContext>("storehub-db",
+    settings => settings.DisableHealthChecks = true);
 
-// Readiness check: surfaces DB connectivity at /health/ready. Liveness ("self"
-// check tagged "live") comes from ServiceDefaults.AddDefaultHealthChecks.
-builder.Services.AddHealthChecks()
-    .AddDbContextCheck<StoreHubDbContext>("storehub-db", tags: ["ready"]);
+// Readiness = this store's own database only, never the cloud: the till must keep selling while the
+// cloud is unreachable. Liveness ("self", tag "live") comes from ServiceDefaults.
+builder.AddDatabaseReadinessCheck("storehub-db");
 
 // Add StoreHub infrastructure services (repositories, store identity)
 builder.Services.AddStoreHubServices(builder.Configuration);
@@ -229,7 +230,8 @@ else if (Array.Exists(args, a => string.Equals(a, "reset-admin", StringCompariso
     return;
 }
 
-// Map default endpoints (health, alive)
+// Health probes (/health/live, /health/ready); their request timeout needs the middleware.
+app.UseRequestTimeouts();
 app.MapDefaultEndpoints();
 
 // Configure the HTTP request pipeline
@@ -259,7 +261,7 @@ if (app.Environment.IsDevelopment())
 }
 
 // Routes, one file per area under Endpoints/. /health/ready is served by
-// ServiceDefaults.MapDefaultEndpoints (tag filter on "ready"), backed by the DbContextCheck
+// ServiceDefaults.MapDefaultEndpoints (tag filter on "ready"), backed by the database readiness check
 // registered above.
 app.MapSystemInfoEndpoints();
 app.MapAuthEndpoints();
