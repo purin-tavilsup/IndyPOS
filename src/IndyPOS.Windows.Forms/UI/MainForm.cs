@@ -1,11 +1,11 @@
-﻿using IndyPOS.Application.Abstractions.StoreHub;
-using IndyPOS.Application.Common.Enums;
+﻿using IndyPOS.Application.Common.Enums;
 using IndyPOS.Application.Common.Extensions;
 using IndyPOS.Application.Common.Interfaces;
 using IndyPOS.Application.Common.Models;
 using IndyPOS.Application.Events;
 using IndyPOS.Windows.Forms.Enums;
 using IndyPOS.Windows.Forms.Events;
+using IndyPOS.Windows.Forms.Services;
 using IndyPOS.Windows.Forms.UI.Inventory;
 using IndyPOS.Windows.Forms.UI.Login;
 using IndyPOS.Windows.Forms.UI.PayLater;
@@ -31,7 +31,7 @@ public partial class MainForm : Form
 	private readonly SettingsPanel _settingsPanel;
 	private readonly UserLogInPanel _userLogInPanel;
 	private readonly IEventAggregator _eventAggregator;
-	private readonly IStoreHubClient _storeHubClient;
+	private readonly IStoreFeaturesProvider _storeFeatures;
 
 	// The menu buttons' tops as laid out, after any display scaling, so stacking never uses design pixels.
 	// Recorded at the first login: the form is shown and scaled by then, and no button has moved yet.
@@ -49,7 +49,7 @@ public partial class MainForm : Form
 					SettingsPanel settingsPanel,
 					UserLogInPanel userLogInPanel,
 					IEventAggregator eventAggregator,
-					IStoreHubClient storeHubClient)
+					IStoreFeaturesProvider storeFeatures)
 	{
 		InitializeComponent();
 
@@ -68,7 +68,7 @@ public partial class MainForm : Form
 		_userLogInPanel = userLogInPanel;
 		_userLogInPanel.Visible = false;
 		_eventAggregator = eventAggregator;
-		_storeHubClient = storeHubClient;
+		_storeFeatures = storeFeatures;
 		_isUserLoggedIn = false;
 		_activePanel = new UserControl();
 
@@ -304,7 +304,7 @@ public partial class MainForm : Form
 	{
 		try
 		{
-			return TillLayout.For(await _storeHubClient.GetStoreFeaturesAsync());
+			return TillLayout.For(await _storeFeatures.GetAsync());
 		}
 		catch (Exception ex)
 		{
