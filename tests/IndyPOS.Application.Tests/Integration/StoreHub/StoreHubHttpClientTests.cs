@@ -9,7 +9,10 @@ using IndyPOS.Application.UseCases.StoreHub.Auth;
 using IndyPOS.Application.UseCases.StoreHub.PaymentMethods;
 using IndyPOS.Application.UseCases.StoreHub.Products;
 using IndyPOS.Application.UseCases.StoreHub.Products.AdjustQuantity;
+using IndyPOS.Application.UseCases.StoreHub.Reports;
+using IndyPOS.Application.UseCases.StoreHub.Reports.GetPayLaterReport;
 using IndyPOS.Application.UseCases.StoreHub.Sales;
+using IndyPOS.Application.UseCases.StoreHub.Sales.History;
 using IndyPOS.Infrastructure.Services.StoreHub;
 using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
@@ -310,6 +313,62 @@ public class StoreHubHttpClientTests
 
     private static string ResponseFor(string call) =>
         call.StartsWith("Get", StringComparison.Ordinal) ? "[]" : "{}";
+
+    private static readonly PayLaterReportDto EmptyPayLaterReport =
+        new(0m, 0m, 0, 0, new PagedResult<PayLaterSummaryDto>([], 0, 1, 200));
+
+    [Fact]
+    public async Task GetPayLaterReportAsync_WithoutDates_SendsNoDates()
+    {
+        _sut.SetAuthToken("valid-token");
+        var requestUri = CaptureRequestUri(EmptyPayLaterReport);
+
+        await _sut.GetPayLaterReportAsync(null, null, page: 1, pageSize: 200);
+
+        requestUri().Should()
+                    .NotContain("fromDate");
+    }
+
+    [Fact]
+    public async Task GetPayLaterReportAsync_WithAThaiCulture_SendsGregorianDatesAndCompletedDebts()
+    {
+        _sut.SetAuthToken("valid-token");
+        var requestUri = CaptureRequestUri(EmptyPayLaterReport);
+
+        await RunUnderThaiCultureAsync(() => _sut.GetPayLaterReportAsync(
+            new DateOnly(2026, 10, 2), new DateOnly(2026, 10, 3), page: 2, pageSize: 200));
+
+        requestUri().Should()
+                    .Contain("/reports/pay-later?includeCompleted=true&page=2&pageSize=200")
+                    .And.Contain("fromDate=2026-10-02")
+                    .And.Contain("toDate=2026-10-03");
+    }
+
+    [Fact]
+    public async Task ListSaleLinesAsync_WithAThaiCulture_SendsGregorianDates()
+    {
+        _sut.SetAuthToken("valid-token");
+        var requestUri = CaptureRequestUri(new SaleLinesPage([], 1, 200, false));
+
+        await RunUnderThaiCultureAsync(() => _sut.ListSaleLinesAsync(
+            new DateOnly(2026, 10, 2), new DateOnly(2026, 10, 3), page: 3, pageSize: 200));
+
+        requestUri().Should()
+                    .Contain("/sales/lines?from=2026-10-02&to=2026-10-03&page=3&pageSize=200");
+    }
+
+    [Fact]
+    public async Task GetSalesSummaryAsync_WithAThaiCulture_SendsGregorianDates()
+    {
+        _sut.SetAuthToken("valid-token");
+        var requestUri = CaptureRequestUri(new SalesSummaryDto(
+            new DateOnly(2026, 10, 2), new DateOnly(2026, 10, 3), 0, 0m, new PaymentBreakdownDto(0, 0, 0, 0, 0, 0), []));
+
+        await RunUnderThaiCultureAsync(() => _sut.GetSalesSummaryAsync(new DateOnly(2026, 10, 2), new DateOnly(2026, 10, 3)));
+
+        requestUri().Should()
+                    .Contain("/reports/sales-summary?fromDate=2026-10-02&toDate=2026-10-03");
+    }
 
     private static async Task RunUnderThaiCultureAsync(Func<Task> action)
     {
