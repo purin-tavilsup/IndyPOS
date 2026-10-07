@@ -348,4 +348,16 @@ public class ReportsEndpointTests : IntegrationTestBase
         report!.Customers.Items.Select(c => c.CustomerName).Where(n => n.EndsWith(suffix)).Should()
                                                                                          .Equal(first, second);
     }
+
+    // Like /sales: a date in the wrong format names itself in Thai, instead of the framework's bare 400.
+    [Fact]
+    public async Task GetPayLaterReport_WithAMalformedDate_ReturnsTheThaiDateError()
+    {
+        await AuthenticateAsManagerAsync();
+
+        var response = await Client.GetAsync("/reports/pay-later?fromDate=07-10-2026&toDate=2026-10-07");
+
+        (await response.Content.ReadFromJsonAsync<ErrorResponse>(JsonOptions))!.Error.Should()
+                                                                               .StartWith("วันที่ไม่ถูกต้อง");
+    }
 }
