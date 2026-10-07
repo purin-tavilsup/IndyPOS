@@ -31,6 +31,13 @@ public partial class SalesReportPanel : UserControl
 
         InitializeComponent();
 
+        // Follow the store as soon as the panel shows, not only after the first fetch.
+        VisibleChanged += async (_, _) =>
+        {
+            if (Visible)
+                await ApplyStoreLayoutAsync();
+        };
+
         // Initialize date pickers to today
         StartDatePicker.Value = DateTime.Today;
         EndDatePicker.Value = DateTime.Today;
