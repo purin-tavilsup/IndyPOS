@@ -1,3 +1,4 @@
+using IndyPOS.Application.Abstractions.StoreHub;
 using IndyPOS.Application.Common.Interfaces;
 using IndyPOS.Application.Common.Models;
 using Serilog;
@@ -14,6 +15,7 @@ namespace IndyPOS.Windows.Forms.UI.Setup;
 public partial class FirstRunWizard : Form
 {
     private readonly IStoreConfigurationService _storeConfigurationService;
+    private readonly IStoreHubConnectionCheck _connectionCheck;
     private int _currentStep;
     private const int TotalSteps = 3;
 
@@ -43,9 +45,10 @@ public partial class FirstRunWizard : Form
 
     public bool ConfigurationComplete { get; private set; }
 
-    public FirstRunWizard(IStoreConfigurationService storeConfigurationService)
+    public FirstRunWizard(IStoreConfigurationService storeConfigurationService, IStoreHubConnectionCheck connectionCheck)
     {
         _storeConfigurationService = storeConfigurationService;
+        _connectionCheck = connectionCheck;
         _currentStep = 1;
 
         InitializeComponent();
@@ -330,35 +333,23 @@ public partial class FirstRunWizard : Form
 
         try
         {
-            using var client = new HttpClient { Timeout = TimeSpan.FromSeconds(5) };
-            var response = await client.GetAsync("http://localhost:5000/health");
-
-            if (response.IsSuccessStatusCode)
-            {
-                _connectionStatusLabel.Text = "✓ StoreHub is running and healthy!";
-                _connectionStatusLabel.ForeColor = Color.LightGreen;
-            }
-            else
-            {
-                _connectionStatusLabel.Text = $"⚠ StoreHub responded with status: {response.StatusCode}";
-                _connectionStatusLabel.ForeColor = Color.Orange;
-            }
-        }
-        catch (HttpRequestException)
-        {
-            _connectionStatusLabel.Text = "✗ Could not connect to StoreHub.\nMake sure the service is running.";
-            _connectionStatusLabel.ForeColor = Color.Salmon;
-        }
-        catch (TaskCanceledException)
-        {
-            _connectionStatusLabel.Text = "✗ Connection timed out.";
-            _connectionStatusLabel.ForeColor = Color.Salmon;
+            var result = await _connectionCheck.CheckAsync();
+            (_connectionStatusLabel.Text, _connectionStatusLabel.ForeColor) = Describe(result);
         }
         finally
         {
             _testConnectionButton.Enabled = true;
         }
     }
+
+    private static (string Text, Color Colour) Describe(StoreHubConnectionResult result) => result.Status switch
+    {
+        StoreHubConnectionStatus.Healthy => ("✓ StoreHub is running and healthy!", Color.LightGreen),
+        StoreHubConnectionStatus.NotReady => ("⚠ StoreHub is running but its database is not ready.", Color.Orange),
+        StoreHubConnectionStatus.Unexpected => ($"⚠ StoreHub responded with status: {result.StatusCode}", Color.Orange),
+        StoreHubConnectionStatus.TimedOut => ("✗ Connection timed out.", Color.Salmon),
+        _ => ("✗ Could not connect to StoreHub.\nMake sure the service is running.", Color.Salmon)
+    };
 
     private async Task SaveConfigurationAsync()
     {
