@@ -53,6 +53,7 @@ foreach (var profile in stores)
            .WithReference(storeHub)
            .WithEnvironment("StoreHub__BaseUrl", storeHubUrl)
            .WithEnvironment("Store__ConfigPath", DevStoreFiles.StoreConfigurationPath(builder.AppHostDirectory, profile))
+           .WithEnvironment("IndyPOS_TillLogsDirectory", DevStoreFiles.TillLogsDirectory(builder.AppHostDirectory, profile))
            .WaitFor(storeHub)
            .WithExplicitStart();
 }
