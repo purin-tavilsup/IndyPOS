@@ -210,19 +210,19 @@ dotnet build
 
 # Docker must be RUNNING for four suites - they spin up a real Postgres container.
 # With Docker down they fail fast (each suite in under a second), which reads like a
-# code regression but is not. Expect 450 failures with Docker stopped, all here.
-# (450 = 305 + 82 + 55 + 8. The StoreHub 128 was measured 2026-09-27 with Docker down; the
+# code regression but is not. Expect 457 failures with Docker stopped, all here.
+# (457 = 309 + 82 + 58 + 8. The StoreHub 128 was measured 2026-09-27 with Docker down; the
 # final-review test additions (+13, all HTTP integration tests) and the concurrent-delete
 # race tests (+7, all on real Postgres) all need Docker, bringing it to 148, and the PayLater-debt fix's +10 (all HTTP
 # integration tests) to 158, and the sale-user fix's +2 to 160 -- DERIVED, not re-measured with Docker down. CloudApi.IntegrationTests grew 2 -> 22 on 2026-09-30 with the
 # event-pipeline repair and the sync store check, all on real Postgres -- also DERIVED. The invoice-history plan then added 71
 # StoreHub tests (HTTP and persistence tests on real Postgres) and 11 MigrationTool tests (all on the Postgres fixture),
-# bringing them to 231 and 82 -- DERIVED too; the final-review fix added one more (the reprint 403 test) for 232, and the Codex route fix one more for 233. Invoice-history plan 2 then took CloudApi.IntegrationTests from 22 to 44 (22 more, all on real Postgres) -- DERIVED the same way. The route tidy-up PR A (2026-10-02) then added 26 StoreHub tests and 5 CloudApi tests, all needing a container, for 259 and 49 -- DERIVED, not re-measured with Docker down. Route tidy-up B (2026-10-06) added 22 StoreHub tests, all needing a container, for 281 -- DERIVED the same way. The health-check convention (2026-10-07) added 3 StoreHub, 2 CloudApi and 8 ServiceDefaults tests, all on a container, for 284, 51 and 8 -- DERIVED the same way. The dev store profiles (2026-10-07) added 20 StoreHub and 3 CloudApi tests, all on a container, for 304 and 54, and its review fixes 1 more each, for 305 and 55 -- DERIVED the same way. The per-suite totals were measured; only the Docker-down split was not.)
-#   tests/IndyPOS.StoreHub.IntegrationTests   (305 of 313; 8 need no container, unchanged since 2026-09-27, derived
+# bringing them to 231 and 82 -- DERIVED too; the final-review fix added one more (the reprint 403 test) for 232, and the Codex route fix one more for 233. Invoice-history plan 2 then took CloudApi.IntegrationTests from 22 to 44 (22 more, all on real Postgres) -- DERIVED the same way. The route tidy-up PR A (2026-10-02) then added 26 StoreHub tests and 5 CloudApi tests, all needing a container, for 259 and 49 -- DERIVED, not re-measured with Docker down. Route tidy-up B (2026-10-06) added 22 StoreHub tests, all needing a container, for 281 -- DERIVED the same way. The health-check convention (2026-10-07) added 3 StoreHub, 2 CloudApi and 8 ServiceDefaults tests, all on a container, for 284, 51 and 8 -- DERIVED the same way. The dev store profiles (2026-10-07) added 20 StoreHub and 3 CloudApi tests, all on a container, for 304 and 54, and its review fixes 1 more each, for 305 and 55, and the EnsureCreated-database check 4 and 3 more, for 309 and 58 -- DERIVED the same way. The per-suite totals were measured; only the Docker-down split was not.)
+#   tests/IndyPOS.StoreHub.IntegrationTests   (309 of 317; 8 need no container, unchanged since 2026-09-27, derived
 #                                              -- not individually named)
 #   tests/IndyPOS.MigrationTool.Tests         (82 of 145; 38 pure units, 24 need the
 #                                              gitignored real store .db files, 1 manual tool)
-#   tests/IndyPOS.CloudApi.IntegrationTests   (55 of 55; all need a container)
+#   tests/IndyPOS.CloudApi.IntegrationTests   (58 of 58; all need a container)
 #   tests/IndyPOS.ServiceDefaults.Tests       (8 of 8; every test's fixture starts a Postgres)
 
 # CI (.github/workflows/ci.yml) runs the build and every suite on each PR to `development`. It sets
@@ -244,14 +244,15 @@ dotnet run --project src/IndyPOS.AppHost -- --store MimyMart     # or GeneralHar
 dotnet run --project src/IndyPOS.AppHost -- --store all          # all three on :5012/:5013/:5014, one CloudApi
 ```
 
-Solution suites total **1262** with Docker running and the real store databases present (1261 pass,
-1 skipped) — measured 2026-10-07 (after the dev store profiles; 1209 earlier on 2026-10-07 after the health-check
+Solution suites total **1269** with Docker running and the real store databases present (1268 pass,
+1 skipped) — measured 2026-10-07 (after the dev store profiles and their EnsureCreated-database check; 1209 earlier on 2026-10-07 after the health-check
 convention, 1186 after the till startup fix, 1183 on 2026-10-06 after route tidy-up B, 1152 on 2026-10-02 after route tidy-up A, 1111 earlier on 2026-10-02 after invoice-history plan 2, 1089 on 2026-10-01, 928 on 2026-09-30, 853 on 2026-09-27, after the
-cash-drawer release). Per suite: Domain 56 · Vault 17 · CloudApi 6 · CloudApi.IntegrationTests 55
-(Docker) · MigrationTool 145 (144 pass, 1 skip) · StoreHub.IntegrationTests 313 · Application 608 ·
+cash-drawer release). Per suite: Domain 56 · Vault 17 · CloudApi 6 · CloudApi.IntegrationTests 58
+(Docker) · MigrationTool 145 (144 pass, 1 skip) · StoreHub.IntegrationTests 317 · Application 608 ·
 Windows.Forms 54 · ServiceDefaults 8 (Docker). The growth since the 1209 measurement is the dev store profiles their review fixes and the per-store payment methods (Application +24, StoreHub +21,
-CloudApi +4, Windows.Forms +4): 1209 + 53 = 1262. Without the
-real store databases the suite discovers **1242** (1262 − 20, DERIVED; CI measured 1166 = 1186 − 20 on PR #114, 2026-10-07) — a skipped
+CloudApi +4, Windows.Forms +4): 1209 + 53 = 1262, and the EnsureCreated-database check (StoreHub +4, CloudApi +3)
+for 1269. Without the
+real store databases the suite discovers **1249** (1269 − 20, DERIVED; CI measured 1166 = 1186 − 20 on PR #114, 2026-10-07) — a skipped
 `[Theory]` is one entry, not one per row.
 See [`ONBOARDING.md`](ONBOARDING.md) for the per-suite breakdown, the dev-vs-installed port split,
 and the `/health` vs `/health/ready` trap.
