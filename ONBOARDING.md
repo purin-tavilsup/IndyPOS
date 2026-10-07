@@ -178,6 +178,22 @@ dotnet run --project src/IndyPOS.AppHost --launch-profile https
 Dashboard: `https://localhost:17222`. Aspire starts PostgreSQL in Docker and wires StoreHub to it,
 so no local PostgreSQL install is needed.
 
+### Running as a store
+
+| Command | Starts |
+|---|---|
+| `dotnet run --project src/IndyPOS.AppHost` | GeneralHardware (ลงบัญชี, hardware products), StoreHub on :5012 |
+| `dotnet run --project src/IndyPOS.AppHost -- --store MimyMart` | MimyMart (no ลงบัญชี, groceries) |
+| `dotnet run --project src/IndyPOS.AppHost -- --store MimyShop` | MimyShop (service products จัดส่ง / เอกสาร) |
+| `dotnet run --project src/IndyPOS.AppHost -- --store all` | all three, on :5012 / :5013 / :5014, syncing to one CloudApi |
+
+- **Each store has its own database** (`storehub-generalhardware`, …), seeded from `IndyPOS.StoreProfiles`, and
+  applies migrations on start. The old `storehub-db` and `cloud-db` databases are no longer used; drop them
+  if you like.
+- **Dev stores sync** with a fixed dev secret that CloudApi registers in Development only.
+- **The till's receipt header** comes from a generated file under `src/IndyPOS.AppHost/obj/dev-stores/`.
+  Your `C:\ProgramData\IndyPOS\Config\StoreConfiguration.json` is not used.
+
 ### StoreHub directly
 
 Dev ports come from `src/IndyPOS.StoreHub/Properties/launchSettings.json`:
@@ -191,7 +207,8 @@ An **installed** StoreHub listens on **`:5000`**.
 
 `src/IndyPOS.Windows.Forms/appsettings.json` sets `BaseUrl` to `http://localhost:5000`, while a
 dev-run StoreHub listens on `:5012`. Running both straight from source, the till cannot reach the
-API until you change one of them.
+API until you change one of them. **Under Aspire this does not apply:** the AppHost points each
+till at its own store's StoreHub.
 
 ### Health endpoints
 
@@ -213,8 +230,9 @@ wrong path, not a sick service. Since 2026-10 every caller in the code, scripts 
 
 ### Store configuration (required by the till)
 
-The Windows Forms app reads `C:\ProgramData\IndyPOS\Config\StoreConfiguration.json`. Create it before
-running in Debug — see the *Store Configuration* section of `CLAUDE.md` for the exact shape.
+The Windows Forms app reads `C:\ProgramData\IndyPOS\Config\StoreConfiguration.json`. **Under Aspire you
+do not need it:** the AppHost generates one per store. Create it only to run the till without Aspire —
+see the *Store Configuration* section of `CLAUDE.md` for the exact shape.
 
 ---
 
