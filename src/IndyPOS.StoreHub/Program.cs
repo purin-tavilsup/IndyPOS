@@ -209,9 +209,10 @@ if (app.Environment.IsDevelopment())
     // Migrations, not EnsureCreated: EnsureCreated never adds a column to an existing database, so a
     // dev database went stale after every schema change and StoreHub crashed while seeding.
     await app.MigrateStoreHubDatabaseAsync();
-    await app.SeedDevelopmentDataAsync();
+    // The catalogues first: the dev data switches the store's payment methods on and off.
     await app.SeedPaymentMethodsAsync();
     await app.SeedProductCategoriesAsync();
+    await app.SeedDevelopmentDataAsync();
 }
 else if (Array.Exists(args, a => string.Equals(a, "migrate", StringComparison.OrdinalIgnoreCase)))
 {

@@ -54,9 +54,9 @@ public sealed class StoreProfileHosts : IAsyncLifetime
         return client;
     }
 
-    // Seeds what Program.cs's Development block seeds (the order differs; the seeders do not depend on
-    // each other), minus the migrate: the tests' schema comes from EnsureCreated on a fresh database,
-    // like the rest of this suite.
+    // Mirrors Program.cs's Development block (catalogues first, then the dev data, which switches the
+    // store's payment methods), minus the migrate: the tests' schema comes from EnsureCreated on a fresh
+    // database, like the rest of this suite.
     internal static async Task SeedLikeDevelopmentAsync(IServiceProvider services)
     {
         await using var scope = services.CreateAsyncScope();

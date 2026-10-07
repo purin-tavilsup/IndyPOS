@@ -27,9 +27,10 @@ public class StoreTypeFlowTests(StoreProfileHosts hosts)
 
     public static TheoryData<string, string[]> OfferedMethods => new()
     {
-        { "GeneralHardware", ["Cash", "MoneyTransfer", "WelfareCard", "PayLater"] },
-        { "MimyMart", ["Cash", "MoneyTransfer", "WelfareCard"] },
-        { "MimyShop", ["Cash", "MoneyTransfer", "WelfareCard"] }
+        // Each real store's methods (Pond, 2026-10-07). ม.33 and เราชนะ are deprecated everywhere.
+        { "GeneralHardware", ["Cash", "MoneyTransfer", "WelfareCard", "PayLater", "FiftyFifty"] },
+        { "MimyMart", ["Cash", "MoneyTransfer"] },
+        { "MimyShop", ["Cash", "MoneyTransfer", "WelfareCard", "FiftyFifty"] }
     };
 
     public static TheoryData<string, string[]> Categories => new()

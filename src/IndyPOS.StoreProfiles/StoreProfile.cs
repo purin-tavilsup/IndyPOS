@@ -17,12 +17,16 @@ public sealed record StoreProfile(
     string Phone,
     int Code,
     int DevPort,
-    IReadOnlyList<StoreProfileProduct> Products)
+    IReadOnlyList<StoreProfileProduct> Products,
+    IReadOnlyList<string> PaymentMethods)
 {
     /// <summary>The cloud client id; CloudApi names every store's client this way.</summary>
     public string CloudClientId => $"store_{StoreId}";
 
     public string DatabaseName => $"storehub-{Key.ToLowerInvariant()}";
+
+    // PaymentMethods: the catalogue codes this store has switched on, as the real store does. The rest
+    // of the catalogue stays seeded but disabled.
 }
 
 /// <summary>A seed product. A non-trackable one (a service) is sold without moving stock.</summary>
