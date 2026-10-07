@@ -79,8 +79,10 @@ public partial class ReportsPanel : UserControl
         if (!Visible)
             return;
 
-        await ApplyStoreLayoutAsync();
+        // The overview first: the tabs wait on the store's features, and a tab clicked meanwhile must not
+        // be replaced by the overview when they arrive.
         SwitchToPanel(ReportSubPanel.SalesReport);
+        await ApplyStoreLayoutAsync();
     }
 
     private Control[] AllTabs() =>

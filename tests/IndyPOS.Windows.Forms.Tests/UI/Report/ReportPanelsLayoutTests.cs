@@ -6,6 +6,7 @@ using IndyPOS.Application.Common.Models;
 using IndyPOS.Windows.Forms.Services;
 using IndyPOS.Windows.Forms.UI;
 using IndyPOS.Windows.Forms.UI.Report;
+using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
 using Xunit;
 
@@ -66,6 +67,34 @@ public class ReportPanelsLayoutTests
 
         Find(panel, "groupBox1").Visible.Should()
                                         .BeFalse();
+    }
+
+    // The tabs wait on the store's features; the overview must not. Otherwise a tab the manager clicks while
+    // the features load is replaced by the overview when they arrive.
+    [Fact]
+    public void ReportsPanel_WhenShownWhileFeaturesLoad_ShowsTheOverviewAtOnce()
+    {
+        var features = new TaskCompletionSource<StoreFeaturesDto>();
+        var pending = new Mock<IStoreFeaturesProvider>();
+        pending.Setup(p => p.GetAsync())
+               .Returns(features.Task);
+        using var messageForm = new MessageForm();
+        var overview = new SalesReportPanel(Mock.Of<IReportService>(), Mock.Of<IStoreHubClient>(), pending.Object, messageForm);
+        using var reports = new ReportsPanel(
+            overview,
+            new InvoiceProductsReportPanel(Mock.Of<IStoreHubClient>(), pending.Object, messageForm),
+            new SalesHistoryReportPanel(Mock.Of<IReportService>(), Mock.Of<IStoreConstants>(), Mock.Of<IReceiptPrinterService>(), messageForm),
+            new PayLaterPaymentsReportPanel(Mock.Of<IStoreHubClient>(), messageForm),
+            new CashFlowCalculatorPanel(Mock.Of<IReportService>(), Mock.Of<IJsonService>(), Mock.Of<ICsvService>(),
+                                        NullLogger<MainForm>.Instance),
+            pending.Object);
+
+        Show(reports);
+        var shownWhileLoading = Find(reports, "ActivePanel").Controls.Contains(overview);
+        features.SetResult(GeneralHardware); // xUnit waits for every async void a test starts
+
+        shownWhileLoading.Should()
+                         .BeTrue();
     }
 
     private static IStoreFeaturesProvider Features(StoreFeaturesDto features)
