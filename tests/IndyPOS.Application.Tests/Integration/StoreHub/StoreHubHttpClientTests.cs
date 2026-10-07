@@ -6,7 +6,9 @@ using FluentAssertions;
 using IndyPOS.Application.Common.Enums;
 using IndyPOS.Application.Common.Models;
 using IndyPOS.Application.UseCases.StoreHub.Auth;
+using IndyPOS.Application.UseCases.StoreHub.PaymentMethods;
 using IndyPOS.Application.UseCases.StoreHub.Products;
+using IndyPOS.Application.UseCases.StoreHub.Products.AdjustQuantity;
 using IndyPOS.Application.UseCases.StoreHub.Sales;
 using IndyPOS.Infrastructure.Services.StoreHub;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -153,6 +155,20 @@ public class StoreHubHttpClientTests
         result.TotalAmount.Should().Be(200m);
     }
 
+    // The till only ever saw a 200 from a sale. A 201 must still be a success, with its body read.
+    [Fact]
+    public async Task CompleteSaleAsync_WithACreatedResponse_ReturnsTheSale()
+    {
+        _sut.SetAuthToken("valid-token");
+        var invoiceId = Guid.NewGuid();
+        SetupMockResponse(HttpStatusCode.Created, new CompleteSaleResponse(invoiceId, 14m, DateTime.UtcNow, 1001));
+
+        var result = await _sut.CompleteSaleAsync(new CompleteSaleRequest([], []));
+
+        result.InvoiceId.Should()
+                        .Be(invoiceId);
+    }
+
     [Fact]
     public async Task IsHealthyAsync_WhenApiHealthy_ReturnsTrue()
     {
@@ -240,6 +256,48 @@ public class StoreHubHttpClientTests
                     .And.Contain("toDate=2026-10-03");
     }
 
+    private const string CampaignCode = "Campaign2569";
+    private static readonly Guid KnownId = Guid.Parse("6f1c2a4e-8d3b-4c7a-9e21-5b0d7f3a1c88");
+
+    // Nothing else pins the client's URLs, and a wrong one only shows at the till.
+    // InlineData (not delegates) keeps one test case per row in the runner's count.
+    [Theory]
+    [InlineData("GetOfferablePaymentMethods", "GET", "/payment-methods")]
+    [InlineData("GetAllPaymentMethods", "GET", "/payment-methods?include=all")]
+    [InlineData("AddCampaignPaymentMethod", "POST", "/payment-methods")]
+    [InlineData("SetPaymentMethodEnabled", "PATCH", "/payment-methods/Campaign2569")]
+    [InlineData("UpdatePaymentMethodDisplay", "PATCH", "/payment-methods/Campaign2569")]
+    [InlineData("CompleteSale", "POST", "/sales")]
+    [InlineData("RecordPayLaterPayment", "POST", "/pay-later/6f1c2a4e-8d3b-4c7a-9e21-5b0d7f3a1c88/payments")]
+    [InlineData("AdjustProductQuantity", "POST", "/products/6f1c2a4e-8d3b-4c7a-9e21-5b0d7f3a1c88/stock-adjustments")]
+    public async Task RenamedCall_WithTheClient_SendsTheNewRoute(
+        string call, string expectedMethod, string expectedPathAndQuery)
+    {
+        _sut.SetAuthToken("valid-token");
+        var request = CaptureRequest(ResponseFor(call));
+
+        await InvokeAsync(call);
+
+        request().Should()
+                 .Be((expectedMethod, expectedPathAndQuery));
+    }
+
+    private Task InvokeAsync(string call) => call switch
+    {
+        "GetOfferablePaymentMethods" => _sut.GetOfferablePaymentMethodsAsync(),
+        "GetAllPaymentMethods" => _sut.GetAllPaymentMethodsAsync(),
+        "AddCampaignPaymentMethod" => _sut.AddCampaignPaymentMethodAsync(CampaignCode, "โครงการ", 9),
+        "SetPaymentMethodEnabled" => _sut.SetPaymentMethodEnabledAsync(CampaignCode, enabled: false),
+        "UpdatePaymentMethodDisplay" => _sut.UpdatePaymentMethodDisplayAsync(CampaignCode, "โครงการ", 9),
+        "CompleteSale" => _sut.CompleteSaleAsync(new CompleteSaleRequest([], [])),
+        "RecordPayLaterPayment" => _sut.RecordPayLaterPaymentAsync(KnownId, 100m),
+        "AdjustProductQuantity" => _sut.AdjustProductQuantityAsync(KnownId, new AdjustQuantityRequest(10)),
+        _ => throw new ArgumentOutOfRangeException(nameof(call), call, "No such client call.")
+    };
+
+    private static string ResponseFor(string call) =>
+        call.StartsWith("Get", StringComparison.Ordinal) ? "[]" : "{}";
+
     private static async Task RunUnderThaiCultureAsync(Func<Task> action)
     {
         var original = CultureInfo.CurrentCulture;
@@ -252,6 +310,24 @@ public class StoreHubHttpClientTests
         {
             CultureInfo.CurrentCulture = original;
         }
+    }
+
+    private Func<(string Method, string PathAndQuery)> CaptureRequest(string responseJson)
+    {
+        (string, string) captured = default;
+        _mockHandler.Protected()
+            .Setup<Task<HttpResponseMessage>>(
+                "SendAsync",
+                ItExpr.IsAny<HttpRequestMessage>(),
+                ItExpr.IsAny<CancellationToken>())
+            .Callback<HttpRequestMessage, CancellationToken>((request, _) =>
+                captured = (request.Method.Method, request.RequestUri!.PathAndQuery))
+            .ReturnsAsync(() => new HttpResponseMessage(HttpStatusCode.OK)
+            {
+                Content = new StringContent(responseJson, System.Text.Encoding.UTF8, "application/json")
+            });
+
+        return () => captured;
     }
 
     private Func<string> CaptureRequestUri<T>(T responseBody)

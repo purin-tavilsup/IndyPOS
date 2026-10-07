@@ -1,0 +1,25 @@
+meta {
+  name: List Payment Method Catalogue
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{baseUrl}}/payment-methods?include=all
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+docs {
+  # List Payment Method Catalogue
+
+  Every payment method, enabled or not. `include` accepts only `all`; any other value is a 400.
+
+  ## Authorization
+
+  Requires `payment_methods.manage` (Admin only). Anyone else gets 403.
+}

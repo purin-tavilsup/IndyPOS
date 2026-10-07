@@ -1,0 +1,33 @@
+meta {
+  name: Add Campaign Payment Method
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{baseUrl}}/payment-methods
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:json {
+  {
+    "code": "{{paymentMethodCode}}",
+    "displayName": "คนละครึ่ง",
+    "displayOrder": 9
+  }
+}
+
+docs {
+  # Add Campaign Payment Method
+
+  Adds an enabled government-campaign method. 409 if the code already exists.
+
+  ## Authorization
+
+  Requires `payment_methods.manage` (Admin only).
+}

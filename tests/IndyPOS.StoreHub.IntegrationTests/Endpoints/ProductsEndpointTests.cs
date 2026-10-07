@@ -281,7 +281,7 @@ public class ProductsEndpointTests : IntegrationTestBase
         var product = await CreateTestProductAsync(initialStock: 100);
 
         // Act
-        var response = await Client.PostAsJsonAsync($"/products/{product.Id}/adjust-quantity", new
+        var response = await Client.PostAsJsonAsync($"/products/{product.Id}/stock-adjustments", new
         {
             delta = 50,
             reason = "Restock"
@@ -308,7 +308,7 @@ public class ProductsEndpointTests : IntegrationTestBase
         Client.DefaultRequestHeaders.Authorization =
             new AuthenticationHeaderValue("Bearer", TokenWithoutUserId(UserRole.StoreManager));
 
-        var response = await Client.PostAsJsonAsync($"/products/{product.Id}/adjust-quantity", new { delta = Restock });
+        var response = await Client.PostAsJsonAsync($"/products/{product.Id}/stock-adjustments", new { delta = Restock });
 
         response.StatusCode.Should()
                            .Be(HttpStatusCode.Unauthorized);
@@ -321,7 +321,7 @@ public class ProductsEndpointTests : IntegrationTestBase
         Client.DefaultRequestHeaders.Authorization =
             new AuthenticationHeaderValue("Bearer", TokenWithoutUserId(UserRole.StoreManager));
 
-        await Client.PostAsJsonAsync($"/products/{product.Id}/adjust-quantity", new { delta = Restock });
+        await Client.PostAsJsonAsync($"/products/{product.Id}/stock-adjustments", new { delta = Restock });
 
         (await AdjustmentsOfAsync(product.Id)).Should()
                                               .BeEmpty();
@@ -334,7 +334,7 @@ public class ProductsEndpointTests : IntegrationTestBase
         await AuthenticateAsAsync(manager, "Manager123!", UserRole.StoreManager);
         var product = await CreateTestProductAsync(initialStock: 100);
 
-        await Client.PostAsJsonAsync($"/products/{product.Id}/adjust-quantity", new { delta = Restock });
+        await Client.PostAsJsonAsync($"/products/{product.Id}/stock-adjustments", new { delta = Restock });
 
         (await AdjustmentsOfAsync(product.Id)).Should()
                                               .ContainSingle()
@@ -367,7 +367,7 @@ public class ProductsEndpointTests : IntegrationTestBase
             await db.SaveChangesAsync();
         }
 
-        await Client.PostAsJsonAsync($"/products/{product.Id}/adjust-quantity", new
+        await Client.PostAsJsonAsync($"/products/{product.Id}/stock-adjustments", new
         {
             delta = 50,
             reason = "Restock"
@@ -385,7 +385,7 @@ public class ProductsEndpointTests : IntegrationTestBase
         await AuthenticateAsManagerAsync();
         var product = await CreateTestProductAsync(initialStock: 100);
 
-        var response = await Client.PostAsJsonAsync($"/products/{product.Id}/adjust-quantity", new
+        var response = await Client.PostAsJsonAsync($"/products/{product.Id}/stock-adjustments", new
         {
             delta = 0,
             reason = "Restock"

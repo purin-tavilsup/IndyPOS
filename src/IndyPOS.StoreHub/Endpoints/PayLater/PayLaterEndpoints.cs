@@ -53,10 +53,10 @@ public static class PayLaterEndpoints
         }).RequireAuthorization();
     }
 
-    // Record payment against pay-later
+    // Record a repayment against a pay-later debt
     private static void MapRecordPayment(IEndpointRouteBuilder app)
     {
-        app.MapPost("/pay-later/{id:guid}/record-payment", async (
+        app.MapPost("/pay-later/{id:guid}/payments", async (
             ICommandHandler<RecordPayLaterPaymentCommand, PayLaterDto> handler,
             Guid id,
             RecordPaymentRequest request,

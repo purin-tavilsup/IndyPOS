@@ -31,7 +31,7 @@ public class PayLaterSaleEndpointTests : IntegrationTestBase
     {
         await AuthenticateAsCashierAsync();
 
-        var response = await Client.PostAsJsonAsync("/sales/complete", await CreditSaleAsync(note: null));
+        var response = await Client.PostAsJsonAsync("/sales", await CreditSaleAsync(note: null));
 
         response.StatusCode.Should()
                            .Be(HttpStatusCode.BadRequest);
@@ -42,7 +42,7 @@ public class PayLaterSaleEndpointTests : IntegrationTestBase
     {
         await AuthenticateAsCashierAsync();
 
-        var response = await Client.PostAsJsonAsync("/sales/complete", await CreditSaleAsync(note: null));
+        var response = await Client.PostAsJsonAsync("/sales", await CreditSaleAsync(note: null));
 
         (await response.Content.ReadFromJsonAsync<ErrorBody>(JsonOptions))!.Error.Should()
                                                                           .Be("กรุณาใส่ชื่อลูกค้าสำหรับการลงบัญชี");
@@ -55,7 +55,7 @@ public class PayLaterSaleEndpointTests : IntegrationTestBase
         var request = await CreditSaleAsync(note: null);
         var before = await CountInvoicesAsync();
 
-        await Client.PostAsJsonAsync("/sales/complete", request);
+        await Client.PostAsJsonAsync("/sales", request);
 
         (await CountInvoicesAsync()).Should()
                                     .Be(before);
@@ -67,7 +67,7 @@ public class PayLaterSaleEndpointTests : IntegrationTestBase
         await AuthenticateAsCashierAsync();
         var request = await CreditSaleAsync(CustomerName, new SalePaymentRequest(PaymentMethodCodes.Cash, 1m));
 
-        var response = await Client.PostAsJsonAsync("/sales/complete", request);
+        var response = await Client.PostAsJsonAsync("/sales", request);
 
         response.StatusCode.Should()
                            .Be(HttpStatusCode.BadRequest);
@@ -80,7 +80,7 @@ public class PayLaterSaleEndpointTests : IntegrationTestBase
         var request = await CreditSaleAsync(CustomerName, new SalePaymentRequest(PaymentMethodCodes.Cash, 1m));
         var before = await CountInvoicesAsync();
 
-        await Client.PostAsJsonAsync("/sales/complete", request);
+        await Client.PostAsJsonAsync("/sales", request);
 
         (await CountInvoicesAsync()).Should()
                                     .Be(before);
@@ -93,7 +93,7 @@ public class PayLaterSaleEndpointTests : IntegrationTestBase
         await AuthenticateAsCashierAsync();
         var request = await CreditSaleAsync(CustomerName) with { Payments = [new SalePaymentRequest(PaymentMethodCodes.M33WeLove, Price)] };
 
-        var response = await Client.PostAsJsonAsync("/sales/complete", request);
+        var response = await Client.PostAsJsonAsync("/sales", request);
 
         response.StatusCode.Should()
                            .Be(HttpStatusCode.BadRequest);
@@ -131,7 +131,7 @@ public class PayLaterSaleEndpointTests : IntegrationTestBase
         var debt = (await Client.GetFromJsonAsync<GetPayLaterResponse>("/pay-later", JsonOptions))!
                    .Items.Single(d => d.InvoiceId == sale.InvoiceId);
 
-        var response = await Client.PostAsJsonAsync($"/pay-later/{debt.Id}/record-payment", new RecordPaymentRequest(100m));
+        var response = await Client.PostAsJsonAsync($"/pay-later/{debt.Id}/payments", new RecordPaymentRequest(100m));
 
         (await response.Content.ReadFromJsonAsync<PayLaterDto>(JsonOptions))!.RemainingAmount.Should()
                                                                              .Be(Price - 100m);
@@ -167,7 +167,7 @@ public class PayLaterSaleEndpointTests : IntegrationTestBase
 
     private async Task<CompleteSaleResponse> SellOnCreditAsync(string? note = CustomerName)
     {
-        var response = await Client.PostAsJsonAsync("/sales/complete", await CreditSaleAsync(note));
+        var response = await Client.PostAsJsonAsync("/sales", await CreditSaleAsync(note));
         response.EnsureSuccessStatusCode();
 
         return (await response.Content.ReadFromJsonAsync<CompleteSaleResponse>(JsonOptions))!;

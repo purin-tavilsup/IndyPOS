@@ -52,7 +52,7 @@
 ```
  POS Client          StoreHub API         Local Postgres        SyncWorker          Cloud API
      │                    │                     │                    │                   │
-     │ POST /sales/complete                     │                    │                   │
+     │ POST /sales                              │                    │                   │
      ├───────────────────>│                     │                    │                   │
      │                    │ BEGIN TRANSACTION   │                    │                   │
      │                    ├────────────────────>│                    │                   │
@@ -167,7 +167,7 @@
 │   │  Cart: 3 items  │                     │  Cart: 2 items  │              │
 │   └────────┬────────┘                     └────────┬────────┘              │
 │            │                                       │                        │
-│            │ POST /sales/complete                  │ POST /sales/complete   │
+│            │ POST /sales                           │ POST /sales            │
 │            │ (nearly same time)                    │                        │
 │            │                                       │                        │
 │            └───────────────────┬───────────────────┘                        │
@@ -310,7 +310,7 @@ ASPIRE BENEFITS:
 │  IndyPOS.StoreHub   │    │  IndyPOS.CloudApi   │    │ IndyPOS.SyncWorker  │
 │   (ASP.NET Core)    │    │   (ASP.NET Core)    │    │ (BackgroundService) │
 │                     │    │                     │    │                     │
-│ • /sales/complete   │    │ • /sync/events      │    │ • Poll outbox       │
+│ • /sales            │    │ • /sync/events      │    │ • Poll outbox       │
 │ • /products         │    │ • /master/products  │    │ • Push to cloud     │
 │ • /health           │    │ • /health           │    │ • Retry logic       │
 └──────────┬──────────┘    └──────────┬──────────┘    └──────────┬──────────┘
