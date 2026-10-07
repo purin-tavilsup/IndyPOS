@@ -256,6 +256,7 @@ public class StoreHubHttpClientTests
     }
 
     private const string CampaignCode = "Campaign2569";
+    private static readonly Guid KnownId = Guid.Parse("6f1c2a4e-8d3b-4c7a-9e21-5b0d7f3a1c88");
 
     // Nothing else pins the client's URLs, and a wrong one only shows at the till.
     // InlineData (not delegates) keeps one test case per row in the runner's count.
@@ -266,6 +267,7 @@ public class StoreHubHttpClientTests
     [InlineData("SetPaymentMethodEnabled", "PATCH", "/payment-methods/Campaign2569")]
     [InlineData("UpdatePaymentMethodDisplay", "PATCH", "/payment-methods/Campaign2569")]
     [InlineData("CompleteSale", "POST", "/sales")]
+    [InlineData("RecordPayLaterPayment", "POST", "/pay-later/6f1c2a4e-8d3b-4c7a-9e21-5b0d7f3a1c88/payments")]
     public async Task RenamedCall_WithTheClient_SendsTheNewRoute(
         string call, string expectedMethod, string expectedPathAndQuery)
     {
@@ -286,6 +288,7 @@ public class StoreHubHttpClientTests
         "SetPaymentMethodEnabled" => _sut.SetPaymentMethodEnabledAsync(CampaignCode, enabled: false),
         "UpdatePaymentMethodDisplay" => _sut.UpdatePaymentMethodDisplayAsync(CampaignCode, "โครงการ", 9),
         "CompleteSale" => _sut.CompleteSaleAsync(new CompleteSaleRequest([], [])),
+        "RecordPayLaterPayment" => _sut.RecordPayLaterPaymentAsync(KnownId, 100m),
         _ => throw new ArgumentOutOfRangeException(nameof(call), call, "No such client call.")
     };
 
