@@ -6,6 +6,22 @@ namespace IndyPOS.Application.Tests.Models;
 
 public class TillLayoutTests
 {
+    // The legacy summary only carries the ลงบัญชี and general/hardware tiles' figures; a store showing
+    // neither needs one summary call, not two.
+    [Fact]
+    public void NeedsLegacySalesSummary_WithMimyShopsFeatures_IsFalse()
+    {
+        TillLayout.For(new StoreFeaturesDto(false, false, true)).NeedsLegacySalesSummary.Should()
+                                                                                        .BeFalse();
+    }
+
+    [Fact]
+    public void NeedsLegacySalesSummary_WithGeneralHardwaresFeatures_IsTrue()
+    {
+        TillLayout.For(new StoreFeaturesDto(true, true, false)).NeedsLegacySalesSummary.Should()
+                                                                                       .BeTrue();
+    }
+
     // StoreHub unreachable: keep the till as designed. The hardware button and the ledger stay (the
     // server still refuses what a store may not do), and the service buttons, which default off, stay off.
     [Fact]

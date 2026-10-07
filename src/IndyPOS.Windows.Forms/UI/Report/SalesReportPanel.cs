@@ -48,7 +48,7 @@ public partial class SalesReportPanel : UserControl
     private Control[] ProductTypeSplitTiles => [panel4, panel5];
     private Control[] SplitLedgerTiles => [panel20, panel22, panel19, panel16];
 
-    private async Task ApplyStoreLayoutAsync()
+    private async Task<TillLayout> ApplyStoreLayoutAsync()
     {
         TillLayout layout;
         try
@@ -64,6 +64,15 @@ public partial class SalesReportPanel : UserControl
         foreach (var tile in LedgerTiles) tile.Visible = layout.ShowPayLaterReports;
         foreach (var tile in ProductTypeSplitTiles) tile.Visible = layout.ShowProductTypeSplit;
         foreach (var tile in SplitLedgerTiles) tile.Visible = layout.ShowPayLaterReports && layout.ShowProductTypeSplit;
+        return layout;
+    }
+
+    // Only the total-sales tile and the money rows show: their figures come from the one summary.
+    private void ShowSummary(SalesSummaryDto summary)
+    {
+        OverallSaleLabel.Text = $"{summary.LinesTotal:N2}";
+
+        MoneyRowView.Replace(MoneyRowsPanel, MoneyRows.From(summary));
     }
 
     private void ShowSummary(SalesSummary salesSummary, SalesSummaryDto summary)
@@ -110,12 +119,13 @@ public partial class SalesReportPanel : UserControl
 
         try
         {
-            await ApplyStoreLayoutAsync();
-
-            var salesReport = await _reportService.CreateSalesSummaryByDateRangeAsync(startDate, endDate);
+            var layout = await ApplyStoreLayoutAsync();
             var summary = await _storeHubClient.GetSalesSummaryAsync(startDate, endDate);
 
-            ShowSummary(salesReport, summary);
+            if (layout.NeedsLegacySalesSummary)
+                ShowSummary(await _reportService.CreateSalesSummaryByDateRangeAsync(startDate, endDate), summary);
+            else
+                ShowSummary(summary);
         }
         catch (Exception ex)
         {

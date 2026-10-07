@@ -25,6 +25,12 @@ public sealed record TillLayout(
         ShowPayLaterReports: true,
         ShowProductTypeSplit: true);
 
+    /// <summary>
+    /// The legacy sales summary carries only the ลงบัญชี and general/hardware tiles' figures, so a store that
+    /// shows neither needs one summary call, not two.
+    /// </summary>
+    public bool NeedsLegacySalesSummary => ShowPayLaterReports || ShowProductTypeSplit;
+
     public static TillLayout For(StoreFeaturesDto features) => new(
         ShowHardwareButton: features.MultipleProductTypesEnabled,
         ShowServiceButtons: features.ServiceProductsEnabled,
