@@ -32,7 +32,6 @@ public partial class MainForm : Form
 	private readonly UserLogInPanel _userLogInPanel;
 	private readonly IEventAggregator _eventAggregator;
 	private readonly IStoreHubClient _storeHubClient;
-	private bool _showAccountsReceivableMenu = true;
 
 	// The menu buttons' tops as laid out, after any display scaling, so stacking never uses design pixels.
 	// Recorded at the first login: the form is shown and scaled by then, and no button has moved yet.
@@ -295,29 +294,39 @@ public partial class MainForm : Form
 
 	private async Task ApplyStoreLayoutAsync()
 	{
+		// Hidden while the features load, so a store without PayLater never shows the ledger, even briefly.
+		ApplyMenu(showAccountsReceivable: false);
+
+		ApplyMenu((await LoadTillLayoutAsync()).ShowAccountsReceivableMenu);
+	}
+
+	private async Task<TillLayout> LoadTillLayoutAsync()
+	{
 		try
 		{
-			var layout = TillLayout.For(await _storeHubClient.GetStoreFeaturesAsync());
-			_showAccountsReceivableMenu = layout.ShowAccountsReceivableMenu;
+			return TillLayout.For(await _storeHubClient.GetStoreFeaturesAsync());
 		}
 		catch (Exception ex)
 		{
-			// Keep the menu as it is: the ledger's own screen still needs StoreHub to do anything,
-			// and the sale panel already tells the cashier that the store settings did not load.
+			// The sale panel already tells the cashier that the store settings did not load.
 			Log.Warning(ex, "Could not load store features for the menu");
+			return TillLayout.WhenFeaturesUnavailable;
 		}
+	}
 
-		AccountsReceivableButton.Visible = _showAccountsReceivableMenu;
+	private void ApplyMenu(bool showAccountsReceivable)
+	{
 		_menuSlotTops ??= AllMenuButtons().Select(button => button.Top).ToArray();
-		MenuLayout.Stack(ShownMenuButtons(), _menuSlotTops);
+		AccountsReceivableButton.Visible = showAccountsReceivable;
+		MenuLayout.Stack(ShownMenuButtons(showAccountsReceivable), _menuSlotTops);
 	}
 
 	private Control[] AllMenuButtons() =>
 		[SaleButton, InventoryButton, UsersButton, ReportsButton, AccountsReceivableButton,
 		 SettingsButton, LogInButton, CloseApplicationButton];
 
-	private Control[] ShownMenuButtons() =>
-		AllMenuButtons().Where(button => button != AccountsReceivableButton || _showAccountsReceivableMenu)
+	private Control[] ShownMenuButtons(bool showAccountsReceivable) =>
+		AllMenuButtons().Where(button => button != AccountsReceivableButton || showAccountsReceivable)
 						.ToArray();
 
 	private void OnUserLoggedOut()
