@@ -1,6 +1,8 @@
 using IndyPOS.Application.Common.Interfaces;
 using IndyPOS.Application.UseCases.StoreHub.Reports;
 using IndyPOS.Application.UseCases.StoreHub.Reports.GetSalesSummary;
+using IndyPOS.Domain.Entities.Core;
+using IndyPOS.Domain.ValueObjects;
 using IndyPOS.Infrastructure.Persistence.StoreHub;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -86,12 +88,45 @@ public class GetSalesSummaryQueryHandler : IQueryHandler<GetSalesSummaryQuery, S
             "Sales summary generated: FromDate={FromDate}, ToDate={ToDate}, Invoices={InvoiceCount}, Revenue={TotalRevenue:C}",
             query.FromDate, query.ToDate, invoiceCount, totalRevenue);
 
+        var catalogue = await _dbContext.PaymentMethods.AsNoTracking().ToListAsync(cancellationToken);
+        var serviceSales = _storeIdentity.Features.ServiceProductsEnabled
+            ? await ServiceSalesAsync(invoices, cancellationToken)
+            : [];
+
         return new SalesSummaryDto(
             FromDate: query.FromDate,
             ToDate: query.ToDate,
             InvoiceCount: invoiceCount,
             TotalRevenue: totalRevenue,
             PaymentBreakdown: paymentBreakdown,
-            TopProducts: topProductsWithCategory);
+            TopProducts: topProductsWithCategory)
+        {
+            LinesTotal = invoices.SelectMany(i => i.Lines).Sum(l => l.LineTotal),
+            PaymentsByMethod = PaymentMethodTotals.Build(catalogue, payments),
+            ServiceSales = serviceSales
+        };
+    }
+
+    // One row per service product, in ServiceProductBarcodes order, even at zero: the cashier reads a
+    // fixed pair of figures. A product missing from the catalogue still shows, under its barcode.
+    private async Task<IReadOnlyList<ServiceSaleDto>> ServiceSalesAsync(
+        IReadOnlyList<Invoice> invoices, CancellationToken cancellationToken)
+    {
+        var products = await _dbContext.Products
+            .AsNoTracking()
+            .Where(p => ServiceProductBarcodes.All.Contains(p.Barcode))
+            .Select(p => new { p.Id, p.Barcode, p.Name })
+            .ToListAsync(cancellationToken);
+
+        var lines = invoices.SelectMany(i => i.Lines).ToList();
+
+        return ServiceProductBarcodes.All
+            .Select(barcode =>
+            {
+                var product = products.FirstOrDefault(p => p.Barcode == barcode);
+                var total = product is null ? 0m : lines.Where(l => l.ProductId == product.Id).Sum(l => l.LineTotal);
+                return new ServiceSaleDto(barcode, product?.Name ?? barcode, total);
+            })
+            .ToList();
     }
 }

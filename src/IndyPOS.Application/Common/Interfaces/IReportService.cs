@@ -19,15 +19,9 @@ public interface IReportService
 
 	Task<IEnumerable<InvoiceDto>> GetInvoicesByDateRangeAsync(DateOnly startDate, DateOnly endDate);
 
-	Task<IEnumerable<InvoiceProductDto>> GetInvoiceProductsByDateAsync(DateOnly date);
-
-	Task<IEnumerable<InvoiceProductDto>> GetInvoiceProductsByDateRangeAsync(DateOnly startDate, DateOnly endDate);
-
 	Task<IEnumerable<InvoiceProductDto>> GetInvoiceProductsByInvoiceIdAsync(int invoiceId);
 
 	Task<IEnumerable<InvoicePaymentDto>> GetPaymentsByInvoiceIdAsync(int invoiceId);
-
-	Task<IEnumerable<PayLaterPaymentDto>> GetPayLaterPaymentsAsync();
 
 	Task<IInvoiceInfo> GetInvoiceInfoAsync(int invoiceId);
 }

@@ -110,6 +110,33 @@ The panel draws the list (a flowing layout of cards), instead of the hard-coded 
 - products sold: shown for every store; its hardware/general filter only with
   `MultipleProductTypesEnabled`.
 
+### 4.2a Slice 2, also: two report tabs that are empty on v4 today (Pond, 2026-10-07)
+
+The products-sold and outstanding ลงบัญชี tabs show nothing on the v4 till, for every store:
+`StoreHubReportService` still returns empty lists there. Slice 2 wires them, because it already
+switches both tabs per store. (Sales history, the third empty tab, is invoice-history plan 3, its
+own PR.)
+
+**Products sold: one row per invoice line, like v3.** Staff use it to trace a product to the bill it
+was sold on, and when.
+- **`GET /sales/lines?from=&to=&page=&pageSize=`** (new). A list of records, so it sits under
+  `/sales`, not `/reports`. Same rules as `GET /sales`: a malformed date is a Thai 400, and only
+  `reports.view` may ask for a day other than today.
+- **Each row:** bill id, bill number, barcode, product name, quantity, unit price, line total,
+  category code, time (UTC), note. Oldest first, paged.
+- **The till** reads every page for the period.
+- **On/off:** the hardware/general filter and the category column show only with
+  `MultipleProductTypesEnabled`. Other stores see every line.
+
+**Outstanding ลงบัญชี: GeneralHardware only (`PayLaterEnabled`).**
+- **`/reports/pay-later` gains optional `fromDate` / `toDate`** (additive), filtering debts by the
+  store day they were created, under the shared date rule.
+- **The till** asks with `includeCompleted=true`, reads every page, and shows the customers who still
+  owe: name, total ลงบัญชี and remaining, as v3 did. The period buttons send a range; ทั้งหมด sends
+  none.
+
+**Both:** no migration. The two `StoreHubReportService` stubs become real client calls.
+
 ### 4.3 Slice 3: cash-flow panel (together with cash plans 2–3)
 
 Cash plans 2–3 already move this panel into its own ลิ้นชักเก็บเงิน section, backed by StoreHub. This slice

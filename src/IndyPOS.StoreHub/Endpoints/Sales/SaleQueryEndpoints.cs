@@ -31,6 +31,25 @@ internal static class SaleQueryEndpoints
             return Results.Ok(await handler.HandleAsync(query, cancellationToken));
         });
 
+        sales.MapGet("/lines", async (
+            IQueryHandler<ListSaleLinesQuery, SaleLinesPage> handler,
+            ClaimsPrincipal user,
+            string? from,
+            string? to,
+            int? page,
+            int? pageSize,
+            CancellationToken cancellationToken) =>
+        {
+            var query = new ListSaleLinesQuery(
+                From: SalesQueryRules.ParseDate(from),
+                To: SalesQueryRules.ParseDate(to),
+                Page: page ?? SalesQueryRules.FirstPage,
+                PageSize: pageSize ?? SalesQueryRules.DefaultPageSize,
+                CanViewAnyDay: CanViewAnyDay(user));
+
+            return Results.Ok(await handler.HandleAsync(query, cancellationToken));
+        });
+
         sales.MapGet("/{id:guid}", async (
             IQueryHandler<GetSaleByIdQuery, InvoiceDetailDto?> handler,
             ClaimsPrincipal user,

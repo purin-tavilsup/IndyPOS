@@ -79,6 +79,28 @@ public class MenuLayoutTests
                                   .Equal(DesignedSlots);
     }
 
+    private static readonly int[] TabSlots = [13, 262, 511, 755, 999];
+
+    [Fact]
+    public void Row_WithMoreButtonsThanSlots_Throws()
+    {
+        var act = () => MenuLayout.Row(Buttons(6), TabSlots);
+
+        act.Should()
+           .Throw<ArgumentException>();
+    }
+
+    [Fact]
+    public void Row_WithATabLeftOut_MovesTheTabsAfterItLeft()
+    {
+        var tabs = Enumerable.Range(0, 5).Select(i => (Control)new Button { Left = TabSlots[i] }).ToList();
+
+        MenuLayout.Row([tabs[0], tabs[1], tabs[2], tabs[4]], TabSlots);
+
+        tabs[4].Left.Should()
+                    .Be(755);
+    }
+
     private static List<Control> Buttons(int count) =>
         Enumerable.Range(0, count)
                   .Select(i => (Control)new Button { Top = DesignedSlots.ElementAtOrDefault(i) })

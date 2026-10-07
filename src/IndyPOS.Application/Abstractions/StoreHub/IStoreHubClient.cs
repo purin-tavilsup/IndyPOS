@@ -9,7 +9,10 @@ using IndyPOS.Application.UseCases.StoreHub.Products.AdjustQuantity;
 using IndyPOS.Application.UseCases.StoreHub.Products.Create;
 using IndyPOS.Application.UseCases.StoreHub.Products.GetStock;
 using IndyPOS.Application.UseCases.StoreHub.Products.Update;
+using IndyPOS.Application.UseCases.StoreHub.Reports;
+using IndyPOS.Application.UseCases.StoreHub.Reports.GetPayLaterReport;
 using IndyPOS.Application.UseCases.StoreHub.Sales;
+using IndyPOS.Application.UseCases.StoreHub.Sales.History;
 
 namespace IndyPOS.Application.Abstractions.StoreHub;
 
@@ -162,6 +165,17 @@ public interface IStoreHubClient
         DateOnly fromDate,
         DateOnly toDate,
         CancellationToken cancellationToken = default);
+
+    /// <summary>The sales summary, with takings per payment method and service sales.</summary>
+    Task<SalesSummaryDto> GetSalesSummaryAsync(DateOnly fromDate, DateOnly toDate, CancellationToken cancellationToken = default);
+
+    /// <summary>One page of sold lines, oldest bill first (GET /sales/lines).</summary>
+    Task<SaleLinesPage> ListSaleLinesAsync(DateOnly fromDate, DateOnly toDate, int page, int pageSize,
+                                           CancellationToken cancellationToken = default);
+
+    /// <summary>One page of the outstanding-ลงบัญชี report, completed debts included; no dates = every day.</summary>
+    Task<PayLaterReportDto> GetPayLaterReportAsync(DateOnly? fromDate, DateOnly? toDate, int page, int pageSize,
+                                                   CancellationToken cancellationToken = default);
 
     // ========================
     // Payment method catalog endpoints
