@@ -33,7 +33,7 @@ with it rather than upgrading it.
 | Requirement | Detail |
 |---|---|
 | **.NET SDK 10** | `global.json` pins `10.0.107` with `rollForward: latestMinor`, so any later 10.0.x works |
-| **Docker Desktop** | Required by **425** of the tests (82 + 284 + 51 + 8, derived — see Trap 1) and by Aspire |
+| **Docker Desktop** | Required by **457** of the tests (82 + 309 + 58 + 8, derived — see Trap 1) and by Aspire |
 | **Windows** | Several projects target `net10.0-windows`; the till is Windows Forms |
 | **FC Subject font** | In [`fonts/`](fonts/) — install `Regular` and `Bold`. Every panel names this family explicitly, so without it Windows substitutes a fallback and Thai captions clip |
 
@@ -51,19 +51,19 @@ dotnet test
 They spin up a real PostgreSQL container via Testcontainers. With Docker stopped they fail **fast**
 (each suite in under a second), which reads exactly like a code regression but is not.
 
-Expect **425 failures** with Docker stopped, all from these four suites. The StoreHub row's **128**
+Expect **457 failures** with Docker stopped, all from these four suites. The StoreHub row's **128**
 was **measured** with Docker down on 2026-09-27; the final-review test additions then added 13 more
 HTTP integration tests (`CashFloatEndpointsTests`, `DebtRepaymentEndpointsTests`, plus new cases in
 `CashAuthorizationTests` and `CashPayoutEndpointsTests`) and the concurrent-delete fix added 7
 real-Postgres race tests (`CashEntryConcurrencyTests`), all of which need Docker the same way, so its
 **148** is **derived** (128 + 20), not re-measured; the PayLater-debt fix then added 10 more HTTP integration tests (`PayLaterSaleEndpointTests`), bringing it to **158**, and the sale-user fix 2 more, bringing it to **160**, all derived. (`TestUserIdTests` was added after that and needs
-no container, so it does not change the count.) The invoice-history plan (2026-10-01) then added 71 more StoreHub tests (HTTP and persistence tests on real Postgres), bringing it to **231**, derived on the same assumption that every new one needs a container; the final-review fix added one more HTTP test (the reprint route's 403), making **232**, and the Codex route fix (one HTTP test, 2026-10-01) **233**, both derived the same way. The other two rows are **derived** too: MigrationTool's 11 new tests all use the Postgres fixture (**71 + 11 = 82**), and CloudApi's 20 new tests (2026-09-30, the event-pipeline repair and the sync store check) all run on a container, as do the 22 more from invoice-history plan 2 (2026-10-02, 22 to **44**). The route tidy-up PR A (2026-10-02) then added 26 StoreHub tests and 5 CloudApi tests, all on a container, bringing them to **259** and **49**, derived the same way. Route tidy-up B (2026-10-06) added 22 more StoreHub tests, all on a container, bringing it to **281**, derived the same way. The health-check convention (2026-10-07) added 3 StoreHub and 2 CloudApi tests and the new 8-test `IndyPOS.ServiceDefaults.Tests`, all on a container: **284**, **51** and **8**, derived the same way. The per-suite totals were measured with Docker up; only the Docker-down split was not:
+no container, so it does not change the count.) The invoice-history plan (2026-10-01) then added 71 more StoreHub tests (HTTP and persistence tests on real Postgres), bringing it to **231**, derived on the same assumption that every new one needs a container; the final-review fix added one more HTTP test (the reprint route's 403), making **232**, and the Codex route fix (one HTTP test, 2026-10-01) **233**, both derived the same way. The other two rows are **derived** too: MigrationTool's 11 new tests all use the Postgres fixture (**71 + 11 = 82**), and CloudApi's 20 new tests (2026-09-30, the event-pipeline repair and the sync store check) all run on a container, as do the 22 more from invoice-history plan 2 (2026-10-02, 22 to **44**). The route tidy-up PR A (2026-10-02) then added 26 StoreHub tests and 5 CloudApi tests, all on a container, bringing them to **259** and **49**, derived the same way. Route tidy-up B (2026-10-06) added 22 more StoreHub tests, all on a container, bringing it to **281**, derived the same way. The health-check convention (2026-10-07) added 3 StoreHub and 2 CloudApi tests and the new 8-test `IndyPOS.ServiceDefaults.Tests`, all on a container: **284**, **51** and **8**, derived the same way. The dev store profiles (2026-10-07) added 20 StoreHub and 3 CloudApi tests, all on a container: **304** and **54**, and its review fixes one more each (**305** and **55**), then the EnsureCreated-database check 4 and 3 more (**309** and **58**), derived the same way. The per-suite totals were measured with Docker up; only the Docker-down split was not:
 
 | Suite | Total | Fails without Docker |
 |---|---|---|
 | `IndyPOS.MigrationTool.Tests` | 145 | **82** (of the other 63, see Trap 3) |
-| `IndyPOS.StoreHub.IntegrationTests` | 292 | **284** (8 need no container, derived) |
-| `IndyPOS.CloudApi.IntegrationTests` | 51 | **51** (all need a container) |
+| `IndyPOS.StoreHub.IntegrationTests` | 317 | **309** (8 need no container, derived) |
+| `IndyPOS.CloudApi.IntegrationTests` | 58 | **58** (all need a container) |
 | `IndyPOS.ServiceDefaults.Tests` | 8 | **8** (each fixture starts a Postgres) |
 
 **Start Docker and re-run before investigating any of these.**
@@ -132,21 +132,21 @@ reports `Skipped: 1` and writes nothing — which looks like success while leavi
 ### Expected counts
 
 Solution suites (`dotnet test` at the root), Docker running **and** the real store databases present
-— **1209 total** (1208 pass, 1 skipped) — measured 2026-10-07 (after the health-check convention;
-supersedes 1186 earlier on 2026-10-07 after the till startup fix, 1183 on 2026-10-06 after route tidy-up B, 1152 on 2026-10-02 after route tidy-up A, 1111 earlier on 2026-10-02, 1089 on 2026-10-01, 928 on 2026-09-30, 853 on 2026-09-27 and 656 on 2026-09-17). Without those databases the total is **1189**
-(derived as 1209 − 20; CI measured 1166 = 1186 − 20 on PR #114, 2026-10-07, which has no store databases), still all
+— **1269 total** (1268 pass, 1 skipped) — measured 2026-10-07 (after the dev store profiles and their EnsureCreated-database check;
+supersedes 1209 earlier on 2026-10-07 after the health-check convention, 1186 earlier on 2026-10-07 after the till startup fix, 1183 on 2026-10-06 after route tidy-up B, 1152 on 2026-10-02 after route tidy-up A, 1111 earlier on 2026-10-02, 1089 on 2026-10-01, 928 on 2026-09-30, 853 on 2026-09-27 and 656 on 2026-09-17). Without those databases the total is **1249**
+(derived as 1269 − 20; CI measured 1166 = 1186 − 20 on PR #114, 2026-10-07, which has no store databases), still all
 green:
 
 | Suite | Tests |
 |---|---|
-| `IndyPOS.Application.Tests` | 584 |
-| `IndyPOS.StoreHub.IntegrationTests` | 292 (Docker) |
+| `IndyPOS.Application.Tests` | 608 |
+| `IndyPOS.StoreHub.IntegrationTests` | 317 (Docker) |
 | `IndyPOS.MigrationTool.Tests` | 145 (Docker; 1 skipped. **125** without the real store data — Trap 3, derived) |
 | `IndyPOS.Domain.Tests` | 56 |
-| `IndyPOS.Windows.Forms.Tests` | 50 |
+| `IndyPOS.Windows.Forms.Tests` | 54 |
 | `IndyPOS.Vault.Tests` | 17 |
 | `IndyPOS.CloudApi.Tests` | 6 |
-| `IndyPOS.CloudApi.IntegrationTests` | 51 (Docker) |
+| `IndyPOS.CloudApi.IntegrationTests` | 58 (Docker) |
 | `IndyPOS.ServiceDefaults.Tests` | 8 (Docker) |
 
 Outside the solution: `IndyPOS.Bootstrapper.Tests` — **235** (227 pass, 8 skipped).
@@ -178,6 +178,23 @@ dotnet run --project src/IndyPOS.AppHost --launch-profile https
 Dashboard: `https://localhost:17222`. Aspire starts PostgreSQL in Docker and wires StoreHub to it,
 so no local PostgreSQL install is needed.
 
+### Running as a store
+
+| Command | Starts |
+|---|---|
+| `dotnet run --project src/IndyPOS.AppHost` | GeneralHardware (ลงบัญชี, hardware products), StoreHub on :5012 |
+| `dotnet run --project src/IndyPOS.AppHost -- --store MimyMart` | MimyMart (no ลงบัญชี, groceries) |
+| `dotnet run --project src/IndyPOS.AppHost -- --store MimyShop` | MimyShop (service products จัดส่ง / เอกสาร) |
+| `dotnet run --project src/IndyPOS.AppHost -- --store all` | all three, on :5012 / :5013 / :5014, syncing to one CloudApi |
+
+- **Each store has its own database** (`storehub-generalhardware`, …), seeded from `IndyPOS.StoreProfiles`, and
+  applies migrations on start. The old `storehub-db` and `cloud-db` databases are no longer used; drop them
+  if you like. They were built by `EnsureCreated` and cannot be migrated, so a direct StoreHub or CloudApi
+  run pointed at one stops at start with a message saying so, instead of a "relation already exists" error.
+- **Dev stores sync** with a fixed dev secret that CloudApi registers in Development only.
+- **The till's receipt header** comes from a generated file under `src/IndyPOS.AppHost/obj/dev-stores/`.
+  Your `C:\ProgramData\IndyPOS\Config\StoreConfiguration.json` is not used.
+
 ### StoreHub directly
 
 Dev ports come from `src/IndyPOS.StoreHub/Properties/launchSettings.json`:
@@ -191,7 +208,8 @@ An **installed** StoreHub listens on **`:5000`**.
 
 `src/IndyPOS.Windows.Forms/appsettings.json` sets `BaseUrl` to `http://localhost:5000`, while a
 dev-run StoreHub listens on `:5012`. Running both straight from source, the till cannot reach the
-API until you change one of them.
+API until you change one of them. **Under Aspire this does not apply:** the AppHost points each
+till at its own store's StoreHub.
 
 ### Health endpoints
 
@@ -213,8 +231,9 @@ wrong path, not a sick service. Since 2026-10 every caller in the code, scripts 
 
 ### Store configuration (required by the till)
 
-The Windows Forms app reads `C:\ProgramData\IndyPOS\Config\StoreConfiguration.json`. Create it before
-running in Debug — see the *Store Configuration* section of `CLAUDE.md` for the exact shape.
+The Windows Forms app reads `C:\ProgramData\IndyPOS\Config\StoreConfiguration.json`. **Under Aspire you
+do not need it:** the AppHost generates one per store. Create it only to run the till without Aspire —
+see the *Store Configuration* section of `CLAUDE.md` for the exact shape.
 
 ---
 

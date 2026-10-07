@@ -27,6 +27,9 @@ public sealed class CloudPostgresFixture : IAsyncLifetime
         }
     }
 
+    /// <summary>A fresh database with no schema at all, for tests of how a database is provisioned.</summary>
+    public Task<string> CreateEmptyDatabaseAsync() => _postgres!.CreateDatabaseAsync();
+
     public async Task<string> CreateDatabaseAsync()
     {
         var connectionString = await _postgres!.CreateDatabaseAsync();

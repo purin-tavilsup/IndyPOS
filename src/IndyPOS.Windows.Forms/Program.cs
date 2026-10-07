@@ -75,7 +75,7 @@ internal static class Program
 
 	private static void ConfigureLogger()
 	{
-		var logDirectory = InstallPaths.LogsDirectory;
+		var logDirectory = TillLogDirectory.Resolve(Environment.GetEnvironmentVariable(TillLogDirectory.Variable));
 
 		if (!Directory.Exists(logDirectory))
 		{
