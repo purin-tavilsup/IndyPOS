@@ -328,4 +328,24 @@ public class ReportsEndpointTests : IntegrationTestBase
         report!.Customers.Items.Should()
                                .Contain(c => c.CustomerName == customer);
     }
+
+    // The report pages over customers sorted by what they owe. Two customers owing the same must keep
+    // one order across requests, or the till's page-by-page read could show one twice and drop the other.
+    [Fact]
+    public async Task GetPayLaterReport_WithTwoCustomersOwingTheSame_OrdersThemByName()
+    {
+        var day = DateTime.UtcNow.AddDays(-Random.Shared.Next(3000, 6000));
+        var suffix = Guid.NewGuid().ToString("N");
+        var first = $"a-{suffix}";
+        var second = $"b-{suffix}";
+        await SeedDebtAsync(second, day, 333m);
+        await SeedDebtAsync(first, day, 333m);
+        await AuthenticateAsManagerAsync();
+
+        var report = await Client.GetFromJsonAsync<PayLaterReportDto>(
+            $"/reports/pay-later?includeCompleted=true&pageSize=500&fromDate={Day(day)}&toDate={Day(day)}", JsonOptions);
+
+        report!.Customers.Items.Select(c => c.CustomerName).Where(n => n.EndsWith(suffix)).Should()
+                                                                                         .Equal(first, second);
+    }
 }
