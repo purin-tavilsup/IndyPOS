@@ -65,12 +65,6 @@ public class StoreHubReportService : IReportService
         return Task.FromResult(Enumerable.Empty<PayLaterPaymentDto>());
     }
 
-    public Task<IEnumerable<PayLaterPaymentDto>> GetPayLaterPaymentsAsync()
-    {
-        // TODO: Implement via StoreHub GetPayLaterQuery when UI is migrated
-        return Task.FromResult(Enumerable.Empty<PayLaterPaymentDto>());
-    }
-
     public Task<IEnumerable<InvoiceProductDto>> GetInvoiceProductsByInvoiceIdAsync(int invoiceId)
     {
         // Legacy int-based ID - not supported in StoreHub mode
