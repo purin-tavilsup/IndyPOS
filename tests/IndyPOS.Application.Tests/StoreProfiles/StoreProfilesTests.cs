@@ -78,6 +78,31 @@ public class StoreProfilesTests
                                        .BeEquivalentTo(["2002500000014", "2002500000021"]);
     }
 
+    // A misspelt code would leave that method switched off with no error.
+    [Theory]
+    [InlineData("GeneralHardware")]
+    [InlineData("MimyMart")]
+    [InlineData("MimyShop")]
+    public void PaymentMethods_ForEachStore_AreCatalogueCodes(string key)
+    {
+        var catalogueCodes = typeof(IndyPOS.Application.Common.Constants.PaymentMethodCodes)
+                             .GetFields(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static)
+                             .Where(f => f.IsLiteral)
+                             .Select(f => (string)f.GetRawConstantValue()!);
+
+        Profiles.Find(key)!.PaymentMethods.Should()
+                                          .BeSubsetOf(catalogueCodes);
+    }
+
+    [Fact]
+    public void PaymentMethods_OfStoresOtherThanGeneralHardware_NeverIncludePayLater()
+    {
+        var withPayLater = Profiles.All.Where(p => p.PaymentMethods.Contains("PayLater")).Select(p => p.Key);
+
+        withPayLater.Should()
+                    .Equal("GeneralHardware");
+    }
+
     // A product filed under a code the store type does not seed is invisible to every picker.
     [Theory]
     [InlineData("GeneralHardware")]

@@ -24,6 +24,7 @@ public class DevelopmentDataSeeder
     private readonly IPasswordHasher _passwordHasher;
     private readonly IStoreIdentityService _storeIdentity;
     private readonly IInventoryMovementRepository _inventoryMovements;
+    private readonly IPaymentMethodRepository _paymentMethods;
     private readonly ILogger<DevelopmentDataSeeder> _logger;
 
     public DevelopmentDataSeeder(
@@ -33,6 +34,7 @@ public class DevelopmentDataSeeder
         IPasswordHasher passwordHasher,
         IStoreIdentityService storeIdentity,
         IInventoryMovementRepository inventoryMovements,
+        IPaymentMethodRepository paymentMethods,
         ILogger<DevelopmentDataSeeder> logger)
     {
         _userRepository = userRepository;
@@ -41,6 +43,7 @@ public class DevelopmentDataSeeder
         _passwordHasher = passwordHasher;
         _storeIdentity = storeIdentity;
         _inventoryMovements = inventoryMovements;
+        _paymentMethods = paymentMethods;
         _logger = logger;
     }
 
@@ -55,6 +58,7 @@ public class DevelopmentDataSeeder
         await SeedSettingsAsync(cancellationToken);
         await SeedUsersAsync(cancellationToken);
         await SeedProductsAsync(cancellationToken);
+        await SwitchPaymentMethodsAsync(cancellationToken);
 
         _logger.LogInformation("Development data seeding complete.");
     }
@@ -111,6 +115,25 @@ public class DevelopmentDataSeeder
 
             await _userRepository.AddAsync(user, cancellationToken);
             _logger.LogInformation("Created test user: {Username} (Role: {RoleId})", testUser.Username, testUser.RoleId);
+        }
+    }
+
+    // The dev store offers what its real store offers. Runs after the catalogue is seeded, and on every
+    // start, so a method switched on by hand in a dev till is put back to the store's set.
+    private async Task SwitchPaymentMethodsAsync(CancellationToken cancellationToken)
+    {
+        var enabled = IndyPOS.StoreProfiles.StoreProfiles.ForType(_storeIdentity.StoreType).PaymentMethods
+                                                         .ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+        foreach (var method in await _paymentMethods.GetAllAsync(cancellationToken))
+        {
+            var shouldBeEnabled = enabled.Contains(method.Code);
+            if (method.IsEnabled == shouldBeEnabled)
+                continue;
+
+            method.IsEnabled = shouldBeEnabled;
+            method.LastModifiedUtc = DateTime.UtcNow;
+            await _paymentMethods.UpdateAsync(method, cancellationToken);
         }
     }
 

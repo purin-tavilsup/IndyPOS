@@ -24,7 +24,8 @@ public static class StoreProfiles
             new("8850100000042", "ตะปู 2 นิ้ว (กก.)", "GeneralMaterials", 55m, 50),
             new("8850100000059", "ปุ๋ยยูเรีย 50 กก.", "Agriculture", 890m, 20),
             new("8850000000001", "น้ำดื่ม 600ml", "Beverages", 7m, 100)
-        ]);
+        ],
+        PaymentMethods: ["Cash", "MoneyTransfer", "WelfareCard", "PayLater", "FiftyFifty"]);
 
     public static StoreProfile MimyMart { get; } = new(
         "MimyMart", StoreType.Minimart, "DEV-MIMYMART",
@@ -38,7 +39,8 @@ public static class StoreProfiles
             new("8850000000004", "ขนมปังปี๊บ", "Snacks", 20m, 30),
             new("8850000000005", "นมจืด 200ml", "Beverages", 12m, 60),
             new("8850200000016", "ผงซักฟอก 800 ก.", "Household", 45m, 25)
-        ]);
+        ],
+        PaymentMethods: ["Cash", "MoneyTransfer"]);
 
     public static StoreProfile MimyShop { get; } = new(
         "MimyShop", StoreType.MimyShop, "DEV-MIMYSHOP",
@@ -52,7 +54,8 @@ public static class StoreProfiles
             new("8850300000020", "ปากกาลูกลื่น", "Stationery", 10m, 100),
             new("8850300000037", "ตุ๊กตาหมี", "Toys", 159m, 12),
             new("8850300000044", "สายชาร์จ USB-C", "MobileAccessories", 99m, 30)
-        ]);
+        ],
+        PaymentMethods: ["Cash", "MoneyTransfer", "WelfareCard", "FiftyFifty"]);
 
     public static IReadOnlyList<StoreProfile> All { get; } = [GeneralHardware, MimyMart, MimyShop];
 
