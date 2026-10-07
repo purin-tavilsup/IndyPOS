@@ -232,6 +232,16 @@ public class ModernComboBox : UserControl
 		};
 	}
 
+	/// <summary>Empties both the typed text and the label drawn over it.</summary>
+	public void Clear()
+	{
+		_cmbList.Text = string.Empty;
+		_lblText.Text = string.Empty;
+	}
+
+	/// <summary>Puts the caret in the box, ready for typing.</summary>
+	public void FocusInput() => _cmbList.Select();
+
 	private void Surface_Click(object sender, EventArgs e)
 	{
 		//Attach label click to user control click
