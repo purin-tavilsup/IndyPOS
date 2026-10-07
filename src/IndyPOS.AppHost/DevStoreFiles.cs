@@ -1,4 +1,3 @@
-using System.Text.Json;
 using IndyPOS.StoreProfiles;
 
 /// <summary>
@@ -10,18 +9,7 @@ internal static class DevStoreFiles
     public static string StoreConfigurationPath(string appHostDirectory, StoreProfile profile)
     {
         var path = Path.Combine(StoreDirectory(appHostDirectory, profile), "StoreConfiguration.json");
-        File.WriteAllText(path, JsonSerializer.Serialize(new
-        {
-            StoreFullName = profile.FullName,
-            StoreName = profile.Name,
-            StoreAddressLine1 = profile.AddressLine1,
-            StoreAddressLine2 = profile.AddressLine2,
-            StorePhoneNumber = profile.Phone,
-            PrinterName = "XP-58",
-            BarcodeScannerDeviceName = "",
-            SerialPortName = "COM1",
-            profile.Code
-        }, new JsonSerializerOptions { WriteIndented = true }));
+        File.WriteAllText(path, StoreProfileFiles.StoreConfigurationJson(profile));
         return path;
     }
 

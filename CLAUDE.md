@@ -244,14 +244,14 @@ dotnet run --project src/IndyPOS.AppHost -- --store MimyMart     # or GeneralHar
 dotnet run --project src/IndyPOS.AppHost -- --store all          # all three on :5012/:5013/:5014, one CloudApi
 ```
 
-Solution suites total **1247** with Docker running and the real store databases present (1246 pass,
+Solution suites total **1248** with Docker running and the real store databases present (1247 pass,
 1 skipped) — measured 2026-10-07 (after the dev store profiles; 1209 earlier on 2026-10-07 after the health-check
 convention, 1186 after the till startup fix, 1183 on 2026-10-06 after route tidy-up B, 1152 on 2026-10-02 after route tidy-up A, 1111 earlier on 2026-10-02 after invoice-history plan 2, 1089 on 2026-10-01, 928 on 2026-09-30, 853 on 2026-09-27, after the
 cash-drawer release). Per suite: Domain 56 · Vault 17 · CloudApi 6 · CloudApi.IntegrationTests 54
-(Docker) · MigrationTool 145 (144 pass, 1 skip) · StoreHub.IntegrationTests 312 · Application 599 ·
-Windows.Forms 50 · ServiceDefaults 8 (Docker). The growth since the 1209 measurement is the dev store profiles (Application +15, StoreHub +20,
-CloudApi +3): 1209 + 38 = 1247. Without the
-real store databases the suite discovers **1227** (1247 − 20, DERIVED; CI measured 1166 = 1186 − 20 on PR #114, 2026-10-07) — a skipped
+(Docker) · MigrationTool 145 (144 pass, 1 skip) · StoreHub.IntegrationTests 312 · Application 600 ·
+Windows.Forms 50 · ServiceDefaults 8 (Docker). The growth since the 1209 measurement is the dev store profiles (Application +16, StoreHub +20,
+CloudApi +3): 1209 + 39 = 1248. Without the
+real store databases the suite discovers **1228** (1248 − 20, DERIVED; CI measured 1166 = 1186 − 20 on PR #114, 2026-10-07) — a skipped
 `[Theory]` is one entry, not one per row.
 See [`ONBOARDING.md`](ONBOARDING.md) for the per-suite breakdown, the dev-vs-installed port split,
 and the `/health` vs `/health/ready` trap.

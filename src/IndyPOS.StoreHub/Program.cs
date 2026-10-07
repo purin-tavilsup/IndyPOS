@@ -197,7 +197,7 @@ builder.Services.AddOpenApi();
 
 var app = builder.Build();
 
-// Provision the database. Dev uses EnsureCreated + test data for speed.
+// Provision the database. Development applies the migrations and seeds the dev store's data on start.
 // Production provisioning (EF migrations + initial admin seed) runs ONLY when
 // the installer invokes "IndyPOS.StoreHub.exe migrate", then exits before
 // app.Run(). Doing schema work on the normal service-start path would block the
