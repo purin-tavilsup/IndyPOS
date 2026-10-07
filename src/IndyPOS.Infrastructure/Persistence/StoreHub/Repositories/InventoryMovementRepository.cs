@@ -22,6 +22,11 @@ public class InventoryMovementRepository : IInventoryMovementRepository
         await _dbContext.SaveChangesAsync(cancellationToken);
     }
 
+    public Task<bool> HasMovementAsync(string storeId, Guid productId, string reason,
+                                       CancellationToken cancellationToken = default) =>
+        _dbContext.InventoryMovements.AnyAsync(
+            m => m.StoreId == storeId && m.ProductId == productId && m.Reason == reason, cancellationToken);
+
     public async Task<int> GetCurrentBalanceAsync(
         string storeId,
         Guid productId,
