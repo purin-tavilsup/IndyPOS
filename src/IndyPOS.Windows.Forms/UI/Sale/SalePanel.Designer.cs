@@ -57,6 +57,8 @@
             ProductLookUpTextBox = new ModernUI.ModernTextBox();
             AddHardwareProductButton = new ModernUI.ModernButton();
             AddGeneralGoodsProductButton = new ModernUI.ModernButton();
+            DeliveryServiceButton = new ModernUI.ModernButton();
+            DocumentServiceButton = new ModernUI.ModernButton();
             PaymentDataView = new DataGridView();
             PaymentPriority = new DataGridViewTextBoxColumn();
             PaymentType = new DataGridViewTextBoxColumn();
@@ -358,6 +360,8 @@
             panel3.Controls.Add(ProductLookUpTextBox);
             panel3.Controls.Add(AddHardwareProductButton);
             panel3.Controls.Add(AddGeneralGoodsProductButton);
+            panel3.Controls.Add(DeliveryServiceButton);
+            panel3.Controls.Add(DocumentServiceButton);
             panel3.Dock = DockStyle.Right;
             panel3.Location = new Point(1037, 43);
             panel3.Name = "panel3";
@@ -452,6 +456,48 @@
             AddGeneralGoodsProductButton.TextImageRelation = TextImageRelation.ImageBeforeText;
             AddGeneralGoodsProductButton.UseVisualStyleBackColor = false;
             AddGeneralGoodsProductButton.Click += AddGeneralGoodsProductButton_Click;
+            // 
+            // DeliveryServiceButton
+            // 
+            DeliveryServiceButton.BackColor = Color.FromArgb(38, 38, 38);
+            DeliveryServiceButton.BackgroundColor = Color.FromArgb(38, 38, 38);
+            DeliveryServiceButton.BorderColor = Color.Turquoise;
+            DeliveryServiceButton.BorderRadius = 5;
+            DeliveryServiceButton.BorderSize = 1;
+            DeliveryServiceButton.FlatAppearance.BorderSize = 0;
+            DeliveryServiceButton.FlatStyle = FlatStyle.Flat;
+            DeliveryServiceButton.Font = new Font("FC Subject [Non-commercial] Reg", 14.25F);
+            DeliveryServiceButton.ForeColor = Color.White;
+            DeliveryServiceButton.Location = new Point(9, 164);
+            DeliveryServiceButton.Name = "DeliveryServiceButton";
+            DeliveryServiceButton.Size = new Size(120, 80);
+            DeliveryServiceButton.TabIndex = 11;
+            DeliveryServiceButton.Text = "จัดส่ง";
+            DeliveryServiceButton.TextColor = Color.White;
+            DeliveryServiceButton.UseVisualStyleBackColor = false;
+            DeliveryServiceButton.Visible = false;
+            DeliveryServiceButton.Click += DeliveryServiceButton_Click;
+            // 
+            // DocumentServiceButton
+            // 
+            DocumentServiceButton.BackColor = Color.FromArgb(38, 38, 38);
+            DocumentServiceButton.BackgroundColor = Color.FromArgb(38, 38, 38);
+            DocumentServiceButton.BorderColor = Color.Turquoise;
+            DocumentServiceButton.BorderRadius = 5;
+            DocumentServiceButton.BorderSize = 1;
+            DocumentServiceButton.FlatAppearance.BorderSize = 0;
+            DocumentServiceButton.FlatStyle = FlatStyle.Flat;
+            DocumentServiceButton.Font = new Font("FC Subject [Non-commercial] Reg", 14.25F);
+            DocumentServiceButton.ForeColor = Color.White;
+            DocumentServiceButton.Location = new Point(136, 164);
+            DocumentServiceButton.Name = "DocumentServiceButton";
+            DocumentServiceButton.Size = new Size(120, 80);
+            DocumentServiceButton.TabIndex = 12;
+            DocumentServiceButton.Text = "เอกสาร";
+            DocumentServiceButton.TextColor = Color.White;
+            DocumentServiceButton.UseVisualStyleBackColor = false;
+            DocumentServiceButton.Visible = false;
+            DocumentServiceButton.Click += DocumentServiceButton_Click;
             // 
             // PaymentDataView
             // 
@@ -649,6 +695,8 @@
         private ModernUI.ModernButton ClearAllPaymentsButton;
         private ModernUI.ModernButton AddGeneralGoodsProductButton;
         private ModernUI.ModernButton AddHardwareProductButton;
+        private ModernUI.ModernButton DeliveryServiceButton;
+        private ModernUI.ModernButton DocumentServiceButton;
         private System.Windows.Forms.DataGridViewTextBoxColumn PaymentPriority;
         private System.Windows.Forms.DataGridViewTextBoxColumn PaymentType;
         private System.Windows.Forms.DataGridViewTextBoxColumn PaymentAmount;

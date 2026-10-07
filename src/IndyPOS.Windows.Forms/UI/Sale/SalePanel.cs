@@ -5,9 +5,11 @@ using IndyPOS.Application.Common.Models;
 using IndyPOS.Application.UseCases.StoreHub.PaymentMethods;
 using IndyPOS.Application.Events;
 using IndyPOS.Domain.Events;
+using IndyPOS.Domain.ValueObjects;
 using IndyPOS.Windows.Forms.Enums;
 using IndyPOS.Windows.Forms.Events;
 using IndyPOS.Windows.Forms.Extensions;
+using IndyPOS.Windows.Forms.Services;
 using IndyPOS.Windows.Forms.UI.Payment;
 using System.Diagnostics.CodeAnalysis;
 
@@ -23,6 +25,7 @@ public partial class SalePanel : UserControl
     private readonly UpdateInvoiceProductForm _updateProductForm;
     private readonly IReadOnlyDictionary<int, string> _paymentTypeDictionary;
     private readonly IStoreHubClient _storeHubClient;
+    private readonly IStoreFeaturesProvider _storeFeatures;
     private SubPanel _activeSubPanel;
     private readonly MessageForm _messageForm;
     private readonly PrintReceiptForm _printReceiptForm;
@@ -62,7 +65,8 @@ public partial class SalePanel : UserControl
                      MessageForm messageForm,
                      PrintReceiptForm printReceiptForm,
 					 ICashDrawerService cashDrawerService,
-					 IStoreHubClient storeHubClient)
+					 IStoreHubClient storeHubClient,
+					 IStoreFeaturesProvider storeFeatures)
     {
         InitializeComponent();
         InitializeInvoiceDataView();
@@ -78,6 +82,7 @@ public partial class SalePanel : UserControl
         _printReceiptForm = printReceiptForm;
 		_cashDrawerService = cashDrawerService;
 		_storeHubClient = storeHubClient;
+		_storeFeatures = storeFeatures;
 
 		SubscribeEvents();
     }
@@ -267,9 +272,9 @@ public partial class SalePanel : UserControl
 
         try
         {
-            var features = await _storeHubClient.GetStoreFeaturesAsync();
+            var features = await _storeFeatures.GetAsync();
 
-            AddHardwareProductButton.Visible = features.MultipleProductTypesEnabled;
+            ApplyTillLayout(TillLayout.For(features));
             _storeFeaturesApplied = true;
         }
         catch (Exception ex)
@@ -282,8 +287,15 @@ public partial class SalePanel : UserControl
                 _messageForm.ShowDialog($"ไม่สามารถโหลดการตั้งค่าร้านค้าได้ Error: {ex.Message}", "ข้อผิดพลาด");
             }
 
-            // Leave the button as designed (visible) on failure — server guard still blocks Hardware creation.
+            ApplyTillLayout(TillLayout.WhenFeaturesUnavailable);
         }
+    }
+
+    private void ApplyTillLayout(TillLayout layout)
+    {
+        AddHardwareProductButton.Visible = layout.ShowHardwareButton;
+        DeliveryServiceButton.Visible = layout.ShowServiceButtons;
+        DocumentServiceButton.Visible = layout.ShowServiceButtons;
     }
 
     private async void GetPaymentButton_Click(object sender, EventArgs e)
@@ -433,6 +445,16 @@ public partial class SalePanel : UserControl
     private async void AddHardwareProductButton_Click(object sender, EventArgs e)
     {
         await _addInvoiceProductForm.ShowDialog(HardwareBarcode);
+    }
+
+    private async void DeliveryServiceButton_Click(object sender, EventArgs e)
+    {
+        await _addInvoiceProductForm.ShowDialog(ServiceProductBarcodes.Delivery);
+    }
+
+    private async void DocumentServiceButton_Click(object sender, EventArgs e)
+    {
+        await _addInvoiceProductForm.ShowDialog(ServiceProductBarcodes.Documents);
     }
 
     private void LookUpProductButton_Click(object sender, EventArgs e)

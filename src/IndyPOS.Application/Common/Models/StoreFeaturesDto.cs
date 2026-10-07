@@ -4,4 +4,4 @@ namespace IndyPOS.Application.Common.Models;
 /// Store feature flags exposed to clients (WinForms) so store-type gating can be
 /// applied in the UI. Mirrors <c>IndyPOS.Domain.ValueObjects.StoreTypeFeatures</c>.
 /// </summary>
-public record StoreFeaturesDto(bool PayLaterEnabled, bool MultipleProductTypesEnabled);
+public record StoreFeaturesDto(bool PayLaterEnabled, bool MultipleProductTypesEnabled, bool ServiceProductsEnabled = false);

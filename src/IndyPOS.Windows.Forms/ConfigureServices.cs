@@ -54,6 +54,9 @@ internal static class ConfigureServices
 		// Update services
 		services.AddSingleton<IUpdateService, UpdateService>();
 
+		// One features fetch per run, shared by the menu and the sale panel
+		services.AddSingleton<IStoreFeaturesProvider, StoreFeaturesProvider>();
+
 		services.AddSingleton<IMachine, Machine>();
 
 		// Change-password prompt seam (consumed by the singleton FirstLoginCoordinator)

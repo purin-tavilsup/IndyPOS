@@ -108,6 +108,19 @@ public class StoreHubHttpClientTests
         result[1].Barcode.Should().Be("456");
     }
 
+    // A till newer than its StoreHub (StoreHub rolled back) must read a missing flag as off, not crash.
+    [Fact]
+    public async Task GetStoreFeaturesAsync_WithAnOlderStoreHub_ReadsServiceProductsAsOff()
+    {
+        _sut.SetAuthToken("valid-token");
+        SetupMockResponse(HttpStatusCode.OK, new { payLaterEnabled = true, multipleProductTypesEnabled = true });
+
+        var features = await _sut.GetStoreFeaturesAsync();
+
+        features.Should()
+                .Be(new StoreFeaturesDto(PayLaterEnabled: true, MultipleProductTypesEnabled: true, ServiceProductsEnabled: false));
+    }
+
     [Fact]
     public async Task GetLegacySalesSummaryAsync_WhenForbidden_ThrowsPermissionError()
     {

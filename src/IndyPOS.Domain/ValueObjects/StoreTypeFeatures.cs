@@ -20,6 +20,11 @@ public record StoreTypeFeatures
     public bool MultipleProductTypesEnabled { get; init; }
 
     /// <summary>
+    /// Whether the store sells services (จัดส่ง, เอกสาร) from quick buttons on the sale panel.
+    /// </summary>
+    public bool ServiceProductsEnabled { get; init; }
+
+    /// <summary>
     /// Gets the feature set for a given store type.
     /// </summary>
     public static StoreTypeFeatures For(StoreType storeType) => storeType switch
@@ -37,7 +42,8 @@ public record StoreTypeFeatures
         StoreType.MimyShop => new StoreTypeFeatures
         {
             PayLaterEnabled = false,
-            MultipleProductTypesEnabled = false
+            MultipleProductTypesEnabled = false,
+            ServiceProductsEnabled = true
         },
         _ => throw new ArgumentOutOfRangeException(nameof(storeType), storeType, "Unknown store type")
     };

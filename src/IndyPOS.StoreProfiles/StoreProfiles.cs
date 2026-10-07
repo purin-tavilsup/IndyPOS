@@ -1,4 +1,5 @@
 using IndyPOS.Domain.Enums;
+using IndyPOS.Domain.ValueObjects;
 
 namespace IndyPOS.StoreProfiles;
 
@@ -48,8 +49,8 @@ public static class StoreProfiles
         Code: 3, DevPort: 5014,
         Products:
         [
-            new("2002500000014", "จัดส่ง", "Services", 30m, 0, IsTrackable: false),
-            new("2002500000021", "เอกสาร", "Services", 10m, 0, IsTrackable: false),
+            new(ServiceProductBarcodes.Delivery, "จัดส่ง", "Services", 30m, 0, IsTrackable: false),
+            new(ServiceProductBarcodes.Documents, "เอกสาร", "Services", 10m, 0, IsTrackable: false),
             new("8850300000013", "สมุดปกอ่อน", "BooksAndNotebooks", 20m, 50),
             new("8850300000020", "ปากกาลูกลื่น", "Stationery", 10m, 100),
             new("8850300000037", "ตุ๊กตาหมี", "Toys", 159m, 12),
