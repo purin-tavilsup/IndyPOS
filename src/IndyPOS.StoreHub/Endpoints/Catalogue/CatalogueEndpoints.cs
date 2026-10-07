@@ -33,7 +33,7 @@ public static class CatalogueEndpoints
         app.MapGet("/store/features", (IStoreIdentityService storeIdentity) =>
         {
             var f = storeIdentity.Features;
-            return Results.Ok(new StoreFeaturesDto(f.PayLaterEnabled, f.MultipleProductTypesEnabled));
+            return Results.Ok(new StoreFeaturesDto(f.PayLaterEnabled, f.MultipleProductTypesEnabled, f.ServiceProductsEnabled));
         }).RequireAuthorization();
     }
 }

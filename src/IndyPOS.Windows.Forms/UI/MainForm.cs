@@ -1,9 +1,11 @@
 ﻿using IndyPOS.Application.Common.Enums;
 using IndyPOS.Application.Common.Extensions;
 using IndyPOS.Application.Common.Interfaces;
+using IndyPOS.Application.Common.Models;
 using IndyPOS.Application.Events;
 using IndyPOS.Windows.Forms.Enums;
 using IndyPOS.Windows.Forms.Events;
+using IndyPOS.Windows.Forms.Services;
 using IndyPOS.Windows.Forms.UI.Inventory;
 using IndyPOS.Windows.Forms.UI.Login;
 using IndyPOS.Windows.Forms.UI.PayLater;
@@ -12,6 +14,7 @@ using IndyPOS.Windows.Forms.UI.Sale;
 using IndyPOS.Windows.Forms.UI.Setting;
 using IndyPOS.Windows.Forms.UI.User;
 using Prism.Events;
+using Serilog;
 using System.Diagnostics.CodeAnalysis;
 using Timer = System.Windows.Forms.Timer;
 
@@ -28,6 +31,11 @@ public partial class MainForm : Form
 	private readonly SettingsPanel _settingsPanel;
 	private readonly UserLogInPanel _userLogInPanel;
 	private readonly IEventAggregator _eventAggregator;
+	private readonly IStoreFeaturesProvider _storeFeatures;
+
+	// The menu buttons' tops as laid out, after any display scaling, so stacking never uses design pixels.
+	// Recorded at the first login: the form is shown and scaled by then, and no button has moved yet.
+	private int[]? _menuSlotTops;
 
 	private UserControl _activePanel;
 	private bool _isUserLoggedIn;
@@ -40,7 +48,8 @@ public partial class MainForm : Form
 					PayLaterPaymentPanel accountsReceivablePanel,
 					SettingsPanel settingsPanel,
 					UserLogInPanel userLogInPanel,
-					IEventAggregator eventAggregator)
+					IEventAggregator eventAggregator,
+					IStoreFeaturesProvider storeFeatures)
 	{
 		InitializeComponent();
 
@@ -59,6 +68,7 @@ public partial class MainForm : Form
 		_userLogInPanel = userLogInPanel;
 		_userLogInPanel.Visible = false;
 		_eventAggregator = eventAggregator;
+		_storeFeatures = storeFeatures;
 		_isUserLoggedIn = false;
 		_activePanel = new UserControl();
 
@@ -267,7 +277,7 @@ public partial class MainForm : Form
 		ResizeWindowsButton.Image = Properties.Resources.restore_window_24px;
 	}
 
-	private void OnUserLoggedIn(ILoggedInUser loggedInUser)
+	private async void OnUserLoggedIn(ILoggedInUser loggedInUser)
 	{
 		_loggedInUser = loggedInUser;
 
@@ -278,7 +288,46 @@ public partial class MainForm : Form
 		LogInButton.Text = "Log Out";
 
 		SwitchToPanel(SubPanel.Sales);
+
+		await ApplyStoreLayoutAsync();
 	}
+
+	private async Task ApplyStoreLayoutAsync()
+	{
+		// Hidden while the features load, so a store without PayLater never shows the ledger, even briefly.
+		ApplyMenu(showAccountsReceivable: false);
+
+		ApplyMenu((await LoadTillLayoutAsync()).ShowAccountsReceivableMenu);
+	}
+
+	private async Task<TillLayout> LoadTillLayoutAsync()
+	{
+		try
+		{
+			return TillLayout.For(await _storeFeatures.GetAsync());
+		}
+		catch (Exception ex)
+		{
+			// The sale panel already tells the cashier that the store settings did not load.
+			Log.Warning(ex, "Could not load store features for the menu");
+			return TillLayout.WhenFeaturesUnavailable;
+		}
+	}
+
+	private void ApplyMenu(bool showAccountsReceivable)
+	{
+		_menuSlotTops ??= AllMenuButtons().Select(button => button.Top).ToArray();
+		AccountsReceivableButton.Visible = showAccountsReceivable;
+		MenuLayout.Stack(ShownMenuButtons(showAccountsReceivable), _menuSlotTops);
+	}
+
+	private Control[] AllMenuButtons() =>
+		[SaleButton, InventoryButton, UsersButton, ReportsButton, AccountsReceivableButton,
+		 SettingsButton, LogInButton, CloseApplicationButton];
+
+	private Control[] ShownMenuButtons(bool showAccountsReceivable) =>
+		AllMenuButtons().Where(button => button != AccountsReceivableButton || showAccountsReceivable)
+						.ToArray();
 
 	private void OnUserLoggedOut()
 	{

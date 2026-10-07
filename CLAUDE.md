@@ -244,15 +244,16 @@ dotnet run --project src/IndyPOS.AppHost -- --store MimyMart     # or GeneralHar
 dotnet run --project src/IndyPOS.AppHost -- --store all          # all three on :5012/:5013/:5014, one CloudApi
 ```
 
-Solution suites total **1269** with Docker running and the real store databases present (1268 pass,
-1 skipped) — measured 2026-10-07 (after the dev store profiles and their EnsureCreated-database check; 1209 earlier on 2026-10-07 after the health-check
+Solution suites total **1291** with Docker running and the real store databases present (1290 pass,
+1 skipped) — measured 2026-10-07 (after per-store UI slice 1; 1269 earlier on 2026-10-07 after the dev store profiles and their EnsureCreated-database check, 1209 earlier on 2026-10-07 after the health-check
 convention, 1186 after the till startup fix, 1183 on 2026-10-06 after route tidy-up B, 1152 on 2026-10-02 after route tidy-up A, 1111 earlier on 2026-10-02 after invoice-history plan 2, 1089 on 2026-10-01, 928 on 2026-09-30, 853 on 2026-09-27, after the
-cash-drawer release). Per suite: Domain 56 · Vault 17 · CloudApi 6 · CloudApi.IntegrationTests 58
-(Docker) · MigrationTool 145 (144 pass, 1 skip) · StoreHub.IntegrationTests 317 · Application 608 ·
-Windows.Forms 54 · ServiceDefaults 8 (Docker). The growth since the 1209 measurement is the dev store profiles their review fixes and the per-store payment methods (Application +24, StoreHub +21,
+cash-drawer release). Per suite: Domain 61 · Vault 17 · CloudApi 6 · CloudApi.IntegrationTests 58
+(Docker) · MigrationTool 145 (144 pass, 1 skip) · StoreHub.IntegrationTests 317 · Application 613 ·
+Windows.Forms 66 · ServiceDefaults 8 (Docker). The growth since the 1209 measurement is the dev store profiles their review fixes and the per-store payment methods (Application +24, StoreHub +21,
 CloudApi +4, Windows.Forms +4): 1209 + 53 = 1262, and the EnsureCreated-database check (StoreHub +4, CloudApi +3)
-for 1269. Without the
-real store databases the suite discovers **1249** (1269 − 20, DERIVED; CI measured 1166 = 1186 − 20 on PR #114, 2026-10-07) — a skipped
+for 1269. Per-store UI slice 1 then added Domain +5, Application +5 and Windows.Forms +12, none on a container:
+1269 + 22 = 1291. Without the
+real store databases the suite discovers **1271** (1291 − 20, DERIVED; CI measured 1166 = 1186 − 20 on PR #114, 2026-10-07) — a skipped
 `[Theory]` is one entry, not one per row.
 See [`ONBOARDING.md`](ONBOARDING.md) for the per-suite breakdown, the dev-vs-installed port split,
 and the `/health` vs `/health/ready` trap.
