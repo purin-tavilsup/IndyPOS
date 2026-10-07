@@ -32,7 +32,7 @@ public partial class AddInvoiceProductForm : Form
 		}
 		catch (Exception ex)
 		{
-			_messageForm.ShowDialog($"ไม่พบรหัสสินค้า {barcode} ในระบบ Error: {ex.Message}", "ไม่พบสินค้าในระบบ");
+			_messageForm.ShowDialog(ProductLookupMessage.For(barcode, ex), "ไม่พบสินค้าในระบบ");
 		}
 	}
 
