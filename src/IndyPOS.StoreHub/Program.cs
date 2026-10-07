@@ -206,7 +206,9 @@ var app = builder.Build();
 // service start is immediate.
 if (app.Environment.IsDevelopment())
 {
-    await app.EnsureStoreHubDatabaseCreatedAsync();
+    // Migrations, not EnsureCreated: EnsureCreated never adds a column to an existing database, so a
+    // dev database went stale after every schema change and StoreHub crashed while seeding.
+    await app.MigrateStoreHubDatabaseAsync();
     await app.SeedDevelopmentDataAsync();
     await app.SeedPaymentMethodsAsync();
     await app.SeedProductCategoriesAsync();
