@@ -29,24 +29,7 @@
         private void InitializeComponent()
         {
             panel9 = new Panel();
-            panel13 = new Panel();
-            PaymentByArLabel = new Label();
-            label6 = new Label();
-            panel12 = new Panel();
-            PaymentByWeWinLabel = new Label();
-            label22 = new Label();
-            panel11 = new Panel();
-            PaymentByM33Label = new Label();
-            label20 = new Label();
-            panel10 = new Panel();
-            PaymentByWelfareCardLabel = new Label();
-            label18 = new Label();
-            panel8 = new Panel();
-            PaymentByKlkLabel = new Label();
-            label16 = new Label();
-            panel3 = new Panel();
-            PaymentByTransferLabel = new Label();
-            label14 = new Label();
+            MoneyRowsPanel = new FlowLayoutPanel();
             label13 = new Label();
             panel6 = new Panel();
             PeriodLabel = new Label();
@@ -108,12 +91,6 @@
             EndDatePicker = new DateTimePicker();
             label7 = new Label();
             panel9.SuspendLayout();
-            panel13.SuspendLayout();
-            panel12.SuspendLayout();
-            panel11.SuspendLayout();
-            panel10.SuspendLayout();
-            panel8.SuspendLayout();
-            panel3.SuspendLayout();
             panel6.SuspendLayout();
             panel5.SuspendLayout();
             panel4.SuspendLayout();
@@ -133,233 +110,20 @@
             // panel9
             // 
             panel9.BackColor = Color.FromArgb(38, 38, 38);
-            panel9.Controls.Add(panel13);
-            panel9.Controls.Add(panel12);
-            panel9.Controls.Add(panel11);
-            panel9.Controls.Add(panel10);
-            panel9.Controls.Add(panel8);
-            panel9.Controls.Add(panel3);
+            panel9.Controls.Add(MoneyRowsPanel);
             panel9.Controls.Add(label13);
             panel9.Location = new Point(2, 693);
             panel9.Name = "panel9";
             panel9.Size = new Size(1266, 213);
             panel9.TabIndex = 109;
             // 
-            // panel13
+            // MoneyRowsPanel
             // 
-            panel13.BackColor = Color.FromArgb(34, 34, 34);
-            panel13.Controls.Add(PaymentByArLabel);
-            panel13.Controls.Add(label6);
-            panel13.Location = new Point(844, 90);
-            panel13.Name = "panel13";
-            panel13.Size = new Size(406, 45);
-            panel13.TabIndex = 98;
-            // 
-            // PaymentByArLabel
-            // 
-            PaymentByArLabel.BackColor = Color.FromArgb(35, 35, 35);
-            PaymentByArLabel.Dock = DockStyle.Fill;
-            PaymentByArLabel.Font = new Font("FC Subject [Non-commercial] Reg", 15.75F, FontStyle.Regular, GraphicsUnit.Point);
-            PaymentByArLabel.ForeColor = Color.Gainsboro;
-            PaymentByArLabel.Location = new Point(196, 0);
-            PaymentByArLabel.Name = "PaymentByArLabel";
-            PaymentByArLabel.Size = new Size(210, 45);
-            PaymentByArLabel.TabIndex = 88;
-            PaymentByArLabel.Text = "0.00";
-            PaymentByArLabel.TextAlign = ContentAlignment.MiddleRight;
-            // 
-            // label6
-            // 
-            label6.BackColor = Color.FromArgb(35, 35, 35);
-            label6.Dock = DockStyle.Left;
-            label6.Font = new Font("FC Subject [Non-commercial] Reg", 12F, FontStyle.Regular, GraphicsUnit.Point);
-            label6.ForeColor = Color.Gainsboro;
-            label6.Location = new Point(0, 0);
-            label6.Name = "label6";
-            label6.Size = new Size(196, 45);
-            label6.TabIndex = 89;
-            label6.Text = "ลงบัญชี";
-            label6.TextAlign = ContentAlignment.MiddleCenter;
-            // 
-            // panel12
-            // 
-            panel12.BackColor = Color.FromArgb(34, 34, 34);
-            panel12.Controls.Add(PaymentByWeWinLabel);
-            panel12.Controls.Add(label22);
-            panel12.Location = new Point(428, 90);
-            panel12.Name = "panel12";
-            panel12.Size = new Size(406, 45);
-            panel12.TabIndex = 97;
-            // 
-            // PaymentByWeWinLabel
-            // 
-            PaymentByWeWinLabel.BackColor = Color.FromArgb(35, 35, 35);
-            PaymentByWeWinLabel.Dock = DockStyle.Fill;
-            PaymentByWeWinLabel.Font = new Font("FC Subject [Non-commercial] Reg", 15.75F, FontStyle.Regular, GraphicsUnit.Point);
-            PaymentByWeWinLabel.ForeColor = Color.Gainsboro;
-            PaymentByWeWinLabel.Location = new Point(196, 0);
-            PaymentByWeWinLabel.Name = "PaymentByWeWinLabel";
-            PaymentByWeWinLabel.Size = new Size(210, 45);
-            PaymentByWeWinLabel.TabIndex = 88;
-            PaymentByWeWinLabel.Text = "0.00";
-            PaymentByWeWinLabel.TextAlign = ContentAlignment.MiddleRight;
-            // 
-            // label22
-            // 
-            label22.BackColor = Color.FromArgb(35, 35, 35);
-            label22.Dock = DockStyle.Left;
-            label22.Font = new Font("FC Subject [Non-commercial] Reg", 12F, FontStyle.Regular, GraphicsUnit.Point);
-            label22.ForeColor = Color.Gainsboro;
-            label22.Location = new Point(0, 0);
-            label22.Name = "label22";
-            label22.Size = new Size(196, 45);
-            label22.TabIndex = 89;
-            label22.Text = "เราชนะ";
-            label22.TextAlign = ContentAlignment.MiddleCenter;
-            // 
-            // panel11
-            // 
-            panel11.BackColor = Color.FromArgb(34, 34, 34);
-            panel11.Controls.Add(PaymentByM33Label);
-            panel11.Controls.Add(label20);
-            panel11.Location = new Point(428, 39);
-            panel11.Name = "panel11";
-            panel11.Size = new Size(406, 45);
-            panel11.TabIndex = 96;
-            // 
-            // PaymentByM33Label
-            // 
-            PaymentByM33Label.BackColor = Color.FromArgb(35, 35, 35);
-            PaymentByM33Label.Dock = DockStyle.Fill;
-            PaymentByM33Label.Font = new Font("FC Subject [Non-commercial] Reg", 15.75F, FontStyle.Regular, GraphicsUnit.Point);
-            PaymentByM33Label.ForeColor = Color.Gainsboro;
-            PaymentByM33Label.Location = new Point(196, 0);
-            PaymentByM33Label.Name = "PaymentByM33Label";
-            PaymentByM33Label.Size = new Size(210, 45);
-            PaymentByM33Label.TabIndex = 88;
-            PaymentByM33Label.Text = "0.00";
-            PaymentByM33Label.TextAlign = ContentAlignment.MiddleRight;
-            // 
-            // label20
-            // 
-            label20.BackColor = Color.FromArgb(35, 35, 35);
-            label20.Dock = DockStyle.Left;
-            label20.Font = new Font("FC Subject [Non-commercial] Reg", 12F, FontStyle.Regular, GraphicsUnit.Point);
-            label20.ForeColor = Color.Gainsboro;
-            label20.Location = new Point(0, 0);
-            label20.Name = "label20";
-            label20.Size = new Size(196, 45);
-            label20.TabIndex = 89;
-            label20.Text = "ม.33";
-            label20.TextAlign = ContentAlignment.MiddleCenter;
-            // 
-            // panel10
-            // 
-            panel10.BackColor = Color.FromArgb(34, 34, 34);
-            panel10.Controls.Add(PaymentByWelfareCardLabel);
-            panel10.Controls.Add(label18);
-            panel10.Location = new Point(844, 39);
-            panel10.Name = "panel10";
-            panel10.Size = new Size(406, 45);
-            panel10.TabIndex = 95;
-            // 
-            // PaymentByWelfareCardLabel
-            // 
-            PaymentByWelfareCardLabel.BackColor = Color.FromArgb(35, 35, 35);
-            PaymentByWelfareCardLabel.Dock = DockStyle.Fill;
-            PaymentByWelfareCardLabel.Font = new Font("FC Subject [Non-commercial] Reg", 15.75F, FontStyle.Regular, GraphicsUnit.Point);
-            PaymentByWelfareCardLabel.ForeColor = Color.Gainsboro;
-            PaymentByWelfareCardLabel.Location = new Point(196, 0);
-            PaymentByWelfareCardLabel.Name = "PaymentByWelfareCardLabel";
-            PaymentByWelfareCardLabel.Size = new Size(210, 45);
-            PaymentByWelfareCardLabel.TabIndex = 88;
-            PaymentByWelfareCardLabel.Text = "0.00";
-            PaymentByWelfareCardLabel.TextAlign = ContentAlignment.MiddleRight;
-            // 
-            // label18
-            // 
-            label18.BackColor = Color.FromArgb(35, 35, 35);
-            label18.Dock = DockStyle.Left;
-            label18.Font = new Font("FC Subject [Non-commercial] Reg", 12F, FontStyle.Regular, GraphicsUnit.Point);
-            label18.ForeColor = Color.Gainsboro;
-            label18.Location = new Point(0, 0);
-            label18.Name = "label18";
-            label18.Size = new Size(196, 45);
-            label18.TabIndex = 89;
-            label18.Text = "บัตรสวัสดิการแห่งรัฐ";
-            label18.TextAlign = ContentAlignment.MiddleCenter;
-            // 
-            // panel8
-            // 
-            panel8.BackColor = Color.FromArgb(34, 34, 34);
-            panel8.Controls.Add(PaymentByKlkLabel);
-            panel8.Controls.Add(label16);
-            panel8.Location = new Point(16, 90);
-            panel8.Name = "panel8";
-            panel8.Size = new Size(406, 45);
-            panel8.TabIndex = 94;
-            // 
-            // PaymentByKlkLabel
-            // 
-            PaymentByKlkLabel.BackColor = Color.FromArgb(35, 35, 35);
-            PaymentByKlkLabel.Dock = DockStyle.Fill;
-            PaymentByKlkLabel.Font = new Font("FC Subject [Non-commercial] Reg", 15.75F, FontStyle.Regular, GraphicsUnit.Point);
-            PaymentByKlkLabel.ForeColor = Color.Gainsboro;
-            PaymentByKlkLabel.Location = new Point(196, 0);
-            PaymentByKlkLabel.Name = "PaymentByKlkLabel";
-            PaymentByKlkLabel.Size = new Size(210, 45);
-            PaymentByKlkLabel.TabIndex = 88;
-            PaymentByKlkLabel.Text = "0.00";
-            PaymentByKlkLabel.TextAlign = ContentAlignment.MiddleRight;
-            // 
-            // label16
-            // 
-            label16.BackColor = Color.FromArgb(35, 35, 35);
-            label16.Dock = DockStyle.Left;
-            label16.Font = new Font("FC Subject [Non-commercial] Reg", 12F, FontStyle.Regular, GraphicsUnit.Point);
-            label16.ForeColor = Color.Gainsboro;
-            label16.Location = new Point(0, 0);
-            label16.Name = "label16";
-            label16.Size = new Size(196, 45);
-            label16.TabIndex = 89;
-            label16.Text = "คนละครึ่ง";
-            label16.TextAlign = ContentAlignment.MiddleCenter;
-            // 
-            // panel3
-            // 
-            panel3.BackColor = Color.FromArgb(34, 34, 34);
-            panel3.Controls.Add(PaymentByTransferLabel);
-            panel3.Controls.Add(label14);
-            panel3.Location = new Point(16, 39);
-            panel3.Name = "panel3";
-            panel3.Size = new Size(406, 45);
-            panel3.TabIndex = 93;
-            // 
-            // PaymentByTransferLabel
-            // 
-            PaymentByTransferLabel.BackColor = Color.FromArgb(35, 35, 35);
-            PaymentByTransferLabel.Dock = DockStyle.Fill;
-            PaymentByTransferLabel.Font = new Font("FC Subject [Non-commercial] Reg", 15.75F, FontStyle.Regular, GraphicsUnit.Point);
-            PaymentByTransferLabel.ForeColor = Color.Gainsboro;
-            PaymentByTransferLabel.Location = new Point(196, 0);
-            PaymentByTransferLabel.Name = "PaymentByTransferLabel";
-            PaymentByTransferLabel.Size = new Size(210, 45);
-            PaymentByTransferLabel.TabIndex = 88;
-            PaymentByTransferLabel.Text = "0.00";
-            PaymentByTransferLabel.TextAlign = ContentAlignment.MiddleRight;
-            // 
-            // label14
-            // 
-            label14.BackColor = Color.FromArgb(35, 35, 35);
-            label14.Dock = DockStyle.Left;
-            label14.Font = new Font("FC Subject [Non-commercial] Reg", 12F, FontStyle.Regular, GraphicsUnit.Point);
-            label14.ForeColor = Color.Gainsboro;
-            label14.Location = new Point(0, 0);
-            label14.Name = "label14";
-            label14.Size = new Size(196, 45);
-            label14.TabIndex = 89;
-            label14.Text = "โอนเงิน";
-            label14.TextAlign = ContentAlignment.MiddleCenter;
+            MoneyRowsPanel.AutoScroll = true;
+            MoneyRowsPanel.Location = new Point(16, 39);
+            MoneyRowsPanel.Name = "MoneyRowsPanel";
+            MoneyRowsPanel.Size = new Size(1240, 170);
+            MoneyRowsPanel.TabIndex = 100;
             // 
             // label13
             // 
@@ -1164,12 +928,6 @@
             Name = "SalesReportPanel";
             Size = new Size(1610, 925);
             panel9.ResumeLayout(false);
-            panel13.ResumeLayout(false);
-            panel12.ResumeLayout(false);
-            panel11.ResumeLayout(false);
-            panel10.ResumeLayout(false);
-            panel8.ResumeLayout(false);
-            panel3.ResumeLayout(false);
             panel6.ResumeLayout(false);
             panel5.ResumeLayout(false);
             panel4.ResumeLayout(false);
@@ -1190,6 +948,7 @@
         #endregion
 
         private Panel panel9;
+        private FlowLayoutPanel MoneyRowsPanel;
         private Label label13;
         private Panel panel6;
         private Label PeriodLabel;
@@ -1205,24 +964,6 @@
         private Panel panel1;
         private Label OverallSaleLabel;
         private Label label5;
-        private Panel panel12;
-        private Label PaymentByWeWinLabel;
-        private Label label22;
-        private Panel panel11;
-        private Label PaymentByM33Label;
-        private Label label20;
-        private Panel panel10;
-        private Label PaymentByWelfareCardLabel;
-        private Label label18;
-        private Panel panel8;
-        private Label PaymentByKlkLabel;
-        private Label label16;
-        private Panel panel3;
-        private Label PaymentByTransferLabel;
-        private Label label14;
-        private Panel panel13;
-        private Label PaymentByArLabel;
-        private Label label6;
         private Panel panel15;
         private Label label12;
         private Panel panel14;
