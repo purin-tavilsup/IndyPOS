@@ -207,8 +207,9 @@ var app = builder.Build();
 if (app.Environment.IsDevelopment())
 {
     // Migrations, not EnsureCreated: EnsureCreated never adds a column to an existing database, so a
-    // dev database went stale after every schema change and StoreHub crashed while seeding.
-    await app.MigrateStoreHubDatabaseAsync();
+    // dev database went stale after every schema change and StoreHub crashed while seeding. A database the
+    // old EnsureCreated path built is refused with a message, since migrating it would fail anyway.
+    await app.MigrateDevelopmentStoreHubDatabaseAsync();
     // The catalogues first: the dev data switches the store's payment methods on and off.
     await app.SeedPaymentMethodsAsync();
     await app.SeedProductCategoriesAsync();
