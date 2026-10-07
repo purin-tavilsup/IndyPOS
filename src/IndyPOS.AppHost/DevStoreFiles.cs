@@ -13,6 +13,9 @@ internal static class DevStoreFiles
         return path;
     }
 
+    public static string TillLogsDirectory(string appHostDirectory, StoreProfile profile) =>
+        Directory.CreateDirectory(Path.Combine(StoreDirectory(appHostDirectory, profile), "till-logs")).FullName;
+
     public static string SecretsDirectory(string appHostDirectory, StoreProfile profile) =>
         Directory.CreateDirectory(Path.Combine(StoreDirectory(appHostDirectory, profile), "secrets")).FullName;
 
