@@ -1,4 +1,6 @@
+using HealthChecks.UI.Client;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
@@ -12,10 +14,16 @@ namespace IndyPOS.ServiceDefaults;
 
 public static class Extensions
 {
+    public const string LiveTag = "live";
+    public const string ReadyTag = "ready";
+    public const string ProbeTimeoutPolicy = "health-probe";
+
     public static TBuilder AddServiceDefaults<TBuilder>(this TBuilder builder) where TBuilder : IHostApplicationBuilder
     {
         builder.ConfigureOpenTelemetry();
         builder.AddDefaultHealthChecks();
+        builder.Services.AddRequestTimeouts(options =>
+            options.AddPolicy(ProbeTimeoutPolicy, TimeSpan.FromSeconds(5)));
         builder.Services.AddServiceDiscovery();
         builder.Services.ConfigureHttpClientDefaults(http =>
         {
@@ -68,31 +76,35 @@ public static class Extensions
     public static TBuilder AddDefaultHealthChecks<TBuilder>(this TBuilder builder) where TBuilder : IHostApplicationBuilder
     {
         builder.Services.AddHealthChecks()
-            .AddCheck("self", () => HealthCheckResult.Healthy(), ["live"]);
+            .AddCheck("self", () => HealthCheckResult.Healthy(), [LiveTag]);
 
         return builder;
     }
 
     public static WebApplication MapDefaultEndpoints(this WebApplication app)
     {
-        // Industry-standard Kubernetes-style probes (matches ASP.NET Core docs).
-        // Tag-filtered so each endpoint only runs the checks relevant to its
-        // semantics: "live" = process up (cheap), "ready" = deps healthy.
+        // Kubernetes-style probes, tag-filtered so each runs only what its meaning needs: "live" = the
+        // process is up (cheap, no database), "ready" = its own database answers. Terse in every
+        // environment: anonymous callers learn only Healthy or Unhealthy. The timeout is a backstop;
+        // each service must call app.UseRequestTimeouts() for it to apply.
         app.MapHealthChecks("/health/live", new HealthCheckOptions
         {
-            Predicate = check => check.Tags.Contains("live")
-        });
+            Predicate = check => check.Tags.Contains(LiveTag)
+        }).WithRequestTimeout(ProbeTimeoutPolicy);
 
         app.MapHealthChecks("/health/ready", new HealthCheckOptions
         {
-            Predicate = check => check.Tags.Contains("ready")
-        });
+            Predicate = check => check.Tags.Contains(ReadyTag)
+        }).WithRequestTimeout(ProbeTimeoutPolicy);
 
-        // Verbose endpoint (all checks, full diagnostic body). Dev-only —
-        // exposes implementation details that production shouldn't leak.
+        // Every check with full detail (status, duration, error text). Development only: production
+        // must not hand implementation details to anonymous callers.
         if (app.Environment.IsDevelopment())
         {
-            app.MapHealthChecks("/health");
+            app.MapHealthChecks("/health", new HealthCheckOptions
+            {
+                ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse
+            });
         }
 
         return app;

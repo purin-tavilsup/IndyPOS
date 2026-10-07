@@ -245,7 +245,7 @@ public class StoreHubHttpClient : IStoreHubClient
     {
         try
         {
-            var response = await _httpClient.GetAsync("/health/ready", cancellationToken);
+            var response = await _httpClient.GetAsync(StoreHubRoutes.HealthReady, cancellationToken);
             return response.IsSuccessStatusCode;
         }
         catch

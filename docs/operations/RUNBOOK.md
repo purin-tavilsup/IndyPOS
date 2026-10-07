@@ -44,7 +44,7 @@ Restart-Service postgresql-x64-18
 
 ```powershell
 # Quick health check
-Invoke-RestMethod "http://localhost:5000/health"
+Invoke-RestMethod "http://localhost:5000/health/ready"
 
 # Full ready check (includes DB)
 Invoke-RestMethod "http://localhost:5000/health/ready"
