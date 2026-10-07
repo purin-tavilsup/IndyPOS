@@ -59,12 +59,26 @@ public static class ReportsEndpoints
             bool? includeCompleted,
             int? page,
             int? pageSize,
+            DateOnly? fromDate,
+            DateOnly? toDate,
             CancellationToken cancellationToken) =>
         {
+            if (fromDate.HasValue != toDate.HasValue)
+            {
+                return Results.BadRequest(new { error = "ต้องระบุทั้งวันที่เริ่มต้นและวันที่สิ้นสุด" });
+            }
+
+            if (fromDate is { } from && toDate is { } to && RejectInvalidRange(from, to) is { } rejection)
+            {
+                return rejection;
+            }
+
             var query = new GetPayLaterReportQuery(
                 IncludeCompleted: includeCompleted ?? false,
                 Page: page ?? 1,
-                PageSize: pageSize ?? 50);
+                PageSize: pageSize ?? 50,
+                FromDate: fromDate,
+                ToDate: toDate);
 
             var result = await handler.HandleAsync(query, cancellationToken);
             return Results.Ok(result);
