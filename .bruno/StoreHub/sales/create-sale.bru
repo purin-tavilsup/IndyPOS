@@ -1,11 +1,11 @@
 meta {
-  name: Complete Sale
+  name: Create Sale
   type: http
   seq: 1
 }
 
 post {
-  url: {{baseUrl}}/sales/complete
+  url: {{baseUrl}}/sales
   body: json
   auth: bearer
 }
@@ -41,7 +41,7 @@ vars:pre-request {
 }
 
 docs {
-  # Complete Sale
+  # Create Sale
 
   Creates a new sale with invoice, line items, and payments.
 
@@ -61,12 +61,13 @@ docs {
   - `PayLater`
   - `Transfer`
 
-  **Response:**
+  **Response:** `201 Created` with a `Location: /sales/{invoiceId}` header.
   ```json
   {
     "invoiceId": "guid",
     "totalAmount": 14.00,
-    "createdUtc": "2024-01-01T12:00:00Z"
+    "createdUtc": "2024-01-01T12:00:00Z",
+    "invoiceNumber": 1001
   }
   ```
 

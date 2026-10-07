@@ -328,7 +328,7 @@ $script:CreatedInvoiceId = $null
 if ($script:Token -and $script:CreatedProductId) {
     # Test: Complete a sale
     try {
-        $result = Invoke-ApiRequest -Method "POST" -Endpoint "/sales/complete" -Headers (Get-AuthHeaders) -Body @{
+        $result = Invoke-ApiRequest -Method "POST" -Endpoint "/sales" -Headers (Get-AuthHeaders) -Body @{
             items = @(
                 @{
                     productId = $script:CreatedProductId
@@ -346,13 +346,13 @@ if ($script:Token -and $script:CreatedProductId) {
 
         if ($result.Success -and $result.Data.invoiceId) {
             $script:CreatedInvoiceId = $result.Data.invoiceId
-            Write-TestResult -TestName "POST /sales/complete" -Passed $true -Details "Invoice: $($result.Data.invoiceId)"
+            Write-TestResult -TestName "POST /sales" -Passed $true -Details "Invoice: $($result.Data.invoiceId)"
         } else {
-            Write-TestResult -TestName "POST /sales/complete" -Passed $false -Details "No invoice ID returned"
+            Write-TestResult -TestName "POST /sales" -Passed $false -Details "No invoice ID returned"
         }
     }
     catch {
-        Write-TestResult -TestName "POST /sales/complete" -Passed $false -Details $_.Exception.Message
+        Write-TestResult -TestName "POST /sales" -Passed $false -Details $_.Exception.Message
     }
 
     # Test: Verify inventory was deducted
@@ -396,7 +396,7 @@ $script:PayLaterId = $null
 if ($script:Token -and $script:CreatedProductId) {
     # Test: Create pay later sale
     try {
-        $result = Invoke-ApiRequest -Method "POST" -Endpoint "/sales/complete" -Headers (Get-AuthHeaders) -Body @{
+        $result = Invoke-ApiRequest -Method "POST" -Endpoint "/sales" -Headers (Get-AuthHeaders) -Body @{
             items = @(
                 @{
                     productId = $script:CreatedProductId
@@ -414,13 +414,13 @@ if ($script:Token -and $script:CreatedProductId) {
         } -IgnoreError $true
 
         if ($result.Success) {
-            Write-TestResult -TestName "POST /sales/complete (pay later)" -Passed $true -Details "Pay later sale created"
+            Write-TestResult -TestName "POST /sales (pay later)" -Passed $true -Details "Pay later sale created"
         } else {
-            Write-TestResult -TestName "POST /sales/complete (pay later)" -Passed $false -Details "Failed to create"
+            Write-TestResult -TestName "POST /sales (pay later)" -Passed $false -Details "Failed to create"
         }
     }
     catch {
-        Write-TestResult -TestName "POST /sales/complete (pay later)" -Passed $false -Details $_.Exception.Message
+        Write-TestResult -TestName "POST /sales (pay later)" -Passed $false -Details $_.Exception.Message
     }
 
     # Test: List pay later accounts

@@ -1,11 +1,11 @@
 meta {
-  name: Record Payment
+  name: Create Payment
   type: http
   seq: 3
 }
 
 post {
-  url: {{baseUrl}}/pay-later/{{payLaterId}}/record-payment
+  url: {{baseUrl}}/pay-later/{{payLaterId}}/payments
   body: json
   auth: bearer
 }
@@ -58,5 +58,5 @@ docs {
 
   ## Authorization
 
-  Requires `sales.complete` capability (Cashier, Manager, Admin).
+  Any signed-in user (the route has no capability policy).
 }

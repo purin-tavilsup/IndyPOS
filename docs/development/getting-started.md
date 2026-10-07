@@ -307,7 +307,7 @@ curl http://localhost:5012/products \
   -H "Authorization: Bearer $TOKEN"
 
 # 3. Complete a sale
-curl -X POST http://localhost:5012/sales/complete \
+curl -X POST http://localhost:5012/sales \
   -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
   -d '{

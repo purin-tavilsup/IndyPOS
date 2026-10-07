@@ -1,0 +1,31 @@
+meta {
+  name: Update Payment Method
+  type: http
+  seq: 4
+}
+
+patch {
+  url: {{baseUrl}}/payment-methods/{{paymentMethodCode}}
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:json {
+  {
+    "isEnabled": false
+  }
+}
+
+docs {
+  # Update Payment Method
+
+  Fields left out are not changed: `isEnabled`, `displayName`, `displayOrder`. 404 for an unknown code.
+
+  ## Authorization
+
+  Requires `payment_methods.manage` (Admin only).
+}
