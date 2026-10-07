@@ -15,7 +15,10 @@ using IndyPOS.Application.UseCases.StoreHub.Products.AdjustQuantity;
 using IndyPOS.Application.UseCases.StoreHub.Products.Create;
 using IndyPOS.Application.UseCases.StoreHub.Products.GetStock;
 using IndyPOS.Application.UseCases.StoreHub.Products.Update;
+using IndyPOS.Application.UseCases.StoreHub.Reports;
+using IndyPOS.Application.UseCases.StoreHub.Reports.GetPayLaterReport;
 using IndyPOS.Application.UseCases.StoreHub.Sales;
+using IndyPOS.Application.UseCases.StoreHub.Sales.History;
 using Microsoft.Extensions.Logging;
 
 namespace IndyPOS.Infrastructure.Services.StoreHub;
@@ -402,6 +405,31 @@ public class StoreHubHttpClient : IStoreHubClient
         _logger.LogDebug("Fetched legacy payments summary from StoreHub: {FromDate} to {ToDate}", fromDate, toDate);
         return result;
     }
+
+    public Task<SalesSummaryDto> GetSalesSummaryAsync(DateOnly fromDate, DateOnly toDate,
+                                                      CancellationToken cancellationToken = default) =>
+        // No top products: the till never shows them, and they cost a query.
+        SendAuthenticatedAsync<SalesSummaryDto>(HttpMethod.Get,
+            $"/reports/sales-summary?{DateRangeQuery(fromDate, toDate)}&topProductsCount=0", content: null, cancellationToken);
+
+    public Task<SaleLinesPage> ListSaleLinesAsync(DateOnly fromDate, DateOnly toDate, int page, int pageSize,
+                                                  CancellationToken cancellationToken = default) =>
+        SendAuthenticatedAsync<SaleLinesPage>(HttpMethod.Get,
+            $"/sales/lines?from={IsoDate(fromDate)}&to={IsoDate(toDate)}&page={page}&pageSize={pageSize}",
+            content: null, cancellationToken);
+
+    public Task<PayLaterReportDto> GetPayLaterReportAsync(DateOnly? fromDate, DateOnly? toDate, int page, int pageSize,
+                                                          CancellationToken cancellationToken = default)
+    {
+        // Completed debts too: the tab shows each customer's total ลงบัญชี as well as what is still owed.
+        var url = $"/reports/pay-later?includeCompleted=true&page={page}&pageSize={pageSize}";
+        if (fromDate is { } from && toDate is { } to)
+            url += $"&{DateRangeQuery(from, to)}";
+
+        return SendAuthenticatedAsync<PayLaterReportDto>(HttpMethod.Get, url, content: null, cancellationToken);
+    }
+
+    private static string IsoDate(DateOnly date) => date.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
 
     #region Private Helpers
 

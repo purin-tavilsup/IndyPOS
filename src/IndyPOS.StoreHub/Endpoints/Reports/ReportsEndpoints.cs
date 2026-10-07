@@ -1,3 +1,4 @@
+using System.Globalization;
 using IndyPOS.Application.Common.Models;
 using IndyPOS.Application.Common.Validation;
 using IndyPOS.Application.UseCases.StoreHub.Reports;
@@ -59,12 +60,37 @@ public static class ReportsEndpoints
             bool? includeCompleted,
             int? page,
             int? pageSize,
+            string? fromDate,
+            string? toDate,
             CancellationToken cancellationToken) =>
         {
+            // Bound as strings so a malformed date is a Thai 400, as on /sales, not the framework's bare one.
+            if (RejectMalformedDate(fromDate, out var from) is { } malformedFrom)
+            {
+                return malformedFrom;
+            }
+
+            if (RejectMalformedDate(toDate, out var to) is { } malformedTo)
+            {
+                return malformedTo;
+            }
+
+            if (from.HasValue != to.HasValue)
+            {
+                return Results.BadRequest(new { error = "ต้องระบุทั้งวันที่เริ่มต้นและวันที่สิ้นสุด" });
+            }
+
+            if (from is { } start && to is { } end && RejectInvalidRange(start, end) is { } rejection)
+            {
+                return rejection;
+            }
+
             var query = new GetPayLaterReportQuery(
                 IncludeCompleted: includeCompleted ?? false,
                 Page: page ?? 1,
-                PageSize: pageSize ?? 50);
+                PageSize: pageSize ?? 50,
+                FromDate: from,
+                ToDate: to);
 
             var result = await handler.HandleAsync(query, cancellationToken);
             return Results.Ok(result);
@@ -138,6 +164,22 @@ public static class ReportsEndpoints
             var result = await handler.HandleAsync(query, cancellationToken);
             return Results.Ok(result);
         }).RequireAuthorization("CanViewReports");
+    }
+
+    private static IResult? RejectMalformedDate(string? value, out DateOnly? date)
+    {
+        date = null;
+        if (string.IsNullOrWhiteSpace(value))
+            return null;
+
+        if (DateOnly.TryParseExact(value, DateRangeRule.DateFormat, CultureInfo.InvariantCulture, DateTimeStyles.None,
+                                   out var parsed))
+        {
+            date = parsed;
+            return null;
+        }
+
+        return Results.BadRequest(new { error = $"วันที่ไม่ถูกต้อง: {value} (ใช้รูปแบบ {DateRangeRule.DateFormat})" });
     }
 
     // Checked before the handler runs: ReportDateRange.ToUtcRange throws on a swapped range and

@@ -1,31 +1,81 @@
-﻿using IndyPOS.Application.Common.Enums;
+﻿using IndyPOS.Application.Abstractions.StoreHub;
+using IndyPOS.Application.Common.Enums;
 using IndyPOS.Application.Common.Interfaces;
 using System.Diagnostics.CodeAnalysis;
 using IndyPOS.Application.Common.Extensions;
 using IndyPOS.Application.Common.Models;
+using IndyPOS.Application.UseCases.StoreHub.Reports;
+using IndyPOS.Windows.Forms.Services;
 using IndyPOS.Windows.Forms.UI;
+using Serilog;
 
 namespace IndyPOS.Windows.Forms.UI.Report;
 
 public partial class SalesReportPanel : UserControl
 {
     private readonly IReportService _reportService;
+    private readonly IStoreHubClient _storeHubClient;
+    private readonly IStoreFeaturesProvider _storeFeatures;
     private readonly MessageForm _messageForm;
 
     [ExcludeFromCodeCoverage]
-    public SalesReportPanel(IReportService reportService, MessageForm messageForm)
+    public SalesReportPanel(IReportService reportService,
+                            IStoreHubClient storeHubClient,
+                            IStoreFeaturesProvider storeFeatures,
+                            MessageForm messageForm)
     {
         _reportService = reportService;
+        _storeHubClient = storeHubClient;
+        _storeFeatures = storeFeatures;
         _messageForm = messageForm;
 
         InitializeComponent();
+
+        // Follow the store as soon as the panel shows, not only after the first fetch.
+        VisibleChanged += async (_, _) =>
+        {
+            if (Visible)
+                await ApplyStoreLayoutAsync();
+        };
 
         // Initialize date pickers to today
         StartDatePicker.Value = DateTime.Today;
         EndDatePicker.Value = DateTime.Today;
     }
 
-    private void ShowSummary(SalesSummary salesSummary, PaymentsSummary paymentsSummary)
+    // Which tiles need which store features. The others ("ยอดขาย : ทั้งหมด") show for every store.
+    private Control[] LedgerTiles => [panel14, panel21, panel17, panel18];
+    private Control[] ProductTypeSplitTiles => [panel4, panel5];
+    private Control[] SplitLedgerTiles => [panel20, panel22, panel19, panel16];
+
+    private async Task<TillLayout> ApplyStoreLayoutAsync()
+    {
+        TillLayout layout;
+        try
+        {
+            layout = TillLayout.For(await _storeFeatures.GetAsync());
+        }
+        catch (Exception ex)
+        {
+            Log.Warning(ex, "Could not load store features for the sales overview");
+            layout = TillLayout.WhenFeaturesUnavailable;
+        }
+
+        foreach (var tile in LedgerTiles) tile.Visible = layout.ShowPayLaterReports;
+        foreach (var tile in ProductTypeSplitTiles) tile.Visible = layout.ShowProductTypeSplit;
+        foreach (var tile in SplitLedgerTiles) tile.Visible = layout.ShowPayLaterReports && layout.ShowProductTypeSplit;
+        return layout;
+    }
+
+    // Only the total-sales tile and the money rows show: their figures come from the one summary.
+    private void ShowSummary(SalesSummaryDto summary)
+    {
+        OverallSaleLabel.Text = $"{summary.LinesTotal:N2}";
+
+        MoneyRowView.Replace(MoneyRowsPanel, MoneyRows.From(summary));
+    }
+
+    private void ShowSummary(SalesSummary salesSummary, SalesSummaryDto summary)
     {
         OverallSaleLabel.Text = $"{salesSummary.InvoiceTotal:N2}";
 
@@ -49,66 +99,33 @@ public partial class SalesReportPanel : UserControl
 
         IncompleteArLabel.Text = $"{salesSummary.IncompletePayLaterPaymentsTotal:N2}";
 
-        PaymentByTransferLabel.Text = $"{paymentsSummary.MoneyTransferTotal:N2}";
-
-        PaymentByKlkLabel.Text = $"{paymentsSummary.FiftyFiftyTotal:N2}";
-
-        PaymentByM33Label.Text = $"{paymentsSummary.M33WeLoveTotal:N2}";
-
-        PaymentByWeWinLabel.Text = $"{paymentsSummary.WeWinTotal:N2}";
-
-        PaymentByWelfareCardLabel.Text = $"{paymentsSummary.WelfareCardTotal:N2}";
-
-        PaymentByArLabel.Text = $"{paymentsSummary.PayLaterTotal:N2}";
+        MoneyRowView.Replace(MoneyRowsPanel, MoneyRows.From(summary));
     }
-
-    private async Task<SalesSummary> GetSalesReportByPeriodAsync(TimePeriod period)
-    {
-        return await _reportService.CreateSalesSummaryByPeriodAsync(period);
-    }
-
-	private async Task<SalesSummary> GetSalesReportByDateRangeAsync(DateOnly startDate, DateOnly endDate)
-	{
-		return await _reportService.CreateSalesSummaryByDateRangeAsync(startDate, endDate);
-	}
-
-    private async Task<PaymentsSummary> GetPaymentsReportByPeriodAsync(TimePeriod period)
-    {
-        return await _reportService.CreatePaymentsSummaryByPeriodAsync(period);
-    }
-
-	private async Task<PaymentsSummary> GetPaymentsReportByDateRangeAsync(DateOnly startDate, DateOnly endDate)
-	{
-		return await _reportService.CreatePaymentsSummaryByDateRangeAsync(startDate, endDate);
-	}
 
     private async Task ShowReportByPeriodAsync(string periodText, TimePeriod period)
+    {
+        var range = period.ToDateRange();
+        await ShowReportAsync(periodText, range.StartDate, range.EndDate);
+    }
+
+    private async Task ShowReportByDateRangeAsync(DateOnly startDate, DateOnly endDate)
+    {
+        await ShowReportAsync($"{startDate:yyyy MMMM dd} - {endDate:yyyy MMMM dd}", startDate, endDate);
+    }
+
+    private async Task ShowReportAsync(string periodText, DateOnly startDate, DateOnly endDate)
     {
         PeriodLabel.Text = periodText;
 
         try
         {
-            var salesReport = await GetSalesReportByPeriodAsync(period);
-            var paymentsReport = await GetPaymentsReportByPeriodAsync(period);
+            var layout = await ApplyStoreLayoutAsync();
+            var summary = await _storeHubClient.GetSalesSummaryAsync(startDate, endDate);
 
-            ShowSummary(salesReport, paymentsReport);
-        }
-        catch (Exception ex)
-        {
-            ReportErrorHandler.Show(_messageForm, ex);
-        }
-    }
-
-    private async Task ShowReportByDateRangeAsync(DateOnly startDate, DateOnly endDate)
-    {
-        PeriodLabel.Text = $"{startDate:yyyy MMMM dd} - {endDate:yyyy MMMM dd}";
-
-        try
-        {
-            var salesReport = await GetSalesReportByDateRangeAsync(startDate, endDate);
-            var paymentsReport = await GetPaymentsReportByDateRangeAsync(startDate, endDate);
-
-            ShowSummary(salesReport, paymentsReport);
+            if (layout.NeedsLegacySalesSummary)
+                ShowSummary(await _reportService.CreateSalesSummaryByDateRangeAsync(startDate, endDate), summary);
+            else
+                ShowSummary(summary);
         }
         catch (Exception ex)
         {

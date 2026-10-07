@@ -1,5 +1,7 @@
 ﻿using IndyPOS.Application.Common.Enums;
-using IndyPOS.Application.Common.Interfaces;
+using IndyPOS.Application.Abstractions.StoreHub;
+using IndyPOS.Application.Common.Extensions;
+using IndyPOS.Application.UseCases.StoreHub.Reports;
 using IndyPOS.Application.Common.Models;
 using IndyPOS.Windows.Forms.UI;
 
@@ -7,7 +9,9 @@ namespace IndyPOS.Windows.Forms.UI.Report;
 
 public partial class PayLaterPaymentsReportPanel : UserControl
 {
-    private readonly IReportService _reportService;
+    private const int CustomersPerPage = 200;
+
+    private readonly IStoreHubClient _storeHubClient;
     private readonly MessageForm _messageForm;
 
     private enum AccountColumn
@@ -17,9 +21,9 @@ public partial class PayLaterPaymentsReportPanel : UserControl
         RemainingAmountTotal
     }
 
-    public PayLaterPaymentsReportPanel(IReportService reportService, MessageForm messageForm)
+    public PayLaterPaymentsReportPanel(IStoreHubClient storeHubClient, MessageForm messageForm)
     {
-        _reportService = reportService;
+        _storeHubClient = storeHubClient;
         _messageForm = messageForm;
 
         InitializeComponent();
@@ -56,8 +60,8 @@ public partial class PayLaterPaymentsReportPanel : UserControl
 
         try
         {
-            var payments = await _reportService.GetPayLaterPaymentsByPeriodAsync(period);
-            ShowPayments(payments);
+            var range = period.ToDateRange();
+            ShowCustomers(await GetCustomersAsync(range.StartDate, range.EndDate));
         }
         catch (Exception ex)
         {
@@ -86,9 +90,7 @@ public partial class PayLaterPaymentsReportPanel : UserControl
 
         try
         {
-		    var payments = await _reportService.GetPayLaterPaymentsAsync();
-
-		    ShowPayments(payments);
+		    ShowCustomers(await GetCustomersAsync(null, null));
         }
         catch (Exception ex)
         {
@@ -96,35 +98,29 @@ public partial class PayLaterPaymentsReportPanel : UserControl
         }
 	}
 
-    private void ShowPayments(IEnumerable<PayLaterPaymentDto> payments)
+    private async Task<IReadOnlyList<PayLaterSummaryDto>> GetCustomersAsync(DateOnly? fromDate, DateOnly? toDate) =>
+        await PageReader.ReadAllAsync(async page =>
+        {
+            var report = await _storeHubClient.GetPayLaterReportAsync(fromDate, toDate, page, CustomersPerPage);
+            return (report.Customers.Items, report.Customers.HasNextPage);
+        });
+
+    // Customers who still owe: each one's total ลงบัญชี and what is left to pay, as v3 showed them.
+    private void ShowCustomers(IEnumerable<PayLaterSummaryDto> customers)
     {
         PayLaterPaymentsSummaryDataView.Rows.Clear();
 
-        var groups = payments.GroupBy(x => x.Description)
-							 .Where(g => g.Sum(p => p.ReceivableAmount - p.PaidAmount) > 0);
-
-        foreach (var group in groups)
+        foreach (var customer in customers.Where(c => c.RemainingBalance > 0))
         {
-            AddToPayLaterPaymentsSummaryDataView(group);
+            var row = new object[PayLaterPaymentsSummaryDataView.ColumnCount];
+            row[(int)AccountColumn.Description] = customer.CustomerName;
+            row[(int)AccountColumn.ReceivableAmountTotal] = customer.TotalOwed;
+            row[(int)AccountColumn.RemainingAmountTotal] = customer.RemainingBalance;
+
+            var rowIndex = PayLaterPaymentsSummaryDataView.Rows.Add(row);
+            var rowBackColor = rowIndex % 2 == 0 ? Color.FromArgb(38, 38, 38) : Color.FromArgb(48, 48, 48);
+
+            PayLaterPaymentsSummaryDataView.Rows[rowIndex].DefaultCellStyle.BackColor = rowBackColor;
         }
-    }
-
-    private void AddToPayLaterPaymentsSummaryDataView(IGrouping<string, PayLaterPaymentDto> paymentGroup)
-    {
-        var description = paymentGroup.Key;
-        var receivableAmountTotal = paymentGroup.Sum(x => x.ReceivableAmount);
-        var remainingAmountTotal = paymentGroup.Sum(x => x.ReceivableAmount - x.PaidAmount);
-
-        var columnCount = PayLaterPaymentsSummaryDataView.ColumnCount;
-        var row = new object[columnCount];
-
-        row[(int)AccountColumn.Description] = description;
-		row[(int) AccountColumn.ReceivableAmountTotal] = receivableAmountTotal;
-        row[(int)AccountColumn.RemainingAmountTotal] = remainingAmountTotal;
-
-        var rowIndex = PayLaterPaymentsSummaryDataView.Rows.Add(row);
-        var rowBackColor = rowIndex % 2 == 0 ? Color.FromArgb(38, 38, 38) : Color.FromArgb(48, 48, 48);
-
-        PayLaterPaymentsSummaryDataView.Rows[rowIndex].DefaultCellStyle.BackColor = rowBackColor;
     }
 }

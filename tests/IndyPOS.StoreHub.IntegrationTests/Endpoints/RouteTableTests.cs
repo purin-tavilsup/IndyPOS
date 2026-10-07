@@ -40,6 +40,7 @@ public class RouteTableTests : IntegrationTestBase
         "GET /product-categories CanReadProducts",
         $"GET /store/features {AnyAuthenticatedUser}",
         "POST /sales CanCompleteSales",
+        "GET /sales/lines CanReprintSales",
         "GET /sync/status CanViewSyncStatus",
         "GET /reports/sales-summary CanViewReports",
         "GET /reports/pay-later CanViewReports",

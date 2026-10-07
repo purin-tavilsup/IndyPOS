@@ -16,4 +16,14 @@ public static class MenuLayout
         for (var i = 0; i < shownButtonsTopToBottom.Count; i++)
             shownButtonsTopToBottom[i].Top = slotTops[i];
     }
+
+    /// <summary>The same for a row of tabs: puts the shown tabs into the row's slots, left first.</summary>
+    public static void Row(IReadOnlyList<Control> shownLeftToRight, IReadOnlyList<int> slotLefts)
+    {
+        if (shownLeftToRight.Count > slotLefts.Count)
+            throw new ArgumentException("More tabs than tab slots.", nameof(shownLeftToRight));
+
+        for (var i = 0; i < shownLeftToRight.Count; i++)
+            shownLeftToRight[i].Left = slotLefts[i];
+    }
 }
