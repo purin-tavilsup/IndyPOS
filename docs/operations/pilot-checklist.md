@@ -80,17 +80,14 @@ Start-Service -Name "IndyPOS.StoreHub"
 
 ### Step 3: Verify Health Endpoints
 ```powershell
-# Basic health
-Invoke-RestMethod -Uri "http://localhost:5000/health/ready" -Method GET
+# Liveness (the process is up)
+Invoke-RestMethod -Uri "http://localhost:5000/health/live" -Method GET
 
 # Ready check (includes DB connection)
 Invoke-RestMethod -Uri "http://localhost:5000/health/ready" -Method GET
 ```
 
-**Expected Response:**
-```json
-{"status": "Healthy"}
-```
+**Expected Response:** the plain text `Healthy` from both.
 
 **Verification:**
 - [ ] `/health/ready` returns 200 OK

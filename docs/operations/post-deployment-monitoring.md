@@ -74,8 +74,9 @@ function Write-Alert {
 # Check health endpoint
 try {
     $response = Invoke-RestMethod -Uri "$StoreHubUrl/health/ready" -TimeoutSec 10
-    if ($response.status -ne "Healthy") {
-        Write-Alert "StoreHub health check failed: $($response | ConvertTo-Json)" -EventId 1001
+    # /health/ready answers the plain text "Healthy" (a 503 lands in the catch below).
+    if ($response -ne "Healthy") {
+        Write-Alert "StoreHub health check failed: $response" -EventId 1001
     }
 }
 catch {
