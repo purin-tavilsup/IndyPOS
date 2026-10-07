@@ -97,17 +97,18 @@ public class StoreTypeFlowTests(StoreProfileHosts hosts)
     }
 
     [Theory]
-    [InlineData("GeneralHardware", true, true)]
-    [InlineData("MimyMart", false, false)]
-    [InlineData("MimyShop", false, false)]
-    public async Task StoreFeatures_ForEachStore_ReportTheTypesFeatures(string key, bool payLater, bool multipleTypes)
+    [InlineData("GeneralHardware", true, true, false)]
+    [InlineData("MimyMart", false, false, false)]
+    [InlineData("MimyShop", false, false, true)]
+    public async Task StoreFeatures_ForEachStore_ReportTheTypesFeatures(string key, bool payLater, bool multipleTypes,
+                                                                        bool services)
     {
         var client = await hosts.SignedInAsync(key);
 
         var features = await client.GetFromJsonAsync<StoreFeaturesDto>("/store/features");
 
         features.Should()
-                .Be(new StoreFeaturesDto(payLater, multipleTypes));
+                .Be(new StoreFeaturesDto(payLater, multipleTypes, services));
     }
 
     [Theory]
