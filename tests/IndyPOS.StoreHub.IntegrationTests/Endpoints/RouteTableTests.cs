@@ -11,7 +11,8 @@ namespace IndyPOS.StoreHub.IntegrationTests.Endpoints;
 /// into Endpoints/. Most of these routes have no HTTP test of their own, so this test is what catches
 /// a move that drops a RequireAuthorization or changes a verb. Endpoint filters are not endpoint
 /// metadata, so RequireUserIdFilter is proved by behaviour tests instead
-/// (CompleteSale_WithATokenWithoutAUserId_ReturnsUnauthorized).
+/// (CompleteSale_WithATokenWithoutAUserId_ReturnsUnauthorized). It also pins that each hard-renamed route
+/// is gone.
 /// </summary>
 [Collection("Integration")]
 public class RouteTableTests : IntegrationTestBase
@@ -34,9 +35,8 @@ public class RouteTableTests : IntegrationTestBase
         "POST /products/{id:guid}/adjust-quantity CanAdjustInventory",
         "POST /products/next-barcode CanManageProducts",
         "GET /payment-methods CanReadProducts",
-        "GET /admin/payment-methods CanManagePaymentMethods",
-        "POST /admin/payment-methods CanManagePaymentMethods",
-        "PATCH /admin/payment-methods/{code} CanManagePaymentMethods",
+        "POST /payment-methods CanManagePaymentMethods",
+        "PATCH /payment-methods/{code} CanManagePaymentMethods",
         "GET /product-categories CanReadProducts",
         $"GET /store/features {AnyAuthenticatedUser}",
         "POST /sales/complete CanCompleteSales",
@@ -51,6 +51,14 @@ public class RouteTableTests : IntegrationTestBase
         $"POST /pay-later/{{id:guid}}/record-payment {AnyAuthenticatedUser}"
     ];
 
+    // Hard renames (no alias before go-live). A task that renames a route adds its old pattern here.
+    private static readonly string[] RemovedRoutes =
+    [
+        "GET /admin/payment-methods CanManagePaymentMethods",
+        "POST /admin/payment-methods CanManagePaymentMethods",
+        "PATCH /admin/payment-methods/{code} CanManagePaymentMethods"
+    ];
+
     public RouteTableTests(StoreHubWebApplicationFactory factory) : base(factory) { }
 
     [Fact]
@@ -62,6 +70,15 @@ public class RouteTableTests : IntegrationTestBase
              .Contain(MovedRoutes)
              .And
              .OnlyHaveUniqueItems("a route left in Program.cs and also mapped from its new file would appear twice");
+    }
+
+    [Fact]
+    public void RouteTable_WithTheAppBuilt_ContainsNoRemovedRoute()
+    {
+        var table = DescribeRouteTable();
+
+        table.Should()
+             .NotContain(RemovedRoutes);
     }
 
     private List<string> DescribeRouteTable() =>

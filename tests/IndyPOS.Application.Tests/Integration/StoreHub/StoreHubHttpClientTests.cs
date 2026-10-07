@@ -6,6 +6,7 @@ using FluentAssertions;
 using IndyPOS.Application.Common.Enums;
 using IndyPOS.Application.Common.Models;
 using IndyPOS.Application.UseCases.StoreHub.Auth;
+using IndyPOS.Application.UseCases.StoreHub.PaymentMethods;
 using IndyPOS.Application.UseCases.StoreHub.Products;
 using IndyPOS.Application.UseCases.StoreHub.Sales;
 using IndyPOS.Infrastructure.Services.StoreHub;
@@ -240,6 +241,41 @@ public class StoreHubHttpClientTests
                     .And.Contain("toDate=2026-10-03");
     }
 
+    private const string CampaignCode = "Campaign2569";
+
+    // Nothing else pins the client's URLs, and a wrong one only shows at the till.
+    // InlineData (not delegates) keeps one test case per row in the runner's count.
+    [Theory]
+    [InlineData("GetOfferablePaymentMethods", "GET", "/payment-methods")]
+    [InlineData("GetAllPaymentMethods", "GET", "/payment-methods?include=all")]
+    [InlineData("AddCampaignPaymentMethod", "POST", "/payment-methods")]
+    [InlineData("SetPaymentMethodEnabled", "PATCH", "/payment-methods/Campaign2569")]
+    [InlineData("UpdatePaymentMethodDisplay", "PATCH", "/payment-methods/Campaign2569")]
+    public async Task RenamedCall_WithTheClient_SendsTheNewRoute(
+        string call, string expectedMethod, string expectedPathAndQuery)
+    {
+        _sut.SetAuthToken("valid-token");
+        var request = CaptureRequest(ResponseFor(call));
+
+        await InvokeAsync(call);
+
+        request().Should()
+                 .Be((expectedMethod, expectedPathAndQuery));
+    }
+
+    private Task InvokeAsync(string call) => call switch
+    {
+        "GetOfferablePaymentMethods" => _sut.GetOfferablePaymentMethodsAsync(),
+        "GetAllPaymentMethods" => _sut.GetAllPaymentMethodsAsync(),
+        "AddCampaignPaymentMethod" => _sut.AddCampaignPaymentMethodAsync(CampaignCode, "โครงการ", 9),
+        "SetPaymentMethodEnabled" => _sut.SetPaymentMethodEnabledAsync(CampaignCode, enabled: false),
+        "UpdatePaymentMethodDisplay" => _sut.UpdatePaymentMethodDisplayAsync(CampaignCode, "โครงการ", 9),
+        _ => throw new ArgumentOutOfRangeException(nameof(call), call, "No such client call.")
+    };
+
+    private static string ResponseFor(string call) =>
+        call.StartsWith("Get", StringComparison.Ordinal) ? "[]" : "{}";
+
     private static async Task RunUnderThaiCultureAsync(Func<Task> action)
     {
         var original = CultureInfo.CurrentCulture;
@@ -252,6 +288,24 @@ public class StoreHubHttpClientTests
         {
             CultureInfo.CurrentCulture = original;
         }
+    }
+
+    private Func<(string Method, string PathAndQuery)> CaptureRequest(string responseJson)
+    {
+        (string, string) captured = default;
+        _mockHandler.Protected()
+            .Setup<Task<HttpResponseMessage>>(
+                "SendAsync",
+                ItExpr.IsAny<HttpRequestMessage>(),
+                ItExpr.IsAny<CancellationToken>())
+            .Callback<HttpRequestMessage, CancellationToken>((request, _) =>
+                captured = (request.Method.Method, request.RequestUri!.PathAndQuery))
+            .ReturnsAsync(() => new HttpResponseMessage(HttpStatusCode.OK)
+            {
+                Content = new StringContent(responseJson, System.Text.Encoding.UTF8, "application/json")
+            });
+
+        return () => captured;
     }
 
     private Func<string> CaptureRequestUri<T>(T responseBody)
