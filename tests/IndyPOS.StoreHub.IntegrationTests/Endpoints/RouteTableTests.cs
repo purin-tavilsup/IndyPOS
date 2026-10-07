@@ -32,7 +32,7 @@ public class RouteTableTests : IntegrationTestBase
         "POST /products CanManageProducts",
         "PUT /products/{id:guid} CanManageProducts",
         "DELETE /products/{id:guid} CanManageProducts",
-        "POST /products/{id:guid}/adjust-quantity CanAdjustInventory",
+        "POST /products/{id:guid}/stock-adjustments CanAdjustInventory",
         "POST /products/next-barcode CanManageProducts",
         "GET /payment-methods CanReadProducts",
         "POST /payment-methods CanManagePaymentMethods",
@@ -58,7 +58,8 @@ public class RouteTableTests : IntegrationTestBase
         "POST /admin/payment-methods CanManagePaymentMethods",
         "PATCH /admin/payment-methods/{code} CanManagePaymentMethods",
         "POST /sales/complete CanCompleteSales",
-        $"POST /pay-later/{{id:guid}}/record-payment {AnyAuthenticatedUser}"
+        $"POST /pay-later/{{id:guid}}/record-payment {AnyAuthenticatedUser}",
+        "POST /products/{id:guid}/adjust-quantity CanAdjustInventory"
     ];
 
     public RouteTableTests(StoreHubWebApplicationFactory factory) : base(factory) { }

@@ -21,6 +21,7 @@ public class RenamedRouteTests : IntegrationTestBase
     [InlineData("POST", "/admin/payment-methods")]
     [InlineData("PATCH", "/admin/payment-methods/Cash")]
     [InlineData("POST", "/pay-later/{id}/record-payment")]
+    [InlineData("POST", "/products/{id}/adjust-quantity")]
     public async Task RenamedRoute_OnTheOldPath_ReturnsNotFound(string method, string path)
     {
         await AuthenticateAsAdminAsync();

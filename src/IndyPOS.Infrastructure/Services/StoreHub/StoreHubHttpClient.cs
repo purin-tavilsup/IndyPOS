@@ -207,7 +207,7 @@ public class StoreHubHttpClient : IStoreHubClient
             productId, request.Delta);
 
         var result = await SendAuthenticatedAsync<AdjustQuantityResponse>(
-            HttpMethod.Post, $"/products/{productId}/adjust-quantity", request, cancellationToken);
+            HttpMethod.Post, $"/products/{productId}/stock-adjustments", request, cancellationToken);
 
         _logger.LogInformation("Product stock adjusted. Id: {Id}, Delta: {Delta}, Balance: {Balance}",
             productId, request.Delta, result.Quantity);
