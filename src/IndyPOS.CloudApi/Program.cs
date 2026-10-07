@@ -120,7 +120,8 @@ var app = builder.Build();
 // one-shot runs this and must exit 0 before the API container is allowed to start.
 if (app.Environment.IsDevelopment())
 {
-    await app.MigrateCloudDatabaseAsync();
+    // Refuses a database the old EnsureCreated path built, with a message, since migrating it would fail.
+    await app.MigrateDevelopmentCloudDatabaseAsync();
     await DevStoreRegistration.RegisterAsync(app.Services, app.Environment, CancellationToken.None);
 }
 else if (Array.Exists(args, a => string.Equals(a, "migrate", StringComparison.OrdinalIgnoreCase)))
