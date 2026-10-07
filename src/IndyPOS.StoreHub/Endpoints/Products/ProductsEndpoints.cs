@@ -133,10 +133,10 @@ public static class ProductsEndpoints
         }).RequireAuthorization("CanManageProducts");
     }
 
-    // Adjust product quantity by a signed delta. The adjuster is the token's user, never the body's.
+    // Record a stock adjustment: a signed delta. The adjuster is the token's user, never the body's.
     private static void MapAdjustQuantity(IEndpointRouteBuilder app)
     {
-        app.MapPost("/products/{id:guid}/adjust-quantity", async (
+        app.MapPost("/products/{id:guid}/stock-adjustments", async (
             ICommandHandler<AdjustProductQuantityCommand, int> handler,
             ClaimsPrincipal user,
             Guid id,

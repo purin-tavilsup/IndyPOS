@@ -8,6 +8,7 @@ using IndyPOS.Application.Common.Models;
 using IndyPOS.Application.UseCases.StoreHub.Auth;
 using IndyPOS.Application.UseCases.StoreHub.PaymentMethods;
 using IndyPOS.Application.UseCases.StoreHub.Products;
+using IndyPOS.Application.UseCases.StoreHub.Products.AdjustQuantity;
 using IndyPOS.Application.UseCases.StoreHub.Sales;
 using IndyPOS.Infrastructure.Services.StoreHub;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -268,6 +269,7 @@ public class StoreHubHttpClientTests
     [InlineData("UpdatePaymentMethodDisplay", "PATCH", "/payment-methods/Campaign2569")]
     [InlineData("CompleteSale", "POST", "/sales")]
     [InlineData("RecordPayLaterPayment", "POST", "/pay-later/6f1c2a4e-8d3b-4c7a-9e21-5b0d7f3a1c88/payments")]
+    [InlineData("AdjustProductQuantity", "POST", "/products/6f1c2a4e-8d3b-4c7a-9e21-5b0d7f3a1c88/stock-adjustments")]
     public async Task RenamedCall_WithTheClient_SendsTheNewRoute(
         string call, string expectedMethod, string expectedPathAndQuery)
     {
@@ -289,6 +291,7 @@ public class StoreHubHttpClientTests
         "UpdatePaymentMethodDisplay" => _sut.UpdatePaymentMethodDisplayAsync(CampaignCode, "โครงการ", 9),
         "CompleteSale" => _sut.CompleteSaleAsync(new CompleteSaleRequest([], [])),
         "RecordPayLaterPayment" => _sut.RecordPayLaterPaymentAsync(KnownId, 100m),
+        "AdjustProductQuantity" => _sut.AdjustProductQuantityAsync(KnownId, new AdjustQuantityRequest(10)),
         _ => throw new ArgumentOutOfRangeException(nameof(call), call, "No such client call.")
     };
 
