@@ -3,6 +3,7 @@ using FluentAssertions;
 using IndyPOS.Application.Abstractions.StoreHub;
 using IndyPOS.Application.Common.Interfaces;
 using IndyPOS.Application.Common.Models;
+using IndyPOS.Application.UseCases.StoreHub.Reports;
 using IndyPOS.Windows.Forms.Services;
 using IndyPOS.Windows.Forms.UI;
 using IndyPOS.Windows.Forms.UI.Report;
@@ -95,6 +96,51 @@ public class ReportPanelsLayoutTests
 
         shownWhileLoading.Should()
                          .BeTrue();
+    }
+
+    [Fact]
+    public void SalesOverview_WhenShowingTodayAtMimyShop_MakesNoLegacySummaryCall()
+    {
+        var reports = LegacyReports();
+        using var panel = new SalesReportPanel(reports.Object, SummaryClient(linesTotal: 45m), Features(MimyShop),
+                                               new MessageForm());
+
+        ((Button)Find(panel, "ShowReportByTodayButton")).PerformClick();
+
+        reports.Verify(r => r.CreateSalesSummaryByDateRangeAsync(It.IsAny<DateOnly>(), It.IsAny<DateOnly>()), Times.Never);
+    }
+
+    [Fact]
+    public void SalesOverview_WhenShowingTodayAtMimyShop_ShowsTheLinesTotal()
+    {
+        using var panel = new SalesReportPanel(LegacyReports().Object, SummaryClient(linesTotal: 45m), Features(MimyShop),
+                                               new MessageForm());
+
+        ((Button)Find(panel, "ShowReportByTodayButton")).PerformClick();
+
+        Find(panel, "OverallSaleLabel").Text.Should()
+                                            .Be($"{45m:N2}");
+    }
+
+    // Answers the legacy call with an empty summary: a null would throw inside the panel, which then opens
+    // its modal error dialog and blocks the test run.
+    private static Mock<IReportService> LegacyReports()
+    {
+        var reports = new Mock<IReportService>();
+        reports.Setup(r => r.CreateSalesSummaryByDateRangeAsync(It.IsAny<DateOnly>(), It.IsAny<DateOnly>()))
+               .ReturnsAsync(new SalesSummary());
+        return reports;
+    }
+
+    private static IStoreHubClient SummaryClient(decimal linesTotal)
+    {
+        var client = new Mock<IStoreHubClient>();
+        client.Setup(c => c.GetSalesSummaryAsync(It.IsAny<DateOnly>(), It.IsAny<DateOnly>(), It.IsAny<CancellationToken>()))
+              .ReturnsAsync(new SalesSummaryDto(default, default, 0, 0m, new PaymentBreakdownDto(0, 0, 0, 0, 0, 0), [])
+              {
+                  LinesTotal = linesTotal
+              });
+        return client.Object;
     }
 
     private static IStoreFeaturesProvider Features(StoreFeaturesDto features)
