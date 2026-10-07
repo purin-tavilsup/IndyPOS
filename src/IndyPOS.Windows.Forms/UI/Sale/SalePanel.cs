@@ -270,10 +270,7 @@ public partial class SalePanel : UserControl
         {
             var features = await _storeHubClient.GetStoreFeaturesAsync();
 
-            var layout = TillLayout.For(features);
-            AddHardwareProductButton.Visible = layout.ShowHardwareButton;
-            DeliveryServiceButton.Visible = layout.ShowServiceButtons;
-            DocumentServiceButton.Visible = layout.ShowServiceButtons;
+            ApplyTillLayout(TillLayout.For(features));
             _storeFeaturesApplied = true;
         }
         catch (Exception ex)
@@ -286,9 +283,15 @@ public partial class SalePanel : UserControl
                 _messageForm.ShowDialog($"ไม่สามารถโหลดการตั้งค่าร้านค้าได้ Error: {ex.Message}", "ข้อผิดพลาด");
             }
 
-            // Leave the buttons as designed on failure: hardware visible (the server guard still blocks
-            // Hardware creation) and the service buttons hidden.
+            ApplyTillLayout(TillLayout.WhenFeaturesUnavailable);
         }
+    }
+
+    private void ApplyTillLayout(TillLayout layout)
+    {
+        AddHardwareProductButton.Visible = layout.ShowHardwareButton;
+        DeliveryServiceButton.Visible = layout.ShowServiceButtons;
+        DocumentServiceButton.Visible = layout.ShowServiceButtons;
     }
 
     private async void GetPaymentButton_Click(object sender, EventArgs e)
