@@ -14,14 +14,16 @@ var cloudDb = postgres.AddDatabase("cloud-db");
 // Cloud API (central cloud service) - must be defined first for service discovery
 var cloudApi = builder.AddProject<Projects.IndyPOS_CloudApi>("cloud-api")
                       .WithReference(cloudDb)
+                      .WithHttpHealthCheck("/health/ready", endpointName: "http")
                       .WaitFor(postgres);
 
-// StoreHub API (local store service) - references CloudApi for sync
+// StoreHub API (local store service). It references CloudApi for sync but never waits for it:
+// offline-first, the till must be able to sell while the cloud is down.
 var storeHub = builder.AddProject<Projects.IndyPOS_StoreHub>("storehub-api")
                       .WithReference(storeHubDb)
                       .WithReference(cloudApi)
-                      .WaitFor(postgres)
-                      .WaitFor(cloudApi);
+                      .WithHttpHealthCheck("/health/ready", endpointName: "http")
+                      .WaitFor(postgres);
 
 // WinForms desktop app - explicit start so it doesn't auto-launch.
 // appsettings.json defaults StoreHub to :5000 (the installed/production port);
