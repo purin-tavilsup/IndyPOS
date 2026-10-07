@@ -132,14 +132,14 @@ reports `Skipped: 1` and writes nothing — which looks like success while leavi
 ### Expected counts
 
 Solution suites (`dotnet test` at the root), Docker running **and** the real store databases present
-— **1258 total** (1257 pass, 1 skipped) — measured 2026-10-07 (after the dev store profiles;
-supersedes 1209 earlier on 2026-10-07 after the health-check convention, 1186 earlier on 2026-10-07 after the till startup fix, 1183 on 2026-10-06 after route tidy-up B, 1152 on 2026-10-02 after route tidy-up A, 1111 earlier on 2026-10-02, 1089 on 2026-10-01, 928 on 2026-09-30, 853 on 2026-09-27 and 656 on 2026-09-17). Without those databases the total is **1238**
-(derived as 1258 − 20; CI measured 1166 = 1186 − 20 on PR #114, 2026-10-07, which has no store databases), still all
+— **1262 total** (1261 pass, 1 skipped) — measured 2026-10-07 (after the dev store profiles;
+supersedes 1209 earlier on 2026-10-07 after the health-check convention, 1186 earlier on 2026-10-07 after the till startup fix, 1183 on 2026-10-06 after route tidy-up B, 1152 on 2026-10-02 after route tidy-up A, 1111 earlier on 2026-10-02, 1089 on 2026-10-01, 928 on 2026-09-30, 853 on 2026-09-27 and 656 on 2026-09-17). Without those databases the total is **1242**
+(derived as 1262 − 20; CI measured 1166 = 1186 − 20 on PR #114, 2026-10-07, which has no store databases), still all
 green:
 
 | Suite | Tests |
 |---|---|
-| `IndyPOS.Application.Tests` | 604 |
+| `IndyPOS.Application.Tests` | 608 |
 | `IndyPOS.StoreHub.IntegrationTests` | 313 (Docker) |
 | `IndyPOS.MigrationTool.Tests` | 145 (Docker; 1 skipped. **125** without the real store data — Trap 3, derived) |
 | `IndyPOS.Domain.Tests` | 56 |
