@@ -1,5 +1,6 @@
 using System.Net.Http.Json;
 using FluentAssertions;
+using SalesSummary = IndyPOS.Application.Common.Models.SalesSummary;
 using IndyPOS.Application.UseCases.StoreHub.Reports;
 using IndyPOS.Application.UseCases.StoreHub.Sales;
 using IndyPOS.Domain.Entities.Core;
@@ -69,6 +70,21 @@ public class SalesSummaryPerStoreTests(StoreProfileHosts hosts)
 
         summary.ServiceSales.Select(s => s.Barcode).Should()
                                                    .Equal(ServiceProductBarcodes.All);
+    }
+
+    // The overview's "ยอดขาย : ทั้งหมด" tile reads LinesTotal where the legacy summary is not fetched, so the
+    // two must give the same figure.
+    [Fact]
+    public async Task SalesSummary_AfterASale_HasTheLegacySummarysInvoiceTotal()
+    {
+        await SellAsync("MimyShop", ServiceProductBarcodes.Documents, 15m);
+        var client = await hosts.SignedInAsync("MimyShop", "manager", "manager123");
+
+        var summary = await SummaryAsync("MimyShop");
+        var legacy = await client.GetFromJsonAsync<SalesSummary>($"/reports/legacy/sales-summary?fromDate={Today}&toDate={Today}");
+
+        summary.LinesTotal.Should()
+                          .Be(legacy!.InvoiceTotal);
     }
 
     private static decimal Total(SalesSummaryDto summary, string barcode) =>
