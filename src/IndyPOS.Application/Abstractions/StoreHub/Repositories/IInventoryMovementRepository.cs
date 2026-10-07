@@ -20,6 +20,11 @@ public interface IInventoryMovementRepository
     Task<int> GetCurrentBalanceAsync(string storeId, Guid productId, CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// Whether the product already has a movement with this reason (e.g. its "InitialStock").
+    /// </summary>
+    Task<bool> HasMovementAsync(string storeId, Guid productId, string reason, CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// Gets current stock for every product in a store that has movements, as
     /// SUM(QuantityDelta) grouped by product. One query, not one per product.
     /// A product with no movements is absent from the dictionary — read it as zero.

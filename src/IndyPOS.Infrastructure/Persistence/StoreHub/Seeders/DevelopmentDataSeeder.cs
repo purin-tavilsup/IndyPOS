@@ -16,6 +16,8 @@ namespace IndyPOS.Infrastructure.Persistence.StoreHub.Seeders;
 /// </summary>
 public class DevelopmentDataSeeder
 {
+    private const string InitialStockReason = "InitialStock";
+
     private readonly IStoreUserRepository _userRepository;
     private readonly IProductRepository _productRepository;
     private readonly IStoreSettingRepository _settingRepository;
@@ -123,6 +125,7 @@ public class DevelopmentDataSeeder
             if (existing is not null)
             {
                 await RefreshAsync(existing, seed, cancellationToken);
+                await AddOpeningStockAsync(existing, seed, cancellationToken);
                 continue;
             }
 
@@ -146,11 +149,15 @@ public class DevelopmentDataSeeder
         }
     }
 
-    // Opening stock only when the product is first created, so a re-seed never doubles it.
+    // Opening stock once per product: added when missing (also after a seed that died between saving the
+    // product and its stock), never a second time.
     private async Task AddOpeningStockAsync(Product product, IndyPOS.StoreProfiles.StoreProfileProduct seed,
                                             CancellationToken cancellationToken)
     {
         if (!seed.IsTrackable || seed.InitialStock <= 0)
+            return;
+
+        if (await _inventoryMovements.HasMovementAsync(product.StoreId, product.Id, InitialStockReason, cancellationToken))
             return;
 
         await _inventoryMovements.AddAsync(new InventoryMovement
@@ -159,7 +166,7 @@ public class DevelopmentDataSeeder
             StoreId = product.StoreId,
             ProductId = product.Id,
             QuantityDelta = seed.InitialStock,
-            Reason = "InitialStock",
+            Reason = InitialStockReason,
             CreatedUtc = DateTime.UtcNow
         }, cancellationToken);
     }
