@@ -1,5 +1,7 @@
 using IndyPOS.Infrastructure.Persistence.StoreHub.Seeders;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
@@ -7,17 +9,6 @@ namespace IndyPOS.Infrastructure.Persistence.StoreHub;
 
 public static class StoreHubDbContextExtensions
 {
-    /// <summary>
-    /// Ensures the StoreHub database schema is created.
-    /// Only use in development - production should use migrations.
-    /// </summary>
-    public static async Task EnsureStoreHubDatabaseCreatedAsync(this IHost app)
-    {
-        using var scope = app.Services.CreateScope();
-        var db = scope.ServiceProvider.GetRequiredService<StoreHubDbContext>();
-        await db.Database.EnsureCreatedAsync();
-    }
-
     /// <summary>
     /// Seeds development test data (users and products).
     /// Safe to run multiple times - uses idempotent UPSERT logic.
@@ -31,13 +22,43 @@ public static class StoreHubDbContextExtensions
 
     /// <summary>
     /// Applies pending EF Core migrations. This is the production path for
-    /// provisioning the schema (dev uses EnsureCreated for speed).
+    /// provisioning the schema; Development applies them too, on start.
     /// </summary>
     public static async Task MigrateStoreHubDatabaseAsync(this IHost app)
     {
         using var scope = app.Services.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<StoreHubDbContext>();
         await db.Database.MigrateAsync();
+    }
+
+    /// <summary>
+    /// The Development start: refuses a database the old EnsureCreated path built, then migrates. Production
+    /// never runs this; its databases were always migrated, and dropping one is never the answer there.
+    /// </summary>
+    public static async Task MigrateDevelopmentStoreHubDatabaseAsync(this IHost app)
+    {
+        using var scope = app.Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<StoreHubDbContext>();
+        await RejectEnsureCreatedDatabaseAsync(db);
+        await db.Database.MigrateAsync();
+    }
+
+    /// <summary>
+    /// Throws when the database has tables but no migration history: EnsureCreated built it, so migrating
+    /// would replay the first migration and fail on a table that already exists.
+    /// </summary>
+    public static async Task RejectEnsureCreatedDatabaseAsync(DbContext db, CancellationToken cancellationToken = default)
+    {
+        var creator = db.GetService<IRelationalDatabaseCreator>();
+        if (!await creator.ExistsAsync(cancellationToken) || !await creator.HasTablesAsync(cancellationToken))
+            return;
+
+        if ((await db.Database.GetAppliedMigrationsAsync(cancellationToken)).Any())
+            return;
+
+        throw new InvalidOperationException(
+            $"Database '{db.Database.GetDbConnection().Database}' was built by EnsureCreated, which StoreHub no longer " +
+            "uses, so it cannot be migrated. Point StoreHub at a new database, or drop this one (its dev data is lost).");
     }
 
     /// <summary>

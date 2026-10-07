@@ -197,7 +197,7 @@ builder.Services.AddOpenApi();
 
 var app = builder.Build();
 
-// Provision the database. Dev uses EnsureCreated + test data for speed.
+// Provision the database. Development applies the migrations and seeds the dev store's data on start.
 // Production provisioning (EF migrations + initial admin seed) runs ONLY when
 // the installer invokes "IndyPOS.StoreHub.exe migrate", then exits before
 // app.Run(). Doing schema work on the normal service-start path would block the
@@ -206,10 +206,14 @@ var app = builder.Build();
 // service start is immediate.
 if (app.Environment.IsDevelopment())
 {
-    await app.EnsureStoreHubDatabaseCreatedAsync();
-    await app.SeedDevelopmentDataAsync();
+    // Migrations, not EnsureCreated: EnsureCreated never adds a column to an existing database, so a
+    // dev database went stale after every schema change and StoreHub crashed while seeding. A database the
+    // old EnsureCreated path built is refused with a message, since migrating it would fail anyway.
+    await app.MigrateDevelopmentStoreHubDatabaseAsync();
+    // The catalogues first: the dev data switches the store's payment methods on and off.
     await app.SeedPaymentMethodsAsync();
     await app.SeedProductCategoriesAsync();
+    await app.SeedDevelopmentDataAsync();
 }
 else if (Array.Exists(args, a => string.Equals(a, "migrate", StringComparison.OrdinalIgnoreCase)))
 {

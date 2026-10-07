@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
 	  <TargetFramework>net10.0-windows</TargetFramework>
@@ -34,6 +34,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\src\IndyPOS.Application\IndyPOS.Application.csproj" />
     <ProjectReference Include="..\..\src\IndyPOS.Infrastructure\IndyPOS.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\src\IndyPOS.StoreProfiles\IndyPOS.StoreProfiles.csproj" />
     <ProjectReference Include="..\IndyPOS.Mock\IndyPOS.Mock.csproj" />
   </ItemGroup>
 

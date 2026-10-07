@@ -10,16 +10,21 @@ namespace IndyPOS.Infrastructure.Persistence.StoreHub.Seeders;
 
 /// <summary>
 /// Seeds development test data for StoreHub.
-/// Creates test users, products, and settings for manual testing.
+/// Creates test users, settings, and the running store type's profile products (with opening stock)
+/// for manual testing.
 /// Only runs in Development environment.
 /// </summary>
 public class DevelopmentDataSeeder
 {
+    private const string InitialStockReason = "InitialStock";
+
     private readonly IStoreUserRepository _userRepository;
     private readonly IProductRepository _productRepository;
     private readonly IStoreSettingRepository _settingRepository;
     private readonly IPasswordHasher _passwordHasher;
     private readonly IStoreIdentityService _storeIdentity;
+    private readonly IInventoryMovementRepository _inventoryMovements;
+    private readonly IPaymentMethodRepository _paymentMethods;
     private readonly ILogger<DevelopmentDataSeeder> _logger;
 
     public DevelopmentDataSeeder(
@@ -28,6 +33,8 @@ public class DevelopmentDataSeeder
         IStoreSettingRepository settingRepository,
         IPasswordHasher passwordHasher,
         IStoreIdentityService storeIdentity,
+        IInventoryMovementRepository inventoryMovements,
+        IPaymentMethodRepository paymentMethods,
         ILogger<DevelopmentDataSeeder> logger)
     {
         _userRepository = userRepository;
@@ -35,6 +42,8 @@ public class DevelopmentDataSeeder
         _settingRepository = settingRepository;
         _passwordHasher = passwordHasher;
         _storeIdentity = storeIdentity;
+        _inventoryMovements = inventoryMovements;
+        _paymentMethods = paymentMethods;
         _logger = logger;
     }
 
@@ -49,6 +58,7 @@ public class DevelopmentDataSeeder
         await SeedSettingsAsync(cancellationToken);
         await SeedUsersAsync(cancellationToken);
         await SeedProductsAsync(cancellationToken);
+        await SwitchPaymentMethodsAsync(cancellationToken);
 
         _logger.LogInformation("Development data seeding complete.");
     }
@@ -108,42 +118,37 @@ public class DevelopmentDataSeeder
         }
     }
 
+    // The dev store offers what its real store offers. Runs after the catalogue is seeded, and on every
+    // start, so a method switched on by hand in a dev till is put back to the store's set.
+    private async Task SwitchPaymentMethodsAsync(CancellationToken cancellationToken)
+    {
+        var enabled = IndyPOS.StoreProfiles.StoreProfiles.ForType(_storeIdentity.StoreType).PaymentMethods
+                                                         .ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+        foreach (var method in await _paymentMethods.GetAllAsync(cancellationToken))
+        {
+            var shouldBeEnabled = enabled.Contains(method.Code);
+            if (method.IsEnabled == shouldBeEnabled)
+                continue;
+
+            method.IsEnabled = shouldBeEnabled;
+            method.LastModifiedUtc = DateTime.UtcNow;
+            await _paymentMethods.UpdateAsync(method, cancellationToken);
+        }
+    }
+
     private async Task SeedProductsAsync(CancellationToken cancellationToken)
     {
         var storeId = _storeIdentity.StoreId;
-        var generalGoodsCategory = ProductCategoryCodes.Miscellaneous;
-        var testProducts = new[]
-        {
-            new { Barcode = "8850000000001", Name = "น้ำดื่ม 600ml", UnitPrice = 7m, Category = generalGoodsCategory },
-            new { Barcode = "8850000000002", Name = "โค้ก 325ml", UnitPrice = 15m, Category = generalGoodsCategory },
-            new { Barcode = "8850000000003", Name = "มาม่าหมูสับ", UnitPrice = 6m, Category = generalGoodsCategory },
-            new { Barcode = "8850000000004", Name = "ขนมปังปี๊บ", UnitPrice = 20m, Category = generalGoodsCategory },
-            new { Barcode = "8850000000005", Name = "นมจืด 200ml", UnitPrice = 12m, Category = generalGoodsCategory }
-        };
+        var profile = IndyPOS.StoreProfiles.StoreProfiles.ForType(_storeIdentity.StoreType);
 
-        foreach (var testProduct in testProducts)
+        foreach (var seed in profile.Products)
         {
-            var existing = await _productRepository.GetByBarcodeAsync(testProduct.Barcode, cancellationToken);
+            var existing = await _productRepository.GetByBarcodeAsync(seed.Barcode, cancellationToken);
             if (existing is not null)
             {
-                if (existing.Name != testProduct.Name ||
-                    existing.Description != testProduct.Name ||
-                    existing.Category != testProduct.Category ||
-                    existing.UnitPrice != testProduct.UnitPrice)
-                {
-                    existing.Name = testProduct.Name;
-                    existing.Description = testProduct.Name;
-                    existing.Category = testProduct.Category;
-                    existing.UnitPrice = testProduct.UnitPrice;
-
-                    await _productRepository.UpdateAsync(existing, cancellationToken);
-                    _logger.LogInformation("Updated test product: {Name} ({Barcode})", testProduct.Name, testProduct.Barcode);
-                }
-                else
-                {
-                    _logger.LogDebug("Product {Barcode} already exists, skipping", testProduct.Barcode);
-                }
-
+                await RefreshAsync(existing, seed, cancellationToken);
+                await AddOpeningStockAsync(existing, seed, cancellationToken);
                 continue;
             }
 
@@ -151,18 +156,56 @@ public class DevelopmentDataSeeder
             {
                 Id = Guid.NewGuid(),
                 StoreId = storeId,
-                Barcode = testProduct.Barcode,
-                Name = testProduct.Name,
-                Description = testProduct.Name,
-                Category = testProduct.Category,
-                UnitPrice = testProduct.UnitPrice,
+                Barcode = seed.Barcode,
+                Name = seed.Name,
+                Description = seed.Name,
+                Category = seed.Category,
+                UnitPrice = seed.UnitPrice,
+                IsTrackable = seed.IsTrackable,
                 IsActive = true,
                 CreatedUtc = DateTime.UtcNow,
                 LastModifiedUtc = DateTime.UtcNow
             };
-
             await _productRepository.AddAsync(product, cancellationToken);
-            _logger.LogInformation("Created test product: {Name} ({Barcode})", testProduct.Name, testProduct.Barcode);
+            await AddOpeningStockAsync(product, seed, cancellationToken);
+            _logger.LogInformation("Created dev product for {Store}: {Name} ({Barcode})", profile.Key, seed.Name, seed.Barcode);
         }
+    }
+
+    // Opening stock once per product: added when missing (also after a seed that died between saving the
+    // product and its stock), never a second time.
+    private async Task AddOpeningStockAsync(Product product, IndyPOS.StoreProfiles.StoreProfileProduct seed,
+                                            CancellationToken cancellationToken)
+    {
+        if (!seed.IsTrackable || seed.InitialStock <= 0)
+            return;
+
+        if (await _inventoryMovements.HasMovementAsync(product.StoreId, product.Id, InitialStockReason, cancellationToken))
+            return;
+
+        await _inventoryMovements.AddAsync(new InventoryMovement
+        {
+            Id = Guid.NewGuid(),
+            StoreId = product.StoreId,
+            ProductId = product.Id,
+            QuantityDelta = seed.InitialStock,
+            Reason = InitialStockReason,
+            CreatedUtc = DateTime.UtcNow
+        }, cancellationToken);
+    }
+
+    private async Task RefreshAsync(Product existing, IndyPOS.StoreProfiles.StoreProfileProduct seed,
+                                    CancellationToken cancellationToken)
+    {
+        if (existing.Name == seed.Name && existing.Category == seed.Category &&
+            existing.UnitPrice == seed.UnitPrice && existing.IsTrackable == seed.IsTrackable)
+            return;
+
+        existing.Name = seed.Name;
+        existing.Description = seed.Name;
+        existing.Category = seed.Category;
+        existing.UnitPrice = seed.UnitPrice;
+        existing.IsTrackable = seed.IsTrackable;
+        await _productRepository.UpdateAsync(existing, cancellationToken);
     }
 }

@@ -114,14 +114,15 @@ builder.Services.AddOpenApi();
 
 var app = builder.Build();
 
-// Provision the database. Dev uses EnsureCreated for speed; production applies EF migrations, and
-// only when invoked explicitly as "migrate" so schema work never sits on the normal start path.
-// The compose one-shot runs this and must exit 0 before the API container is allowed to start.
+// Provision the database. Development migrates on start (EnsureCreated never updates an existing
+// database) and registers the dev stores so they can sync; production applies EF migrations only when
+// invoked explicitly as "migrate", so schema work never sits on the normal start path. The compose
+// one-shot runs this and must exit 0 before the API container is allowed to start.
 if (app.Environment.IsDevelopment())
 {
-    using var scope = app.Services.CreateScope();
-    var db = scope.ServiceProvider.GetRequiredService<CloudDbContext>();
-    await db.Database.EnsureCreatedAsync();
+    // Refuses a database the old EnsureCreated path built, with a message, since migrating it would fail.
+    await app.MigrateDevelopmentCloudDatabaseAsync();
+    await DevStoreRegistration.RegisterAsync(app.Services, app.Environment, CancellationToken.None);
 }
 else if (Array.Exists(args, a => string.Equals(a, "migrate", StringComparison.OrdinalIgnoreCase)))
 {

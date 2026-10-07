@@ -64,9 +64,12 @@ public class StoreHubWebApplicationFactory : WebApplicationFactory<Program>, IAs
 
             // Replace IStoreIdentityService with test implementation
             services.RemoveAll<IStoreIdentityService>();
-            services.AddSingleton<IStoreIdentityService>(new TestStoreIdentityService());
+            services.AddSingleton(CreateStoreIdentity());
         });
     }
+
+    /// <summary>The store the host runs as. Override to boot StoreHub as a dev store profile.</summary>
+    protected virtual IStoreIdentityService CreateStoreIdentity() => new TestStoreIdentityService();
 
     public async Task InitializeAsync()
     {
@@ -87,18 +90,17 @@ public class StoreHubWebApplicationFactory : WebApplicationFactory<Program>, IAs
 /// <summary>
 /// Test implementation of IStoreIdentityService with known values.
 /// </summary>
-internal class TestStoreIdentityService : IStoreIdentityService
+internal class TestStoreIdentityService(string storeId = TestStoreIdentityService.TestStoreId,
+                                        StoreType type = StoreType.GeneralHardware) : IStoreIdentityService
 {
     public const string TestStoreId = "test-store";
 
-    public string StoreId => TestStoreId;
+    public string StoreId => storeId;
     public string StoreName => "Test Store";
-    public StoreType StoreType => StoreType.GeneralHardware;
-    public StoreTypeFeatures Features => StoreTypeFeatures.For(StoreType.GeneralHardware);
+    public StoreType StoreType => type;
+    public StoreTypeFeatures Features => StoreTypeFeatures.For(type);
     public TimeZoneInfo TimeZone => TimeZoneInfo.Local;
-
     [Obsolete("Use StoreId (UUID) for identification.")]
     public int StoreCode => 1;
-
     public void EnsureConfigured() { }
 }
