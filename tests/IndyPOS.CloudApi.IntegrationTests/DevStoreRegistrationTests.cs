@@ -69,11 +69,34 @@ public class DevStoreRegistrationTests : IAsyncLifetime
         }
     }
 
-    private async Task<ServiceProvider> BuildServicesAsync()
+    // A start that dies between creating a store's client and saving its row must not leave the
+    // client behind: OpenIddict refuses a duplicate client id, so every later start would fail.
+    [Fact]
+    public async Task DevStoreRegistration_AfterAStartThatFailedMidway_RegistersOnTheNextStart()
+    {
+        var credentials = new DuplicateRefusingCredentials();
+        await using var services = await BuildServicesAsync(credentials);
+        var development = EnvironmentNamed(Environments.Development);
+        await InsertRowOwningTheClientIdOfAsync(services, Profiles.MimyMart);
+        var firstStart = () => DevStoreRegistration.RegisterAsync(services, development, CancellationToken.None);
+        await firstStart.Should()
+                        .ThrowAsync<DbUpdateException>();
+        await RemoveConflictingRowAsync(services);
+
+        var secondStart = () => DevStoreRegistration.RegisterAsync(services, development, CancellationToken.None);
+
+        await secondStart.Should()
+                         .NotThrowAsync();
+    }
+
+    private Task<ServiceProvider> BuildServicesAsync() => BuildServicesAsync(_credentials.Object);
+
+    private async Task<ServiceProvider> BuildServicesAsync(IStoreClientCredentialStore credentials)
     {
         var services = new ServiceCollection()
-            .AddDbContext<CloudDbContext>(options => options.UseNpgsql(_postgres.ConnectionString))
-            .AddSingleton(_credentials.Object)
+            .AddDbContext<CloudDbContext>(options => options.UseNpgsql(_postgres.ConnectionString,
+                                                                       npgsql => npgsql.EnableRetryOnFailure()))
+            .AddSingleton(credentials)
             .BuildServiceProvider();
 
         await using var scope = services.CreateAsyncScope();
@@ -86,6 +109,40 @@ public class DevStoreRegistrationTests : IAsyncLifetime
         await using var scope = services.CreateAsyncScope();
         return await scope.ServiceProvider.GetRequiredService<CloudDbContext>().StoreConfigs
                           .Select(s => s.StoreId).ToListAsync();
+    }
+
+    private const string ConflictingStoreId = "conflict";
+
+    // Owns the client id the profile's registration will use, so saving the profile's row fails on the
+    // unique ClientId index after its credential was created.
+    private static async Task InsertRowOwningTheClientIdOfAsync(IServiceProvider services, IndyPOS.StoreProfiles.StoreProfile profile)
+    {
+        await using var scope = services.CreateAsyncScope();
+        var db = scope.ServiceProvider.GetRequiredService<CloudDbContext>();
+        db.StoreConfigs.Add(new IndyPOS.CloudApi.Domain.CloudStoreConfig
+        {
+            StoreId = ConflictingStoreId, StoreName = "x", StoreFullName = "x",
+            ClientId = profile.CloudClientId, IsActive = true, LastModifiedAtUtc = DateTime.UtcNow
+        });
+        await db.SaveChangesAsync();
+    }
+
+    private static async Task RemoveConflictingRowAsync(IServiceProvider services)
+    {
+        await using var scope = services.CreateAsyncScope();
+        var db = scope.ServiceProvider.GetRequiredService<CloudDbContext>();
+        await db.StoreConfigs.Where(s => s.StoreId == ConflictingStoreId).ExecuteDeleteAsync();
+    }
+
+    // Like OpenIddict: a second client with the same id is refused.
+    private sealed class DuplicateRefusingCredentials : IStoreClientCredentialStore
+    {
+        private readonly HashSet<string> _clients = [];
+
+        public Task CreateAsync(string clientId, string clientSecret, string displayName, CancellationToken cancellationToken = default) =>
+            _clients.Add(clientId)
+                ? Task.CompletedTask
+                : throw new InvalidOperationException($"A client with the id '{clientId}' already exists.");
     }
 
     private static IHostEnvironment EnvironmentNamed(string name) => new HostingEnvironment { EnvironmentName = name };
