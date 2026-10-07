@@ -83,11 +83,7 @@ public partial class SalesReportPanel : UserControl
 
         IncompleteArLabel.Text = $"{salesSummary.IncompletePayLaterPaymentsTotal:N2}";
 
-        MoneyRowsPanel.SuspendLayout();
-        MoneyRowsPanel.Controls.Clear();
-        foreach (var row in MoneyRows.From(summary))
-            MoneyRowsPanel.Controls.Add(MoneyRowView.Create(row));
-        MoneyRowsPanel.ResumeLayout();
+        MoneyRowView.Replace(MoneyRowsPanel, MoneyRows.From(summary));
     }
 
     private async Task ShowReportByPeriodAsync(string periodText, TimePeriod period)
