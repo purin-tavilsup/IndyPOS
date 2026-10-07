@@ -163,7 +163,7 @@ For POS terminals connecting to a central StoreHub on another machine:
 ### "Timeout" errors
 - Increase `TimeoutSeconds` value
 - Check network connectivity to StoreHub
-- Verify StoreHub health: `curl http://<BaseUrl>/health`
+- Verify StoreHub health: `curl http://<BaseUrl>/health/ready`
 
 ### Products not loading
 - Set `AutoSyncProductsOnStartup` to `true`

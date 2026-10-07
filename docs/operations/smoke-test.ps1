@@ -149,7 +149,7 @@ Write-Host ""
 # ----- Health Checks -----
 Write-Host "--- Health Checks ---" -ForegroundColor Yellow
 
-Test-Endpoint -Name "Health endpoint" -Url "$StoreHubUrl/health"
+Test-Endpoint -Name "Health endpoint" -Url "$StoreHubUrl/health/ready"
 Test-Endpoint -Name "Ready endpoint (includes DB)" -Url "$StoreHubUrl/health/ready"
 
 # ----- PostgreSQL Connection -----

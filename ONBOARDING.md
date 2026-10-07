@@ -205,7 +205,9 @@ Registered in `src/IndyPOS.ServiceDefaults/Extensions.cs`:
 
 That is by design: the verbose endpoint sits inside an `IsDevelopment()` branch because it leaks
 implementation detail. **Use `/health/ready`** against a real install. A 404 on `/health` is the
-wrong path, not a sick service.
+wrong path, not a sick service. Since 2026-10 every caller in the code, scripts and runbooks uses
+`/health/ready`; the first-run wizard's "Test connection" used to probe `/health` and always reported a
+404.
 
 ### Store configuration (required by the till)
 

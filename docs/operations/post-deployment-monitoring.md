@@ -182,7 +182,7 @@ Invoke-RestMethod -Uri "http://localhost:5000/sync/status" -Headers @{Authorizat
 ```powershell
 # Measure response times
 $endpoints = @(
-    "/health",
+    "/health/ready",
     "/products",
     "/reports/sales-summary?fromDate=2024-01-01&toDate=2024-01-01"
 )

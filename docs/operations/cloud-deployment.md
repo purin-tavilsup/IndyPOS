@@ -140,35 +140,21 @@ release tags/manifests, then GC with untagged cleanup — is the invariant.)
 - `/health/live` — process up. This is what the container's `HEALTHCHECK` probes. Served by
   `MapHealthChecks` (`ServiceDefaults/Extensions.cs`), predicate `"live"`, and it is the only
   endpoint of the two that is actually reachable as designed.
-- `/health/ready` — **mapped twice in CloudApi, and the second registration is dead code.**
-  `MapDefaultEndpoints()` (`ServiceDefaults/Extensions.cs`) registers
-  `MapHealthChecks("/health/ready", …)` filtered to checks tagged `"ready"`; `CloudApi/Program.cs`
-  separately registers `MapGet("/health/ready", …)` that does a real `CanConnectAsync()` against the
-  database. Verified against a running container: **no `AmbiguousMatchException`.** ASP.NET Core's
-  routing prefers the endpoint carrying explicit `HttpMethodMetadata` (the `MapGet`, GET-only) over
-  the one with none (`MapHealthChecks` maps via a generic `Map`, no method constraint), so the
-  `Program.cs` handler silently wins every request — confirmed by the response body
-  (`{"status":"healthy","database":"connected"}`, not the plain-text `Healthy` that `/health/live`
-  returns) and by the server log, which reads `Executing endpoint 'HTTP: GET /health/ready'` rather
-  than `'Health checks'`.
+- `/health/ready` — readiness: one `SELECT 1` against `cloud-db`, registered by
+  `AddDatabaseReadinessCheck("cloud-db")` (`ServiceDefaults/DatabaseReadinessCheck.cs`). It answers
+  the plain text `Healthy` (200) or `Unhealthy` (503), and a hanging database answers within about
+  3 seconds. The container's `HEALTHCHECK` still probes `/health/live`: it is the cheap probe, and a
+  database outage should not get the process restarted.
 
-  **This is a CloudApi-only observation.** CloudApi's `AddServiceDefaults()` registers no check
-  tagged `"ready"` — `AddDefaultHealthChecks` only ever registers a `self` check tagged `"live"`, and
-  nothing in `CloudApi/Program.cs` adds a `"ready"`-tagged one — so even the dead `MapHealthChecks`
-  registration would have reported a false "ready" (an empty check set reports `Healthy` by
-  middleware convention) had it ever been reached. That is why the container's `HEALTHCHECK` probes
-  `/health/live` instead. Do not rely on CloudApi's `/health/ready` for anything until this is
-  resolved as its own defect — packaging is not the place to fix it.
+  **History (defect I0-C, resolved 2026-10):** until then CloudApi mapped `/health/ready` twice, once
+  through `MapDefaultEndpoints()` and once through a hand-rolled `MapGet` that answered
+  `{"status":"healthy","database":"connected"}` and returned `ex.Message` on failure. Against a
+  running container routing always picked the `MapGet`, and the tag-filtered mapping had no
+  `"ready"` check behind it at all. Both are gone; a route-table test pins one mapping.
 
-  **⚠️ This does NOT generalize to StoreHub — do not "clean up" its `/health/ready` as dead code.**
-  `src/IndyPOS.StoreHub/Program.cs` (around line 79) registers a real check:
-  `AddDbContextCheck<StoreHubDbContext>("storehub-db", tags: ["ready"])`, so StoreHub's
-  `MapHealthChecks("/health/ready", …)` mapping is genuine and does exercise the database. It is also
-  **load-bearing for the installer**: `installer/IndyPOS.Bootstrapper/Installers/HealthProbe.cs`
-  polls it to decide whether an upgrade (or a post-rollback restart) actually came back up, and
-  `src/IndyPOS.Infrastructure/Services/StoreHub/StoreHubHttpClient.cs`'s `IsHealthyAsync` polls the
-  same endpoint at runtime. Removing or "fixing" StoreHub's `/health/ready` on the strength of the
-  CloudApi finding above would break the installer's rollback gate.
+  StoreHub's `/health/ready` works the same way and is **load-bearing for the installer**:
+  `HealthProbe.cs` polls it to decide whether an upgrade (or a post-rollback restart) came back, and
+  the till's `IsHealthyAsync` polls it at runtime.
 
 ## TLS
 
