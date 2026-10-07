@@ -251,7 +251,7 @@ KEY SAFETY RULES:
 │   │                 │    │                 │    │                 │       │
 │   │ POST /sales     │    │ POST /sync      │    │ Poll Outbox     │       │
 │   │ GET /products   │    │ GET /master     │    │ Push to Cloud   │       │
-│   │ GET /health     │    │ GET /health     │    │ Retry on fail   │       │
+│   │ /health/ready   │    │ /health/ready   │    │ Retry on fail   │       │
 │   └────────┬────────┘    └────────┬────────┘    └────────┬────────┘       │
 │            │                      │                      │                 │
 │            │ ServiceDefaults      │ ServiceDefaults      │ ServiceDefaults │
@@ -312,7 +312,7 @@ ASPIRE BENEFITS:
 │                     │    │                     │    │                     │
 │ • /sales            │    │ • /sync/events      │    │ • Poll outbox       │
 │ • /products         │    │ • /master/products  │    │ • Push to cloud     │
-│ • /health           │    │ • /health           │    │ • Retry logic       │
+│ • /health/ready     │    │ • /health/ready     │    │ • Retry logic       │
 └──────────┬──────────┘    └──────────┬──────────┘    └──────────┬──────────┘
            │                          │                          │
            │                          │                          │

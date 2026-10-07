@@ -595,7 +595,13 @@ On each POS terminal:
 3. Test connection:
 
 ```powershell
-Invoke-RestMethod -Uri "http://192.168.1.100:5000/health/live"
+Invoke-RestMethod -Uri "http://localhost:5000/health/live"
+```
+
+StoreHub listens on `localhost` only (`DatabaseSetup.cs`), so run this on the till itself; a LAN address will not answer.
+
+```powershell
+Invoke-RestMethod -Uri "http://localhost:5000/health/ready"
 ```
 
 ---

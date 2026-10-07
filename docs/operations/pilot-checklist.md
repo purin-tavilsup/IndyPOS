@@ -81,7 +81,7 @@ Start-Service -Name "IndyPOS.StoreHub"
 ### Step 3: Verify Health Endpoints
 ```powershell
 # Basic health
-Invoke-RestMethod -Uri "http://localhost:5000/health" -Method GET
+Invoke-RestMethod -Uri "http://localhost:5000/health/ready" -Method GET
 
 # Ready check (includes DB connection)
 Invoke-RestMethod -Uri "http://localhost:5000/health/ready" -Method GET
@@ -93,7 +93,7 @@ Invoke-RestMethod -Uri "http://localhost:5000/health/ready" -Method GET
 ```
 
 **Verification:**
-- [ ] `/health` returns 200 OK
+- [ ] `/health/ready` returns 200 OK
 - [ ] `/health/ready` returns 200 OK
 
 ### Step 4: Migrate Data from SQLite

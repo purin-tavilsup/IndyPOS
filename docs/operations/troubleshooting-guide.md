@@ -15,7 +15,7 @@ Get-Service IndyPOS.StoreHub, postgresql* | Format-Table Name, Status
 Get-Content "C:\ProgramData\IndyPOS\logs\storehub-*.log" -Tail 500 | Select-String "ERROR|Exception"
 
 # Check health endpoints
-Invoke-RestMethod -Uri "http://localhost:5000/health" -TimeoutSec 5
+Invoke-RestMethod -Uri "http://localhost:5000/health/ready" -TimeoutSec 5
 Invoke-RestMethod -Uri "http://localhost:5000/health/ready" -TimeoutSec 5
 
 # Check PostgreSQL connectivity

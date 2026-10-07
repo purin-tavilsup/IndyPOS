@@ -30,6 +30,25 @@ breaks, and why, in a comment beside its `Map…` call.
   `Results.Forbid()`.
 - **A new sale** answers 201 with `Location: /sales/{id}`.
 
+## Health checks
+
+| Route | Environments | Answers |
+|---|---|---|
+| `/health/live` | all | `Healthy` 200 — the process is up; never touches the database |
+| `/health/ready` | all | `Healthy` 200 or `Unhealthy` 503 — one `SELECT 1` against the service's **own** database |
+| `/health` | Development only | every check, with detail (JSON) |
+
+- **Callers use `/health/ready`, never `/health`.** `/health` does not exist on an installed till.
+- **Production probes are terse.** They are anonymous, so they say only Healthy or Unhealthy.
+- **StoreHub's readiness never involves the cloud**, and nothing makes StoreHub wait for CloudApi.
+- **A probe is bounded.**
+  - The check's connection string sets Npgsql `Timeout=3`, the only thing that can end a hanging
+    connect. A hanging database answers 503 in about 3 seconds.
+  - A 5-second request timeout (504 if it ever fires) is a backstop.
+- **One registration helper:** `AddDatabaseReadinessCheck(connectionName)` in `ServiceDefaults`. Aspire's
+  own database check is switched off, so there is exactly one.
+- Defect I0-C, CloudApi mapping `/health/ready` twice, was resolved by this convention (2026-10).
+
 ## Renaming or removing a route after go-live
 
 Never rename or remove a shipped route in one step:
