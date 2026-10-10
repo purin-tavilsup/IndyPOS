@@ -115,6 +115,23 @@ public class UpdateProductCommandHandlerTests
         products.Verify(r => r.UpdateAsync(It.IsAny<Product>(), It.IsAny<CancellationToken>()), Times.Never);
     }
 
+    // The command carries no trackability, so an edit must keep the product's own. A fresh Product
+    // defaults to trackable, which would make a service or เบ็ดเตล็ด move stock once the repository
+    // persists the flag.
+    [Fact]
+    public async Task HandleAsync_WithAnUntrackedProduct_KeepsItUntracked()
+    {
+        var products = NewProductsMock();
+        var untracked = ExistingProduct();
+        untracked.IsTrackable = false;
+        products.Setup(r => r.GetByIdAsync(ProductId, It.IsAny<CancellationToken>())).ReturnsAsync(untracked);
+        var sut = NewSut(products, StoreType.Minimart);
+
+        await sut.HandleAsync(Command(ProductCategoryCodes.Beverages));
+
+        products.Verify(r => r.UpdateAsync(It.Is<Product>(u => !u.IsTrackable), It.IsAny<CancellationToken>()), Times.Once);
+    }
+
     [Fact]
     public async Task HandleAsync_HardwareCategory_OnGeneralHardwareStore_ShouldSucceed()
     {

@@ -87,6 +87,7 @@ public class UpdateProductCommandHandler : ICommandHandler<UpdateProductCommand,
             GroupPrice = command.GroupPrice,
             GroupPriceQuantity = command.GroupPriceQuantity,
             IsActive = existingProduct.IsActive,
+            IsTrackable = existingProduct.IsTrackable,
             CreatedUtc = existingProduct.CreatedUtc,
             LastModifiedUtc = DateTime.UtcNow
         };
