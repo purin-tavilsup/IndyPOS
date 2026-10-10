@@ -47,10 +47,12 @@ public class StoreHubConnectionCheckTests
                      .Be(StoreHubConnectionStatus.Unreachable);
     }
 
+    // The stub never answers, so only the client's timeout can end the request. A stub that answered
+    // 200 after a delay raced the timeout on a loaded CI runner and once came back Healthy.
     [Fact]
     public async Task CheckAsync_WhenStoreHubDoesNotAnswerInTime_ReturnsTimedOut()
     {
-        var check = CheckWith(new StubHandler(_ => new HttpResponseMessage(HttpStatusCode.OK), delay: TimeSpan.FromSeconds(5)),
+        var check = CheckWith(new StubHandler(_ => new HttpResponseMessage(HttpStatusCode.OK), delay: Timeout.InfiniteTimeSpan),
                               ShortTimeout);
 
         var result = await check.CheckAsync();
