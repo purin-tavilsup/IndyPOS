@@ -1,9 +1,7 @@
 ﻿using IndyPOS.Application.Common;
 using IndyPOS.Windows.Forms.Interfaces;
 using IndyPOS.Windows.Forms.UI.Errors;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
 using Serilog;
 using Serilog.Events;
 using Serilog.Formatting.Compact;
@@ -56,7 +54,8 @@ internal static class Program
 
 			Log.Information("Starting application");
 
-			var host = CreateHost();
+			var host = TillHost.CreateBuilder()
+							   .Build();
 
 			host.Services
 				.GetRequiredService<IMachine>()
@@ -89,36 +88,6 @@ internal static class Program
 											  .Enrich.FromLogContext()
 											  .WriteTo.File(new CompactJsonFormatter(), logFilePath, rollingInterval: RollingInterval.Day)
 											  .CreateLogger();
-	}
-
-	private static IHost CreateHost()
-	{
-		return Host.CreateDefaultBuilder()
-				   .UseSerilog()
-				   .ConfigureAppConfiguration(BuildAppConfiguration)
-				   .ConfigureServices(AddServices)
-				   .Build();
-	}
-
-	private static void BuildAppConfiguration(HostBuilderContext context, IConfigurationBuilder configBuilder)
-	{
-		// Base on the executable's own directory, not the current working
-		// directory — the app can be launched with an arbitrary CWD (the
-		// installer's Finish button inherits the bootstrapper's CWD), and
-		// appsettings.json always ships next to the exe.
-		// Environment variables are added last so the Aspire AppHost can override
-		// StoreHub__BaseUrl in dev without changing the shipped appsettings.json.
-		configBuilder.SetBasePath(AppContext.BaseDirectory)
-					 .AddJsonFile("appsettings.json")
-					 .AddEnvironmentVariables();
-	}
-
-	private static void AddServices(HostBuilderContext context, IServiceCollection services)
-	{
-		services.AddApplicationServices()
-				.AddUIServices()
-				.AddInfrastructureServices(context.Configuration)
-				.AddStoreHubClientServices(context.Configuration); // Epic G: StoreHub integration
 	}
 
 	private static void ClosePreviousProcesses()
