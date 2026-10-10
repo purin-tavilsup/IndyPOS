@@ -113,6 +113,7 @@ public class ProductRepository : IProductRepository
         existing.GroupPrice = product.GroupPrice;
         existing.GroupPriceQuantity = product.GroupPriceQuantity;
         existing.IsActive = product.IsActive;
+        existing.IsTrackable = product.IsTrackable;
         existing.LastModifiedUtc = DateTime.UtcNow;
 
         await _dbContext.SaveChangesAsync(cancellationToken);

@@ -34,9 +34,6 @@ public partial class SalePanel : UserControl
     private bool _storeFeaturesApplied;
     private bool _storeFeaturesErrorShown;
 
-    private const string GeneralGoodsBarcode = "2001000000012";
-    private const string HardwareBarcode = "2005000000027";
-
     private enum SaleInvoiceColumn
     {
         Priority,
@@ -439,12 +436,12 @@ public partial class SalePanel : UserControl
 
     private async void AddGeneralGoodsProductButton_Click(object sender, EventArgs e)
     {
-        await _addInvoiceProductForm.ShowDialog(GeneralGoodsBarcode);
+        await _addInvoiceProductForm.ShowDialog(TemplateProductBarcodes.GeneralGoods);
     }
 
     private async void AddHardwareProductButton_Click(object sender, EventArgs e)
     {
-        await _addInvoiceProductForm.ShowDialog(HardwareBarcode);
+        await _addInvoiceProductForm.ShowDialog(TemplateProductBarcodes.Hardware);
     }
 
     private async void DeliveryServiceButton_Click(object sender, EventArgs e)

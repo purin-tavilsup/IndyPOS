@@ -1,4 +1,5 @@
 using FluentAssertions;
+using IndyPOS.Domain.ValueObjects;
 using IndyPOS.Infrastructure.Persistence.StoreHub;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -46,6 +47,34 @@ public class DevSeedTests(StoreProfileHosts hosts)
                                                  .ToListAsync();
         opening.Should()
                .Equal(cement.InitialStock);
+    }
+
+    // A dev database can already hold a template barcode as a trackable product (added by hand while the
+    // seed lacked it). The refresh must make it untracked, or every เบ็ดเตล็ด sale moves stock below zero.
+    [Fact]
+    public async Task DevSeed_WithATemplateProductSavedAsTrackable_MakesItUntracked()
+    {
+        var services = hosts.ServicesFor("MimyMart");
+        await SetTrackableAsync(services, TemplateProductBarcodes.GeneralGoods, isTrackable: true);
+
+        await StoreProfileHosts.SeedLikeDevelopmentAsync(services);
+
+        await using var scope = services.CreateAsyncScope();
+        var db = scope.ServiceProvider.GetRequiredService<StoreHubDbContext>();
+        var isTrackable = await db.Products.Where(p => p.Barcode == TemplateProductBarcodes.GeneralGoods)
+                                           .Select(p => p.IsTrackable)
+                                           .SingleAsync();
+        isTrackable.Should()
+                   .BeFalse();
+    }
+
+    private static async Task SetTrackableAsync(IServiceProvider services, string barcode, bool isTrackable)
+    {
+        await StoreProfileHosts.SeedLikeDevelopmentAsync(services);
+        await using var scope = services.CreateAsyncScope();
+        var db = scope.ServiceProvider.GetRequiredService<StoreHubDbContext>();
+        await db.Products.Where(p => p.Barcode == barcode)
+                         .ExecuteUpdateAsync(set => set.SetProperty(p => p.IsTrackable, isTrackable));
     }
 
     private static async Task<Guid> DeleteOpeningStockOfAsync(IServiceProvider services, string barcode)
