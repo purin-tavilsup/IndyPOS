@@ -92,7 +92,6 @@ builder.Services.AddSyncWorker();
 builder.Services.AddStoreHubAuthServices(builder.Configuration);
 
 // Register StoreHub CQRS handlers manually
-// Note: We don't use AddApplicationServices() as it registers ALL handlers including legacy ones
 builder.Services.AddTransient<IQueryHandler<GetProductsQuery, IReadOnlyList<ProductDto>>, GetProductsQueryHandler>();
 builder.Services.AddTransient<IQueryHandler<GetProductStockQuery, IReadOnlyList<ProductStockDto>>, GetProductStockQueryHandler>();
 builder.Services.AddTransient<ICommandHandler<CompleteSaleCommand, CompleteSaleResponse>, CompleteSaleCommandHandler>();
