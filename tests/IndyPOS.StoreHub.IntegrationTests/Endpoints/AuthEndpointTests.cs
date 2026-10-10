@@ -1,4 +1,4 @@
-using System.Net;
+﻿using System.Net;
 using System.Net.Http.Json;
 using FluentAssertions;
 using IndyPOS.Application.Common.Enums;
@@ -114,6 +114,20 @@ public class AuthEndpointTests : IntegrationTestBase
         response.StatusCode.Should().Be(HttpStatusCode.OK);
     }
 
+    // JwtBearer maps the token's unique_name claim to ClaimTypes.Name on the way in, so a lookup by the
+    // raw claim name finds nothing and the endpoint answered username: null.
+    [Fact]
+    public async Task GetMe_WithValidToken_ReturnsTheUsername()
+    {
+        var username = $"meuser_{Guid.NewGuid():N}";
+        await AuthenticateAsAsync(username);
+
+        var me = await Client.GetFromJsonAsync<MeBody>("/auth/me", JsonOptions);
+
+        me!.Username.Should()
+                    .Be(username);
+    }
+
     [Fact]
     public async Task GetMe_WithoutToken_ReturnsUnauthorized()
     {
@@ -180,4 +194,6 @@ public class AuthEndpointTests : IntegrationTestBase
         var result = await response.Content.ReadFromJsonAsync<LoginResponse>(JsonOptions);
         result!.User!.RoleId.Should().Be((int)UserRole.SystemAdmin);
     }
+
+    private sealed record MeBody(string? Username);
 }
