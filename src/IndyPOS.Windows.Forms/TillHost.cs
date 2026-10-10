@@ -35,10 +35,11 @@ public static class TillHost
 					 .AddEnvironmentVariables();
 	}
 
+	// No Application handler scan: those handlers serve StoreHub and the cloud, and their repositories
+	// are registered only there. The till talks to StoreHub over HTTP and resolves none of them.
 	private static void AddServices(HostBuilderContext context, IServiceCollection services)
 	{
-		services.AddApplicationServices()
-				.AddUIServices()
+		services.AddUIServices()
 				.AddInfrastructureServices(context.Configuration)
 				.AddStoreHubClientServices(context.Configuration); // Epic G: StoreHub integration
 	}
