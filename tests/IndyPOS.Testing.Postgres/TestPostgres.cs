@@ -23,15 +23,20 @@ public sealed class TestPostgres : IAsyncDisposable
 
     private const string DatabasePrefix = "indypos_test_";
 
+    // On CI four suites start at once against the runner's one PostgreSQL, and on Windows every new
+    // connection starts a server process. Npgsql's 15 s default once ran out there before the first
+    // CREATE DATABASE, failing a whole suite on a healthy server.
+    private const int ConnectTimeoutSeconds = 60;
+
     private readonly PostgreSqlContainer? _container;
     private readonly string _adminConnectionString;
     private readonly List<string> _createdDatabases = [];
 
     private TestPostgres(string adminConnectionString, PostgreSqlContainer? container)
     {
-        _adminConnectionString = adminConnectionString;
+        _adminConnectionString = WithConnectHeadroom(adminConnectionString);
         _container = container;
-        ConnectionString = adminConnectionString;
+        ConnectionString = _adminConnectionString;
     }
 
     /// <summary>Connection string of this instance's own empty database.</summary>
@@ -114,6 +119,16 @@ public sealed class TestPostgres : IAsyncDisposable
         await container.StartAsync(cancellationToken);
 
         return new TestPostgres(container.GetConnectionString(), container);
+    }
+
+    // Every connection string this hands out derives from the admin one, so they all inherit it. A
+    // longer timeout set in INDYPOS_TEST_POSTGRES is kept.
+    private static string WithConnectHeadroom(string connectionString)
+    {
+        var builder = new NpgsqlConnectionStringBuilder(connectionString);
+        builder.Timeout = Math.Max(builder.Timeout, ConnectTimeoutSeconds);
+
+        return builder.ConnectionString;
     }
 
     private async Task ExecuteAdminAsync(string sql, CancellationToken cancellationToken)
