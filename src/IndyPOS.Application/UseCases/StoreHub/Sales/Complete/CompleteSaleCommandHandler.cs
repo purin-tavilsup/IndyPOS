@@ -39,6 +39,8 @@ public class CompleteSaleCommandHandler : ICommandHandler<CompleteSaleCommand, C
         CompleteSaleCommand command,
         CancellationToken cancellationToken = default)
     {
+        SaleRequestRules.EnsureWellFormed(command.Lines, command.Payments);
+
         _logger.LogDebug(
             "Processing sale: StoreId={StoreId}, UserId={UserId}, Lines={LineCount}, Payments={PaymentCount}",
             command.StoreId, command.UserId, command.Lines.Count, command.Payments.Count);

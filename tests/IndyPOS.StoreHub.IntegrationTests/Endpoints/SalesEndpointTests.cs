@@ -292,6 +292,68 @@ public class SalesEndpointTests : IntegrationTestBase
         result!.TotalAmount.Should().Be(0m);
     }
 
+    // System.Text.Json leaves a list the body omits as null, and the handler dereferenced it: a 500
+    // instead of the Thai 400 every other refused sale gets. Only null is refused; an empty list is a
+    // zero sale, pinned above.
+    private static readonly object CashPayment = new { method = "Cash", amount = 0m };
+
+    [Fact]
+    public async Task CompleteSale_WithoutLines_ReturnsBadRequest()
+    {
+        await AuthenticateAsCashierAsync();
+
+        var response = await Client.PostAsJsonAsync("/sales", new { payments = new[] { CashPayment } });
+
+        response.StatusCode.Should()
+                           .Be(HttpStatusCode.BadRequest);
+    }
+
+    [Fact]
+    public async Task CompleteSale_WithoutLines_ReturnsTheThaiReason()
+    {
+        await AuthenticateAsCashierAsync();
+
+        var response = await Client.PostAsJsonAsync("/sales", new { payments = new[] { CashPayment } });
+
+        (await response.Content.ReadFromJsonAsync<ErrorBody>(JsonOptions))!.Error.Should()
+                                                                          .Be("ข้อมูลรายการสินค้าไม่ถูกต้อง");
+    }
+
+    [Fact]
+    public async Task CompleteSale_WithANullLine_ReturnsBadRequest()
+    {
+        await AuthenticateAsCashierAsync();
+
+        var response = await Client.PostAsJsonAsync("/sales",
+                                                    new { lines = new object?[] { null }, payments = new[] { CashPayment } });
+
+        response.StatusCode.Should()
+                           .Be(HttpStatusCode.BadRequest);
+    }
+
+    [Fact]
+    public async Task CompleteSale_WithoutPayments_ReturnsBadRequest()
+    {
+        await AuthenticateAsCashierAsync();
+
+        var response = await Client.PostAsJsonAsync("/sales", new { lines = Array.Empty<object>() });
+
+        response.StatusCode.Should()
+                           .Be(HttpStatusCode.BadRequest);
+    }
+
+    [Fact]
+    public async Task CompleteSale_WithANullPayment_ReturnsBadRequest()
+    {
+        await AuthenticateAsCashierAsync();
+
+        var response = await Client.PostAsJsonAsync("/sales",
+                                                    new { lines = Array.Empty<object>(), payments = new object?[] { null } });
+
+        response.StatusCode.Should()
+                           .Be(HttpStatusCode.BadRequest);
+    }
+
     [Fact]
     public async Task CompleteSale_AsManager_Succeeds()
     {
@@ -377,4 +439,6 @@ public class SalesEndpointTests : IntegrationTestBase
                       .InvoiceNumber.Should()
                                     .Be(result.InvoiceNumber);
     }
+
+    private sealed record ErrorBody(string Error);
 }

@@ -379,6 +379,22 @@ public class CompleteSaleCommandHandlerTests
         capturedLines![0].ProductName.Should().Be("Special Product Name");
     }
 
+    // The body omitted "lines": the handler used to dereference it before any rule ran.
+    [Theory]
+    [CustomAutoData]
+    public async Task HandleAsync_WithNullLines_ThrowsSaleValidationException(CompleteSaleCommandHandler sut)
+    {
+        var command = new CompleteSaleCommand(StoreId: "STORE-001",
+                                              UserId: Guid.NewGuid(),
+                                              Lines: null!,
+                                              Payments: [new SalePaymentRequest(Method: "Cash", Amount: 0m)]);
+
+        var act = () => sut.HandleAsync(command);
+
+        await act.Should()
+                 .ThrowAsync<SaleValidationException>();
+    }
+
     [Theory]
     [CustomAutoData]
     public async Task HandleAsync_WhenPaymentMethodNotOfferable_ShouldReject(
