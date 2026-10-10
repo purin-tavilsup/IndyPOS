@@ -13,6 +13,15 @@ public static class StoreProfiles
     /// </summary>
     public const string DevCloudClientSecret = "dev-store-secret-not-for-production";
 
+    // Open-price products behind the sale panel's เบ็ดเตล็ด and ฮาร์ดแวร์ buttons, as the real stores have
+    // them: untracked, price 0, because the cashier types the price. Without one the button only shows
+    // ไม่พบสินค้าในระบบ. Declared before the profiles, which read them during static initialisation.
+    private static readonly StoreProfileProduct GeneralGoodsTemplate =
+        new(TemplateProductBarcodes.GeneralGoods, "สินค้าเบ็ดเตล็ด", "Miscellaneous", 0m, 0, IsTrackable: false);
+
+    private static readonly StoreProfileProduct HardwareTemplate =
+        new(TemplateProductBarcodes.Hardware, "สินค้าฮาร์ดแวร์", "GeneralMaterials", 0m, 0, IsTrackable: false);
+
     public static StoreProfile GeneralHardware { get; } = new(
         "GeneralHardware", StoreType.GeneralHardware, "DEV-GENERALHARDWARE",
         "ร้านวัสดุ (Dev)", "ร้านวัสดุก่อสร้าง ทดสอบ", "123 ถนนทดสอบ", "เมือง 10000", "000-000-0001",
@@ -24,7 +33,9 @@ public static class StoreProfiles
             new("8850100000035", "สายไฟ VAF 2x1.5 (เมตร)", "ElectricalMaterials", 18m, 300),
             new("8850100000042", "ตะปู 2 นิ้ว (กก.)", "GeneralMaterials", 55m, 50),
             new("8850100000059", "ปุ๋ยยูเรีย 50 กก.", "Agriculture", 890m, 20),
-            new("8850000000001", "น้ำดื่ม 600ml", "Beverages", 7m, 100)
+            new("8850000000001", "น้ำดื่ม 600ml", "Beverages", 7m, 100),
+            GeneralGoodsTemplate,
+            HardwareTemplate
         ],
         PaymentMethods: ["Cash", "MoneyTransfer", "WelfareCard", "PayLater", "FiftyFifty"]);
 
@@ -39,7 +50,8 @@ public static class StoreProfiles
             new("8850000000003", "มาม่าหมูสับ", "Food", 6m, 200),
             new("8850000000004", "ขนมปังปี๊บ", "Snacks", 20m, 30),
             new("8850000000005", "นมจืด 200ml", "Beverages", 12m, 60),
-            new("8850200000016", "ผงซักฟอก 800 ก.", "Household", 45m, 25)
+            new("8850200000016", "ผงซักฟอก 800 ก.", "Household", 45m, 25),
+            GeneralGoodsTemplate
         ],
         PaymentMethods: ["Cash", "MoneyTransfer"]);
 
@@ -54,7 +66,8 @@ public static class StoreProfiles
             new("8850300000013", "สมุดปกอ่อน", "BooksAndNotebooks", 20m, 50),
             new("8850300000020", "ปากกาลูกลื่น", "Stationery", 10m, 100),
             new("8850300000037", "ตุ๊กตาหมี", "Toys", 159m, 12),
-            new("8850300000044", "สายชาร์จ USB-C", "MobileAccessories", 99m, 30)
+            new("8850300000044", "สายชาร์จ USB-C", "MobileAccessories", 99m, 30),
+            GeneralGoodsTemplate
         ],
         PaymentMethods: ["Cash", "MoneyTransfer", "WelfareCard", "FiftyFifty"]);
 

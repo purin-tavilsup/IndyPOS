@@ -1,6 +1,9 @@
 using FluentAssertions;
+using IndyPOS.Application.Common.Constants;
 using IndyPOS.Domain.Enums;
+using IndyPOS.Domain.ValueObjects;
 using IndyPOS.Infrastructure.Persistence.StoreHub.Seeders;
+using IndyPOS.StoreProfiles;
 using Xunit;
 using Profiles = IndyPOS.StoreProfiles.StoreProfiles;
 
@@ -72,10 +75,38 @@ public class StoreProfilesTests
     [Fact]
     public void MimyShop_ServiceProducts_UseTheRealBarcodesAndMoveNoStock()
     {
-        var services = Profiles.Find("MimyShop")!.Products.Where(p => !p.IsTrackable);
+        var services = Profiles.Find("MimyShop")!.Products.Where(p => p.Category == ProductCategoryCodes.Services);
 
-        services.Select(p => p.Barcode).Should()
-                                       .BeEquivalentTo(["2002500000014", "2002500000021"]);
+        services.Select(p => (p.Barcode, p.IsTrackable)).Should()
+                                                        .BeEquivalentTo([("2002500000014", false), ("2002500000021", false)]);
+    }
+
+    // The sale panel's เบ็ดเตล็ด button opens this product; without it the dev till shows ไม่พบสินค้าในระบบ.
+    // Every real store has it, untracked, at price 0: the cashier types the price.
+    [Theory]
+    [InlineData("GeneralHardware")]
+    [InlineData("MimyMart")]
+    [InlineData("MimyShop")]
+    public void Products_ForEachStore_IncludeTheGeneralGoodsTemplate(string key)
+    {
+        var template = Profiles.Find(key)!.Products.SingleOrDefault(p => p.Barcode == TemplateProductBarcodes.GeneralGoods);
+
+        template.Should()
+                .Be(new StoreProfileProduct(TemplateProductBarcodes.GeneralGoods, "สินค้าเบ็ดเตล็ด",
+                                            ProductCategoryCodes.Miscellaneous, UnitPrice: 0m, InitialStock: 0,
+                                            IsTrackable: false));
+    }
+
+    // Behind GeneralHardware's ฮาร์ดแวร์ button. Its legacy category was วัสดุและอุปกรณ์ทั่วไป.
+    [Fact]
+    public void GeneralHardware_Products_IncludeTheHardwareTemplate()
+    {
+        var template = Profiles.Find("GeneralHardware")!.Products.SingleOrDefault(p => p.Barcode == TemplateProductBarcodes.Hardware);
+
+        template.Should()
+                .Be(new StoreProfileProduct(TemplateProductBarcodes.Hardware, "สินค้าฮาร์ดแวร์",
+                                            ProductCategoryCodes.GeneralMaterials, UnitPrice: 0m, InitialStock: 0,
+                                            IsTrackable: false));
     }
 
     // A misspelt code would leave that method switched off with no error.
