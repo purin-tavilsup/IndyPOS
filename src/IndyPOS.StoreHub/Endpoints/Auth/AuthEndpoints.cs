@@ -49,7 +49,7 @@ public static class AuthEndpoints
             return Results.Ok(new
             {
                 userId = user.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? user.FindFirst("sub")?.Value,
-                username = user.FindFirst("unique_name")?.Value,
+                username = user.FindFirst(ClaimTypes.Name)?.Value ?? user.FindFirst("unique_name")?.Value,
                 roleId = user.FindFirst("role_id")?.Value,
                 storeId = user.FindFirst("store_id")?.Value,
                 firstName = user.FindFirst("first_name")?.Value,
