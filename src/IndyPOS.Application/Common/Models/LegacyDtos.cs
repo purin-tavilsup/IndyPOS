@@ -79,23 +79,6 @@ public record PayLaterPaymentDto(
 }
 
 /// <summary>
-/// Implementation of IInvoiceInfo for completed sales.
-/// Used by StoreHubSaleService and receipt printing.
-/// </summary>
-public class InvoiceInfo : IInvoiceInfo
-{
-    public int Id { get; init; }
-    public Guid? StoreHubInvoiceId { get; init; }
-    public IList<Product> Products { get; init; } = new List<Product>();
-    public IList<Payment> Payments { get; init; } = new List<Payment>();
-    public bool IsRefundInvoice { get; init; }
-    public decimal InvoiceTotal { get; init; }
-    public decimal PaymentTotal { get; init; }
-    public decimal Changes { get; init; }
-    public bool HasPayLaterPayment { get; init; }
-}
-
-/// <summary>
 /// Legacy user DTO for user management panels.
 /// Note: User management is disabled in StoreHub mode.
 /// </summary>

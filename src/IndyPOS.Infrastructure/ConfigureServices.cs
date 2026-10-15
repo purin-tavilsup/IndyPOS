@@ -5,6 +5,7 @@ using IndyPOS.Application.Abstractions.StoreHub.Repositories;
 using IndyPOS.Application.Abstractions.StoreHub.Services;
 using IndyPOS.Application.Common.Interfaces;
 using IndyPOS.Application.Common.Models;
+using IndyPOS.Application.Common.Receipts;
 using IndyPOS.Application.UseCases.StoreHub.PaymentMethods;
 using IndyPOS.Infrastructure.Constants;
 using IndyPOS.Infrastructure.Persistence.StoreHub.Repositories;
@@ -207,7 +208,9 @@ public static class ConfigureServices
 		services.AddSingleton<IInventoryProductService, StoreHubInventoryProductService>();
 
 		// StoreHub service implementations
+		services.AddSingleton(sp => new ReceiptDocumentFactory(sp.GetRequiredService<IStoreIdentityService>().TimeZone));
 		services.AddSingleton<ISaleService, StoreHubSaleService>();
+		services.AddSingleton<IPaymentMethodNames, StoreHubPaymentMethodNames>();
 		services.AddSingleton<IUserLogInService, StoreHubUserLogInService>();
 		services.AddSingleton<IFirstLoginCoordinator, FirstLoginCoordinator>();
 		services.AddSingleton<IPayLaterService, StoreHubPayLaterService>();
