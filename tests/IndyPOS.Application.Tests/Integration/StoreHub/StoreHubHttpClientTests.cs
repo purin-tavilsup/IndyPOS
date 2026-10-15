@@ -124,6 +124,59 @@ public class StoreHubHttpClientTests
                 .Be(new StoreFeaturesDto(PayLaterEnabled: true, MultipleProductTypesEnabled: true, ServiceProductsEnabled: false));
     }
 
+    private const string ServerThaiError = "ดูได้เฉพาะบิลของวันนี้";
+
+    [Fact]
+    public async Task GetSalesSummaryAsync_WhenTheErrorBodyIsNotJson_ThrowsTheStatusMessage()
+    {
+        _sut.SetAuthToken("valid-token");
+        SetupRawResponse(HttpStatusCode.BadGateway, "<html>proxy error</html>");
+
+        var act = () => _sut.GetSalesSummaryAsync(new DateOnly(2026, 10, 1), new DateOnly(2026, 10, 15));
+
+        (await act.Should()
+                  .ThrowAsync<StoreHubClientException>()).Which.Message.Should()
+                                                           .Contain("502");
+    }
+
+    [Fact]
+    public async Task GetSalesSummaryAsync_WhenTheServerSendsAnError_ThrowsItsMessage()
+    {
+        _sut.SetAuthToken("valid-token");
+        SetupMockResponse(HttpStatusCode.Forbidden, new { error = ServerThaiError });
+
+        var act = () => _sut.GetSalesSummaryAsync(new DateOnly(2026, 10, 1), new DateOnly(2026, 10, 15));
+
+        (await act.Should()
+                  .ThrowAsync<StoreHubClientException>()).Which.Message.Should()
+                                                           .Be(ServerThaiError);
+    }
+
+    [Fact]
+    public async Task GetSalesSummaryAsync_WhenTheServerSendsAnError_ThrowsAnApplicationStoreHubException()
+    {
+        _sut.SetAuthToken("valid-token");
+        SetupMockResponse(HttpStatusCode.BadRequest, new { error = ServerThaiError });
+
+        var act = () => _sut.GetSalesSummaryAsync(new DateOnly(2026, 10, 1), new DateOnly(2026, 10, 15));
+
+        await act.Should()
+                 .ThrowAsync<IndyPOS.Application.Common.Exceptions.StoreHubException>();
+    }
+
+    private void SetupRawResponse(HttpStatusCode statusCode, string body)
+    {
+        _mockHandler.Protected()
+            .Setup<Task<HttpResponseMessage>>(
+                "SendAsync",
+                ItExpr.IsAny<HttpRequestMessage>(),
+                ItExpr.IsAny<CancellationToken>())
+            .ReturnsAsync(() => new HttpResponseMessage(statusCode)
+            {
+                Content = new StringContent(body, System.Text.Encoding.UTF8, "text/html")
+            });
+    }
+
     [Fact]
     public async Task GetLegacySalesSummaryAsync_WhenForbidden_ThrowsPermissionError()
     {
