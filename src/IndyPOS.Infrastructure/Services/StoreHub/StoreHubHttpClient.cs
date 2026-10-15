@@ -553,7 +553,7 @@ public class StoreHubHttpClient : IStoreHubClient
             response.StatusCode,
             responseBody);
 
-        var message = response.StatusCode switch
+        var message = ServerError(responseBody) ?? response.StatusCode switch
         {
             HttpStatusCode.Unauthorized => "StoreHub session expired. Please log in again.",
             HttpStatusCode.Forbidden => "You do not have permission to perform this action.",
@@ -574,6 +574,32 @@ public class StoreHubHttpClient : IStoreHubClient
                 : await response.Content.ReadAsStringAsync(cancellationToken);
         }
         catch
+        {
+            return null;
+        }
+    }
+
+    /// <summary>
+    /// StoreHub's Thai reason, from the <c>{ error }</c> body every route writes; null for any other
+    /// body (a proxy page, an empty 500), so the status message stands in.
+    /// </summary>
+    private static string? ServerError(string? responseBody)
+    {
+        if (string.IsNullOrWhiteSpace(responseBody))
+            return null;
+
+        try
+        {
+            using var document = JsonDocument.Parse(responseBody);
+
+            return document.RootElement.ValueKind == JsonValueKind.Object
+                   && document.RootElement.TryGetProperty("error", out var error)
+                   && error.ValueKind == JsonValueKind.String
+                   && !string.IsNullOrWhiteSpace(error.GetString())
+                ? error.GetString()
+                : null;
+        }
+        catch (JsonException)
         {
             return null;
         }
