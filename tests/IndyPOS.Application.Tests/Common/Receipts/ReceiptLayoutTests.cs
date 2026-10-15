@@ -91,7 +91,7 @@ public class ReceiptLayoutTests
         var rows = ReceiptLayout.Rows(Header, Copy(), Invariant);
 
         Texts(rows).Should()
-                   .Contain("พิมพ์ซ้ำ 16/10/2026 09:05 โดย Somchai Manager");
+                   .ContainInConsecutiveOrder("พิมพ์ซ้ำ 16/10/2026 09:05", "โดย Somchai Manager");
     }
 
     [Fact]

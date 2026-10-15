@@ -3,6 +3,7 @@ using IndyPOS.Application.Common.Exceptions;
 using IndyPOS.Application.Common.Extensions;
 using IndyPOS.Application.Common.Interfaces;
 using IndyPOS.Application.Common.Models;
+using IndyPOS.Application.Common.Receipts;
 using IndyPOS.Application.Events;
 using IndyPOS.Application.UseCases.InventoryProducts;
 using IndyPOS.Application.UseCases.StoreHub.Products;
@@ -21,6 +22,8 @@ public class StoreHubSaleService : ISaleService
     private readonly IStoreHubClient _storeHubClient;
     private readonly IProductCacheService _productCache;
     private readonly IEventAggregator _eventAggregator;
+    private readonly IPaymentMethodNames _paymentMethodNames;
+    private readonly ReceiptDocumentFactory _receiptFactory;
     private readonly ILogger<StoreHubSaleService> _logger;
     private ILoggedInUser? _loggedInUser;
 
@@ -31,11 +34,15 @@ public class StoreHubSaleService : ISaleService
         IStoreHubClient storeHubClient,
         IProductCacheService productCache,
         IEventAggregator eventAggregator,
+        IPaymentMethodNames paymentMethodNames,
+        ReceiptDocumentFactory receiptFactory,
         ILogger<StoreHubSaleService> logger)
     {
         _storeHubClient = storeHubClient;
         _productCache = productCache;
         _eventAggregator = eventAggregator;
+        _paymentMethodNames = paymentMethodNames;
+        _receiptFactory = receiptFactory;
         _logger = logger;
 
         SubscribeEvents();
@@ -292,7 +299,7 @@ public class StoreHubSaleService : ISaleService
         return messages;
     }
 
-    public async Task<IInvoiceInfo> CompleteSaleAsync()
+    public async Task<ReceiptDocument> CompleteSaleAsync()
     {
         if (_loggedInUser is null)
             throw new UserNotLoggedInException("User has not logged in.");
@@ -312,10 +319,7 @@ public class StoreHubSaleService : ISaleService
 
         _logger.LogInformation("Sale completed. InvoiceId: {InvoiceId}", response.InvoiceId);
 
-        // Create invoice info for receipt printing
-        var invoiceInfo = CreateInvoiceInfo(response);
-
-        return invoiceInfo;
+        return _receiptFactory.ForSale(response, await CreateCompletedSaleAsync());
     }
 
     private CompleteSaleRequest BuildCompleteSaleRequest()
@@ -337,24 +341,24 @@ public class StoreHubSaleService : ISaleService
             Payments: payments);
     }
 
-    private IInvoiceInfo CreateInvoiceInfo(CompleteSaleResponse response)
+    private async Task<CompletedSale> CreateCompletedSaleAsync()
     {
-        var paymentTotal = CalculatePaymentTotal();
-        var isRefundInvoice = response.TotalAmount < 0;
+        var names = await _paymentMethodNames.GetAsync();
 
-        return new InvoiceInfo
-        {
-            Id = 0, // Legacy ID not used, but kept for compatibility
-            StoreHubInvoiceId = response.InvoiceId,
-            Products = Products,
-            Payments = Payments,
-            InvoiceTotal = response.TotalAmount,
-            PaymentTotal = paymentTotal,
-            Changes = CalculateChanges(),
-            IsRefundInvoice = isRefundInvoice,
-            HasPayLaterPayment = Payments.HasPayLaterPayment()
-        };
+        var items = Products.Select(p => new ReceiptItem(
+            p.Description, p.Note.HasValue() ? p.Note : null, p.Quantity, p.UnitPrice, p.GetTotal())).ToList();
+
+        // Every v4 payment carries a catalog code; an unknown one prints as the code, never throws.
+        var payments = Payments.Select(p => new ReceiptPayment(
+            names.GetValueOrDefault(p.Method ?? string.Empty, p.Method ?? string.Empty),
+            p.Amount,
+            p.Note.HasValue() ? p.Note : null)).ToList();
+
+        return new CompletedSale(CashierName(), items, payments, CalculateChanges());
     }
+
+    // CompleteSaleAsync has already refused a sale with no logged-in user.
+    private string CashierName() => $"{_loggedInUser!.FirstName} {_loggedInUser.LastName}";
 
     #endregion
 }

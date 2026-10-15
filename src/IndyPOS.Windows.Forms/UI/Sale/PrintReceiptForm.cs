@@ -1,4 +1,5 @@
 ﻿using IndyPOS.Application.Common.Interfaces;
+using IndyPOS.Application.Common.Receipts;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 
@@ -8,7 +9,7 @@ namespace IndyPOS.Windows.Forms.UI.Sale;
 public partial class PrintReceiptForm : Form
 {
 	private readonly IReceiptPrinterService _receiptPrinterService;
-	private IInvoiceInfo? _invoiceInfo;
+	private ReceiptDocument? _document;
 
 	public PrintReceiptForm(IReceiptPrinterService receiptPrinterService)
 	{
@@ -17,9 +18,9 @@ public partial class PrintReceiptForm : Form
 		InitializeComponent();
 	}
 
-	public void ShowDialog(IInvoiceInfo invoiceInfo)
+	public void ShowDialog(ReceiptDocument document)
 	{
-		_invoiceInfo = invoiceInfo;
+		_document = document;
 
 		ShowDialog();
 	}
@@ -28,9 +29,9 @@ public partial class PrintReceiptForm : Form
 	{
 		try
 		{
-			if (_invoiceInfo is null) { return; }
+			if (_document is null) { return; }
 
-			PrintReceipt(_invoiceInfo);
+			PrintReceipt(_document);
 			
 			Hide();
 		}
@@ -42,9 +43,9 @@ public partial class PrintReceiptForm : Form
 	}
 
 	[Conditional("RELEASE")]
-	private void PrintReceipt(IInvoiceInfo invoiceInfo)
+	private void PrintReceipt(ReceiptDocument document)
 	{
-		_receiptPrinterService.PrintReceipt(invoiceInfo);
+		_receiptPrinterService.PrintReceipt(document);
 	}
 
 	private void CloseFormButton_Click(object sender, EventArgs e)

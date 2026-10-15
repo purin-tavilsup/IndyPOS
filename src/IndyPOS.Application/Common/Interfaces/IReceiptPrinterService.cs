@@ -1,6 +1,8 @@
-﻿namespace IndyPOS.Application.Common.Interfaces;
+﻿using IndyPOS.Application.Common.Receipts;
+
+namespace IndyPOS.Application.Common.Interfaces;
 
 public interface IReceiptPrinterService
 {
-    void PrintReceipt(IInvoiceInfo invoiceInfo);
+    void PrintReceipt(ReceiptDocument document);
 }
