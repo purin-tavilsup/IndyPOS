@@ -75,11 +75,11 @@ public partial class UpdateInventoryProductForm : Form
 		DescriptionTextBox.Texts = _product.Description;
 		_stockAdjustment = new PendingStockAdjustment(_product.QuantityInStock);
 		QuantityLabel.Text = $"{_stockAdjustment.DisplayedQuantity}";
-		UnitPriceTextBox.Texts = $"{_product.UnitPrice:N}";
+		UnitPriceTextBox.Texts = $"{_product.UnitPrice:N2}";
 		// An existing product may sit in a category this store no longer offers; show its label
 		// rather than a blank, so editing an unrelated field does not silently retype it.
 		CategoryComboBox.Texts = _categoryPicker.DisplayNameFor(_product.Category) ?? string.Empty;
-		GroupPriceTextBox.Texts = $"{_product.GroupPrice:N}";
+		GroupPriceTextBox.Texts = $"{_product.GroupPrice:N2}";
 		GroupPriceQuantityTextBox.Texts = _product.GroupPriceQuantity.HasValue ? $"{_product.GroupPriceQuantity.Value}" : string.Empty;
 		ManufacturerTextBox.Texts = _product.Manufacturer;
 		BrandTextBox.Texts = _product.Brand;
