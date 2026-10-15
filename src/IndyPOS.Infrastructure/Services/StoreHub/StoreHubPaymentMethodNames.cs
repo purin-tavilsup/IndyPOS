@@ -27,7 +27,9 @@ public sealed class StoreHubPaymentMethodNames(IStoreHubClient storeHubClient, I
 
             return _names = methods.ToDictionary(m => m.Code, m => m.DisplayName, StringComparer.OrdinalIgnoreCase);
         }
-        catch (Exception ex) when (ex is not OperationCanceledException)
+        // Only the caller's own cancellation propagates. HttpClient.Timeout is a TaskCanceledException too,
+        // and it is just a failed load.
+        catch (Exception ex) when (!cancellationToken.IsCancellationRequested)
         {
             logger.LogWarning(ex, "Payment-method names could not be loaded; showing raw codes until the next try");
 

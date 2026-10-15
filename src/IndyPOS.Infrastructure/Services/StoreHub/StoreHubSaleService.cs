@@ -311,15 +311,16 @@ public class StoreHubSaleService : ISaleService
 
         _logger.LogInformation("Completing sale via StoreHub API. Total: {Total}", invoiceTotal);
 
-        // Build StoreHub request
+        // Everything that can fail runs before the save: after StoreHub has the sale, a failure would
+        // read as "not saved" and the cashier would save it again.
+        var completedSale = CreateCompletedSale(await _paymentMethodNames.GetAsync());
         var request = BuildCompleteSaleRequest();
 
-        // Call StoreHub API
         var response = await _storeHubClient.CompleteSaleAsync(request);
 
         _logger.LogInformation("Sale completed. InvoiceId: {InvoiceId}", response.InvoiceId);
 
-        return _receiptFactory.ForSale(response, await CreateCompletedSaleAsync());
+        return _receiptFactory.ForSale(response, completedSale);
     }
 
     private CompleteSaleRequest BuildCompleteSaleRequest()
@@ -341,10 +342,8 @@ public class StoreHubSaleService : ISaleService
             Payments: payments);
     }
 
-    private async Task<CompletedSale> CreateCompletedSaleAsync()
+    private CompletedSale CreateCompletedSale(IReadOnlyDictionary<string, string> names)
     {
-        var names = await _paymentMethodNames.GetAsync();
-
         var items = Products.Select(p => new ReceiptItem(
             p.Description, p.Note.HasValue() ? p.Note : null, p.Quantity, p.UnitPrice, p.GetTotal())).ToList();
 
