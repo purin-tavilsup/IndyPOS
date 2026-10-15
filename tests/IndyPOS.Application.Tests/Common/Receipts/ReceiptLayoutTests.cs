@@ -103,6 +103,26 @@ public class ReceiptLayoutTests
                    .Contain(t => t.StartsWith("Date: ") && t.EndsWith("2569"));
     }
 
+    // th-TH's "tt" printed หลังเที่ยง; the store wants the time as 02:30 PM on every till.
+    [Fact]
+    public void Rows_OnAThaiTill_PrintsTheTimeAsTwelveHourWithAmPm()
+    {
+        var rows = ReceiptLayout.Rows(Header, Sale(), Thai);
+
+        Texts(rows).Should()
+                   .Contain("Time: 02:30 PM");
+    }
+
+    // th-TH's "N" has three decimals under .NET's ICU data; baht has two.
+    [Fact]
+    public void Rows_OnAThaiTill_PrintsMoneyWithTwoDecimals()
+    {
+        var rows = ReceiptLayout.Rows(Header, Sale(), Thai);
+
+        rows.Should()
+            .Contain(new ReceiptRow(ReceiptRowStyle.Indented, "2 x 50.00", "100.00"));
+    }
+
     [Fact]
     public void Rows_OnAThaiTill_PrintsTheBillNumberUnchanged()
     {
