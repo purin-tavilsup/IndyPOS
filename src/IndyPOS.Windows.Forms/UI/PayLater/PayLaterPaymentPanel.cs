@@ -214,8 +214,8 @@ public partial class PayLaterPaymentPanel : UserControl
             PaymentIdLabel.Text = payment.Id.ToString();
             InvoiceIdLabel.Text = payment.InvoiceId.ToString();
             DescriptionLabel.Text = payment.Description;
-            AmountLabel.Text = $"{payment.PayLaterAmount:N}";
-            PaidAmountTextBox.Texts = $"{payment.PaidAmount:N}";
+            AmountLabel.Text = $"{payment.PayLaterAmount:N2}";
+            PaidAmountTextBox.Texts = $"{payment.PaidAmount:N2}";
 
             PaidAmountTextBox.ReadOnly = payment.IsCompleted;
             UpdateButton.Visible = !payment.IsCompleted;

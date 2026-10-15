@@ -42,7 +42,7 @@ public partial class UpdateInvoiceProductForm : Form
 		DescriptionLabel.Text = product.Description;
 		QuantityTextBox.Texts = $"{product.Quantity}";
 
-		UnitPriceTextBox.Texts = $"{product.UnitPrice:N}";
+		UnitPriceTextBox.Texts = $"{product.UnitPrice:N2}";
 		UnitPriceLabel.Visible = !product.IsTrackable;
 		UnitPriceTextBox.Visible = !product.IsTrackable;
 		NoteTextBox.Texts = string.Empty;

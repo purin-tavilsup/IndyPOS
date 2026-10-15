@@ -155,8 +155,8 @@ public partial class SaleHistoryByInvoiceIdForm : Form
 			AddProductToInvoiceDataView(product);
 		}
 
-		GeneralProductsTotalLabel.Text = $"{generalProductsTotal:N}";
-		HardwareProductsTotalLabel.Text = $"{hardwareProductsTotal:N}";
+		GeneralProductsTotalLabel.Text = $"{generalProductsTotal:N2}";
+		HardwareProductsTotalLabel.Text = $"{hardwareProductsTotal:N2}";
 	}
 
 	private async Task ShowInvoicePaymentsByInvoiceId(int invoiceId)
