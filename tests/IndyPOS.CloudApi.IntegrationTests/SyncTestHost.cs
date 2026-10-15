@@ -1,9 +1,14 @@
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Security.Claims;
+using System.Text;
 using System.Text.Encodings.Web;
+using IndyPOS.Application.Abstractions.Cloud.Repositories;
+using IndyPOS.Application.UseCases.Cloud.Sync;
+using IndyPOS.Application.UseCases.Cloud.Sync.IngestEvents;
 using IndyPOS.CloudApi.Endpoints;
 using IndyPOS.CloudApi.Infrastructure;
+using IndyPOS.CloudApi.Infrastructure.Repositories;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -11,23 +16,24 @@ using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Nokpirab;
 
 namespace IndyPOS.CloudApi.IntegrationTests;
 
 /// <summary>
-/// The real /sync/status route on a TestServer. A stub scheme stands in for OpenIddict: it turns
+/// The real /sync/status and /sync/events routes on a TestServer. A stub scheme stands in for OpenIddict: it turns
 /// "Bearer {storeId}" into the store_id claim a store token carries. Booting the real Program would need
 /// an OpenIddict certificate, a registered client and an HTTPS token exchange to prove nothing more
-/// about this route.
+/// about these routes.
 /// </summary>
-internal sealed class SyncStatusTestHost : IAsyncDisposable
+internal sealed class SyncTestHost : IAsyncDisposable
 {
     /// <summary>A bearer value the stub authenticates without a store_id claim.</summary>
     public const string WithoutAStore = "no-store-claim";
 
     private readonly WebApplication _app;
 
-    private SyncStatusTestHost(WebApplication app)
+    private SyncTestHost(WebApplication app)
     {
         _app = app;
         Client = app.GetTestClient();
@@ -35,7 +41,7 @@ internal sealed class SyncStatusTestHost : IAsyncDisposable
 
     public HttpClient Client { get; }
 
-    public static async Task<SyncStatusTestHost> StartAsync(string connectionString)
+    public static async Task<SyncTestHost> StartAsync(string connectionString)
     {
         var builder = WebApplication.CreateSlimBuilder();
         builder.WebHost.UseTestServer();
@@ -43,20 +49,32 @@ internal sealed class SyncStatusTestHost : IAsyncDisposable
         builder.Services.AddAuthentication(StoreTokenStubHandler.SchemeName)
                         .AddScheme<AuthenticationSchemeOptions, StoreTokenStubHandler>(StoreTokenStubHandler.SchemeName, configureOptions: null);
         builder.Services.AddAuthorization();
+        builder.Services.AddScoped<ISyncedEventRepository, DbSyncedEventRepository>();
+        builder.Services.AddTransient<ICommandHandler<IngestEventsCommand, SyncEventsResponse>, IngestEventsCommandHandler>();
 
         var app = builder.Build();
         app.UseAuthentication();
         app.UseAuthorization();
         app.MapSyncStatus();
+        app.MapSyncEvents();
         await app.StartAsync();
 
-        return new SyncStatusTestHost(app);
+        return new SyncTestHost(app);
     }
 
     public async Task<HttpResponseMessage> GetAsStoreAsync(string storeId)
     {
         using var request = new HttpRequestMessage(HttpMethod.Get, "/sync/status");
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", storeId);
+
+        return await Client.SendAsync(request);
+    }
+
+    public async Task<HttpResponseMessage> PostEventsAsStoreAsync(string storeId, string json)
+    {
+        using var request = new HttpRequestMessage(HttpMethod.Post, "/sync/events");
+        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", storeId);
+        request.Content = new StringContent(json, Encoding.UTF8, "application/json");
 
         return await Client.SendAsync(request);
     }
@@ -90,7 +108,7 @@ internal sealed class StoreTokenStubHandler(
         if (!AuthenticationHeaderValue.TryParse(Request.Headers.Authorization, out var header) || header.Parameter is null)
             return Task.FromResult(AuthenticateResult.NoResult());
 
-        Claim[] claims = header.Parameter == SyncStatusTestHost.WithoutAStore
+        Claim[] claims = header.Parameter == SyncTestHost.WithoutAStore
             ? []
             : [new Claim("store_id", header.Parameter)];
         var principal = new ClaimsPrincipal(new ClaimsIdentity(claims, SchemeName));

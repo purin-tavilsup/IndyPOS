@@ -26,7 +26,7 @@ public class SyncStatusEndpointTests(CloudPostgresFixture postgres) : IClassFixt
     [Fact]
     public async Task SyncStatus_WithoutAToken_ReturnsUnauthorized()
     {
-        await using var host = await SyncStatusTestHost.StartAsync(await postgres.CreateDatabaseAsync());
+        await using var host = await SyncTestHost.StartAsync(await postgres.CreateDatabaseAsync());
 
         var response = await host.Client.GetAsync("/sync/status");
 
@@ -37,9 +37,9 @@ public class SyncStatusEndpointTests(CloudPostgresFixture postgres) : IClassFixt
     [Fact]
     public async Task SyncStatus_WithATokenWithoutAStore_ReturnsForbidden()
     {
-        await using var host = await SyncStatusTestHost.StartAsync(await postgres.CreateDatabaseAsync());
+        await using var host = await SyncTestHost.StartAsync(await postgres.CreateDatabaseAsync());
 
-        var response = await host.GetAsStoreAsync(SyncStatusTestHost.WithoutAStore);
+        var response = await host.GetAsStoreAsync(SyncTestHost.WithoutAStore);
 
         response.StatusCode.Should()
                            .Be(HttpStatusCode.Forbidden);
@@ -50,7 +50,7 @@ public class SyncStatusEndpointTests(CloudPostgresFixture postgres) : IClassFixt
     {
         var connectionString = await postgres.CreateDatabaseAsync();
         await AddInboxRowAsync(connectionString, OtherStore, payloadStoreId: OtherStore);
-        await using var host = await SyncStatusTestHost.StartAsync(connectionString);
+        await using var host = await SyncTestHost.StartAsync(connectionString);
 
         var status = await host.GetStatusAsync(ThisStore);
 
@@ -65,7 +65,7 @@ public class SyncStatusEndpointTests(CloudPostgresFixture postgres) : IClassFixt
     {
         var connectionString = await postgres.CreateDatabaseAsync();
         await AddInboxRowAsync(connectionString, NoSourceStore, payloadStoreId: ThisStore);
-        await using var host = await SyncStatusTestHost.StartAsync(connectionString);
+        await using var host = await SyncTestHost.StartAsync(connectionString);
 
         var status = await host.GetStatusAsync(ThisStore);
 
@@ -81,7 +81,7 @@ public class SyncStatusEndpointTests(CloudPostgresFixture postgres) : IClassFixt
         await SeedInvoicesAsync(connectionString, ThisStore, count: 1);
         await SeedInboxAsync(connectionString, OtherStore, events: 3, processed: 1);
         await SeedInvoicesAsync(connectionString, OtherStore, count: 2);
-        await using var host = await SyncStatusTestHost.StartAsync(connectionString);
+        await using var host = await SyncTestHost.StartAsync(connectionString);
 
         var status = await host.GetStatusAsync(ThisStore);
 
