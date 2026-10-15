@@ -1,4 +1,5 @@
 ﻿using IndyPOS.Application.Common.Models;
+using IndyPOS.Application.Common.Receipts;
 using IndyPOS.Application.UseCases.InventoryProducts;
 
 namespace IndyPOS.Application.Common.Interfaces;
@@ -13,7 +14,7 @@ public interface ISaleService
 
 	IList<string> ValidateSaleInvoice();
 
-	Task<IInvoiceInfo> CompleteSaleAsync();
+	Task<ReceiptDocument> CompleteSaleAsync();
 
 	bool IsRefundInvoice();
 

@@ -28,7 +28,7 @@ public static class ReceiptLayout
     {
         var rows = new List<ReceiptRow>();
 
-        AddCopyBanner(rows, document.Reprint, culture);
+        AddCopyBanner(rows, document.Reprint);
         AddHeader(rows, header);
         AddBillInfo(rows, document, culture);
         AddItems(rows, document, culture);
@@ -37,14 +37,20 @@ public static class ReceiptLayout
         return rows;
     }
 
-    private static void AddCopyBanner(List<ReceiptRow> rows, ReceiptReprint? reprint, CultureInfo culture)
+    private static void AddCopyBanner(List<ReceiptRow> rows, ReceiptReprint? reprint)
+    {
+        if (reprint is not null)
+            rows.Add(new ReceiptRow(ReceiptRowStyle.Banner, CopyBanner));
+    }
+
+    // Two rows, not one: "พิมพ์ซ้ำ <date> โดย <name>" overruns a 58 mm roll for any real name.
+    private static void AddReprintNote(List<ReceiptRow> rows, ReceiptReprint? reprint, CultureInfo culture)
     {
         if (reprint is null)
             return;
 
-        var reprintedAt = reprint.ReprintedAt.ToString("dd/MM/yyyy HH:mm", culture);
-        rows.Add(new ReceiptRow(ReceiptRowStyle.Banner, CopyBanner));
-        rows.Add(new ReceiptRow(ReceiptRowStyle.Text, $"พิมพ์ซ้ำ {reprintedAt} โดย {reprint.ReprintedBy}"));
+        rows.Add(Text($"พิมพ์ซ้ำ {reprint.ReprintedAt.ToString("dd/MM/yyyy HH:mm", culture)}"));
+        rows.Add(Text($"โดย {reprint.ReprintedBy}"));
     }
 
     private static void AddHeader(List<ReceiptRow> rows, ReceiptHeader header)
@@ -63,6 +69,7 @@ public static class ReceiptLayout
         rows.Add(Text($"Date: {document.IssuedAt.ToString("dd MMMM yyyy", culture)}"));
         rows.Add(Text($"Time: {document.IssuedAt.ToString("hh:mm tt", culture)}"));
         rows.Add(Text($"Cashier: {document.CashierName}"));
+        AddReprintNote(rows, document.Reprint, culture);
         rows.Add(RuleRow);
     }
 

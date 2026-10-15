@@ -319,9 +319,9 @@ public partial class SalePanel : UserControl
 
         try
         {
-            var invoiceInfo = await _saleService.CompleteSaleAsync();
+            var receipt = await _saleService.CompleteSaleAsync();
 
-            _printReceiptForm.ShowDialog(invoiceInfo);
+            _printReceiptForm.ShowDialog(receipt);
 
             _saleService.StartNewSale();
         }
