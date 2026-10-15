@@ -59,6 +59,20 @@ public class StoreHubSaleServiceTests
                                              .Be(UnknownCode);
     }
 
+    // Anything that can fail must fail before StoreHub saves the sale: a failure after it shows
+    // "save failed", keeps the cart, and the cashier saves the same sale twice.
+    [Fact]
+    public async Task CompleteSaleAsync_WhenTheNameLookupFails_DoesNotSaveTheSale()
+    {
+        _names.Setup(n => n.GetAsync(It.IsAny<CancellationToken>()))
+              .ThrowsAsync(new InvalidOperationException("lookup failed"));
+        RingUpOneProductPaidWith("Cash");
+
+        await Record.ExceptionAsync(() => _sut.CompleteSaleAsync());
+
+        _client.Verify(c => c.CompleteSaleAsync(It.IsAny<CompleteSaleRequest>(), It.IsAny<CancellationToken>()), Times.Never);
+    }
+
     [Fact]
     public async Task CompleteSaleAsync_WithAResponse_PrintsItsBillNumber()
     {

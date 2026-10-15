@@ -42,13 +42,29 @@ public class StoreHubPaymentMethodNamesTests
              .ContainKey("Cash");
     }
 
+    // HttpClient.Timeout surfaces as a TaskCanceledException with no caller token cancelled. Rethrowing
+    // it failed a sale StoreHub had already saved, and the cashier saved it again.
     [Fact]
-    public async Task GetAsync_WhenCancelled_Throws()
+    public async Task GetAsync_WhenTheRequestTimesOut_ReturnsAnEmptyMap()
     {
         _client.Setup(c => c.GetOfferablePaymentMethodsAsync(It.IsAny<CancellationToken>()))
-               .ThrowsAsync(new OperationCanceledException());
+               .ThrowsAsync(new TaskCanceledException("timed out", new TimeoutException()));
 
-        var act = () => Names().GetAsync();
+        var names = await Names().GetAsync();
+
+        names.Should()
+             .BeEmpty();
+    }
+
+    [Fact]
+    public async Task GetAsync_WhenTheCallerCancels_Throws()
+    {
+        using var cancelled = new CancellationTokenSource();
+        await cancelled.CancelAsync();
+        _client.Setup(c => c.GetOfferablePaymentMethodsAsync(It.IsAny<CancellationToken>()))
+               .ThrowsAsync(new OperationCanceledException(cancelled.Token));
+
+        var act = () => Names().GetAsync(cancelled.Token);
 
         await act.Should()
                  .ThrowAsync<OperationCanceledException>();
