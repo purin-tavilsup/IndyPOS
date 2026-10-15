@@ -151,27 +151,7 @@ if (app.Environment.IsDevelopment())
 // Minimal API endpoints
 app.MapGet("/", () => "IndyPOS Cloud API");
 
-// Sync endpoint - idempotent event ingestion (F2)
-// Requires OAuth2 token with sync.write scope
-app.MapPost("/sync/events", [Authorize] async (
-    ICommandHandler<IngestEventsCommand, SyncEventsResponse> handler,
-    SyncEventsRequest request,
-    ClaimsPrincipal user,
-    CancellationToken cancellationToken) =>
-{
-    var command = new IngestEventsCommand(request.Events, user.FindFirst("store_id")?.Value ?? string.Empty);
-
-    // 403, not a 200 with Accepted=false: HttpCloudSyncClient treats any 2xx as sent, so only a
-    // failure status makes the store keep the event and back off for manual review.
-    try
-    {
-        return Results.Ok(await handler.HandleAsync(command, cancellationToken));
-    }
-    catch (StoreMismatchException ex)
-    {
-        return Results.Problem(ex.Message, statusCode: StatusCodes.Status403Forbidden);
-    }
-}).RequireAuthorization();
+app.MapSyncEvents();
 
 // Bulk migration endpoint - one-time sync from SQLite migration
 // Requires OAuth2 token (store must be registered)
