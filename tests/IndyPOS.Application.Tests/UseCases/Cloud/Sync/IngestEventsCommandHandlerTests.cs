@@ -69,6 +69,33 @@ public class IngestEventsCommandHandlerTests
         await Assert.ThrowsAsync<StoreMismatchException>(() => _handler.HandleAsync(command));
     }
 
+    // JSON binding leaves an omitted "events" null despite the non-nullable type; that was a 500.
+    [Fact]
+    public async Task HandleAsync_WithNoEventsList_ThrowsMalformedSyncBatch()
+    {
+        var command = new IngestEventsCommand(null!, OwnStoreId);
+
+        await Assert.ThrowsAsync<MalformedSyncBatchException>(() => _handler.HandleAsync(command));
+    }
+
+    [Fact]
+    public async Task HandleAsync_WithANullEventInTheBatch_ThrowsMalformedSyncBatch()
+    {
+        var command = new IngestEventsCommand([EventWithPayload(OwnPayload), null!], OwnStoreId);
+
+        await Assert.ThrowsAsync<MalformedSyncBatchException>(() => _handler.HandleAsync(command));
+    }
+
+    [Fact]
+    public async Task HandleAsync_WithANullEventInTheBatch_StoresNothing()
+    {
+        var command = new IngestEventsCommand([EventWithPayload(OwnPayload), null!], OwnStoreId);
+
+        await Assert.ThrowsAsync<MalformedSyncBatchException>(() => _handler.HandleAsync(command));
+
+        Assert.Empty(_repository.Events);
+    }
+
     [Fact]
     public async Task HandleAsync_WithAStoreIdDifferingOnlyInCase_ThrowsStoreMismatch()
     {

@@ -22,11 +22,15 @@ internal static class SyncEventsEndpoints
         {
             var command = new IngestEventsCommand(request.Events, user.FindFirst("store_id")?.Value ?? string.Empty);
 
-            // 403, not a 200 with Accepted=false: HttpCloudSyncClient treats any 2xx as sent, so only a
+            // A 400 or 403, not a 200 with Accepted=false: HttpCloudSyncClient treats any 2xx as sent, so only a
             // failure status makes the store keep the event and back off for manual review.
             try
             {
                 return Results.Ok(await handler.HandleAsync(command, cancellationToken));
+            }
+            catch (MalformedSyncBatchException ex)
+            {
+                return Results.Problem(ex.Message, statusCode: StatusCodes.Status400BadRequest);
             }
             catch (StoreMismatchException ex)
             {
