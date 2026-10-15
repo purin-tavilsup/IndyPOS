@@ -19,6 +19,7 @@ using IndyPOS.Application.UseCases.StoreHub.Reports;
 using IndyPOS.Application.UseCases.StoreHub.Reports.GetPayLaterReport;
 using IndyPOS.Application.UseCases.StoreHub.Sales;
 using IndyPOS.Application.UseCases.StoreHub.Sales.History;
+using IndyPOS.Application.UseCases.StoreHub.Sales.Reprints;
 using Microsoft.Extensions.Logging;
 
 namespace IndyPOS.Infrastructure.Services.StoreHub;
@@ -418,6 +419,23 @@ public class StoreHubHttpClient : IStoreHubClient
             $"/sales/lines?from={IsoDate(fromDate)}&to={IsoDate(toDate)}&page={page}&pageSize={pageSize}",
             content: null, cancellationToken);
 
+    public Task<SalesPage> ListSalesAsync(DateOnly fromDate, DateOnly toDate, int page, int pageSize,
+                                          CancellationToken cancellationToken = default) =>
+        SendAuthenticatedAsync<SalesPage>(HttpMethod.Get,
+            $"/sales?from={IsoDate(fromDate)}&to={IsoDate(toDate)}&page={page}&pageSize={pageSize}",
+            content: null, cancellationToken);
+
+    public Task<InvoiceDetailDto?> GetSaleAsync(Guid saleId, CancellationToken cancellationToken = default) =>
+        GetAuthenticatedOrNotFoundAsync<InvoiceDetailDto>($"/sales/{saleId}", cancellationToken);
+
+    public Task<InvoiceDetailDto?> GetSaleByNumberAsync(long invoiceNumber, CancellationToken cancellationToken = default) =>
+        GetAuthenticatedOrNotFoundAsync<InvoiceDetailDto>(
+            $"/sales/{invoiceNumber.ToString(CultureInfo.InvariantCulture)}", cancellationToken);
+
+    public Task<InvoiceReprintResultDto> CreateReprintAsync(Guid saleId, CancellationToken cancellationToken = default) =>
+        SendAuthenticatedAsync<InvoiceReprintResultDto>(HttpMethod.Post, $"/sales/{saleId}/reprints",
+                                                        content: null, cancellationToken);
+
     public Task<PayLaterReportDto> GetPayLaterReportAsync(DateOnly? fromDate, DateOnly? toDate, int page, int pageSize,
                                                           CancellationToken cancellationToken = default)
     {
@@ -473,10 +491,36 @@ public class StoreHubHttpClient : IStoreHubClient
 
             return result;
         }
-        catch (HttpRequestException ex)
+        catch (Exception ex) when (IsTransportFailure(ex, cancellationToken))
         {
-            _logger.LogError(ex, "HTTP request failed: {Method} {Url}", method, url);
-            throw new StoreHubClientException("Cannot connect to StoreHub", ex);
+            throw ToClientException(ex, method, url);
+        }
+    }
+
+    /// <summary>
+    /// An authenticated GET where 404 means "no such thing" rather than a failure.
+    /// </summary>
+    private async Task<T?> GetAuthenticatedOrNotFoundAsync<T>(string url, CancellationToken cancellationToken)
+        where T : class
+    {
+        EnsureAuthenticated();
+
+        try
+        {
+            using var request = CreateAuthenticatedRequest(HttpMethod.Get, url);
+            using var response = await _httpClient.SendAsync(request, cancellationToken);
+
+            if (response.StatusCode == HttpStatusCode.NotFound)
+                return null;
+
+            await EnsureSuccessfulResponseAsync(response, HttpMethod.Get, url, cancellationToken);
+
+            return await response.Content.ReadFromJsonAsync<T>(JsonOptions, cancellationToken)
+                   ?? throw new StoreHubClientException("Invalid response from StoreHub");
+        }
+        catch (Exception ex) when (IsTransportFailure(ex, cancellationToken))
+        {
+            throw ToClientException(ex, HttpMethod.Get, url);
         }
     }
 
@@ -496,10 +540,9 @@ public class StoreHubHttpClient : IStoreHubClient
             var response = await _httpClient.SendAsync(request, cancellationToken);
             await EnsureSuccessfulResponseAsync(response, method, url, cancellationToken);
         }
-        catch (HttpRequestException ex)
+        catch (Exception ex) when (IsTransportFailure(ex, cancellationToken))
         {
-            _logger.LogError(ex, "HTTP request failed: {Method} {Url}", method, url);
-            throw new StoreHubClientException("Cannot connect to StoreHub", ex);
+            throw ToClientException(ex, method, url);
         }
     }
 
@@ -528,10 +571,9 @@ public class StoreHubHttpClient : IStoreHubClient
             var response = await _httpClient.SendAsync(request, cancellationToken);
             await EnsureSuccessfulResponseAsync(response, method, url, cancellationToken);
         }
-        catch (HttpRequestException ex)
+        catch (Exception ex) when (IsTransportFailure(ex, cancellationToken))
         {
-            _logger.LogError(ex, "HTTP request failed: {Method} {Url}", method, url);
-            throw new StoreHubClientException("Cannot connect to StoreHub", ex);
+            throw ToClientException(ex, method, url);
         }
     }
 
@@ -553,7 +595,7 @@ public class StoreHubHttpClient : IStoreHubClient
             response.StatusCode,
             responseBody);
 
-        var message = response.StatusCode switch
+        var message = ServerError(responseBody) ?? response.StatusCode switch
         {
             HttpStatusCode.Unauthorized => "StoreHub session expired. Please log in again.",
             HttpStatusCode.Forbidden => "You do not have permission to perform this action.",
@@ -577,6 +619,55 @@ public class StoreHubHttpClient : IStoreHubClient
         {
             return null;
         }
+    }
+
+    /// <summary>
+    /// StoreHub's Thai reason, from the <c>{ error }</c> body every route writes; null for any other
+    /// body (a proxy page, an empty 500), so the status message stands in.
+    /// </summary>
+    private static string? ServerError(string? responseBody)
+    {
+        if (string.IsNullOrWhiteSpace(responseBody))
+            return null;
+
+        try
+        {
+            using var document = JsonDocument.Parse(responseBody);
+
+            return document.RootElement.ValueKind == JsonValueKind.Object
+                   && document.RootElement.TryGetProperty("error", out var error)
+                   && error.ValueKind == JsonValueKind.String
+                   && !string.IsNullOrWhiteSpace(error.GetString())
+                ? error.GetString()
+                : null;
+        }
+        catch (JsonException)
+        {
+            return null;
+        }
+    }
+
+    /// <summary>
+    /// A failure on the way to or from StoreHub, as opposed to the caller's own cancellation.
+    /// HttpClient.Timeout surfaces as a TaskCanceledException with no caller token cancelled; unwrapped,
+    /// it skipped every caller's StoreHub catch and reached the generic error dialog.
+    /// </summary>
+    private static bool IsTransportFailure(Exception ex, CancellationToken cancellationToken) =>
+        ex is HttpRequestException or JsonException
+        || (ex is OperationCanceledException && !cancellationToken.IsCancellationRequested);
+
+    private StoreHubClientException ToClientException(Exception ex, HttpMethod method, string url)
+    {
+        _logger.LogError(ex, "HTTP request failed: {Method} {Url}", method, url);
+
+        var message = ex switch
+        {
+            OperationCanceledException => "StoreHub did not answer in time",
+            JsonException => "Invalid response from StoreHub",
+            _ => "Cannot connect to StoreHub"
+        };
+
+        return new StoreHubClientException(message, ex);
     }
 
     private void EnsureAuthenticated()

@@ -13,6 +13,7 @@ using IndyPOS.Application.UseCases.StoreHub.Reports;
 using IndyPOS.Application.UseCases.StoreHub.Reports.GetPayLaterReport;
 using IndyPOS.Application.UseCases.StoreHub.Sales;
 using IndyPOS.Application.UseCases.StoreHub.Sales.History;
+using IndyPOS.Application.UseCases.StoreHub.Sales.Reprints;
 
 namespace IndyPOS.Application.Abstractions.StoreHub;
 
@@ -172,6 +173,28 @@ public interface IStoreHubClient
     /// <summary>One page of sold lines, oldest bill first (GET /sales/lines).</summary>
     Task<SaleLinesPage> ListSaleLinesAsync(DateOnly fromDate, DateOnly toDate, int page, int pageSize,
                                            CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// GET /sales — bills newest first. A caller without reports.view may only ask for today.
+    /// Requires authentication.
+    /// </summary>
+    Task<SalesPage> ListSalesAsync(DateOnly fromDate, DateOnly toDate, int page, int pageSize,
+                                   CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// GET /sales/{id}. Null when StoreHub answers 404: an unknown bill, or another day's bill for a
+    /// today-only caller (the server does not say which). Requires authentication.
+    /// </summary>
+    Task<InvoiceDetailDto?> GetSaleAsync(Guid saleId, CancellationToken cancellationToken = default);
+
+    /// <summary>GET /sales/{number}: the bill a receipt names. Null on 404, as <see cref="GetSaleAsync"/>.</summary>
+    Task<InvoiceDetailDto?> GetSaleByNumberAsync(long invoiceNumber, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// POST /sales/{id}/reprints — records the reprint and returns the bill to print as a copy.
+    /// Requires authentication.
+    /// </summary>
+    Task<InvoiceReprintResultDto> CreateReprintAsync(Guid saleId, CancellationToken cancellationToken = default);
 
     /// <summary>One page of the outstanding-ลงบัญชี report, completed debts included; no dates = every day.</summary>
     Task<PayLaterReportDto> GetPayLaterReportAsync(DateOnly? fromDate, DateOnly? toDate, int page, int pageSize,

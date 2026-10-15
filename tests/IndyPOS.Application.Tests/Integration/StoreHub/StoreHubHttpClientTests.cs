@@ -124,6 +124,179 @@ public class StoreHubHttpClientTests
                 .Be(new StoreFeaturesDto(PayLaterEnabled: true, MultipleProductTypesEnabled: true, ServiceProductsEnabled: false));
     }
 
+    private const string ServerThaiError = "ดูได้เฉพาะบิลของวันนี้";
+
+    [Fact]
+    public async Task GetSalesSummaryAsync_WhenTheErrorBodyIsNotJson_ThrowsTheStatusMessage()
+    {
+        _sut.SetAuthToken("valid-token");
+        SetupRawResponse(HttpStatusCode.BadGateway, "<html>proxy error</html>");
+
+        var act = () => _sut.GetSalesSummaryAsync(new DateOnly(2026, 10, 1), new DateOnly(2026, 10, 15));
+
+        (await act.Should()
+                  .ThrowAsync<StoreHubClientException>()).Which.Message.Should()
+                                                           .Contain("502");
+    }
+
+    [Fact]
+    public async Task GetSalesSummaryAsync_WhenTheServerSendsAnError_ThrowsItsMessage()
+    {
+        _sut.SetAuthToken("valid-token");
+        SetupMockResponse(HttpStatusCode.Forbidden, new { error = ServerThaiError });
+
+        var act = () => _sut.GetSalesSummaryAsync(new DateOnly(2026, 10, 1), new DateOnly(2026, 10, 15));
+
+        (await act.Should()
+                  .ThrowAsync<StoreHubClientException>()).Which.Message.Should()
+                                                           .Be(ServerThaiError);
+    }
+
+    [Fact]
+    public async Task GetSalesSummaryAsync_WhenTheServerSendsAnError_ThrowsAnApplicationStoreHubException()
+    {
+        _sut.SetAuthToken("valid-token");
+        SetupMockResponse(HttpStatusCode.BadRequest, new { error = ServerThaiError });
+
+        var act = () => _sut.GetSalesSummaryAsync(new DateOnly(2026, 10, 1), new DateOnly(2026, 10, 15));
+
+        await act.Should()
+                 .ThrowAsync<IndyPOS.Application.Common.Exceptions.StoreHubException>();
+    }
+
+    private void SetupRawResponse(HttpStatusCode statusCode, string body)
+    {
+        _mockHandler.Protected()
+            .Setup<Task<HttpResponseMessage>>(
+                "SendAsync",
+                ItExpr.IsAny<HttpRequestMessage>(),
+                ItExpr.IsAny<CancellationToken>())
+            .ReturnsAsync(() => new HttpResponseMessage(statusCode)
+            {
+                Content = new StringContent(body, System.Text.Encoding.UTF8, "text/html")
+            });
+    }
+
+    [Fact]
+    public async Task GetSaleByNumberAsync_WhenStoreHubAnswersNotFound_ReturnsNull()
+    {
+        _sut.SetAuthToken("valid-token");
+        SetupMockResponse(HttpStatusCode.NotFound, new { error = "ไม่พบบิล" });
+
+        var bill = await _sut.GetSaleByNumberAsync(1042);
+
+        bill.Should()
+            .BeNull();
+    }
+
+    [Fact]
+    public async Task GetSaleAsync_WhenStoreHubAnswersNotFound_ReturnsNull()
+    {
+        _sut.SetAuthToken("valid-token");
+        SetupMockResponse(HttpStatusCode.NotFound, new { error = "ไม่พบบิล" });
+
+        var bill = await _sut.GetSaleAsync(KnownId);
+
+        bill.Should()
+            .BeNull();
+    }
+
+    [Fact]
+    public async Task GetSaleAsync_WhenForbidden_ThrowsTheServersReason()
+    {
+        _sut.SetAuthToken("valid-token");
+        SetupMockResponse(HttpStatusCode.Forbidden, new { error = ServerThaiError });
+
+        var act = () => _sut.GetSaleAsync(KnownId);
+
+        (await act.Should()
+                  .ThrowAsync<StoreHubClientException>()).Which.Message.Should()
+                                                           .Be(ServerThaiError);
+    }
+
+    [Fact]
+    public async Task GetSaleAsync_WithoutLoggingIn_ThrowsNotAuthenticated()
+    {
+        var act = () => _sut.GetSaleAsync(KnownId);
+
+        await act.Should()
+                 .ThrowAsync<StoreHubClientException>();
+    }
+
+    [Fact]
+    public async Task ListSalesAsync_OnAThaiTill_SendsGregorianDates()
+    {
+        _sut.SetAuthToken("valid-token");
+        var uri = CaptureRequestUri(new SalesPage([], 1, 50, false));
+
+        await RunUnderThaiCultureAsync(() => _sut.ListSalesAsync(new DateOnly(2026, 10, 1), new DateOnly(2026, 10, 15), 1, 50));
+
+        uri().Should()
+             .Contain("from=2026-10-01&to=2026-10-15");
+    }
+
+    // HttpClient.Timeout is a TaskCanceledException; unwrapped, it skipped every caller's StoreHub catch
+    // and reached the generic error dialog.
+    [Fact]
+    public async Task GetSalesSummaryAsync_WhenStoreHubTimesOut_ThrowsStoreHubClientException()
+    {
+        _sut.SetAuthToken("valid-token");
+        SetupThrow(new TaskCanceledException("timed out", new TimeoutException()));
+
+        var act = () => _sut.GetSalesSummaryAsync(new DateOnly(2026, 10, 1), new DateOnly(2026, 10, 15));
+
+        await act.Should()
+                 .ThrowAsync<StoreHubClientException>();
+    }
+
+    [Fact]
+    public async Task GetSaleAsync_WhenStoreHubTimesOut_ThrowsStoreHubClientException()
+    {
+        _sut.SetAuthToken("valid-token");
+        SetupThrow(new TaskCanceledException("timed out", new TimeoutException()));
+
+        var act = () => _sut.GetSaleAsync(KnownId);
+
+        await act.Should()
+                 .ThrowAsync<StoreHubClientException>();
+    }
+
+    [Fact]
+    public async Task GetSaleAsync_WhenTheCallerCancels_ThrowsOperationCanceled()
+    {
+        _sut.SetAuthToken("valid-token");
+        using var cancelled = new CancellationTokenSource();
+        await cancelled.CancelAsync();
+        SetupThrow(new TaskCanceledException("cancelled", null, cancelled.Token));
+
+        var act = () => _sut.GetSaleAsync(KnownId, cancelled.Token);
+
+        await act.Should()
+                 .ThrowAsync<OperationCanceledException>();
+    }
+
+    [Fact]
+    public async Task GetSalesSummaryAsync_WhenASuccessBodyIsNotJson_ThrowsStoreHubClientException()
+    {
+        _sut.SetAuthToken("valid-token");
+        SetupRawResponse(HttpStatusCode.OK, "<html>captive portal</html>");
+
+        var act = () => _sut.GetSalesSummaryAsync(new DateOnly(2026, 10, 1), new DateOnly(2026, 10, 15));
+
+        await act.Should()
+                 .ThrowAsync<StoreHubClientException>();
+    }
+
+    private void SetupThrow(Exception exception)
+    {
+        _mockHandler.Protected()
+            .Setup<Task<HttpResponseMessage>>(
+                "SendAsync",
+                ItExpr.IsAny<HttpRequestMessage>(),
+                ItExpr.IsAny<CancellationToken>())
+            .ThrowsAsync(exception);
+    }
+
     [Fact]
     public async Task GetLegacySalesSummaryAsync_WhenForbidden_ThrowsPermissionError()
     {
@@ -286,6 +459,10 @@ public class StoreHubHttpClientTests
     [InlineData("CompleteSale", "POST", "/sales")]
     [InlineData("RecordPayLaterPayment", "POST", "/pay-later/6f1c2a4e-8d3b-4c7a-9e21-5b0d7f3a1c88/payments")]
     [InlineData("AdjustProductQuantity", "POST", "/products/6f1c2a4e-8d3b-4c7a-9e21-5b0d7f3a1c88/stock-adjustments")]
+    [InlineData("ListSales", "GET", "/sales?from=2026-10-01&to=2026-10-15&page=2&pageSize=50")]
+    [InlineData("GetSale", "GET", "/sales/6f1c2a4e-8d3b-4c7a-9e21-5b0d7f3a1c88")]
+    [InlineData("GetSaleByNumber", "GET", "/sales/1042")]
+    [InlineData("CreateReprint", "POST", "/sales/6f1c2a4e-8d3b-4c7a-9e21-5b0d7f3a1c88/reprints")]
     public async Task RenamedCall_WithTheClient_SendsTheNewRoute(
         string call, string expectedMethod, string expectedPathAndQuery)
     {
@@ -308,11 +485,16 @@ public class StoreHubHttpClientTests
         "CompleteSale" => _sut.CompleteSaleAsync(new CompleteSaleRequest([], [])),
         "RecordPayLaterPayment" => _sut.RecordPayLaterPaymentAsync(KnownId, 100m),
         "AdjustProductQuantity" => _sut.AdjustProductQuantityAsync(KnownId, new AdjustQuantityRequest(10)),
+        "ListSales" => _sut.ListSalesAsync(new DateOnly(2026, 10, 1), new DateOnly(2026, 10, 15), 2, 50),
+        "GetSale" => _sut.GetSaleAsync(KnownId),
+        "GetSaleByNumber" => _sut.GetSaleByNumberAsync(1042),
+        "CreateReprint" => _sut.CreateReprintAsync(KnownId),
         _ => throw new ArgumentOutOfRangeException(nameof(call), call, "No such client call.")
     };
 
+    // The payment-method lists are arrays; every other call answers with an object.
     private static string ResponseFor(string call) =>
-        call.StartsWith("Get", StringComparison.Ordinal) ? "[]" : "{}";
+        call is "GetOfferablePaymentMethods" or "GetAllPaymentMethods" ? "[]" : "{}";
 
     private static readonly PayLaterReportDto EmptyPayLaterReport =
         new(0m, 0m, 0, 0, new PagedResult<PayLaterSummaryDto>([], 0, 1, 200));
