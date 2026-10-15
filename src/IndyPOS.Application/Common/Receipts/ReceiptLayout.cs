@@ -22,6 +22,9 @@ public static class ReceiptLayout
 {
     public const string CopyBanner = "สำเนา / COPY";
 
+    // "N2", not "N": th-TH's number format has three decimals under .NET's ICU data, and baht has two.
+    private const string Money = "N2";
+
     private static readonly ReceiptRow RuleRow = new(ReceiptRowStyle.Rule);
 
     public static IReadOnlyList<ReceiptRow> Rows(ReceiptHeader header, ReceiptDocument document, CultureInfo culture)
@@ -67,7 +70,8 @@ public static class ReceiptLayout
         // The bill number is digits only, so it must not take the culture's digit grouping.
         rows.Add(Text($"Invoice No.: {document.InvoiceNumber.ToString("0000000000", CultureInfo.InvariantCulture)}"));
         rows.Add(Text($"Date: {document.IssuedAt.ToString("dd MMMM yyyy", culture)}"));
-        rows.Add(Text($"Time: {document.IssuedAt.ToString("hh:mm tt", culture)}"));
+        // Always "02:30 PM": th-TH's AM/PM designators print as ก่อนเที่ยง/หลังเที่ยง.
+        rows.Add(Text($"Time: {document.IssuedAt.ToString("hh:mm tt", CultureInfo.InvariantCulture)}"));
         rows.Add(Text($"Cashier: {document.CashierName}"));
         AddReprintNote(rows, document.Reprint, culture);
         rows.Add(RuleRow);
@@ -81,12 +85,12 @@ public static class ReceiptLayout
         {
             rows.Add(Text(ItemDescription(item, document.IsRefund)));
             rows.Add(new ReceiptRow(ReceiptRowStyle.Indented,
-                                    $"{item.Quantity} x {item.UnitPrice.ToString("N", culture)}",
-                                    item.LineTotal.ToString("N", culture)));
+                                    $"{item.Quantity} x {item.UnitPrice.ToString(Money, culture)}",
+                                    item.LineTotal.ToString(Money, culture)));
         }
 
         rows.Add(RuleRow);
-        rows.Add(Text("ราคารวม", document.Total.ToString("N", culture)));
+        rows.Add(Text("ราคารวม", document.Total.ToString(Money, culture)));
         rows.Add(RuleRow);
     }
 
@@ -95,11 +99,11 @@ public static class ReceiptLayout
         rows.Add(Text("รายการเงิน"));
 
         foreach (var payment in document.Payments)
-            rows.Add(Text(PaymentDescription(payment, document.IsRefund), payment.Amount.ToString("N", culture)));
+            rows.Add(Text(PaymentDescription(payment, document.IsRefund), payment.Amount.ToString(Money, culture)));
 
         rows.Add(RuleRow);
-        rows.Add(Text("เงินรวม", document.AmountReceived.ToString("N", culture)));
-        rows.Add(Text("เงินทอน", document.Change.ToString("N", culture)));
+        rows.Add(Text("เงินรวม", document.AmountReceived.ToString(Money, culture)));
+        rows.Add(Text("เงินทอน", document.Change.ToString(Money, culture)));
         rows.Add(RuleRow);
     }
 
