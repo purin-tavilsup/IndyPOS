@@ -36,6 +36,9 @@ public sealed partial class InvoiceHistoryViewModel : ObservableObject
     private CancellationTokenSource _current = new();
     private int _page;
 
+    // Bumped whenever a first page replaces the list; a later page for an earlier list is dropped.
+    private int _listVersion;
+
     [ObservableProperty]
     [NotifyCanExecuteChangedFor(nameof(LoadMoreCommand))]
     private bool _hasMore;
@@ -104,7 +107,7 @@ public sealed partial class InvoiceHistoryViewModel : ObservableObject
     private bool CanShowRange(DateRange? range) => CanPickPeriod();
 
     [RelayCommand(CanExecute = nameof(HasMore))]
-    private Task LoadMoreAsync() => LoadPageAsync(_page + 1, _current.Token);
+    private Task LoadMoreAsync() => LoadPageAsync(new DateRange(From, To), _page + 1, _current.Token);
 
     [RelayCommand]
     private Task OpenAsync(InvoiceRow row) => Detail.LoadAsync(row.Id);
@@ -147,28 +150,26 @@ public sealed partial class InvoiceHistoryViewModel : ObservableObject
         }
     }
 
-    private Task ShowAsync(DateOnly from, DateOnly to)
-    {
-        var token = Restart();
-        From = from;
-        To = to;
+    private Task ShowAsync(DateOnly from, DateOnly to) => LoadPageAsync(new DateRange(from, to), FirstPage, Restart());
 
-        return LoadPageAsync(FirstPage, token);
-    }
-
-    private async Task LoadPageAsync(int page, CancellationToken token)
+    // From and To move only when the new period's first page arrives: until then the list, its
+    // period and "load more" all still belong to the period on screen.
+    private async Task LoadPageAsync(DateRange range, int page, CancellationToken token)
     {
+        var listVersion = _listVersion;
         IsBusy = true;
         ErrorMessage = null;
 
         try
         {
-            var result = await _client.ListSalesAsync(From, To, page, PageSize, token);
+            var result = await _client.ListSalesAsync(range.From, range.To, page, PageSize, token);
             if (token.IsCancellationRequested)
                 return;
 
             if (page == FirstPage)
-                Bills.Clear();
+                ReplaceList(range);
+            else if (listVersion != _listVersion)
+                return;
 
             foreach (var bill in result.Items)
                 Bills.Add(ToRow(bill));
@@ -188,6 +189,14 @@ public sealed partial class InvoiceHistoryViewModel : ObservableObject
             if (!token.IsCancellationRequested)
                 IsBusy = false;
         }
+    }
+
+    private void ReplaceList(DateRange range)
+    {
+        _listVersion++;
+        From = range.From;
+        To = range.To;
+        Bills.Clear();
     }
 
     private CancellationToken Restart()
