@@ -76,7 +76,7 @@ namespace IndyPOS.Windows.Forms.UI.Payment
 
 			var balanceRemaining = _saleService.CalculateBalanceRemaining();
 
-			BalanceRemainingLabel.Text = $"{balanceRemaining:N}";
+			BalanceRemainingLabel.Text = $"{balanceRemaining:N2}";
 
 			var isRefundInvoice = _saleService.IsRefundInvoice();
 
@@ -473,7 +473,7 @@ namespace IndyPOS.Windows.Forms.UI.Payment
 
         private void DisplayValue(decimal value)
 		{
-            DisplayValue($"{value:N}");
+            DisplayValue($"{value:N2}");
         }
 
         private void DisplayValue(string value)

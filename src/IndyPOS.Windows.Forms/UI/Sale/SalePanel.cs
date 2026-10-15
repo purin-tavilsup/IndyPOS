@@ -189,8 +189,8 @@ public partial class SalePanel : UserControl
                 AddProductToInvoiceDataView(product);
             }
 
-            InvoiceTotalLabel.Text = $"{invoiceTotal:N}";
-            ChangesLabel.Text = $"{changes:N}";
+            InvoiceTotalLabel.Text = $"{invoiceTotal:N2}";
+            ChangesLabel.Text = $"{changes:N2}";
         });
     }
 
@@ -384,8 +384,8 @@ public partial class SalePanel : UserControl
                 AddPaymentToPaymentDataView(payment);
             }
 
-            PaymentsTotalLabel.Text = $"{paymentTotal:N}";
-            ChangesLabel.Text = $"{changes:N}";
+            PaymentsTotalLabel.Text = $"{paymentTotal:N2}";
+            ChangesLabel.Text = $"{changes:N2}";
         });
     }
 
@@ -399,9 +399,9 @@ public partial class SalePanel : UserControl
             var paymentTotal = _saleService.CalculatePaymentTotal();
             var changes = _saleService.CalculateChanges();
 
-            InvoiceTotalLabel.Text = $"{invoiceTotal:N}";
-            PaymentsTotalLabel.Text = $"{paymentTotal:N}";
-            ChangesLabel.Text = $"{changes:N}";
+            InvoiceTotalLabel.Text = $"{invoiceTotal:N2}";
+            PaymentsTotalLabel.Text = $"{paymentTotal:N2}";
+            ChangesLabel.Text = $"{changes:N2}";
 
             PaymentDataView.Rows.Clear();
         });
