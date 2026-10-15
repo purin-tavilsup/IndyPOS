@@ -24,7 +24,7 @@ public partial class SalePanel : UserControl
     private readonly AddInvoiceProductForm _addInvoiceProductForm;
     private readonly UpdateInvoiceProductForm _updateProductForm;
     private readonly IReadOnlyDictionary<int, string> _paymentTypeDictionary;
-    private readonly IStoreHubClient _storeHubClient;
+    private readonly IPaymentMethodNames _paymentMethodNames;
     private readonly IStoreFeaturesProvider _storeFeatures;
     private SubPanel _activeSubPanel;
     private readonly MessageForm _messageForm;
@@ -62,7 +62,7 @@ public partial class SalePanel : UserControl
                      MessageForm messageForm,
                      PrintReceiptForm printReceiptForm,
 					 ICashDrawerService cashDrawerService,
-					 IStoreHubClient storeHubClient,
+					 IPaymentMethodNames paymentMethodNames,
 					 IStoreFeaturesProvider storeFeatures)
     {
         InitializeComponent();
@@ -78,7 +78,7 @@ public partial class SalePanel : UserControl
         _messageForm = messageForm;
         _printReceiptForm = printReceiptForm;
 		_cashDrawerService = cashDrawerService;
-		_storeHubClient = storeHubClient;
+		_paymentMethodNames = paymentMethodNames;
 		_storeFeatures = storeFeatures;
 
 		SubscribeEvents();
@@ -243,23 +243,8 @@ public partial class SalePanel : UserControl
 
     private async Task EnsurePaymentMethodNamesLoadedAsync()
     {
-        if (_paymentMethodNamesByCode is not null)
-            return;
-
-        try
-        {
-            // Cashiers only have CanReadProducts, not CanManagePaymentMethods, so this must use the
-            // offerable endpoint (GET /payment-methods). In-progress payments are only ever added via
-            // the offerable buttons in AcceptPaymentForm, so every Code shown here is covered.
-            var methods = await _storeHubClient.GetOfferablePaymentMethodsAsync();
-
-            _paymentMethodNamesByCode = methods.ToDictionary(m => m.Code, m => m.DisplayName, StringComparer.OrdinalIgnoreCase);
-        }
-        catch
-        {
-            // Fall back to raw codes if the catalog can't be loaded.
-            _paymentMethodNamesByCode = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-        }
+        // The provider caches a good load and retries a failed one, so asking every time is cheap.
+        _paymentMethodNamesByCode = await _paymentMethodNames.GetAsync();
     }
 
     private async Task EnsureStoreFeaturesAppliedAsync()
