@@ -17,6 +17,7 @@ Three deployable pieces:
 | Piece | Project | Role |
 |---|---|---|
 | **Till app** | `src/IndyPOS.Windows.Forms` | Windows Forms desktop UI, one per terminal |
+| **Till ViewModels** | `src/IndyPOS.Presentation` | Screen logic, unit-tested; no WinForms reference, so the Avalonia port reuses it |
 | **StoreHub** | `src/IndyPOS.StoreHub` | ASP.NET Core API + PostgreSQL, one per store; the till talks to it |
 | **CloudApi** | `src/IndyPOS.CloudApi` | Central API for cross-store reporting |
 
@@ -132,22 +133,23 @@ reports `Skipped: 1` and writes nothing — which looks like success while leavi
 ### Expected counts
 
 Solution suites (`dotnet test` at the root), Docker running **and** the real store databases present
-— **1421 total** (1420 pass, 1 skipped) — measured 2026-10-15 (after the receipt document; supersedes 1360 on 2026-10-10
-after the dev template products and #124's Codex fix, 1341 earlier on 2026-10-10 after the till Development fix, 1343 on 2026-10-07 after per-store UI slice 2, 1291 earlier on 2026-10-07 after slice 1, 1269 earlier on 2026-10-07 after the dev store profiles and their EnsureCreated-database check, 1209 earlier on 2026-10-07 after the health-check convention, 1186 earlier on 2026-10-07 after the till startup fix, 1183 on 2026-10-06 after route tidy-up B, 1152 on 2026-10-02 after route tidy-up A, 1111 earlier on 2026-10-02, 1089 on 2026-10-01, 928 on 2026-09-30, 853 on 2026-09-27 and 656 on 2026-09-17). Without those databases the total is **1401**
-(derived as 1421 − 20; CI measured 1166 = 1186 − 20 on PR #114, 2026-10-07, which has no store databases), still all
+— **1483 total** (1482 pass, 1 skipped) — measured 2026-10-15 (after the sales-history ViewModels; supersedes 1422 earlier on 2026-10-15 after the receipt document and the till money format, 1360 on 2026-10-10
+after the dev template products and #124's Codex fix, 1341 earlier on 2026-10-10 after the till Development fix, 1343 on 2026-10-07 after per-store UI slice 2, 1291 earlier on 2026-10-07 after slice 1, 1269 earlier on 2026-10-07 after the dev store profiles and their EnsureCreated-database check, 1209 earlier on 2026-10-07 after the health-check convention, 1186 earlier on 2026-10-07 after the till startup fix, 1183 on 2026-10-06 after route tidy-up B, 1152 on 2026-10-02 after route tidy-up A, 1111 earlier on 2026-10-02, 1089 on 2026-10-01, 928 on 2026-09-30, 853 on 2026-09-27 and 656 on 2026-09-17). Without those databases the total is **1463**
+(derived as 1483 − 20; CI measured 1166 = 1186 − 20 on PR #114, 2026-10-07, which has no store databases), still all
 green:
 
 | Suite | Tests |
 |---|---|
-| `IndyPOS.Application.Tests` | 690 |
+| `IndyPOS.Application.Tests` | 706 |
 | `IndyPOS.StoreHub.IntegrationTests` | 345 (Docker) |
 | `IndyPOS.MigrationTool.Tests` | 145 (Docker; 1 skipped. **125** without the real store data — Trap 3, derived) |
 | `IndyPOS.Domain.Tests` | 61 |
-| `IndyPOS.Windows.Forms.Tests` | 88 |
+| `IndyPOS.Windows.Forms.Tests` | 89 |
 | `IndyPOS.Vault.Tests` | 17 |
 | `IndyPOS.CloudApi.Tests` | 6 |
 | `IndyPOS.CloudApi.IntegrationTests` | 61 (Docker) |
 | `IndyPOS.ServiceDefaults.Tests` | 8 (Docker) |
+| `IndyPOS.Presentation.Tests` | 45 |
 
 Outside the solution: `IndyPOS.Bootstrapper.Tests` — **235** (227 pass, 8 skipped).
 
