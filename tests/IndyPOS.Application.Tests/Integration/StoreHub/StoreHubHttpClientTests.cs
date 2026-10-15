@@ -178,6 +178,64 @@ public class StoreHubHttpClientTests
     }
 
     [Fact]
+    public async Task GetSaleByNumberAsync_WhenStoreHubAnswersNotFound_ReturnsNull()
+    {
+        _sut.SetAuthToken("valid-token");
+        SetupMockResponse(HttpStatusCode.NotFound, new { error = "ไม่พบบิล" });
+
+        var bill = await _sut.GetSaleByNumberAsync(1042);
+
+        bill.Should()
+            .BeNull();
+    }
+
+    [Fact]
+    public async Task GetSaleAsync_WhenStoreHubAnswersNotFound_ReturnsNull()
+    {
+        _sut.SetAuthToken("valid-token");
+        SetupMockResponse(HttpStatusCode.NotFound, new { error = "ไม่พบบิล" });
+
+        var bill = await _sut.GetSaleAsync(KnownId);
+
+        bill.Should()
+            .BeNull();
+    }
+
+    [Fact]
+    public async Task GetSaleAsync_WhenForbidden_ThrowsTheServersReason()
+    {
+        _sut.SetAuthToken("valid-token");
+        SetupMockResponse(HttpStatusCode.Forbidden, new { error = ServerThaiError });
+
+        var act = () => _sut.GetSaleAsync(KnownId);
+
+        (await act.Should()
+                  .ThrowAsync<StoreHubClientException>()).Which.Message.Should()
+                                                           .Be(ServerThaiError);
+    }
+
+    [Fact]
+    public async Task GetSaleAsync_WithoutLoggingIn_ThrowsNotAuthenticated()
+    {
+        var act = () => _sut.GetSaleAsync(KnownId);
+
+        await act.Should()
+                 .ThrowAsync<StoreHubClientException>();
+    }
+
+    [Fact]
+    public async Task ListSalesAsync_OnAThaiTill_SendsGregorianDates()
+    {
+        _sut.SetAuthToken("valid-token");
+        var uri = CaptureRequestUri(new SalesPage([], 1, 50, false));
+
+        await RunUnderThaiCultureAsync(() => _sut.ListSalesAsync(new DateOnly(2026, 10, 1), new DateOnly(2026, 10, 15), 1, 50));
+
+        uri().Should()
+             .Contain("from=2026-10-01&to=2026-10-15");
+    }
+
+    [Fact]
     public async Task GetLegacySalesSummaryAsync_WhenForbidden_ThrowsPermissionError()
     {
         // Arrange
@@ -339,6 +397,10 @@ public class StoreHubHttpClientTests
     [InlineData("CompleteSale", "POST", "/sales")]
     [InlineData("RecordPayLaterPayment", "POST", "/pay-later/6f1c2a4e-8d3b-4c7a-9e21-5b0d7f3a1c88/payments")]
     [InlineData("AdjustProductQuantity", "POST", "/products/6f1c2a4e-8d3b-4c7a-9e21-5b0d7f3a1c88/stock-adjustments")]
+    [InlineData("ListSales", "GET", "/sales?from=2026-10-01&to=2026-10-15&page=2&pageSize=50")]
+    [InlineData("GetSale", "GET", "/sales/6f1c2a4e-8d3b-4c7a-9e21-5b0d7f3a1c88")]
+    [InlineData("GetSaleByNumber", "GET", "/sales/1042")]
+    [InlineData("CreateReprint", "POST", "/sales/6f1c2a4e-8d3b-4c7a-9e21-5b0d7f3a1c88/reprints")]
     public async Task RenamedCall_WithTheClient_SendsTheNewRoute(
         string call, string expectedMethod, string expectedPathAndQuery)
     {
@@ -361,11 +423,16 @@ public class StoreHubHttpClientTests
         "CompleteSale" => _sut.CompleteSaleAsync(new CompleteSaleRequest([], [])),
         "RecordPayLaterPayment" => _sut.RecordPayLaterPaymentAsync(KnownId, 100m),
         "AdjustProductQuantity" => _sut.AdjustProductQuantityAsync(KnownId, new AdjustQuantityRequest(10)),
+        "ListSales" => _sut.ListSalesAsync(new DateOnly(2026, 10, 1), new DateOnly(2026, 10, 15), 2, 50),
+        "GetSale" => _sut.GetSaleAsync(KnownId),
+        "GetSaleByNumber" => _sut.GetSaleByNumberAsync(1042),
+        "CreateReprint" => _sut.CreateReprintAsync(KnownId),
         _ => throw new ArgumentOutOfRangeException(nameof(call), call, "No such client call.")
     };
 
+    // The payment-method lists are arrays; every other call answers with an object.
     private static string ResponseFor(string call) =>
-        call.StartsWith("Get", StringComparison.Ordinal) ? "[]" : "{}";
+        call is "GetOfferablePaymentMethods" or "GetAllPaymentMethods" ? "[]" : "{}";
 
     private static readonly PayLaterReportDto EmptyPayLaterReport =
         new(0m, 0m, 0, 0, new PagedResult<PayLaterSummaryDto>([], 0, 1, 200));

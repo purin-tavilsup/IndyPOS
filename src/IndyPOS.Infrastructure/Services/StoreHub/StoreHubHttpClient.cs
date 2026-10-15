@@ -19,6 +19,7 @@ using IndyPOS.Application.UseCases.StoreHub.Reports;
 using IndyPOS.Application.UseCases.StoreHub.Reports.GetPayLaterReport;
 using IndyPOS.Application.UseCases.StoreHub.Sales;
 using IndyPOS.Application.UseCases.StoreHub.Sales.History;
+using IndyPOS.Application.UseCases.StoreHub.Sales.Reprints;
 using Microsoft.Extensions.Logging;
 
 namespace IndyPOS.Infrastructure.Services.StoreHub;
@@ -418,6 +419,23 @@ public class StoreHubHttpClient : IStoreHubClient
             $"/sales/lines?from={IsoDate(fromDate)}&to={IsoDate(toDate)}&page={page}&pageSize={pageSize}",
             content: null, cancellationToken);
 
+    public Task<SalesPage> ListSalesAsync(DateOnly fromDate, DateOnly toDate, int page, int pageSize,
+                                          CancellationToken cancellationToken = default) =>
+        SendAuthenticatedAsync<SalesPage>(HttpMethod.Get,
+            $"/sales?from={IsoDate(fromDate)}&to={IsoDate(toDate)}&page={page}&pageSize={pageSize}",
+            content: null, cancellationToken);
+
+    public Task<InvoiceDetailDto?> GetSaleAsync(Guid saleId, CancellationToken cancellationToken = default) =>
+        GetAuthenticatedOrNotFoundAsync<InvoiceDetailDto>($"/sales/{saleId}", cancellationToken);
+
+    public Task<InvoiceDetailDto?> GetSaleByNumberAsync(long invoiceNumber, CancellationToken cancellationToken = default) =>
+        GetAuthenticatedOrNotFoundAsync<InvoiceDetailDto>(
+            $"/sales/{invoiceNumber.ToString(CultureInfo.InvariantCulture)}", cancellationToken);
+
+    public Task<InvoiceReprintResultDto> CreateReprintAsync(Guid saleId, CancellationToken cancellationToken = default) =>
+        SendAuthenticatedAsync<InvoiceReprintResultDto>(HttpMethod.Post, $"/sales/{saleId}/reprints",
+                                                        content: null, cancellationToken);
+
     public Task<PayLaterReportDto> GetPayLaterReportAsync(DateOnly? fromDate, DateOnly? toDate, int page, int pageSize,
                                                           CancellationToken cancellationToken = default)
     {
@@ -476,6 +494,34 @@ public class StoreHubHttpClient : IStoreHubClient
         catch (HttpRequestException ex)
         {
             _logger.LogError(ex, "HTTP request failed: {Method} {Url}", method, url);
+            throw new StoreHubClientException("Cannot connect to StoreHub", ex);
+        }
+    }
+
+    /// <summary>
+    /// An authenticated GET where 404 means "no such thing" rather than a failure.
+    /// </summary>
+    private async Task<T?> GetAuthenticatedOrNotFoundAsync<T>(string url, CancellationToken cancellationToken)
+        where T : class
+    {
+        EnsureAuthenticated();
+
+        try
+        {
+            using var request = CreateAuthenticatedRequest(HttpMethod.Get, url);
+            using var response = await _httpClient.SendAsync(request, cancellationToken);
+
+            if (response.StatusCode == HttpStatusCode.NotFound)
+                return null;
+
+            await EnsureSuccessfulResponseAsync(response, HttpMethod.Get, url, cancellationToken);
+
+            return await response.Content.ReadFromJsonAsync<T>(JsonOptions, cancellationToken)
+                   ?? throw new StoreHubClientException("Invalid response from StoreHub");
+        }
+        catch (HttpRequestException ex)
+        {
+            _logger.LogError(ex, "HTTP request failed: GET {Url}", url);
             throw new StoreHubClientException("Cannot connect to StoreHub", ex);
         }
     }
