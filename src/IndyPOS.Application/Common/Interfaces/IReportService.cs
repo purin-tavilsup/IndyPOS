@@ -22,6 +22,4 @@ public interface IReportService
 	Task<IEnumerable<InvoiceProductDto>> GetInvoiceProductsByInvoiceIdAsync(int invoiceId);
 
 	Task<IEnumerable<InvoicePaymentDto>> GetPaymentsByInvoiceIdAsync(int invoiceId);
-
-	Task<IInvoiceInfo> GetInvoiceInfoAsync(int invoiceId);
 }

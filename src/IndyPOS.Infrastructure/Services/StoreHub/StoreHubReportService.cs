@@ -76,24 +76,4 @@ public class StoreHubReportService : IReportService
         // Legacy int-based ID - not supported in StoreHub mode
         return Task.FromResult(Enumerable.Empty<InvoicePaymentDto>());
     }
-
-    public Task<IInvoiceInfo> GetInvoiceInfoAsync(int invoiceId)
-    {
-        // Legacy int-based ID - not supported in StoreHub mode
-        // Return a stub implementation
-        return Task.FromResult<IInvoiceInfo>(new StubInvoiceInfo());
-    }
-
-    private class StubInvoiceInfo : IInvoiceInfo
-    {
-        public int Id => 0;
-        public Guid? StoreHubInvoiceId => null;
-        public IList<Product> Products => new List<Product>();
-        public IList<Payment> Payments => new List<Payment>();
-        public bool IsRefundInvoice => false;
-        public decimal InvoiceTotal => 0;
-        public decimal PaymentTotal => 0;
-        public decimal Changes => 0;
-        public bool HasPayLaterPayment => false;
-    }
 }

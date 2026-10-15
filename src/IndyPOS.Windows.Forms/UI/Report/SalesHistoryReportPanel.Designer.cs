@@ -613,7 +613,6 @@
             PrintReceiptButton.TabIndex = 52;
             PrintReceiptButton.TextColor = Color.White;
             PrintReceiptButton.UseVisualStyleBackColor = false;
-            PrintReceiptButton.Click += PrintReceiptButton_Click;
             // 
             // SalesHistoryReportPanel
             // 

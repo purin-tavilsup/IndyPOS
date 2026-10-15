@@ -1,5 +1,4 @@
-﻿using System.Diagnostics;
-using IndyPOS.Application.Common.Enums;
+﻿using IndyPOS.Application.Common.Enums;
 using IndyPOS.Application.Common.Extensions;
 using IndyPOS.Application.Common.Interfaces;
 using IndyPOS.Application.Common.Models;
@@ -13,7 +12,6 @@ public partial class SalesHistoryReportPanel : UserControl
 {
     private readonly IReportService _reportService;
     private readonly IReadOnlyDictionary<int, string> _paymentTypeDictionary;
-	private readonly IReceiptPrinterService _receiptPrinterService;
     private readonly MessageForm _messageForm;
 
     private enum SaleInvoiceColumn
@@ -41,11 +39,9 @@ public partial class SalesHistoryReportPanel : UserControl
 
     public SalesHistoryReportPanel(IReportService reportService,
                                    IStoreConstants storeConstants,
-								   IReceiptPrinterService receiptPrinterService,
                                    MessageForm messageForm)
     {
         _reportService = reportService;
-		_receiptPrinterService = receiptPrinterService;
         _messageForm = messageForm;
 		_paymentTypeDictionary = storeConstants.PaymentTypes;
 
@@ -57,6 +53,9 @@ public partial class SalesHistoryReportPanel : UserControl
         // Initialize date pickers to today
         StartDatePicker.Value = DateTime.Today;
         EndDatePicker.Value = DateTime.Today;
+
+        // Reprint returns with plan C's InvoiceDetailView; the old path printed an empty stub bill.
+        PrintReceiptButton.Visible = false;
     }
 
     private void InitializeSaleInvoiceDataView()
@@ -301,30 +300,4 @@ public partial class SalesHistoryReportPanel : UserControl
             ReportErrorHandler.Show(_messageForm, ex);
         }
     }
-
-    private async void PrintReceiptButton_Click(object sender, EventArgs e)
-    {
-        try
-        {
-		    var invoiceId = GetInvoiceIdFromSelectedInvoice();
-            var invoiceInfo = await GetInvoiceInfoAsync(invoiceId);
-        
-            PrintReceipt(invoiceInfo);
-        }
-        catch (Exception ex)
-        {
-            ReportErrorHandler.Show(_messageForm, ex);
-        }
-    }
-
-	[Conditional("RELEASE")]
-	private void PrintReceipt(IInvoiceInfo invoiceInfo)
-	{
-		_receiptPrinterService.PrintReceipt(invoiceInfo);
-	}
-
-	private async Task<IInvoiceInfo> GetInvoiceInfoAsync(int invoiceId)
-	{
-		return await _reportService.GetInvoiceInfoAsync(invoiceId);
-	}
 }
