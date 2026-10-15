@@ -19,6 +19,8 @@ public class IngestEventsCommandHandler(
         IngestEventsCommand command,
         CancellationToken cancellationToken = default)
     {
+        EnsureWellFormed(command.Events);
+
         logger.LogDebug("Ingesting {EventCount} events", command.Events.Count);
 
         EnsureAllForAuthenticatedStore(command);
@@ -81,6 +83,16 @@ public class IngestEventsCommandHandler(
             acceptedCount, duplicateCount, failedCount);
 
         return new SyncEventsResponse(acceptedCount, duplicateCount, failedCount, results);
+    }
+
+    /// <remarks>
+    /// JSON binding leaves an omitted "events", or an event written as null, as null despite the
+    /// non-nullable types, so they are checked here rather than trusted. An empty batch is well formed.
+    /// </remarks>
+    private static void EnsureWellFormed(IReadOnlyList<SyncEventRequest?>? events)
+    {
+        if (events is null || events.Any(e => e is null))
+            throw new MalformedSyncBatchException("The sync batch must carry an events list with no null events.");
     }
 
     /// <remarks>
