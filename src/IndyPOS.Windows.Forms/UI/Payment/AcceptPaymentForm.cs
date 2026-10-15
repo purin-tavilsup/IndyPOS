@@ -144,6 +144,9 @@ namespace IndyPOS.Windows.Forms.UI.Payment
 
             var button = new Button
             {
+                // WinForms surfaces Name as the UIA AutomationId, giving test drivers and the Avalonia
+                // port a stable handle on a data-driven button instead of its Thai caption.
+                Name = $"PaymentMethod_{method.Code}",
                 Tag = method.Code,
                 Text = method.DisplayName,
                 Size = new Size(Scaled(195), Scaled(129)),
