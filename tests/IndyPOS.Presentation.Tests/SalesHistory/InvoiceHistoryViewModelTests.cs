@@ -150,6 +150,50 @@ public class InvoiceHistoryViewModelTests
                                              .Equal(2);
     }
 
+    // From/To moved to the new period before StoreHub answered, so a failure left the old list under
+    // the new dates and "load more" appended the other period's bills.
+    [Fact]
+    public async Task ShowThisYear_WhenStoreHubFails_KeepsTheShownPeriod()
+    {
+        var monthStart = new DateOnly(2026, 10, 1);
+        _client.Setup(c => c.ListSalesAsync(monthStart, Today, 1, InvoiceHistoryViewModel.PageSize, It.IsAny<CancellationToken>()))
+               .ReturnsAsync(Page(hasMore: true, 3));
+        _client.Setup(c => c.ListSalesAsync(new DateOnly(2026, 1, 1), Today, 1, InvoiceHistoryViewModel.PageSize, It.IsAny<CancellationToken>()))
+               .ThrowsAsync(new StoreHubException("Cannot connect to StoreHub"));
+        var vm = History(Manager);
+        await vm.ShowThisMonthCommand.ExecuteAsync(null);
+
+        await vm.ShowThisYearCommand.ExecuteAsync(null);
+
+        vm.From.Should()
+               .Be(monthStart);
+    }
+
+    [Fact]
+    public async Task LoadMore_WhenANewPeriodArrivesFirst_DropsTheOldPeriodsPage()
+    {
+        var slowYear = new TaskCompletionSource<SalesPage>();
+        var slowPageTwo = new TaskCompletionSource<SalesPage>();
+        _client.Setup(c => c.ListSalesAsync(new DateOnly(2026, 10, 1), Today, 1, InvoiceHistoryViewModel.PageSize, It.IsAny<CancellationToken>()))
+               .ReturnsAsync(Page(hasMore: true, 3));
+        _client.Setup(c => c.ListSalesAsync(new DateOnly(2026, 1, 1), Today, 1, InvoiceHistoryViewModel.PageSize, It.IsAny<CancellationToken>()))
+               .Returns(slowYear.Task);
+        _client.Setup(c => c.ListSalesAsync(It.IsAny<DateOnly>(), Today, 2, InvoiceHistoryViewModel.PageSize, It.IsAny<CancellationToken>()))
+               .Returns(slowPageTwo.Task);
+        var vm = History(Manager);
+        await vm.ShowThisMonthCommand.ExecuteAsync(null);
+        var yearLoad = vm.ShowThisYearCommand.ExecuteAsync(null);
+        var pageTwoLoad = vm.LoadMoreCommand.ExecuteAsync(null);
+
+        slowYear.SetResult(Page(hasMore: false, 9));
+        await yearLoad;
+        slowPageTwo.SetResult(Page(hasMore: false, 2));
+        await pageTwoLoad;
+
+        vm.Bills.Select(b => b.InvoiceNumber).Should()
+                                             .Equal(9);
+    }
+
     [Fact]
     public async Task Search_WhenFound_ShowsTheBillInTheDetail()
     {

@@ -144,6 +144,35 @@ public class InvoiceDetailViewModelTests
                               .Be(2);
     }
 
+    // Reprint used the bill still shown while another loaded: it recorded and printed the old one.
+    [Fact]
+    public void Reprint_WhileAnotherBillLoads_CannotExecute()
+    {
+        _client.Setup(c => c.GetSaleAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
+               .Returns(new TaskCompletionSource<InvoiceDetailDto?>().Task);
+        var vm = Detail(Manager);
+        vm.Show(Bill(TodayUtc));
+
+        _ = vm.LoadAsync(Guid.NewGuid());
+
+        vm.ReprintCommand.CanExecute(null).Should()
+                                          .BeFalse();
+    }
+
+    [Fact]
+    public void Show_WhileALoadIsInFlight_IsNotBusy()
+    {
+        _client.Setup(c => c.GetSaleAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
+               .Returns(new TaskCompletionSource<InvoiceDetailDto?>().Task);
+        var vm = Detail(Manager);
+        _ = vm.LoadAsync(Guid.NewGuid());
+
+        vm.Show(Bill(TodayUtc));
+
+        vm.IsBusy.Should()
+                 .BeFalse();
+    }
+
     [Fact]
     public void Reprint_ForAManagerOnYesterdaysBill_CanExecute()
     {

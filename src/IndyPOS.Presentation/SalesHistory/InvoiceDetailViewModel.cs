@@ -35,6 +35,7 @@ public sealed partial class InvoiceDetailViewModel(
     private InvoiceDetailDto? _bill;
 
     [ObservableProperty]
+    [NotifyCanExecuteChangedFor(nameof(ReprintCommand))]
     private bool _isBusy;
 
     [ObservableProperty]
@@ -52,6 +53,7 @@ public sealed partial class InvoiceDetailViewModel(
     public void Show(InvoiceDetailDto bill)
     {
         _loadVersion++;
+        IsBusy = false;
         ErrorMessage = null;
         Bill = bill;
     }
@@ -83,8 +85,10 @@ public sealed partial class InvoiceDetailViewModel(
         }
     }
 
+    // Not while busy: the bill shown may be about to be replaced, and reprint would record the old one.
     private bool CanReprint() =>
         Bill is not null
+        && !IsBusy
         && access.CanReprint
         && TodayOnlyRule.Allows(clock.BusinessDateOf(Bill.CreatedUtc), clock.Today, access.CanViewAnyDay);
 
