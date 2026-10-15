@@ -491,10 +491,9 @@ public class StoreHubHttpClient : IStoreHubClient
 
             return result;
         }
-        catch (HttpRequestException ex)
+        catch (Exception ex) when (IsTransportFailure(ex, cancellationToken))
         {
-            _logger.LogError(ex, "HTTP request failed: {Method} {Url}", method, url);
-            throw new StoreHubClientException("Cannot connect to StoreHub", ex);
+            throw ToClientException(ex, method, url);
         }
     }
 
@@ -519,10 +518,9 @@ public class StoreHubHttpClient : IStoreHubClient
             return await response.Content.ReadFromJsonAsync<T>(JsonOptions, cancellationToken)
                    ?? throw new StoreHubClientException("Invalid response from StoreHub");
         }
-        catch (HttpRequestException ex)
+        catch (Exception ex) when (IsTransportFailure(ex, cancellationToken))
         {
-            _logger.LogError(ex, "HTTP request failed: GET {Url}", url);
-            throw new StoreHubClientException("Cannot connect to StoreHub", ex);
+            throw ToClientException(ex, HttpMethod.Get, url);
         }
     }
 
@@ -542,10 +540,9 @@ public class StoreHubHttpClient : IStoreHubClient
             var response = await _httpClient.SendAsync(request, cancellationToken);
             await EnsureSuccessfulResponseAsync(response, method, url, cancellationToken);
         }
-        catch (HttpRequestException ex)
+        catch (Exception ex) when (IsTransportFailure(ex, cancellationToken))
         {
-            _logger.LogError(ex, "HTTP request failed: {Method} {Url}", method, url);
-            throw new StoreHubClientException("Cannot connect to StoreHub", ex);
+            throw ToClientException(ex, method, url);
         }
     }
 
@@ -574,10 +571,9 @@ public class StoreHubHttpClient : IStoreHubClient
             var response = await _httpClient.SendAsync(request, cancellationToken);
             await EnsureSuccessfulResponseAsync(response, method, url, cancellationToken);
         }
-        catch (HttpRequestException ex)
+        catch (Exception ex) when (IsTransportFailure(ex, cancellationToken))
         {
-            _logger.LogError(ex, "HTTP request failed: {Method} {Url}", method, url);
-            throw new StoreHubClientException("Cannot connect to StoreHub", ex);
+            throw ToClientException(ex, method, url);
         }
     }
 
@@ -649,6 +645,29 @@ public class StoreHubHttpClient : IStoreHubClient
         {
             return null;
         }
+    }
+
+    /// <summary>
+    /// A failure on the way to or from StoreHub, as opposed to the caller's own cancellation.
+    /// HttpClient.Timeout surfaces as a TaskCanceledException with no caller token cancelled; unwrapped,
+    /// it skipped every caller's StoreHub catch and reached the generic error dialog.
+    /// </summary>
+    private static bool IsTransportFailure(Exception ex, CancellationToken cancellationToken) =>
+        ex is HttpRequestException or JsonException
+        || (ex is OperationCanceledException && !cancellationToken.IsCancellationRequested);
+
+    private StoreHubClientException ToClientException(Exception ex, HttpMethod method, string url)
+    {
+        _logger.LogError(ex, "HTTP request failed: {Method} {Url}", method, url);
+
+        var message = ex switch
+        {
+            OperationCanceledException => "StoreHub did not answer in time",
+            JsonException => "Invalid response from StoreHub",
+            _ => "Cannot connect to StoreHub"
+        };
+
+        return new StoreHubClientException(message, ex);
     }
 
     private void EnsureAuthenticated()

@@ -235,6 +235,68 @@ public class StoreHubHttpClientTests
              .Contain("from=2026-10-01&to=2026-10-15");
     }
 
+    // HttpClient.Timeout is a TaskCanceledException; unwrapped, it skipped every caller's StoreHub catch
+    // and reached the generic error dialog.
+    [Fact]
+    public async Task GetSalesSummaryAsync_WhenStoreHubTimesOut_ThrowsStoreHubClientException()
+    {
+        _sut.SetAuthToken("valid-token");
+        SetupThrow(new TaskCanceledException("timed out", new TimeoutException()));
+
+        var act = () => _sut.GetSalesSummaryAsync(new DateOnly(2026, 10, 1), new DateOnly(2026, 10, 15));
+
+        await act.Should()
+                 .ThrowAsync<StoreHubClientException>();
+    }
+
+    [Fact]
+    public async Task GetSaleAsync_WhenStoreHubTimesOut_ThrowsStoreHubClientException()
+    {
+        _sut.SetAuthToken("valid-token");
+        SetupThrow(new TaskCanceledException("timed out", new TimeoutException()));
+
+        var act = () => _sut.GetSaleAsync(KnownId);
+
+        await act.Should()
+                 .ThrowAsync<StoreHubClientException>();
+    }
+
+    [Fact]
+    public async Task GetSaleAsync_WhenTheCallerCancels_ThrowsOperationCanceled()
+    {
+        _sut.SetAuthToken("valid-token");
+        using var cancelled = new CancellationTokenSource();
+        await cancelled.CancelAsync();
+        SetupThrow(new TaskCanceledException("cancelled", null, cancelled.Token));
+
+        var act = () => _sut.GetSaleAsync(KnownId, cancelled.Token);
+
+        await act.Should()
+                 .ThrowAsync<OperationCanceledException>();
+    }
+
+    [Fact]
+    public async Task GetSalesSummaryAsync_WhenASuccessBodyIsNotJson_ThrowsStoreHubClientException()
+    {
+        _sut.SetAuthToken("valid-token");
+        SetupRawResponse(HttpStatusCode.OK, "<html>captive portal</html>");
+
+        var act = () => _sut.GetSalesSummaryAsync(new DateOnly(2026, 10, 1), new DateOnly(2026, 10, 15));
+
+        await act.Should()
+                 .ThrowAsync<StoreHubClientException>();
+    }
+
+    private void SetupThrow(Exception exception)
+    {
+        _mockHandler.Protected()
+            .Setup<Task<HttpResponseMessage>>(
+                "SendAsync",
+                ItExpr.IsAny<HttpRequestMessage>(),
+                ItExpr.IsAny<CancellationToken>())
+            .ThrowsAsync(exception);
+    }
+
     [Fact]
     public async Task GetLegacySalesSummaryAsync_WhenForbidden_ThrowsPermissionError()
     {
