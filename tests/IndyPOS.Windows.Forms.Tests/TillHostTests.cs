@@ -1,4 +1,7 @@
 using FluentAssertions;
+using IndyPOS.Application.Common.Interfaces;
+using IndyPOS.Infrastructure.Services;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Xunit;
 
@@ -23,4 +26,23 @@ public class TillHostTests
         build.Should()
              .NotThrow();
     }
+
+#if DEBUG
+    // The till's whole print gate: a DEBUG build must never reach the thermal printer. Checks which
+    // registration wins rather than resolving it, which would read the machine's store configuration.
+    [Fact]
+    public void CreateBuilder_InADebugBuild_SavesReceiptsAsImages()
+    {
+        IServiceCollection? services = null;
+        var builder = TillHost.CreateBuilder()
+                              .UseEnvironment(Environments.Development)
+                              .ConfigureServices((_, s) => services = s);
+
+        builder.Build()
+               .Dispose();
+
+        services!.Last(d => d.ServiceType == typeof(IReceiptPrinterService)).ImplementationType.Should()
+                                                                                              .Be<ReceiptImagePrinter>();
+    }
+#endif
 }
