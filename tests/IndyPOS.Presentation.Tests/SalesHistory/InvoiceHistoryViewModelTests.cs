@@ -263,6 +263,57 @@ public class InvoiceHistoryViewModelTests
     }
 
     [Fact]
+    public async Task ShowToday_WithNoNameFromStoreHub_ShowsTheCode()
+    {
+        _client.Setup(c => c.ListSalesAsync(Today, Today, 1, InvoiceHistoryViewModel.PageSize, It.IsAny<CancellationToken>()))
+               .ReturnsAsync(PaidBy("Unknown", name: null));
+        var vm = History(Manager);
+
+        await vm.ShowTodayCommand.ExecuteAsync(null);
+
+        vm.Bills.Single().PaymentMethodName.Should()
+                                           .Be("Unknown");
+    }
+
+    // StoreHub names it from the whole catalogue, so an ended campaign method still has its name.
+    [Fact]
+    public async Task ShowToday_WithANameFromStoreHub_ShowsIt()
+    {
+        _client.Setup(c => c.ListSalesAsync(Today, Today, 1, InvoiceHistoryViewModel.PageSize, It.IsAny<CancellationToken>()))
+               .ReturnsAsync(PaidBy("M33WeLove", name: "ม.33 เรารักกัน"));
+        var vm = History(Manager);
+
+        await vm.ShowTodayCommand.ExecuteAsync(null);
+
+        vm.Bills.Single().PaymentMethodName.Should()
+                                           .Be("ม.33 เรารักกัน");
+    }
+
+    // A cashier on a slow StoreHub clicks one bill, then another: the grid highlights the second, so the
+    // second must load too. The detail drops the first one's late answer by itself.
+    [Fact]
+    public void Open_WhileAnotherBillLoads_CanOpenTheNext()
+    {
+        var first = new InvoiceRow(Guid.NewGuid(), 1041, new DateTime(2026, 10, 15, 9, 0, 0), 100m, "เงินสด", 1);
+        var second = first with { Id = Guid.NewGuid(), InvoiceNumber = 1042 };
+        var pending = new TaskCompletionSource<InvoiceDetailDto?>();
+        _client.Setup(c => c.GetSaleAsync(first.Id, It.IsAny<CancellationToken>())).Returns(pending.Task);
+        var vm = History(Manager);
+        vm.OpenCommand.Execute(first);
+
+        try
+        {
+            vm.OpenCommand.CanExecute(second).Should()
+                                             .BeTrue();
+        }
+        finally
+        {
+            // xunit waits for the command's async-void monitor; a never-finished load would hang the run.
+            pending.SetResult(null);
+        }
+    }
+
+    [Fact]
     public void IsTodayOnly_ForACashier_IsTrue()
     {
         var vm = History(Cashier);
@@ -279,6 +330,10 @@ public class InvoiceHistoryViewModelTests
 
         return new InvoiceHistoryViewModel(_client.Object, clock, access, detail);
     }
+
+    private static SalesPage PaidBy(string method, string? name) =>
+        new([new InvoiceSummaryDto(Guid.NewGuid(), 1042, new DateTime(2026, 10, 15, 2, 0, 0, DateTimeKind.Utc), 100m, method, 1, name)],
+            1, InvoiceHistoryViewModel.PageSize, HasMore: false);
 
     // Every bill at 02:00 UTC = 09:00 Bangkok today.
     private static SalesPage Page(bool hasMore, params long[] numbers) =>

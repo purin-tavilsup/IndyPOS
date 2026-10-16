@@ -3,8 +3,6 @@ namespace IndyPOS.Windows.Forms.UI.Report;
 /// <summary>The till's dark, read-only grid, as the designer-built report grids style it, for views built in code.</summary>
 public static class TillGrid
 {
-    private const string FontName = "FC Subject [Non-commercial] Reg";
-    private static readonly Color Background = Color.FromArgb(38, 38, 38);
     private static readonly Color HeaderBackground = Color.FromArgb(48, 48, 48);
 
     public static DataGridView Create(string name)
@@ -20,7 +18,7 @@ public static class TillGrid
             AllowUserToResizeRows = false,
             RowHeadersVisible = false,
             SelectionMode = DataGridViewSelectionMode.FullRowSelect,
-            BackgroundColor = Background,
+            BackgroundColor = TillStyle.Background,
             BorderStyle = BorderStyle.None,
             CellBorderStyle = DataGridViewCellBorderStyle.SingleHorizontal,
             ColumnHeadersBorderStyle = DataGridViewHeaderBorderStyle.None,
@@ -32,10 +30,10 @@ public static class TillGrid
 
         grid.ColumnHeadersDefaultCellStyle.BackColor = HeaderBackground;
         grid.ColumnHeadersDefaultCellStyle.ForeColor = Color.Gainsboro;
-        grid.ColumnHeadersDefaultCellStyle.Font = new Font(FontName, 14F);
-        grid.DefaultCellStyle.BackColor = Background;
+        grid.ColumnHeadersDefaultCellStyle.Font = new Font(TillStyle.FontName, 14F);
+        grid.DefaultCellStyle.BackColor = TillStyle.Background;
         grid.DefaultCellStyle.ForeColor = Color.Gainsboro;
-        grid.DefaultCellStyle.Font = new Font(FontName, 12F);
+        grid.DefaultCellStyle.Font = new Font(TillStyle.FontName, 12F);
         grid.DefaultCellStyle.SelectionBackColor = Color.FromArgb(70, 70, 70);
         grid.DefaultCellStyle.SelectionForeColor = Color.Gainsboro;
         grid.RowTemplate.Height = 35;

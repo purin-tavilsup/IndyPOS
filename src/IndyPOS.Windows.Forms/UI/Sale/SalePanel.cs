@@ -10,7 +10,10 @@ using IndyPOS.Windows.Forms.Enums;
 using IndyPOS.Windows.Forms.Events;
 using IndyPOS.Windows.Forms.Extensions;
 using IndyPOS.Windows.Forms.Services;
+using IndyPOS.Presentation.SalesHistory;
+using IndyPOS.Windows.Forms.UI.ModernUI;
 using IndyPOS.Windows.Forms.UI.Payment;
+using IndyPOS.Windows.Forms.UI.Report;
 using System.Diagnostics.CodeAnalysis;
 
 namespace IndyPOS.Windows.Forms.UI.Sale;
@@ -30,6 +33,11 @@ public partial class SalePanel : UserControl
     private readonly MessageForm _messageForm;
     private readonly PrintReceiptForm _printReceiptForm;
 	private readonly ICashDrawerService _cashDrawerService;
+    private readonly TodaysBillsForm _todaysBillsForm;
+
+    // Built in code, beside the designer's ยกเลิกการขาย, so the designer file stays untouched.
+    private readonly ModernButton _todaysBillsButton =
+        TillStyle.Button("TodaysBillsButton", InvoiceHistoryView.TodayOnlyTitle, Size.Empty);
     private IReadOnlyDictionary<string, string>? _paymentMethodNamesByCode;
     private bool _storeFeaturesApplied;
     private bool _storeFeaturesErrorShown;
@@ -63,11 +71,13 @@ public partial class SalePanel : UserControl
                      PrintReceiptForm printReceiptForm,
 					 ICashDrawerService cashDrawerService,
 					 IPaymentMethodNames paymentMethodNames,
-					 IStoreFeaturesProvider storeFeatures)
+					 IStoreFeaturesProvider storeFeatures,
+					 TodaysBillsForm todaysBillsForm)
     {
         InitializeComponent();
         InitializeInvoiceDataView();
         InitializePaymentDataView();
+        AddTodaysBillsButton();
 
         _eventAggregator = eventAggregator;
         _saleService = saleService;
@@ -80,6 +90,7 @@ public partial class SalePanel : UserControl
 		_cashDrawerService = cashDrawerService;
 		_paymentMethodNames = paymentMethodNames;
 		_storeFeatures = storeFeatures;
+		_todaysBillsForm = todaysBillsForm;
 
 		SubscribeEvents();
     }
@@ -94,6 +105,7 @@ public partial class SalePanel : UserControl
         _eventAggregator.GetEvent<NewSaleStartedEvent>().Subscribe(ResetSaleInvoiceScreen);
         _eventAggregator.GetEvent<BarcodeReceivedEvent>().Subscribe(BarcodeReceived);
         _eventAggregator.GetEvent<ActiveSubPanelChangedEvent>().Subscribe(ActiveSubPanelChanged);
+        _eventAggregator.GetEvent<UserLoggedInEvent>().Subscribe(OnUserLoggedIn);
 
         VisibleChanged += async (_, _) =>
         {
@@ -270,6 +282,39 @@ public partial class SalePanel : UserControl
             }
 
             ApplyTillLayout(TillLayout.WhenFeaturesUnavailable);
+        }
+    }
+
+    // Left of ยกเลิกการขาย, the same size and row. BringToFront: panel8's title label docks over that row,
+    // and a control added after it would sit behind it.
+    private void AddTodaysBillsButton()
+    {
+        _todaysBillsButton.Size = CancelSaleInvoiceButton.Size;
+        _todaysBillsButton.Font = CancelSaleInvoiceButton.Font;
+        _todaysBillsButton.BorderRadius = CancelSaleInvoiceButton.BorderRadius;
+        _todaysBillsButton.Location = new Point(CancelSaleInvoiceButton.Left - CancelSaleInvoiceButton.Width - 12,
+                                                CancelSaleInvoiceButton.Top);
+        _todaysBillsButton.Anchor = CancelSaleInvoiceButton.Anchor;
+        _todaysBillsButton.Visible = false;
+        _todaysBillsButton.Click += TodaysBillsButton_Click;
+        panel8.Controls.Add(_todaysBillsButton);
+        _todaysBillsButton.BringToFront();
+    }
+
+    // Shown with sales.reprint (spec §7); every role has it today, but the rule is the capability.
+    private void OnUserLoggedIn(ILoggedInUser user) =>
+        _todaysBillsButton.Visible = SalesHistoryAccess.For(user).CanReprint;
+
+    private async void TodaysBillsButton_Click(object? sender, EventArgs e)
+    {
+        // The dialog shows its own errors; this catches only the unexpected.
+        try
+        {
+            await _todaysBillsForm.ShowTodaysBillsAsync();
+        }
+        catch (Exception ex)
+        {
+            _messageForm.ShowDialog($"เปิดบิลวันนี้ไม่สำเร็จ: {ex.Message}", "Error");
         }
     }
 

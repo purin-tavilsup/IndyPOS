@@ -1,7 +1,5 @@
-using IndyPOS.Application.Common.Models;
 using IndyPOS.Presentation.SalesHistory;
 using IndyPOS.Windows.Forms.Services;
-using Serilog;
 
 namespace IndyPOS.Windows.Forms.UI.Report;
 
@@ -33,7 +31,7 @@ public sealed class InvoiceDetailForm : Form
     public async Task LoadAsync(Guid saleId)
     {
         var viewModel = _factory.CreateDetail();
-        _view.ShowProductTypeSplit = (await LayoutAsync()).ShowProductTypeSplit;
+        _view.ShowProductTypeSplit = (await _features.GetLayoutAsync("the bill detail")).ShowProductTypeSplit;
         _view.Bind(viewModel);
 
         await viewModel.LoadAsync(saleId);
@@ -57,19 +55,6 @@ public sealed class InvoiceDetailForm : Form
         finally
         {
             _opening = false;
-        }
-    }
-
-    private async Task<TillLayout> LayoutAsync()
-    {
-        try
-        {
-            return TillLayout.For(await _features.GetAsync());
-        }
-        catch (Exception ex)
-        {
-            Log.Warning(ex, "Could not load store features for the bill detail");
-            return TillLayout.WhenFeaturesUnavailable;
         }
     }
 }

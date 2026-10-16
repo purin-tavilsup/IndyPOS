@@ -64,7 +64,7 @@ public class GetSaleQueryHandler(
     {
         var cashierName = await FindCashierNameAsync(invoice.UserId, cancellationToken);
         var kinds = await FindCategoryKindsAsync(invoice, cancellationToken);
-        var methodNames = await FindMethodNamesAsync(invoice, cancellationToken);
+        var methodNames = await PaymentMethodCatalogue.NamesAsync(db, invoice.StoreId, cancellationToken);
         var figures = SaleFigures.From(invoice.TotalAmount, invoice.Payments.Select(p => new SalePayment(p.Method, p.Amount)));
 
         return new InvoiceDetailDto(
@@ -108,28 +108,6 @@ public class GetSaleQueryHandler(
                  .AsNoTracking()
                  .Where(c => c.StoreId == invoice.StoreId && codes.Contains(c.Code))
                  .ToDictionaryAsync(c => c.Code, c => c.Kind, cancellationToken);
-    }
-
-    /// <remarks>
-    /// Matched ignoring case, as CompleteSaleCommandHandler validates codes: it stores the caller's
-    /// spelling, so "cash" is a valid stored code against the catalogue's "Cash". The whole store
-    /// catalogue is loaded (about ten rows) because a SQL IN would compare case-sensitively.
-    /// </remarks>
-    private async Task<Dictionary<string, string>> FindMethodNamesAsync(Invoice invoice, CancellationToken cancellationToken)
-    {
-        var catalogue = await db.PaymentMethods
-                                .AsNoTracking()
-                                .Where(m => m.StoreId == invoice.StoreId)
-                                .Select(m => new { m.Code, m.DisplayName })
-                                .ToListAsync(cancellationToken);
-
-        // The catalogue key is case-sensitive, so "Cash" and "cash" can both exist; the first in
-        // ordinal order wins rather than letting a duplicate hide every bill.
-        var names = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-        foreach (var method in catalogue.OrderBy(m => m.Code, StringComparer.Ordinal))
-            names.TryAdd(method.Code, method.DisplayName);
-
-        return names;
     }
 
     private static InvoiceLineDto ToLineDto(InvoiceLine line, IReadOnlyDictionary<string, ProductCategoryKind> kinds) =>

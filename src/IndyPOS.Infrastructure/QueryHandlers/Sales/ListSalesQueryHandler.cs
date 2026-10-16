@@ -32,6 +32,9 @@ public class ListSalesQueryHandler(
 
         var range = ReportDateRange.ToUtcRange(from, to, storeIdentity.TimeZone);
         var rows = await FetchPageAndOneMoreAsync(query, range, cancellationToken);
+        var names = await PaymentMethodCatalogue.NamesAsync(db, storeIdentity.StoreId, cancellationToken);
+        rows = rows.Select(r => r with { PrimaryPaymentMethodName = names.GetValueOrDefault(r.PrimaryPaymentMethod, r.PrimaryPaymentMethod) })
+                   .ToList();
 
         return new SalesPage(rows.Take(query.PageSize).ToList(), query.Page, query.PageSize, HasMore: rows.Count > query.PageSize);
     }
