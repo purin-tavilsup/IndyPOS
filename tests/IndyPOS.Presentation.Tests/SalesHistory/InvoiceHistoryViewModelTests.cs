@@ -263,6 +263,32 @@ public class InvoiceHistoryViewModelTests
     }
 
     [Fact]
+    public async Task ShowToday_WithAMethodThatHasNoName_ShowsItsCode()
+    {
+        _client.Setup(c => c.ListSalesAsync(Today, Today, 1, InvoiceHistoryViewModel.PageSize, It.IsAny<CancellationToken>()))
+               .ReturnsAsync(PaidBy("Unknown"));
+        var vm = History(Manager);
+
+        await vm.ShowTodayCommand.ExecuteAsync(null);
+
+        vm.Bills.Single().PaymentMethodName.Should()
+                                           .Be("Unknown");
+    }
+
+    [Fact]
+    public async Task ShowToday_WithAKnownMethod_ShowsItsName()
+    {
+        _client.Setup(c => c.ListSalesAsync(Today, Today, 1, InvoiceHistoryViewModel.PageSize, It.IsAny<CancellationToken>()))
+               .ReturnsAsync(PaidBy("Cash"));
+        var vm = History(Manager);
+
+        await vm.ShowTodayCommand.ExecuteAsync(null);
+
+        vm.Bills.Single().PaymentMethodName.Should()
+                                           .Be("เงินสด");
+    }
+
+    [Fact]
     public void IsTodayOnly_ForACashier_IsTrue()
     {
         var vm = History(Cashier);
@@ -277,8 +303,21 @@ public class InvoiceHistoryViewModelTests
         var detail = new InvoiceDetailViewModel(_client.Object, Mock.Of<IReceiptPrinterService>(),
                                                 new ReceiptDocumentFactory(Bangkok), clock, access);
 
-        return new InvoiceHistoryViewModel(_client.Object, clock, access, detail);
+        return new InvoiceHistoryViewModel(_client.Object, clock, access, detail, Names());
     }
+
+    private static IPaymentMethodNames Names()
+    {
+        var names = new Mock<IPaymentMethodNames>();
+        names.Setup(n => n.GetAsync(It.IsAny<CancellationToken>()))
+             .ReturnsAsync(new Dictionary<string, string> { ["Cash"] = "เงินสด" });
+
+        return names.Object;
+    }
+
+    private static SalesPage PaidBy(string method) =>
+        new([new InvoiceSummaryDto(Guid.NewGuid(), 1042, new DateTime(2026, 10, 15, 2, 0, 0, DateTimeKind.Utc), 100m, method, 1)],
+            1, InvoiceHistoryViewModel.PageSize, HasMore: false);
 
     // Every bill at 02:00 UTC = 09:00 Bangkok today.
     private static SalesPage Page(bool hasMore, params long[] numbers) =>
