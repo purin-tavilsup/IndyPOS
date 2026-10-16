@@ -21,7 +21,7 @@ internal static class SalesHistoryFixture
 
     public static SalesHistoryViewModelFactory Factory(IStoreHubClient client, ICurrentUser currentUser) => new(
         client, Mock.Of<IReceiptPrinterService>(), new ReceiptDocumentFactory(Bangkok),
-        new StoreClock(new FakeTimeProvider(NowUtc), Bangkok), currentUser, Names());
+        new StoreClock(new FakeTimeProvider(NowUtc), Bangkok), currentUser);
 
     public static ICurrentUser LoggedIn(UserRole role)
     {
@@ -53,13 +53,4 @@ internal static class SalesHistoryFixture
             1, InvoiceHistoryViewModel.PageSize, hasMore);
 
     public static Control Find(Control root, string name) => root.Controls.Find(name, searchAllChildren: true).Single();
-
-    private static IPaymentMethodNames Names()
-    {
-        var names = new Mock<IPaymentMethodNames>();
-        names.Setup(n => n.GetAsync(It.IsAny<CancellationToken>()))
-             .ReturnsAsync(new Dictionary<string, string> { ["Cash"] = "เงินสด" });
-
-        return names.Object;
-    }
 }
