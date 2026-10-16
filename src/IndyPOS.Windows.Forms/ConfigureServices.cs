@@ -40,7 +40,7 @@ internal static class ConfigureServices
 				.AddSingleton<ReportsPanel>()
 				.AddSingleton<PayLaterPaymentsReportPanel>()
 				.AddSingleton<PaymentMethodsSettingsForm>()
-				.AddSingleton<SaleHistoryByInvoiceIdForm>()
+				.AddSingleton<InvoiceDetailForm>()
 				.AddSingleton<SalePanel>()
 				.AddSingleton<SettingsPanel>()
 				.AddSingleton<UpdateInventoryProductForm>()
