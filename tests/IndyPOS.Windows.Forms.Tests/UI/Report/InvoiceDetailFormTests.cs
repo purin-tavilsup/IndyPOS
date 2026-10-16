@@ -37,6 +37,22 @@ public class InvoiceDetailFormTests
                                      .Be(InvoiceDetailViewModel.BillNotFound);
     }
 
+    // A second double-click while the first bill is still loading must not open a second dialog: the
+    // first ShowDialog would already be up, and the second would throw "Form that is already visible".
+    // The first load is left pending for good, so no ShowDialog ever runs in this test.
+    [Fact]
+    public void ShowBillAsync_WhileABillIsLoading_IgnoresTheSecondRequest()
+    {
+        _client.Setup(c => c.GetSaleAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
+               .Returns(new TaskCompletionSource<InvoiceDetailDto?>().Task);
+        using var form = Form();
+        _ = form.ShowBillAsync(Guid.NewGuid());
+
+        _ = form.ShowBillAsync(Guid.NewGuid());
+
+        _client.Verify(c => c.GetSaleAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()), Times.Once);
+    }
+
     [Fact]
     public async Task LoadAsync_AtAStoreWithoutTheSplit_HidesIt()
     {
