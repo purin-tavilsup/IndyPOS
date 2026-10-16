@@ -41,39 +41,10 @@ public class StoreHubReportService : IReportService
         return await _storeHubClient.GetLegacyPaymentsSummaryAsync(startDate, endDate);
     }
 
-    // ========================
-    // Methods below return empty/throw - they use legacy DTOs with int IDs
-    // These should be migrated to use Guid-based StoreHub queries
-    // For now, return empty to avoid breaking the build
-    // ========================
-
-    public Task<IEnumerable<InvoiceDto>> GetInvoicesByPeriodAsync(TimePeriod period)
-    {
-        // TODO: Implement via StoreHub GetInvoicesQuery when UI is migrated
-        return Task.FromResult(Enumerable.Empty<InvoiceDto>());
-    }
-
-    public Task<IEnumerable<InvoiceDto>> GetInvoicesByDateRangeAsync(DateOnly startDate, DateOnly endDate)
-    {
-        // TODO: Implement via StoreHub GetInvoicesQuery when UI is migrated
-        return Task.FromResult(Enumerable.Empty<InvoiceDto>());
-    }
-
+    // GetPayLaterPaymentsByPeriodAsync returns empty: cash flow still calls it, and slice 3 replaces it.
     public Task<IEnumerable<PayLaterPaymentDto>> GetPayLaterPaymentsByPeriodAsync(TimePeriod period)
     {
         // TODO: Implement via StoreHub GetPayLaterReportQuery when UI is migrated
         return Task.FromResult(Enumerable.Empty<PayLaterPaymentDto>());
-    }
-
-    public Task<IEnumerable<InvoiceProductDto>> GetInvoiceProductsByInvoiceIdAsync(int invoiceId)
-    {
-        // Legacy int-based ID - not supported in StoreHub mode
-        return Task.FromResult(Enumerable.Empty<InvoiceProductDto>());
-    }
-
-    public Task<IEnumerable<InvoicePaymentDto>> GetPaymentsByInvoiceIdAsync(int invoiceId)
-    {
-        // Legacy int-based ID - not supported in StoreHub mode
-        return Task.FromResult(Enumerable.Empty<InvoicePaymentDto>());
     }
 }

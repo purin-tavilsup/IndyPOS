@@ -8,53 +8,6 @@ namespace IndyPOS.Application.Common.Models;
 // TODO: Migrate WinForms report panels to use StoreHub DTOs directly during MAUI migration.
 
 /// <summary>
-/// Legacy invoice DTO for report panels.
-/// </summary>
-public record InvoiceDto(
-    int InvoiceId,
-    Guid? StoreHubInvoiceId,
-    int UserId,
-    decimal Total,
-    string DateCreated);
-
-/// <summary>
-/// Legacy invoice product DTO for report panels.
-/// </summary>
-public record InvoiceProductDto(
-    int InvoiceProductId,
-    int Priority,
-    int InvoiceId,
-    int InventoryProductId,
-    string Barcode,
-    string Description,
-    string Manufacturer,
-    string Brand,
-    string Category,
-    decimal UnitPrice,
-    int Quantity,
-    string DateCreated,
-    string Note,
-    decimal GroupPrice,
-    bool IsGroupProduct)
-{
-    /// <summary>
-    /// Calculate total for this line item.
-    /// </summary>
-    public decimal GetTotal() => IsGroupProduct ? GroupPrice : UnitPrice * Quantity;
-}
-
-/// <summary>
-/// Legacy invoice payment DTO for report panels.
-/// </summary>
-public record InvoicePaymentDto(
-    int InvoicePaymentId,
-    int InvoiceId,
-    int PaymentTypeId,
-    decimal Amount,
-    string Note,
-    string DateCreated);
-
-/// <summary>
 /// Legacy pay-later payment DTO for report panels.
 /// </summary>
 public record PayLaterPaymentDto(
