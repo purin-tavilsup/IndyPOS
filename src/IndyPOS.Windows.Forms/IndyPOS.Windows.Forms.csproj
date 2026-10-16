@@ -99,6 +99,7 @@
   <ItemGroup>
     <ProjectReference Include="..\IndyPOS.Application\IndyPOS.Application.csproj" />
     <ProjectReference Include="..\IndyPOS.Infrastructure\IndyPOS.Infrastructure.csproj" />
+    <ProjectReference Include="..\IndyPOS.Presentation\IndyPOS.Presentation.csproj" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="appsettings.json">

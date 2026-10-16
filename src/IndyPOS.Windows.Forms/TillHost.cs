@@ -1,3 +1,5 @@
+using IndyPOS.Application.Common.Interfaces;
+using IndyPOS.Infrastructure.Services;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -42,5 +44,16 @@ public static class TillHost
 		services.AddUIServices()
 				.AddInfrastructureServices(context.Configuration)
 				.AddStoreHubClientServices(context.Configuration); // Epic G: StoreHub integration
+
+		AddReceiptPrinter(services);
+	}
+
+	// The till's one print gate: a DEBUG build saves receipts as PNGs rather than printing them. Registered
+	// last so it replaces the thermal printer AddInfrastructureServices registered.
+	private static void AddReceiptPrinter(IServiceCollection services)
+	{
+#if DEBUG
+		services.AddSingleton<IReceiptPrinterService, ReceiptImagePrinter>();
+#endif
 	}
 }

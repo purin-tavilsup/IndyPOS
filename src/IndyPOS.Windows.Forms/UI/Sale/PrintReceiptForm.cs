@@ -1,6 +1,5 @@
 ﻿using IndyPOS.Application.Common.Interfaces;
 using IndyPOS.Application.Common.Receipts;
-using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 
 namespace IndyPOS.Windows.Forms.UI.Sale;
@@ -42,7 +41,6 @@ public partial class PrintReceiptForm : Form
 		}
 	}
 
-	[Conditional("RELEASE")]
 	private void PrintReceipt(ReceiptDocument document)
 	{
 		_receiptPrinterService.PrintReceipt(document);

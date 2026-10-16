@@ -10,7 +10,7 @@ namespace IndyPOS.Windows.Forms.UI.PayLater;
 public partial class PayLaterPaymentPanel : UserControl
 {
     private readonly IPayLaterService? _payLaterService;
-    private readonly SaleHistoryByInvoiceIdForm _saleHistoryByInvoiceIdForm;
+    private readonly InvoiceDetailForm _invoiceDetailForm;
     private readonly MessageForm _messageForm;
 
     private enum AccountColumn
@@ -26,11 +26,11 @@ public partial class PayLaterPaymentPanel : UserControl
     }
 
     public PayLaterPaymentPanel(
-        SaleHistoryByInvoiceIdForm saleHistoryByInvoiceIdForm,
+        InvoiceDetailForm invoiceDetailForm,
         MessageForm messageForm,
         IPayLaterService? payLaterService = null)
     {
-        _saleHistoryByInvoiceIdForm = saleHistoryByInvoiceIdForm;
+        _invoiceDetailForm = invoiceDetailForm;
         _messageForm = messageForm;
         _payLaterService = payLaterService;
 
@@ -337,14 +337,20 @@ public partial class PayLaterPaymentPanel : UserControl
         await ShowPayLaterPaymentsAsync(showIncompleteOnly);
     }
 
-    private void PayLaterPaymentsDataView_DoubleClick(object sender, EventArgs e)
+    private async void PayLaterPaymentsDataView_DoubleClick(object sender, EventArgs e)
     {
-        // Invoice viewing is currently not supported in StoreHub mode
-        // TODO: Implement when invoice detail view is available via StoreHub client
         var invoiceId = GetInvoiceIdFromSelectedRow();
-        if (invoiceId.HasValue)
+        if (invoiceId is null)
+            return;
+
+        // The dialog shows its own errors (ไม่พบบิล, StoreHub's reason); this catches only the unexpected.
+        try
         {
-            _messageForm.ShowDialog($"Invoice ID: {invoiceId.Value}\n\n(Invoice detail view coming soon)", "Invoice Details");
+            await _invoiceDetailForm.ShowBillAsync(invoiceId.Value);
+        }
+        catch (Exception ex)
+        {
+            _messageForm.ShowDialog($"เปิดบิลไม่สำเร็จ: {ex.Message}", "Error");
         }
     }
 }
