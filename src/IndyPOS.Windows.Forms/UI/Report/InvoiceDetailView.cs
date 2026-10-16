@@ -15,37 +15,18 @@ public sealed class InvoiceDetailView : UserControl
     public const string RefundBadge = "คืนสินค้า";
     public const string PayLaterBadge = "ลงบัญชี";
 
-    private const string FontName = "FC Subject [Non-commercial] Reg";
-    private static readonly Color Background = Color.FromArgb(38, 38, 38);
-    private static readonly Color Accent = Color.FromArgb(50, 190, 166);
-
-    private readonly Label _billNumber = TextLabel("BillNumberLabel", 18F);
-    private readonly Label _issuedAt = TextLabel("IssuedAtLabel");
-    private readonly Label _cashier = TextLabel("CashierLabel");
-    private readonly Label _badges = TextLabel("BadgesLabel");
+    private readonly Label _billNumber = TillStyle.Label("BillNumberLabel", 18F);
+    private readonly Label _issuedAt = TillStyle.Label("IssuedAtLabel");
+    private readonly Label _cashier = TillStyle.Label("CashierLabel");
+    private readonly Label _badges = TillStyle.Label("BadgesLabel");
     private readonly DataGridView _lines = TillGrid.Create("LinesGrid");
     private readonly DataGridView _payments = TillGrid.Create("PaymentsGrid");
-    private readonly Label _total = TextLabel("TotalLabel");
-    private readonly Label _received = TextLabel("ReceivedLabel");
-    private readonly Label _change = TextLabel("ChangeLabel");
-    private readonly Label _split = TextLabel("SplitLabel");
-    private readonly Label _error = TextLabel("ErrorLabel");
-    private readonly ModernButton _reprint = new()
-    {
-        Name = "ReprintButton",
-        Text = "พิมพ์ซ้ำ",
-        Size = new Size(180, 60),
-        Dock = DockStyle.Right,
-        BackColor = Background,
-        BackgroundColor = Background,
-        BorderColor = Accent,
-        BorderRadius = 5,
-        BorderSize = 1,
-        FlatStyle = FlatStyle.Flat,
-        Font = new Font(FontName, 14F),
-        ForeColor = Color.White,
-        TextColor = Color.White
-    };
+    private readonly Label _total = TillStyle.Label("TotalLabel");
+    private readonly Label _received = TillStyle.Label("ReceivedLabel");
+    private readonly Label _change = TillStyle.Label("ChangeLabel");
+    private readonly Label _split = TillStyle.Label("SplitLabel");
+    private readonly Label _error = TillStyle.Label("ErrorLabel");
+    private readonly ModernButton _reprint = TillStyle.Button("ReprintButton", "พิมพ์ซ้ำ", new Size(180, 60));
 
     private InvoiceDetailViewModel? _viewModel;
     private IDisposable? _reprintBinding;
@@ -54,7 +35,8 @@ public sealed class InvoiceDetailView : UserControl
     public InvoiceDetailView()
     {
         Name = nameof(InvoiceDetailView);
-        BackColor = Background;
+        _reprint.Dock = DockStyle.Right;
+        BackColor = TillStyle.Background;
         _error.ForeColor = Color.Salmon;
 
         TillGrid.AddColumn(_lines, "สินค้า", 320);
@@ -159,7 +141,7 @@ public sealed class InvoiceDetailView : UserControl
     private Panel Totals()
     {
         var figures = Stack(DockStyle.Fill, 0, _total, _received, _change, _split, _error);
-        var totals = new Panel { Dock = DockStyle.Bottom, Height = 170, BackColor = Background, Padding = new Padding(10) };
+        var totals = new Panel { Dock = DockStyle.Bottom, Height = 170, BackColor = TillStyle.Background, Padding = new Padding(10) };
         totals.Controls.Add(figures);
         totals.Controls.Add(_reprint);
 
@@ -169,7 +151,7 @@ public sealed class InvoiceDetailView : UserControl
     // Children dock to the top in the order given (WinForms docks the last-added first, hence the reverse).
     private static Panel Stack(DockStyle dock, int height, params Control[] children)
     {
-        var panel = new Panel { Dock = dock, BackColor = Background, Padding = new Padding(10, 5, 10, 5) };
+        var panel = new Panel { Dock = dock, BackColor = TillStyle.Background, Padding = new Padding(10, 5, 10, 5) };
         if (height > 0)
             panel.Height = height;
 
@@ -182,14 +164,4 @@ public sealed class InvoiceDetailView : UserControl
 
         return panel;
     }
-
-    private static Label TextLabel(string name, float size = 12F) => new()
-    {
-        Name = name,
-        AutoSize = false,
-        Height = (int)(size * 2.2F),
-        ForeColor = Color.Gainsboro,
-        Font = new Font(FontName, size),
-        TextAlign = ContentAlignment.MiddleLeft
-    };
 }
