@@ -1,9 +1,11 @@
 using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Windows.Forms;
 using FluentAssertions;
 using IndyPOS.Application.Abstractions.StoreHub;
 using IndyPOS.Application.Common.Enums;
 using IndyPOS.Application.UseCases.StoreHub.Sales.History;
+using IndyPOS.Infrastructure.Services.RawDeviceInput;
 using IndyPOS.Presentation.SalesHistory;
 using IndyPOS.Windows.Forms.UI.Report;
 using Moq;
@@ -54,6 +56,33 @@ public class InvoiceHistoryViewTests
 
         Find(view, "HistoryErrorLabel").Text.Should()
                                             .Be(InvoiceHistoryViewModel.NotANumber);
+    }
+
+    // The till installs a message filter that swallows every Enter WM_KEYDOWN (the barcode scanner ends each
+    // scan with Enter). Posted messages go through the real message loop and that filter, as a key press does.
+    [Fact]
+    public void Search_WhenEnterIsPressedUnderTheTillsKeyFilter_SearchesTheBillNumber()
+    {
+        var filter = new PreMessageFilter();
+        System.Windows.Forms.Application.AddMessageFilter(filter);
+        try
+        {
+            using var form = OffScreenForm();
+            var view = new InvoiceHistoryView { Dock = DockStyle.Fill };
+            form.Controls.Add(view);
+            view.Bind(Factory(_client.Object, LoggedIn(UserRole.StoreManager)).CreateHistory());
+            form.Show();
+            var box = Find(view, "BillNumberTextBox");
+            box.Text = "1042";
+
+            PressEnter(box);
+
+            _client.Verify(c => c.GetSaleByNumberAsync(1042, It.IsAny<CancellationToken>()), Times.Once);
+        }
+        finally
+        {
+            System.Windows.Forms.Application.RemoveMessageFilter(filter);
+        }
     }
 
     [Fact]
@@ -138,6 +167,29 @@ public class InvoiceHistoryViewTests
                .ReturnsAsync(page);
 
     private static DataGridView Bills(Control view) => (DataGridView)Find(view, "BillsGrid");
+
+    private static Form OffScreenForm() => new()
+    {
+        StartPosition = FormStartPosition.Manual,
+        Location = new System.Drawing.Point(-3000, -3000),
+        Size = new System.Drawing.Size(1400, 800),
+        ShowInTaskbar = false
+    };
+
+    private const int KeyDownMessage = 0x0100;
+    private const int KeyUpMessage = 0x0101;
+    private const int ReturnKey = 0x0D;
+
+    [DllImport("user32.dll")]
+    private static extern bool PostMessage(IntPtr window, int message, IntPtr wParam, IntPtr lParam);
+
+    private static void PressEnter(Control target)
+    {
+        PostMessage(target.Handle, KeyDownMessage, ReturnKey, IntPtr.Zero);
+        PostMessage(target.Handle, KeyUpMessage, ReturnKey, unchecked((IntPtr)0xC0000001));
+        for (var i = 0; i < 10; i++)
+            System.Windows.Forms.Application.DoEvents();
+    }
 
     // DataGridView raises CellClick only from a real mouse; this is the same event, without a window.
     private static void ClickRow(DataGridView grid, int row) =>
