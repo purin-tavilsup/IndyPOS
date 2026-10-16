@@ -54,7 +54,7 @@ public sealed class InvoiceHistoryView : UserControl
 
         _bills.CellClick += OnBillClicked;
         _billNumber.TextChanged += OnBillNumberChanged;
-        _billNumber.KeyDown += OnBillNumberKeyDown;
+        _billNumber.KeyUp += OnBillNumberKeyUp;
 
         Controls.Add(_detail);
         Controls.Add(BillList());
@@ -146,12 +146,13 @@ public sealed class InvoiceHistoryView : UserControl
             _viewModel.SearchText = _billNumber.Text;
     }
 
-    private void OnBillNumberKeyDown(object? sender, KeyEventArgs e)
+    // KeyUp, not KeyDown: the till's barcode-scanner message filter (PreMessageFilter) swallows every Enter
+    // WM_KEYDOWN in the process, so KeyDown never sees Enter.
+    private void OnBillNumberKeyUp(object? sender, KeyEventArgs e)
     {
         if (e.KeyCode != Keys.Enter || _viewModel is null)
             return;
 
-        e.SuppressKeyPress = true;
         CommandButton.TryExecute(_viewModel.SearchCommand, null);
     }
 
