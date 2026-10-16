@@ -3,13 +3,18 @@ using IndyPOS.Domain.Enums;
 namespace IndyPOS.Application.UseCases.StoreHub.Sales.History;
 
 /// <summary>A bill in the list. Per-bill amounts help a cashier find "the ฿350 one at 2 pm".</summary>
+/// <param name="PrimaryPaymentMethodName">
+/// The method's display name from the store's whole catalogue, disabled campaign methods included, or the
+/// code when the catalogue has no such method. Optional so the field stays additive on the wire.
+/// </param>
 public record InvoiceSummaryDto(
     Guid Id,
     long InvoiceNumber,
     DateTime CreatedUtc,
     decimal TotalAmount,
     string PrimaryPaymentMethod,
-    int LineCount);
+    int LineCount,
+    string? PrimaryPaymentMethodName = null);
 
 /// <summary>
 /// One page of bills. Deliberately no money total and no total count: the list is for finding a
