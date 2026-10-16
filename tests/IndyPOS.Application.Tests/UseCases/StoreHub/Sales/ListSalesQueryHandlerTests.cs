@@ -158,6 +158,36 @@ public class ListSalesQueryHandlerTests
                                                .Equal(1001);
     }
 
+    // A campaign method that has ended (ม.33 เรารักกัน) is disabled but kept, so its old bills still show its name.
+    [Fact]
+    public async Task Handle_WithADisabledMethod_ReturnsItsDisplayName()
+    {
+        await using var c = new SalesHistoryTestContext();
+        await c.SeedPaymentMethodAsync(PaymentMethodCodes.M33WeLove, "ม.33 เรารักกัน", isEnabled: false);
+        await c.SeedInvoiceAsync(new InvoiceSeed(1001, NineAmTodayUtc) { Payments = [new(PaymentMethodCodes.M33WeLove, 500m)] });
+
+        var page = await c.ListHandler().HandleAsync(TodayOnly());
+
+        page.Items.Should()
+                  .ContainSingle()
+                  .Which.PrimaryPaymentMethodName.Should()
+                                                 .Be("ม.33 เรารักกัน");
+    }
+
+    [Fact]
+    public async Task Handle_WithAMethodMissingFromTheCatalogue_UsesTheCodeAsName()
+    {
+        await using var c = new SalesHistoryTestContext();
+        await c.SeedInvoiceAsync(new InvoiceSeed(1001, NineAmTodayUtc));
+
+        var page = await c.ListHandler().HandleAsync(TodayOnly());
+
+        page.Items.Should()
+                  .ContainSingle()
+                  .Which.PrimaryPaymentMethodName.Should()
+                                                 .Be(PaymentMethodCodes.Cash);
+    }
+
     [Fact]
     public async Task Handle_WithTwoEqualPayments_PicksTheMethodThatSortsFirst()
     {

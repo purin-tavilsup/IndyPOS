@@ -120,11 +120,11 @@ internal sealed class SalesHistoryTestContext : IAsyncDisposable
         await Db.SaveChangesAsync();
     }
 
-    public async Task SeedPaymentMethodAsync(string code, string displayName)
+    public async Task SeedPaymentMethodAsync(string code, string displayName, bool isEnabled = true)
     {
         Db.PaymentMethods.Add(new PaymentMethod
         {
-            StoreId = StoreIdentity.StoreId, Code = code, DisplayName = displayName, IsEnabled = true,
+            StoreId = StoreIdentity.StoreId, Code = code, DisplayName = displayName, IsEnabled = isEnabled,
             DisplayOrder = 1, CreatedUtc = NineAmTodayUtc, LastModifiedUtc = NineAmTodayUtc
         });
         await Db.SaveChangesAsync();
