@@ -98,7 +98,7 @@ public class SalesHistoryViewModelFactoryTests
 
     private SalesHistoryViewModelFactory Factory() =>
         new(Mock.Of<IStoreHubClient>(), Mock.Of<IReceiptPrinterService>(), new ReceiptDocumentFactory(Bangkok),
-            new StoreClock(new FakeTimeProvider(NowUtc), Bangkok), _currentUser.Object, Mock.Of<IPaymentMethodNames>());
+            new StoreClock(new FakeTimeProvider(NowUtc), Bangkok), _currentUser.Object);
 
     private static ILoggedInUser User(int roleId)
     {

@@ -263,10 +263,10 @@ public class InvoiceHistoryViewModelTests
     }
 
     [Fact]
-    public async Task ShowToday_WithAMethodThatHasNoName_ShowsItsCode()
+    public async Task ShowToday_WithNoNameFromStoreHub_ShowsTheCode()
     {
         _client.Setup(c => c.ListSalesAsync(Today, Today, 1, InvoiceHistoryViewModel.PageSize, It.IsAny<CancellationToken>()))
-               .ReturnsAsync(PaidBy("Unknown"));
+               .ReturnsAsync(PaidBy("Unknown", name: null));
         var vm = History(Manager);
 
         await vm.ShowTodayCommand.ExecuteAsync(null);
@@ -275,17 +275,18 @@ public class InvoiceHistoryViewModelTests
                                            .Be("Unknown");
     }
 
+    // StoreHub names it from the whole catalogue, so an ended campaign method still has its name.
     [Fact]
-    public async Task ShowToday_WithAKnownMethod_ShowsItsName()
+    public async Task ShowToday_WithANameFromStoreHub_ShowsIt()
     {
         _client.Setup(c => c.ListSalesAsync(Today, Today, 1, InvoiceHistoryViewModel.PageSize, It.IsAny<CancellationToken>()))
-               .ReturnsAsync(PaidBy("Cash"));
+               .ReturnsAsync(PaidBy("M33WeLove", name: "ม.33 เรารักกัน"));
         var vm = History(Manager);
 
         await vm.ShowTodayCommand.ExecuteAsync(null);
 
         vm.Bills.Single().PaymentMethodName.Should()
-                                           .Be("เงินสด");
+                                           .Be("ม.33 เรารักกัน");
     }
 
     // A cashier on a slow StoreHub clicks one bill, then another: the grid highlights the second, so the
@@ -327,20 +328,11 @@ public class InvoiceHistoryViewModelTests
         var detail = new InvoiceDetailViewModel(_client.Object, Mock.Of<IReceiptPrinterService>(),
                                                 new ReceiptDocumentFactory(Bangkok), clock, access);
 
-        return new InvoiceHistoryViewModel(_client.Object, clock, access, detail, Names());
+        return new InvoiceHistoryViewModel(_client.Object, clock, access, detail);
     }
 
-    private static IPaymentMethodNames Names()
-    {
-        var names = new Mock<IPaymentMethodNames>();
-        names.Setup(n => n.GetAsync(It.IsAny<CancellationToken>()))
-             .ReturnsAsync(new Dictionary<string, string> { ["Cash"] = "เงินสด" });
-
-        return names.Object;
-    }
-
-    private static SalesPage PaidBy(string method) =>
-        new([new InvoiceSummaryDto(Guid.NewGuid(), 1042, new DateTime(2026, 10, 15, 2, 0, 0, DateTimeKind.Utc), 100m, method, 1)],
+    private static SalesPage PaidBy(string method, string? name) =>
+        new([new InvoiceSummaryDto(Guid.NewGuid(), 1042, new DateTime(2026, 10, 15, 2, 0, 0, DateTimeKind.Utc), 100m, method, 1, name)],
             1, InvoiceHistoryViewModel.PageSize, HasMore: false);
 
     // Every bill at 02:00 UTC = 09:00 Bangkok today.

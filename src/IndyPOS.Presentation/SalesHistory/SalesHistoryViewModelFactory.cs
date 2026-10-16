@@ -13,8 +13,7 @@ public sealed class SalesHistoryViewModelFactory(
     IReceiptPrinterService printer,
     ReceiptDocumentFactory receipts,
     StoreClock clock,
-    ICurrentUser currentUser,
-    IPaymentMethodNames paymentMethodNames)
+    ICurrentUser currentUser)
 {
     public const string NotLoggedIn = "No user is logged in on this till.";
 
@@ -29,7 +28,7 @@ public sealed class SalesHistoryViewModelFactory(
     public InvoiceHistoryViewModel CreateTodayOnly() => History(Access() with { CanViewAnyDay = false });
 
     private InvoiceHistoryViewModel History(SalesHistoryAccess access) =>
-        new(client, clock, access, Detail(access), paymentMethodNames);
+        new(client, clock, access, Detail(access));
 
     private InvoiceDetailViewModel Detail(SalesHistoryAccess access) => new(client, printer, receipts, clock, access);
 

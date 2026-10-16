@@ -33,7 +33,6 @@ public sealed partial class InvoiceHistoryViewModel : ObservableObject
     private readonly IStoreHubClient _client;
     private readonly StoreClock _clock;
     private readonly SalesHistoryAccess _access;
-    private readonly IPaymentMethodNames _paymentMethodNames;
     private CancellationTokenSource _current = new();
     private int _page;
 
@@ -54,12 +53,11 @@ public sealed partial class InvoiceHistoryViewModel : ObservableObject
     private string _searchText = string.Empty;
 
     public InvoiceHistoryViewModel(IStoreHubClient client, StoreClock clock, SalesHistoryAccess access,
-                                   InvoiceDetailViewModel detail, IPaymentMethodNames paymentMethodNames)
+                                   InvoiceDetailViewModel detail)
     {
         _client = client;
         _clock = clock;
         _access = access;
-        _paymentMethodNames = paymentMethodNames;
         Detail = detail;
     }
 
@@ -167,7 +165,6 @@ public sealed partial class InvoiceHistoryViewModel : ObservableObject
         try
         {
             var result = await _client.ListSalesAsync(range.From, range.To, page, PageSize, token);
-            var names = await _paymentMethodNames.GetAsync(token);
             if (token.IsCancellationRequested)
                 return;
 
@@ -177,7 +174,7 @@ public sealed partial class InvoiceHistoryViewModel : ObservableObject
                 return;
 
             foreach (var bill in result.Items)
-                Bills.Add(ToRow(bill, names));
+                Bills.Add(ToRow(bill));
 
             _page = page;
             HasMore = result.HasMore;
@@ -213,9 +210,9 @@ public sealed partial class InvoiceHistoryViewModel : ObservableObject
         return _current.Token;
     }
 
-    // A code with no name (names not loaded yet, or StoreHub's "Unknown") is shown as the code, never blank.
-    private InvoiceRow ToRow(InvoiceSummaryDto bill, IReadOnlyDictionary<string, string> names) =>
+    // StoreHub names the method from the store's whole catalogue, so an ended campaign keeps its name; an
+    // older StoreHub sends no name, and the code is shown rather than a blank.
+    private InvoiceRow ToRow(InvoiceSummaryDto bill) =>
         new(bill.Id, bill.InvoiceNumber, _clock.ToStoreTime(bill.CreatedUtc), bill.TotalAmount,
-            names.TryGetValue(bill.PrimaryPaymentMethod, out var name) ? name : bill.PrimaryPaymentMethod,
-            bill.LineCount);
+            bill.PrimaryPaymentMethodName ?? bill.PrimaryPaymentMethod, bill.LineCount);
 }
