@@ -288,6 +288,30 @@ public class InvoiceHistoryViewModelTests
                                            .Be("เงินสด");
     }
 
+    // A cashier on a slow StoreHub clicks one bill, then another: the grid highlights the second, so the
+    // second must load too. The detail drops the first one's late answer by itself.
+    [Fact]
+    public void Open_WhileAnotherBillLoads_CanOpenTheNext()
+    {
+        var first = new InvoiceRow(Guid.NewGuid(), 1041, new DateTime(2026, 10, 15, 9, 0, 0), 100m, "เงินสด", 1);
+        var second = first with { Id = Guid.NewGuid(), InvoiceNumber = 1042 };
+        var pending = new TaskCompletionSource<InvoiceDetailDto?>();
+        _client.Setup(c => c.GetSaleAsync(first.Id, It.IsAny<CancellationToken>())).Returns(pending.Task);
+        var vm = History(Manager);
+        vm.OpenCommand.Execute(first);
+
+        try
+        {
+            vm.OpenCommand.CanExecute(second).Should()
+                                             .BeTrue();
+        }
+        finally
+        {
+            // xunit waits for the command's async-void monitor; a never-finished load would hang the run.
+            pending.SetResult(null);
+        }
+    }
+
     [Fact]
     public void IsTodayOnly_ForACashier_IsTrue()
     {

@@ -111,7 +111,9 @@ public sealed partial class InvoiceHistoryViewModel : ObservableObject
     [RelayCommand(CanExecute = nameof(HasMore))]
     private Task LoadMoreAsync() => LoadPageAsync(new DateRange(From, To), _page + 1, _current.Token);
 
-    [RelayCommand]
+    // Concurrent: a click on another bill while one loads must load it too, or the list would highlight a
+    // bill the detail does not show. The detail drops the earlier bill's late answer itself.
+    [RelayCommand(AllowConcurrentExecutions = true)]
     private Task OpenAsync(InvoiceRow row) => Detail.LoadAsync(row.Id);
 
     [RelayCommand]
