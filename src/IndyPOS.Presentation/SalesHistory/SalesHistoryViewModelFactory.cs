@@ -13,11 +13,25 @@ public sealed class SalesHistoryViewModelFactory(
     IReceiptPrinterService printer,
     ReceiptDocumentFactory receipts,
     StoreClock clock,
-    ICurrentUser currentUser)
+    ICurrentUser currentUser,
+    IPaymentMethodNames paymentMethodNames)
 {
     public const string NotLoggedIn = "No user is logged in on this till.";
 
-    public InvoiceDetailViewModel CreateDetail() => new(client, printer, receipts, clock, Access());
+    public InvoiceDetailViewModel CreateDetail() => Detail(Access());
+
+    public InvoiceHistoryViewModel CreateHistory() => History(Access());
+
+    /// <summary>
+    /// บิลวันนี้ on the sale screen: today only, whoever opens it (spec §7), so a manager's reprint from
+    /// there keeps to today too.
+    /// </summary>
+    public InvoiceHistoryViewModel CreateTodayOnly() => History(Access() with { CanViewAnyDay = false });
+
+    private InvoiceHistoryViewModel History(SalesHistoryAccess access) =>
+        new(client, clock, access, Detail(access), paymentMethodNames);
+
+    private InvoiceDetailViewModel Detail(SalesHistoryAccess access) => new(client, printer, receipts, clock, access);
 
     private SalesHistoryAccess Access() =>
         SalesHistoryAccess.For(currentUser.User ?? throw new InvalidOperationException(NotLoggedIn));
