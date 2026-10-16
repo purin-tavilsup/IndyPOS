@@ -14,6 +14,7 @@ public sealed class InvoiceDetailForm : Form
     private readonly SalesHistoryViewModelFactory _factory;
     private readonly IStoreFeaturesProvider _features;
     private readonly InvoiceDetailView _view = new() { Dock = DockStyle.Fill };
+    private bool _opening;
 
     public InvoiceDetailForm(SalesHistoryViewModelFactory factory, IStoreFeaturesProvider features)
     {
@@ -38,10 +39,25 @@ public sealed class InvoiceDetailForm : Form
         await viewModel.LoadAsync(saleId);
     }
 
+    /// <summary>
+    /// Loads and shows the bill. A request while another is still loading or shown is ignored: the dialog
+    /// appears only once its load finishes, so a second double-click would otherwise open it twice.
+    /// </summary>
     public async Task ShowBillAsync(Guid saleId)
     {
-        await LoadAsync(saleId);
-        ShowDialog();
+        if (_opening)
+            return;
+
+        _opening = true;
+        try
+        {
+            await LoadAsync(saleId);
+            ShowDialog();
+        }
+        finally
+        {
+            _opening = false;
+        }
     }
 
     private async Task<TillLayout> LayoutAsync()
