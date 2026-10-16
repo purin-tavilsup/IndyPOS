@@ -8,9 +8,9 @@ using IndyPOS.Application.UseCases.StoreHub.Sales.History;
 
 namespace IndyPOS.Presentation.SalesHistory;
 
-/// <summary>A bill in the list, its time already store-local.</summary>
+/// <summary>A bill in the list, its time already store-local and its payment method by name.</summary>
 public sealed record InvoiceRow(Guid Id, long InvoiceNumber, DateTime CreatedAt, decimal TotalAmount,
-                                string PrimaryPaymentMethod, int LineCount);
+                                string PaymentMethodName, int LineCount);
 
 public sealed record DateRange(DateOnly From, DateOnly To);
 
@@ -33,6 +33,7 @@ public sealed partial class InvoiceHistoryViewModel : ObservableObject
     private readonly IStoreHubClient _client;
     private readonly StoreClock _clock;
     private readonly SalesHistoryAccess _access;
+    private readonly IPaymentMethodNames _paymentMethodNames;
     private CancellationTokenSource _current = new();
     private int _page;
 
@@ -53,11 +54,12 @@ public sealed partial class InvoiceHistoryViewModel : ObservableObject
     private string _searchText = string.Empty;
 
     public InvoiceHistoryViewModel(IStoreHubClient client, StoreClock clock, SalesHistoryAccess access,
-                                   InvoiceDetailViewModel detail)
+                                   InvoiceDetailViewModel detail, IPaymentMethodNames paymentMethodNames)
     {
         _client = client;
         _clock = clock;
         _access = access;
+        _paymentMethodNames = paymentMethodNames;
         Detail = detail;
     }
 
@@ -163,6 +165,7 @@ public sealed partial class InvoiceHistoryViewModel : ObservableObject
         try
         {
             var result = await _client.ListSalesAsync(range.From, range.To, page, PageSize, token);
+            var names = await _paymentMethodNames.GetAsync(token);
             if (token.IsCancellationRequested)
                 return;
 
@@ -172,7 +175,7 @@ public sealed partial class InvoiceHistoryViewModel : ObservableObject
                 return;
 
             foreach (var bill in result.Items)
-                Bills.Add(ToRow(bill));
+                Bills.Add(ToRow(bill, names));
 
             _page = page;
             HasMore = result.HasMore;
@@ -208,7 +211,9 @@ public sealed partial class InvoiceHistoryViewModel : ObservableObject
         return _current.Token;
     }
 
-    private InvoiceRow ToRow(InvoiceSummaryDto bill) =>
+    // A code with no name (names not loaded yet, or StoreHub's "Unknown") is shown as the code, never blank.
+    private InvoiceRow ToRow(InvoiceSummaryDto bill, IReadOnlyDictionary<string, string> names) =>
         new(bill.Id, bill.InvoiceNumber, _clock.ToStoreTime(bill.CreatedUtc), bill.TotalAmount,
-            bill.PrimaryPaymentMethod, bill.LineCount);
+            names.TryGetValue(bill.PrimaryPaymentMethod, out var name) ? name : bill.PrimaryPaymentMethod,
+            bill.LineCount);
 }
