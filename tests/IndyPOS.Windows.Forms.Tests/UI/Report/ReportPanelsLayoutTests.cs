@@ -84,7 +84,8 @@ public class ReportPanelsLayoutTests
         using var reports = new ReportsPanel(
             overview,
             new InvoiceProductsReportPanel(Mock.Of<IStoreHubClient>(), pending.Object, messageForm),
-            new SalesHistoryReportPanel(Mock.Of<IReportService>(), Mock.Of<IStoreConstants>(), messageForm),
+            new SalesHistoryReportPanel(SalesHistoryFixture.Factory(Mock.Of<IStoreHubClient>(), SalesHistoryFixture.NobodyLoggedIn()),
+                                        pending.Object),
             new PayLaterPaymentsReportPanel(Mock.Of<IStoreHubClient>(), messageForm),
             new CashFlowCalculatorPanel(Mock.Of<IReportService>(), Mock.Of<IJsonService>(), Mock.Of<ICsvService>(),
                                         NullLogger<MainForm>.Instance),
