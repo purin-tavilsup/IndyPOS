@@ -29,6 +29,50 @@ public class SalesHistoryViewModelFactoryTests
     }
 
     [Fact]
+    public void CreateHistory_WithNobodyLoggedIn_ThrowsNotLoggedIn()
+    {
+        var act = () => Factory().CreateHistory();
+
+        act.Should()
+           .Throw<InvalidOperationException>()
+           .WithMessage(SalesHistoryViewModelFactory.NotLoggedIn);
+    }
+
+    [Fact]
+    public void CreateTodayOnly_ForAStoreManager_HoldsReprintToToday()
+    {
+        _currentUser.SetupGet(c => c.User).Returns(User((int)UserRole.StoreManager));
+        var history = Factory().CreateTodayOnly();
+
+        history.Detail.Show(Bill(new DateTime(2026, 10, 14, 2, 0, 0, DateTimeKind.Utc)));
+
+        history.Detail.ReprintCommand.CanExecute(null).Should()
+                                                      .BeFalse();
+    }
+
+    [Fact]
+    public void CreateTodayOnly_ForAStoreManager_IsTodayOnly()
+    {
+        _currentUser.SetupGet(c => c.User).Returns(User((int)UserRole.StoreManager));
+
+        var history = Factory().CreateTodayOnly();
+
+        history.IsTodayOnly.Should()
+                           .BeTrue();
+    }
+
+    [Fact]
+    public void CreateHistory_ForAStoreManager_CanPickAPeriod()
+    {
+        _currentUser.SetupGet(c => c.User).Returns(User((int)UserRole.StoreManager));
+
+        var history = Factory().CreateHistory();
+
+        history.ShowThisMonthCommand.CanExecute(null).Should()
+                                                     .BeTrue();
+    }
+
+    [Fact]
     public void CreateDetail_ForACashier_HoldsReprintToToday()
     {
         _currentUser.SetupGet(c => c.User).Returns(User((int)UserRole.Cashier));

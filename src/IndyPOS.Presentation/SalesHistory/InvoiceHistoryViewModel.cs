@@ -8,9 +8,9 @@ using IndyPOS.Application.UseCases.StoreHub.Sales.History;
 
 namespace IndyPOS.Presentation.SalesHistory;
 
-/// <summary>A bill in the list, its time already store-local.</summary>
+/// <summary>A bill in the list, its time already store-local and its payment method by name.</summary>
 public sealed record InvoiceRow(Guid Id, long InvoiceNumber, DateTime CreatedAt, decimal TotalAmount,
-                                string PrimaryPaymentMethod, int LineCount);
+                                string PaymentMethodName, int LineCount);
 
 public sealed record DateRange(DateOnly From, DateOnly To);
 
@@ -109,7 +109,9 @@ public sealed partial class InvoiceHistoryViewModel : ObservableObject
     [RelayCommand(CanExecute = nameof(HasMore))]
     private Task LoadMoreAsync() => LoadPageAsync(new DateRange(From, To), _page + 1, _current.Token);
 
-    [RelayCommand]
+    // Concurrent: a click on another bill while one loads must load it too, or the list would highlight a
+    // bill the detail does not show. The detail drops the earlier bill's late answer itself.
+    [RelayCommand(AllowConcurrentExecutions = true)]
     private Task OpenAsync(InvoiceRow row) => Detail.LoadAsync(row.Id);
 
     [RelayCommand]
@@ -208,7 +210,9 @@ public sealed partial class InvoiceHistoryViewModel : ObservableObject
         return _current.Token;
     }
 
+    // StoreHub names the method from the store's whole catalogue, so an ended campaign keeps its name; an
+    // older StoreHub sends no name, and the code is shown rather than a blank.
     private InvoiceRow ToRow(InvoiceSummaryDto bill) =>
         new(bill.Id, bill.InvoiceNumber, _clock.ToStoreTime(bill.CreatedUtc), bill.TotalAmount,
-            bill.PrimaryPaymentMethod, bill.LineCount);
+            bill.PrimaryPaymentMethodName ?? bill.PrimaryPaymentMethod, bill.LineCount);
 }

@@ -2,14 +2,10 @@ using System.Windows.Forms;
 using FluentAssertions;
 using IndyPOS.Application.Abstractions.StoreHub;
 using IndyPOS.Application.Common.Enums;
-using IndyPOS.Application.Common.Interfaces;
 using IndyPOS.Application.Common.Models;
-using IndyPOS.Application.Common.Receipts;
 using IndyPOS.Application.UseCases.StoreHub.Sales.History;
 using IndyPOS.Presentation.SalesHistory;
-using IndyPOS.Windows.Forms.Services;
 using IndyPOS.Windows.Forms.UI.Report;
-using Microsoft.Extensions.Time.Testing;
 using Moq;
 using Xunit;
 
@@ -18,11 +14,9 @@ namespace IndyPOS.Windows.Forms.Tests.UI.Report;
 /// <summary>LoadAsync only: ShowDialog would block the test run on a modal window.</summary>
 public class InvoiceDetailFormTests
 {
-    private static readonly TimeZoneInfo Bangkok = TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time");
     private static readonly StoreFeaturesDto MimyMart = new(PayLaterEnabled: false, MultipleProductTypesEnabled: false);
 
     private readonly Mock<IStoreHubClient> _client = new();
-    private readonly Mock<ICurrentUser> _currentUser = new();
 
     [Fact]
     public async Task LoadAsync_WhenStoreHubAnswersNotFound_ShowsBillNotFound()
@@ -80,24 +74,9 @@ public class InvoiceDetailFormTests
                                           .Contain("0000001042");
     }
 
-    private InvoiceDetailForm Form()
-    {
-        var user = new Mock<ILoggedInUser>();
-        user.SetupGet(u => u.FirstName).Returns("Somchai");
-        user.SetupGet(u => u.LastName).Returns("Manager");
-        user.SetupGet(u => u.RoleId).Returns((int)UserRole.StoreManager);
-        _currentUser.SetupGet(c => c.User).Returns(user.Object);
-
-        var features = new Mock<IStoreFeaturesProvider>();
-        features.Setup(f => f.GetAsync()).ReturnsAsync(MimyMart);
-
-        var factory = new SalesHistoryViewModelFactory(
-            _client.Object, Mock.Of<IReceiptPrinterService>(), new ReceiptDocumentFactory(Bangkok),
-            new StoreClock(new FakeTimeProvider(new DateTimeOffset(2026, 10, 15, 3, 0, 0, TimeSpan.Zero)), Bangkok),
-            _currentUser.Object);
-
-        return new InvoiceDetailForm(factory, features.Object);
-    }
+    private InvoiceDetailForm Form() =>
+        new(SalesHistoryFixture.Factory(_client.Object, SalesHistoryFixture.LoggedIn(UserRole.StoreManager)),
+            SalesHistoryFixture.Features(MimyMart));
 
     private static InvoiceDetailDto Bill() => new(
         Guid.NewGuid(), 1042, "store-a", Guid.NewGuid(), "Malee Cashier", 100m, 100m, 0m, false, false, 0m,

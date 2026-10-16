@@ -1,4 +1,5 @@
 ﻿using IndyPOS.Application.Common.Enums;
+using IndyPOS.Application.Common.Authorization;
 using IndyPOS.Application.Common.Extensions;
 using IndyPOS.Application.Common.Interfaces;
 using IndyPOS.Application.Common.Models;
@@ -207,7 +208,7 @@ public partial class MainForm : Form
 
 	private void ReportsButton_Click(object sender, EventArgs e)
 	{
-		if (!_isUserLoggedIn)
+		if (!_isUserLoggedIn || !CanViewReports())
 			return; 
 			
 		SwitchToPanel(SubPanel.Reports);
@@ -295,9 +296,9 @@ public partial class MainForm : Form
 	private async Task ApplyStoreLayoutAsync()
 	{
 		// Hidden while the features load, so a store without PayLater never shows the ledger, even briefly.
-		ApplyMenu(showAccountsReceivable: false);
+		ApplyMenu(showAccountsReceivable: false, CanViewReports());
 
-		ApplyMenu((await LoadTillLayoutAsync()).ShowAccountsReceivableMenu);
+		ApplyMenu((await LoadTillLayoutAsync()).ShowAccountsReceivableMenu, CanViewReports());
 	}
 
 	private async Task<TillLayout> LoadTillLayoutAsync()
@@ -314,19 +315,25 @@ public partial class MainForm : Form
 		}
 	}
 
-	private void ApplyMenu(bool showAccountsReceivable)
+	private void ApplyMenu(bool showAccountsReceivable, bool showReports)
 	{
 		_menuSlotTops ??= AllMenuButtons().Select(button => button.Top).ToArray();
 		AccountsReceivableButton.Visible = showAccountsReceivable;
-		MenuLayout.Stack(ShownMenuButtons(showAccountsReceivable), _menuSlotTops);
+		ReportsButton.Visible = showReports;
+		MenuLayout.Stack(ShownMenuButtons(showAccountsReceivable, showReports), _menuSlotTops);
 	}
 
 	private Control[] AllMenuButtons() =>
 		[SaleButton, InventoryButton, UsersButton, ReportsButton, AccountsReceivableButton,
 		 SettingsButton, LogInButton, CloseApplicationButton];
 
-	private Control[] ShownMenuButtons(bool showAccountsReceivable) =>
-		AllMenuButtons().Where(button => button != AccountsReceivableButton || showAccountsReceivable)
+	// StoreHub refuses every report without reports.view, so a user without it would only see errors there.
+	private bool CanViewReports() =>
+		_loggedInUser is not null && RoleCapabilities.HasCapability(_loggedInUser.RoleId, Capability.ReportsView);
+
+	private Control[] ShownMenuButtons(bool showAccountsReceivable, bool showReports) =>
+		AllMenuButtons().Where(button => (button != AccountsReceivableButton || showAccountsReceivable)
+										 && (button != ReportsButton || showReports))
 						.ToArray();
 
 	private void OnUserLoggedOut()
