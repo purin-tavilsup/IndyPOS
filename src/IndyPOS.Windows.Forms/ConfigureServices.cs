@@ -1,4 +1,5 @@
 ﻿using IndyPOS.Application.Common.Interfaces;
+using IndyPOS.Presentation.SalesHistory;
 using IndyPOS.Windows.Forms;
 using IndyPOS.Windows.Forms.Interfaces;
 using IndyPOS.Windows.Forms.Services;
@@ -61,6 +62,12 @@ internal static class ConfigureServices
 
 		// Change-password prompt seam (consumed by the singleton FirstLoginCoordinator)
 		services.AddSingleton<IChangePasswordPrompt, ChangePasswordPrompt>();
+
+		// Sales-history ViewModels, built per screen open for whoever is logged in.
+		services.AddSingleton<TimeProvider>(TimeProvider.System)
+				.AddSingleton(sp => new StoreClock(sp.GetRequiredService<TimeProvider>(),
+												   sp.GetRequiredService<IStoreIdentityService>().TimeZone))
+				.AddSingleton<SalesHistoryViewModelFactory>();
 
 		return services;
     }
