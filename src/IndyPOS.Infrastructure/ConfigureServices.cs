@@ -38,6 +38,7 @@ public static class ConfigureServices
 		// Core services (non-database)
 		services.AddSingleton<IStoreConfigurationService, StoreConfigurationService>()
 				.AddSingleton<IEventAggregator, EventAggregator>()
+				.AddSingleton<ICurrentUser, EventCurrentUser>()
 				.AddSingleton<IRawInputDeviceService, RawInputDeviceService>()
 				.AddSingleton<IReceiptPrinterService, ReceiptPrinterService>()
 				.AddSingleton<ICashDrawerService, CashDrawerService>()
