@@ -133,14 +133,14 @@ reports `Skipped: 1` and writes nothing — which looks like success while leavi
 ### Expected counts
 
 Solution suites (`dotnet test` at the root), Docker running **and** the real store databases present
-— **1537 total** (1536 pass, 1 skipped) — measured 2026-10-15 (after the sales-history tab; supersedes 1512 earlier on 2026-10-15 after the bill detail screen, 1483 earlier on 2026-10-15 after the sales-history ViewModels, 1422 earlier on 2026-10-15 after the receipt document and the till money format, 1360 on 2026-10-10
-after the dev template products and #124's Codex fix, 1341 earlier on 2026-10-10 after the till Development fix, 1343 on 2026-10-07 after per-store UI slice 2, 1291 earlier on 2026-10-07 after slice 1, 1269 earlier on 2026-10-07 after the dev store profiles and their EnsureCreated-database check, 1209 earlier on 2026-10-07 after the health-check convention, 1186 earlier on 2026-10-07 after the till startup fix, 1183 on 2026-10-06 after route tidy-up B, 1152 on 2026-10-02 after route tidy-up A, 1111 earlier on 2026-10-02, 1089 on 2026-10-01, 928 on 2026-09-30, 853 on 2026-09-27 and 656 on 2026-09-17). Without those databases the total is **1517**
-(derived as 1537 − 20; CI measured 1166 = 1186 − 20 on PR #114, 2026-10-07, which has no store databases), still all
+— **1539 total** (1538 pass, 1 skipped) — measured 2026-10-15 (after the sales-history tab and its Codex fix; supersedes 1537 before that fix, 1512 earlier on 2026-10-15 after the bill detail screen, 1483 earlier on 2026-10-15 after the sales-history ViewModels, 1422 earlier on 2026-10-15 after the receipt document and the till money format, 1360 on 2026-10-10
+after the dev template products and #124's Codex fix, 1341 earlier on 2026-10-10 after the till Development fix, 1343 on 2026-10-07 after per-store UI slice 2, 1291 earlier on 2026-10-07 after slice 1, 1269 earlier on 2026-10-07 after the dev store profiles and their EnsureCreated-database check, 1209 earlier on 2026-10-07 after the health-check convention, 1186 earlier on 2026-10-07 after the till startup fix, 1183 on 2026-10-06 after route tidy-up B, 1152 on 2026-10-02 after route tidy-up A, 1111 earlier on 2026-10-02, 1089 on 2026-10-01, 928 on 2026-09-30, 853 on 2026-09-27 and 656 on 2026-09-17). Without those databases the total is **1519**
+(derived as 1539 − 20; CI measured 1166 = 1186 − 20 on PR #114, 2026-10-07, which has no store databases), still all
 green:
 
 | Suite | Tests |
 |---|---|
-| `IndyPOS.Application.Tests` | 712 |
+| `IndyPOS.Application.Tests` | 714 |
 | `IndyPOS.StoreHub.IntegrationTests` | 345 (Docker) |
 | `IndyPOS.MigrationTool.Tests` | 145 (Docker; 1 skipped. **125** without the real store data — Trap 3, derived) |
 | `IndyPOS.Domain.Tests` | 61 |

@@ -246,11 +246,11 @@ dotnet run --project src/IndyPOS.AppHost -- --store MimyMart     # or GeneralHar
 dotnet run --project src/IndyPOS.AppHost -- --store all          # all three on :5012/:5013/:5014, one CloudApi
 ```
 
-Solution suites total **1537** with Docker running and the real store databases present (1536 pass,
-1 skipped) — measured 2026-10-15 (after the sales-history tab; 1512 earlier on 2026-10-15 after the bill detail screen, 1483 earlier on 2026-10-15 after the sales-history ViewModels, 1422 earlier on 2026-10-15 after #127 and #128, 1360 on 2026-10-10 after the dev template products and #124's Codex fix, 1341 earlier on 2026-10-10 after the till Development fix, 1343 on 2026-10-07 after per-store UI slice 2, 1291 earlier on 2026-10-07 after slice 1, 1269 earlier on 2026-10-07 after the dev store profiles and their EnsureCreated-database check, 1209 earlier on 2026-10-07 after the health-check
+Solution suites total **1539** with Docker running and the real store databases present (1538 pass,
+1 skipped) — measured 2026-10-15 (after the sales-history tab and its Codex fix; 1537 before that fix, 1512 earlier on 2026-10-15 after the bill detail screen, 1483 earlier on 2026-10-15 after the sales-history ViewModels, 1422 earlier on 2026-10-15 after #127 and #128, 1360 on 2026-10-10 after the dev template products and #124's Codex fix, 1341 earlier on 2026-10-10 after the till Development fix, 1343 on 2026-10-07 after per-store UI slice 2, 1291 earlier on 2026-10-07 after slice 1, 1269 earlier on 2026-10-07 after the dev store profiles and their EnsureCreated-database check, 1209 earlier on 2026-10-07 after the health-check
 convention, 1186 after the till startup fix, 1183 on 2026-10-06 after route tidy-up B, 1152 on 2026-10-02 after route tidy-up A, 1111 earlier on 2026-10-02 after invoice-history plan 2, 1089 on 2026-10-01, 928 on 2026-09-30, 853 on 2026-09-27, after the
 cash-drawer release). Per suite: Domain 61 · Vault 17 · CloudApi 6 · CloudApi.IntegrationTests 61
-(Docker) · MigrationTool 145 (144 pass, 1 skip) · StoreHub.IntegrationTests 345 · Application 712 ·
+(Docker) · MigrationTool 145 (144 pass, 1 skip) · StoreHub.IntegrationTests 345 · Application 714 ·
 Windows.Forms 127 · ServiceDefaults 8 (Docker) · Presentation 55. The growth since the 1209 measurement is the dev store profiles their review fixes and the per-store payment methods (Application +24, StoreHub +21,
 CloudApi +4, Windows.Forms +4): 1209 + 53 = 1262, and the EnsureCreated-database check (StoreHub +4, CloudApi +3)
 for 1269. Per-store UI slice 1 then added Domain +5, Application +5 and Windows.Forms +12, none on a container:
@@ -260,8 +260,8 @@ and the dev template products Application +4, and its Codex fix Application +1 a
 Windows.Forms +9, the sync-batch 400 (#126) Application +3 and CloudApi +3, and the receipt document Application +46:
 1360 + 61 = 1421. The till money format (#128) then added Windows.Forms +1, and the sales-history ViewModels Application +16
 and the new Presentation suite (45): 1421 + 62 = 1483. The bill detail screen then added Application +6, Presentation +3 and Windows.Forms +20:
-1483 + 29 = 1512. The sales-history tab then added Presentation +7 and Windows.Forms +18: 1512 + 25 = 1537.
-Without the real store databases the suite discovers **1517** (1537 − 20, DERIVED; CI measured 1166 = 1186 − 20 on PR #114, 2026-10-07) — a skipped
+1483 + 29 = 1512. The sales-history tab then added Presentation +7 and Windows.Forms +18: 1512 + 25 = 1537,
+and its Codex fix Application +2 for 1539. Without the real store databases the suite discovers **1519** (1539 − 20, DERIVED; CI measured 1166 = 1186 − 20 on PR #114, 2026-10-07) — a skipped
 `[Theory]` is one entry, not one per row.
 See [`ONBOARDING.md`](ONBOARDING.md) for the per-suite breakdown, the dev-vs-installed port split,
 and the `/health` vs `/health/ready` trap.
