@@ -39,10 +39,7 @@ public class ReceiptPrinterService : IReceiptPrinterService
 			var config = storeConfigurationService.Get();
 
 			_printerName = config.PrinterName ?? "XP-58";
-			_header = new ReceiptHeader(config.StoreName ?? string.Empty,
-										config.StoreAddressLine1 ?? string.Empty,
-										config.StoreAddressLine2 ?? string.Empty,
-										config.StorePhoneNumber ?? string.Empty);
+			_header = ReceiptHeaders.From(config);
 		}
 		catch (Exception ex)
 		{
