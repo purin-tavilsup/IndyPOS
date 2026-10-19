@@ -323,7 +323,7 @@ public class PayLaterMigrationTests : IAsyncLifetime
                                                           .Be(SeededPaymentId);
     }
 
-    // A re-run after a failed migration must not give the cloud a second copy of every debt.
+    // A store reset and migrated again (after a successful run) must not give the cloud a second copy of every debt.
     [Fact]
     public async Task Migrate_TwiceIntoFreshDatabases_GivesEachDebtTheSameId()
     {

@@ -106,6 +106,10 @@ read; user ids join `Users.Id` (#133/#134); a v3 debt has no `CreatedByUserId`.
 - **A stable id.** A migrated debt's `Id` is derived from the store and the v3 debt's `PaymentId`
   (a name-based UUID), not `Guid.NewGuid()`, so a store reset and migrated again produces the same ids
   and the cloud updates the debts rather than holding each twice. *(My call, after the builder check.)*
+  Only the debt's id is stable: its invoice and payment get new ids on every run, and both runs' snapshots
+  carry the same `LastModifiedUtc` (v3's `DateUpdated`). So the cloud's upsert must let an **equal**
+  `LastModifiedUtc` win too (`>=`, not `>`), or a re-migrated debt would keep pointing at the first run's
+  invoice. *(Review finding on PR 1, for PR 2 to build.)*
 - **Marked as v3.** The debt row records that it came from v3 (an additive nullable column carrying the
   v3 `PaymentId`), so the snapshot tells the cloud and the cloud's `FromV3` needs no guess.
 - Real stores are not on v4 yet, so this covers every store's history. A later repayment of a v3 debt on
