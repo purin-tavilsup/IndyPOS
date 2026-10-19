@@ -59,6 +59,7 @@ public sealed partial class CashEntriesViewModel : ObservableObject
     public async Task LoadAsync(DateOnly day, CancellationToken cancellationToken)
     {
         var rows = await _api.ListAsync(day, cancellationToken);
+        cancellationToken.ThrowIfCancellationRequested();   // a newer load owns the list now
         Rows.Clear();
         foreach (var row in rows)
             Rows.Add(row);

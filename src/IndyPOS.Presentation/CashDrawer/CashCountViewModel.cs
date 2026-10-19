@@ -61,6 +61,7 @@ public sealed partial class CashCountViewModel : ObservableObject
     public async Task LoadAsync(DateOnly day, CancellationToken cancellationToken)
     {
         var counts = await _client.GetCashCountsAsync(day, cancellationToken);
+        cancellationToken.ThrowIfCancellationRequested();   // a newer load owns the history now
         History.Clear();
         foreach (var count in counts.OrderByDescending(c => c.CreatedUtc))
             History.Add(new CashCountRow(_clock.ToStoreTime(count.CreatedUtc), count.CountedTotal));
