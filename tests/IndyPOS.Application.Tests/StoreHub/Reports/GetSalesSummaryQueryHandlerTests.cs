@@ -229,4 +229,21 @@ public class GetSalesSummaryQueryHandlerTests
         result.PaymentBreakdown.WelfareCard.Should().Be(75m);
         result.PaymentBreakdown.Other.Should().Be(25m);
     }
+
+    // The catalogue is keyed (StoreId, Code), so another store's row for the same method can sit beside ours.
+    [Fact]
+    public async Task HandleAsync_WithAnotherStoresCatalogue_ListsEachMethodOnce()
+    {
+        await using var dbContext = CreateDbContext();
+        var handler = new GetSalesSummaryQueryHandler(dbContext, StoreIdentity, NullLogger<GetSalesSummaryQueryHandler>.Instance);
+        dbContext.PaymentMethods.AddRange(
+            new PaymentMethod { StoreId = StoreIdentity.StoreId, Code = "MoneyTransfer", DisplayName = "โอนเงิน", IsEnabled = true, DisplayOrder = 1 },
+            new PaymentMethod { StoreId = "ANOTHER-STORE", Code = "MoneyTransfer", DisplayName = "โอนเงิน", IsEnabled = true, DisplayOrder = 1 });
+        await dbContext.SaveChangesAsync();
+
+        var result = await handler.HandleAsync(new GetSalesSummaryQuery(FromDate: new DateOnly(2024, 6, 1), ToDate: new DateOnly(2024, 6, 30)));
+
+        result.PaymentsByMethod.Should()
+                               .ContainSingle();
+    }
 }
