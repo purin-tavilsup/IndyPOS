@@ -89,7 +89,9 @@ public class UserSyncService : IUserSyncService
     {
         return new StoreUser
         {
-            Id = Guid.NewGuid(),
+            // The cloud's id, not a new one: every user id the store syncs up (invoices, cash rows)
+            // is joined on cloud Users.Id.
+            Id = cloudUser.Id,
             StoreId = storeId,
             CloudUserId = cloudUser.Id,
             Username = cloudUser.Username,
