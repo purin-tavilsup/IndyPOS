@@ -26,8 +26,11 @@ public sealed partial class CashDrawerViewModel : ObservableObject
     private DateOnly _businessDate;
 
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(IsEditable))]
     private CashDrawerSummaryDto? _summary;
+
+    // The summary's IsEditable, but turned off by a failed load too, so the screen and its sections agree.
+    [ObservableProperty]
+    private bool _isEditable;
 
     [ObservableProperty]
     private bool _isBusy;
@@ -59,8 +62,6 @@ public sealed partial class CashDrawerViewModel : ObservableObject
     public CashEntriesViewModel DebtRepayments { get; }
 
     public CashCountViewModel Count { get; }
-
-    public bool IsEditable => Summary?.IsEditable ?? false;
 
     public bool ShowProductTypeSplit { get; }
 
@@ -95,8 +96,12 @@ public sealed partial class CashDrawerViewModel : ObservableObject
         {
             // A newer load replaced this one.
         }
-        catch (StoreHubException ex) when (!token.IsCancellationRequested)
+        catch (StoreHubException ex)
         {
+            // A failure that arrives after a newer load took over is that load's business, not this one's.
+            if (token.IsCancellationRequested)
+                return;
+
             // What is on screen may no longer be the day to edit, so nothing may be saved over it.
             ErrorMessage = string.Format(LoadFailed, ex.Message);
             SetEditable(false);
@@ -137,7 +142,7 @@ public sealed partial class CashDrawerViewModel : ObservableObject
     }
 
     private void SetEditable(bool isEditable) =>
-        Payouts.IsEditable = Floats.IsEditable = DebtRepayments.IsEditable = Count.IsEditable = isEditable;
+        IsEditable = Payouts.IsEditable = Floats.IsEditable = DebtRepayments.IsEditable = Count.IsEditable = isEditable;
 
     private CancellationToken Restart()
     {

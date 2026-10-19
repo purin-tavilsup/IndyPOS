@@ -9,8 +9,11 @@ using IndyPOS.Presentation.SalesHistory;
 
 namespace IndyPOS.Presentation.CashDrawer;
 
-/// <summary>A saved count in the day's history, newest first.</summary>
-public sealed record CashCountRow(DateTime StoreTime, decimal CountedTotal);
+/// <summary>
+/// A saved count in the day's history, newest first. Who counted is kept: the history exists so the
+/// owner can trace on whose count the drawer went wrong (spec §3).
+/// </summary>
+public sealed record CashCountRow(DateTime StoreTime, decimal CountedTotal, Guid CountedByUserId);
 
 /// <summary>
 /// The cash count (spec §3): nine denominations typed by the cashier, saved as a new count every time.
@@ -65,7 +68,7 @@ public sealed partial class CashCountViewModel : ObservableObject
     public async Task<IReadOnlyList<CashCountRow>> FetchAsync(DateOnly day, CancellationToken cancellationToken) =>
         (await _client.GetCashCountsAsync(day, cancellationToken))
         .OrderByDescending(c => c.CreatedUtc)
-        .Select(c => new CashCountRow(_clock.ToStoreTime(c.CreatedUtc), c.CountedTotal))
+        .Select(c => new CashCountRow(_clock.ToStoreTime(c.CreatedUtc), c.CountedTotal, c.CreatedByUserId))
         .ToList();
 
     public void Show(IReadOnlyList<CashCountRow> history)

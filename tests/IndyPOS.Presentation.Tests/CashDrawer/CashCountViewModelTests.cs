@@ -152,6 +152,21 @@ public class CashCountViewModelTests
                                               .Equal(900m, 500m);
     }
 
+    // The history exists so the owner can see on whose count the drawer went wrong (spec §3).
+    [Fact]
+    public async Task LoadAsync_WithACount_KeepsWhoCounted()
+    {
+        var vm = Count();
+        var counter = Guid.Parse("cccccccc-cccc-cccc-cccc-cccccccccccc");
+        _client.Setup(c => c.GetCashCountsAsync(Today, It.IsAny<CancellationToken>()))
+               .ReturnsAsync([CountAt(NowUtc.UtcDateTime, 900m) with { CreatedByUserId = counter }]);
+
+        await vm.LoadAsync(Today, CancellationToken.None);
+
+        vm.History.Single().CountedByUserId.Should()
+                                           .Be(counter);
+    }
+
     private CashCountViewModel Count() => new(_client.Object, _clock, Reload) { IsEditable = true };
 
     private static void TypeOneOfEach(CashCountViewModel vm)
