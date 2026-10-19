@@ -45,6 +45,12 @@ internal static class PayLaterMirror
     public static async Task ProcessRepaidAsync(SyncedEventEntity syncedEvent, CloudDbContext db, CancellationToken ct)
     {
         var repayment = Read<PayLaterRepaidPayload>(syncedEvent);
+
+        // StoreHub refuses these too, but the cloud is its own boundary: an insert-only audit row cannot be undone.
+        if (repayment.Amount <= 0)
+            throw new InvalidOperationException(
+                $"Repayment {repayment.Id} of debt {repayment.PayLaterId} has amount {repayment.Amount}; a repayment must be above 0. It is kept for review, not stored.");
+
         var debtArrived = await db.PayLaters.AnyAsync(d => d.Id == repayment.PayLaterId && d.StoreId == repayment.StoreId, ct);
 
         if (!debtArrived)
