@@ -6,8 +6,8 @@ using PayLaterDebt = IndyPOS.Domain.Entities.Core.PayLater;
 namespace IndyPOS.Application.UseCases.StoreHub.PayLater;
 
 /// <summary>
-/// The whole debt as it stands now (spec 2026-10-19 §3). A snapshot, so the cloud upserts it and the newest
-/// LastModifiedUtc wins; StoreId sits at the top because the cloud's ingest check reads it there.
+/// The whole debt as it stands now (spec 2026-10-19 §3). A snapshot, so the cloud upserts it and the newest or
+/// equal LastModifiedUtc wins (a re-migrated v3 debt keeps its timestamp but not its invoice); StoreId sits at the top because the cloud's ingest check reads it there.
 /// </summary>
 public sealed record PayLaterChangedPayload(
     Guid Id,

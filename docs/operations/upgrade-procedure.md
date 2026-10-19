@@ -375,6 +375,15 @@ existing column changed. The `pg_indexes` snapshots differed only by their four 
 then the processed `UPDATE`, both succeeded. Verified 2026-10-18 with `postgres:16-alpine` in a
 throwaway `gate-cloud` container on port 55511 (bash, `env` form).
 
+Result for cloud-gaps PR 2, cloud (1 migration, `AddPayLaterMirror`): applied up to the previous release's
+last cloud migration (`20261019051410_AddCashDrawerMirror`), then to the latest. The `information_schema.columns`
+snapshots differed only by the two new tables (`PayLaters` 14 columns, two of them stored generated columns,
+`OwedAmount` and `IsFromV3`; `PayLaterRepayments` 8); no existing column changed. The `pg_indexes` snapshots
+differed only by their two primary keys and three indexes, and `pg_constraint` only by the new foreign key
+`PayLaterRepayments.PayLaterId -> PayLaters.Id` (`ON DELETE RESTRICT`). A `SyncedEvents` row naming only the
+previous release's columns, then the processed `UPDATE`, both succeeded. Verified 2026-10-19 with
+`postgres:16-alpine` in a throwaway `gate-cloud` container on port 55511 (bash, `env` form).
+
 Together with the route tidy-up run above, this covers a rollback from the latest cloud schema to
 `RemoveClientSecretHash`-era binaries: every column added since is nullable or has a default, so an
 INSERT naming only that era's columns succeeds against the latest schema.
@@ -393,3 +402,4 @@ INSERT naming only that era's columns succeeds against the latest schema.
 | 2026-10-02 | Ran the gate against invoice-history plan 2's 3 cloud migrations (`AddInvoiceNumberToInvoices`, `AddInboxRetrySchedule`, `AddInvoiceReprints`); the cloud recipe now covers bash, `pg_indexes` and cleanup |
 | 2026-10-18 | Ran the cloud gate against cash drawer D2's `AddCashDrawerMirror` (four new tables only) |
 | 2026-10-19 | Ran the StoreHub gate against `AddPayLaterRepayments` (one nullable column, one new table); a credit sale and an old-style repayment both write |
+| 2026-10-19 | Ran the cloud gate against `AddPayLaterMirror` (two new tables and one foreign key between them) |

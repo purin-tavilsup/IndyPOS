@@ -509,6 +509,134 @@ namespace IndyPOS.CloudApi.Infrastructure.Migrations
                         });
                 });
 
+            modelBuilder.Entity("IndyPOS.CloudApi.Domain.CloudPayLater", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasComment("The store's own id for this debt, so it can be traced back to the till.");
+
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasComment("When the debt was taken, UTC.");
+
+                    b.Property<string>("CustomerName")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasComment("Who owes, as the cashier typed it at the sale.");
+
+                    b.Property<Guid>("InvoiceId")
+                        .HasColumnType("uuid")
+                        .HasComment("The credit sale (Invoices.Id). A v3 debt's invoice may be missing from Invoices if its bulk upload was skipped.");
+
+                    b.Property<bool>("IsCompleted")
+                        .HasColumnType("boolean")
+                        .HasComment("True once the debt is paid in full.");
+
+                    b.Property<bool>("IsFromV3")
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("boolean")
+                        .HasComputedColumnSql("\"LegacyPaymentId\" IS NOT NULL", true)
+                        .HasComment("True for a debt migrated from v3, computed by the database from LegacyPaymentId.");
+
+                    b.Property<DateTime>("LastModifiedAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasComment("When the debt last changed (a repayment), UTC. The newest or equal version wins.");
+
+                    b.Property<int?>("LegacyPaymentId")
+                        .HasColumnType("integer")
+                        .HasComment("The v3 PaymentId of a debt migrated from v3; null for a v4 debt.");
+
+                    b.Property<decimal>("OwedAmount")
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasComputedColumnSql("\"PayLaterAmount\" - \"PaidAmount\"", true)
+                        .HasComment("PayLaterAmount − PaidAmount, computed by the database. Negative if overpaid.");
+
+                    b.Property<decimal>("PaidAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasComment("Repaid so far, baht. For a v3 debt this includes repayments made on v3, which have no rows.");
+
+                    b.Property<decimal>("PayLaterAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasComment("The debt taken at the sale, baht.");
+
+                    b.Property<Guid>("PaymentId")
+                        .HasColumnType("uuid")
+                        .HasComment("The sale's PayLater payment. A v3 debt's payment may be missing if its bulk upload was skipped.");
+
+                    b.Property<string>("StoreId")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasComment("The store this debt belongs to.");
+
+                    b.Property<DateTime>("SyncedAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasComment("When the latest version of this debt reached the cloud, UTC.");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("StoreId", "IsCompleted");
+
+                    b.ToTable("PayLaters", null, t =>
+                        {
+                            t.HasComment("Every ลงบัญชี (PayLater) debt of a store, one row per credit sale, mirrored from StoreHub with its latest totals. v3 debts are included (IsFromV3). Not the cash drawer's DebtRepayments, which record cash entering the drawer.");
+                        });
+                });
+
+            modelBuilder.Entity("IndyPOS.CloudApi.Domain.CloudPayLaterRepayment", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasComment("The store's own id for this repayment, so it can be traced back to the till.");
+
+                    b.Property<decimal>("Amount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasComment("Baht.");
+
+                    b.Property<DateOnly>("BusinessDate")
+                        .HasColumnType("date")
+                        .HasComment("The store's day (Asia/Bangkok calendar date) the repayment was taken.");
+
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasComment("When the repayment was taken, UTC.");
+
+                    b.Property<Guid>("CreatedByUserId")
+                        .HasColumnType("uuid")
+                        .HasComment("The cashier who took it, as Users.Id. A store's own seeded admin has no Users row.");
+
+                    b.Property<Guid>("PayLaterId")
+                        .HasColumnType("uuid")
+                        .HasComment("The debt repaid (PayLaters.Id).");
+
+                    b.Property<string>("StoreId")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasComment("The store the repayment was taken at.");
+
+                    b.Property<DateTime>("SyncedAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasComment("When the repayment reached the cloud, UTC.");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PayLaterId");
+
+                    b.HasIndex("StoreId", "BusinessDate");
+
+                    b.ToTable("PayLaterRepayments", null, t =>
+                        {
+                            t.HasComment("Every repayment taken on a store's ลงบัญชี screen (insert-only audit), with the cashier. A v3 debt has no rows for repayments made on v3 (its PaidAmount includes them), but does have rows for repayments made on v4. Not the cash drawer's DebtRepayments, which record cash entering the drawer.");
+                        });
+                });
+
             modelBuilder.Entity("IndyPOS.CloudApi.Domain.CloudPayment", b =>
                 {
                     b.Property<Guid>("Id")
@@ -956,6 +1084,15 @@ namespace IndyPOS.CloudApi.Infrastructure.Migrations
                     b.HasOne("IndyPOS.CloudApi.Domain.CloudInvoice", null)
                         .WithMany()
                         .HasForeignKey("InvoiceId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("IndyPOS.CloudApi.Domain.CloudPayLaterRepayment", b =>
+                {
+                    b.HasOne("IndyPOS.CloudApi.Domain.CloudPayLater", null)
+                        .WithMany()
+                        .HasForeignKey("PayLaterId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
                 });
