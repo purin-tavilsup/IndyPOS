@@ -53,6 +53,9 @@ public class PayLaterConfiguration : IEntityTypeConfiguration<PayLater>
             .HasColumnName("last_modified_utc")
             .IsRequired();
 
+        builder.Property(e => e.LegacyPaymentId)
+            .HasColumnName("legacy_payment_id");
+
         // RemainingAmount is calculated, not stored
         builder.Ignore(e => e.RemainingAmount);
 
@@ -67,5 +70,6 @@ public class PayLaterConfiguration : IEntityTypeConfiguration<PayLater>
             .OnDelete(DeleteBehavior.Restrict);
 
         builder.HasIndex(e => e.IsCompleted);
+        builder.HasIndex(e => e.LegacyPaymentId);
     }
 }

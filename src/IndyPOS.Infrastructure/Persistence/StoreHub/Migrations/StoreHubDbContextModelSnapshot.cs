@@ -584,6 +584,10 @@ namespace IndyPOS.Infrastructure.Persistence.StoreHub.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("last_modified_utc");
 
+                    b.Property<int?>("LegacyPaymentId")
+                        .HasColumnType("integer")
+                        .HasColumnName("legacy_payment_id");
+
                     b.Property<decimal>("PaidAmount")
                         .ValueGeneratedOnAdd()
                         .HasPrecision(18, 2)
@@ -606,10 +610,54 @@ namespace IndyPOS.Infrastructure.Persistence.StoreHub.Migrations
 
                     b.HasIndex("IsCompleted");
 
+                    b.HasIndex("LegacyPaymentId");
+
                     b.HasIndex("PaymentId")
                         .IsUnique();
 
                     b.ToTable("pay_later", (string)null);
+                });
+
+            modelBuilder.Entity("IndyPOS.Domain.Entities.Core.PayLaterRepayment", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<decimal>("Amount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("amount");
+
+                    b.Property<DateOnly>("BusinessDate")
+                        .HasColumnType("date")
+                        .HasColumnName("business_date");
+
+                    b.Property<Guid>("CreatedByUserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("created_by_user_id");
+
+                    b.Property<DateTime>("CreatedUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_utc");
+
+                    b.Property<Guid>("PayLaterId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("pay_later_id");
+
+                    b.Property<string>("StoreId")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("store_id");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PayLaterId");
+
+                    b.HasIndex("StoreId", "BusinessDate");
+
+                    b.ToTable("pay_later_repayment", (string)null);
                 });
 
             modelBuilder.Entity("IndyPOS.Domain.Entities.Core.Payment", b =>
@@ -1032,6 +1080,15 @@ namespace IndyPOS.Infrastructure.Persistence.StoreHub.Migrations
                     b.Navigation("Invoice");
 
                     b.Navigation("Payment");
+                });
+
+            modelBuilder.Entity("IndyPOS.Domain.Entities.Core.PayLaterRepayment", b =>
+                {
+                    b.HasOne("IndyPOS.Domain.Entities.Core.PayLater", null)
+                        .WithMany()
+                        .HasForeignKey("PayLaterId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("IndyPOS.Domain.Entities.Core.Payment", b =>
