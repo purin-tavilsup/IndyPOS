@@ -1,3 +1,4 @@
+using System.Drawing;
 using System.Windows.Forms;
 using FluentAssertions;
 using IndyPOS.Application.Common.Enums;
@@ -129,6 +130,36 @@ public class CashDrawerPanelTests
 
         Texts(Find(panel, "CashSummaryRows")).Should()
                                              .Contain(["โอนเงิน", "คนละครึ่ง"]);
+    }
+
+    // Busy and error flip on every load and save; rebuilding the money rows each time churns window handles.
+    [Fact]
+    public async Task Open_WhenOnlyTheErrorChanges_KeepsTheSummaryRows()
+    {
+        using var panel = Panel(EmptyDay(Today), UserRole.Cashier, GeneralHardware);
+        await panel.OpenAsync();
+        var firstRow = Find(panel, "CashSummaryRows").Controls[0];
+
+        panel.ViewModel!.ErrorMessage = "ไม่สำเร็จ";
+
+        firstRow.IsDisposed.Should()
+                           .BeFalse();
+    }
+
+    [Fact]
+    public async Task Resize_WhenTheColumnWidens_WidensTheSummaryRows()
+    {
+        using var panel = Panel(EmptyDay(Today), UserRole.Cashier, GeneralHardware);
+        panel.Size = new Size(1200, 900);
+        await panel.OpenAsync();
+        var rows = (FlowLayoutPanel)Find(panel, "CashSummaryRows");
+        var before = rows.Controls[0].Width;
+
+        panel.Size = new Size(1800, 900);
+        panel.PerformLayout();
+
+        rows.Controls[0].Width.Should()
+                              .BeGreaterThan(before);
     }
 
     private static CashDrawerPanel Panel(Mock<IndyPOS.Application.Abstractions.StoreHub.IStoreHubClient> client, UserRole role,

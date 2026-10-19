@@ -59,6 +59,8 @@ public sealed class CashDrawerPanel : UserControl
         Controls.Add(Columns());
         Controls.Add(TopBar());
         VisibleChanged += OnVisibilityChanged;
+        // The rows are sized from the column's width, so a resized window (restore / maximise) re-flows them.
+        _summaryRows.SizeChanged += (_, _) => RenderSummaryRows();
     }
 
     /// <summary>The ViewModel this visit shows; null until opened, or when nobody is logged in.</summary>
@@ -125,6 +127,7 @@ public sealed class CashDrawerPanel : UserControl
 
         RefillPayLater();
         Render();
+        RenderSummaryRows();
     }
 
     private void Unbind()
@@ -145,7 +148,20 @@ public sealed class CashDrawerPanel : UserControl
             await OpenAsync();
     }
 
-    private void OnViewModelChanged(object? sender, PropertyChangedEventArgs e) => Render();
+    // The money rows are rebuilt only when the figures change: busy and error flip on every load and save,
+    // and rebuilding the rows each time churns window handles.
+    private void OnViewModelChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        Render();
+        if (e.PropertyName == nameof(CashDrawerViewModel.Summary))
+            RenderSummaryRows();
+    }
+
+    private void RenderSummaryRows()
+    {
+        if (ViewModel is not null)
+            MoneyRowView.Replace(_summaryRows, ViewModel.SummaryRows, rowsPerLine: 1);
+    }
 
     private void OnPayLaterChanged(object? sender, NotifyCollectionChangedEventArgs e) => RefillPayLater();
 
@@ -161,7 +177,6 @@ public sealed class CashDrawerPanel : UserControl
         _countedCash.Text = summary?.CountedCash is { } counted ? $"{counted:N2}" : string.Empty;
         _difference.Text = summary?.CashDifference is { } difference ? $"{difference:N2} {ViewModel.DifferenceText}" : string.Empty;
         UseWaitCursor = ViewModel.IsBusy;
-        MoneyRowView.Replace(_summaryRows, ViewModel.SummaryRows, rowsPerLine: 1);
     }
 
     private void RefillPayLater()
