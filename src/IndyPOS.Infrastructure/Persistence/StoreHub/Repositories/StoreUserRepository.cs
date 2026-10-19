@@ -97,7 +97,10 @@ public class StoreUserRepository : IStoreUserRepository
 
     public async Task UpsertByCloudIdAsync(StoreUser user, CancellationToken cancellationToken = default)
     {
-        var existing = await FindForSyncAsync(user.CloudUserId, cancellationToken);
+        // A null cloud id would match any unlinked user (CloudUserId IS NULL), such as the store's own admin.
+        var cloudUserId = user.CloudUserId
+                          ?? throw new ArgumentException("A user from the cloud must have its cloud id.", nameof(user));
+        var existing = await FindForSyncAsync(cloudUserId, user.StoreId, cancellationToken);
 
         if (existing is null)
         {
@@ -137,10 +140,11 @@ public class StoreUserRepository : IStoreUserRepository
     }
 
     // Migrated users were uploaded under their store id, so the cloud sends them back under it while
-    // the store row has no CloudUserId yet. Matching that row links it instead of adding a second one.
-    private async Task<StoreUser?> FindForSyncAsync(Guid? cloudUserId, CancellationToken cancellationToken) =>
-        await _dbContext.StoreUsers.FirstOrDefaultAsync(u => u.CloudUserId == cloudUserId, cancellationToken)
-        ?? await _dbContext.StoreUsers.FirstOrDefaultAsync(u => u.Id == cloudUserId && u.CloudUserId == null, cancellationToken);
+    // the store row has no CloudUserId yet. Matching that row links it instead of adding a second one. Both
+    // lookups keep to this store: a row of another store is never renamed into this one's user.
+    private async Task<StoreUser?> FindForSyncAsync(Guid cloudUserId, string storeId, CancellationToken cancellationToken) =>
+        await _dbContext.StoreUsers.FirstOrDefaultAsync(u => u.StoreId == storeId && u.CloudUserId == cloudUserId, cancellationToken)
+        ?? await _dbContext.StoreUsers.FirstOrDefaultAsync(u => u.StoreId == storeId && u.Id == cloudUserId && u.CloudUserId == null, cancellationToken);
 
     public async Task<long> GetMaxCloudVersionAsync(string storeId, CancellationToken cancellationToken = default)
     {

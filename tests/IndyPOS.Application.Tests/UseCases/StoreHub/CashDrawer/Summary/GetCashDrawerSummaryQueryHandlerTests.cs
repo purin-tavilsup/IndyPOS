@@ -24,6 +24,8 @@ public class GetCashDrawerSummaryQueryHandlerTests
     private const decimal NonPayLaterTakings = 5_000m;
 
     private const decimal CashPaid = 700m;
+    private const decimal LatestCount = 5_000m;          // the 20:00 count in the two-counts tests
+    private const decimal ExpectedWithNoSales = 0m;      // nothing paid, floated, repaid or paid out
     private const decimal FiftyFiftyPaid = 250m;
     private const decimal PayLaterPaid = 400m;
     private const decimal CardPaid = 90m;
@@ -269,6 +271,24 @@ public class GetCashDrawerSummaryQueryHandlerTests
                               .Equal(new PaymentMethodTotalDto(PaymentMethodCodes.MoneyTransfer, "โอนเงิน", 0m));
     }
 
+    // The catalogue is keyed (StoreId, Code), so another store's row for the same method can sit beside ours.
+    [Fact]
+    public async Task HandleAsync_WithAnotherStoresCatalogue_ListsOnlyThisStoresMethods()
+    {
+        await using var c = new CashDrawerTestContext();
+        await SeedMethodAsync(c, PaymentMethodCodes.MoneyTransfer, "โอนเงิน", isEnabled: true, displayOrder: 1);
+        c.Db.PaymentMethods.Add(new PaymentMethod
+        {
+            StoreId = "ANOTHER-STORE", Code = PaymentMethodCodes.MoneyTransfer, DisplayName = "โอนเงิน", IsEnabled = true, DisplayOrder = 1
+        });
+        await c.Db.SaveChangesAsync();
+
+        var result = await HandlerFor(c).HandleAsync(new GetCashDrawerSummaryQuery(null));
+
+        result.NonCashPayments.Should()
+                              .ContainSingle();
+    }
+
     [Fact]
     public async Task HandleAsync_WithCashPayment_AddsItToExpectedCash()
     {
@@ -367,7 +387,7 @@ public class GetCashDrawerSummaryQueryHandlerTests
         var result = await HandlerFor(c).HandleAsync(new GetCashDrawerSummaryQuery(null));
 
         result.CashDifference.Should()
-                             .Be(5_000m - 0m);
+                             .Be(LatestCount - ExpectedWithNoSales);
     }
 
     [Fact]
