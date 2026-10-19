@@ -28,6 +28,9 @@ public class GetCashDrawerSummaryQueryHandlerTests
     private const decimal PayLaterPaid = 400m;
     private const decimal CardPaid = 90m;
     private const string UncataloguedCode = "Card";
+    private const decimal BillTotal = 350m;
+    private const decimal ThousandNote = 1_000m;
+    private const decimal RefundTotal = -100m;
 
     /// <summary>23:59 Bangkok on <see cref="CashDrawerTestContext.Yesterday"/>.</summary>
     private static readonly DateTime JustBeforeMidnightYesterday = new(2026, 9, 25, 16, 59, 0, DateTimeKind.Utc);
@@ -50,15 +53,23 @@ public class GetCashDrawerSummaryQueryHandlerTests
     private static GetCashDrawerSummaryQueryHandler HandlerFor(CashDrawerTestContext c) =>
         HandlerFor(c, out _);
 
-    private static async Task SeedPaymentAsync(CashDrawerTestContext c, string method, decimal amount, DateTime? createdUtc = null)
+    private static Task SeedPaymentAsync(CashDrawerTestContext c, string method, decimal amount, DateTime? createdUtc = null) =>
+        SeedInvoiceAsync(c, amount, [(method, amount)], createdUtc);
+
+    // A payment stores what the customer handed over, so a bill paid with a bigger note has payments above its total.
+    private static async Task SeedInvoiceAsync(
+        CashDrawerTestContext c, decimal total, (string Method, decimal Amount)[] payments, DateTime? createdUtc = null)
     {
         var at = createdUtc ?? CashDrawerTestContext.TenAmBangkok.UtcDateTime;
         var invoiceId = Guid.NewGuid();
         c.Db.Invoices.Add(new Invoice
         {
             Id = invoiceId, StoreId = c.StoreIdentity.StoreId, UserId = CashDrawerTestContext.CashierId,
-            TotalAmount = amount, CreatedUtc = at, LastModifiedUtc = at,
-            Payments = [new Payment { Id = Guid.NewGuid(), InvoiceId = invoiceId, Method = method, Amount = amount, CreatedUtc = at }]
+            TotalAmount = total, CreatedUtc = at, LastModifiedUtc = at,
+            Payments = payments.Select(p => new Payment
+            {
+                Id = Guid.NewGuid(), InvoiceId = invoiceId, Method = p.Method, Amount = p.Amount, CreatedUtc = at
+            }).ToList()
         });
         await c.Db.SaveChangesAsync();
     }
@@ -108,6 +119,42 @@ public class GetCashDrawerSummaryQueryHandlerTests
             CustomerName = "ลุงสมชาย", IsDeleted = isDeleted
         });
         await c.Db.SaveChangesAsync();
+    }
+
+    [Fact]
+    public async Task HandleAsync_WithCashTenderedAboveTheBill_CountsOnlyTheBill()
+    {
+        await using var c = new CashDrawerTestContext();
+        await SeedInvoiceAsync(c, BillTotal, [(PaymentMethodCodes.Cash, ThousandNote)]);
+
+        var result = await HandlerFor(c).HandleAsync(new GetCashDrawerSummaryQuery(null));
+
+        result.CashPaymentsTotal.Should()
+                                .Be(BillTotal);
+    }
+
+    [Fact]
+    public async Task HandleAsync_WithChangeOnAMixedBill_TakesTheChangeFromCash()
+    {
+        await using var c = new CashDrawerTestContext();
+        await SeedInvoiceAsync(c, BillTotal, [(PaymentMethodCodes.FiftyFifty, 300m), (PaymentMethodCodes.Cash, 100m)]);
+
+        var result = await HandlerFor(c).HandleAsync(new GetCashDrawerSummaryQuery(null));
+
+        result.CashPaymentsTotal.Should()
+                                .Be(BillTotal - 300m);
+    }
+
+    [Fact]
+    public async Task HandleAsync_WithCashRefund_SubtractsItFromCash()
+    {
+        await using var c = new CashDrawerTestContext();
+        await SeedInvoiceAsync(c, RefundTotal, [(PaymentMethodCodes.Cash, RefundTotal)]);
+
+        var result = await HandlerFor(c).HandleAsync(new GetCashDrawerSummaryQuery(null));
+
+        result.CashPaymentsTotal.Should()
+                                .Be(RefundTotal);
     }
 
     [Fact]

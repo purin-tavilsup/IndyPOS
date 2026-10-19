@@ -17,12 +17,15 @@ public record CashDrawerSummaryDto
     public required decimal GeneralProductsTotal { get; init; }
     public required decimal HardwareProductsTotal { get; init; }
 
-    /// <summary>Takings paid with the Cash method; the only sales money in the drawer.</summary>
+    /// <summary>
+    /// Cash kept from the day's sales: Cash-method payments minus the change handed back. The only
+    /// sales money in the drawer. Not a sum of tendered amounts, so it need not match the takings.
+    /// </summary>
     public required decimal CashPaymentsTotal { get; init; }
 
     /// <summary>
     /// One row per non-cash method (not Cash, not PayLater) enabled or used that day, in display
-    /// order. Shown, never added to expected cash.
+    /// order, at the amount paid with it. Shown, never added to expected cash.
     /// </summary>
     public required IReadOnlyList<PaymentMethodTotalDto> NonCashPayments { get; init; }
 

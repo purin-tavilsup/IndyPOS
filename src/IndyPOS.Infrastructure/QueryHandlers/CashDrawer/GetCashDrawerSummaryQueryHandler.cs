@@ -7,11 +7,13 @@ using IndyPOS.Application.UseCases.StoreHub.CashDrawer.Counts;
 using IndyPOS.Application.UseCases.StoreHub.CashDrawer.Summary;
 using IndyPOS.Application.UseCases.StoreHub.Reports;
 using IndyPOS.Application.UseCases.StoreHub.Reports.GetLegacySalesSummary;
+using IndyPOS.Application.UseCases.StoreHub.Sales.History;
 using IndyPOS.Domain.Enums;
 using IndyPOS.Infrastructure.Persistence.StoreHub;
 using IndyPOS.Infrastructure.QueryHandlers.Reports;
 using Microsoft.EntityFrameworkCore;
 using Nokpirab;
+using Payment = IndyPOS.Domain.Entities.Core.Payment;
 
 namespace IndyPOS.Infrastructure.QueryHandlers.CashDrawer;
 
@@ -76,16 +78,28 @@ public class GetCashDrawerSummaryQueryHandler(
     {
         var range = ReportDateRange.ToUtcRange(day, day, storeIdentity.TimeZone);
         var payments = await db.Payments.AsNoTracking()
+                               .Include(p => p.Invoice)
                                .Where(p => p.CreatedUtc >= range.StartUtc && p.CreatedUtc < range.EndExclusiveUtc)
                                .ToListAsync(cancellationToken);
         var catalogue = await db.PaymentMethods.AsNoTracking().ToListAsync(cancellationToken);
 
-        // Case-insensitive, as a sale accepts its codes: it stores the caller's spelling, so "cash" is Cash.
-        var cash = payments.Where(p => IsCode(p.Method, PaymentMethodCodes.Cash)).Sum(p => p.Amount);
+        var cash = payments.GroupBy(p => p.InvoiceId).Sum(CashKept);
         var nonCash = PaymentMethodTotals.Build(catalogue, payments)
                                          .Where(t => !IsCode(t.Code, PaymentMethodCodes.Cash) && !IsCode(t.Code, PaymentMethodCodes.PayLater))
                                          .ToList();
         return (cash, nonCash);
+    }
+
+    // A payment stores what the customer handed over, and the change always leaves the drawer, even
+    // when the bill was mostly paid another way. SaleFigures is the till's own change rule.
+    private static decimal CashKept(IGrouping<Guid, Payment> invoicePayments)
+    {
+        var invoice = invoicePayments.First().Invoice;
+        var figures = SaleFigures.From(invoice.TotalAmount, invoicePayments.Select(p => new SalePayment(p.Method, p.Amount)));
+
+        // Case-insensitive, as a sale accepts its codes: it stores the caller's spelling, so "cash" is Cash.
+        var cashTendered = invoicePayments.Where(p => IsCode(p.Method, PaymentMethodCodes.Cash)).Sum(p => p.Amount);
+        return cashTendered - figures.ChangeGiven;
     }
 
     private static bool IsCode(string method, string code) =>
