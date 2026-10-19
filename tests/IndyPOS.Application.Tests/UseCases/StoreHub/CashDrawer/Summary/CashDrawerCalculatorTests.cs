@@ -7,11 +7,9 @@ namespace IndyPOS.Application.Tests.UseCases.StoreHub.CashDrawer.Summary;
 public class CashDrawerCalculatorTests
 {
     private static readonly CashDrawerTotals Day = new(
-        CashSalesTotal: 10_000m,
+        CashPaymentsTotal: 10_000m,
         DebtRepaymentsTotal: 300m,
         CashFloatsTotal: 1_000m,
-        MoneyTransferTotal: 2_500m,
-        WelfareCardTotal: 400m,
         PayoutsTotal: 650m);
 
     [Fact]
@@ -35,7 +33,7 @@ public class CashDrawerCalculatorTests
     [Fact]
     public void ExpectedCash_WithPayoutsAboveTakings_ReturnsNegative()
     {
-        var result = CashDrawerCalculator.ExpectedCash(new CashDrawerTotals(0m, 0m, 0m, 0m, 0m, 50m));
+        var result = CashDrawerCalculator.ExpectedCash(new CashDrawerTotals(0m, 0m, 0m, 50m));
 
         result.Should()
               .Be(-50m);
@@ -51,12 +49,12 @@ public class CashDrawerCalculatorTests
     }
 
     [Fact]
-    public void ExpectedCash_WithATypicalDay_ReturnsTodaysFormula()
+    public void ExpectedCash_WithATypicalDay_ReturnsCashPlusRepaidPlusFloatsMinusPayouts()
     {
         var result = CashDrawerCalculator.ExpectedCash(Day);
 
         result.Should()
-              .Be(10_000m + 300m + 1_000m - 2_500m - 400m - 650m);
+              .Be(10_000m + 300m + 1_000m - 650m);
     }
 
     [Fact]
