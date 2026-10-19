@@ -1,8 +1,9 @@
 using FluentAssertions;
+using IndyPOS.Application.Common.Constants;
 using IndyPOS.Application.Common.Models;
 using IndyPOS.Application.UseCases.StoreHub.CashDrawer.Counts;
 using IndyPOS.Application.UseCases.StoreHub.CashDrawer.Summary;
-using IndyPOS.Application.UseCases.StoreHub.Reports.GetLegacyPaymentsSummary;
+using IndyPOS.Application.UseCases.StoreHub.Reports;
 using IndyPOS.Application.UseCases.StoreHub.Reports.GetLegacySalesSummary;
 using IndyPOS.Domain.Entities.Core;
 using IndyPOS.Domain.Enums;
@@ -10,31 +11,78 @@ using IndyPOS.Infrastructure.QueryHandlers.CashDrawer;
 using Moq;
 using Nokpirab;
 using Xunit;
+using Payment = IndyPOS.Domain.Entities.Core.Payment;
 
 namespace IndyPOS.Application.Tests.UseCases.StoreHub.CashDrawer.Summary;
 
 public class GetCashDrawerSummaryQueryHandlerTests
 {
-    private const decimal CashSales = 5_000m;
+    /// <summary>
+    /// What the legacy sales summary reports as non-PayLater takings. No test seeds a payment this
+    /// big, so a handler still reading it as cash shows up in every expected-cash assertion.
+    /// </summary>
+    private const decimal NonPayLaterTakings = 5_000m;
+
+    private const decimal CashPaid = 700m;
+    private const decimal FiftyFiftyPaid = 250m;
+    private const decimal PayLaterPaid = 400m;
+    private const decimal CardPaid = 90m;
+    private const string UncataloguedCode = "Card";
+    private const decimal BillTotal = 350m;
+    private const decimal ThousandNote = 1_000m;
+    private const decimal RefundTotal = -100m;
+
+    /// <summary>23:59 Bangkok on <see cref="CashDrawerTestContext.Yesterday"/>.</summary>
+    private static readonly DateTime JustBeforeMidnightYesterday = new(2026, 9, 25, 16, 59, 0, DateTimeKind.Utc);
+
+    /// <summary>10:00 Bangkok on <see cref="CashDrawerTestContext.Yesterday"/>.</summary>
+    private static readonly DateTime TenAmBangkokYesterday = new(2026, 9, 25, 3, 0, 0, DateTimeKind.Utc);
 
     private static GetCashDrawerSummaryQueryHandler HandlerFor(
         CashDrawerTestContext c,
-        out Mock<IQueryHandler<GetLegacySalesSummaryQuery, SalesSummary>> sales,
-        out Mock<IQueryHandler<GetLegacyPaymentsSummaryQuery, PaymentsSummary>> payments)
+        out Mock<IQueryHandler<GetLegacySalesSummaryQuery, SalesSummary>> sales)
     {
         sales = new Mock<IQueryHandler<GetLegacySalesSummaryQuery, SalesSummary>>();
         sales.Setup(h => h.HandleAsync(It.IsAny<GetLegacySalesSummaryQuery>(), It.IsAny<CancellationToken>()))
-             .ReturnsAsync(new SalesSummary { InvoiceTotalWithoutPayLaterPayments = CashSales });
-        payments = new Mock<IQueryHandler<GetLegacyPaymentsSummaryQuery, PaymentsSummary>>();
-        payments.Setup(h => h.HandleAsync(It.IsAny<GetLegacyPaymentsSummaryQuery>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(new PaymentsSummary());
+             .ReturnsAsync(new SalesSummary { InvoiceTotalWithoutPayLaterPayments = NonPayLaterTakings });
 
         return new GetCashDrawerSummaryQueryHandler(
-            sales.Object, payments.Object, c.Db, c.CountRepository(), c.Clock, c.StoreIdentity);
+            sales.Object, c.Db, c.CountRepository(), c.Clock, c.StoreIdentity);
     }
 
     private static GetCashDrawerSummaryQueryHandler HandlerFor(CashDrawerTestContext c) =>
-        HandlerFor(c, out _, out _);
+        HandlerFor(c, out _);
+
+    private static Task SeedPaymentAsync(CashDrawerTestContext c, string method, decimal amount, DateTime? createdUtc = null) =>
+        SeedInvoiceAsync(c, amount, [(method, amount)], createdUtc);
+
+    // A payment stores what the customer handed over, so a bill paid with a bigger note has payments above its total.
+    private static async Task SeedInvoiceAsync(
+        CashDrawerTestContext c, decimal total, (string Method, decimal Amount)[] payments, DateTime? createdUtc = null)
+    {
+        var at = createdUtc ?? CashDrawerTestContext.TenAmBangkok.UtcDateTime;
+        var invoiceId = Guid.NewGuid();
+        c.Db.Invoices.Add(new Invoice
+        {
+            Id = invoiceId, StoreId = c.StoreIdentity.StoreId, UserId = CashDrawerTestContext.CashierId,
+            TotalAmount = total, CreatedUtc = at, LastModifiedUtc = at,
+            Payments = payments.Select(p => new Payment
+            {
+                Id = Guid.NewGuid(), InvoiceId = invoiceId, Method = p.Method, Amount = p.Amount, CreatedUtc = at
+            }).ToList()
+        });
+        await c.Db.SaveChangesAsync();
+    }
+
+    private static async Task SeedMethodAsync(CashDrawerTestContext c, string code, string displayName, bool isEnabled, int displayOrder)
+    {
+        c.Db.PaymentMethods.Add(new PaymentMethod
+        {
+            StoreId = c.StoreIdentity.StoreId, Code = code, DisplayName = displayName,
+            IsEnabled = isEnabled, DisplayOrder = displayOrder
+        });
+        await c.Db.SaveChangesAsync();
+    }
 
     private static Task AddCountAsync(CashDrawerTestContext c, AddCashCountRequest counts) =>
         new AddCashCountCommandHandler(c.CountRepository(), c.Clock, c.StoreIdentity)
@@ -71,6 +119,179 @@ public class GetCashDrawerSummaryQueryHandlerTests
             CustomerName = "ลุงสมชาย", IsDeleted = isDeleted
         });
         await c.Db.SaveChangesAsync();
+    }
+
+    [Fact]
+    public async Task HandleAsync_WithCashTenderedAboveTheBill_CountsOnlyTheBill()
+    {
+        await using var c = new CashDrawerTestContext();
+        await SeedInvoiceAsync(c, BillTotal, [(PaymentMethodCodes.Cash, ThousandNote)]);
+
+        var result = await HandlerFor(c).HandleAsync(new GetCashDrawerSummaryQuery(null));
+
+        result.CashPaymentsTotal.Should()
+                                .Be(BillTotal);
+    }
+
+    [Fact]
+    public async Task HandleAsync_WithChangeOnAMixedBill_TakesTheChangeFromCash()
+    {
+        await using var c = new CashDrawerTestContext();
+        await SeedInvoiceAsync(c, BillTotal, [(PaymentMethodCodes.FiftyFifty, 300m), (PaymentMethodCodes.Cash, 100m)]);
+
+        var result = await HandlerFor(c).HandleAsync(new GetCashDrawerSummaryQuery(null));
+
+        result.CashPaymentsTotal.Should()
+                                .Be(BillTotal - 300m);
+    }
+
+    [Fact]
+    public async Task HandleAsync_WithCashRefund_SubtractsItFromCash()
+    {
+        await using var c = new CashDrawerTestContext();
+        await SeedInvoiceAsync(c, RefundTotal, [(PaymentMethodCodes.Cash, RefundTotal)]);
+
+        var result = await HandlerFor(c).HandleAsync(new GetCashDrawerSummaryQuery(null));
+
+        result.CashPaymentsTotal.Should()
+                                .Be(RefundTotal);
+    }
+
+    [Fact]
+    public async Task HandleAsync_WithFiftyFiftyPayment_DoesNotChangeExpectedCash()
+    {
+        await using var c = new CashDrawerTestContext();
+        await SeedPaymentAsync(c, PaymentMethodCodes.Cash, CashPaid);
+        await SeedPaymentAsync(c, PaymentMethodCodes.FiftyFifty, FiftyFiftyPaid);
+
+        var result = await HandlerFor(c).HandleAsync(new GetCashDrawerSummaryQuery(null));
+
+        result.ExpectedCash.Should()
+                           .Be(CashPaid);
+    }
+
+    [Fact]
+    public async Task HandleAsync_WithPayLaterPayment_DoesNotChangeExpectedCash()
+    {
+        await using var c = new CashDrawerTestContext();
+        await SeedPaymentAsync(c, PaymentMethodCodes.PayLater, PayLaterPaid);
+
+        var result = await HandlerFor(c).HandleAsync(new GetCashDrawerSummaryQuery(null));
+
+        result.ExpectedCash.Should()
+                           .Be(0m);
+    }
+
+    [Fact]
+    public async Task HandleAsync_WithPayLaterPayment_ExcludesItFromNonCashPayments()
+    {
+        await using var c = new CashDrawerTestContext();
+        await SeedMethodAsync(c, PaymentMethodCodes.PayLater, "ลงบัญชี", isEnabled: true, displayOrder: 1);
+        await SeedPaymentAsync(c, PaymentMethodCodes.PayLater, PayLaterPaid);
+
+        var result = await HandlerFor(c).HandleAsync(new GetCashDrawerSummaryQuery(null));
+
+        result.NonCashPayments.Should()
+                              .NotContain(p => p.Code == PaymentMethodCodes.PayLater);
+    }
+
+    [Fact]
+    public async Task HandleAsync_WithCashPaidJustBeforeMidnight_ExcludesItFromToday()
+    {
+        await using var c = new CashDrawerTestContext();
+        await SeedPaymentAsync(c, PaymentMethodCodes.Cash, CashPaid, JustBeforeMidnightYesterday);
+
+        var result = await HandlerFor(c).HandleAsync(new GetCashDrawerSummaryQuery(null));
+
+        result.CashPaymentsTotal.Should()
+                                .Be(0m);
+    }
+
+    [Fact]
+    public async Task HandleAsync_WithLowerCaseCashCode_CountsItAsCash()
+    {
+        await using var c = new CashDrawerTestContext();
+        await SeedPaymentAsync(c, "cash", CashPaid);
+
+        var result = await HandlerFor(c).HandleAsync(new GetCashDrawerSummaryQuery(null));
+
+        result.CashPaymentsTotal.Should()
+                                .Be(CashPaid);
+    }
+
+    [Fact]
+    public async Task HandleAsync_WithLowerCaseCashCode_ExcludesItFromNonCashPayments()
+    {
+        await using var c = new CashDrawerTestContext();
+        await SeedPaymentAsync(c, "cash", CashPaid);
+
+        var result = await HandlerFor(c).HandleAsync(new GetCashDrawerSummaryQuery(null));
+
+        result.NonCashPayments.Should()
+                              .BeEmpty();
+    }
+
+    [Fact]
+    public async Task HandleAsync_WithUncataloguedCode_ListsItAsNonCash()
+    {
+        await using var c = new CashDrawerTestContext();
+        await SeedPaymentAsync(c, UncataloguedCode, CardPaid);
+
+        var result = await HandlerFor(c).HandleAsync(new GetCashDrawerSummaryQuery(null));
+
+        result.NonCashPayments.Should()
+                              .Equal(new PaymentMethodTotalDto(UncataloguedCode, UncataloguedCode, CardPaid));
+    }
+
+    [Fact]
+    public async Task HandleAsync_WithUncataloguedCode_DoesNotCountItAsCash()
+    {
+        await using var c = new CashDrawerTestContext();
+        await SeedPaymentAsync(c, UncataloguedCode, CardPaid);
+
+        var result = await HandlerFor(c).HandleAsync(new GetCashDrawerSummaryQuery(null));
+
+        result.CashPaymentsTotal.Should()
+                                .Be(0m);
+    }
+
+    [Fact]
+    public async Task HandleAsync_WithNoPaymentsToday_ReturnsEnabledNonCashMethodsAtZero()
+    {
+        await using var c = new CashDrawerTestContext();
+        await SeedMethodAsync(c, PaymentMethodCodes.Cash, "เงินสด", isEnabled: true, displayOrder: 1);
+        await SeedMethodAsync(c, PaymentMethodCodes.MoneyTransfer, "โอนเงิน", isEnabled: true, displayOrder: 2);
+        await SeedMethodAsync(c, PaymentMethodCodes.WeWin, "เราชนะ", isEnabled: false, displayOrder: 3);
+
+        var result = await HandlerFor(c).HandleAsync(new GetCashDrawerSummaryQuery(null));
+
+        result.NonCashPayments.Should()
+                              .Equal(new PaymentMethodTotalDto(PaymentMethodCodes.MoneyTransfer, "โอนเงิน", 0m));
+    }
+
+    [Fact]
+    public async Task HandleAsync_WithCashPayment_AddsItToExpectedCash()
+    {
+        await using var c = new CashDrawerTestContext();
+        await SeedPaymentAsync(c, PaymentMethodCodes.Cash, CashPaid);
+
+        var result = await HandlerFor(c).HandleAsync(new GetCashDrawerSummaryQuery(null));
+
+        result.ExpectedCash.Should()
+                           .Be(CashPaid);
+    }
+
+    [Fact]
+    public async Task HandleAsync_WithFiftyFiftyPayment_ListsItAsNonCash()
+    {
+        await using var c = new CashDrawerTestContext();
+        await SeedMethodAsync(c, PaymentMethodCodes.FiftyFifty, "คนละครึ่ง", isEnabled: true, displayOrder: 1);
+        await SeedPaymentAsync(c, PaymentMethodCodes.FiftyFifty, FiftyFiftyPaid);
+
+        var result = await HandlerFor(c).HandleAsync(new GetCashDrawerSummaryQuery(null));
+
+        result.NonCashPayments.Should()
+                              .Equal(new PaymentMethodTotalDto(PaymentMethodCodes.FiftyFifty, "คนละครึ่ง", FiftyFiftyPaid));
     }
 
     [Fact]
@@ -146,7 +367,7 @@ public class GetCashDrawerSummaryQueryHandlerTests
         var result = await HandlerFor(c).HandleAsync(new GetCashDrawerSummaryQuery(null));
 
         result.CashDifference.Should()
-                             .Be(5_000m - CashSales);
+                             .Be(5_000m - 0m);
     }
 
     [Fact]
@@ -164,7 +385,7 @@ public class GetCashDrawerSummaryQueryHandlerTests
     public async Task HandleAsync_WithPastDate_AsksForThatDaysSales()
     {
         await using var c = new CashDrawerTestContext();
-        var handler = HandlerFor(c, out var sales, out _);
+        var handler = HandlerFor(c, out var sales);
 
         await handler.HandleAsync(new GetCashDrawerSummaryQuery(CashDrawerTestContext.Yesterday));
 
@@ -174,16 +395,15 @@ public class GetCashDrawerSummaryQueryHandlerTests
     }
 
     [Fact]
-    public async Task HandleAsync_WithPastDate_AsksForThatDaysPayments()
+    public async Task HandleAsync_WithPastDate_CountsThatDaysCash()
     {
         await using var c = new CashDrawerTestContext();
-        var handler = HandlerFor(c, out _, out var payments);
+        await SeedPaymentAsync(c, PaymentMethodCodes.Cash, CashPaid, TenAmBangkokYesterday);
 
-        await handler.HandleAsync(new GetCashDrawerSummaryQuery(CashDrawerTestContext.Yesterday));
+        var result = await HandlerFor(c).HandleAsync(new GetCashDrawerSummaryQuery(CashDrawerTestContext.Yesterday));
 
-        payments.Verify(h => h.HandleAsync(
-            It.Is<GetLegacyPaymentsSummaryQuery>(q => q.FromDate == CashDrawerTestContext.Yesterday && q.ToDate == CashDrawerTestContext.Yesterday),
-            It.IsAny<CancellationToken>()));
+        result.CashPaymentsTotal.Should()
+                                .Be(CashPaid);
     }
 
     [Fact]
@@ -221,7 +441,7 @@ public class GetCashDrawerSummaryQueryHandlerTests
         var result = await HandlerFor(c).HandleAsync(new GetCashDrawerSummaryQuery(null));
 
         result.ExpectedCash.Should()
-                           .Be(CashSales - 100m);
+                           .Be(-100m);
     }
 
     [Fact]
@@ -255,7 +475,7 @@ public class GetCashDrawerSummaryQueryHandlerTests
         var result = await HandlerFor(c).HandleAsync(new GetCashDrawerSummaryQuery(null));
 
         result.ExpectedCash.Should()
-                           .Be(CashSales + 1_000m);
+                           .Be(1_000m);
     }
 
     [Fact]
@@ -267,6 +487,6 @@ public class GetCashDrawerSummaryQueryHandlerTests
         var result = await HandlerFor(c).HandleAsync(new GetCashDrawerSummaryQuery(null));
 
         result.ExpectedCash.Should()
-                           .Be(CashSales + 300m);
+                           .Be(300m);
     }
 }
