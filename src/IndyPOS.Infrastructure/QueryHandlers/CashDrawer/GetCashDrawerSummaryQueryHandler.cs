@@ -81,7 +81,10 @@ public class GetCashDrawerSummaryQueryHandler(
                                .Include(p => p.Invoice)
                                .Where(p => p.CreatedUtc >= range.StartUtc && p.CreatedUtc < range.EndExclusiveUtc)
                                .ToListAsync(cancellationToken);
-        var catalogue = await db.PaymentMethods.AsNoTracking().ToListAsync(cancellationToken);
+        // Keyed (StoreId, Code): another store's row for the same method can sit in the same table.
+        var catalogue = await db.PaymentMethods.AsNoTracking()
+                                .Where(m => m.StoreId == storeIdentity.StoreId)
+                                .ToListAsync(cancellationToken);
 
         var cash = payments.GroupBy(p => p.InvoiceId).Sum(CashKept);
         var nonCash = PaymentMethodTotals.Build(catalogue, payments)
