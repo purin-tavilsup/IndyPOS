@@ -196,6 +196,20 @@ public class BulkMigrationCommandHandlerTests(CloudPostgresFixture postgres) : I
     private static BulkMigrationCommand CommandWith(params MigratedInvoice[] invoices) =>
         new(StoreId, Users: [], Products: [], Invoices: invoices, AuthenticatedStoreId: StoreId);
 
+    [Fact]
+    public async Task HandleAsync_WithABusinessDate_StoresIt()
+    {
+        var bangkokDay = new DateOnly(2024, 3, 15);
+        await using var db = CloudPostgresFixture.CreateContext(await postgres.CreateDatabaseAsync());
+        var invoice = NewInvoice() with { BusinessDate = bangkokDay };
+
+        await NewHandler(db).HandleAsync(CommandWith(invoice));
+
+        db.ChangeTracker.Clear();
+        (await db.Invoices.SingleAsync(i => i.Id == invoice.Id)).BusinessDate.Should()
+                                                                       .Be(bangkokDay);
+    }
+
     private static MigratedInvoice NewInvoice() =>
         new(Id: Guid.NewGuid(),
             UserId: Guid.NewGuid(),

@@ -409,7 +409,7 @@ namespace IndyPOS.CloudApi.Infrastructure.Migrations
 
                     b.Property<DateOnly?>("BusinessDate")
                         .HasColumnType("date")
-                        .HasComment("The store's day the sale belongs to (Asia/Bangkok calendar date), as StoreHub decided it. NULL for a sale synced before this field or bulk-migrated from v3; CashDrawerDays then uses its UTC date.");
+                        .HasComment("The store's day the sale belongs to (Asia/Bangkok calendar date), as StoreHub decided it. NULL only for a sale synced before StoreHub or the migrator sent it; CashDrawerDays then uses its UTC date.");
 
                     b.Property<DateTime>("CreatedAtUtc")
                         .HasColumnType("timestamp with time zone");

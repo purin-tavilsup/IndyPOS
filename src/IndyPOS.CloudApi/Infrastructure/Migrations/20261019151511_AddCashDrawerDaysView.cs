@@ -98,7 +98,7 @@ namespace IndyPOS.CloudApi.Infrastructure.Migrations
         private const string Comments = """
             COMMENT ON VIEW "CashDrawerDays" IS 'One row per store per day that had a sale or drawer entry: the till''s expected cash, the latest count and the difference (ขาด < 0, เกิน > 0, พอดี = 0). Derived live from Invoices, Payments, CashPayouts, CashFloats, DebtRepayments and CashCounts with the till''s rules; never edited. ลงบัญชี repayments (PayLaterRepayments) are not drawer cash and are not here.';
             COMMENT ON COLUMN "CashDrawerDays"."StoreId" IS 'The store.';
-            COMMENT ON COLUMN "CashDrawerDays"."BusinessDate" IS 'The store''s day (Asia/Bangkok calendar date). A sale with no BusinessDate (older or v3 bulk sales) uses its UTC date.';
+            COMMENT ON COLUMN "CashDrawerDays"."BusinessDate" IS 'The store''s day (Asia/Bangkok calendar date). A sale with no BusinessDate (synced before StoreHub or the migrator sent it) uses its UTC date.';
             COMMENT ON COLUMN "CashDrawerDays"."CashSalesTotal" IS 'Cash the day''s sales left in the drawer, baht: each bill''s Cash payments minus its change (refunds give no change and count negative). Other methods and ลงบัญชี add nothing.';
             COMMENT ON COLUMN "CashDrawerDays"."DebtRepaidTotal" IS 'Cash customers paid into the drawer for debt (ลูกค้าชำระหนี้, DebtRepayments), baht, deleted entries left out.';
             COMMENT ON COLUMN "CashDrawerDays"."CashFloatsTotal" IS 'Change float put into the drawer (เงินทอน), baht, deleted entries left out.';

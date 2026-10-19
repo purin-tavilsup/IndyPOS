@@ -21,7 +21,7 @@ public class CloudInvoice
     /// </summary>
     public long? InvoiceNumber { get; set; }
 
-    /// <summary>The store's day the sale belongs to, as StoreHub decided it. Null for an older or v3 bulk sale.</summary>
+    /// <summary>The store's day the sale belongs to, as StoreHub decided it. Null only for a sale synced before this field.</summary>
     public DateOnly? BusinessDate { get; set; }
 
     // Navigation properties
