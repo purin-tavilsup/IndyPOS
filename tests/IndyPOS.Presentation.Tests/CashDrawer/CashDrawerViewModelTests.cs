@@ -7,6 +7,7 @@ using IndyPOS.Application.UseCases.StoreHub.CashDrawer.DebtRepayments;
 using IndyPOS.Application.UseCases.StoreHub.CashDrawer.Floats;
 using IndyPOS.Application.UseCases.StoreHub.CashDrawer.Payouts;
 using IndyPOS.Application.UseCases.StoreHub.CashDrawer.Summary;
+using IndyPOS.Application.UseCases.StoreHub.PayLater;
 using IndyPOS.Presentation.CashDrawer;
 using IndyPOS.Presentation.SalesHistory;
 using Microsoft.Extensions.Time.Testing;
@@ -38,6 +39,7 @@ public class CashDrawerViewModelTests
         _clock = new StoreClock(_time, Bangkok);
         AnswerDay(Today, Summary(Today, isEditable: true));
         AnswerDay(Yesterday, Summary(Yesterday, isEditable: false));
+        AnswerPayLater();
     }
 
     [Fact]
@@ -186,6 +188,83 @@ public class CashDrawerViewModelTests
     }
 
     [Fact]
+    public async Task Refresh_ForAStoreWithoutPayLater_DoesNotAskForPayLater()
+    {
+        var vm = Drawer(Manager, Minimart);
+
+        await vm.RefreshCommand.ExecuteAsync(null);
+
+        _client.Verify(c => c.GetPayLaterAsync(It.IsAny<bool>(), It.IsAny<string?>(), It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task Refresh_ForAStoreWithoutPayLater_KeepsDebtRepaymentsReadOnly()
+    {
+        var vm = Drawer(Manager, Minimart);
+
+        await vm.RefreshCommand.ExecuteAsync(null);
+
+        vm.DebtRepayments.AddCommand.CanExecute(null).Should()
+                                                     .BeFalse();
+    }
+
+    [Fact]
+    public async Task Refresh_WithAPayLaterFromYesterday_LeavesItOut()
+    {
+        AnswerPayLater(PayLater(NowUtc.UtcDateTime.AddDays(-1), "ลุงสมชาย", 200m));
+        var vm = Drawer(Manager);
+
+        await vm.RefreshCommand.ExecuteAsync(null);
+
+        vm.TodaysPayLater.Should()
+                         .BeEmpty();
+    }
+
+    // Paid off the same day, it still went on the slate today.
+    [Fact]
+    public async Task Refresh_WithACompletedPayLaterFromToday_ListsIt()
+    {
+        AnswerPayLater(PayLater(NowUtc.UtcDateTime, "ลุงสมชาย", 200m) with { IsCompleted = true });
+        var vm = Drawer(Manager);
+
+        await vm.RefreshCommand.ExecuteAsync(null);
+
+        vm.TodaysPayLater.Should()
+                         .ContainSingle();
+    }
+
+    [Fact]
+    public async Task Refresh_ForPayLater_AsksForCompletedOnesToo()
+    {
+        var vm = Drawer(Manager);
+
+        await vm.RefreshCommand.ExecuteAsync(null);
+
+        _client.Verify(c => c.GetPayLaterAsync(true, null, It.IsAny<CancellationToken>()));
+    }
+
+    [Fact]
+    public async Task Refresh_WithTwoPayLaterToday_ListsThemOldestFirst()
+    {
+        AnswerPayLater(PayLater(NowUtc.UtcDateTime, "ป้าแดง", 90m), PayLater(NowUtc.UtcDateTime.AddHours(-2), "ลุงสมชาย", 200m));
+        var vm = Drawer(Manager);
+
+        await vm.RefreshCommand.ExecuteAsync(null);
+
+        vm.TodaysPayLater.Select(p => p.Description).Should()
+                                                    .Equal("ลุงสมชาย", "ป้าแดง");
+    }
+
+    [Fact]
+    public void ShowPayoutCategory_ForAMinimart_ReturnsFalse()
+    {
+        var vm = Drawer(Manager, Minimart);
+
+        vm.ShowPayoutCategory.Should()
+                             .BeFalse();
+    }
+
+    [Fact]
     public void ShowPayLater_WithoutFeatures_ReturnsTrue()
     {
         var vm = Drawer(Manager, features: null);
@@ -297,6 +376,13 @@ public class CashDrawerViewModelTests
         _client.Setup(c => c.GetCashCountsAsync(day, It.IsAny<CancellationToken>()))
                .ReturnsAsync([new CashCountDto(Guid.NewGuid(), day, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1_000m, at, Guid.NewGuid())]);
     }
+
+    private void AnswerPayLater(params PayLaterDto[] items) =>
+        _client.Setup(c => c.GetPayLaterAsync(It.IsAny<bool>(), It.IsAny<string?>(), It.IsAny<CancellationToken>()))
+               .ReturnsAsync(new GetPayLaterResponse(0m, 0m, items.Length, 0, items));
+
+    private static PayLaterDto PayLater(DateTime createdUtc, string description, decimal amount) =>
+        new(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), description, amount, 0m, amount, false, createdUtc, createdUtc);
 
     private static CashPayoutDto Payout(DateOnly day) =>
         new(Guid.NewGuid(), default, 100m, null, day, NowUtc.UtcDateTime, NowUtc.UtcDateTime, Guid.NewGuid(), null);

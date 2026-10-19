@@ -208,6 +208,19 @@ public class CashEntriesViewModelTests
                      .Be("100.00");
     }
 
+    // After looking at a row, a new entry starts from empty boxes rather than a copy of that row.
+    [Fact]
+    public async Task SelectedRow_WhenCleared_ClearsTheInputs()
+    {
+        var vm = await LoadedPayoutsAsync(Payout(100m));
+        vm.SelectedRow = vm.Rows[0];
+
+        vm.SelectedRow = null;
+
+        (vm.AmountText, vm.Text).Should()
+                                .Be((string.Empty, (string?)null));
+    }
+
     [Fact]
     public async Task EditCommand_ForAPayout_SendsItsCategory()
     {

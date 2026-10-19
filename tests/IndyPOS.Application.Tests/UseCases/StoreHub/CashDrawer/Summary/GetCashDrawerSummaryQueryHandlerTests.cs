@@ -87,7 +87,7 @@ public class GetCashDrawerSummaryQueryHandlerTests
     }
 
     private static Task AddCountAsync(CashDrawerTestContext c, AddCashCountRequest counts) =>
-        new AddCashCountCommandHandler(c.CountRepository(), c.Clock, c.StoreIdentity)
+        new AddCashCountCommandHandler(c.CountRepository(), c.UserRepository(), c.Clock, c.StoreIdentity)
             .HandleAsync(new AddCashCountCommand(CashDrawerTestContext.CashierId, counts));
 
     private static async Task AddPayoutAsync(CashDrawerTestContext c, decimal amount, PayoutCategory category, bool isDeleted = false)
@@ -312,6 +312,19 @@ public class GetCashDrawerSummaryQueryHandlerTests
 
         result.NonCashPayments.Should()
                               .Equal(new PaymentMethodTotalDto(PaymentMethodCodes.FiftyFifty, "คนละครึ่ง", FiftyFiftyPaid));
+    }
+
+    [Fact]
+    public async Task HandleAsync_WithACount_NamesWhoCountedTheLatest()
+    {
+        await using var c = new CashDrawerTestContext();
+        await c.SeedUserAsync(CashDrawerTestContext.CashierId, "มาลี", "ใจดี");
+        await AddCountAsync(c, new AddCashCountRequest(1, 0, 0, 0, 0, 0, 0, 0, 0));
+
+        var result = await HandlerFor(c).HandleAsync(new GetCashDrawerSummaryQuery(null));
+
+        result.LatestCount!.CountedByName.Should()
+                                         .Be("มาลี ใจดี");
     }
 
     [Fact]

@@ -9,6 +9,7 @@ namespace IndyPOS.Application.UseCases.StoreHub.CashDrawer.Counts;
 /// <summary>Every count is a new row; nothing is overwritten. A mistyped count is fixed by counting again.</summary>
 public class AddCashCountCommandHandler(
     ICashCountRepository repository,
+    IStoreUserRepository users,
     ICashDrawerClock clock,
     IStoreIdentityService storeIdentity) : ICommandHandler<AddCashCountCommand, CashCountDto>
 {
@@ -40,6 +41,6 @@ public class AddCashCountCommandHandler(
         };
 
         await repository.AddAsync(count, CashDrawerOutbox.CountAdded(count, now.Utc), cancellationToken);
-        return count.ToDto();
+        return count.ToDto((await users.GetByIdAsync(command.UserId, cancellationToken)).DisplayName());
     }
 }

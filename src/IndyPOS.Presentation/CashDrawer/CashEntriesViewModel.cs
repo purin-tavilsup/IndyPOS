@@ -70,11 +70,17 @@ public sealed partial class CashEntriesViewModel : ObservableObject
             Rows.Add(row);
     }
 
-    // Selecting a row puts its values in the inputs, ready to edit.
+    // Selecting a row puts its values in the inputs, ready to edit; clearing it starts a new entry from
+    // empty boxes rather than a copy of the row last looked at.
     partial void OnSelectedRowChanged(CashEntryRow? value)
     {
         if (value is null)
+        {
+            AmountText = string.Empty;
+            Text = null;
+            Category = PayoutCategory.General;
             return;
+        }
 
         AmountText = value.Amount.ToString("0.00", CultureInfo.InvariantCulture);
         Text = value.Text;
