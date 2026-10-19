@@ -1,3 +1,4 @@
+using System.Drawing;
 using System.Windows.Forms;
 using FluentAssertions;
 using IndyPOS.Application.Abstractions.StoreHub;
@@ -62,6 +63,23 @@ public class CashEntriesViewTests
 
         Find(view, "PayoutCategoryBox").Visible.Should()
                                        .BeFalse();
+    }
+
+    // Seen live 2026-10-19: without a category picker, ลบ wrapped alone onto a third line.
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void Bind_WithOrWithoutCategory_KeepsTheButtonsOnOneLine(bool showCategory)
+    {
+        using var form = new Form { ClientSize = new Size(600, 330), AutoScaleMode = AutoScaleMode.None };
+        var view = new CashEntriesView("Float", "เงินทอน", "หมายเหตุ") { Dock = DockStyle.Fill };
+        form.Controls.Add(view);
+        form.CreateControl();
+        view.Bind(new CashEntriesViewModel(CashEntryApis.Payouts(_client.Object, Clock()), () => Task.CompletedTask), showCategory);
+        form.PerformLayout();
+
+        new[] { Find(view, "EditFloatButton").Top, Find(view, "DeleteFloatButton").Top }.Should()
+                                                                                         .AllBeEquivalentTo(Find(view, "AddFloatButton").Top);
     }
 
     [Fact]
