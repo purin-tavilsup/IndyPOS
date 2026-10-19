@@ -303,6 +303,19 @@ written in one transaction, naming only the previous release's columns; both mov
 for the new column. Verified 2026-10-02 with `postgres:16-alpine` in a throwaway `gate`
 container on port 55510.
 
+Result for the ลงบัญชี cloud-gaps release, StoreHub (1 migration, `AddPayLaterRepayments`): `pay_later`
+gained one column, `legacy_payment_id integer NULL` with no default, and an index on it; one new table,
+`pay_later_repayment` (7 columns, foreign key to `pay_later`, `ON DELETE RESTRICT`). The schema was applied up
+to the previous release's last migration (`20261002100245_AddInventoryMovementUser`), then to the latest, and
+the `information_schema.columns` and `pg_indexes` snapshots differed only by that column, the new table and
+its three indexes plus primary key. A complete credit sale (`product` -> `invoice` -> `invoice_line` ->
+`payment` -> `pay_later` -> `inventory_movement` -> `outbox_event`) and the previous release's repayment (an
+`UPDATE` of `paid_amount`, `is_completed` and `last_modified_utc` on `pay_later`) were then written in one
+transaction, naming only the previous release's columns; the debt took `NULL` for `legacy_payment_id`.
+A rolled-back till still trades and takes repayments, but those repayments write no `pay_later_repayment` row
+and queue no cloud event, so they are missing from the audit trail until the upgrade is re-applied.
+Verified 2026-10-19 with `postgres:16-alpine` in a throwaway `gate` container on port 55510.
+
 **The cloud database needs the same gate** whenever a release adds a CloudApi migration: a cloud
 rollback restores binaries, not schema, so the previous CloudApi must still ingest and process into
 the new schema. `CloudDbContextDesignTimeFactory` reads `ConnectionStrings__cloud-db`, so point
@@ -379,3 +392,4 @@ INSERT naming only that era's columns succeeds against the latest schema.
 | 2026-10-02 | Ran the gate against the route tidy-up release's 2 migrations (StoreHub `AddInventoryMovementUser`, cloud `AddSyncedEventSourceStore`); added the cloud variant of the recipe |
 | 2026-10-02 | Ran the gate against invoice-history plan 2's 3 cloud migrations (`AddInvoiceNumberToInvoices`, `AddInboxRetrySchedule`, `AddInvoiceReprints`); the cloud recipe now covers bash, `pg_indexes` and cleanup |
 | 2026-10-18 | Ran the cloud gate against cash drawer D2's `AddCashDrawerMirror` (four new tables only) |
+| 2026-10-19 | Ran the StoreHub gate against `AddPayLaterRepayments` (one nullable column, one new table); a credit sale and an old-style repayment both write |
