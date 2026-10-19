@@ -21,6 +21,9 @@ public class AddCashCountCommandHandler(
             c.Coin10Count, c.Coin5Count, c.Coin2Count, c.Coin1Count);
         var now = clock.Now();
 
+        // Before the save: a lookup failing after it would answer "failed" for a saved count, inviting a duplicate.
+        var countedByName = (await users.GetByIdAsync(command.UserId, cancellationToken)).DisplayName();
+
         var count = new CashCount
         {
             Id = Guid.NewGuid(),
@@ -41,6 +44,6 @@ public class AddCashCountCommandHandler(
         };
 
         await repository.AddAsync(count, CashDrawerOutbox.CountAdded(count, now.Utc), cancellationToken);
-        return count.ToDto((await users.GetByIdAsync(command.UserId, cancellationToken)).DisplayName());
+        return count.ToDto(countedByName);
     }
 }
