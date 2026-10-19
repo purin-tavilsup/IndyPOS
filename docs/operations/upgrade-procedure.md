@@ -384,6 +384,16 @@ differed only by their two primary keys and three indexes, and `pg_constraint` o
 previous release's columns, then the processed `UPDATE`, both succeeded. Verified 2026-10-19 with
 `postgres:16-alpine` in a throwaway `gate-cloud` container on port 55511 (bash, `env` form).
 
+Result for cloud-gaps PR 3, cloud (2 migrations, `AddInvoiceBusinessDate` and `AddCashDrawerDaysView`): applied up
+to the previous release's last cloud migration (`20261019134046_AddPayLaterMirror`), then to the latest. The
+`information_schema.columns` snapshots differed only by `Invoices.BusinessDate date NULL` and the ten columns of the
+new view `CashDrawerDays`; `pg_indexes` only by `IX_Invoices_StoreId_BusinessDate`; `pg_views` only by the view.
+Then, naming only the previous release's columns, an `Invoices` row and its `Payments` row (a 100 Cash tender for an
+80 bill) and a `SyncedEvents` row marked processed all succeeded, and the view read the old-style invoice on its UTC
+date with `CashSalesTotal` 80.00. Note for a later migration: Postgres refuses to alter a column a view reads, so one
+that changes a column `CashDrawerDays` uses must drop and recreate the view. Verified 2026-10-19 with
+`postgres:16-alpine` in a throwaway `gate-cloud` container on port 55511 (bash, `env` form).
+
 Together with the route tidy-up run above, this covers a rollback from the latest cloud schema to
 `RemoveClientSecretHash`-era binaries: every column added since is nullable or has a default, so an
 INSERT naming only that era's columns succeeds against the latest schema.
@@ -403,3 +413,4 @@ INSERT naming only that era's columns succeeds against the latest schema.
 | 2026-10-18 | Ran the cloud gate against cash drawer D2's `AddCashDrawerMirror` (four new tables only) |
 | 2026-10-19 | Ran the StoreHub gate against `AddPayLaterRepayments` (one nullable column, one new table); a credit sale and an old-style repayment both write |
 | 2026-10-19 | Ran the cloud gate against `AddPayLaterMirror` (two new tables and one foreign key between them) |
+| 2026-10-19 | Ran the cloud gate against `AddInvoiceBusinessDate` and `AddCashDrawerDaysView` (one nullable column, one view) |

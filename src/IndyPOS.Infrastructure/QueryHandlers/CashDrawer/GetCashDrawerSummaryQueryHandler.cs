@@ -93,17 +93,9 @@ public class GetCashDrawerSummaryQueryHandler(
         return (cash, nonCash);
     }
 
-    // A payment stores what the customer handed over, and the change always leaves the drawer, even
-    // when the bill was mostly paid another way. SaleFigures is the till's own change rule.
-    private static decimal CashKept(IGrouping<Guid, Payment> invoicePayments)
-    {
-        var invoice = invoicePayments.First().Invoice;
-        var figures = SaleFigures.From(invoice.TotalAmount, invoicePayments.Select(p => new SalePayment(p.Method, p.Amount)));
-
-        // Case-insensitive, as a sale accepts its codes: it stores the caller's spelling, so "cash" is Cash.
-        var cashTendered = invoicePayments.Where(p => IsCode(p.Method, PaymentMethodCodes.Cash)).Sum(p => p.Amount);
-        return cashTendered - figures.ChangeGiven;
-    }
+    private static decimal CashKept(IGrouping<Guid, Payment> invoicePayments) =>
+        CashDrawerCalculator.CashKept(invoicePayments.First().Invoice.TotalAmount,
+                                      invoicePayments.Select(p => new SalePayment(p.Method, p.Amount)).ToList());
 
     private async Task<string?> CountedByNameAsync(Guid userId, CancellationToken cancellationToken) =>
         (await db.StoreUsers.AsNoTracking().FirstOrDefaultAsync(u => u.Id == userId, cancellationToken)).DisplayName();

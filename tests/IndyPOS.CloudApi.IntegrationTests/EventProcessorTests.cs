@@ -221,6 +221,38 @@ public class EventProcessorTests(CloudPostgresFixture postgres) : IClassFixture<
                               .BeNull();
     }
 
+    // Spec 2026-10-19 §3: the store decides the sale's day; a till from before this field sends none.
+    [Fact]
+    public async Task ProcessPendingEventsAsync_WithoutABusinessDate_StoresNull()
+    {
+        await using var pipeline = await EventPipeline.CreateAsync(postgres);
+        var evt = await pipeline.AddInvoiceCompletedAsync(businessDate: null);
+
+        await pipeline.PollAsync();
+
+        var invoice = await pipeline.FindInvoiceAsync(evt.InvoiceId);
+        invoice.Should()
+               .NotBeNull(pipeline.LoggedErrors);
+        invoice!.BusinessDate.Should()
+                             .BeNull();
+    }
+
+    [Fact]
+    public async Task ProcessPendingEventsAsync_WithABusinessDate_StoresIt()
+    {
+        var bangkokDay = new DateOnly(2026, 10, 20);
+        await using var pipeline = await EventPipeline.CreateAsync(postgres);
+        var evt = await pipeline.AddInvoiceCompletedAsync(businessDate: bangkokDay);
+
+        await pipeline.PollAsync();
+
+        var invoice = await pipeline.FindInvoiceAsync(evt.InvoiceId);
+        invoice.Should()
+               .NotBeNull(pipeline.LoggedErrors);
+        invoice!.BusinessDate.Should()
+                             .Be(bangkokDay);
+    }
+
     [Fact]
     public async Task ProcessPendingEventsAsync_WithABillNumber_StoresIt()
     {

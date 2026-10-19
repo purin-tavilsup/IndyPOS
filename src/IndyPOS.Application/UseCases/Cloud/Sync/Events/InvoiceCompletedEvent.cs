@@ -29,6 +29,12 @@ public record InvoiceCompletedEvent
     /// </summary>
     public long? InvoiceNumber { get; init; }
 
+    /// <summary>
+    /// The store's day the sale belongs to (its time zone, midnight boundary), decided by StoreHub so the
+    /// cloud never converts a time. Null for an event queued before this field existed.
+    /// </summary>
+    public DateOnly? BusinessDate { get; init; }
+
     // Transaction details
     public IReadOnlyList<InvoiceLineSnapshot> Lines { get; init; } = [];
     public IReadOnlyList<PaymentSnapshot> Payments { get; init; } = [];

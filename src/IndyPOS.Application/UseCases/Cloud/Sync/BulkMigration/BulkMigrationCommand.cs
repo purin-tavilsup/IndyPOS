@@ -48,6 +48,10 @@ public record MigratedProduct(
 /// The bill number (a v3 invoice's v3 number). Nullable so either side can be older: an older cloud
 /// ignores the field, and an older migrator sends null.
 /// </param>
+/// <param name="BusinessDate">
+/// The store's day the sale belongs to, decided by the migrator in the store's time zone, as StoreHub does for a
+/// v4 sale: a v3 sale before 07:00 Bangkok is still the previous day in UTC. Null from an older migrator.
+/// </param>
 public record MigratedInvoice(
     Guid Id,
     Guid UserId,
@@ -55,7 +59,8 @@ public record MigratedInvoice(
     DateTime CreatedAtUtc,
     IReadOnlyList<MigratedInvoiceLine> Lines,
     IReadOnlyList<MigratedPayment> Payments,
-    long? InvoiceNumber = null);
+    long? InvoiceNumber = null,
+    DateOnly? BusinessDate = null);
 
 /// <summary>
 /// Invoice line data for migration sync.

@@ -29,7 +29,7 @@ public class InvoiceNumberMigrationTests : IAsyncLifetime
     public Task DisposeAsync() => Task.CompletedTask;
 
     /// <summary>Two sales, the HIGHER legacy id seeded first, so "the last row" is not the maximum.</summary>
-    private static async Task SeedTwoSalesAsync(LegacyStoreDatabase store)
+    private static async Task SeedTwoSalesAsync(LegacyStoreDatabase store, string saleTime = "14:30:00")
     {
         var builder = new LegacyStoreDataBuilder(store);
         await builder.AddPaymentTypeLookupAsync();
@@ -41,13 +41,13 @@ public class InvoiceNumberMigrationTests : IAsyncLifetime
 
         foreach (var (invoiceId, paymentId) in new[] { ((int)HigherLegacyNumber, 9001), ((int)LowerLegacyNumber, 9002) })
         {
-            await builder.AddInvoiceAsync(invoiceId, userId: 1, total: 120m, dateCreated: "2024-03-15 14:30:00");
+            await builder.AddInvoiceAsync(invoiceId, userId: 1, total: 120m, dateCreated: $"2024-03-15 {saleTime}");
             await builder.AddInvoiceLineAsync(
                 invoiceProductId: invoiceId, invoiceId: invoiceId, productId: 10, barcode: "8850001000010",
                 description: "Cement 50kg", quantity: 1, unitPrice: 120m, originalUnitPrice: 120m);
             await builder.AddPaymentAsync(
                 paymentId: paymentId, invoiceId: invoiceId, paymentTypeId: 1, amount: 120m,
-                dateCreated: "2024-03-15 14:30:00");
+                dateCreated: $"2024-03-15 {saleTime}");
         }
     }
 
@@ -156,5 +156,21 @@ public class InvoiceNumberMigrationTests : IAsyncLifetime
 
         request.Invoices.Select(i => i.InvoiceNumber).Should()
                                                      .BeEquivalentTo(new long?[] { HigherLegacyNumber, LowerLegacyNumber });
+    }
+
+    // Review finding on cloud-gaps PR 3: 6,210 real v3 sales were rung up before 07:00 Bangkok, still the
+    // previous day in UTC. The store decides the day (spec 2026-10-19 §3), so the upload carries it.
+    [Fact]
+    public async Task BuildBulkMigrationRequest_WithASaleBefore7amBangkok_CarriesItsBangkokDay()
+    {
+        await using var store = await LegacyStoreDatabase.CreateAsync(LegacyStoreShape.GeneralHardware);
+        await SeedTwoSalesAsync(store, saleTime: "06:40:00");
+        var service = new SqliteMigrationService(Options(store), NullLogger<SqliteMigrationService>.Instance);
+        await service.MigrateAllAsync();
+
+        var request = await service.BuildBulkMigrationRequestAsync(CancellationToken.None);
+
+        request.Invoices.Select(i => i.BusinessDate).Should()
+                                                    .AllBeEquivalentTo(new DateOnly(2024, 3, 15));
     }
 }

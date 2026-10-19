@@ -196,6 +196,79 @@ public class BulkMigrationCommandHandlerTests(CloudPostgresFixture postgres) : I
     private static BulkMigrationCommand CommandWith(params MigratedInvoice[] invoices) =>
         new(StoreId, Users: [], Products: [], Invoices: invoices, AuthenticatedStoreId: StoreId);
 
+    [Fact]
+    public async Task HandleAsync_WithABusinessDate_StoresIt()
+    {
+        var bangkokDay = new DateOnly(2024, 3, 15);
+        await using var db = CloudPostgresFixture.CreateContext(await postgres.CreateDatabaseAsync());
+        var invoice = NewInvoice() with { BusinessDate = bangkokDay };
+
+        await NewHandler(db).HandleAsync(CommandWith(invoice));
+
+        db.ChangeTracker.Clear();
+        (await db.Invoices.SingleAsync(i => i.Id == invoice.Id)).BusinessDate.Should()
+                                                                       .Be(bangkokDay);
+    }
+
+    // Codex review: an older migrator already uploaded this invoice without its day; a re-upload must repair it,
+    // or CashDrawerDays files a pre-07:00 Bangkok sale on its UTC date for good.
+    [Fact]
+    public async Task HandleAsync_WithAnExistingInvoiceWithoutABusinessDate_FillsItIn()
+    {
+        await using var db = CloudPostgresFixture.CreateContext(await postgres.CreateDatabaseAsync());
+        var invoice = await SeedExistingAsync(db, StoreId, storedDate: null);
+
+        await NewHandler(db).HandleAsync(CommandWith(invoice with { BusinessDate = UploadedDay }));
+
+        (await StoredDateAsync(db, invoice.Id)).Should()
+                                               .Be(UploadedDay);
+    }
+
+    [Fact]
+    public async Task HandleAsync_WithAnExistingInvoiceWithABusinessDate_KeepsIt()
+    {
+        await using var db = CloudPostgresFixture.CreateContext(await postgres.CreateDatabaseAsync());
+        var invoice = await SeedExistingAsync(db, StoreId, StoredDay);
+
+        await NewHandler(db).HandleAsync(CommandWith(invoice with { BusinessDate = UploadedDay }));
+
+        (await StoredDateAsync(db, invoice.Id)).Should()
+                                               .Be(StoredDay);
+    }
+
+    [Fact]
+    public async Task HandleAsync_WithAnotherStoresExistingInvoice_LeavesItsDateAlone()
+    {
+        await using var db = CloudPostgresFixture.CreateContext(await postgres.CreateDatabaseAsync());
+        var invoice = await SeedExistingAsync(db, OtherStoreId, storedDate: null);
+
+        await NewHandler(db).HandleAsync(CommandWith(invoice with { BusinessDate = UploadedDay }));
+
+        (await StoredDateAsync(db, invoice.Id)).Should()
+                                               .BeNull();
+    }
+
+    private static readonly DateOnly StoredDay = new(2024, 3, 14);
+    private static readonly DateOnly UploadedDay = new(2024, 3, 15);
+
+    private static async Task<MigratedInvoice> SeedExistingAsync(CloudDbContext db, string storeId, DateOnly? storedDate)
+    {
+        var invoice = NewInvoice();
+        db.Invoices.Add(new CloudInvoice
+        {
+            Id = invoice.Id, StoreId = storeId, CreatedAtUtc = DateTime.UtcNow, SyncedAtUtc = DateTime.UtcNow, BusinessDate = storedDate
+        });
+        await db.SaveChangesAsync();
+        db.ChangeTracker.Clear();
+        return invoice;
+    }
+
+    private static async Task<DateOnly?> StoredDateAsync(CloudDbContext db, Guid invoiceId)
+    {
+        db.ChangeTracker.Clear();
+        return (await db.Invoices.SingleAsync(i => i.Id == invoiceId)).BusinessDate;
+    }
+
     private static MigratedInvoice NewInvoice() =>
         new(Id: Guid.NewGuid(),
             UserId: Guid.NewGuid(),

@@ -3,6 +3,7 @@ using FluentAssertions;
 using IndyPOS.Application.Abstractions.StoreHub.Repositories;
 using IndyPOS.Application.Common.Exceptions;
 using IndyPOS.Application.UseCases.Cloud.Sync.Events;
+using IndyPOS.Application.UseCases.StoreHub.CashDrawer.Common;
 using IndyPOS.Application.UseCases.StoreHub.PaymentMethods;
 using IndyPOS.Application.UseCases.StoreHub.Sales;
 using IndyPOS.Application.UseCases.StoreHub.Sales.Complete;
@@ -55,7 +56,8 @@ public class CompleteSaleInvoiceNumberTests
         new Mock<IProductRepository>().Object,
         MockStoreIdentityService.GeneralHardware(),
         _catalog.Object,
-        NullLogger<CompleteSaleCommandHandler>.Instance);
+        NullLogger<CompleteSaleCommandHandler>.Instance,
+        new Mock<ICashDrawerClock>().Object);
 
     private static CompleteSaleCommand CashSale(string method = "Cash") =>
         new(StoreId, Guid.NewGuid(), Lines: [], Payments: [new SalePaymentRequest(method, 0m)]);

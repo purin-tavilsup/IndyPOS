@@ -3,6 +3,7 @@ using System.Globalization;
 using System.Net.Http.Json;
 using System.Text.Json;
 using Dapper;
+using IndyPOS.Application.Common.Authorization;
 using IndyPOS.Application.Common.Constants;
 using IndyPOS.Application.UseCases.Cloud.Sync.BulkMigration;
 using IndyPOS.Application.UseCases.StoreHub.PayLater;
@@ -840,7 +841,8 @@ public class SqliteMigrationService
                 i.CreatedUtc,
                 i.Lines.Select(l => new MigratedInvoiceLine(l.Id, l.ProductId, l.ProductName, l.Quantity, l.UnitPrice)).ToList(),
                 i.Payments.Select(p => new MigratedPayment(p.Id, p.Method, p.Amount, p.Note)).ToList(),
-                i.InvoiceNumber))
+                i.InvoiceNumber,
+                BusinessDateOf(i.CreatedUtc)))
             .ToListAsync(ct);
 
         return new BulkMigrationRequest(_options.StoreId, users, products, invoices);
@@ -909,6 +911,10 @@ public class SqliteMigrationService
     /// </summary>
     private static readonly TimeZoneInfo StoreTimeZone =
         TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time");
+
+    // The store's day, as StoreHub decides it for a v4 sale. Takes only the column, because EF refuses a
+    // TimeZoneInfo constant inside a query's projection.
+    private static DateOnly BusinessDateOf(DateTime createdUtc) => TodayOnlyRule.BusinessDateOf(createdUtc, StoreTimeZone);
 
     /// <summary>
     /// Parses a legacy timestamp as Thai local time and returns it as UTC.

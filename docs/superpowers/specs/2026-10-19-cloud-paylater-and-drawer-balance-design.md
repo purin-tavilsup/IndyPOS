@@ -75,7 +75,8 @@ and only the latest count of a day counts. Today's figures move as data arrives;
   Real stores are not on v4 yet, so every real sale will carry it; a dev invoice without one falls back
   to its UTC date. *(My call, after the builder check: one source for the day, the store.)*
 - **Where it lives:** a Postgres **view**, `CashDrawerDays`, with a comment on every column, so
-  dashboards and AI agents query one plain table. *(My call; a builder may choose a refreshed table if
+  dashboards and AI agents query one plain table. *(Built in PR 3: a live view, no refresh. The migrator also sends each v3 sale's BusinessDate in the
+  bulk upload: 6,210 real v3 sales were rung up before 07:00 Bangkok, still the previous day in UTC.)* *(My call; a builder may choose a refreshed table if
   the view is too slow, provided the figures stay derived and identical.)*
 
 **ลงบัญชี at the store** (needed for goal C):

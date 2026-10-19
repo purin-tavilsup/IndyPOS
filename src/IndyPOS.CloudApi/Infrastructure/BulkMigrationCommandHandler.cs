@@ -160,9 +160,14 @@ public class BulkMigrationCommandHandler : ICommandHandler<BulkMigrationCommand,
         {
             try
             {
-                var exists = await _dbContext.Invoices.AnyAsync(i => i.Id == invoice.Id, cancellationToken);
-                if (exists)
+                var existing = await _dbContext.Invoices.FirstOrDefaultAsync(i => i.Id == invoice.Id, cancellationToken);
+                if (existing is not null)
                 {
+                    // An older migrator uploaded it without its day: fill that in, or CashDrawerDays files a
+                    // pre-07:00 Bangkok sale on its UTC date for good. Never another store's invoice, never a stored day.
+                    if (existing.BusinessDate is null && invoice.BusinessDate is not null && existing.StoreId == command.StoreId)
+                        existing.BusinessDate = invoice.BusinessDate;
+
                     _logger.LogDebug("Invoice {InvoiceId} already exists, skipping", invoice.Id);
                     continue;
                 }
@@ -175,6 +180,7 @@ public class BulkMigrationCommandHandler : ICommandHandler<BulkMigrationCommand,
                     TotalAmount = invoice.TotalAmount,
                     CreatedAtUtc = invoice.CreatedAtUtc,
                     InvoiceNumber = invoice.InvoiceNumber,
+                    BusinessDate = invoice.BusinessDate,
                     SyncedAtUtc = now
                 };
 
