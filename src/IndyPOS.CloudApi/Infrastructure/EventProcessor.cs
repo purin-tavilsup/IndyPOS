@@ -2,6 +2,7 @@ using System.Text.Json;
 using IndyPOS.Application.Abstractions.Cloud.Repositories;
 using IndyPOS.Application.UseCases.Cloud.Sync.Events;
 using IndyPOS.Application.UseCases.StoreHub.CashDrawer.Common;
+using IndyPOS.Application.UseCases.StoreHub.PayLater;
 using IndyPOS.CloudApi.Domain;
 using Microsoft.EntityFrameworkCore;
 
@@ -27,7 +28,8 @@ public class EventProcessor : BackgroundService
     [
         "InvoiceCompleted", "InvoiceReprinted",
         CashDrawerOutbox.CashPayoutChanged, CashDrawerOutbox.CashFloatChanged, CashDrawerOutbox.DebtRepaymentChanged,
-        CashDrawerOutbox.CashCountChanged
+        CashDrawerOutbox.CashCountChanged,
+        PayLaterOutbox.PayLaterChanged
     ];
 
     /// <summary>
@@ -165,6 +167,10 @@ public class EventProcessor : BackgroundService
 
             case CashDrawerOutbox.CashCountChanged:
                 await CashDrawerMirror.ProcessCashCountAsync(syncedEvent, dbContext, cancellationToken);
+                break;
+
+            case PayLaterOutbox.PayLaterChanged:
+                await PayLaterMirror.ProcessChangedAsync(syncedEvent, dbContext, cancellationToken);
                 break;
 
             // Only HandledEventTypes are fetched, so this means the list and the switch disagree.
