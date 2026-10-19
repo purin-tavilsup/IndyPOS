@@ -23,6 +23,13 @@ public class PayLaterRepository : IPayLaterRepository
         .Where(p => _dbContext.Invoices
             .Any(i => i.Id == p.InvoiceId && i.StoreId == _storeIdentity.StoreId));
 
+    public async Task<IReadOnlyList<PayLater>> GetCreatedBetweenAsync(DateTime fromUtc, DateTime toUtc,
+                                                                      CancellationToken cancellationToken = default) =>
+        await StorePayLaters.AsNoTracking()
+                            .Where(p => p.CreatedUtc >= fromUtc && p.CreatedUtc < toUtc)
+                            .OrderBy(p => p.CreatedUtc)
+                            .ToListAsync(cancellationToken);
+
     public async Task<IReadOnlyList<PayLater>> GetAllAsync(
         bool includeCompleted = false,
         string? searchTerm = null,

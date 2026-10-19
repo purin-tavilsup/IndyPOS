@@ -13,7 +13,6 @@ public partial class ReportsPanel : UserControl
     private readonly InvoiceProductsReportPanel _invoiceProductsReportPanel;
     private readonly SalesHistoryReportPanel _salesHistoryReportPanel;
     private readonly PayLaterPaymentsReportPanel _payLaterPaymentsReportPanel;
-    private readonly CashFlowCalculatorPanel _cashFlowCalculatorPanel;
     private readonly IStoreFeaturesProvider _storeFeatures;
     private UserControl _activePanel;
 
@@ -24,7 +23,6 @@ public partial class ReportsPanel : UserControl
                         InvoiceProductsReportPanel invoiceProductsReportPanel,
                         SalesHistoryReportPanel salesHistoryReportPanel,
                         PayLaterPaymentsReportPanel payLaterPaymentsReportPanel,
-                        CashFlowCalculatorPanel cashFlowCalculatorPanel,
                         IStoreFeaturesProvider storeFeatures)
     {
         _storeFeatures = storeFeatures;
@@ -35,7 +33,6 @@ public partial class ReportsPanel : UserControl
         _salesHistoryReportPanel = salesHistoryReportPanel;
         _salesHistoryReportPanel.Visible = false;
         _payLaterPaymentsReportPanel = payLaterPaymentsReportPanel;
-        _cashFlowCalculatorPanel = cashFlowCalculatorPanel;
         _payLaterPaymentsReportPanel.Visible = false;
 
         _activePanel = new UserControl();
@@ -51,7 +48,6 @@ public partial class ReportsPanel : UserControl
             ReportSubPanel.InvoiceProductsReport => _invoiceProductsReportPanel,
             ReportSubPanel.SalesHistoryReport => _salesHistoryReportPanel,
             ReportSubPanel.PayLaterPaymentsReport => _payLaterPaymentsReportPanel,
-            ReportSubPanel.CashFlowCalculator => _cashFlowCalculatorPanel,
             _ => _salesReportPanel
         };
 
@@ -87,7 +83,7 @@ public partial class ReportsPanel : UserControl
 
     private Control[] AllTabs() =>
         [ShowSalesOverviewReportButton, ShowInvoiceProductsButton, ShowSalesHistoryButton,
-         PayLaterPaymentsReportButton, CashFlowCalculatorButton];
+         PayLaterPaymentsReportButton];
 
     private async Task ApplyStoreLayoutAsync()
     {
@@ -128,8 +124,4 @@ public partial class ReportsPanel : UserControl
         SwitchToPanel(ReportSubPanel.PayLaterPaymentsReport);
     }
 
-    private void CashFlowCalculatorButton_Click(object sender, EventArgs e)
-    {
-		SwitchToPanel(ReportSubPanel.CashFlowCalculator);
-    }
 }

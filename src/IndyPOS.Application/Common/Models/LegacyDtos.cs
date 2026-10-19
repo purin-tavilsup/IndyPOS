@@ -8,30 +8,6 @@ namespace IndyPOS.Application.Common.Models;
 // TODO: Migrate WinForms report panels to use StoreHub DTOs directly during MAUI migration.
 
 /// <summary>
-/// Legacy pay-later payment DTO for report panels.
-/// </summary>
-public record PayLaterPaymentDto(
-    int PayLaterPaymentId,
-    int InvoiceId,
-    string Description,
-    decimal InvoiceTotal,
-    decimal PaymentMade,
-    bool IsCompleted,
-    string DateCreated,
-    string DateUpdated)
-{
-    /// <summary>
-    /// Total amount receivable (same as InvoiceTotal).
-    /// </summary>
-    public decimal ReceivableAmount => InvoiceTotal;
-
-    /// <summary>
-    /// Amount paid so far.
-    /// </summary>
-    public decimal PaidAmount => PaymentMade;
-}
-
-/// <summary>
 /// Legacy user DTO for user management panels.
 /// Note: User management is disabled in StoreHub mode.
 /// </summary>

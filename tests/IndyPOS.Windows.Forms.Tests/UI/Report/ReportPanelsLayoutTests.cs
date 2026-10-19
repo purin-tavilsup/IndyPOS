@@ -87,8 +87,6 @@ public class ReportPanelsLayoutTests
             new SalesHistoryReportPanel(SalesHistoryFixture.Factory(Mock.Of<IStoreHubClient>(), SalesHistoryFixture.NobodyLoggedIn()),
                                         pending.Object),
             new PayLaterPaymentsReportPanel(Mock.Of<IStoreHubClient>(), messageForm),
-            new CashFlowCalculatorPanel(Mock.Of<IReportService>(), Mock.Of<IJsonService>(), Mock.Of<ICsvService>(),
-                                        NullLogger<MainForm>.Instance),
             pending.Object);
 
         Show(reports);
@@ -97,6 +95,23 @@ public class ReportPanelsLayoutTests
 
         shownWhileLoading.Should()
                          .BeTrue();
+    }
+
+    // The cash drawer is its own menu section now (cash spec §8), not a report.
+    [Fact]
+    public void Reports_WhenBuilt_HasNoCashFlowTab()
+    {
+        using var messageForm = new MessageForm();
+        using var reports = new ReportsPanel(
+            new SalesReportPanel(Mock.Of<IReportService>(), Mock.Of<IStoreHubClient>(), Features(GeneralHardware), messageForm),
+            new InvoiceProductsReportPanel(Mock.Of<IStoreHubClient>(), Features(GeneralHardware), messageForm),
+            new SalesHistoryReportPanel(SalesHistoryFixture.Factory(Mock.Of<IStoreHubClient>(), SalesHistoryFixture.NobodyLoggedIn()),
+                                        Features(GeneralHardware)),
+            new PayLaterPaymentsReportPanel(Mock.Of<IStoreHubClient>(), messageForm),
+            Features(GeneralHardware));
+
+        reports.Controls.Find("CashFlowCalculatorButton", searchAllChildren: true).Should()
+                                                                               .BeEmpty();
     }
 
     [Fact]

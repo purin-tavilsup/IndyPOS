@@ -1,4 +1,5 @@
 using IndyPOS.Application.Abstractions.StoreHub.Repositories;
+using IndyPOS.Application.Common.Authorization;
 using IndyPOS.Application.Common.Interfaces;
 using Nokpirab;
 
@@ -7,9 +8,11 @@ namespace IndyPOS.Application.UseCases.StoreHub.PayLater;
 /// <summary>
 /// Query to get PayLater records with optional filtering.
 /// </summary>
+/// <param name="CreatedOn">Only the debts taken on this store day (the store's own calendar), e.g. the cash drawer's day.</param>
 public record GetPayLaterQuery(
     bool IncludeCompleted = false,
-    string? SearchTerm = null) : IQuery<GetPayLaterResponse>;
+    string? SearchTerm = null,
+    DateOnly? CreatedOn = null) : IQuery<GetPayLaterResponse>;
 
 /// <summary>
 /// Handler for GetPayLaterQuery.
@@ -42,10 +45,7 @@ public class GetPayLaterQueryHandler : IQueryHandler<GetPayLaterQuery, GetPayLat
                 Items: []);
         }
 
-        var payLaters = await _payLaterRepository.GetAllAsync(
-            query.IncludeCompleted,
-            query.SearchTerm,
-            cancellationToken);
+        var payLaters = await LoadAsync(query, cancellationToken);
 
         var items = payLaters
             .Select(p => new PayLaterDto(
@@ -70,5 +70,15 @@ public class GetPayLaterQueryHandler : IQueryHandler<GetPayLaterQuery, GetPayLat
             ActiveCount: activeItems.Count,
             CompletedCount: completedItems.Count,
             Items: items);
+    }
+
+    // One store day is asked of the database by its UTC range, so a drawer refresh never loads every debt ever taken.
+    private Task<IReadOnlyList<Domain.Entities.Core.PayLater>> LoadAsync(GetPayLaterQuery query, CancellationToken cancellationToken)
+    {
+        if (query.CreatedOn is not { } day)
+            return _payLaterRepository.GetAllAsync(query.IncludeCompleted, query.SearchTerm, cancellationToken);
+
+        var (fromUtc, toUtc) = TodayOnlyRule.UtcRangeOf(day, _storeIdentity.TimeZone);
+        return _payLaterRepository.GetCreatedBetweenAsync(fromUtc, toUtc, cancellationToken);
     }
 }

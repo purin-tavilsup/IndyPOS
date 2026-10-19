@@ -167,6 +167,19 @@ public class CashCountViewModelTests
                                            .Be(counter);
     }
 
+    [Fact]
+    public async Task LoadAsync_WithACount_ShowsWhoCountedByName()
+    {
+        var vm = Count();
+        _client.Setup(c => c.GetCashCountsAsync(Today, It.IsAny<CancellationToken>()))
+               .ReturnsAsync([CountAt(NowUtc.UtcDateTime, 900m) with { CountedByName = "มาลี ใจดี" }]);
+
+        await vm.LoadAsync(Today, CancellationToken.None);
+
+        vm.History.Single().CountedByName.Should()
+                                         .Be("มาลี ใจดี");
+    }
+
     private CashCountViewModel Count() => new(_client.Object, _clock, Reload) { IsEditable = true };
 
     private static void TypeOneOfEach(CashCountViewModel vm)

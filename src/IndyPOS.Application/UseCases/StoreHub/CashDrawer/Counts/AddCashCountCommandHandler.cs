@@ -9,6 +9,7 @@ namespace IndyPOS.Application.UseCases.StoreHub.CashDrawer.Counts;
 /// <summary>Every count is a new row; nothing is overwritten. A mistyped count is fixed by counting again.</summary>
 public class AddCashCountCommandHandler(
     ICashCountRepository repository,
+    IStoreUserRepository users,
     ICashDrawerClock clock,
     IStoreIdentityService storeIdentity) : ICommandHandler<AddCashCountCommand, CashCountDto>
 {
@@ -19,6 +20,9 @@ public class AddCashCountCommandHandler(
             c.BankNote1000Count, c.BankNote500Count, c.BankNote100Count, c.BankNote50Count, c.BankNote20Count,
             c.Coin10Count, c.Coin5Count, c.Coin2Count, c.Coin1Count);
         var now = clock.Now();
+
+        // Before the save: a lookup failing after it would answer "failed" for a saved count, inviting a duplicate.
+        var countedByName = (await users.GetByIdAsync(command.UserId, cancellationToken)).DisplayName();
 
         var count = new CashCount
         {
@@ -40,6 +44,6 @@ public class AddCashCountCommandHandler(
         };
 
         await repository.AddAsync(count, CashDrawerOutbox.CountAdded(count, now.Utc), cancellationToken);
-        return count.ToDto();
+        return count.ToDto(countedByName);
     }
 }

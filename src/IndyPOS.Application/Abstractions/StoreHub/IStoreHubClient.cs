@@ -138,6 +138,12 @@ public interface IStoreHubClient
         CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// GET /pay-later?includeCompleted=true&amp;createdOn= — the debts taken on that store day, completed ones too
+    /// (paid off later, they were still taken that day). The cash drawer's ลงบัญชี list.
+    /// </summary>
+    Task<GetPayLaterResponse> GetPayLaterTakenOnAsync(DateOnly day, CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// Get a single PayLater record by ID.
     /// </summary>
     Task<PayLaterDto?> GetPayLaterByIdAsync(
