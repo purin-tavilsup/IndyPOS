@@ -48,11 +48,11 @@ and §2 (the cloud copy is the off-site audit record, replacing the Drive CSV). 
   `LastModifiedAtUtc`, `DeletedAtUtc`, `SyncedAtUtc`), as `CloudInvoiceReprint` does. **Every table
   and every column has a `HasComment`.** `StoreId` `HasMaxLength(50)`. No `CountedTotal` column
   (spec §3: totals are derived, never stored).
-- **User ids, decided:** `CreatedByUserId` / `LastModifiedByUserId` are mirrored **as StoreHub sends
-  them** (`StoreUser.Id`). The survey found they equal cloud `Users.Id` **only for users migrated
-  from v3**; a cloud-created user gets a new store-side id (`UserSyncService.MapToStoreUser`), and
-  `Invoices.UserId` already has the same gap. The column comment says so plainly. Joining to
-  `Users` for every user is a follow-up for all mirrors at once, not this PR.
+- **User ids join `Users.Id`:** `CreatedByUserId` / `LastModifiedByUserId` are mirrored as StoreHub
+  sends them (`StoreUser.Id`), which equals cloud `Users.Id` once the **store-users-keep-cloud-id**
+  PR (`docs/superpowers/plans/2026-10-18-store-users-keep-cloud-id.md`) has merged — **a
+  prerequisite of D2**. The exceptions are the local seeded admin (no cloud user) and users synced
+  before that fix (dev/rehearsal only); the column comment names both.
 - **Times are UTC on write:** every mirrored `DateTime` passes through `DateTime.SpecifyKind(x, DateTimeKind.Utc)`
   (Npgsql refuses an unspecified kind for `timestamptz`).
 - **One additive cloud migration** `AddCashDrawerMirror` (four new tables, nothing else) — passes the
@@ -141,7 +141,7 @@ docs/superpowers/specs/2026-09-20-cash-payout-float-persistence-design.md   MODI
   - repayments: "Cash a customer paid to settle PayLater debt (ลูกค้าชำระหนี้) … Not linked to a PayLater row."
   - counts: "Every cash count of a store's drawer (insert-only). The latest row per StoreId+BusinessDate is the count used for the cash difference; earlier rows are audit history."
   - `Category`: "General (เบ็ดเตล็ด) or Hardware; which goods the payout was for."
-  - `CreatedByUserId` / `LastModifiedByUserId`: "StoreHub user id (StoreUser.Id). Equals Users.Id only for users migrated from v3."
+  - `CreatedByUserId` / `LastModifiedByUserId`: "The user, as Users.Id. A store's own seeded admin has no Users row."
   - `BusinessDate`: "The store's cash day (Asia/Bangkok calendar date) the entry belongs to."
   - `SyncedAtUtc`: "When the latest version of this row reached the cloud, UTC."
   - each `*Count`: "Number of <n>-baht banknotes/coins counted."
@@ -268,7 +268,7 @@ docs/superpowers/specs/2026-09-20-cash-payout-float-persistence-design.md   MODI
 - [ ] **Step 2: Fix the spec's stale lines** (no behaviour change): §5 line "The cash formula is
   unchanged" → points at 2026-10-07 §4.3 (Cash kept, D1); §7 "Handled separately" → both items done
   (unknown types stay pending; no bare transaction), so deploy order no longer matters; §7 user
-  ids → "verified 2026-10-18: equal only for migrated users; mirrored as sent".
+  ids → "verified 2026-10-18: they differed; fixed by the store-users-keep-cloud-id PR".
 
 - [ ] **Step 3: Run the full solution with TRX, nothing else running**, then update CLAUDE.md and
   ONBOARDING.md counts (CloudApi.IntegrationTests grows; its Docker-down split equals its total).
