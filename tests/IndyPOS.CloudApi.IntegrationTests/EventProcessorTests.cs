@@ -246,8 +246,11 @@ public class EventProcessorTests(CloudPostgresFixture postgres) : IClassFixture<
 
         await pipeline.PollAsync();
 
-        (await pipeline.FindInvoiceAsync(evt.InvoiceId))?.BusinessDate.Should()
-                                                                      .Be(bangkokDay, pipeline.LoggedErrors);
+        var invoice = await pipeline.FindInvoiceAsync(evt.InvoiceId);
+        invoice.Should()
+               .NotBeNull(pipeline.LoggedErrors);
+        invoice!.BusinessDate.Should()
+                             .Be(bangkokDay);
     }
 
     [Fact]

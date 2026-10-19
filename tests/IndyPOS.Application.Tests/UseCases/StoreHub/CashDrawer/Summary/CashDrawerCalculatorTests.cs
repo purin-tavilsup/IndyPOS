@@ -32,13 +32,15 @@ public class CashDrawerCalculatorTests
               .Be(40m);
     }
 
+    // Paid back less than the refund's total, so "payments - total" is +20: only the refund rule keeps it from
+    // being taken off again as change (review finding: a refund paid exactly pinned nothing).
     [Fact]
     public void CashKept_WithARefund_KeepsNoChange()
     {
-        var result = CashDrawerCalculator.CashKept(-100m, [new SalePayment("Cash", -100m)]);
+        var result = CashDrawerCalculator.CashKept(-100m, [new SalePayment("Cash", -80m)]);
 
         result.Should()
-              .Be(-100m);
+              .Be(-80m);
     }
 
     [Fact]

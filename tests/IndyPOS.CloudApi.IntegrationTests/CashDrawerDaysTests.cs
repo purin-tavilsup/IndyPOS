@@ -45,12 +45,13 @@ public class CashDrawerDaysTests(CloudPostgresFixture postgres) : IClassFixture<
     {
         await using var pipeline = await EventPipeline.CreateAsync(postgres);
         await SellAsync(pipeline, 100m, Cash(100m));
-        await SellAsync(pipeline, -100m, Cash(-100m));
+        await SellAsync(pipeline, -100m, Cash(-80m));
 
         await pipeline.PollAsync();
 
+        // A refund gives no change: the -80 handed back is all that leaves the drawer.
         (await DayAsync(pipeline, Store, Day))!.CashSalesTotal.Should()
-                                                              .Be(0m, pipeline.LoggedErrors);
+                                                              .Be(20m, pipeline.LoggedErrors);
     }
 
     [Fact]
@@ -167,7 +168,7 @@ public class CashDrawerDaysTests(CloudPostgresFixture postgres) : IClassFixture<
         [
             (80m, [new SalePayment("Cash", 100m)]),
             (100m, [new SalePayment("MoneyTransfer", 60m), new SalePayment("Cash", 50m)]),
-            (-100m, [new SalePayment("Cash", -100m)]),
+            (-100m, [new SalePayment("Cash", -80m)]),
             (350m, [new SalePayment("PayLater", 350m)])
         ];
         foreach (var (total, payments) in bills)
