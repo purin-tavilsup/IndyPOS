@@ -44,13 +44,13 @@ public sealed class CashEntriesView : UserControl
         _title.Text = title;
         _title.Dock = DockStyle.Top;
         _rows = TillGrid.Create($"{namePrefix}sGrid");
-        _amount = Box($"{namePrefix}AmountBox", 120);
-        _text = Box($"{namePrefix}TextBox", 220);
+        _amount = Box($"{namePrefix}AmountBox", 110);
+        _text = Box($"{namePrefix}TextBox", 200);
         _category = new ComboBox
         {
             Name = $"{namePrefix}CategoryBox",
             DropDownStyle = ComboBoxStyle.DropDownList,
-            Width = 130,
+            Width = 120,
             Margin = new Padding(3, 8, 3, 3),
             Font = new Font(TillStyle.FontName, 14F)
         };
@@ -177,17 +177,20 @@ public sealed class CashEntriesView : UserControl
         }
     }
 
+    // Inputs on one line, the buttons on the next: one line of both does not fit the middle column.
     private FlowLayoutPanel InputRow()
     {
         var row = new FlowLayoutPanel
         {
             Dock = DockStyle.Top,
-            Height = 60,
-            WrapContents = false,
+            Height = 110,
+            WrapContents = true,
             BackColor = TillStyle.Background,
             Padding = new Padding(0, 4, 0, 0)
         };
-        row.Controls.AddRange([_amount, _text, _category, _add, _edit, _delete]);
+        row.Controls.AddRange([_amount, _text, _category]);
+        row.SetFlowBreak(_category, true);
+        row.Controls.AddRange([_add, _edit, _delete]);
 
         return row;
     }

@@ -36,9 +36,6 @@ public partial class MainForm : Form
 	private readonly IEventAggregator _eventAggregator;
 	private readonly IStoreFeaturesProvider _storeFeatures;
 
-	// The menu buttons' tops as laid out, after any display scaling, so stacking never uses design pixels.
-	// Recorded at the first login: the form is shown and scaled by then, and no button has moved yet.
-
 	private UserControl _activePanel;
 	private bool _isUserLoggedIn;
 	private ILoggedInUser? _loggedInUser;

@@ -37,9 +37,9 @@ public sealed class CashDrawerPanel : UserControl
     private readonly Label _expectedCash = TillStyle.Label("ExpectedCashLabel", 16F);
     private readonly Label _countedCash = TillStyle.Label("CountedCashLabel", 16F);
     private readonly Label _difference = TillStyle.Label("CashDifferenceLabel", 16F);
-    private readonly CashEntriesView _payouts = new("Payout", "รายจ่าย", "รายการ") { Dock = DockStyle.Top, Height = 300 };
-    private readonly CashEntriesView _floats = new("Float", "เงินทอน", "หมายเหตุ") { Dock = DockStyle.Top, Height = 250 };
-    private readonly CashEntriesView _debtRepayments = new("DebtRepayment", "ลูกค้าชำระหนี้", "ชื่อลูกค้า") { Dock = DockStyle.Top, Height = 250 };
+    private readonly CashEntriesView _payouts = new("Payout", "รายจ่าย", "รายการ") { Dock = DockStyle.Top, Height = 330 };
+    private readonly CashEntriesView _floats = new("Float", "เงินทอน", "หมายเหตุ") { Dock = DockStyle.Top, Height = 290 };
+    private readonly CashEntriesView _debtRepayments = new("DebtRepayment", "ลูกค้าชำระหนี้", "ชื่อลูกค้า") { Dock = DockStyle.Top, Height = 290 };
     private readonly CashCountView _count = new() { Dock = DockStyle.Fill };
     private readonly DataGridView _todaysPayLater = TillGrid.Create("TodaysPayLaterGrid");
     private readonly List<IDisposable> _commandBindings = [];
@@ -56,9 +56,7 @@ public sealed class CashDrawerPanel : UserControl
         TillGrid.AddColumn(_todaysPayLater, "ลงบัญชี", 200);
         TillGrid.AddColumn(_todaysPayLater, "จำนวนเงิน", 120, "N2");
 
-        Controls.Add(CountColumn());
-        Controls.Add(ListsColumn());
-        Controls.Add(SummaryColumn());
+        Controls.Add(Columns());
         Controls.Add(TopBar());
         VisibleChanged += OnVisibilityChanged;
     }
@@ -163,7 +161,7 @@ public sealed class CashDrawerPanel : UserControl
         _countedCash.Text = summary?.CountedCash is { } counted ? $"{counted:N2}" : string.Empty;
         _difference.Text = summary?.CashDifference is { } difference ? $"{difference:N2} {ViewModel.DifferenceText}" : string.Empty;
         UseWaitCursor = ViewModel.IsBusy;
-        MoneyRowView.Replace(_summaryRows, ViewModel.SummaryRows);
+        MoneyRowView.Replace(_summaryRows, ViewModel.SummaryRows, rowsPerLine: 1);
     }
 
     private void RefillPayLater()
@@ -191,16 +189,36 @@ public sealed class CashDrawerPanel : UserControl
         return bar;
     }
 
+    // Shares of the width, not pixels: the panel is as wide as the till's screen leaves it, and scales with it.
+    private TableLayoutPanel Columns()
+    {
+        var columns = new TableLayoutPanel { Dock = DockStyle.Fill, ColumnCount = 3, RowCount = 1, BackColor = TillStyle.Background };
+        columns.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 32F));
+        columns.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 40F));
+        columns.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 28F));
+        columns.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
+        columns.Controls.Add(SummaryColumn(), 0, 0);
+        columns.Controls.Add(ListsColumn(), 1, 0);
+        columns.Controls.Add(CountColumn(), 2, 0);
+
+        return columns;
+    }
+
     private Panel SummaryColumn()
     {
-        var column = new Panel { Dock = DockStyle.Left, Width = 560, BackColor = TillStyle.Background, Padding = new Padding(10) };
-        var cash = new TableLayoutPanel { Dock = DockStyle.Bottom, Height = 150, ColumnCount = 2, BackColor = TillStyle.Background };
-        cash.Controls.Add(Caption("เงินสด [ คำนวณ ]"));
-        cash.Controls.Add(_expectedCash);
-        cash.Controls.Add(Caption("เงินสด [ นับ ]"));
-        cash.Controls.Add(_countedCash);
-        cash.Controls.Add(Caption("ผลต่าง"));
-        cash.Controls.Add(_difference);
+        var column = new Panel { Dock = DockStyle.Fill, BackColor = TillStyle.Background, Padding = new Padding(5) };
+        var cash = new TableLayoutPanel { Dock = DockStyle.Bottom, Height = 150, ColumnCount = 2, RowCount = 3, BackColor = TillStyle.Background };
+        cash.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 45F));
+        cash.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 55F));
+        foreach (var (caption, figure) in new[] { ("เงินสด [ คำนวณ ]", _expectedCash), ("เงินสด [ นับ ]", _countedCash), ("ผลต่าง", _difference) })
+        {
+            cash.RowStyles.Add(new RowStyle(SizeType.Percent, 33.3F));
+            figure.Dock = DockStyle.Fill;
+            figure.TextAlign = ContentAlignment.MiddleRight;
+            cash.Controls.Add(Caption(caption));
+            cash.Controls.Add(figure);
+        }
+
         column.Controls.Add(_summaryRows);
         column.Controls.Add(cash);
 
@@ -209,7 +227,7 @@ public sealed class CashDrawerPanel : UserControl
 
     private Panel ListsColumn()
     {
-        var column = new Panel { Dock = DockStyle.Left, Width = 760, BackColor = TillStyle.Background, Padding = new Padding(5), AutoScroll = true };
+        var column = new Panel { Dock = DockStyle.Fill, BackColor = TillStyle.Background, Padding = new Padding(5), AutoScroll = true };
         column.Controls.Add(_debtRepayments);
         column.Controls.Add(_floats);
         column.Controls.Add(_payouts);
@@ -232,7 +250,7 @@ public sealed class CashDrawerPanel : UserControl
     {
         var label = TillStyle.Label($"{text}Caption", 14F);
         label.Text = text;
-        label.Width = 200;
+        label.Dock = DockStyle.Fill;
         return label;
     }
 }

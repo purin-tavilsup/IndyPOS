@@ -17,7 +17,8 @@ public static class MoneyRowView
     private static readonly Color RowBack = Color.FromArgb(34, 34, 34);
     private static readonly Color LabelBack = Color.FromArgb(35, 35, 35);
 
-    public static void Replace(FlowLayoutPanel panel, IReadOnlyList<MoneyRow> rows)
+    /// <param name="rowsPerLine">Three for the wide sales overview; one for a narrow column such as the cash drawer's.</param>
+    public static void Replace(FlowLayoutPanel panel, IReadOnlyList<MoneyRow> rows, int rowsPerLine = RowsPerLine)
     {
         panel.SuspendLayout();
         // Dispose, not just Clear: a cleared control keeps its window handles, and the overview refreshes
@@ -25,16 +26,16 @@ public static class MoneyRowView
         foreach (var old in panel.Controls.Cast<Control>().ToList())
             old.Dispose();
 
-        var width = RowWidth(panel);
+        var width = RowWidth(panel, rowsPerLine);
         foreach (var row in rows)
             panel.Controls.Add(Create(row, width));
         panel.ResumeLayout();
     }
 
-    // A third of the panel, less room for a scrollbar: the panel scales with the display but these rows are
-    // built in code, so a fixed width would wrap to two a line once a scrollbar appears.
-    private static int RowWidth(Control panel) =>
-        (panel.ClientSize.Width - SystemInformation.VerticalScrollBarWidth) / RowsPerLine - Gap;
+    // A share of the panel, less room for a scrollbar: the panel scales with the display but these rows are
+    // built in code, so a fixed width would wrap to fewer a line once a scrollbar appears.
+    private static int RowWidth(Control panel, int rowsPerLine) =>
+        (panel.ClientSize.Width - SystemInformation.VerticalScrollBarWidth) / rowsPerLine - Gap;
 
     private static Control Create(MoneyRow row, int width)
     {

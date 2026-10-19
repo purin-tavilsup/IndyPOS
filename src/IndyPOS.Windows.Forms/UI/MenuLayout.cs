@@ -2,9 +2,9 @@ namespace IndyPOS.Windows.Forms.UI;
 
 /// <summary>
 /// Puts the menu buttons a store shows into the menu's slots, top first, so a hidden button leaves no gap.
-/// The slots are the tops the laid-out form gave its buttons, because display scaling moves them away from
-/// the designer's numbers. The caller passes the shown buttons rather than this reading
-/// <see cref="Control.Visible"/>, which is false whenever a parent is hidden.
+/// The menu's slots come from <see cref="EvenSlots"/> over the laid-out panel's height, so display scaling is
+/// already in them; tab rows still pass the tops or lefts the laid-out form gave them. The caller passes the
+/// shown buttons rather than this reading <see cref="Control.Visible"/>, which is false whenever a parent is hidden.
 /// </summary>
 public static class MenuLayout
 {
