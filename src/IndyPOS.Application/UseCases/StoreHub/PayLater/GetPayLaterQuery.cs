@@ -45,13 +45,9 @@ public class GetPayLaterQueryHandler : IQueryHandler<GetPayLaterQuery, GetPayLat
                 Items: []);
         }
 
-        var payLaters = await _payLaterRepository.GetAllAsync(
-            query.IncludeCompleted,
-            query.SearchTerm,
-            cancellationToken);
+        var payLaters = await LoadAsync(query, cancellationToken);
 
         var items = payLaters
-            .Where(p => query.CreatedOn is not { } day || TodayOnlyRule.BusinessDateOf(p.CreatedUtc, _storeIdentity.TimeZone) == day)
             .Select(p => new PayLaterDto(
                 p.Id,
                 p.PaymentId,
@@ -74,5 +70,15 @@ public class GetPayLaterQueryHandler : IQueryHandler<GetPayLaterQuery, GetPayLat
             ActiveCount: activeItems.Count,
             CompletedCount: completedItems.Count,
             Items: items);
+    }
+
+    // One store day is asked of the database by its UTC range, so a drawer refresh never loads every debt ever taken.
+    private Task<IReadOnlyList<Domain.Entities.Core.PayLater>> LoadAsync(GetPayLaterQuery query, CancellationToken cancellationToken)
+    {
+        if (query.CreatedOn is not { } day)
+            return _payLaterRepository.GetAllAsync(query.IncludeCompleted, query.SearchTerm, cancellationToken);
+
+        var (fromUtc, toUtc) = TodayOnlyRule.UtcRangeOf(day, _storeIdentity.TimeZone);
+        return _payLaterRepository.GetCreatedBetweenAsync(fromUtc, toUtc, cancellationToken);
     }
 }

@@ -8,6 +8,11 @@ namespace IndyPOS.Application.Abstractions.StoreHub.Repositories;
 public interface IPayLaterRepository
 {
     /// <summary>
+    /// The debts taken in [fromUtc, toUtc), completed ones too, filtered by the database (the cash drawer's day).
+    /// </summary>
+    Task<IReadOnlyList<PayLater>> GetCreatedBetweenAsync(DateTime fromUtc, DateTime toUtc, CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// Get all PayLater records, optionally filtered.
     /// </summary>
     Task<IReadOnlyList<PayLater>> GetAllAsync(
