@@ -88,6 +88,26 @@ public class StoreUserUpsertTests : IntegrationTestBase
                                                               .Be(otherCloudId);
     }
 
+    // The sync upserts a whole run through one DbContext; a refused insert must not ride along
+    // into the next user's save.
+    [Fact]
+    public async Task UpsertByCloudIdAsync_AfterAUserIsRefused_StillStoresTheNextUser()
+    {
+        var (localId, takenUsername) = NewUser();
+        await SeedAsync(localId, takenUsername, cloudUserId: null);
+        var (nextId, nextUsername) = NewUser();
+        await using var scope = Factory.Services.CreateAsyncScope();
+        var repository = new StoreUserRepository(scope.ServiceProvider.GetRequiredService<StoreHubDbContext>());
+        var refused = () => repository.UpsertByCloudIdAsync(FromCloud(Guid.NewGuid(), takenUsername));
+        await refused.Should()
+                     .ThrowAsync<DbUpdateException>();
+
+        await repository.UpsertByCloudIdAsync(FromCloud(nextId, nextUsername));
+
+        (await UsersNamedAsync(nextUsername)).Should()
+                                             .ContainSingle();
+    }
+
     [Fact]
     public async Task UpsertByCloudIdAsync_WithANewUser_StoresItUnderTheCloudId()
     {

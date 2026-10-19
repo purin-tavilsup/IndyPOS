@@ -118,7 +118,22 @@ public class StoreUserRepository : IStoreUserRepository
             existing.LastModifiedAtUtc = DateTime.UtcNow;
         }
 
-        await _dbContext.SaveChangesAsync(cancellationToken);
+        await SaveOrForgetAsync(cancellationToken);
+    }
+
+    // The sync upserts a whole run through one DbContext. Left tracked, a refused row would be saved
+    // again with every later user and block them all, run after run.
+    private async Task SaveOrForgetAsync(CancellationToken cancellationToken)
+    {
+        try
+        {
+            await _dbContext.SaveChangesAsync(cancellationToken);
+        }
+        catch (DbUpdateException)
+        {
+            _dbContext.ChangeTracker.Clear();
+            throw;
+        }
     }
 
     // Migrated users were uploaded under their store id, so the cloud sends them back under it while
