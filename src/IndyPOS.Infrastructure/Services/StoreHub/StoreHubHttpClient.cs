@@ -452,6 +452,10 @@ public class StoreHubHttpClient : IStoreHubClient
         return SendAuthenticatedAsync<PayLaterReportDto>(HttpMethod.Get, url, content: null, cancellationToken);
     }
 
+    public Task<GetPayLaterResponse> GetPayLaterTakenOnAsync(DateOnly day, CancellationToken cancellationToken = default) =>
+        SendAuthenticatedAsync<GetPayLaterResponse>(HttpMethod.Get, $"/pay-later?includeCompleted=true&createdOn={IsoDate(day)}",
+                                                    content: null, cancellationToken);
+
     public Task<CashDrawerSummaryDto> GetCashSummaryAsync(DateOnly? businessDate, CancellationToken cancellationToken = default) =>
         SendAuthenticatedAsync<CashDrawerSummaryDto>(HttpMethod.Get, CashQuery("/cash/summary", businessDate), content: null, cancellationToken);
 

@@ -7,6 +7,8 @@ using IndyPOS.Application.UseCases.StoreHub.CashDrawer.DebtRepayments;
 using IndyPOS.Application.UseCases.StoreHub.CashDrawer.Floats;
 using IndyPOS.Application.UseCases.StoreHub.CashDrawer.Payouts;
 using IndyPOS.Application.UseCases.StoreHub.CashDrawer.Summary;
+using IndyPOS.Application.UseCases.StoreHub.PayLater;
+using IndyPOS.Application.UseCases.StoreHub.Reports;
 using IndyPOS.Presentation.CashDrawer;
 using IndyPOS.Presentation.SalesHistory;
 using Microsoft.Extensions.Time.Testing;
@@ -38,6 +40,7 @@ public class CashDrawerViewModelTests
         _clock = new StoreClock(_time, Bangkok);
         AnswerDay(Today, Summary(Today, isEditable: true));
         AnswerDay(Yesterday, Summary(Yesterday, isEditable: false));
+        AnswerPayLater();
     }
 
     [Fact]
@@ -186,6 +189,133 @@ public class CashDrawerViewModelTests
     }
 
     [Fact]
+    public async Task Refresh_ForAStoreWithoutPayLater_DoesNotAskForPayLater()
+    {
+        var vm = Drawer(Manager, Minimart);
+
+        await vm.RefreshCommand.ExecuteAsync(null);
+
+        _client.Verify(c => c.GetPayLaterTakenOnAsync(It.IsAny<DateOnly>(), It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task Refresh_ForAStoreWithoutPayLater_KeepsDebtRepaymentsReadOnly()
+    {
+        var vm = Drawer(Manager, Minimart);
+
+        await vm.RefreshCommand.ExecuteAsync(null);
+
+        vm.DebtRepayments.AddCommand.CanExecute(null).Should()
+                                                     .BeFalse();
+    }
+
+    // StoreHub keeps the day's own ลงบัญชี, so the till no longer fetches every debt ever on each reload.
+    [Fact]
+    public async Task Refresh_ForPayLater_AsksForThatDaysDebtsOnly()
+    {
+        var vm = Drawer(Manager);
+
+        await vm.RefreshCommand.ExecuteAsync(null);
+
+        _client.Verify(c => c.GetPayLaterTakenOnAsync(Today, It.IsAny<CancellationToken>()));
+    }
+
+    [Fact]
+    public async Task Refresh_WithTwoPayLaterToday_ListsThemOldestFirst()
+    {
+        AnswerPayLater(PayLater(NowUtc.UtcDateTime, "ป้าแดง", 90m), PayLater(NowUtc.UtcDateTime.AddHours(-2), "ลุงสมชาย", 200m));
+        var vm = Drawer(Manager);
+
+        await vm.RefreshCommand.ExecuteAsync(null);
+
+        vm.TodaysPayLater.Select(p => p.Description).Should()
+                                                    .Equal("ลุงสมชาย", "ป้าแดง");
+    }
+
+    [Fact]
+    public void ShowPayoutCategory_ForAMinimart_ReturnsFalse()
+    {
+        var vm = Drawer(Manager, Minimart);
+
+        vm.ShowPayoutCategory.Should()
+                             .BeFalse();
+    }
+
+    [Fact]
+    public async Task DifferenceText_WhenNotCounted_ReturnsEmpty()
+    {
+        var vm = Drawer(Manager);
+
+        await vm.RefreshCommand.ExecuteAsync(null);
+
+        vm.DifferenceText.Should()
+                         .BeEmpty();
+    }
+
+    [Theory]
+    [InlineData(-50, CashDrawerViewModel.Short)]
+    [InlineData(20, CashDrawerViewModel.Over)]
+    [InlineData(0, CashDrawerViewModel.Exact)]
+    public async Task DifferenceText_WithACountedDrawer_SaysShortOverOrExact(int difference, string expected)
+    {
+        AnswerDay(Today, Summary(Today, isEditable: true) with { CountedCash = 1_000m, CashDifference = difference });
+        var vm = Drawer(Manager);
+
+        await vm.RefreshCommand.ExecuteAsync(null);
+
+        vm.DifferenceText.Should()
+                         .Be(expected);
+    }
+
+    [Fact]
+    public async Task SummaryRows_ForAMinimart_LeavesOutTheProductTypeSplit()
+    {
+        var vm = Drawer(Manager, Minimart);
+
+        await vm.RefreshCommand.ExecuteAsync(null);
+
+        vm.SummaryRows.Select(r => r.Title).Should()
+                                           .NotContain(CashDrawerViewModel.HardwareSales);
+    }
+
+    [Fact]
+    public async Task SummaryRows_ForAMinimart_LeavesOutPayLater()
+    {
+        var vm = Drawer(Manager, Minimart);
+
+        await vm.RefreshCommand.ExecuteAsync(null);
+
+        vm.SummaryRows.Select(r => r.Title).Should()
+                                           .NotContain(CashDrawerViewModel.DebtRepaid);
+    }
+
+    [Fact]
+    public async Task SummaryRows_WithTwoNonCashMethods_ListsBothByName()
+    {
+        AnswerDay(Today, Summary(Today, isEditable: true) with
+        {
+            NonCashPayments = [new("MoneyTransfer", "โอนเงิน", 300m), new("FiftyFifty", "คนละครึ่ง", 120m)]
+        });
+        var vm = Drawer(Manager);
+
+        await vm.RefreshCommand.ExecuteAsync(null);
+
+        vm.SummaryRows.Select(r => r.Title).Should()
+                                           .Contain(["โอนเงิน", "คนละครึ่ง"]);
+    }
+
+    [Fact]
+    public async Task SummaryRows_ForGeneralHardware_ShowsHardwareSales()
+    {
+        var vm = Drawer(Manager);
+
+        await vm.RefreshCommand.ExecuteAsync(null);
+
+        vm.SummaryRows.Select(r => r.Title).Should()
+                                           .Contain(CashDrawerViewModel.HardwareSales);
+    }
+
+    [Fact]
     public void ShowPayLater_WithoutFeatures_ReturnsTrue()
     {
         var vm = Drawer(Manager, features: null);
@@ -297,6 +427,13 @@ public class CashDrawerViewModelTests
         _client.Setup(c => c.GetCashCountsAsync(day, It.IsAny<CancellationToken>()))
                .ReturnsAsync([new CashCountDto(Guid.NewGuid(), day, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1_000m, at, Guid.NewGuid())]);
     }
+
+    private void AnswerPayLater(params PayLaterDto[] items) =>
+        _client.Setup(c => c.GetPayLaterTakenOnAsync(It.IsAny<DateOnly>(), It.IsAny<CancellationToken>()))
+               .ReturnsAsync(new GetPayLaterResponse(0m, 0m, items.Length, 0, items));
+
+    private static PayLaterDto PayLater(DateTime createdUtc, string description, decimal amount) =>
+        new(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), description, amount, 0m, amount, false, createdUtc, createdUtc);
 
     private static CashPayoutDto Payout(DateOnly day) =>
         new(Guid.NewGuid(), default, 100m, null, day, NowUtc.UtcDateTime, NowUtc.UtcDateTime, Guid.NewGuid(), null);

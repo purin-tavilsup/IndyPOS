@@ -7,6 +7,7 @@ public enum SubPanel
 	Users,
 	Reports,
 	AccountsReceivable,
+	CashDrawer,
 	Settings,
 	UserLogIn
 }
@@ -16,6 +17,5 @@ public enum ReportSubPanel
 	SalesReport = 0,
 	InvoiceProductsReport,
 	SalesHistoryReport,
-	PayLaterPaymentsReport,
-	CashFlowCalculator
+	PayLaterPaymentsReport
 }

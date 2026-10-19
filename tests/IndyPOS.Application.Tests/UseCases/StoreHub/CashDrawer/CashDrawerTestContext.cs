@@ -45,6 +45,20 @@ internal sealed class CashDrawerTestContext : IAsyncDisposable
 
     public CashCountRepository CountRepository() => new(Db);
 
+    public StoreUserRepository UserRepository() => new(Db);
+
+    /// <summary>Seeds a store user, so a handler can name who did something.</summary>
+    public async Task SeedUserAsync(Guid id, string firstName, string lastName)
+    {
+        Db.StoreUsers.Add(new StoreUser
+        {
+            Id = id, StoreId = StoreIdentity.StoreId, Username = $"user-{id:N}", FirstName = firstName, LastName = lastName,
+            CreatedAtUtc = TenAmBangkok.UtcDateTime, LastModifiedAtUtc = TenAmBangkok.UtcDateTime
+        });
+        await Db.SaveChangesAsync();
+        Db.ChangeTracker.Clear();
+    }
+
     /// <summary>Seeds a payout directly, bypassing the handlers (e.g. a row from an earlier day).</summary>
     public async Task<CashPayout> SeedPayoutAsync(DateOnly businessDate, bool isDeleted = false)
     {

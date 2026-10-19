@@ -2,6 +2,10 @@ using IndyPOS.Domain.Entities.Core;
 
 namespace IndyPOS.Application.UseCases.StoreHub.CashDrawer.Counts;
 
+/// <param name="CountedByName">
+/// Who counted, "First Last", so the day's history can show it (spec §3: cashiers count about three
+/// times a day, often different people). Null when that user is no longer on record.
+/// </param>
 public record CashCountDto(
     Guid Id,
     DateOnly BusinessDate,
@@ -16,11 +20,12 @@ public record CashCountDto(
     int Coin1Count,
     decimal CountedTotal,
     DateTime CreatedUtc,
-    Guid CreatedByUserId);
+    Guid CreatedByUserId,
+    string? CountedByName = null);
 
 public static class CashCountMapping
 {
-    public static CashCountDto ToDto(this CashCount count) => new(
+    public static CashCountDto ToDto(this CashCount count, string? countedByName) => new(
         count.Id,
         count.BusinessDate,
         count.BankNote1000Count,
@@ -34,5 +39,9 @@ public static class CashCountMapping
         count.Coin1Count,
         count.CountedTotal,
         count.CreatedUtc,
-        count.CreatedByUserId);
+        count.CreatedByUserId,
+        countedByName);
+
+    public static string? DisplayName(this StoreUser? user) =>
+        user is null ? null : $"{user.FirstName} {user.LastName}".Trim();
 }

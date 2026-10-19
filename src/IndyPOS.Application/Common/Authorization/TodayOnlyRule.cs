@@ -24,4 +24,9 @@ public static class TodayOnlyRule
     /// </summary>
     public static DateOnly BusinessDateOf(DateTime utc, TimeZoneInfo storeTimeZone) =>
         DateOnly.FromDateTime(TimeZoneInfo.ConvertTimeFromUtc(utc, storeTimeZone));
+
+    /// <summary>The UTC instants a store day covers: [its midnight, the next midnight), in the store's timezone.</summary>
+    public static (DateTime FromUtc, DateTime ToUtc) UtcRangeOf(DateOnly day, TimeZoneInfo storeTimeZone) =>
+        (TimeZoneInfo.ConvertTimeToUtc(day.ToDateTime(TimeOnly.MinValue), storeTimeZone),
+         TimeZoneInfo.ConvertTimeToUtc(day.AddDays(1).ToDateTime(TimeOnly.MinValue), storeTimeZone));
 }

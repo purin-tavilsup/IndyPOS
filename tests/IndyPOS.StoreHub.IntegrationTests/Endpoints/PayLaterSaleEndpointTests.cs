@@ -123,6 +123,19 @@ public class PayLaterSaleEndpointTests : IntegrationTestBase
                    .ContainSingle(d => d.InvoiceId == sale.InvoiceId && d.Description == CustomerName);
     }
 
+    // The cash drawer asks for one day's ลงบัญชี; an unbound parameter would silently return every debt.
+    [Fact]
+    public async Task GetPayLater_WithCreatedOnAnotherDay_LeavesOutTodaysDebt()
+    {
+        await AuthenticateAsCashierAsync();
+        var sale = await SellOnCreditAsync();
+
+        var list = await Client.GetFromJsonAsync<GetPayLaterResponse>("/pay-later?includeCompleted=true&createdOn=2000-01-01", JsonOptions);
+
+        list!.Items.Should()
+                   .NotContain(d => d.InvoiceId == sale.InvoiceId);
+    }
+
     [Fact]
     public async Task RecordPayment_OnAV4CreditSale_ReducesWhatIsOwed()
     {

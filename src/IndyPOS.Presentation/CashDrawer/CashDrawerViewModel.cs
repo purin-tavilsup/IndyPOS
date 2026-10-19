@@ -1,3 +1,4 @@
+using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using IndyPOS.Application.Abstractions.StoreHub;
@@ -8,6 +9,9 @@ using IndyPOS.Presentation.SalesHistory;
 
 namespace IndyPOS.Presentation.CashDrawer;
 
+/// <summary>A ลงบัญชี (PayLater) taken on the day shown, in store time.</summary>
+public sealed record PayLaterRow(DateTime StoreTime, string Description, decimal Amount);
+
 /// <summary>
 /// The ลิ้นชักเก็บเงิน screen (cash spec §8; per-store spec §2/§4.3). StoreHub computes every total;
 /// this shows them, says what may be edited, and reloads the whole day after any confirmed save. A
@@ -16,6 +20,19 @@ namespace IndyPOS.Presentation.CashDrawer;
 public sealed partial class CashDrawerViewModel : ObservableObject
 {
     public const string LoadFailed = "โหลดลิ้นชักเก็บเงินไม่สำเร็จ: {0}";
+    public const string Sales = "ยอดขาย";
+    public const string GeneralSales = "ยอดขาย เบ็ดเตล็ด";
+    public const string HardwareSales = "ยอดขาย ฮาร์ดแวร์";
+    public const string CashTaken = "[ รายรับ ] เงินสด";
+    public const string PayLater = "ยอดลงบัญชี";
+    public const string GeneralPayLater = "ยอดลงบัญชี เบ็ดเตล็ด";
+    public const string HardwarePayLater = "ยอดลงบัญชี ฮาร์ดแวร์";
+    public const string PaidOut = "รายจ่าย";
+    public const string CashFloats = "เงินทอน";
+    public const string DebtRepaid = "ลูกค้าชำระหนี้";
+    public const string Short = "ขาด";
+    public const string Over = "เกิน";
+    public const string Exact = "พอดี";
 
     private readonly IStoreHubClient _client;
     private readonly StoreClock _clock;
@@ -26,6 +43,7 @@ public sealed partial class CashDrawerViewModel : ObservableObject
     private DateOnly _businessDate;
 
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(SummaryRows), nameof(DifferenceText))]
     private CashDrawerSummaryDto? _summary;
 
     // The summary's IsEditable, but turned off by a failed load too, so the screen and its sections agree.
@@ -62,6 +80,24 @@ public sealed partial class CashDrawerViewModel : ObservableObject
     public CashEntriesViewModel DebtRepayments { get; }
 
     public CashCountViewModel Count { get; }
+
+    /// <summary>The day's new ลงบัญชี, oldest first; empty for a store without PayLater.</summary>
+    public ObservableCollection<PayLaterRow> TodaysPayLater { get; } = [];
+
+    /// <summary>The day's figures as StoreHub computed them, only the rows this store has (spec 2026-10-07 §2).</summary>
+    public IReadOnlyList<MoneyRow> SummaryRows => Summary is null ? [] : RowsOf(Summary);
+
+    /// <summary>ขาด / เกิน / พอดี for the counted-versus-expected difference; empty until someone counts.</summary>
+    public string DifferenceText => Summary?.CashDifference switch
+    {
+        null => string.Empty,
+        < 0 => Short,
+        > 0 => Over,
+        _ => Exact
+    };
+
+    /// <summary>The payout category (เบ็ดเตล็ด / ฮาร์ดแวร์) only means something where hardware is sold.</summary>
+    public bool ShowPayoutCategory => ShowProductTypeSplit;
 
     public bool ShowProductTypeSplit { get; }
 
@@ -115,7 +151,7 @@ public sealed partial class CashDrawerViewModel : ObservableObject
 
     private sealed record LoadedDay(
         CashDrawerSummaryDto Summary, IReadOnlyList<CashEntryRow> Payouts, IReadOnlyList<CashEntryRow> Floats,
-        IReadOnlyList<CashEntryRow> DebtRepayments, IReadOnlyList<CashCountRow> Counts);
+        IReadOnlyList<CashEntryRow> DebtRepayments, IReadOnlyList<CashCountRow> Counts, IReadOnlyList<PayLaterRow> PayLater);
 
     // All five at once; nothing is shown until every one has arrived, so a money screen never mixes two days.
     private async Task<LoadedDay> FetchDayAsync(DateOnly day, CancellationToken token)
@@ -125,10 +161,44 @@ public sealed partial class CashDrawerViewModel : ObservableObject
         var floats = Floats.FetchAsync(day, token);
         var repayments = ShowPayLater ? DebtRepayments.FetchAsync(day, token) : Task.FromResult<IReadOnlyList<CashEntryRow>>([]);
         var counts = Count.FetchAsync(day, token);
-        await Task.WhenAll(summary, payouts, floats, repayments, counts);
+        var payLater = ShowPayLater ? PayLaterOfAsync(day, token) : Task.FromResult<IReadOnlyList<PayLaterRow>>([]);
+        await Task.WhenAll(summary, payouts, floats, repayments, counts, payLater);
 
-        return new LoadedDay(await summary, await payouts, await floats, await repayments, await counts);
+        return new LoadedDay(await summary, await payouts, await floats, await repayments, await counts, await payLater);
     }
+
+    // StoreHub keeps the day's own (by the store's calendar), completed ones too; /reports/pay-later would refuse a
+    // cashier and is grouped per customer.
+    private async Task<IReadOnlyList<PayLaterRow>> PayLaterOfAsync(DateOnly day, CancellationToken token) =>
+        (await _client.GetPayLaterTakenOnAsync(day, token)).Items
+        .OrderBy(p => p.CreatedUtc)
+        .Select(p => new PayLaterRow(_clock.ToStoreTime(p.CreatedUtc), p.Description, p.PayLaterAmount))
+        .ToList();
+
+    private IReadOnlyList<MoneyRow> RowsOf(CashDrawerSummaryDto summary)
+    {
+        var rows = new List<MoneyRow>();
+        if (ShowProductTypeSplit)
+            rows.AddRange([new(GeneralSales, summary.GeneralProductsTotal), new(HardwareSales, summary.HardwareProductsTotal)]);
+        else
+            rows.Add(new MoneyRow(Sales, summary.GeneralProductsTotal));
+
+        rows.Add(new MoneyRow(CashTaken, summary.CashPaymentsTotal));
+        rows.AddRange(summary.NonCashPayments.Select(p => new MoneyRow(p.DisplayName, p.Total)));
+
+        if (ShowPayLater)
+            rows.AddRange(PayLaterRows(summary));
+
+        rows.AddRange([new(PaidOut, summary.PayoutsTotal), new(CashFloats, summary.CashFloatsTotal)]);
+        if (ShowPayLater)
+            rows.Add(new MoneyRow(DebtRepaid, summary.DebtRepaymentsTotal));
+
+        return rows;
+    }
+
+    private IEnumerable<MoneyRow> PayLaterRows(CashDrawerSummaryDto summary) => ShowProductTypeSplit
+        ? [new(GeneralPayLater, summary.PayLaterGeneralProductsTotal), new(HardwarePayLater, summary.PayLaterHardwareProductsTotal)]
+        : [new(PayLater, summary.PayLaterGeneralProductsTotal)];
 
     private void Show(DateOnly day, LoadedDay loaded)
     {
@@ -138,11 +208,18 @@ public sealed partial class CashDrawerViewModel : ObservableObject
         Floats.Show(loaded.Floats);
         DebtRepayments.Show(loaded.DebtRepayments);
         Count.Show(loaded.Counts);
+        TodaysPayLater.Clear();
+        foreach (var row in loaded.PayLater)
+            TodaysPayLater.Add(row);
         SetEditable(loaded.Summary.IsEditable);
     }
 
-    private void SetEditable(bool isEditable) =>
-        IsEditable = Payouts.IsEditable = Floats.IsEditable = DebtRepayments.IsEditable = Count.IsEditable = isEditable;
+    // Debt repayments settle PayLater, so a store without it has nothing to repay.
+    private void SetEditable(bool isEditable)
+    {
+        IsEditable = Payouts.IsEditable = Floats.IsEditable = Count.IsEditable = isEditable;
+        DebtRepayments.IsEditable = isEditable && ShowPayLater;
+    }
 
     private CancellationToken Restart()
     {

@@ -31,7 +31,6 @@
             panel2 = new Panel();
             label4 = new Label();
             panel1 = new Panel();
-            CashFlowCalculatorButton = new ModernUI.ModernButton();
             PayLaterPaymentsReportButton = new ModernUI.ModernButton();
             ShowSalesOverviewReportButton = new ModernUI.ModernButton();
             ShowInvoiceProductsButton = new ModernUI.ModernButton();
@@ -66,7 +65,6 @@
             // 
             // panel1
             // 
-            panel1.Controls.Add(CashFlowCalculatorButton);
             panel1.Controls.Add(PayLaterPaymentsReportButton);
             panel1.Controls.Add(ShowSalesOverviewReportButton);
             panel1.Controls.Add(ShowInvoiceProductsButton);
@@ -76,26 +74,6 @@
             panel1.Name = "panel1";
             panel1.Size = new Size(1249, 44);
             panel1.TabIndex = 85;
-            // 
-            // CashFlowCalculatorButton
-            // 
-            CashFlowCalculatorButton.BackColor = Color.FromArgb(38, 38, 38);
-            CashFlowCalculatorButton.BackgroundColor = Color.FromArgb(38, 38, 38);
-            CashFlowCalculatorButton.BorderColor = Color.Gray;
-            CashFlowCalculatorButton.BorderRadius = 5;
-            CashFlowCalculatorButton.BorderSize = 1;
-            CashFlowCalculatorButton.FlatAppearance.BorderSize = 0;
-            CashFlowCalculatorButton.FlatStyle = FlatStyle.Flat;
-            CashFlowCalculatorButton.Font = new Font("FC Subject [Non-commercial] Reg", 12F);
-            CashFlowCalculatorButton.ForeColor = Color.White;
-            CashFlowCalculatorButton.Location = new Point(999, 3);
-            CashFlowCalculatorButton.Name = "CashFlowCalculatorButton";
-            CashFlowCalculatorButton.Size = new Size(238, 37);
-            CashFlowCalculatorButton.TabIndex = 15;
-            CashFlowCalculatorButton.Text = "นับเงินสด รายรับ-รายจ่าย";
-            CashFlowCalculatorButton.TextColor = Color.White;
-            CashFlowCalculatorButton.UseVisualStyleBackColor = false;
-            CashFlowCalculatorButton.Click += CashFlowCalculatorButton_Click;
             // 
             // PayLaterPaymentsReportButton
             // 
@@ -209,6 +187,5 @@
         private ModernUI.ModernButton ShowInvoiceProductsButton;
         private ModernUI.ModernButton ShowSalesHistoryButton;
         private ModernUI.ModernButton PayLaterPaymentsReportButton;
-        private ModernUI.ModernButton CashFlowCalculatorButton;
     }
 }
