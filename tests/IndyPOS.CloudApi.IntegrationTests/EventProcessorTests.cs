@@ -20,8 +20,8 @@ public class EventProcessorTests(CloudPostgresFixture postgres) : IClassFixture<
 {
     private const int BatchSize = 50;
 
-    // A real event type the store already sends (cash drawer, #97) and the cloud cannot handle yet.
-    private const string EventTypeWithoutAHandler = "CashCountChanged";
+    // A type the cloud cannot handle yet (stock adjustments send no event today).
+    private const string EventTypeWithoutAHandler = "StockAdjusted";
 
     // A v4 number continuing a v3 store's history (spec §4).
     private const long KnownInvoiceNumber = 7008;

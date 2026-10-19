@@ -228,6 +228,71 @@ public class CashDrawerMirrorTests(CloudPostgresFixture postgres) : IClassFixtur
                                                                           .Be("ลุงสมชาย", pipeline.LoggedErrors);
     }
 
+    [Fact]
+    public async Task ProcessPendingEventsAsync_WithTheSameCountTwice_StoresOneRow()
+    {
+        await using var pipeline = await EventPipeline.CreateAsync(postgres);
+        var count = Count();
+        await pipeline.AddCashEventAsync(CashDrawerOutbox.CountAdded(count, T0));
+        await pipeline.AddCashEventAsync(CashDrawerOutbox.CountAdded(count, T0));
+
+        await pipeline.PollAsync();
+
+        (await pipeline.CountAsync<CloudCashCount>()).Should()
+                                                     .Be(1, pipeline.LoggedErrors);
+    }
+
+    [Fact]
+    public async Task ProcessPendingEventsAsync_WithTheSameCountTwice_MarksBothProcessed()
+    {
+        await using var pipeline = await EventPipeline.CreateAsync(postgres);
+        var count = Count();
+        await pipeline.AddCashEventAsync(CashDrawerOutbox.CountAdded(count, T0));
+        await pipeline.AddCashEventAsync(CashDrawerOutbox.CountAdded(count, T0));
+
+        await pipeline.PollAsync();
+
+        (await pipeline.CountUnprocessedAsync()).Should()
+                                                .Be(0, pipeline.LoggedErrors);
+    }
+
+    [Fact]
+    public async Task ProcessPendingEventsAsync_WithACount_StoresEveryDenomination()
+    {
+        await using var pipeline = await EventPipeline.CreateAsync(postgres);
+        var count = Count();
+        await pipeline.AddCashEventAsync(CashDrawerOutbox.CountAdded(count, T0));
+
+        await pipeline.PollAsync();
+
+        var row = await pipeline.FindAsync<CloudCashCount>(count.Id);
+        new[] { row!.BankNote1000Count, row.BankNote500Count, row.BankNote100Count, row.BankNote50Count, row.BankNote20Count,
+                row.Coin10Count, row.Coin5Count, row.Coin2Count, row.Coin1Count }.Should()
+                                                                                .Equal(1, 2, 3, 4, 5, 6, 7, 8, 9);
+    }
+
+    [Fact]
+    public async Task ProcessPendingEventsAsync_WithTwoCountsOnOneDay_KeepsBoth()
+    {
+        await using var pipeline = await EventPipeline.CreateAsync(postgres);
+        await pipeline.AddCashEventAsync(CashDrawerOutbox.CountAdded(Count(), T0));
+        await pipeline.AddCashEventAsync(CashDrawerOutbox.CountAdded(Count(), T1));
+
+        await pipeline.PollAsync();
+
+        (await pipeline.CountAsync<CloudCashCount>()).Should()
+                                                     .Be(2, pipeline.LoggedErrors);
+    }
+
+    // As AddCashCountCommandHandler stamps a count: LastModifiedUtc equals CreatedUtc.
+    private static CashCount Count() => new()
+    {
+        Id = Guid.NewGuid(), StoreId = StoreId, BusinessDate = new DateOnly(2026, 10, 18),
+        BankNote1000Count = 1, BankNote500Count = 2, BankNote100Count = 3, BankNote50Count = 4, BankNote20Count = 5,
+        Coin10Count = 6, Coin5Count = 7, Coin2Count = 8, Coin1Count = 9,
+        CreatedUtc = T0, LastModifiedUtc = T0, CreatedByUserId = Cashier
+    };
+
     private static CashPayout Payout(PayoutCategory category = PayoutCategory.General) =>
         Stamp(new CashPayout { Category = category, Amount = PayoutAmount, Description = "ค่าน้ำแข็ง" });
 
