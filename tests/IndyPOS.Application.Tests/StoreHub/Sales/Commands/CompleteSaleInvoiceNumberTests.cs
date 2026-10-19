@@ -35,16 +35,16 @@ public class CompleteSaleInvoiceNumberTests
                   It.IsAny<IReadOnlyList<InvoiceLine>>(),
                   It.IsAny<IReadOnlyList<Payment>>(),
                   It.IsAny<IReadOnlyList<InventoryMovement>>(),
-                  It.IsAny<OutboxEvent>(),
+                  It.IsAny<IReadOnlyList<OutboxEvent>>(),
                   It.IsAny<CancellationToken>()))
               .Callback((Invoice invoice, IReadOnlyList<InvoiceLine> _, IReadOnlyList<Payment> _,
-                         IReadOnlyList<InventoryMovement> _, OutboxEvent outboxEvent, CancellationToken _) =>
+                         IReadOnlyList<InventoryMovement> _, IReadOnlyList<OutboxEvent> outboxEvents, CancellationToken _) =>
               {
                   _savedInvoice = invoice;
-                  _savedEvent = outboxEvent;
+                  _savedEvent = outboxEvents[0];
               })
               .ReturnsAsync((Invoice invoice, IReadOnlyList<InvoiceLine> _, IReadOnlyList<Payment> _,
-                             IReadOnlyList<InventoryMovement> _, OutboxEvent _, CancellationToken _) => invoice);
+                             IReadOnlyList<InventoryMovement> _, IReadOnlyList<OutboxEvent> _, CancellationToken _) => invoice);
 
         _catalog.Setup(c => c.GetOfferableAsync(It.IsAny<CancellationToken>()))
                 .ReturnsAsync([new PaymentMethod { Code = "Cash", DisplayName = "Cash", IsEnabled = true, StoreId = StoreId }]);

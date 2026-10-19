@@ -61,10 +61,10 @@ public class CompleteSaleCommandHandlerTests
                 It.IsAny<IReadOnlyList<InvoiceLine>>(),
                 It.IsAny<IReadOnlyList<Payment>>(),
                 It.IsAny<IReadOnlyList<InventoryMovement>>(),
-                It.IsAny<OutboxEvent>(),
+                It.IsAny<IReadOnlyList<OutboxEvent>>(),
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync((Invoice inv, IReadOnlyList<InvoiceLine> _, IReadOnlyList<Payment> _,
-                IReadOnlyList<InventoryMovement> _, OutboxEvent _, CancellationToken _) => inv);
+                IReadOnlyList<InventoryMovement> _, IReadOnlyList<OutboxEvent> _, CancellationToken _) => inv);
 
         var command = new CompleteSaleCommand(
             StoreId: "STORE-001",
@@ -112,15 +112,15 @@ public class CompleteSaleCommandHandlerTests
                 It.IsAny<IReadOnlyList<InvoiceLine>>(),
                 It.IsAny<IReadOnlyList<Payment>>(),
                 It.IsAny<IReadOnlyList<InventoryMovement>>(),
-                It.IsAny<OutboxEvent>(),
+                It.IsAny<IReadOnlyList<OutboxEvent>>(),
                 It.IsAny<CancellationToken>()))
             .Callback((Invoice _, IReadOnlyList<InvoiceLine> _, IReadOnlyList<Payment> _,
-                IReadOnlyList<InventoryMovement> movements, OutboxEvent _, CancellationToken _) =>
+                IReadOnlyList<InventoryMovement> movements, IReadOnlyList<OutboxEvent> _, CancellationToken _) =>
             {
                 capturedMovements = movements;
             })
             .ReturnsAsync((Invoice inv, IReadOnlyList<InvoiceLine> _, IReadOnlyList<Payment> _,
-                IReadOnlyList<InventoryMovement> _, OutboxEvent _, CancellationToken _) => inv);
+                IReadOnlyList<InventoryMovement> _, IReadOnlyList<OutboxEvent> _, CancellationToken _) => inv);
 
         var command = new CompleteSaleCommand(
             StoreId: "STORE-001",
@@ -187,16 +187,16 @@ public class CompleteSaleCommandHandlerTests
                 It.IsAny<IReadOnlyList<InvoiceLine>>(),
                 It.IsAny<IReadOnlyList<Payment>>(),
                 It.IsAny<IReadOnlyList<InventoryMovement>>(),
-                It.IsAny<OutboxEvent>(),
+                It.IsAny<IReadOnlyList<OutboxEvent>>(),
                 It.IsAny<CancellationToken>()))
             .Callback((Invoice _, IReadOnlyList<InvoiceLine> invoiceLines, IReadOnlyList<Payment> _,
-                IReadOnlyList<InventoryMovement> movements, OutboxEvent _, CancellationToken _) =>
+                IReadOnlyList<InventoryMovement> movements, IReadOnlyList<OutboxEvent> _, CancellationToken _) =>
             {
                 capturedLines = invoiceLines;
                 capturedMovements = movements;
             })
             .ReturnsAsync((Invoice inv, IReadOnlyList<InvoiceLine> _, IReadOnlyList<Payment> _,
-                IReadOnlyList<InventoryMovement> _, OutboxEvent _, CancellationToken _) => inv);
+                IReadOnlyList<InventoryMovement> _, IReadOnlyList<OutboxEvent> _, CancellationToken _) => inv);
 
         var command = new CompleteSaleCommand(
             StoreId: "STORE-001",
@@ -241,15 +241,15 @@ public class CompleteSaleCommandHandlerTests
                 It.IsAny<IReadOnlyList<InvoiceLine>>(),
                 It.IsAny<IReadOnlyList<Payment>>(),
                 It.IsAny<IReadOnlyList<InventoryMovement>>(),
-                It.IsAny<OutboxEvent>(),
+                It.IsAny<IReadOnlyList<OutboxEvent>>(),
                 It.IsAny<CancellationToken>()))
             .Callback((Invoice _, IReadOnlyList<InvoiceLine> _, IReadOnlyList<Payment> _,
-                IReadOnlyList<InventoryMovement> movements, OutboxEvent _, CancellationToken _) =>
+                IReadOnlyList<InventoryMovement> movements, IReadOnlyList<OutboxEvent> _, CancellationToken _) =>
             {
                 capturedMovements = movements;
             })
             .ReturnsAsync((Invoice inv, IReadOnlyList<InvoiceLine> _, IReadOnlyList<Payment> _,
-                IReadOnlyList<InventoryMovement> _, OutboxEvent _, CancellationToken _) => inv);
+                IReadOnlyList<InventoryMovement> _, IReadOnlyList<OutboxEvent> _, CancellationToken _) => inv);
         var command = new CompleteSaleCommand(
             StoreId: "STORE-001",
             UserId: seller,
@@ -286,15 +286,15 @@ public class CompleteSaleCommandHandlerTests
                 It.IsAny<IReadOnlyList<InvoiceLine>>(),
                 It.IsAny<IReadOnlyList<Payment>>(),
                 It.IsAny<IReadOnlyList<InventoryMovement>>(),
-                It.IsAny<OutboxEvent>(),
+                It.IsAny<IReadOnlyList<OutboxEvent>>(),
                 It.IsAny<CancellationToken>()))
             .Callback((Invoice _, IReadOnlyList<InvoiceLine> _, IReadOnlyList<Payment> _,
-                IReadOnlyList<InventoryMovement> _, OutboxEvent outbox, CancellationToken _) =>
+                IReadOnlyList<InventoryMovement> _, IReadOnlyList<OutboxEvent> outbox, CancellationToken _) =>
             {
-                capturedOutbox = outbox;
+                capturedOutbox = outbox[0];
             })
             .ReturnsAsync((Invoice inv, IReadOnlyList<InvoiceLine> _, IReadOnlyList<Payment> _,
-                IReadOnlyList<InventoryMovement> _, OutboxEvent _, CancellationToken _) => inv);
+                IReadOnlyList<InventoryMovement> _, IReadOnlyList<OutboxEvent> _, CancellationToken _) => inv);
 
         var command = new CompleteSaleCommand(
             StoreId: "STORE-001",
@@ -349,15 +349,15 @@ public class CompleteSaleCommandHandlerTests
                 It.IsAny<IReadOnlyList<InvoiceLine>>(),
                 It.IsAny<IReadOnlyList<Payment>>(),
                 It.IsAny<IReadOnlyList<InventoryMovement>>(),
-                It.IsAny<OutboxEvent>(),
+                It.IsAny<IReadOnlyList<OutboxEvent>>(),
                 It.IsAny<CancellationToken>()))
             .Callback((Invoice _, IReadOnlyList<InvoiceLine> lines, IReadOnlyList<Payment> _,
-                IReadOnlyList<InventoryMovement> _, OutboxEvent _, CancellationToken _) =>
+                IReadOnlyList<InventoryMovement> _, IReadOnlyList<OutboxEvent> _, CancellationToken _) =>
             {
                 capturedLines = lines;
             })
             .ReturnsAsync((Invoice inv, IReadOnlyList<InvoiceLine> _, IReadOnlyList<Payment> _,
-                IReadOnlyList<InventoryMovement> _, OutboxEvent _, CancellationToken _) => inv);
+                IReadOnlyList<InventoryMovement> _, IReadOnlyList<OutboxEvent> _, CancellationToken _) => inv);
 
         var command = new CompleteSaleCommand(
             StoreId: "STORE-001",
@@ -453,10 +453,10 @@ public class CompleteSaleCommandHandlerTests
                 It.IsAny<IReadOnlyList<InvoiceLine>>(),
                 It.IsAny<IReadOnlyList<Payment>>(),
                 It.IsAny<IReadOnlyList<InventoryMovement>>(),
-                It.IsAny<OutboxEvent>(),
+                It.IsAny<IReadOnlyList<OutboxEvent>>(),
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync((Invoice inv, IReadOnlyList<InvoiceLine> _, IReadOnlyList<Payment> _,
-                IReadOnlyList<InventoryMovement> _, OutboxEvent _, CancellationToken _) => inv);
+                IReadOnlyList<InventoryMovement> _, IReadOnlyList<OutboxEvent> _, CancellationToken _) => inv);
 
         var command = new CompleteSaleCommand(
             StoreId: "STORE-001",
