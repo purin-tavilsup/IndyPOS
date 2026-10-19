@@ -14,10 +14,10 @@ public class CashCountHandlersTests
     private static readonly AddCashCountRequest EmptyDrawer = new(0, 0, 0, 0, 0, 0, 0, 0, 0);    // 0
 
     private static AddCashCountCommandHandler AddHandler(CashDrawerTestContext c) =>
-        new(c.CountRepository(), c.Clock, c.StoreIdentity);
+        new(c.CountRepository(), c.UserRepository(), c.Clock, c.StoreIdentity);
 
     private static GetCashCountsQueryHandler GetHandler(CashDrawerTestContext c) =>
-        new(c.CountRepository(), c.Clock, c.StoreIdentity);
+        new(c.CountRepository(), c.UserRepository(), c.Clock, c.StoreIdentity);
 
     [Fact]
     public async Task Add_WithANegativeDenomination_Throws()
@@ -168,5 +168,43 @@ public class CashCountHandlersTests
 
         result.Select(r => r.Id).Should()
                                 .Equal(evening.Id, morning.Id);
+    }
+
+    // Cashiers count about three times a day, often different people; the history must say who (spec §3).
+    [Fact]
+    public async Task Get_ForACountByAUserNoLongerOnRecord_LeavesTheNameEmpty()
+    {
+        await using var c = new CashDrawerTestContext();
+        await AddHandler(c).HandleAsync(new AddCashCountCommand(CashDrawerTestContext.CashierId, MorningCount));
+
+        var counts = await GetHandler(c).HandleAsync(new GetCashCountsQuery(null));
+
+        counts.Single().CountedByName.Should()
+                                     .BeNull();
+    }
+
+    [Fact]
+    public async Task Get_ForACount_NamesWhoCounted()
+    {
+        await using var c = new CashDrawerTestContext();
+        await c.SeedUserAsync(CashDrawerTestContext.CashierId, "มาลี", "ใจดี");
+        await AddHandler(c).HandleAsync(new AddCashCountCommand(CashDrawerTestContext.CashierId, MorningCount));
+
+        var counts = await GetHandler(c).HandleAsync(new GetCashCountsQuery(null));
+
+        counts.Single().CountedByName.Should()
+                                     .Be("มาลี ใจดี");
+    }
+
+    [Fact]
+    public async Task Add_ForACount_NamesWhoCounted()
+    {
+        await using var c = new CashDrawerTestContext();
+        await c.SeedUserAsync(CashDrawerTestContext.CashierId, "มาลี", "ใจดี");
+
+        var count = await AddHandler(c).HandleAsync(new AddCashCountCommand(CashDrawerTestContext.CashierId, MorningCount));
+
+        count.CountedByName.Should()
+                           .Be("มาลี ใจดี");
     }
 }

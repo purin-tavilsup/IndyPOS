@@ -66,7 +66,7 @@ public class GetCashDrawerSummaryQueryHandler(
             CashFloatsTotal = floatsTotal,
             DebtRepaymentsTotal = repaymentsTotal,
             ExpectedCash = expected,
-            LatestCount = latest?.ToDto(),
+            LatestCount = latest?.ToDto(await CountedByNameAsync(latest.CreatedByUserId, cancellationToken)),
             CountedCash = counted,
             CashDifference = CashDrawerCalculator.Difference(counted, expected)
         };
@@ -104,6 +104,9 @@ public class GetCashDrawerSummaryQueryHandler(
         var cashTendered = invoicePayments.Where(p => IsCode(p.Method, PaymentMethodCodes.Cash)).Sum(p => p.Amount);
         return cashTendered - figures.ChangeGiven;
     }
+
+    private async Task<string?> CountedByNameAsync(Guid userId, CancellationToken cancellationToken) =>
+        (await db.StoreUsers.AsNoTracking().FirstOrDefaultAsync(u => u.Id == userId, cancellationToken)).DisplayName();
 
     private static bool IsCode(string method, string code) =>
         string.Equals(method, code, StringComparison.OrdinalIgnoreCase);

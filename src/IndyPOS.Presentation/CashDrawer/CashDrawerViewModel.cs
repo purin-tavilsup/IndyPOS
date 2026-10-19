@@ -1,3 +1,4 @@
+using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using IndyPOS.Application.Abstractions.StoreHub;
@@ -7,6 +8,9 @@ using IndyPOS.Application.UseCases.StoreHub.CashDrawer.Summary;
 using IndyPOS.Presentation.SalesHistory;
 
 namespace IndyPOS.Presentation.CashDrawer;
+
+/// <summary>A ลงบัญชี (PayLater) taken on the day shown, in store time.</summary>
+public sealed record PayLaterRow(DateTime StoreTime, string Description, decimal Amount);
 
 /// <summary>
 /// The ลิ้นชักเก็บเงิน screen (cash spec §8; per-store spec §2/§4.3). StoreHub computes every total;
@@ -63,6 +67,12 @@ public sealed partial class CashDrawerViewModel : ObservableObject
 
     public CashCountViewModel Count { get; }
 
+    /// <summary>The day's new ลงบัญชี, oldest first; empty for a store without PayLater.</summary>
+    public ObservableCollection<PayLaterRow> TodaysPayLater { get; } = [];
+
+    /// <summary>The payout category (เบ็ดเตล็ด / ฮาร์ดแวร์) only means something where hardware is sold.</summary>
+    public bool ShowPayoutCategory => ShowProductTypeSplit;
+
     public bool ShowProductTypeSplit { get; }
 
     public bool ShowPayLater { get; }
@@ -115,7 +125,7 @@ public sealed partial class CashDrawerViewModel : ObservableObject
 
     private sealed record LoadedDay(
         CashDrawerSummaryDto Summary, IReadOnlyList<CashEntryRow> Payouts, IReadOnlyList<CashEntryRow> Floats,
-        IReadOnlyList<CashEntryRow> DebtRepayments, IReadOnlyList<CashCountRow> Counts);
+        IReadOnlyList<CashEntryRow> DebtRepayments, IReadOnlyList<CashCountRow> Counts, IReadOnlyList<PayLaterRow> PayLater);
 
     // All five at once; nothing is shown until every one has arrived, so a money screen never mixes two days.
     private async Task<LoadedDay> FetchDayAsync(DateOnly day, CancellationToken token)
@@ -125,10 +135,20 @@ public sealed partial class CashDrawerViewModel : ObservableObject
         var floats = Floats.FetchAsync(day, token);
         var repayments = ShowPayLater ? DebtRepayments.FetchAsync(day, token) : Task.FromResult<IReadOnlyList<CashEntryRow>>([]);
         var counts = Count.FetchAsync(day, token);
-        await Task.WhenAll(summary, payouts, floats, repayments, counts);
+        var payLater = ShowPayLater ? PayLaterOfAsync(day, token) : Task.FromResult<IReadOnlyList<PayLaterRow>>([]);
+        await Task.WhenAll(summary, payouts, floats, repayments, counts, payLater);
 
-        return new LoadedDay(await summary, await payouts, await floats, await repayments, await counts);
+        return new LoadedDay(await summary, await payouts, await floats, await repayments, await counts, await payLater);
     }
+
+    // No route lists one day's ลงบัญชี for a cashier (/reports/pay-later is managers' and per customer), so the
+    // till keeps the day's own from the full list. Completed ones too: paid off later, they were still taken that day.
+    private async Task<IReadOnlyList<PayLaterRow>> PayLaterOfAsync(DateOnly day, CancellationToken token) =>
+        (await _client.GetPayLaterAsync(includeCompleted: true, searchTerm: null, token)).Items
+        .Where(p => _clock.BusinessDateOf(p.CreatedUtc) == day)
+        .OrderBy(p => p.CreatedUtc)
+        .Select(p => new PayLaterRow(_clock.ToStoreTime(p.CreatedUtc), p.Description, p.PayLaterAmount))
+        .ToList();
 
     private void Show(DateOnly day, LoadedDay loaded)
     {
@@ -138,11 +158,18 @@ public sealed partial class CashDrawerViewModel : ObservableObject
         Floats.Show(loaded.Floats);
         DebtRepayments.Show(loaded.DebtRepayments);
         Count.Show(loaded.Counts);
+        TodaysPayLater.Clear();
+        foreach (var row in loaded.PayLater)
+            TodaysPayLater.Add(row);
         SetEditable(loaded.Summary.IsEditable);
     }
 
-    private void SetEditable(bool isEditable) =>
-        IsEditable = Payouts.IsEditable = Floats.IsEditable = DebtRepayments.IsEditable = Count.IsEditable = isEditable;
+    // Debt repayments settle PayLater, so a store without it has nothing to repay.
+    private void SetEditable(bool isEditable)
+    {
+        IsEditable = Payouts.IsEditable = Floats.IsEditable = Count.IsEditable = isEditable;
+        DebtRepayments.IsEditable = isEditable && ShowPayLater;
+    }
 
     private CancellationToken Restart()
     {
