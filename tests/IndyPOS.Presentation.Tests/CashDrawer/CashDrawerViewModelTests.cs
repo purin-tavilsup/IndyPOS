@@ -8,6 +8,7 @@ using IndyPOS.Application.UseCases.StoreHub.CashDrawer.Floats;
 using IndyPOS.Application.UseCases.StoreHub.CashDrawer.Payouts;
 using IndyPOS.Application.UseCases.StoreHub.CashDrawer.Summary;
 using IndyPOS.Application.UseCases.StoreHub.PayLater;
+using IndyPOS.Application.UseCases.StoreHub.Reports;
 using IndyPOS.Presentation.CashDrawer;
 using IndyPOS.Presentation.SalesHistory;
 using Microsoft.Extensions.Time.Testing;
@@ -262,6 +263,80 @@ public class CashDrawerViewModelTests
 
         vm.ShowPayoutCategory.Should()
                              .BeFalse();
+    }
+
+    [Fact]
+    public async Task DifferenceText_WhenNotCounted_ReturnsEmpty()
+    {
+        var vm = Drawer(Manager);
+
+        await vm.RefreshCommand.ExecuteAsync(null);
+
+        vm.DifferenceText.Should()
+                         .BeEmpty();
+    }
+
+    [Theory]
+    [InlineData(-50, CashDrawerViewModel.Short)]
+    [InlineData(20, CashDrawerViewModel.Over)]
+    [InlineData(0, CashDrawerViewModel.Exact)]
+    public async Task DifferenceText_WithACountedDrawer_SaysShortOverOrExact(int difference, string expected)
+    {
+        AnswerDay(Today, Summary(Today, isEditable: true) with { CountedCash = 1_000m, CashDifference = difference });
+        var vm = Drawer(Manager);
+
+        await vm.RefreshCommand.ExecuteAsync(null);
+
+        vm.DifferenceText.Should()
+                         .Be(expected);
+    }
+
+    [Fact]
+    public async Task SummaryRows_ForAMinimart_LeavesOutTheProductTypeSplit()
+    {
+        var vm = Drawer(Manager, Minimart);
+
+        await vm.RefreshCommand.ExecuteAsync(null);
+
+        vm.SummaryRows.Select(r => r.Title).Should()
+                                           .NotContain(CashDrawerViewModel.HardwareSales);
+    }
+
+    [Fact]
+    public async Task SummaryRows_ForAMinimart_LeavesOutPayLater()
+    {
+        var vm = Drawer(Manager, Minimart);
+
+        await vm.RefreshCommand.ExecuteAsync(null);
+
+        vm.SummaryRows.Select(r => r.Title).Should()
+                                           .NotContain(CashDrawerViewModel.DebtRepaid);
+    }
+
+    [Fact]
+    public async Task SummaryRows_WithTwoNonCashMethods_ListsBothByName()
+    {
+        AnswerDay(Today, Summary(Today, isEditable: true) with
+        {
+            NonCashPayments = [new("MoneyTransfer", "โอนเงิน", 300m), new("FiftyFifty", "คนละครึ่ง", 120m)]
+        });
+        var vm = Drawer(Manager);
+
+        await vm.RefreshCommand.ExecuteAsync(null);
+
+        vm.SummaryRows.Select(r => r.Title).Should()
+                                           .Contain(["โอนเงิน", "คนละครึ่ง"]);
+    }
+
+    [Fact]
+    public async Task SummaryRows_ForGeneralHardware_ShowsHardwareSales()
+    {
+        var vm = Drawer(Manager);
+
+        await vm.RefreshCommand.ExecuteAsync(null);
+
+        vm.SummaryRows.Select(r => r.Title).Should()
+                                           .Contain(CashDrawerViewModel.HardwareSales);
     }
 
     [Fact]
