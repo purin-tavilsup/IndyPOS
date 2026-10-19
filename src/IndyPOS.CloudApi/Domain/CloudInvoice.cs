@@ -21,6 +21,9 @@ public class CloudInvoice
     /// </summary>
     public long? InvoiceNumber { get; set; }
 
+    /// <summary>The store's day the sale belongs to, as StoreHub decided it. Null for an older or v3 bulk sale.</summary>
+    public DateOnly? BusinessDate { get; set; }
+
     // Navigation properties
     public ICollection<CloudInvoiceLine> Lines { get; set; } = new List<CloudInvoiceLine>();
     public ICollection<CloudPayment> Payments { get; set; } = new List<CloudPayment>();

@@ -41,8 +41,13 @@ internal sealed class EventPipeline : IAsyncDisposable
 
     public Task PollAsync() => _processor.ProcessPendingEventsAsync(CancellationToken.None);
 
+    /// <summary>
+    /// A sale as StoreHub sends it. Defaults to one 35-baht Cash payment for a 35-baht bill; a null
+    /// <paramref name="businessDate"/> or <paramref name="invoiceNumber"/> sends no key, as an older till did.
+    /// </summary>
     public async Task<InvoiceCompletedEvent> AddInvoiceCompletedAsync(
-        Guid? invoiceId = null, long? invoiceNumber = null, string storeId = "1")
+        Guid? invoiceId = null, long? invoiceNumber = null, string storeId = "1", DateOnly? businessDate = null,
+        decimal totalAmount = 35m, IReadOnlyList<PaymentSnapshot>? payments = null, DateTime? createdAtUtc = null)
     {
         var evt = new InvoiceCompletedEvent
         {
@@ -51,24 +56,27 @@ internal sealed class EventPipeline : IAsyncDisposable
             InvoiceNumber = invoiceNumber,
             StoreId = storeId,
             UserId = Guid.NewGuid(),
-            TotalAmount = 35m,
-            CreatedAtUtc = DateTime.UtcNow,
+            TotalAmount = totalAmount,
+            CreatedAtUtc = createdAtUtc ?? DateTime.UtcNow,
+            BusinessDate = businessDate,
             Lines = [new InvoiceLineSnapshot { LineId = Guid.NewGuid(), ProductId = Guid.NewGuid(), ProductName = "Nail", Quantity = 1, UnitPrice = 35m }],
-            Payments = [new PaymentSnapshot { PaymentId = Guid.NewGuid(), Method = "Cash", Amount = 35m }]
+            Payments = payments ?? [new PaymentSnapshot { PaymentId = Guid.NewGuid(), Method = "Cash", Amount = totalAmount }]
         };
 
-        await AddEventAsync("InvoiceCompleted", evt.EventId, SerializeAsTheStoreDid(evt, invoiceNumber));
+        await AddEventAsync("InvoiceCompleted", evt.EventId, SerializeAsTheStoreDid(evt));
 
         return evt;
     }
 
-    // A till from before bill numbers sent no InvoiceNumber key at all, not an explicit null.
-    private static string SerializeAsTheStoreDid(InvoiceCompletedEvent evt, long? invoiceNumber)
+    // A till from before bill numbers (or business dates) sent no such key at all, not an explicit null.
+    private static string SerializeAsTheStoreDid(InvoiceCompletedEvent evt)
     {
         var payload = JsonSerializer.SerializeToNode(evt)!.AsObject();
 
-        if (invoiceNumber is null)
+        if (evt.InvoiceNumber is null)
             payload.Remove(nameof(InvoiceCompletedEvent.InvoiceNumber));
+        if (evt.BusinessDate is null)
+            payload.Remove(nameof(InvoiceCompletedEvent.BusinessDate));
 
         return payload.ToJsonString();
     }

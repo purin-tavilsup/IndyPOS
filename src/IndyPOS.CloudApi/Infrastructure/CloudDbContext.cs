@@ -77,6 +77,10 @@ public class CloudDbContext : DbContext
             entity.Property(e => e.InvoiceNumber)
                   .HasComment("Bill number printed on the receipt, per store; v3 history keeps its v3 number. NULL for a sale synced before bill numbers existed.");
             entity.HasIndex(e => new { e.StoreId, e.InvoiceNumber });
+
+            entity.Property(e => e.BusinessDate)
+                  .HasComment("The store's day the sale belongs to (Asia/Bangkok calendar date), as StoreHub decided it. NULL for a sale synced before this field or bulk-migrated from v3; CashDrawerDays then uses its UTC date.");
+            entity.HasIndex(e => new { e.StoreId, e.BusinessDate });
         });
 
         // CloudInvoiceLine
