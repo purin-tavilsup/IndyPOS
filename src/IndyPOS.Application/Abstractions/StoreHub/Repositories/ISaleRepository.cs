@@ -9,7 +9,7 @@ namespace IndyPOS.Application.Abstractions.StoreHub.Repositories;
 public interface ISaleRepository
 {
     /// <summary>
-    /// Completes a sale atomically - creates invoice, lines, payments, inventory movements, and outbox event.
+    /// Completes a sale atomically - creates invoice, lines, payments, inventory movements, and outbox events.
     /// All operations are performed in a single transaction.
     /// </summary>
     Task<Invoice> CompleteSaleAsync(
@@ -17,7 +17,7 @@ public interface ISaleRepository
         IReadOnlyList<InvoiceLine> lines,
         IReadOnlyList<Payment> payments,
         IReadOnlyList<InventoryMovement> inventoryMovements,
-        OutboxEvent outboxEvent,
+        IReadOnlyList<OutboxEvent> outboxEvents,
         CancellationToken cancellationToken = default);
 
     /// <summary>

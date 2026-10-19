@@ -3,6 +3,7 @@ using IndyPOS.Application.Abstractions.StoreHub.Repositories;
 using IndyPOS.Application.Common.Exceptions;
 using IndyPOS.Application.Common.Interfaces;
 using IndyPOS.Application.UseCases.Cloud.Sync.Events;
+using IndyPOS.Application.UseCases.StoreHub.PayLater;
 using IndyPOS.Application.UseCases.StoreHub.PaymentMethods;
 using IndyPOS.Domain.Entities.Core;
 using Microsoft.Extensions.Logging;
@@ -195,13 +196,17 @@ public class CompleteSaleCommandHandler : ICommandHandler<CompleteSaleCommand, C
             Status = "Pending"
         };
 
+        // Spec 2026-10-19 §3: each new debt reaches the cloud in the sale's own save, so it can't be lost.
+        var debtEvents = payments.Where(p => p.PayLater is not null)
+                                 .Select(p => PayLaterOutbox.Changed(p.PayLater!, command.StoreId, now));
+
         // Complete the sale atomically
         await _saleRepository.CompleteSaleAsync(
             invoice,
             lines,
             payments,
             inventoryMovements,
-            outboxEvent,
+            [outboxEvent, .. debtEvents],
             cancellationToken);
 
         _logger.LogInformation(
