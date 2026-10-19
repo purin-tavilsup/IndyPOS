@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace IndyPOS.CloudApi.Infrastructure.Migrations
 {
     [DbContext(typeof(CloudDbContext))]
-    [Migration("20261019131212_AddPayLaterMirror")]
+    [Migration("20261019134046_AddPayLaterMirror")]
     partial class AddPayLaterMirror
     {
         /// <inheritdoc />
@@ -544,7 +544,7 @@ namespace IndyPOS.CloudApi.Infrastructure.Migrations
 
                     b.Property<DateTime>("LastModifiedAtUtc")
                         .HasColumnType("timestamp with time zone")
-                        .HasComment("When the debt last changed (a repayment), UTC. The newest version wins.");
+                        .HasComment("When the debt last changed (a repayment), UTC. The newest or equal version wins.");
 
                     b.Property<int?>("LegacyPaymentId")
                         .HasColumnType("integer")
@@ -636,7 +636,7 @@ namespace IndyPOS.CloudApi.Infrastructure.Migrations
 
                     b.ToTable("PayLaterRepayments", null, t =>
                         {
-                            t.HasComment("Every repayment taken on a store's ลงบัญชี screen (insert-only audit), with the cashier. Sum per PayLaterId for v4 repayments; v3 debts carry no repayment history, only PaidAmount. Not the cash drawer's DebtRepayments, which record cash entering the drawer.");
+                            t.HasComment("Every repayment taken on a store's ลงบัญชี screen (insert-only audit), with the cashier. A v3 debt has no rows for repayments made on v3 (its PaidAmount includes them), but does have rows for repayments made on v4. Not the cash drawer's DebtRepayments, which record cash entering the drawer.");
                         });
                 });
 

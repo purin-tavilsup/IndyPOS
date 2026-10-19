@@ -35,14 +35,14 @@ internal static class PayLaterMirrorModel
                   .HasComputedColumnSql("\"LegacyPaymentId\" IS NOT NULL", stored: true)
                   .HasComment("True for a debt migrated from v3, computed by the database from LegacyPaymentId.");
             entity.Property(e => e.CreatedAtUtc).HasComment("When the debt was taken, UTC.");
-            entity.Property(e => e.LastModifiedAtUtc).HasComment("When the debt last changed (a repayment), UTC. The newest version wins.");
+            entity.Property(e => e.LastModifiedAtUtc).HasComment("When the debt last changed (a repayment), UTC. The newest or equal version wins.");
             entity.Property(e => e.SyncedAtUtc).HasComment("When the latest version of this debt reached the cloud, UTC.");
         });
 
         modelBuilder.Entity<CloudPayLaterRepayment>(entity =>
         {
             entity.ToTable("PayLaterRepayments", t => t.HasComment(
-                $"Every repayment taken on a store's ลงบัญชี screen (insert-only audit), with the cashier. Sum per PayLaterId for v4 repayments; v3 debts carry no repayment history, only PaidAmount. {NotTheDrawer}"));
+                $"Every repayment taken on a store's ลงบัญชี screen (insert-only audit), with the cashier. A v3 debt has no rows for repayments made on v3 (its PaidAmount includes them), but does have rows for repayments made on v4. {NotTheDrawer}"));
             entity.HasKey(e => e.Id);
             entity.HasIndex(e => new { e.StoreId, e.BusinessDate });
             entity.HasOne<CloudPayLater>()
