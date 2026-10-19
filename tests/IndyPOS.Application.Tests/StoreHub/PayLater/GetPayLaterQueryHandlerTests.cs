@@ -210,4 +210,57 @@ public class GetPayLaterQueryHandlerTests
         result.Items.Should().BeEmpty();
         result.TotalOutstanding.Should().Be(0);
     }
+
+    // The cash drawer lists the ลงบัญชี taken on one store day, so the till need not fetch every debt ever.
+    [Fact]
+    public async Task HandleAsync_WithCreatedOn_LeavesOutOtherDays()
+    {
+        await using var dbContext = CreateDbContext();
+        var store = BangkokStore();
+        var handler = new GetPayLaterQueryHandler(new PayLaterRepository(dbContext, store), store);
+        var today = TakenAt(CreatePayLater(dbContext, "ลุงสมชาย", 200m), TenAmBangkok);
+        var yesterday = TakenAt(CreatePayLater(dbContext, "ป้าแดง", 90m), TenAmBangkok.AddDays(-1));
+        dbContext.PayLaters.AddRange(today, yesterday);
+        await dbContext.SaveChangesAsync();
+
+        var result = await handler.HandleAsync(new GetPayLaterQuery(IncludeCompleted: true, CreatedOn: Day));
+
+        result.Items.Select(i => i.Description).Should()
+                                               .Equal("ลุงสมชาย");
+    }
+
+    // 00:30 in Bangkok is already that day there, though UTC is still on the day before (17:30).
+    [Fact]
+    public async Task HandleAsync_WithCreatedOn_UsesTheStoresCalendarDay()
+    {
+        await using var dbContext = CreateDbContext();
+        var store = BangkokStore();
+        var handler = new GetPayLaterQueryHandler(new PayLaterRepository(dbContext, store), store);
+        dbContext.PayLaters.Add(TakenAt(CreatePayLater(dbContext, "ลุงสมชาย", 200m), new DateTime(2026, 10, 18, 17, 30, 0, DateTimeKind.Utc)));
+        await dbContext.SaveChangesAsync();
+
+        var result = await handler.HandleAsync(new GetPayLaterQuery(IncludeCompleted: true, CreatedOn: Day));
+
+        result.Items.Should()
+                    .ContainSingle();
+    }
+
+    private static readonly DateOnly Day = new(2026, 10, 19);
+
+    private static MockStoreIdentityService BangkokStore()
+    {
+        var store = MockStoreIdentityService.GeneralHardware();
+        store.TimeZone = TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time");
+        return store;
+    }
+
+    /// <summary>10:00 Bangkok on <see cref="Day"/>.</summary>
+    private static readonly DateTime TenAmBangkok = new(2026, 10, 19, 3, 0, 0, DateTimeKind.Utc);
+
+    private static Domain.Entities.Core.PayLater TakenAt(Domain.Entities.Core.PayLater payLater, DateTime createdUtc)
+    {
+        payLater.CreatedUtc = createdUtc;
+        payLater.LastModifiedUtc = createdUtc;
+        return payLater;
+    }
 }

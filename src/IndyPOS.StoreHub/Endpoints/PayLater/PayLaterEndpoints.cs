@@ -15,18 +15,20 @@ public static class PayLaterEndpoints
         return app;
     }
 
-    // List pay-later records
+    // List pay-later records; createdOn keeps only the debts taken on that store day (the cash drawer).
     private static void MapListDebts(IEndpointRouteBuilder app)
     {
         app.MapGet("/pay-later", async (
             IQueryHandler<GetPayLaterQuery, GetPayLaterResponse> handler,
             bool? includeCompleted,
             string? search,
+            DateOnly? createdOn,
             CancellationToken cancellationToken) =>
         {
             var query = new GetPayLaterQuery(
                 IncludeCompleted: includeCompleted ?? false,
-                SearchTerm: search);
+                SearchTerm: search,
+                CreatedOn: createdOn);
 
             var result = await handler.HandleAsync(query, cancellationToken);
             return Results.Ok(result);

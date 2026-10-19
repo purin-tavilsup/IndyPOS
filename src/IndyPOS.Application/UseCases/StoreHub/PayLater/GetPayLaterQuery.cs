@@ -1,4 +1,5 @@
 using IndyPOS.Application.Abstractions.StoreHub.Repositories;
+using IndyPOS.Application.Common.Authorization;
 using IndyPOS.Application.Common.Interfaces;
 using Nokpirab;
 
@@ -7,9 +8,11 @@ namespace IndyPOS.Application.UseCases.StoreHub.PayLater;
 /// <summary>
 /// Query to get PayLater records with optional filtering.
 /// </summary>
+/// <param name="CreatedOn">Only the debts taken on this store day (the store's own calendar), e.g. the cash drawer's day.</param>
 public record GetPayLaterQuery(
     bool IncludeCompleted = false,
-    string? SearchTerm = null) : IQuery<GetPayLaterResponse>;
+    string? SearchTerm = null,
+    DateOnly? CreatedOn = null) : IQuery<GetPayLaterResponse>;
 
 /// <summary>
 /// Handler for GetPayLaterQuery.
@@ -48,6 +51,7 @@ public class GetPayLaterQueryHandler : IQueryHandler<GetPayLaterQuery, GetPayLat
             cancellationToken);
 
         var items = payLaters
+            .Where(p => query.CreatedOn is not { } day || TodayOnlyRule.BusinessDateOf(p.CreatedUtc, _storeIdentity.TimeZone) == day)
             .Select(p => new PayLaterDto(
                 p.Id,
                 p.PaymentId,
