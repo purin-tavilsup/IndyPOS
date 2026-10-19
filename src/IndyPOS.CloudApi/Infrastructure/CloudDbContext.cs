@@ -36,6 +36,12 @@ public class CloudDbContext : DbContext
     // Idempotency - tracks processed events
     public DbSet<ProcessedEvent> ProcessedEvents => Set<ProcessedEvent>();
 
+    // Cash drawer mirror (CashDrawerMirrorModel), read by dashboards and AI agents
+    public DbSet<CloudCashPayout> CashPayouts => Set<CloudCashPayout>();
+    public DbSet<CloudCashFloat> CashFloats => Set<CloudCashFloat>();
+    public DbSet<CloudDebtRepayment> DebtRepayments => Set<CloudDebtRepayment>();
+    public DbSet<CloudCashCount> CashCounts => Set<CloudCashCount>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         // SyncedEventEntity (inbox)
@@ -179,6 +185,8 @@ public class CloudDbContext : DbContext
             entity.Property(e => e.FirstName).HasMaxLength(100);
             entity.Property(e => e.LastName).HasMaxLength(100);
         });
+
+        CashDrawerMirrorModel.Configure(modelBuilder);
 
         // OpenIddict's EF entities (application, authorization, scope, token) are
         // registered against this context by AddCore().UseDbContext<CloudDbContext>(),

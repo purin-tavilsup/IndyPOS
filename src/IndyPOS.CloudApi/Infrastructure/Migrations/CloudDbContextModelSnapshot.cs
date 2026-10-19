@@ -79,6 +79,285 @@ namespace IndyPOS.CloudApi.Infrastructure.Migrations
                     b.ToTable("SyncedEvents");
                 });
 
+            modelBuilder.Entity("IndyPOS.CloudApi.Domain.CloudCashCount", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasComment("The store's own id for this row, so it can be traced back to the till.");
+
+                    b.Property<int>("BankNote1000Count")
+                        .HasColumnType("integer")
+                        .HasComment("Number of 1000-baht banknotes counted.");
+
+                    b.Property<int>("BankNote100Count")
+                        .HasColumnType("integer")
+                        .HasComment("Number of 100-baht banknotes counted.");
+
+                    b.Property<int>("BankNote20Count")
+                        .HasColumnType("integer")
+                        .HasComment("Number of 20-baht banknotes counted.");
+
+                    b.Property<int>("BankNote500Count")
+                        .HasColumnType("integer")
+                        .HasComment("Number of 500-baht banknotes counted.");
+
+                    b.Property<int>("BankNote50Count")
+                        .HasColumnType("integer")
+                        .HasComment("Number of 50-baht banknotes counted.");
+
+                    b.Property<DateOnly>("BusinessDate")
+                        .HasColumnType("date")
+                        .HasComment("The store's cash day (Asia/Bangkok calendar date) the row belongs to.");
+
+                    b.Property<int>("Coin10Count")
+                        .HasColumnType("integer")
+                        .HasComment("Number of 10-baht coins counted.");
+
+                    b.Property<int>("Coin1Count")
+                        .HasColumnType("integer")
+                        .HasComment("Number of 1-baht coins counted.");
+
+                    b.Property<int>("Coin2Count")
+                        .HasColumnType("integer")
+                        .HasComment("Number of 2-baht coins counted.");
+
+                    b.Property<int>("Coin5Count")
+                        .HasColumnType("integer")
+                        .HasComment("Number of 5-baht coins counted.");
+
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasComment("When the count was taken, UTC.");
+
+                    b.Property<Guid>("CreatedByUserId")
+                        .HasColumnType("uuid")
+                        .HasComment("Who counted, as Users.Id. A store's own seeded admin has no Users row.");
+
+                    b.Property<DateTime>("LastModifiedAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasComment("Equals CreatedAtUtc; a count is never edited.");
+
+                    b.Property<string>("StoreId")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasComment("The store this row belongs to.");
+
+                    b.Property<DateTime>("SyncedAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasComment("When the latest version of this row reached the cloud, UTC.");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("StoreId", "BusinessDate");
+
+                    b.HasIndex("StoreId", "BusinessDate", "CreatedAtUtc");
+
+                    b.ToTable("CashCounts", null, t =>
+                        {
+                            t.HasComment("Every cash count of a store's drawer (insert-only). The latest row per StoreId+BusinessDate is the count used for the cash difference; earlier rows are audit history.");
+                        });
+                });
+
+            modelBuilder.Entity("IndyPOS.CloudApi.Domain.CloudCashFloat", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasComment("The store's own id for this row, so it can be traced back to the till.");
+
+                    b.Property<decimal>("Amount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasComment("Baht.");
+
+                    b.Property<DateOnly>("BusinessDate")
+                        .HasColumnType("date")
+                        .HasComment("The store's cash day (Asia/Bangkok calendar date) the row belongs to.");
+
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasComment("When the entry was first saved, UTC.");
+
+                    b.Property<Guid>("CreatedByUserId")
+                        .HasColumnType("uuid")
+                        .HasComment("Who added the entry, as Users.Id. A store's own seeded admin has no Users row.");
+
+                    b.Property<DateTime?>("DeletedAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasComment("When it was deleted, UTC. Null if not deleted.");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasComment("A note the cashier typed. Optional.");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean")
+                        .HasComment("True when the entry was deleted at the till. Kept for audit.");
+
+                    b.Property<DateTime>("LastModifiedAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasComment("When the entry last changed (edit or delete), UTC. The newest version wins.");
+
+                    b.Property<Guid?>("LastModifiedByUserId")
+                        .HasColumnType("uuid")
+                        .HasComment("Who last edited or deleted it, as Users.Id. Null if never changed.");
+
+                    b.Property<string>("StoreId")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasComment("The store this row belongs to.");
+
+                    b.Property<DateTime>("SyncedAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasComment("When the latest version of this row reached the cloud, UTC.");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("StoreId", "BusinessDate");
+
+                    b.ToTable("CashFloats", null, t =>
+                        {
+                            t.HasComment("Money put into a store's cash drawer as change float (เงินทอน), one row per entry, mirrored from StoreHub. Rows with IsDeleted are cancelled entries kept for audit; leave them out of totals.");
+                        });
+                });
+
+            modelBuilder.Entity("IndyPOS.CloudApi.Domain.CloudCashPayout", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasComment("The store's own id for this row, so it can be traced back to the till.");
+
+                    b.Property<decimal>("Amount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasComment("Baht.");
+
+                    b.Property<DateOnly>("BusinessDate")
+                        .HasColumnType("date")
+                        .HasComment("The store's cash day (Asia/Bangkok calendar date) the row belongs to.");
+
+                    b.Property<string>("Category")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasComment("General (เบ็ดเตล็ด) or Hardware; which goods the payout was for.");
+
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasComment("When the entry was first saved, UTC.");
+
+                    b.Property<Guid>("CreatedByUserId")
+                        .HasColumnType("uuid")
+                        .HasComment("Who added the entry, as Users.Id. A store's own seeded admin has no Users row.");
+
+                    b.Property<DateTime?>("DeletedAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasComment("When it was deleted, UTC. Null if not deleted.");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasComment("What the money was for, as the cashier typed it. Optional.");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean")
+                        .HasComment("True when the entry was deleted at the till. Kept for audit.");
+
+                    b.Property<DateTime>("LastModifiedAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasComment("When the entry last changed (edit or delete), UTC. The newest version wins.");
+
+                    b.Property<Guid?>("LastModifiedByUserId")
+                        .HasColumnType("uuid")
+                        .HasComment("Who last edited or deleted it, as Users.Id. Null if never changed.");
+
+                    b.Property<string>("StoreId")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasComment("The store this row belongs to.");
+
+                    b.Property<DateTime>("SyncedAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasComment("When the latest version of this row reached the cloud, UTC.");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("StoreId", "BusinessDate");
+
+                    b.ToTable("CashPayouts", null, t =>
+                        {
+                            t.HasComment("Money taken out of a store's cash drawer (รายจ่าย), one row per entry, mirrored from StoreHub. Rows with IsDeleted are cancelled entries kept for audit; leave them out of totals.");
+                        });
+                });
+
+            modelBuilder.Entity("IndyPOS.CloudApi.Domain.CloudDebtRepayment", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasComment("The store's own id for this row, so it can be traced back to the till.");
+
+                    b.Property<decimal>("Amount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasComment("Baht.");
+
+                    b.Property<DateOnly>("BusinessDate")
+                        .HasColumnType("date")
+                        .HasComment("The store's cash day (Asia/Bangkok calendar date) the row belongs to.");
+
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasComment("When the entry was first saved, UTC.");
+
+                    b.Property<Guid>("CreatedByUserId")
+                        .HasColumnType("uuid")
+                        .HasComment("Who added the entry, as Users.Id. A store's own seeded admin has no Users row.");
+
+                    b.Property<string>("CustomerName")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasComment("Who paid, as the cashier typed it.");
+
+                    b.Property<DateTime?>("DeletedAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasComment("When it was deleted, UTC. Null if not deleted.");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean")
+                        .HasComment("True when the entry was deleted at the till. Kept for audit.");
+
+                    b.Property<DateTime>("LastModifiedAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasComment("When the entry last changed (edit or delete), UTC. The newest version wins.");
+
+                    b.Property<Guid?>("LastModifiedByUserId")
+                        .HasColumnType("uuid")
+                        .HasComment("Who last edited or deleted it, as Users.Id. Null if never changed.");
+
+                    b.Property<string>("StoreId")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasComment("The store this row belongs to.");
+
+                    b.Property<DateTime>("SyncedAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasComment("When the latest version of this row reached the cloud, UTC.");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("StoreId", "BusinessDate");
+
+                    b.ToTable("DebtRepayments", null, t =>
+                        {
+                            t.HasComment("Cash a customer paid into the drawer to settle PayLater debt (ลูกค้าชำระหนี้), mirrored from StoreHub. Not linked to a PayLater row. Rows with IsDeleted are cancelled entries kept for audit; leave them out of totals.");
+                        });
+                });
+
             modelBuilder.Entity("IndyPOS.CloudApi.Domain.CloudInventoryMovement", b =>
                 {
                     b.Property<Guid>("Id")
