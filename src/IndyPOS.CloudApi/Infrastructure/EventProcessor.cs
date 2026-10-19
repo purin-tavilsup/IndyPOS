@@ -1,6 +1,7 @@
 using System.Text.Json;
 using IndyPOS.Application.Abstractions.Cloud.Repositories;
 using IndyPOS.Application.UseCases.Cloud.Sync.Events;
+using IndyPOS.Application.UseCases.StoreHub.CashDrawer.Common;
 using IndyPOS.CloudApi.Domain;
 using Microsoft.EntityFrameworkCore;
 
@@ -18,11 +19,16 @@ public class EventProcessor : BackgroundService
 
     /// <summary>
     /// The event types this processor has a handler for. Only these are fetched from the inbox:
-    /// stores already send types the cloud cannot handle yet (the cash-drawer events), and those
+    /// a store upgraded before its cloud can send types the cloud cannot handle yet, and those
     /// must wait for their handler rather than be marked processed and lost, or fill the batch and
     /// starve the sales behind them. A new handler goes here and in the switch together.
     /// </summary>
-    internal static readonly IReadOnlyCollection<string> HandledEventTypes = ["InvoiceCompleted", "InvoiceReprinted"];
+    internal static readonly IReadOnlyCollection<string> HandledEventTypes =
+    [
+        "InvoiceCompleted", "InvoiceReprinted",
+        CashDrawerOutbox.CashPayoutChanged, CashDrawerOutbox.CashFloatChanged, CashDrawerOutbox.DebtRepaymentChanged,
+        CashDrawerOutbox.CashCountChanged
+    ];
 
     /// <summary>
     /// Backoff for a failed event, as the store outbox does (SyncWorker): fast at first, because a
@@ -143,6 +149,22 @@ public class EventProcessor : BackgroundService
 
             case "InvoiceReprinted":
                 await ProcessInvoiceReprintedAsync(syncedEvent, dbContext, cancellationToken);
+                break;
+
+            case CashDrawerOutbox.CashPayoutChanged:
+                await CashDrawerMirror.ProcessPayoutAsync(syncedEvent, dbContext, cancellationToken);
+                break;
+
+            case CashDrawerOutbox.CashFloatChanged:
+                await CashDrawerMirror.ProcessFloatAsync(syncedEvent, dbContext, cancellationToken);
+                break;
+
+            case CashDrawerOutbox.DebtRepaymentChanged:
+                await CashDrawerMirror.ProcessDebtRepaymentAsync(syncedEvent, dbContext, cancellationToken);
+                break;
+
+            case CashDrawerOutbox.CashCountChanged:
+                await CashDrawerMirror.ProcessCashCountAsync(syncedEvent, dbContext, cancellationToken);
                 break;
 
             // Only HandledEventTypes are fetched, so this means the list and the switch disagree.

@@ -353,6 +353,15 @@ snapshots differed only by `IX_Invoices_StoreId_InvoiceNumber` (non-unique) and 
 and a `ProcessedEvents` row all succeeded. Verified 2026-10-02 with `postgres:16-alpine` in a throwaway
 `gate-cloud2` container on port 55514. `AddSyncedEventSourceStore` is not part of this run.
 
+Result for cash drawer D2, cloud (1 migration, `AddCashDrawerMirror`): applied up to the previous
+release's last cloud migration (`20261002102910_AddSyncedEventSourceStore`), then to
+`20261019051410_AddCashDrawerMirror`. The `information_schema.columns` snapshots differed only by the
+four new tables (`CashPayouts` 13 columns, `CashFloats` 12, `DebtRepayments` 12, `CashCounts` 16); no
+existing column changed. The `pg_indexes` snapshots differed only by their four primary keys and five
+`(StoreId, BusinessDate…)` indexes. A `SyncedEvents` row naming only the previous release's columns,
+then the processed `UPDATE`, both succeeded. Verified 2026-10-18 with `postgres:16-alpine` in a
+throwaway `gate-cloud` container on port 55511 (bash, `env` form).
+
 Together with the route tidy-up run above, this covers a rollback from the latest cloud schema to
 `RemoveClientSecretHash`-era binaries: every column added since is nullable or has a default, so an
 INSERT naming only that era's columns succeeds against the latest schema.
@@ -369,3 +378,4 @@ INSERT naming only that era's columns succeeds against the latest schema.
 | 2026-10-01 | Ran the gate against the invoice-history release's 2 migrations (AddInvoiceNumber, AddInvoiceReprintTable) |
 | 2026-10-02 | Ran the gate against the route tidy-up release's 2 migrations (StoreHub `AddInventoryMovementUser`, cloud `AddSyncedEventSourceStore`); added the cloud variant of the recipe |
 | 2026-10-02 | Ran the gate against invoice-history plan 2's 3 cloud migrations (`AddInvoiceNumberToInvoices`, `AddInboxRetrySchedule`, `AddInvoiceReprints`); the cloud recipe now covers bash, `pg_indexes` and cleanup |
+| 2026-10-18 | Ran the cloud gate against cash drawer D2's `AddCashDrawerMirror` (four new tables only) |
