@@ -27,7 +27,7 @@ namespace IndyPOS.CloudApi.Infrastructure.Migrations
                     LegacyPaymentId = table.Column<int>(type: "integer", nullable: true, comment: "The v3 PaymentId of a debt migrated from v3; null for a v4 debt."),
                     IsFromV3 = table.Column<bool>(type: "boolean", nullable: false, computedColumnSql: "\"LegacyPaymentId\" IS NOT NULL", stored: true, comment: "True for a debt migrated from v3, computed by the database from LegacyPaymentId."),
                     CreatedAtUtc = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, comment: "When the debt was taken, UTC."),
-                    LastModifiedAtUtc = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, comment: "When the debt last changed (a repayment), UTC. The newest version wins."),
+                    LastModifiedAtUtc = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, comment: "When the debt last changed (a repayment), UTC. The newest or equal version wins."),
                     SyncedAtUtc = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, comment: "When the latest version of this debt reached the cloud, UTC.")
                 },
                 constraints: table =>
@@ -59,7 +59,7 @@ namespace IndyPOS.CloudApi.Infrastructure.Migrations
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
                 },
-                comment: "Every repayment taken on a store's ลงบัญชี screen (insert-only audit), with the cashier. Sum per PayLaterId for v4 repayments; v3 debts carry no repayment history, only PaidAmount. Not the cash drawer's DebtRepayments, which record cash entering the drawer.");
+                comment: "Every repayment taken on a store's ลงบัญชี screen (insert-only audit), with the cashier. A v3 debt has no rows for repayments made on v3 (its PaidAmount includes them), but does have rows for repayments made on v4. Not the cash drawer's DebtRepayments, which record cash entering the drawer.");
 
             migrationBuilder.CreateIndex(
                 name: "IX_PayLaterRepayments_PayLaterId",
