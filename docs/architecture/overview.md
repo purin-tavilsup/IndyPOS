@@ -232,8 +232,9 @@ IndyPOS/
 ### ID Strategy
 
 - **Guid IDs**: Used for all new entities (distributed-safe)
-- **Legacy int IDs**: kept as nullable `Legacy*Id` columns on rows migrated from v3, for traceability; the v3
-  SQLite database is read only by the MigrationTool
+- **Legacy int IDs**: kept as `Legacy*Id` columns on rows migrated from v3, for traceability, nullable on most
+  tables. `StoreUser.LegacyUserId` is the exception: a required, unique `int`. The v3 SQLite database is read only
+  by the MigrationTool
 
 ## Related Documentation
 

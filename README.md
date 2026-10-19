@@ -69,7 +69,7 @@ dotnet test
 |-----------|------------|
 | Desktop UI | Windows.Forms (.NET 10), ViewModels with CommunityToolkit.Mvvm (Avalonia port planned) |
 | APIs | ASP.NET Core Minimal APIs (StoreHub per store, CloudApi central) |
-| Database | PostgreSQL 18 with EF Core 10 (Npgsql) |
+| Database | PostgreSQL with EF Core 10 (Npgsql): the store installer sets up 18; the Docker dev and cloud compose files use 16; any 16+ works |
 | CQRS | Nokpirab |
 | Auth | StoreHub: JWT + BCrypt + role capabilities. CloudApi: OpenIddict client credentials per store |
 | Secrets | DPAPI (`IndyPOS.Vault`): connection string and JWT key |
