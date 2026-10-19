@@ -47,6 +47,10 @@ public sealed class CashCountView : UserControl
         foreach (var count in _counts)
             count.Box.TextChanged += (_, _) => WriteCount(count.Box, count.Write);
 
+        // Text that is not a number already counts as 0, so the ViewModel's Reset changes nothing and would leave
+        // it showing; Reset clears it here.
+        _reset.Click += (_, _) => ClearTextThatIsNotANumber();
+
         TillGrid.AddColumn(_history, "เวลา", 80, "HH:mm");
         TillGrid.AddColumn(_history, "ผู้นับ", 200);
         TillGrid.AddColumn(_history, "ยอดนับ", 130, "N2");
@@ -132,6 +136,12 @@ public sealed class CashCountView : UserControl
         var shown = int.TryParse(box.Text, out var typed) ? typed : 0;
         if (shown != count)
             box.Text = count.ToString();
+    }
+
+    private void ClearTextThatIsNotANumber()
+    {
+        foreach (var count in _counts.Where(c => !int.TryParse(c.Box.Text, out _)))
+            count.Box.Text = "0";
     }
 
     private void RefillHistory()
