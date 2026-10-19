@@ -221,7 +221,7 @@ public partial class MainForm : Form
 		SwitchToPanel(SubPanel.Reports);
 	}
 
-	private void CashDrawerButton_Click(object sender, EventArgs e)
+	private void CashDrawerMenuButton_Click(object sender, EventArgs e)
 	{
 		if (!_isUserLoggedIn || !CanManageCash())
 			return;
@@ -334,7 +334,7 @@ public partial class MainForm : Form
 	{
 		AccountsReceivableButton.Visible = showAccountsReceivable;
 		ReportsButton.Visible = showReports;
-		CashDrawerButton.Visible = showCashDrawer;
+		CashDrawerMenuButton.Visible = showCashDrawer;
 
 		// Nine equal slots from the laid-out panel, so display scaling is already in them (Pond, 2026-10-19:
 		// shorter buttons are fine while each icon and caption still fits; MenuLayoutTests checks that).
@@ -348,7 +348,7 @@ public partial class MainForm : Form
 	private const int MenuGap = 6;
 
 	private Control[] AllMenuButtons() =>
-		[SaleButton, CashDrawerButton, InventoryButton, UsersButton, ReportsButton, AccountsReceivableButton,
+		[SaleButton, CashDrawerMenuButton, InventoryButton, UsersButton, ReportsButton, AccountsReceivableButton,
 		 SettingsButton, LogInButton, CloseApplicationButton];
 
 	// Cashiers, managers and admins all run the drawer; the gate keeps any other role out (spec §6).
@@ -362,7 +362,7 @@ public partial class MainForm : Form
 	private Control[] ShownMenuButtons(bool showAccountsReceivable, bool showReports, bool showCashDrawer) =>
 		AllMenuButtons().Where(button => (button != AccountsReceivableButton || showAccountsReceivable)
 										 && (button != ReportsButton || showReports)
-										 && (button != CashDrawerButton || showCashDrawer))
+										 && (button != CashDrawerMenuButton || showCashDrawer))
 						.ToArray();
 
 	private void OnUserLoggedOut()

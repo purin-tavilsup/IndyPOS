@@ -53,7 +53,7 @@
             this.UsersButton = new System.Windows.Forms.Button();
             this.InventoryButton = new System.Windows.Forms.Button();
             this.SaleButton = new System.Windows.Forms.Button();
-            this.CashDrawerButton = new System.Windows.Forms.Button();
+            this.CashDrawerMenuButton = new System.Windows.Forms.Button();
             this.NavigationPanel.SuspendLayout();
             this.panel2.SuspendLayout();
             this.panel1.SuspendLayout();
@@ -261,7 +261,7 @@
             this.ControlPanel.Controls.Add(this.ReportsButton);
             this.ControlPanel.Controls.Add(this.UsersButton);
             this.ControlPanel.Controls.Add(this.InventoryButton);
-            this.ControlPanel.Controls.Add(this.CashDrawerButton);
+            this.ControlPanel.Controls.Add(this.CashDrawerMenuButton);
             this.ControlPanel.Controls.Add(this.SaleButton);
             this.ControlPanel.Dock = System.Windows.Forms.DockStyle.Left;
             this.ControlPanel.Location = new System.Drawing.Point(0, 52);
@@ -359,23 +359,23 @@
             this.ReportsButton.UseVisualStyleBackColor = false;
             this.ReportsButton.Click += new System.EventHandler(this.ReportsButton_Click);
             // 
-            // CashDrawerButton
+            // CashDrawerMenuButton
             // 
-            this.CashDrawerButton.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
-            this.CashDrawerButton.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
-            this.CashDrawerButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.CashDrawerButton.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.CashDrawerButton.ForeColor = System.Drawing.Color.DarkGray;
-            this.CashDrawerButton.Image = global::IndyPOS.Windows.Forms.Properties.Resources.Money_50;
-            this.CashDrawerButton.Location = new System.Drawing.Point(3, 110);
-            this.CashDrawerButton.Name = "CashDrawerButton";
-            this.CashDrawerButton.Size = new System.Drawing.Size(292, 101);
-            this.CashDrawerButton.TabIndex = 8;
-            this.CashDrawerButton.Text = "ลิ้นชักเก็บเงิน";
-            this.CashDrawerButton.TextAlign = System.Drawing.ContentAlignment.BottomCenter;
-            this.CashDrawerButton.TextImageRelation = System.Windows.Forms.TextImageRelation.ImageAboveText;
-            this.CashDrawerButton.UseVisualStyleBackColor = false;
-            this.CashDrawerButton.Click += new System.EventHandler(this.CashDrawerButton_Click);
+            this.CashDrawerMenuButton.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
+            this.CashDrawerMenuButton.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
+            this.CashDrawerMenuButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.CashDrawerMenuButton.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.CashDrawerMenuButton.ForeColor = System.Drawing.Color.DarkGray;
+            this.CashDrawerMenuButton.Image = global::IndyPOS.Windows.Forms.Properties.Resources.Money_50;
+            this.CashDrawerMenuButton.Location = new System.Drawing.Point(3, 110);
+            this.CashDrawerMenuButton.Name = "CashDrawerMenuButton";
+            this.CashDrawerMenuButton.Size = new System.Drawing.Size(292, 101);
+            this.CashDrawerMenuButton.TabIndex = 8;
+            this.CashDrawerMenuButton.Text = "ลิ้นชักเก็บเงิน";
+            this.CashDrawerMenuButton.TextAlign = System.Drawing.ContentAlignment.BottomCenter;
+            this.CashDrawerMenuButton.TextImageRelation = System.Windows.Forms.TextImageRelation.ImageAboveText;
+            this.CashDrawerMenuButton.UseVisualStyleBackColor = false;
+            this.CashDrawerMenuButton.Click += new System.EventHandler(this.CashDrawerMenuButton_Click);
             // 
             // UsersButton
             // 
@@ -469,7 +469,7 @@
         private System.Windows.Forms.Button UsersButton;
         private System.Windows.Forms.Button SettingsButton;
         private System.Windows.Forms.Button ReportsButton;
-        private System.Windows.Forms.Button CashDrawerButton;
+        private System.Windows.Forms.Button CashDrawerMenuButton;
         private System.Windows.Forms.Button AccountsReceivableButton;
         private System.Windows.Forms.Button LogInButton;
         private System.Windows.Forms.Label StoreNameLabel;

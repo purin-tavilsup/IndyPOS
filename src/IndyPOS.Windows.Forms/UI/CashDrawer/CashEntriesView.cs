@@ -177,7 +177,9 @@ public sealed class CashEntriesView : UserControl
         }
     }
 
-    // Inputs on one line, the buttons on the next: one line of both does not fit the middle column.
+    // Amount and text on one line; the category (payouts only) and the buttons on the next. The break sits on
+    // the text box, never on the category, because a hidden control's break is ignored on screen (seen live
+    // 2026-10-19: ลบ wrapped alone onto a third line in the lists without a category).
     private FlowLayoutPanel InputRow()
     {
         var row = new FlowLayoutPanel
@@ -188,9 +190,8 @@ public sealed class CashEntriesView : UserControl
             BackColor = TillStyle.Background,
             Padding = new Padding(0, 4, 0, 0)
         };
-        row.Controls.AddRange([_amount, _text, _category]);
-        row.SetFlowBreak(_category, true);
-        row.Controls.AddRange([_add, _edit, _delete]);
+        row.Controls.AddRange([_amount, _text, _category, _add, _edit, _delete]);
+        row.SetFlowBreak(_text, true);
 
         return row;
     }
