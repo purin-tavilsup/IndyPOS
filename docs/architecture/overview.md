@@ -9,8 +9,8 @@ IndyPOS is a Point-of-Sale system designed for small retail stores with offline-
 │                           STORE LOCATION                                     │
 │                                                                              │
 │   ┌─────────────────┐     ┌─────────────────┐                               │
-│   │   Desktop POS   │     │   Tablet POS    │                               │
-│   │  (WinForms)     │     │  (Future: MAUI) │                               │
+│   │   Desktop POS   │     │  Avalonia POS   │                               │
+│   │  (WinForms)     │     │  (Future)       │                               │
 │   └────────┬────────┘     └────────┬────────┘                               │
 │            │                       │                                         │
 │            └───────────┬───────────┘                                         │
@@ -65,12 +65,15 @@ IndyPOS is a Point-of-Sale system designed for small retail stores with offline-
 | Component | Technology | Purpose |
 |-----------|------------|---------|
 | Desktop UI | Windows.Forms (.NET 10) | Current POS interface |
+| Till ViewModels | CommunityToolkit.Mvvm (`IndyPOS.Presentation`) | UI logic with no WinForms, for the planned Avalonia port |
 | Local API | ASP.NET Core Minimal APIs | StoreHub service |
 | Local Database | PostgreSQL 18 + EF Core | Transactional data |
 | Cloud API | ASP.NET Core | Central sync endpoint |
 | Cloud Database | PostgreSQL (Managed) | Aggregated data |
 | Dev Orchestration | .NET Aspire | Local development |
-| Auth | JWT + BCrypt + RBAC | Security |
+| Auth | JWT + BCrypt + RBAC (StoreHub); OpenIddict client credentials (CloudApi) | Security |
+| Secrets | DPAPI (`IndyPOS.Vault`) | Connection string and JWT key at rest |
+| Installer | Bootstrapper + Velopack | Fresh install and in-place upgrade |
 | CQRS | Nokpirab | Command/Query separation |
 
 ## Clean Architecture Layers
@@ -79,7 +82,7 @@ IndyPOS is a Point-of-Sale system designed for small retail stores with offline-
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │                         PRESENTATION LAYER                                   │
 │  ┌─────────────────────────────────────────────────────────────────────┐    │
-│  │  Windows.Forms  │   StoreHub API   │   CloudApi   │   (Future MAUI) │    │
+│  │  Windows.Forms  │   StoreHub API   │   CloudApi   │   Presentation  │    │
 │  └─────────────────────────────────────────────────────────────────────┘    │
 └─────────────────────────────────────────────────────────────────────────────┘
                                     │ Uses
@@ -124,13 +127,18 @@ IndyPOS/
 │   ├── IndyPOS.Infrastructure/   # EF Core, Repositories, Services
 │   ├── IndyPOS.StoreHub/         # Local API service
 │   ├── IndyPOS.CloudApi/         # Cloud API service
-│   ├── IndyPOS.Windows.Forms/    # Desktop UI
+│   ├── IndyPOS.Windows.Forms/    # Desktop UI (the till)
+│   ├── IndyPOS.Presentation/     # Till ViewModels, no WinForms
+│   ├── IndyPOS.Vault/            # DPAPI secret protection
+│   ├── IndyPOS.MigrationTool/    # v3 SQLite -> PostgreSQL
 │   ├── IndyPOS.AppHost/          # Aspire orchestrator
-│   └── IndyPOS.ServiceDefaults/  # Shared health checks, telemetry
+│   ├── IndyPOS.ServiceDefaults/  # Shared health checks, telemetry
+│   └── IndyPOS.StoreProfiles/    # Dev store profiles (--store)
 │
-├── tests/
-│   ├── IndyPOS.Application.Tests/       # Unit tests
-│   └── IndyPOS.StoreHub.IntegrationTests/  # API integration tests (needs Docker)
+├── installer/
+│   └── IndyPOS.Bootstrapper/     # Fresh install + in-place upgrade
+│
+├── tests/                        # One suite per project (see ONBOARDING.md for counts)
 │
 └── docs/
     ├── architecture/             # This document
@@ -158,7 +166,7 @@ IndyPOS/
                                               ▼
                                     ┌─────────────────┐
                                     │ Generate JWT    │
-                                    │ (15min expiry)  │
+                                    │ (12 h expiry)   │
                                     └────────┬────────┘
                                               │
       ◄───────────────────────────────────────┘
@@ -211,14 +219,21 @@ IndyPOS/
 | **Invoice** | Sale transaction | `Id`, `InvoiceNumber`, `TotalAmount`, `UserId` |
 | **InvoiceLine** | Invoice line item | `ProductId`, `Quantity`, `UnitPrice` |
 | **Payment** | Payment record | `Method`, `Amount`, `InvoiceId` |
-| **InventoryMovement** | Stock change | `ProductId`, `Quantity`, `MovementType` |
+| **InventoryMovement** | Stock change | `ProductId`, `QuantityDelta`, `Reason`, `CreatedByUserId` |
 | **StoreUser** | System user | `Username`, `PasswordHash`, `RoleId` |
-| **OutboxEvent** | Sync queue | `EventType`, `Payload`, `SentAt` |
+| **PayLater** | ลงบัญชี debt (1:1 with its payment) | `PayLaterAmount`, `PaidAmount`, `IsCompleted`, `LegacyPaymentId` |
+| **PayLaterRepayment** | One repayment, append-only | `PayLaterId`, `Amount`, `BusinessDate`, `CreatedByUserId` |
+| **CashPayout / CashFloat / DebtRepayment** | Cash drawer entries (soft-deleted) | `Amount`, `BusinessDate`, `IsDeleted` |
+| **CashCount** | A count of the drawer, append-only | nine denomination counts, `BusinessDate` |
+| **InvoiceReprint** | Reprint audit | `InvoiceId`, `CreatedByUserId` |
+| **PaymentMethod** | A store's payment methods | `StoreId`, `Code`, `IsEnabled` |
+| **OutboxEvent** | Sync queue | `Type`, `PayloadJson`, `Status`, `Attempts` |
 
 ### ID Strategy
 
 - **Guid IDs**: Used for all new entities (distributed-safe)
-- **Legacy int IDs**: Still in WinForms SQLite (compatibility layer)
+- **Legacy int IDs**: kept as nullable `Legacy*Id` columns on rows migrated from v3, for traceability; the v3
+  SQLite database is read only by the MigrationTool
 
 ## Related Documentation
 
