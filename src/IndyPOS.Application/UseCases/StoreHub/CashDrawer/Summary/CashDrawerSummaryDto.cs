@@ -1,4 +1,5 @@
 using IndyPOS.Application.UseCases.StoreHub.CashDrawer.Counts;
+using IndyPOS.Application.UseCases.StoreHub.Reports;
 
 namespace IndyPOS.Application.UseCases.StoreHub.CashDrawer.Summary;
 
@@ -15,9 +16,16 @@ public record CashDrawerSummaryDto
 
     public required decimal GeneralProductsTotal { get; init; }
     public required decimal HardwareProductsTotal { get; init; }
-    public required decimal CashSalesTotal { get; init; }
-    public required decimal MoneyTransferTotal { get; init; }
-    public required decimal WelfareCardTotal { get; init; }
+
+    /// <summary>Takings paid with the Cash method; the only sales money in the drawer.</summary>
+    public required decimal CashPaymentsTotal { get; init; }
+
+    /// <summary>
+    /// One row per non-cash method (not Cash, not PayLater) enabled or used that day, in display
+    /// order. Shown, never added to expected cash.
+    /// </summary>
+    public required IReadOnlyList<PaymentMethodTotalDto> NonCashPayments { get; init; }
+
     public required decimal PayLaterGeneralProductsTotal { get; init; }
     public required decimal PayLaterHardwareProductsTotal { get; init; }
 
