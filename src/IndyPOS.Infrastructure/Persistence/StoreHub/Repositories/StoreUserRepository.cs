@@ -97,8 +97,7 @@ public class StoreUserRepository : IStoreUserRepository
 
     public async Task UpsertByCloudIdAsync(StoreUser user, CancellationToken cancellationToken = default)
     {
-        var existing = await _dbContext.StoreUsers
-            .FirstOrDefaultAsync(u => u.CloudUserId == user.CloudUserId, cancellationToken);
+        var existing = await FindForSyncAsync(user.CloudUserId, cancellationToken);
 
         if (existing is null)
         {
@@ -108,6 +107,7 @@ public class StoreUserRepository : IStoreUserRepository
         else
         {
             // Update existing user (preserve password and local-only fields)
+            existing.CloudUserId = user.CloudUserId;
             existing.Username = user.Username;
             existing.FirstName = user.FirstName;
             existing.LastName = user.LastName;
@@ -120,6 +120,12 @@ public class StoreUserRepository : IStoreUserRepository
 
         await _dbContext.SaveChangesAsync(cancellationToken);
     }
+
+    // Migrated users were uploaded under their store id, so the cloud sends them back under it while
+    // the store row has no CloudUserId yet. Matching that row links it instead of adding a second one.
+    private async Task<StoreUser?> FindForSyncAsync(Guid? cloudUserId, CancellationToken cancellationToken) =>
+        await _dbContext.StoreUsers.FirstOrDefaultAsync(u => u.CloudUserId == cloudUserId, cancellationToken)
+        ?? await _dbContext.StoreUsers.FirstOrDefaultAsync(u => u.Id == cloudUserId && u.CloudUserId == null, cancellationToken);
 
     public async Task<long> GetMaxCloudVersionAsync(string storeId, CancellationToken cancellationToken = default)
     {
