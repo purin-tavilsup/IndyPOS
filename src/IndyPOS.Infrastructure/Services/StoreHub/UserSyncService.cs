@@ -69,7 +69,11 @@ public class UserSyncService : IUserSyncService
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Failed to sync user {Username} (CloudId={CloudId})",
+                // Skipped, not retried: later users (a new cashier) must still arrive, and the sync
+                // cursor moves past this one. Changing the user in the cloud bumps its version and
+                // sends it again (decided 2026-10-18, PR #133).
+                _logger.LogError(ex,
+                    "Skipped user {Username} (CloudId={CloudId}): the store refused it. Fix it in the cloud (e.g. rename it) to sync it again",
                     cloudUser.Username, cloudUser.Id);
             }
         }
