@@ -1,10 +1,12 @@
 using FluentAssertions;
+using IndyPOS.Application.Abstractions.StoreHub.Repositories;
 using IndyPOS.Application.UseCases.StoreHub.PayLater;
 using IndyPOS.Domain.Entities.Core;
 using IndyPOS.Infrastructure.Persistence.StoreHub;
 using IndyPOS.Infrastructure.Persistence.StoreHub.Repositories;
 using IndyPOS.Mock;
 using Microsoft.EntityFrameworkCore;
+using Moq;
 using Xunit;
 
 using PayLaterRepository = IndyPOS.Infrastructure.Persistence.StoreHub.Repositories.PayLaterRepository;
@@ -262,5 +264,53 @@ public class GetPayLaterQueryHandlerTests
         payLater.CreatedUtc = createdUtc;
         payLater.LastModifiedUtc = createdUtc;
         return payLater;
+    }
+
+    // Codex P2 on #138: the day must be filtered by Postgres, not after loading every debt ever taken.
+    [Fact]
+    public async Task HandleAsync_WithCreatedOn_AsksTheRepositoryForThatDayOnly()
+    {
+        var store = BangkokStore();
+        var repository = new Mock<IPayLaterRepository>();
+        repository.Setup(r => r.GetCreatedBetweenAsync(It.IsAny<DateTime>(), It.IsAny<DateTime>(), It.IsAny<CancellationToken>()))
+                  .ReturnsAsync([]);
+        var handler = new GetPayLaterQueryHandler(repository.Object, store);
+
+        await handler.HandleAsync(new GetPayLaterQuery(IncludeCompleted: true, CreatedOn: Day));
+
+        repository.Verify(r => r.GetCreatedBetweenAsync(
+            new DateTime(2026, 10, 18, 17, 0, 0, DateTimeKind.Utc),    // 00:00 on Day in Bangkok
+            new DateTime(2026, 10, 19, 17, 0, 0, DateTimeKind.Utc),    // 00:00 the next day
+            It.IsAny<CancellationToken>()));
+    }
+
+    [Fact]
+    public async Task HandleAsync_WithCreatedOn_DoesNotLoadEveryDebt()
+    {
+        var store = BangkokStore();
+        var repository = new Mock<IPayLaterRepository>();
+        repository.Setup(r => r.GetCreatedBetweenAsync(It.IsAny<DateTime>(), It.IsAny<DateTime>(), It.IsAny<CancellationToken>()))
+                  .ReturnsAsync([]);
+        var handler = new GetPayLaterQueryHandler(repository.Object, store);
+
+        await handler.HandleAsync(new GetPayLaterQuery(IncludeCompleted: true, CreatedOn: Day));
+
+        repository.Verify(r => r.GetAllAsync(It.IsAny<bool>(), It.IsAny<string?>(), It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task GetCreatedBetweenAsync_WithACompletedDebtInRange_ReturnsIt()
+    {
+        await using var dbContext = CreateDbContext();
+        var store = BangkokStore();
+        var debt = TakenAt(CreatePayLater(dbContext, "ลุงสมชาย", 200m, 200m, isCompleted: true), TenAmBangkok);
+        dbContext.PayLaters.Add(debt);
+        await dbContext.SaveChangesAsync();
+
+        var found = await new PayLaterRepository(dbContext, store)
+            .GetCreatedBetweenAsync(TenAmBangkok.AddHours(-1), TenAmBangkok.AddHours(1));
+
+        found.Should()
+             .ContainSingle();
     }
 }

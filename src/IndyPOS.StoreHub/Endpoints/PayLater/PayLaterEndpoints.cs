@@ -15,7 +15,8 @@ public static class PayLaterEndpoints
         return app;
     }
 
-    // List pay-later records; createdOn keeps only the debts taken on that store day (the cash drawer).
+    // List pay-later records; createdOn keeps only the debts taken on that store day, completed ones too whatever
+    // includeCompleted says (the cash drawer's ลงบัญชี list).
     private static void MapListDebts(IEndpointRouteBuilder app)
     {
         app.MapGet("/pay-later", async (
