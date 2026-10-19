@@ -77,7 +77,7 @@ public class CashDrawerMirrorTests(CloudPostgresFixture postgres) : IClassFixtur
         var payout = Payout();
         var add = CashDrawerOutbox.Changed(payout, T0);
         await SendAsync(pipeline, Edited(payout, EditedAmount, T1));
-        await pipeline.AddCashEventAsync(add);
+        await pipeline.AddOutboxEventAsync(add);
 
         await pipeline.PollAsync();
 
@@ -233,8 +233,8 @@ public class CashDrawerMirrorTests(CloudPostgresFixture postgres) : IClassFixtur
     {
         await using var pipeline = await EventPipeline.CreateAsync(postgres);
         var count = Count();
-        await pipeline.AddCashEventAsync(CashDrawerOutbox.CountAdded(count, T0));
-        await pipeline.AddCashEventAsync(CashDrawerOutbox.CountAdded(count, T0));
+        await pipeline.AddOutboxEventAsync(CashDrawerOutbox.CountAdded(count, T0));
+        await pipeline.AddOutboxEventAsync(CashDrawerOutbox.CountAdded(count, T0));
 
         await pipeline.PollAsync();
 
@@ -248,11 +248,11 @@ public class CashDrawerMirrorTests(CloudPostgresFixture postgres) : IClassFixtur
     {
         await using var pipeline = await EventPipeline.CreateAsync(postgres);
         var count = Count();
-        await pipeline.AddCashEventAsync(CashDrawerOutbox.CountAdded(count, T0));
+        await pipeline.AddOutboxEventAsync(CashDrawerOutbox.CountAdded(count, T0));
         await pipeline.PollAsync();
         count.Coin1Count = 0;
         count.LastModifiedUtc = T1;
-        await pipeline.AddCashEventAsync(CashDrawerOutbox.CountAdded(count, T1));
+        await pipeline.AddOutboxEventAsync(CashDrawerOutbox.CountAdded(count, T1));
 
         await pipeline.PollAsync();
 
@@ -265,8 +265,8 @@ public class CashDrawerMirrorTests(CloudPostgresFixture postgres) : IClassFixtur
     {
         await using var pipeline = await EventPipeline.CreateAsync(postgres);
         var count = Count();
-        await pipeline.AddCashEventAsync(CashDrawerOutbox.CountAdded(count, T0));
-        await pipeline.AddCashEventAsync(CashDrawerOutbox.CountAdded(count, T0));
+        await pipeline.AddOutboxEventAsync(CashDrawerOutbox.CountAdded(count, T0));
+        await pipeline.AddOutboxEventAsync(CashDrawerOutbox.CountAdded(count, T0));
 
         await pipeline.PollAsync();
 
@@ -279,7 +279,7 @@ public class CashDrawerMirrorTests(CloudPostgresFixture postgres) : IClassFixtur
     {
         await using var pipeline = await EventPipeline.CreateAsync(postgres);
         var count = Count();
-        await pipeline.AddCashEventAsync(CashDrawerOutbox.CountAdded(count, T0));
+        await pipeline.AddOutboxEventAsync(CashDrawerOutbox.CountAdded(count, T0));
 
         await pipeline.PollAsync();
 
@@ -293,8 +293,8 @@ public class CashDrawerMirrorTests(CloudPostgresFixture postgres) : IClassFixtur
     public async Task ProcessPendingEventsAsync_WithTwoCountsOnOneDay_KeepsBoth()
     {
         await using var pipeline = await EventPipeline.CreateAsync(postgres);
-        await pipeline.AddCashEventAsync(CashDrawerOutbox.CountAdded(Count(), T0));
-        await pipeline.AddCashEventAsync(CashDrawerOutbox.CountAdded(Count(), T1));
+        await pipeline.AddOutboxEventAsync(CashDrawerOutbox.CountAdded(Count(), T0));
+        await pipeline.AddOutboxEventAsync(CashDrawerOutbox.CountAdded(Count(), T1));
 
         await pipeline.PollAsync();
 
@@ -348,5 +348,5 @@ public class CashDrawerMirrorTests(CloudPostgresFixture postgres) : IClassFixtur
         JsonSerializer.Deserialize<CashPayout>(JsonSerializer.Serialize(payout))!;
 
     private static Task SendAsync(EventPipeline pipeline, CashDrawerEntry entry) =>
-        pipeline.AddCashEventAsync(CashDrawerOutbox.Changed(entry, entry.LastModifiedUtc));
+        pipeline.AddOutboxEventAsync(CashDrawerOutbox.Changed(entry, entry.LastModifiedUtc));
 }

@@ -99,7 +99,7 @@ internal sealed class EventPipeline : IAsyncDisposable
                             .ToListAsync());
 
     /// <summary>An event exactly as StoreHub's outbox wrote it, under a new inbox id.</summary>
-    public Task AddCashEventAsync(OutboxEvent outbox) => AddEventAsync(outbox.Type, Guid.NewGuid(), outbox.PayloadJson);
+    public Task AddOutboxEventAsync(OutboxEvent outbox) => AddEventAsync(outbox.Type, Guid.NewGuid(), outbox.PayloadJson);
 
     public Task<T?> FindAsync<T>(Guid id) where T : class =>
         WithDbAsync(db => db.Set<T>().FindAsync(id).AsTask());
