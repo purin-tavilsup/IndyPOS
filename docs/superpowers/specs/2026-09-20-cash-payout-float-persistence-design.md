@@ -363,6 +363,9 @@ being rewritten anyway, so it gets its ViewModel now and becomes the template fo
 
 ## 9. Rename: `Change` → `CashFloat`
 
+> **Moot (2026-10-19, D4):** the v3 panel, `CashFlowData` and its `Change` / `Payout` / `PayLaterPayment`
+> models were deleted outright, with the JSON / CSV / Google Drive code, so there is nothing left to rename.
+
 The in-memory concept is currently named `Change`/`Changes` (เงินทอน) but means *cash-float*. Rename
 the C# identifiers for clarity: `Change` model → `CashFloat`; `CashFlowData.Changes` → `CashFloats`;
 `ChangesTotal` → `CashFloatsTotal`; related panel members. Safe rename — the only things that

@@ -40,11 +40,4 @@ public class StoreHubReportService : IReportService
     {
         return await _storeHubClient.GetLegacyPaymentsSummaryAsync(startDate, endDate);
     }
-
-    // GetPayLaterPaymentsByPeriodAsync returns empty: cash flow still calls it, and slice 3 replaces it.
-    public Task<IEnumerable<PayLaterPaymentDto>> GetPayLaterPaymentsByPeriodAsync(TimePeriod period)
-    {
-        // TODO: Implement via StoreHub GetPayLaterReportQuery when UI is migrated
-        return Task.FromResult(Enumerable.Empty<PayLaterPaymentDto>());
-    }
 }
