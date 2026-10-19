@@ -1,8 +1,10 @@
 using FluentAssertions;
+using IndyPOS.Application.Abstractions.StoreHub.Repositories;
 using IndyPOS.Application.Common.Exceptions;
 using IndyPOS.Application.UseCases.StoreHub.CashDrawer.Common;
 using IndyPOS.Application.UseCases.StoreHub.CashDrawer.Counts;
 using IndyPOS.Domain.Entities.Core;
+using Moq;
 using Xunit;
 
 namespace IndyPOS.Application.Tests.UseCases.StoreHub.CashDrawer.Counts;
@@ -206,5 +208,22 @@ public class CashCountHandlersTests
 
         count.CountedByName.Should()
                            .Be("มาลี ใจดี");
+    }
+
+    // A count saved but answered "failed" invites a recount that is saved twice; naming comes first.
+    [Fact]
+    public async Task Add_WhenNamingTheCounterFails_SavesNothing()
+    {
+        await using var c = new CashDrawerTestContext();
+        var users = new Mock<IStoreUserRepository>();
+        users.Setup(u => u.GetByIdAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
+             .ThrowsAsync(new InvalidOperationException("database unavailable"));
+        var handler = new AddCashCountCommandHandler(c.CountRepository(), users.Object, c.Clock, c.StoreIdentity);
+
+        try { await handler.HandleAsync(new AddCashCountCommand(CashDrawerTestContext.CashierId, MorningCount)); }
+        catch (InvalidOperationException) { }
+
+        (await GetHandler(c).HandleAsync(new GetCashCountsQuery(null))).Should()
+                                                                      .BeEmpty();
     }
 }
