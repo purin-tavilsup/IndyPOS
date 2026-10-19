@@ -59,7 +59,8 @@ public interface IStoreUserRepository
     Task<StoreUser?> GetByCloudIdAsync(Guid cloudUserId, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Upserts a user by CloudUserId. Insert if new, update if exists.
+    /// Upserts a user by CloudUserId. Insert if new, update if exists. A migrated user (its Id is the
+    /// cloud id, its CloudUserId not set yet) is matched by Id and linked. Updates keep the password.
     /// </summary>
     Task UpsertByCloudIdAsync(StoreUser user, CancellationToken cancellationToken = default);
 

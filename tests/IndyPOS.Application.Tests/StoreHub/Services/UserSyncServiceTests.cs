@@ -246,4 +246,22 @@ public class UserSyncServiceTests
         capturedUser!.PasswordHash.Should().BeEmpty();
         capturedUser.PasswordHashVersion.Should().Be(0);
     }
+
+    [Fact]
+    public async Task SyncUsersFromCloudAsync_WithANewUser_GivesItTheCloudId()
+    {
+        var cloudId = Guid.Parse("33333333-3333-3333-3333-333333333333");
+        StoreUser? upserted = null;
+        _userRepository.Setup(x => x.GetMaxCloudVersionAsync("store-001", default))
+                       .ReturnsAsync(0);
+        _cloudClient.Setup(x => x.GetUsersAsync("store-001", 0, default))
+                    .ReturnsAsync(new CloudUserSyncResponse(1, [new(cloudId, "somchai", "Somchai", "Jaidee", 1, true, 1)], 1, DateTime.UtcNow));
+        _userRepository.Setup(x => x.UpsertByCloudIdAsync(It.IsAny<StoreUser>(), default))
+                       .Callback<StoreUser, CancellationToken>((user, _) => upserted = user);
+
+        await _sut.SyncUsersFromCloudAsync();
+
+        upserted!.Id.Should()
+                    .Be(cloudId);
+    }
 }
