@@ -53,7 +53,7 @@ internal static class CashDrawerMirror
         }, db, ct);
     }
 
-    // Insert-only falls out of the stale rule: a count is never edited, so a stored Id is never older.
+    // Insert-only: a count is never edited, so a stored Id is kept even against a later version.
     public static Task ProcessCashCountAsync(SyncedEventEntity syncedEvent, CloudDbContext db, CancellationToken ct)
     {
         var count = Read<CashCount>(syncedEvent);
@@ -82,7 +82,7 @@ internal static class CashDrawerMirror
             // store's: throwing keeps another store's row intact and the event visible for review.
             throw new InvalidOperationException(
                 $"{syncedEvent.EventType} {syncedEvent.EventId}: row {incoming.Id} belongs to store {existing.StoreId}, not {incoming.StoreId}.");
-        else if (incoming.LastModifiedAtUtc > existing.LastModifiedAtUtc)
+        else if (!existing.IsAppendOnly && incoming.LastModifiedAtUtc > existing.LastModifiedAtUtc)
             db.Entry(existing).CurrentValues.SetValues(incoming);
 
         // A stale event is still recorded, so it is not retried.
