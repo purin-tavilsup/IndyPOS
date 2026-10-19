@@ -114,6 +114,9 @@ internal sealed class EventPipeline : IAsyncDisposable
 
     public Task<int> CountAsync<T>() where T : class => WithDbAsync(db => db.Set<T>().CountAsync());
 
+    /// <summary>Reads a view or any SQL into an unmapped row type, as a dashboard would.</summary>
+    public Task<List<T>> SqlAsync<T>(FormattableString sql) => WithDbAsync(db => db.Database.SqlQuery<T>(sql).ToListAsync());
+
     public Task AddEventAsync(string eventType) => AddEventAsync(eventType, Guid.NewGuid(), "{}");
 
     public Task AddEventAsync(string eventType, string payload) => AddEventAsync(eventType, Guid.NewGuid(), payload);
