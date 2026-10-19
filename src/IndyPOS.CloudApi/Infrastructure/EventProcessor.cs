@@ -29,7 +29,7 @@ public class EventProcessor : BackgroundService
         "InvoiceCompleted", "InvoiceReprinted",
         CashDrawerOutbox.CashPayoutChanged, CashDrawerOutbox.CashFloatChanged, CashDrawerOutbox.DebtRepaymentChanged,
         CashDrawerOutbox.CashCountChanged,
-        PayLaterOutbox.PayLaterChanged
+        PayLaterOutbox.PayLaterChanged, PayLaterOutbox.PayLaterRepaid
     ];
 
     /// <summary>
@@ -171,6 +171,10 @@ public class EventProcessor : BackgroundService
 
             case PayLaterOutbox.PayLaterChanged:
                 await PayLaterMirror.ProcessChangedAsync(syncedEvent, dbContext, cancellationToken);
+                break;
+
+            case PayLaterOutbox.PayLaterRepaid:
+                await PayLaterMirror.ProcessRepaidAsync(syncedEvent, dbContext, cancellationToken);
                 break;
 
             // Only HandledEventTypes are fetched, so this means the list and the switch disagree.

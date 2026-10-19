@@ -2,6 +2,7 @@ using System.Text.Json;
 using IndyPOS.Application.Abstractions.Cloud.Repositories;
 using IndyPOS.Application.UseCases.StoreHub.PayLater;
 using IndyPOS.CloudApi.Domain;
+using Microsoft.EntityFrameworkCore;
 
 namespace IndyPOS.CloudApi.Infrastructure;
 
@@ -32,6 +33,33 @@ internal static class PayLaterMirror
 
         // A stale event is still recorded, so it is not retried.
         MarkProcessed(syncedEvent, incoming.StoreId, db);
+        await db.SaveChangesAsync(ct);
+    }
+
+    /// <summary>
+    /// Insert-only: a repayment is never edited, so a stored Id is kept. A repayment can reach the inbox before
+    /// its debt's snapshot (both are saved together at the store); throwing leaves it unprocessed, so the retry
+    /// backoff tries again once the debt has landed. Matching the debt's store as well keeps a payload that names
+    /// another store's debt out of both stores' records.
+    /// </summary>
+    public static async Task ProcessRepaidAsync(SyncedEventEntity syncedEvent, CloudDbContext db, CancellationToken ct)
+    {
+        var repayment = Read<PayLaterRepaidPayload>(syncedEvent);
+        var debtArrived = await db.PayLaters.AnyAsync(d => d.Id == repayment.PayLaterId && d.StoreId == repayment.StoreId, ct);
+
+        if (!debtArrived)
+            throw new InvalidOperationException(
+                $"Repayment {repayment.Id} has no debt {repayment.PayLaterId} in store {repayment.StoreId} yet; it is retried. If this keeps failing, the debt may belong to another store.");
+
+        if (await db.PayLaterRepayments.FindAsync([repayment.Id], ct) is null)
+            db.PayLaterRepayments.Add(new CloudPayLaterRepayment
+            {
+                Id = repayment.Id, StoreId = repayment.StoreId, PayLaterId = repayment.PayLaterId, Amount = repayment.Amount,
+                BusinessDate = repayment.BusinessDate, CreatedAtUtc = Utc(repayment.CreatedUtc),
+                CreatedByUserId = repayment.CreatedByUserId, SyncedAtUtc = DateTime.UtcNow
+            });
+
+        MarkProcessed(syncedEvent, repayment.StoreId, db);
         await db.SaveChangesAsync(ct);
     }
 
