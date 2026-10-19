@@ -67,16 +67,22 @@ public class PayLaterRepository : IPayLaterRepository
             .FirstOrDefaultAsync(p => p.InvoiceId == invoiceId, cancellationToken);
     }
 
-    public async Task UpdateAsync(PayLater payLater, CancellationToken cancellationToken = default)
+    public async Task RecordRepaymentAsync(
+        PayLater debt,
+        PayLaterRepayment repayment,
+        IReadOnlyList<OutboxEvent> events,
+        CancellationToken cancellationToken = default)
     {
         // Verify PayLater belongs to this store
         var existing = await StorePayLaters
-            .FirstOrDefaultAsync(p => p.Id == payLater.Id, cancellationToken)
-            ?? throw new InvalidOperationException($"PayLater with ID {payLater.Id} not found");
+            .FirstOrDefaultAsync(p => p.Id == debt.Id, cancellationToken)
+            ?? throw new InvalidOperationException($"PayLater with ID {debt.Id} not found");
 
-        existing.PaidAmount = payLater.PaidAmount;
-        existing.IsCompleted = payLater.IsCompleted;
-        existing.LastModifiedUtc = DateTime.UtcNow;
+        existing.PaidAmount = debt.PaidAmount;
+        existing.IsCompleted = debt.IsCompleted;
+        existing.LastModifiedUtc = debt.LastModifiedUtc;
+        _dbContext.PayLaterRepayments.Add(repayment);
+        _dbContext.OutboxEvents.AddRange(events);
 
         await _dbContext.SaveChangesAsync(cancellationToken);
     }

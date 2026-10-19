@@ -1,5 +1,7 @@
+using System.Security.Claims;
 using IndyPOS.Application.Common.Exceptions;
 using IndyPOS.Application.UseCases.StoreHub.PayLater;
+using IndyPOS.StoreHub.Endpoints.Common;
 using Nokpirab;
 
 namespace IndyPOS.StoreHub.Endpoints.PayLater;
@@ -56,18 +58,19 @@ public static class PayLaterEndpoints
         }).RequireAuthorization();
     }
 
-    // Record a repayment against a pay-later debt
+    // Record a repayment against a pay-later debt; the repayment names its cashier, so a token must carry a user id
     private static void MapRecordPayment(IEndpointRouteBuilder app)
     {
         app.MapPost("/pay-later/{id:guid}/payments", async (
             ICommandHandler<RecordPayLaterPaymentCommand, PayLaterDto> handler,
             Guid id,
             RecordPaymentRequest request,
+            ClaimsPrincipal user,
             CancellationToken cancellationToken) =>
         {
             try
             {
-                var command = new RecordPayLaterPaymentCommand(id, request.PaymentAmount);
+                var command = new RecordPayLaterPaymentCommand(id, request.PaymentAmount, user.GetRequiredUserId());
                 var result = await handler.HandleAsync(command, cancellationToken);
                 return Results.Ok(result);
             }
@@ -83,6 +86,7 @@ public static class PayLaterEndpoints
             {
                 return Results.BadRequest(new { error = ex.Message });
             }
-        }).RequireAuthorization();
+        }).RequireAuthorization()
+          .AddEndpointFilter<RequireUserIdFilter>();
     }
 }
