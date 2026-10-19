@@ -6,6 +6,9 @@ public interface ICloudCashRow
     Guid Id { get; }
     string StoreId { get; }
     DateTime LastModifiedAtUtc { get; }
+
+    /// <summary>True for a row the store never edits, so a stored copy is never replaced, whatever its version.</summary>
+    bool IsAppendOnly => false;
 }
 
 /// <summary>
@@ -85,4 +88,7 @@ public class CloudCashCount : ICloudCashRow
     public DateTime LastModifiedAtUtc { get; set; }
     public Guid CreatedByUserId { get; set; }
     public DateTime SyncedAtUtc { get; set; }
+
+    // Explicit, so EF does not see it as a column.
+    bool ICloudCashRow.IsAppendOnly => true;
 }

@@ -242,6 +242,24 @@ public class CashDrawerMirrorTests(CloudPostgresFixture postgres) : IClassFixtur
                                                      .Be(1, pipeline.LoggedErrors);
     }
 
+    // A count is never edited, so even a later version under the same Id must not replace it.
+    [Fact]
+    public async Task ProcessPendingEventsAsync_WithALaterCountUnderAStoredId_KeepsTheFirstCount()
+    {
+        await using var pipeline = await EventPipeline.CreateAsync(postgres);
+        var count = Count();
+        await pipeline.AddCashEventAsync(CashDrawerOutbox.CountAdded(count, T0));
+        await pipeline.PollAsync();
+        count.Coin1Count = 0;
+        count.LastModifiedUtc = T1;
+        await pipeline.AddCashEventAsync(CashDrawerOutbox.CountAdded(count, T1));
+
+        await pipeline.PollAsync();
+
+        (await pipeline.FindAsync<CloudCashCount>(count.Id))!.Coin1Count.Should()
+                                                                .Be(9, pipeline.LoggedErrors);
+    }
+
     [Fact]
     public async Task ProcessPendingEventsAsync_WithTheSameCountTwice_MarksBothProcessed()
     {
