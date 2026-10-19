@@ -264,4 +264,25 @@ public class UserSyncServiceTests
         upserted!.Id.Should()
                     .Be(cloudId);
     }
+
+    // Decided 2026-10-18 (PR #133): a refused user is skipped so later users (a new cashier) still
+    // arrive. The cursor then passes it, so it returns only when it changes in the cloud.
+    [Fact]
+    public async Task SyncUsersFromCloudAsync_WithARefusedUser_StillSyncsTheNextUser()
+    {
+        var refusedId = Guid.Parse("44444444-4444-4444-4444-444444444444");
+        var nextId = Guid.Parse("55555555-5555-5555-5555-555555555555");
+        _userRepository.Setup(x => x.GetMaxCloudVersionAsync("store-001", default))
+                       .ReturnsAsync(0);
+        _cloudClient.Setup(x => x.GetUsersAsync("store-001", 0, default))
+                    .ReturnsAsync(new CloudUserSyncResponse(2,
+                        [new(refusedId, "admin", "Admin", "Cloud", 1, true, 1), new(nextId, "somchai", "Somchai", "Jaidee", 1, true, 1)],
+                        1, DateTime.UtcNow));
+        _userRepository.Setup(x => x.UpsertByCloudIdAsync(It.Is<StoreUser>(u => u.Id == refusedId), default))
+                       .ThrowsAsync(new InvalidOperationException("username taken"));
+
+        await _sut.SyncUsersFromCloudAsync();
+
+        _userRepository.Verify(x => x.UpsertByCloudIdAsync(It.Is<StoreUser>(u => u.Id == nextId), default), Times.Once);
+    }
 }
