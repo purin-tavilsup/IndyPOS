@@ -7,6 +7,11 @@ using IndyPOS.Application.Abstractions.StoreHub;
 using IndyPOS.Application.Common.Models;
 using IndyPOS.Application.UseCases.StoreHub.Auth;
 using IndyPOS.Application.UseCases.StoreHub.Auth.ChangePassword;
+using IndyPOS.Application.UseCases.StoreHub.CashDrawer.Counts;
+using IndyPOS.Application.UseCases.StoreHub.CashDrawer.DebtRepayments;
+using IndyPOS.Application.UseCases.StoreHub.CashDrawer.Floats;
+using IndyPOS.Application.UseCases.StoreHub.CashDrawer.Payouts;
+using IndyPOS.Application.UseCases.StoreHub.CashDrawer.Summary;
 using IndyPOS.Application.UseCases.StoreHub.PayLater;
 using IndyPOS.Application.UseCases.StoreHub.PaymentMethods;
 using IndyPOS.Application.UseCases.StoreHub.ProductCategories;
@@ -446,6 +451,60 @@ public class StoreHubHttpClient : IStoreHubClient
 
         return SendAuthenticatedAsync<PayLaterReportDto>(HttpMethod.Get, url, content: null, cancellationToken);
     }
+
+    public Task<CashDrawerSummaryDto> GetCashSummaryAsync(DateOnly? businessDate, CancellationToken cancellationToken = default) =>
+        SendAuthenticatedAsync<CashDrawerSummaryDto>(HttpMethod.Get, CashQuery("/cash/summary", businessDate), content: null, cancellationToken);
+
+    public Task<IReadOnlyList<CashPayoutDto>> GetCashPayoutsAsync(DateOnly? businessDate, CancellationToken cancellationToken = default) =>
+        SendAuthenticatedAsync<IReadOnlyList<CashPayoutDto>>(HttpMethod.Get, CashQuery(PayoutsRoute, businessDate), content: null, cancellationToken);
+
+    public Task<CashPayoutDto> AddCashPayoutAsync(AddCashPayoutRequest request, CancellationToken cancellationToken = default) =>
+        SendAuthenticatedAsync<CashPayoutDto>(HttpMethod.Post, PayoutsRoute, request, cancellationToken);
+
+    public Task<CashPayoutDto> EditCashPayoutAsync(Guid id, EditCashPayoutRequest request, CancellationToken cancellationToken = default) =>
+        SendAuthenticatedAsync<CashPayoutDto>(HttpMethod.Put, $"{PayoutsRoute}/{id}", request, cancellationToken);
+
+    public Task DeleteCashPayoutAsync(Guid id, CancellationToken cancellationToken = default) =>
+        SendAuthenticatedAsync(HttpMethod.Delete, $"{PayoutsRoute}/{id}", cancellationToken);
+
+    public Task<IReadOnlyList<CashFloatDto>> GetCashFloatsAsync(DateOnly? businessDate, CancellationToken cancellationToken = default) =>
+        SendAuthenticatedAsync<IReadOnlyList<CashFloatDto>>(HttpMethod.Get, CashQuery(FloatsRoute, businessDate), content: null, cancellationToken);
+
+    public Task<CashFloatDto> AddCashFloatAsync(AddCashFloatRequest request, CancellationToken cancellationToken = default) =>
+        SendAuthenticatedAsync<CashFloatDto>(HttpMethod.Post, FloatsRoute, request, cancellationToken);
+
+    public Task<CashFloatDto> EditCashFloatAsync(Guid id, EditCashFloatRequest request, CancellationToken cancellationToken = default) =>
+        SendAuthenticatedAsync<CashFloatDto>(HttpMethod.Put, $"{FloatsRoute}/{id}", request, cancellationToken);
+
+    public Task DeleteCashFloatAsync(Guid id, CancellationToken cancellationToken = default) =>
+        SendAuthenticatedAsync(HttpMethod.Delete, $"{FloatsRoute}/{id}", cancellationToken);
+
+    public Task<IReadOnlyList<DebtRepaymentDto>> GetDebtRepaymentsAsync(DateOnly? businessDate, CancellationToken cancellationToken = default) =>
+        SendAuthenticatedAsync<IReadOnlyList<DebtRepaymentDto>>(HttpMethod.Get, CashQuery(DebtRepaymentsRoute, businessDate), content: null, cancellationToken);
+
+    public Task<DebtRepaymentDto> AddDebtRepaymentAsync(AddDebtRepaymentRequest request, CancellationToken cancellationToken = default) =>
+        SendAuthenticatedAsync<DebtRepaymentDto>(HttpMethod.Post, DebtRepaymentsRoute, request, cancellationToken);
+
+    public Task<DebtRepaymentDto> EditDebtRepaymentAsync(Guid id, EditDebtRepaymentRequest request, CancellationToken cancellationToken = default) =>
+        SendAuthenticatedAsync<DebtRepaymentDto>(HttpMethod.Put, $"{DebtRepaymentsRoute}/{id}", request, cancellationToken);
+
+    public Task DeleteDebtRepaymentAsync(Guid id, CancellationToken cancellationToken = default) =>
+        SendAuthenticatedAsync(HttpMethod.Delete, $"{DebtRepaymentsRoute}/{id}", cancellationToken);
+
+    public Task<IReadOnlyList<CashCountDto>> GetCashCountsAsync(DateOnly? businessDate, CancellationToken cancellationToken = default) =>
+        SendAuthenticatedAsync<IReadOnlyList<CashCountDto>>(HttpMethod.Get, CashQuery(CountsRoute, businessDate), content: null, cancellationToken);
+
+    public Task<CashCountDto> AddCashCountAsync(AddCashCountRequest request, CancellationToken cancellationToken = default) =>
+        SendAuthenticatedAsync<CashCountDto>(HttpMethod.Post, CountsRoute, request, cancellationToken);
+
+    private const string PayoutsRoute = "/cash/payouts";
+    private const string FloatsRoute = "/cash/floats";
+    private const string DebtRepaymentsRoute = "/cash/debt-repayments";
+    private const string CountsRoute = "/cash/counts";
+
+    // No date means today on the server, so it is left off rather than sent as the till's own date.
+    private static string CashQuery(string path, DateOnly? businessDate) =>
+        businessDate is { } day ? $"{path}?businessDate={IsoDate(day)}" : path;
 
     private static string IsoDate(DateOnly date) => date.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
 

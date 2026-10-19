@@ -1,6 +1,7 @@
 using FluentAssertions;
 using IndyPOS.Application.Common.Interfaces;
 using IndyPOS.Infrastructure.Services;
+using IndyPOS.Presentation.CashDrawer;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Xunit;
@@ -25,6 +26,22 @@ public class TillHostTests
 
         build.Should()
              .NotThrow();
+    }
+
+    // No screen opens the cash drawer until D4, so only the registration can show it is wired.
+    [Fact]
+    public void CreateBuilder_WhenBuilt_RegistersTheCashDrawerFactory()
+    {
+        IServiceCollection? services = null;
+        var builder = TillHost.CreateBuilder()
+                              .UseEnvironment(Environments.Development)
+                              .ConfigureServices((_, s) => services = s);
+
+        builder.Build()
+               .Dispose();
+
+        services!.Should()
+                 .Contain(d => d.ServiceType == typeof(CashDrawerViewModelFactory));
     }
 
 #if DEBUG

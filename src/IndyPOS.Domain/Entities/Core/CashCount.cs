@@ -1,3 +1,5 @@
+using IndyPOS.Domain.ValueObjects;
+
 namespace IndyPOS.Domain.Entities.Core;
 
 /// <summary>
@@ -28,14 +30,9 @@ public class CashCount
     /// <summary>Who counted.</summary>
     public Guid CreatedByUserId { get; set; }
 
-    public decimal CountedTotal =>
-        BankNote1000Count * 1000m
-        + BankNote500Count * 500m
-        + BankNote100Count * 100m
-        + BankNote50Count * 50m
-        + BankNote20Count * 20m
-        + Coin10Count * 10m
-        + Coin5Count * 5m
-        + Coin2Count * 2m
-        + Coin1Count;
+    public decimal CountedTotal => CashDenominations.Total(
+    [
+        BankNote1000Count, BankNote500Count, BankNote100Count, BankNote50Count, BankNote20Count,
+        Coin10Count, Coin5Count, Coin2Count, Coin1Count
+    ]);
 }
