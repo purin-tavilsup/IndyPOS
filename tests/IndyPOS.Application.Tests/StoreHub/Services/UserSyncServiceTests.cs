@@ -250,17 +250,20 @@ public class UserSyncServiceTests
     [Fact]
     public async Task SyncUsersFromCloudAsync_WithANewUser_GivesItTheCloudId()
     {
+        // Arrange
         var cloudId = Guid.Parse("33333333-3333-3333-3333-333333333333");
         StoreUser? upserted = null;
         _userRepository.Setup(x => x.GetMaxCloudVersionAsync("store-001", default))
                        .ReturnsAsync(0);
         _cloudClient.Setup(x => x.GetUsersAsync("store-001", 0, default))
-                    .ReturnsAsync(new CloudUserSyncResponse(1, [new(cloudId, "somchai", "Somchai", "Jaidee", 1, true, 1)], 1, DateTime.UtcNow));
+                    .ReturnsAsync(Response(CloudUser(cloudId, "somchai")));
         _userRepository.Setup(x => x.UpsertByCloudIdAsync(It.IsAny<StoreUser>(), default))
                        .Callback<StoreUser, CancellationToken>((user, _) => upserted = user);
 
+        // Act
         await _sut.SyncUsersFromCloudAsync();
 
+        // Assert
         upserted!.Id.Should()
                     .Be(cloudId);
     }
@@ -270,19 +273,25 @@ public class UserSyncServiceTests
     [Fact]
     public async Task SyncUsersFromCloudAsync_WithARefusedUser_StillSyncsTheNextUser()
     {
+        // Arrange
         var refusedId = Guid.Parse("44444444-4444-4444-4444-444444444444");
         var nextId = Guid.Parse("55555555-5555-5555-5555-555555555555");
         _userRepository.Setup(x => x.GetMaxCloudVersionAsync("store-001", default))
                        .ReturnsAsync(0);
         _cloudClient.Setup(x => x.GetUsersAsync("store-001", 0, default))
-                    .ReturnsAsync(new CloudUserSyncResponse(2,
-                        [new(refusedId, "admin", "Admin", "Cloud", 1, true, 1), new(nextId, "somchai", "Somchai", "Jaidee", 1, true, 1)],
-                        1, DateTime.UtcNow));
+                    .ReturnsAsync(Response(CloudUser(refusedId, "admin"), CloudUser(nextId, "somchai")));
         _userRepository.Setup(x => x.UpsertByCloudIdAsync(It.Is<StoreUser>(u => u.Id == refusedId), default))
                        .ThrowsAsync(new InvalidOperationException("username taken"));
 
+        // Act
         await _sut.SyncUsersFromCloudAsync();
 
+        // Assert
         _userRepository.Verify(x => x.UpsertByCloudIdAsync(It.Is<StoreUser>(u => u.Id == nextId), default), Times.Once);
     }
+
+    private static CloudUserDto CloudUser(Guid id, string username) => new(id, username, username, "Jaidee", 1, true, 1);
+
+    private static CloudUserSyncResponse Response(params CloudUserDto[] users) =>
+        new(users.Length, users.ToList(), users.Length, DateTime.UtcNow);
 }
