@@ -16,6 +16,12 @@ public class PayLater
     public DateTime CreatedUtc { get; set; }
     public DateTime LastModifiedUtc { get; set; }
 
+    /// <summary>
+    /// The v3 PayLater.PaymentId this debt was migrated from, or null for a debt v4 created. Tells the cloud a
+    /// debt came from v3 (spec 2026-10-19 §3), the way Payment.LegacyPaymentId does for its row.
+    /// </summary>
+    public int? LegacyPaymentId { get; set; }
+
     // Navigation properties
     public Payment Payment { get; set; } = default!;
     public Invoice Invoice { get; set; } = default!;
