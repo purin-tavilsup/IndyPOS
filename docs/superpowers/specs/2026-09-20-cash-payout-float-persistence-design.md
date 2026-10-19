@@ -231,8 +231,9 @@ release's binaries (they simply ignore the new tables), so the installer's rollb
   `Description` length bound.
 - **One summary query does all the maths:** `GetCashDrawerSummaryQuery(StoreId, BusinessDate)` gathers
   the day's sales and payment totals, the four inputs and the **latest** cash count, and returns
-  expected cash, counted cash and the difference. The cash formula is unchanged
-  (`… + CashFloatsTotal − PayoutsTotal`), now over persisted, non-deleted rows. Today the panel
+  expected cash, counted cash and the difference, over persisted, non-deleted rows. **Superseded
+  2026-10-18 (D1, #132):** expected cash now starts from Cash kept (Cash payments minus change), not
+  v3's takings minus transfer and welfare; see spec 2026-10-07 §4.3. Today the panel
   assembles `CashFlowData` itself (`CreateCashFlowData`); that assembly moves here, so the UI only
   renders what the query returns.
 
@@ -303,11 +304,13 @@ own MCP server and the AI agents that use it, so the mirror tables must explain 
   difference; earlier rows are audit history."* An agent reading the schema learns the rules
   without this spec.
 - **Joinable ids:** `StoreId` joins the cloud store config; `CreatedByUserId` /
-  `LastModifiedByUserId` should join cloud `Users` for the cashier's name — **verify at plan time**
-  that StoreHub user ids equal the cloud master ids (users are distributed from the cloud, so they
-  should).
+  `LastModifiedByUserId` join cloud `Users` for the cashier's name. **Verified 2026-10-18: they did
+  not** (a synced user got a new store id); fixed by #133/#134, so a user synced from the cloud now
+  keeps its cloud id. A store's own seeded admin has no `Users` row.
 
-**Handled separately (not in this change):**
+**Handled separately — both done before D2 (2026-10-18):** unknown event types now stay pending
+(only handled types are fetched), and handlers no longer open a bare transaction. So deploy order no
+longer matters for this feature. Original notes:
 - `EventProcessor`'s default case logs and **marks unknown event types processed**, i.e. drops them.
   It should leave them pending instead, so a store that upgrades before the cloud loses nothing. This
   changes shared cloud behaviour, so it gets its own change. Until then, **deploy the cloud before the
