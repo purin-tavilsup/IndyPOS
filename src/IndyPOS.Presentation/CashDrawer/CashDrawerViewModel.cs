@@ -20,6 +20,19 @@ public sealed record PayLaterRow(DateTime StoreTime, string Description, decimal
 public sealed partial class CashDrawerViewModel : ObservableObject
 {
     public const string LoadFailed = "โหลดลิ้นชักเก็บเงินไม่สำเร็จ: {0}";
+    public const string Sales = "ยอดขาย";
+    public const string GeneralSales = "ยอดขาย เบ็ดเตล็ด";
+    public const string HardwareSales = "ยอดขาย ฮาร์ดแวร์";
+    public const string CashTaken = "[ รายรับ ] เงินสด";
+    public const string PayLater = "ยอดลงบัญชี";
+    public const string GeneralPayLater = "ยอดลงบัญชี เบ็ดเตล็ด";
+    public const string HardwarePayLater = "ยอดลงบัญชี ฮาร์ดแวร์";
+    public const string PaidOut = "รายจ่าย";
+    public const string CashFloats = "เงินทอน";
+    public const string DebtRepaid = "ลูกค้าชำระหนี้";
+    public const string Short = "ขาด";
+    public const string Over = "เกิน";
+    public const string Exact = "พอดี";
 
     private readonly IStoreHubClient _client;
     private readonly StoreClock _clock;
@@ -30,6 +43,7 @@ public sealed partial class CashDrawerViewModel : ObservableObject
     private DateOnly _businessDate;
 
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(SummaryRows), nameof(DifferenceText))]
     private CashDrawerSummaryDto? _summary;
 
     // The summary's IsEditable, but turned off by a failed load too, so the screen and its sections agree.
@@ -69,6 +83,18 @@ public sealed partial class CashDrawerViewModel : ObservableObject
 
     /// <summary>The day's new ลงบัญชี, oldest first; empty for a store without PayLater.</summary>
     public ObservableCollection<PayLaterRow> TodaysPayLater { get; } = [];
+
+    /// <summary>The day's figures as StoreHub computed them, only the rows this store has (spec 2026-10-07 §2).</summary>
+    public IReadOnlyList<MoneyRow> SummaryRows => Summary is null ? [] : RowsOf(Summary);
+
+    /// <summary>ขาด / เกิน / พอดี for the counted-versus-expected difference; empty until someone counts.</summary>
+    public string DifferenceText => Summary?.CashDifference switch
+    {
+        null => string.Empty,
+        < 0 => Short,
+        > 0 => Over,
+        _ => Exact
+    };
 
     /// <summary>The payout category (เบ็ดเตล็ด / ฮาร์ดแวร์) only means something where hardware is sold.</summary>
     public bool ShowPayoutCategory => ShowProductTypeSplit;
@@ -149,6 +175,31 @@ public sealed partial class CashDrawerViewModel : ObservableObject
         .OrderBy(p => p.CreatedUtc)
         .Select(p => new PayLaterRow(_clock.ToStoreTime(p.CreatedUtc), p.Description, p.PayLaterAmount))
         .ToList();
+
+    private IReadOnlyList<MoneyRow> RowsOf(CashDrawerSummaryDto summary)
+    {
+        var rows = new List<MoneyRow>();
+        if (ShowProductTypeSplit)
+            rows.AddRange([new(GeneralSales, summary.GeneralProductsTotal), new(HardwareSales, summary.HardwareProductsTotal)]);
+        else
+            rows.Add(new MoneyRow(Sales, summary.GeneralProductsTotal));
+
+        rows.Add(new MoneyRow(CashTaken, summary.CashPaymentsTotal));
+        rows.AddRange(summary.NonCashPayments.Select(p => new MoneyRow(p.DisplayName, p.Total)));
+
+        if (ShowPayLater)
+            rows.AddRange(PayLaterRows(summary));
+
+        rows.AddRange([new(PaidOut, summary.PayoutsTotal), new(CashFloats, summary.CashFloatsTotal)]);
+        if (ShowPayLater)
+            rows.Add(new MoneyRow(DebtRepaid, summary.DebtRepaymentsTotal));
+
+        return rows;
+    }
+
+    private IEnumerable<MoneyRow> PayLaterRows(CashDrawerSummaryDto summary) => ShowProductTypeSplit
+        ? [new(GeneralPayLater, summary.PayLaterGeneralProductsTotal), new(HardwarePayLater, summary.PayLaterHardwareProductsTotal)]
+        : [new(PayLater, summary.PayLaterGeneralProductsTotal)];
 
     private void Show(DateOnly day, LoadedDay loaded)
     {
