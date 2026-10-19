@@ -57,14 +57,22 @@ public sealed partial class CashCountViewModel : ObservableObject
 
     public decimal TypedTotal => CashDenominations.Total(Counts());
 
-    /// <summary>Replaces the history with the day's counts; the screen calls it on every load.</summary>
-    public async Task LoadAsync(DateOnly day, CancellationToken cancellationToken)
+    /// <summary>Replaces the history with the day's counts.</summary>
+    public async Task LoadAsync(DateOnly day, CancellationToken cancellationToken) =>
+        Show(await FetchAsync(day, cancellationToken));
+
+    /// <summary>The day's counts, newest first, not shown yet: the screen shows a whole day at once or not at all.</summary>
+    public async Task<IReadOnlyList<CashCountRow>> FetchAsync(DateOnly day, CancellationToken cancellationToken) =>
+        (await _client.GetCashCountsAsync(day, cancellationToken))
+        .OrderByDescending(c => c.CreatedUtc)
+        .Select(c => new CashCountRow(_clock.ToStoreTime(c.CreatedUtc), c.CountedTotal))
+        .ToList();
+
+    public void Show(IReadOnlyList<CashCountRow> history)
     {
-        var counts = await _client.GetCashCountsAsync(day, cancellationToken);
-        cancellationToken.ThrowIfCancellationRequested();   // a newer load owns the history now
         History.Clear();
-        foreach (var count in counts.OrderByDescending(c => c.CreatedUtc))
-            History.Add(new CashCountRow(_clock.ToStoreTime(count.CreatedUtc), count.CountedTotal));
+        foreach (var row in history)
+            History.Add(row);
     }
 
     private bool CanSave() => IsEditable && !IsBusy;

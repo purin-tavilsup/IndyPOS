@@ -30,10 +30,12 @@ public class CashDrawerViewModelTests
     private const decimal ExpectedCash = 1_234m;
 
     private readonly Mock<IStoreHubClient> _client = new();
-    private readonly StoreClock _clock = new(new FakeTimeProvider(NowUtc), Bangkok);
+    private readonly FakeTimeProvider _time = new(NowUtc);
+    private readonly StoreClock _clock;
 
     public CashDrawerViewModelTests()
     {
+        _clock = new StoreClock(_time, Bangkok);
         AnswerDay(Today, Summary(Today, isEditable: true));
         AnswerDay(Yesterday, Summary(Yesterday, isEditable: false));
     }
@@ -88,6 +90,67 @@ public class CashDrawerViewModelTests
 
         vm.Summary!.BusinessDate.Should()
                                 .Be(Today);
+    }
+
+    // A cashier may only ever read today; asking for the day the screen opened on would be refused.
+    [Fact]
+    public async Task Refresh_ForACashierAfterMidnight_LoadsTheNewDay()
+    {
+        var tomorrow = Today.AddDays(1);
+        AnswerDay(tomorrow, Summary(tomorrow, isEditable: true));
+        var vm = Drawer(Cashier);
+        await vm.RefreshCommand.ExecuteAsync(null);
+        _time.Advance(TimeSpan.FromDays(1));
+
+        await vm.RefreshCommand.ExecuteAsync(null);
+
+        vm.Summary!.BusinessDate.Should()
+                                .Be(tomorrow);
+    }
+
+    [Fact]
+    public async Task Refresh_WhenTheSummaryIsRefused_DisablesAdding()
+    {
+        var vm = Drawer(Manager);
+        await vm.RefreshCommand.ExecuteAsync(null);
+        _client.Setup(c => c.GetCashSummaryAsync(Today, It.IsAny<CancellationToken>()))
+               .ThrowsAsync(new StoreHubException(Unreachable));
+
+        await vm.RefreshCommand.ExecuteAsync(null);
+
+        vm.Payouts.AddCommand.CanExecute(null).Should()
+                                              .BeFalse();
+    }
+
+    [Fact]
+    public async Task ShowDay_WhenYesterdaysFloatsFail_KeepsShowingToday()
+    {
+        var vm = Drawer(Manager);
+        await vm.RefreshCommand.ExecuteAsync(null);
+        _client.Setup(c => c.GetCashFloatsAsync(Yesterday, It.IsAny<CancellationToken>()))
+               .ThrowsAsync(new StoreHubException(Unreachable));
+
+        await vm.ShowDayCommand.ExecuteAsync(Yesterday);
+
+        (vm.BusinessDate, vm.Summary!.BusinessDate).Should()
+                                                   .Be((Today, Today));
+    }
+
+    [Fact]
+    public async Task ShowDay_WhenAnOlderLoadStallsInThePayouts_KeepsTheNewerPayouts()
+    {
+        var olderPayouts = new TaskCompletionSource<IReadOnlyList<CashPayoutDto>>();
+        _client.Setup(c => c.GetCashPayoutsAsync(Yesterday, It.IsAny<CancellationToken>()))
+               .Returns(olderPayouts.Task);
+        var vm = Drawer(Manager);
+        var older = vm.ShowDayCommand.ExecuteAsync(Yesterday);
+
+        await vm.ShowDayCommand.ExecuteAsync(Today);
+        olderPayouts.SetResult([Payout(Yesterday), Payout(Yesterday)]);
+        await older;
+
+        vm.Payouts.Rows.Should()
+                       .ContainSingle();
     }
 
     [Fact]
@@ -194,7 +257,7 @@ public class CashDrawerViewModelTests
         _client.Setup(c => c.GetCashSummaryAsync(day, It.IsAny<CancellationToken>()))
                .ReturnsAsync(summary);
         _client.Setup(c => c.GetCashPayoutsAsync(day, It.IsAny<CancellationToken>()))
-               .ReturnsAsync([new CashPayoutDto(Guid.NewGuid(), default, 100m, null, day, at, at, Guid.NewGuid(), null)]);
+               .ReturnsAsync([Payout(day)]);
         _client.Setup(c => c.GetCashFloatsAsync(day, It.IsAny<CancellationToken>()))
                .ReturnsAsync([new CashFloatDto(Guid.NewGuid(), 1_000m, null, day, at, at, Guid.NewGuid(), null)]);
         _client.Setup(c => c.GetDebtRepaymentsAsync(day, It.IsAny<CancellationToken>()))
@@ -202,6 +265,9 @@ public class CashDrawerViewModelTests
         _client.Setup(c => c.GetCashCountsAsync(day, It.IsAny<CancellationToken>()))
                .ReturnsAsync([new CashCountDto(Guid.NewGuid(), day, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1_000m, at, Guid.NewGuid())]);
     }
+
+    private static CashPayoutDto Payout(DateOnly day) =>
+        new(Guid.NewGuid(), default, 100m, null, day, NowUtc.UtcDateTime, NowUtc.UtcDateTime, Guid.NewGuid(), null);
 
     private static CashDrawerSummaryDto Summary(DateOnly day, bool isEditable) => new()
     {
