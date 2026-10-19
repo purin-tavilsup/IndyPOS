@@ -1,4 +1,5 @@
 using System.Net;
+using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using FluentAssertions;
 using IndyPOS.Application.Common.Constants;
@@ -150,6 +151,32 @@ public class PayLaterSaleEndpointTests : IntegrationTestBase
                                                                              .Be(Price - 100m);
     }
 
+    // Spec 2026-10-19 §3: a repayment names its cashier, so a token without a user id is refused up front.
+    [Fact]
+    public async Task RecordPayment_WithoutAUserId_ReturnsUnauthorized()
+    {
+        Client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", TokenWithoutUserId());
+
+        var response = await Client.PostAsJsonAsync($"/pay-later/{Guid.NewGuid()}/payments", new RecordPaymentRequest(100m));
+
+        response.StatusCode.Should()
+                           .Be(HttpStatusCode.Unauthorized);
+    }
+
+    [Fact]
+    public async Task RecordPayment_WhenSaved_StoresTheRepaymentUnderTheTokensUser()
+    {
+        var username = $"cashier_{Guid.NewGuid():N}";
+        await AuthenticateAsAsync(username, "Cashier123!");
+        var sale = await SellOnCreditAsync();
+        var debtId = await DebtIdOfAsync(sale.InvoiceId);
+
+        await Client.PostAsJsonAsync($"/pay-later/{debtId}/payments", new RecordPaymentRequest(100m));
+
+        (await RepaymentCashiersOfAsync(debtId)).Should()
+                                                .Equal(await UserIdOfAsync(username));
+    }
+
     // The drawer read credit sales through pay_later rows, so a v4 one counted as cash (spec §1).
     [Fact]
     public async Task CashSummary_AfterAV4CreditSale_CountsItAsCredit()
@@ -193,6 +220,36 @@ public class PayLaterSaleEndpointTests : IntegrationTestBase
         return new CompleteSaleRequest(
             Lines: [new SaleLineRequest(product.Id, Quantity: 1, UnitPrice: Price)],
             Payments: [new SalePaymentRequest(PaymentMethodCodes.PayLater, Price, note), .. extraPayments]);
+    }
+
+    private async Task<Guid> DebtIdOfAsync(Guid invoiceId)
+    {
+        await using var scope = Factory.Services.CreateAsyncScope();
+        var db = scope.ServiceProvider.GetRequiredService<StoreHubDbContext>();
+
+        return await db.PayLaters.Where(p => p.InvoiceId == invoiceId)
+                                 .Select(p => p.Id)
+                                 .SingleAsync();
+    }
+
+    private async Task<List<Guid>> RepaymentCashiersOfAsync(Guid debtId)
+    {
+        await using var scope = Factory.Services.CreateAsyncScope();
+        var db = scope.ServiceProvider.GetRequiredService<StoreHubDbContext>();
+
+        return await db.PayLaterRepayments.Where(r => r.PayLaterId == debtId)
+                                          .Select(r => r.CreatedByUserId)
+                                          .ToListAsync();
+    }
+
+    private async Task<Guid> UserIdOfAsync(string username)
+    {
+        await using var scope = Factory.Services.CreateAsyncScope();
+        var db = scope.ServiceProvider.GetRequiredService<StoreHubDbContext>();
+
+        return await db.StoreUsers.Where(u => u.Username == username)
+                                  .Select(u => u.Id)
+                                  .SingleAsync();
     }
 
     private async Task<int> CountDebtsOfAsync(Guid invoiceId)

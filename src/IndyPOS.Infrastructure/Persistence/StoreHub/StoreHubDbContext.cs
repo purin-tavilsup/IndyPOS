@@ -18,6 +18,7 @@ public class StoreHubDbContext : DbContext
     public DbSet<Payment> Payments => Set<Payment>();
     public DbSet<Product> Products => Set<Product>();
     public DbSet<PayLater> PayLaters => Set<PayLater>();
+    public DbSet<PayLaterRepayment> PayLaterRepayments => Set<PayLaterRepayment>();
     public DbSet<InventoryMovement> InventoryMovements => Set<InventoryMovement>();
     public DbSet<OutboxEvent> OutboxEvents => Set<OutboxEvent>();
     public DbSet<StoreUser> StoreUsers => Set<StoreUser>();

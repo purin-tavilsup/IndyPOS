@@ -38,7 +38,10 @@ public class PayLaterConfiguration : IEntityTypeConfiguration<PayLater>
             .HasColumnName("paid_amount")
             .HasPrecision(18, 2)
             .HasDefaultValue(0m)
-            .IsRequired();
+            .IsRequired()
+            // Every UPDATE carries "AND paid_amount = <as read>", so of two repayments racing on one debt
+            // the second matches no row and fails, instead of overwriting the first one's total.
+            .IsConcurrencyToken();
 
         builder.Property(e => e.IsCompleted)
             .HasColumnName("is_completed")
@@ -52,6 +55,9 @@ public class PayLaterConfiguration : IEntityTypeConfiguration<PayLater>
         builder.Property(e => e.LastModifiedUtc)
             .HasColumnName("last_modified_utc")
             .IsRequired();
+
+        builder.Property(e => e.LegacyPaymentId)
+            .HasColumnName("legacy_payment_id");
 
         // RemainingAmount is calculated, not stored
         builder.Ignore(e => e.RemainingAmount);
@@ -67,5 +73,6 @@ public class PayLaterConfiguration : IEntityTypeConfiguration<PayLater>
             .OnDelete(DeleteBehavior.Restrict);
 
         builder.HasIndex(e => e.IsCompleted);
+        builder.HasIndex(e => e.LegacyPaymentId);
     }
 }
