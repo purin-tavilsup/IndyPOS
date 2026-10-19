@@ -1,6 +1,11 @@
 using IndyPOS.Application.Common.Models;
 using IndyPOS.Application.UseCases.StoreHub.Auth;
 using IndyPOS.Application.UseCases.StoreHub.Auth.ChangePassword;
+using IndyPOS.Application.UseCases.StoreHub.CashDrawer.Counts;
+using IndyPOS.Application.UseCases.StoreHub.CashDrawer.DebtRepayments;
+using IndyPOS.Application.UseCases.StoreHub.CashDrawer.Floats;
+using IndyPOS.Application.UseCases.StoreHub.CashDrawer.Payouts;
+using IndyPOS.Application.UseCases.StoreHub.CashDrawer.Summary;
 using IndyPOS.Application.UseCases.StoreHub.PayLater;
 using IndyPOS.Application.UseCases.StoreHub.PaymentMethods;
 using IndyPOS.Application.UseCases.StoreHub.ProductCategories;
@@ -264,4 +269,51 @@ public interface IStoreHubClient
     /// </summary>
     Task<IReadOnlyList<ProductCategoryDto>> GetProductCategoriesAsync(
         CancellationToken cancellationToken = default);
+
+    // ── Cash drawer (/cash; needs cash.manage, and reports.view for another day) ──
+
+    /// <summary>GET /cash/summary — the day's figures, all computed by StoreHub. No date = today.</summary>
+    Task<CashDrawerSummaryDto> GetCashSummaryAsync(DateOnly? businessDate, CancellationToken cancellationToken = default);
+
+    /// <summary>GET /cash/payouts — the day's payouts. No date = today.</summary>
+    Task<IReadOnlyList<CashPayoutDto>> GetCashPayoutsAsync(DateOnly? businessDate, CancellationToken cancellationToken = default);
+
+    /// <summary>POST /cash/payouts.</summary>
+    Task<CashPayoutDto> AddCashPayoutAsync(AddCashPayoutRequest request, CancellationToken cancellationToken = default);
+
+    /// <summary>PUT /cash/payouts/{id}.</summary>
+    Task<CashPayoutDto> EditCashPayoutAsync(Guid id, EditCashPayoutRequest request, CancellationToken cancellationToken = default);
+
+    /// <summary>DELETE /cash/payouts/{id}.</summary>
+    Task DeleteCashPayoutAsync(Guid id, CancellationToken cancellationToken = default);
+
+    /// <summary>GET /cash/floats — the day's cash floats (เงินทอน). No date = today.</summary>
+    Task<IReadOnlyList<CashFloatDto>> GetCashFloatsAsync(DateOnly? businessDate, CancellationToken cancellationToken = default);
+
+    /// <summary>POST /cash/floats.</summary>
+    Task<CashFloatDto> AddCashFloatAsync(AddCashFloatRequest request, CancellationToken cancellationToken = default);
+
+    /// <summary>PUT /cash/floats/{id}.</summary>
+    Task<CashFloatDto> EditCashFloatAsync(Guid id, EditCashFloatRequest request, CancellationToken cancellationToken = default);
+
+    /// <summary>DELETE /cash/floats/{id}.</summary>
+    Task DeleteCashFloatAsync(Guid id, CancellationToken cancellationToken = default);
+
+    /// <summary>GET /cash/debt-repayments — the day's debt repayments. No date = today.</summary>
+    Task<IReadOnlyList<DebtRepaymentDto>> GetDebtRepaymentsAsync(DateOnly? businessDate, CancellationToken cancellationToken = default);
+
+    /// <summary>POST /cash/debt-repayments.</summary>
+    Task<DebtRepaymentDto> AddDebtRepaymentAsync(AddDebtRepaymentRequest request, CancellationToken cancellationToken = default);
+
+    /// <summary>PUT /cash/debt-repayments/{id}.</summary>
+    Task<DebtRepaymentDto> EditDebtRepaymentAsync(Guid id, EditDebtRepaymentRequest request, CancellationToken cancellationToken = default);
+
+    /// <summary>DELETE /cash/debt-repayments/{id}.</summary>
+    Task DeleteDebtRepaymentAsync(Guid id, CancellationToken cancellationToken = default);
+
+    /// <summary>GET /cash/counts — the day's counts, newest first. No date = today.</summary>
+    Task<IReadOnlyList<CashCountDto>> GetCashCountsAsync(DateOnly? businessDate, CancellationToken cancellationToken = default);
+
+    /// <summary>POST /cash/counts — a new count; counts are never edited or deleted.</summary>
+    Task<CashCountDto> AddCashCountAsync(AddCashCountRequest request, CancellationToken cancellationToken = default);
 }
