@@ -234,6 +234,44 @@ public class PayLaterMirrorTests(CloudPostgresFixture postgres) : IClassFixture<
                                                 .Be(1);
     }
 
+    // Codex review: StoreHub refuses a repayment of 0 or less, but the cloud is its own boundary; such a row
+    // would sit in the insert-only audit for good and understate repayment totals.
+    [Theory]
+    [InlineData(0)]
+    [InlineData(-100)]
+    public async Task ProcessPendingEventsAsync_WithANonPositiveRepayment_StoresNoRow(int amount)
+    {
+        await using var pipeline = await EventPipeline.CreateAsync(postgres);
+        var debt = Debt();
+        var repayment = Repayment(debt);
+        repayment.Amount = amount;
+        await SendAsync(pipeline, debt);
+        await SendAsync(pipeline, repayment);
+
+        await pipeline.PollAsync();
+
+        (await pipeline.CountAsync<CloudPayLaterRepayment>()).Should()
+                                                             .Be(0);
+    }
+
+    [Theory]
+    [InlineData(0)]
+    [InlineData(-100)]
+    public async Task ProcessPendingEventsAsync_WithANonPositiveRepayment_LeavesItUnprocessed(int amount)
+    {
+        await using var pipeline = await EventPipeline.CreateAsync(postgres);
+        var debt = Debt();
+        var repayment = Repayment(debt);
+        repayment.Amount = amount;
+        await SendAsync(pipeline, debt);
+        await SendAsync(pipeline, repayment);
+
+        await pipeline.PollAsync();
+
+        (await pipeline.CountUnprocessedAsync()).Should()
+                                                .Be(1);
+    }
+
     [Fact]
     public async Task ProcessPendingEventsAsync_WithTheSameRepaymentTwice_StoresOneRow()
     {
