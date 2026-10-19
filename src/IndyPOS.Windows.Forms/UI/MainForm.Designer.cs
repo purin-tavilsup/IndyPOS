@@ -53,6 +53,7 @@
             this.UsersButton = new System.Windows.Forms.Button();
             this.InventoryButton = new System.Windows.Forms.Button();
             this.SaleButton = new System.Windows.Forms.Button();
+            this.CashDrawerButton = new System.Windows.Forms.Button();
             this.NavigationPanel.SuspendLayout();
             this.panel2.SuspendLayout();
             this.panel1.SuspendLayout();
@@ -260,6 +261,7 @@
             this.ControlPanel.Controls.Add(this.ReportsButton);
             this.ControlPanel.Controls.Add(this.UsersButton);
             this.ControlPanel.Controls.Add(this.InventoryButton);
+            this.ControlPanel.Controls.Add(this.CashDrawerButton);
             this.ControlPanel.Controls.Add(this.SaleButton);
             this.ControlPanel.Dock = System.Windows.Forms.DockStyle.Left;
             this.ControlPanel.Location = new System.Drawing.Point(0, 52);
@@ -275,9 +277,9 @@
             this.CloseApplicationButton.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.CloseApplicationButton.ForeColor = System.Drawing.Color.DarkGray;
             this.CloseApplicationButton.Image = global::IndyPOS.Windows.Forms.Properties.Resources.CloseWindows_50;
-            this.CloseApplicationButton.Location = new System.Drawing.Point(3, 850);
+            this.CloseApplicationButton.Location = new System.Drawing.Point(3, 859);
             this.CloseApplicationButton.Name = "CloseApplicationButton";
-            this.CloseApplicationButton.Size = new System.Drawing.Size(292, 115);
+            this.CloseApplicationButton.Size = new System.Drawing.Size(292, 101);
             this.CloseApplicationButton.TabIndex = 5;
             this.CloseApplicationButton.Text = "ออกจากโปรแกรม";
             this.CloseApplicationButton.TextAlign = System.Drawing.ContentAlignment.BottomCenter;
@@ -293,9 +295,9 @@
             this.LogInButton.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.LogInButton.ForeColor = System.Drawing.Color.DarkGray;
             this.LogInButton.Image = global::IndyPOS.Windows.Forms.Properties.Resources.LogInPanel_50;
-            this.LogInButton.Location = new System.Drawing.Point(3, 729);
+            this.LogInButton.Location = new System.Drawing.Point(3, 752);
             this.LogInButton.Name = "LogInButton";
-            this.LogInButton.Size = new System.Drawing.Size(292, 115);
+            this.LogInButton.Size = new System.Drawing.Size(292, 101);
             this.LogInButton.TabIndex = 5;
             this.LogInButton.Text = "Log In";
             this.LogInButton.TextAlign = System.Drawing.ContentAlignment.BottomCenter;
@@ -311,9 +313,9 @@
             this.SettingsButton.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.SettingsButton.ForeColor = System.Drawing.Color.DarkGray;
             this.SettingsButton.Image = global::IndyPOS.Windows.Forms.Properties.Resources.SettingsPanel_50;
-            this.SettingsButton.Location = new System.Drawing.Point(3, 608);
+            this.SettingsButton.Location = new System.Drawing.Point(3, 645);
             this.SettingsButton.Name = "SettingsButton";
-            this.SettingsButton.Size = new System.Drawing.Size(292, 115);
+            this.SettingsButton.Size = new System.Drawing.Size(292, 101);
             this.SettingsButton.TabIndex = 4;
             this.SettingsButton.Text = "การตั้งค่า";
             this.SettingsButton.TextAlign = System.Drawing.ContentAlignment.BottomCenter;
@@ -329,9 +331,9 @@
             this.AccountsReceivableButton.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.AccountsReceivableButton.ForeColor = System.Drawing.Color.DarkGray;
             this.AccountsReceivableButton.Image = global::IndyPOS.Windows.Forms.Properties.Resources.Customer_Acounts_50;
-            this.AccountsReceivableButton.Location = new System.Drawing.Point(3, 487);
+            this.AccountsReceivableButton.Location = new System.Drawing.Point(3, 538);
             this.AccountsReceivableButton.Name = "AccountsReceivableButton";
-            this.AccountsReceivableButton.Size = new System.Drawing.Size(292, 115);
+            this.AccountsReceivableButton.Size = new System.Drawing.Size(292, 101);
             this.AccountsReceivableButton.TabIndex = 3;
             this.AccountsReceivableButton.Text = "รายการลงบัญชี";
             this.AccountsReceivableButton.TextAlign = System.Drawing.ContentAlignment.BottomCenter;
@@ -347,15 +349,33 @@
             this.ReportsButton.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.ReportsButton.ForeColor = System.Drawing.Color.DarkGray;
             this.ReportsButton.Image = global::IndyPOS.Windows.Forms.Properties.Resources.Reports_50;
-            this.ReportsButton.Location = new System.Drawing.Point(3, 366);
+            this.ReportsButton.Location = new System.Drawing.Point(3, 431);
             this.ReportsButton.Name = "ReportsButton";
-            this.ReportsButton.Size = new System.Drawing.Size(292, 115);
+            this.ReportsButton.Size = new System.Drawing.Size(292, 101);
             this.ReportsButton.TabIndex = 3;
             this.ReportsButton.Text = "รายงาน";
             this.ReportsButton.TextAlign = System.Drawing.ContentAlignment.BottomCenter;
             this.ReportsButton.TextImageRelation = System.Windows.Forms.TextImageRelation.ImageAboveText;
             this.ReportsButton.UseVisualStyleBackColor = false;
             this.ReportsButton.Click += new System.EventHandler(this.ReportsButton_Click);
+            // 
+            // CashDrawerButton
+            // 
+            this.CashDrawerButton.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(38)))), ((int)(((byte)(38)))), ((int)(((byte)(38)))));
+            this.CashDrawerButton.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
+            this.CashDrawerButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.CashDrawerButton.Font = new System.Drawing.Font("FC Subject [Non-commercial] Reg", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.CashDrawerButton.ForeColor = System.Drawing.Color.DarkGray;
+            this.CashDrawerButton.Image = global::IndyPOS.Windows.Forms.Properties.Resources.Money_50;
+            this.CashDrawerButton.Location = new System.Drawing.Point(3, 110);
+            this.CashDrawerButton.Name = "CashDrawerButton";
+            this.CashDrawerButton.Size = new System.Drawing.Size(292, 101);
+            this.CashDrawerButton.TabIndex = 8;
+            this.CashDrawerButton.Text = "ลิ้นชักเก็บเงิน";
+            this.CashDrawerButton.TextAlign = System.Drawing.ContentAlignment.BottomCenter;
+            this.CashDrawerButton.TextImageRelation = System.Windows.Forms.TextImageRelation.ImageAboveText;
+            this.CashDrawerButton.UseVisualStyleBackColor = false;
+            this.CashDrawerButton.Click += new System.EventHandler(this.CashDrawerButton_Click);
             // 
             // UsersButton
             // 
@@ -366,9 +386,9 @@
             this.UsersButton.ForeColor = System.Drawing.Color.DarkGray;
             this.UsersButton.Image = global::IndyPOS.Windows.Forms.Properties.Resources.User_50;
             this.UsersButton.ImageAlign = System.Drawing.ContentAlignment.BottomCenter;
-            this.UsersButton.Location = new System.Drawing.Point(3, 245);
+            this.UsersButton.Location = new System.Drawing.Point(3, 324);
             this.UsersButton.Name = "UsersButton";
-            this.UsersButton.Size = new System.Drawing.Size(292, 115);
+            this.UsersButton.Size = new System.Drawing.Size(292, 101);
             this.UsersButton.TabIndex = 2;
             this.UsersButton.Text = "การจัดการผู้ใช้";
             this.UsersButton.TextImageRelation = System.Windows.Forms.TextImageRelation.ImageAboveText;
@@ -384,9 +404,9 @@
             this.InventoryButton.ForeColor = System.Drawing.Color.DarkGray;
             this.InventoryButton.Image = global::IndyPOS.Windows.Forms.Properties.Resources.Inventory_50;
             this.InventoryButton.ImageAlign = System.Drawing.ContentAlignment.BottomCenter;
-            this.InventoryButton.Location = new System.Drawing.Point(3, 124);
+            this.InventoryButton.Location = new System.Drawing.Point(3, 217);
             this.InventoryButton.Name = "InventoryButton";
-            this.InventoryButton.Size = new System.Drawing.Size(292, 115);
+            this.InventoryButton.Size = new System.Drawing.Size(292, 101);
             this.InventoryButton.TabIndex = 1;
             this.InventoryButton.Text = "การจัดการสินค้า";
             this.InventoryButton.TextImageRelation = System.Windows.Forms.TextImageRelation.ImageAboveText;
@@ -403,7 +423,7 @@
             this.SaleButton.Image = global::IndyPOS.Windows.Forms.Properties.Resources.Cashier_50;
             this.SaleButton.Location = new System.Drawing.Point(3, 3);
             this.SaleButton.Name = "SaleButton";
-            this.SaleButton.Size = new System.Drawing.Size(292, 115);
+            this.SaleButton.Size = new System.Drawing.Size(292, 101);
             this.SaleButton.TabIndex = 0;
             this.SaleButton.Text = "ขายสินค้า";
             this.SaleButton.TextAlign = System.Drawing.ContentAlignment.BottomCenter;
@@ -449,6 +469,7 @@
         private System.Windows.Forms.Button UsersButton;
         private System.Windows.Forms.Button SettingsButton;
         private System.Windows.Forms.Button ReportsButton;
+        private System.Windows.Forms.Button CashDrawerButton;
         private System.Windows.Forms.Button AccountsReceivableButton;
         private System.Windows.Forms.Button LogInButton;
         private System.Windows.Forms.Label StoreNameLabel;

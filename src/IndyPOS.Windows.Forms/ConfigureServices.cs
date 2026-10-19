@@ -5,6 +5,7 @@ using IndyPOS.Windows.Forms;
 using IndyPOS.Windows.Forms.Interfaces;
 using IndyPOS.Windows.Forms.Services;
 using IndyPOS.Windows.Forms.UI;
+using IndyPOS.Windows.Forms.UI.CashDrawer;
 using IndyPOS.Windows.Forms.UI.Inventory;
 using IndyPOS.Windows.Forms.UI.Login;
 using IndyPOS.Windows.Forms.UI.PayLater;
@@ -27,7 +28,7 @@ internal static class ConfigureServices
 		services.AddSingleton<InvoiceProductsReportPanel>()
 				.AddSingleton<SalesHistoryReportPanel>()
 				.AddSingleton<SalesReportPanel>()
-				.AddSingleton<CashFlowCalculatorPanel>()
+				.AddSingleton<CashDrawerPanel>()
 				.AddSingleton<AcceptPaymentForm>()
 				.AddSingleton<PayLaterPaymentPanel>()
 				.AddSingleton<AddInvoiceProductForm>()

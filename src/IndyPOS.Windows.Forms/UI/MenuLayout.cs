@@ -17,6 +17,20 @@ public static class MenuLayout
             shownButtonsTopToBottom[i].Top = slotTops[i];
     }
 
+    /// <summary>
+    /// Splits the menu's height into equal slots, <paramref name="gap"/> apart, so every button the menu
+    /// can hold fits. Taken from the laid-out panel's height, so display scaling is already in it.
+    /// </summary>
+    public static (IReadOnlyList<int> Tops, int Height) EvenSlots(int areaHeight, int count, int gap)
+    {
+        if (count == 0)
+            return ([], 0);
+
+        var step = (areaHeight - gap) / count;
+        var tops = Enumerable.Range(0, count).Select(i => gap / 2 + i * step).ToArray();
+        return (tops, step - gap);
+    }
+
     /// <summary>The same for a row of tabs: puts the shown tabs into the row's slots, left first.</summary>
     public static void Row(IReadOnlyList<Control> shownLeftToRight, IReadOnlyList<int> slotLefts)
     {
