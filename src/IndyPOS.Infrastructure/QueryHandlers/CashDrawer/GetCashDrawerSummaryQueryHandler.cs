@@ -43,8 +43,8 @@ public class GetCashDrawerSummaryQueryHandler(
 
         var payoutsTotal = payouts.Sum(p => p.Amount);
         var expected = CashDrawerCalculator.ExpectedCash(new CashDrawerTotals(
-            sales.InvoiceTotalWithoutPayLaterPayments, repaymentsTotal, floatsTotal,
-            payments.MoneyTransferTotal, payments.WelfareCardTotal, payoutsTotal));
+            sales.InvoiceTotalWithoutPayLaterPayments - payments.MoneyTransferTotal - payments.WelfareCardTotal,
+            repaymentsTotal, floatsTotal, payoutsTotal));
         var counted = latest?.CountedTotal;
 
         return new CashDrawerSummaryDto
