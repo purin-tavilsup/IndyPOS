@@ -12,6 +12,4 @@ public interface IReportService
 	Task<PaymentsSummary> CreatePaymentsSummaryByPeriodAsync(TimePeriod period);
 
 	Task<PaymentsSummary> CreatePaymentsSummaryByDateRangeAsync(DateOnly startDate, DateOnly endDate);
-
-	Task<IEnumerable<PayLaterPaymentDto>> GetPayLaterPaymentsByPeriodAsync(TimePeriod period);
 }
