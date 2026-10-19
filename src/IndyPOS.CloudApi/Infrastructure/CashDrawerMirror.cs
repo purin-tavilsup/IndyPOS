@@ -53,6 +53,22 @@ internal static class CashDrawerMirror
         }, db, ct);
     }
 
+    // Insert-only falls out of the stale rule: a count is never edited, so a stored Id is never older.
+    public static Task ProcessCashCountAsync(SyncedEventEntity syncedEvent, CloudDbContext db, CancellationToken ct)
+    {
+        var count = Read<CashCount>(syncedEvent);
+        return UpsertAsync(syncedEvent, db.CashCounts, new CloudCashCount
+        {
+            Id = count.Id, StoreId = count.StoreId, BusinessDate = count.BusinessDate,
+            BankNote1000Count = count.BankNote1000Count, BankNote500Count = count.BankNote500Count,
+            BankNote100Count = count.BankNote100Count, BankNote50Count = count.BankNote50Count,
+            BankNote20Count = count.BankNote20Count, Coin10Count = count.Coin10Count, Coin5Count = count.Coin5Count,
+            Coin2Count = count.Coin2Count, Coin1Count = count.Coin1Count,
+            CreatedAtUtc = Utc(count.CreatedUtc), LastModifiedAtUtc = Utc(count.LastModifiedUtc),
+            CreatedByUserId = count.CreatedByUserId, SyncedAtUtc = DateTime.UtcNow
+        }, db, ct);
+    }
+
     private static async Task UpsertAsync<TCloud>(
         SyncedEventEntity syncedEvent, DbSet<TCloud> set, TCloud incoming, CloudDbContext db, CancellationToken ct)
         where TCloud : class, ICloudCashRow

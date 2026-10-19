@@ -26,7 +26,8 @@ public class EventProcessor : BackgroundService
     internal static readonly IReadOnlyCollection<string> HandledEventTypes =
     [
         "InvoiceCompleted", "InvoiceReprinted",
-        CashDrawerOutbox.CashPayoutChanged, CashDrawerOutbox.CashFloatChanged, CashDrawerOutbox.DebtRepaymentChanged
+        CashDrawerOutbox.CashPayoutChanged, CashDrawerOutbox.CashFloatChanged, CashDrawerOutbox.DebtRepaymentChanged,
+        CashDrawerOutbox.CashCountChanged
     ];
 
     /// <summary>
@@ -160,6 +161,10 @@ public class EventProcessor : BackgroundService
 
             case CashDrawerOutbox.DebtRepaymentChanged:
                 await CashDrawerMirror.ProcessDebtRepaymentAsync(syncedEvent, dbContext, cancellationToken);
+                break;
+
+            case CashDrawerOutbox.CashCountChanged:
+                await CashDrawerMirror.ProcessCashCountAsync(syncedEvent, dbContext, cancellationToken);
                 break;
 
             // Only HandledEventTypes are fetched, so this means the list and the switch disagree.
