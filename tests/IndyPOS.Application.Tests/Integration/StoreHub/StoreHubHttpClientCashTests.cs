@@ -7,6 +7,7 @@ using IndyPOS.Application.UseCases.StoreHub.CashDrawer.Counts;
 using IndyPOS.Application.UseCases.StoreHub.CashDrawer.DebtRepayments;
 using IndyPOS.Application.UseCases.StoreHub.CashDrawer.Payouts;
 using IndyPOS.Application.UseCases.StoreHub.CashDrawer.Summary;
+using IndyPOS.Application.UseCases.StoreHub.PayLater;
 using IndyPOS.Domain.Enums;
 using IndyPOS.Infrastructure.Services.StoreHub;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -67,6 +68,18 @@ public class StoreHubHttpClientCashTests
 
         request().PathAndQuery.Should()
                               .Be("/cash/summary?businessDate=2026-10-18");
+    }
+
+    // Completed ones too: a debt paid off later was still taken that day.
+    [Fact]
+    public async Task GetPayLaterTakenOnAsync_OnAThaiTill_AsksForThatDaysDebtsOnly()
+    {
+        var request = Respond(HttpStatusCode.OK, JsonSerializer.Serialize(new GetPayLaterResponse(0m, 0m, 0, 0, []), CamelCase));
+
+        await RunUnderThaiCultureAsync(() => _sut.GetPayLaterTakenOnAsync(Day));
+
+        request().PathAndQuery.Should()
+                              .Be("/pay-later?includeCompleted=true&createdOn=2026-10-18");
     }
 
     [Fact]

@@ -61,7 +61,7 @@ internal static class CashDrawerFixture
         client.Setup(c => c.GetCashFloatsAsync(day, It.IsAny<CancellationToken>())).ReturnsAsync([]);
         client.Setup(c => c.GetDebtRepaymentsAsync(day, It.IsAny<CancellationToken>())).ReturnsAsync([]);
         client.Setup(c => c.GetCashCountsAsync(day, It.IsAny<CancellationToken>())).ReturnsAsync([]);
-        client.Setup(c => c.GetPayLaterAsync(It.IsAny<bool>(), It.IsAny<string?>(), It.IsAny<CancellationToken>()))
+        client.Setup(c => c.GetPayLaterTakenOnAsync(It.IsAny<DateOnly>(), It.IsAny<CancellationToken>()))
               .ReturnsAsync(new GetPayLaterResponse(0m, 0m, 0, 0, []));
 
         return client;

@@ -195,7 +195,7 @@ public class CashDrawerViewModelTests
 
         await vm.RefreshCommand.ExecuteAsync(null);
 
-        _client.Verify(c => c.GetPayLaterAsync(It.IsAny<bool>(), It.IsAny<string?>(), It.IsAny<CancellationToken>()), Times.Never);
+        _client.Verify(c => c.GetPayLaterTakenOnAsync(It.IsAny<DateOnly>(), It.IsAny<CancellationToken>()), Times.Never);
     }
 
     [Fact]
@@ -209,39 +209,15 @@ public class CashDrawerViewModelTests
                                                      .BeFalse();
     }
 
+    // StoreHub keeps the day's own ลงบัญชี, so the till no longer fetches every debt ever on each reload.
     [Fact]
-    public async Task Refresh_WithAPayLaterFromYesterday_LeavesItOut()
-    {
-        AnswerPayLater(PayLater(NowUtc.UtcDateTime.AddDays(-1), "ลุงสมชาย", 200m));
-        var vm = Drawer(Manager);
-
-        await vm.RefreshCommand.ExecuteAsync(null);
-
-        vm.TodaysPayLater.Should()
-                         .BeEmpty();
-    }
-
-    // Paid off the same day, it still went on the slate today.
-    [Fact]
-    public async Task Refresh_WithACompletedPayLaterFromToday_ListsIt()
-    {
-        AnswerPayLater(PayLater(NowUtc.UtcDateTime, "ลุงสมชาย", 200m) with { IsCompleted = true });
-        var vm = Drawer(Manager);
-
-        await vm.RefreshCommand.ExecuteAsync(null);
-
-        vm.TodaysPayLater.Should()
-                         .ContainSingle();
-    }
-
-    [Fact]
-    public async Task Refresh_ForPayLater_AsksForCompletedOnesToo()
+    public async Task Refresh_ForPayLater_AsksForThatDaysDebtsOnly()
     {
         var vm = Drawer(Manager);
 
         await vm.RefreshCommand.ExecuteAsync(null);
 
-        _client.Verify(c => c.GetPayLaterAsync(true, null, It.IsAny<CancellationToken>()));
+        _client.Verify(c => c.GetPayLaterTakenOnAsync(Today, It.IsAny<CancellationToken>()));
     }
 
     [Fact]
@@ -453,7 +429,7 @@ public class CashDrawerViewModelTests
     }
 
     private void AnswerPayLater(params PayLaterDto[] items) =>
-        _client.Setup(c => c.GetPayLaterAsync(It.IsAny<bool>(), It.IsAny<string?>(), It.IsAny<CancellationToken>()))
+        _client.Setup(c => c.GetPayLaterTakenOnAsync(It.IsAny<DateOnly>(), It.IsAny<CancellationToken>()))
                .ReturnsAsync(new GetPayLaterResponse(0m, 0m, items.Length, 0, items));
 
     private static PayLaterDto PayLater(DateTime createdUtc, string description, decimal amount) =>

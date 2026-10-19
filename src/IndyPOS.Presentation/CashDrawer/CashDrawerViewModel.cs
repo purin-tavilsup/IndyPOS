@@ -167,11 +167,10 @@ public sealed partial class CashDrawerViewModel : ObservableObject
         return new LoadedDay(await summary, await payouts, await floats, await repayments, await counts, await payLater);
     }
 
-    // No route lists one day's ลงบัญชี for a cashier (/reports/pay-later is managers' and per customer), so the
-    // till keeps the day's own from the full list. Completed ones too: paid off later, they were still taken that day.
+    // StoreHub keeps the day's own (by the store's calendar), completed ones too; /reports/pay-later would refuse a
+    // cashier and is grouped per customer.
     private async Task<IReadOnlyList<PayLaterRow>> PayLaterOfAsync(DateOnly day, CancellationToken token) =>
-        (await _client.GetPayLaterAsync(includeCompleted: true, searchTerm: null, token)).Items
-        .Where(p => _clock.BusinessDateOf(p.CreatedUtc) == day)
+        (await _client.GetPayLaterTakenOnAsync(day, token)).Items
         .OrderBy(p => p.CreatedUtc)
         .Select(p => new PayLaterRow(_clock.ToStoreTime(p.CreatedUtc), p.Description, p.PayLaterAmount))
         .ToList();
