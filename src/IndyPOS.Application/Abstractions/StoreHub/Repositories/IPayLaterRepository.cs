@@ -31,7 +31,13 @@ public interface IPayLaterRepository
     Task<PayLater?> GetByInvoiceIdAsync(Guid invoiceId, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Update a PayLater record (for recording payments).
+    /// Saves a repayment: the debt's new totals, the repayment row and its outbox events, in one SaveChangesAsync.
+    /// Throws <see cref="Common.Exceptions.PayLaterPaymentConflictException"/>, saving nothing, when another
+    /// repayment changed the debt after it was read.
     /// </summary>
-    Task UpdateAsync(PayLater payLater, CancellationToken cancellationToken = default);
+    Task RecordRepaymentAsync(
+        PayLater debt,
+        PayLaterRepayment repayment,
+        IReadOnlyList<OutboxEvent> events,
+        CancellationToken cancellationToken = default);
 }

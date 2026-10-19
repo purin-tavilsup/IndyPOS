@@ -5,7 +5,9 @@ using System.Text.Json;
 using Dapper;
 using IndyPOS.Application.Common.Constants;
 using IndyPOS.Application.UseCases.Cloud.Sync.BulkMigration;
+using IndyPOS.Application.UseCases.StoreHub.PayLater;
 using IndyPOS.Domain.Entities.Core;
+using IndyPOS.Domain.ValueObjects;
 using IndyPOS.Infrastructure.Persistence.StoreHub;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -16,6 +18,12 @@ public class SqliteMigrationService
 {
     /// <summary>The only movement reason the migration writes.</summary>
     private const string InitialStockReason = "Migration:InitialStock";
+
+    /// <summary>
+    /// The namespace of a migrated debt's name-based id ("{StoreId}:{v3 PaymentId}"), so a re-run gives each debt
+    /// the id it had before. NEVER change it: every migrated debt would get a new id, and a second copy in the cloud.
+    /// </summary>
+    private static readonly Guid MigratedDebtNamespace = Guid.Parse("f859fe92-c36f-479c-9c60-2a2d5fb6f39e");
 
     /// <summary>
     /// Moves the bill-number sequence to the highest number present. HAVING skips the call when there
@@ -706,7 +714,8 @@ public class SqliteMigrationService
 
                 var newPayLater = new PayLater
                 {
-                    Id = Guid.NewGuid(),
+                    Id = NameBasedGuid.Create(MigratedDebtNamespace, $"{_options.StoreId}:{payLater.PaymentId}"),
+                    LegacyPaymentId = (int)payLater.PaymentId,
                     PaymentId = paymentId,
                     InvoiceId = invoiceId,
                     Description = Truncate(payLater.Description ?? string.Empty, 500),
@@ -722,6 +731,8 @@ public class SqliteMigrationService
                 if (!_options.DryRun)
                 {
                     context.PayLaters.Add(newPayLater);
+                    // Spec 2026-10-19 §3: the cloud must know every v3 debt, settled or still owed.
+                    context.OutboxEvents.Add(PayLaterOutbox.Changed(newPayLater, _options.StoreId, DateTime.UtcNow));
                 }
 
                 _result.PayLater.Migrated++;

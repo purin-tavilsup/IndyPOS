@@ -18,7 +18,7 @@ public class SaleRepository : ISaleRepository
         IReadOnlyList<InvoiceLine> lines,
         IReadOnlyList<Payment> payments,
         IReadOnlyList<InventoryMovement> inventoryMovements,
-        OutboxEvent outboxEvent,
+        IReadOnlyList<OutboxEvent> outboxEvents,
         CancellationToken cancellationToken = default)
     {
         // Use EF Core's built-in transaction via SaveChangesAsync
@@ -48,8 +48,8 @@ public class SaleRepository : ISaleRepository
             _dbContext.InventoryMovements.Add(movement);
         }
 
-        // 5. Add outbox event for cloud sync
-        _dbContext.OutboxEvents.Add(outboxEvent);
+        // 5. Add outbox events for cloud sync
+        _dbContext.OutboxEvents.AddRange(outboxEvents);
 
         // Commit all changes atomically
         await _dbContext.SaveChangesAsync(cancellationToken);

@@ -1,4 +1,6 @@
+using System.Text.Json;
 using IndyPOS.Application.Common.Constants;
+using IndyPOS.Application.UseCases.StoreHub.PayLater;
 using IndyPOS.MigrationTool.Services;
 using IndyPOS.MigrationTool.Tests.Fixtures;
 using IndyPOS.MigrationTool.Tests.Tools;
@@ -33,6 +35,8 @@ public static class MigrationScenario
 [Collection("Postgres")]
 public class PayLaterMigrationTests : IAsyncLifetime
 {
+    private const int SeededPaymentId = 500;
+
     private readonly PostgresFixture _postgres;
 
     public PayLaterMigrationTests(PostgresFixture postgres) => _postgres = postgres;
@@ -288,5 +292,83 @@ public class PayLaterMigrationTests : IAsyncLifetime
         payLater.IsCompleted.Should().BeTrue();
         payLater.PaidAmount.Should().Be(195m);
         payLater.RemainingAmount.Should().Be(0m);
+    }
+
+    // Spec 2026-10-19 §3: a v3 debt still owed must reach the cloud, so the migration queues each one.
+    [Fact]
+    public async Task Migrate_WithAPayLater_QueuesOneEventForIt()
+    {
+        await using var store = await LegacyStoreDatabase.CreateAsync(LegacyStoreShape.GeneralHardware);
+        await SeedCreditSaleAsync(store);
+
+        await MigrationScenario.RunAsync(store, _postgres);
+
+        await using var db = _postgres.CreateDbContext();
+        var debt = await db.PayLaters.SingleAsync();
+        var debtEvent = await db.OutboxEvents.SingleAsync(e => e.Type == PayLaterOutbox.PayLaterChanged);
+        JsonSerializer.Deserialize<PayLaterChangedPayload>(debtEvent.PayloadJson)!.Id.Should()
+                                                                                  .Be(debt.Id);
+    }
+
+    [Fact]
+    public async Task Migrate_WithAPayLater_RecordsItsV3PaymentId()
+    {
+        await using var store = await LegacyStoreDatabase.CreateAsync(LegacyStoreShape.GeneralHardware);
+        await SeedCreditSaleAsync(store);
+
+        await MigrationScenario.RunAsync(store, _postgres);
+
+        await using var db = _postgres.CreateDbContext();
+        (await db.PayLaters.SingleAsync()).LegacyPaymentId.Should()
+                                                          .Be(SeededPaymentId);
+    }
+
+    // A store reset and migrated again (after a successful run) must not give the cloud a second copy of every debt.
+    [Fact]
+    public async Task Migrate_TwiceIntoFreshDatabases_GivesEachDebtTheSameId()
+    {
+        await using var store = await LegacyStoreDatabase.CreateAsync(LegacyStoreShape.GeneralHardware);
+        await SeedCreditSaleAsync(store);
+        await MigrationScenario.RunAsync(store, _postgres);
+        var firstId = await SingleDebtIdAsync();
+        await _postgres.ResetDatabaseAsync();
+
+        await MigrationScenario.RunAsync(store, _postgres);
+
+        (await SingleDebtIdAsync()).Should()
+                                   .Be(firstId);
+    }
+
+    [Fact]
+    public async Task Migrate_InADryRun_QueuesNoEvent()
+    {
+        await using var store = await LegacyStoreDatabase.CreateAsync(LegacyStoreShape.GeneralHardware);
+        await SeedCreditSaleAsync(store);
+
+        await MigrationScenario.RunAsync(store, _postgres, dryRun: true);
+
+        await using var db = _postgres.CreateDbContext();
+        (await db.OutboxEvents.CountAsync()).Should()
+                                            .Be(0);
+    }
+
+    // A settled debt is history the cloud needs too: who owed what, and that it was paid.
+    [Fact]
+    public async Task Migrate_WithACompletedPayLater_QueuesItToo()
+    {
+        await using var store = await LegacyStoreDatabase.CreateAsync(LegacyStoreShape.GeneralHardware);
+        await SeedCreditSaleAsync(store, payLaterAmount: 195m, paidAmount: 195m, isCompleted: true);
+
+        await MigrationScenario.RunAsync(store, _postgres);
+
+        await using var db = _postgres.CreateDbContext();
+        (await db.OutboxEvents.CountAsync(e => e.Type == PayLaterOutbox.PayLaterChanged)).Should()
+                                                                                        .Be(1);
+    }
+
+    private async Task<Guid> SingleDebtIdAsync()
+    {
+        await using var db = _postgres.CreateDbContext();
+        return (await db.PayLaters.SingleAsync()).Id;
     }
 }

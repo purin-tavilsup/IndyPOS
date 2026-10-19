@@ -1,16 +1,19 @@
 using IndyPOS.Application.Abstractions.StoreHub.Repositories;
 using IndyPOS.Application.Common.Exceptions;
 using IndyPOS.Application.Common.Interfaces;
+using IndyPOS.Application.UseCases.StoreHub.CashDrawer.Common;
+using IndyPOS.Domain.Entities.Core;
 using Nokpirab;
 
 namespace IndyPOS.Application.UseCases.StoreHub.PayLater;
 
 /// <summary>
-/// Command to record a payment against a PayLater account.
+/// Command to record a payment against a PayLater account, taken by the cashier <paramref name="UserId"/>.
 /// </summary>
 public record RecordPayLaterPaymentCommand(
     Guid PayLaterId,
-    decimal PaymentAmount) : ICommand<PayLaterDto>;
+    decimal PaymentAmount,
+    Guid UserId) : ICommand<PayLaterDto>;
 
 /// <summary>
 /// Handler for RecordPayLaterPaymentCommand.
@@ -19,13 +22,16 @@ public class RecordPayLaterPaymentCommandHandler : ICommandHandler<RecordPayLate
 {
     private readonly IPayLaterRepository _payLaterRepository;
     private readonly IStoreIdentityService _storeIdentity;
+    private readonly ICashDrawerClock _clock;
 
     public RecordPayLaterPaymentCommandHandler(
         IPayLaterRepository payLaterRepository,
-        IStoreIdentityService storeIdentity)
+        IStoreIdentityService storeIdentity,
+        ICashDrawerClock clock)
     {
         _payLaterRepository = payLaterRepository;
         _storeIdentity = storeIdentity;
+        _clock = clock;
     }
 
     public async Task<PayLaterDto> HandleAsync(
@@ -52,13 +58,16 @@ public class RecordPayLaterPaymentCommandHandler : ICommandHandler<RecordPayLate
             throw new ArgumentException("Payment amount must be positive.", nameof(command.PaymentAmount));
         }
 
-        // Record the payment
-        var newPaidAmount = payLater.PaidAmount + command.PaymentAmount;
-        payLater.PaidAmount = newPaidAmount;
-        payLater.IsCompleted = newPaidAmount >= payLater.PayLaterAmount;
-        payLater.LastModifiedUtc = DateTime.UtcNow;
+        var now = _clock.Now();
+        var repayment = NewRepayment(command, now);
+        ApplyRepayment(payLater, command.PaymentAmount, now.Utc);
 
-        await _payLaterRepository.UpdateAsync(payLater, cancellationToken);
+        // Spec 2026-10-19 §3: the debt, its repayment and both cloud events land in one save, or none do.
+        await _payLaterRepository.RecordRepaymentAsync(
+            payLater,
+            repayment,
+            [PayLaterOutbox.Repaid(repayment, now.Utc), PayLaterOutbox.Changed(payLater, _storeIdentity.StoreId, now.Utc)],
+            cancellationToken);
 
         return new PayLaterDto(
             payLater.Id,
@@ -71,5 +80,23 @@ public class RecordPayLaterPaymentCommandHandler : ICommandHandler<RecordPayLate
             payLater.IsCompleted,
             payLater.CreatedUtc,
             payLater.LastModifiedUtc);
+    }
+
+    private PayLaterRepayment NewRepayment(RecordPayLaterPaymentCommand command, CashDrawerInstant now) => new()
+    {
+        Id = Guid.NewGuid(),
+        StoreId = _storeIdentity.StoreId,
+        PayLaterId = command.PayLaterId,
+        Amount = command.PaymentAmount,
+        BusinessDate = now.BusinessDate,
+        CreatedUtc = now.Utc,
+        CreatedByUserId = command.UserId
+    };
+
+    private static void ApplyRepayment(Domain.Entities.Core.PayLater payLater, decimal amount, DateTime utcNow)
+    {
+        payLater.PaidAmount += amount;
+        payLater.IsCompleted = payLater.PaidAmount >= payLater.PayLaterAmount;
+        payLater.LastModifiedUtc = utcNow;
     }
 }

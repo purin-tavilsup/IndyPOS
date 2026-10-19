@@ -54,6 +54,7 @@ public class PostgresFixture : IAsyncLifetime
         await using var context = CreateDbContext();
 
         // Delete data in correct order (FK constraints)
+        context.OutboxEvents.RemoveRange(context.OutboxEvents);
         context.PayLaters.RemoveRange(context.PayLaters);
         context.InventoryMovements.RemoveRange(context.InventoryMovements);
         context.Payments.RemoveRange(context.Payments);
