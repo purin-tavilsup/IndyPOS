@@ -73,24 +73,23 @@ public sealed partial class CashDrawerViewModel : ObservableObject
 
     // Another day only for reports.view; StoreHub would refuse it anyway.
     [RelayCommand(AllowConcurrentExecutions = true)]
-    private Task ShowDayAsync(DateOnly day)
-    {
-        if (day != _clock.Today && !CanPickDay)
-            return Task.CompletedTask;
+    private Task ShowDayAsync(DateOnly day) =>
+        day != _clock.Today && !CanPickDay ? Task.CompletedTask : LoadAsync(day);
 
-        BusinessDate = day;
-        return LoadAsync();
-    }
+    // A cashier always loads the real today: after midnight the day the screen opened on is a day
+    // StoreHub refuses them, and the screen would never recover.
+    private Task LoadAsync() => LoadAsync(CanPickDay ? BusinessDate : _clock.Today);
 
-    private async Task LoadAsync()
+    private async Task LoadAsync(DateOnly day)
     {
         var token = Restart();
-        var day = BusinessDate;
         IsBusy = true;
         ErrorMessage = null;
         try
         {
-            await LoadDayAsync(day, token);
+            var loaded = await FetchDayAsync(day, token);
+            token.ThrowIfCancellationRequested();
+            Show(day, loaded);
         }
         catch (OperationCanceledException) when (token.IsCancellationRequested)
         {
@@ -98,7 +97,9 @@ public sealed partial class CashDrawerViewModel : ObservableObject
         }
         catch (StoreHubException ex) when (!token.IsCancellationRequested)
         {
+            // What is on screen may no longer be the day to edit, so nothing may be saved over it.
             ErrorMessage = string.Format(LoadFailed, ex.Message);
+            SetEditable(false);
         }
         finally
         {
@@ -107,18 +108,32 @@ public sealed partial class CashDrawerViewModel : ObservableObject
         }
     }
 
-    private async Task LoadDayAsync(DateOnly day, CancellationToken token)
-    {
-        var summary = await _client.GetCashSummaryAsync(day, token);
-        token.ThrowIfCancellationRequested();
-        Summary = summary;
-        SetEditable(summary.IsEditable);
+    private sealed record LoadedDay(
+        CashDrawerSummaryDto Summary, IReadOnlyList<CashEntryRow> Payouts, IReadOnlyList<CashEntryRow> Floats,
+        IReadOnlyList<CashEntryRow> DebtRepayments, IReadOnlyList<CashCountRow> Counts);
 
-        await Payouts.LoadAsync(day, token);
-        await Floats.LoadAsync(day, token);
-        if (ShowPayLater)
-            await DebtRepayments.LoadAsync(day, token);
-        await Count.LoadAsync(day, token);
+    // All five at once; nothing is shown until every one has arrived, so a money screen never mixes two days.
+    private async Task<LoadedDay> FetchDayAsync(DateOnly day, CancellationToken token)
+    {
+        var summary = _client.GetCashSummaryAsync(day, token);
+        var payouts = Payouts.FetchAsync(day, token);
+        var floats = Floats.FetchAsync(day, token);
+        var repayments = ShowPayLater ? DebtRepayments.FetchAsync(day, token) : Task.FromResult<IReadOnlyList<CashEntryRow>>([]);
+        var counts = Count.FetchAsync(day, token);
+        await Task.WhenAll(summary, payouts, floats, repayments, counts);
+
+        return new LoadedDay(await summary, await payouts, await floats, await repayments, await counts);
+    }
+
+    private void Show(DateOnly day, LoadedDay loaded)
+    {
+        BusinessDate = day;
+        Summary = loaded.Summary;
+        Payouts.Show(loaded.Payouts);
+        Floats.Show(loaded.Floats);
+        DebtRepayments.Show(loaded.DebtRepayments);
+        Count.Show(loaded.Counts);
+        SetEditable(loaded.Summary.IsEditable);
     }
 
     private void SetEditable(bool isEditable) =>

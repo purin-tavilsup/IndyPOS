@@ -55,11 +55,16 @@ public sealed partial class CashEntriesViewModel : ObservableObject
 
     public bool HasCategory => _api.HasCategory;
 
-    /// <summary>Replaces the rows with the day's list; the screen calls it on every load.</summary>
-    public async Task LoadAsync(DateOnly day, CancellationToken cancellationToken)
+    /// <summary>Replaces the rows with the day's list.</summary>
+    public async Task LoadAsync(DateOnly day, CancellationToken cancellationToken) =>
+        Show(await FetchAsync(day, cancellationToken));
+
+    /// <summary>The day's list, not shown yet: the screen shows a whole day at once or not at all.</summary>
+    public Task<IReadOnlyList<CashEntryRow>> FetchAsync(DateOnly day, CancellationToken cancellationToken) =>
+        _api.ListAsync(day, cancellationToken);
+
+    public void Show(IReadOnlyList<CashEntryRow> rows)
     {
-        var rows = await _api.ListAsync(day, cancellationToken);
-        cancellationToken.ThrowIfCancellationRequested();   // a newer load owns the list now
         Rows.Clear();
         foreach (var row in rows)
             Rows.Add(row);
