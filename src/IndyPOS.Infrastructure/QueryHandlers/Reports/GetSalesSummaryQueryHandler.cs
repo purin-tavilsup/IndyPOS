@@ -88,7 +88,10 @@ public class GetSalesSummaryQueryHandler : IQueryHandler<GetSalesSummaryQuery, S
             "Sales summary generated: FromDate={FromDate}, ToDate={ToDate}, Invoices={InvoiceCount}, Revenue={TotalRevenue:C}",
             query.FromDate, query.ToDate, invoiceCount, totalRevenue);
 
-        var catalogue = await _dbContext.PaymentMethods.AsNoTracking().ToListAsync(cancellationToken);
+        // Keyed (StoreId, Code): another store's row for the same method can sit in the same table.
+        var catalogue = await _dbContext.PaymentMethods.AsNoTracking()
+                                        .Where(m => m.StoreId == _storeIdentity.StoreId)
+                                        .ToListAsync(cancellationToken);
         var serviceSales = _storeIdentity.Features.ServiceProductsEnabled
             ? await ServiceSalesAsync(invoices, cancellationToken)
             : [];

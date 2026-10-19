@@ -74,18 +74,66 @@ public class StoreUserUpsertTests : IntegrationTestBase
     }
 
     [Fact]
+    public async Task UpsertByCloudIdAsync_WithAnIdHeldByAUserLinkedToAnotherCloudUser_Throws()
+    {
+        var (id, username) = NewUser();
+        await SeedAsync(id, username, cloudUserId: Guid.NewGuid());
+
+        var act = () => UpsertAsync(FromCloud(id, username + "-other"));
+
+        await act.Should()
+                 .ThrowAsync<DbUpdateException>();
+    }
+
+    [Fact]
     public async Task UpsertByCloudIdAsync_WithAnIdHeldByAUserLinkedToAnotherCloudUser_LeavesThatUserAlone()
     {
         var (id, username) = NewUser();
         var otherCloudId = Guid.NewGuid();
         await SeedAsync(id, username, cloudUserId: otherCloudId);
 
-        var act = () => UpsertAsync(FromCloud(id, username + "-other"));
+        await TryUpsertAsync(FromCloud(id, username + "-other"));
 
-        await act.Should()
-                 .ThrowAsync<DbUpdateException>();
         (await UsersNamedAsync(username)).Single().CloudUserId.Should()
                                                               .Be(otherCloudId);
+    }
+
+    // A null cloud id would match any unlinked user (CloudUserId IS NULL), e.g. the store's own admin.
+    [Fact]
+    public async Task UpsertByCloudIdAsync_WithoutACloudId_ThrowsArgumentException()
+    {
+        var (id, username) = NewUser();
+
+        var act = () => UpsertAsync(WithoutCloudId(FromCloud(id, username)));
+
+        await act.Should()
+                 .ThrowAsync<ArgumentException>();
+    }
+
+    [Fact]
+    public async Task UpsertByCloudIdAsync_WithoutACloudId_LeavesAnUnlinkedUserAlone()
+    {
+        var (localId, localName) = NewUser();
+        await SeedAsync(localId, localName, cloudUserId: null);
+        var (id, username) = NewUser();
+
+        await TryUpsertAsync(WithoutCloudId(FromCloud(id, username)));
+
+        (await UsersNamedAsync(localName)).Should()
+                                          .ContainSingle();
+    }
+
+    // One StoreHub serves one store, but a row of another store must never be renamed into this one's user.
+    [Fact]
+    public async Task UpsertByCloudIdAsync_WithAMigratedUserOfAnotherStore_LeavesItAlone()
+    {
+        var (id, username) = NewUser();
+        await SeedAsync(id, username, cloudUserId: null, storeId: "ANOTHER-STORE");
+
+        await TryUpsertAsync(FromCloud(id, username + "-renamed"));
+
+        (await UsersNamedAsync(username)).Should()
+                                         .ContainSingle();
     }
 
     // The sync upserts a whole run through one DbContext; a refused insert must not ride along
@@ -146,18 +194,36 @@ public class StoreUserUpsertTests : IntegrationTestBase
         PasswordHash = string.Empty, PasswordHashVersion = 0, LegacyUserId = 0
     };
 
-    private async Task SeedAsync(Guid id, string username, Guid? cloudUserId)
+    private async Task SeedAsync(Guid id, string username, Guid? cloudUserId, string storeId = TestStoreIdentityService.TestStoreId)
     {
         await using var scope = Factory.Services.CreateAsyncScope();
         var db = scope.ServiceProvider.GetRequiredService<StoreHubDbContext>();
         db.StoreUsers.Add(new StoreUser
         {
-            Id = id, StoreId = TestStoreIdentityService.TestStoreId, CloudUserId = cloudUserId, Username = username,
+            Id = id, StoreId = storeId, CloudUserId = cloudUserId, Username = username,
             FirstName = "Somchai", LastName = "Jaidee", RoleId = 1, IsActive = true,
             PasswordHash = StoredPasswordHash, PasswordHashVersion = 2, LegacyUserId = NextLegacyUserId(),
             CreatedAtUtc = DateTime.UtcNow, LastModifiedAtUtc = DateTime.UtcNow
         });
         await db.SaveChangesAsync();
+    }
+
+    private static StoreUser WithoutCloudId(StoreUser user)
+    {
+        user.CloudUserId = null;
+        return user;
+    }
+
+    // For tests that check what is left behind, whether or not the upsert was refused.
+    private async Task TryUpsertAsync(StoreUser user)
+    {
+        try
+        {
+            await UpsertAsync(user);
+        }
+        catch (Exception ex) when (ex is DbUpdateException or ArgumentException)
+        {
+        }
     }
 
     private async Task UpsertAsync(StoreUser user)
