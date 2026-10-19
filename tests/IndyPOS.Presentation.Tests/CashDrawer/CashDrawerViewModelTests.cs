@@ -136,6 +136,38 @@ public class CashDrawerViewModelTests
                                                    .Be((Today, Today));
     }
 
+    // An error that was already on its way back must not escape the command once a newer load owns the screen.
+    [Fact]
+    public async Task ShowDay_WhenAnOlderLoadFailsAfterANewerOne_IgnoresTheFailure()
+    {
+        var olderSummary = new TaskCompletionSource<CashDrawerSummaryDto>();
+        _client.Setup(c => c.GetCashSummaryAsync(Yesterday, It.IsAny<CancellationToken>()))
+               .Returns(olderSummary.Task);
+        var vm = Drawer(Manager);
+        var older = vm.ShowDayCommand.ExecuteAsync(Yesterday);
+
+        await vm.ShowDayCommand.ExecuteAsync(Today);
+        olderSummary.SetException(new StoreHubException(Unreachable));
+        var act = () => older;
+
+        await act.Should()
+                 .NotThrowAsync();
+    }
+
+    [Fact]
+    public async Task Refresh_WhenTheSummaryIsRefused_TurnsOffIsEditable()
+    {
+        var vm = Drawer(Manager);
+        await vm.RefreshCommand.ExecuteAsync(null);
+        _client.Setup(c => c.GetCashSummaryAsync(Today, It.IsAny<CancellationToken>()))
+               .ThrowsAsync(new StoreHubException(Unreachable));
+
+        await vm.RefreshCommand.ExecuteAsync(null);
+
+        vm.IsEditable.Should()
+                     .BeFalse();
+    }
+
     [Fact]
     public async Task ShowDay_WhenAnOlderLoadStallsInThePayouts_KeepsTheNewerPayouts()
     {
