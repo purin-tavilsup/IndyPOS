@@ -37,6 +37,19 @@ public class CashCountViewTests
                                    .Be("0");
     }
 
+    // Codex P2 on #138: "abc" counts as 0, so the ViewModel sees no change on Reset and the text stayed.
+    [Fact]
+    public void ResetButton_AfterLettersWereTyped_PutsZeroBackInTheBox()
+    {
+        using var view = Count(out _);
+        Find(view, "Coin5CountBox").Text = "abc";
+
+        ((Button)Find(view, "ResetCountButton")).PerformClick();
+
+        Find(view, "Coin5CountBox").Text.Should()
+                                   .Be("0");
+    }
+
     [Fact]
     public void Save_WhenNotEditable_IsDisabled()
     {
