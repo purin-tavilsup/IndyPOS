@@ -3,6 +3,7 @@ using IndyPOS.Application.Abstractions.Cloud.Repositories;
 using IndyPOS.Application.UseCases.Cloud.Sync.Events;
 using IndyPOS.CloudApi.Domain;
 using IndyPOS.CloudApi.Infrastructure;
+using IndyPOS.Domain.Entities.Core;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -96,6 +97,14 @@ internal sealed class EventPipeline : IAsyncDisposable
                             .AsNoTracking()
                             .Where(r => r.InvoiceId == invoiceId)
                             .ToListAsync());
+
+    /// <summary>An event exactly as StoreHub's outbox wrote it, under a new inbox id.</summary>
+    public Task AddCashEventAsync(OutboxEvent outbox) => AddEventAsync(outbox.Type, Guid.NewGuid(), outbox.PayloadJson);
+
+    public Task<T?> FindAsync<T>(Guid id) where T : class =>
+        WithDbAsync(db => db.Set<T>().FindAsync(id).AsTask());
+
+    public Task<int> CountAsync<T>() where T : class => WithDbAsync(db => db.Set<T>().CountAsync());
 
     public Task AddEventAsync(string eventType) => AddEventAsync(eventType, Guid.NewGuid(), "{}");
 
