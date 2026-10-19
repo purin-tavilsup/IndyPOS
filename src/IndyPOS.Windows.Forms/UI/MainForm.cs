@@ -1,4 +1,5 @@
-﻿using IndyPOS.Application.Common.Enums;
+﻿using IndyPOS.Windows.Forms.UI.CashDrawer;
+using IndyPOS.Application.Common.Enums;
 using IndyPOS.Application.Common.Authorization;
 using IndyPOS.Application.Common.Extensions;
 using IndyPOS.Application.Common.Interfaces;
@@ -28,6 +29,7 @@ public partial class MainForm : Form
 	private readonly InventoryPanel _inventoryPanel;
 	private readonly UsersPanel _usersPanel;
 	private readonly ReportsPanel _reportsPanel;
+	private readonly CashDrawerPanel _cashDrawerPanel;
 	private readonly PayLaterPaymentPanel _accountsReceivablePanel;
 	private readonly SettingsPanel _settingsPanel;
 	private readonly UserLogInPanel _userLogInPanel;
@@ -36,7 +38,6 @@ public partial class MainForm : Form
 
 	// The menu buttons' tops as laid out, after any display scaling, so stacking never uses design pixels.
 	// Recorded at the first login: the form is shown and scaled by then, and no button has moved yet.
-	private int[]? _menuSlotTops;
 
 	private UserControl _activePanel;
 	private bool _isUserLoggedIn;
@@ -46,6 +47,7 @@ public partial class MainForm : Form
 					InventoryPanel inventoryPanel,
 					UsersPanel usersPanel,
 					ReportsPanel reportsPanel,
+					CashDrawerPanel cashDrawerPanel,
 					PayLaterPaymentPanel accountsReceivablePanel,
 					SettingsPanel settingsPanel,
 					UserLogInPanel userLogInPanel,
@@ -62,6 +64,8 @@ public partial class MainForm : Form
 		_usersPanel.Visible = false;
 		_reportsPanel = reportsPanel;
 		_reportsPanel.Visible = false;
+		_cashDrawerPanel = cashDrawerPanel;
+		_cashDrawerPanel.Visible = false;
 		_accountsReceivablePanel = accountsReceivablePanel;
 		_accountsReceivablePanel.Visible = false;
 		_settingsPanel = settingsPanel;
@@ -134,6 +138,12 @@ public partial class MainForm : Form
 			case SubPanel.Reports:
 
 				panelToShow = _reportsPanel;
+
+				break;
+
+			case SubPanel.CashDrawer:
+
+				panelToShow = _cashDrawerPanel;
 
 				break;
 
@@ -212,6 +222,14 @@ public partial class MainForm : Form
 			return; 
 			
 		SwitchToPanel(SubPanel.Reports);
+	}
+
+	private void CashDrawerButton_Click(object sender, EventArgs e)
+	{
+		if (!_isUserLoggedIn || !CanManageCash())
+			return;
+
+		SwitchToPanel(SubPanel.CashDrawer);
 	}
 
 	private void SettingsButton_Click(object sender, EventArgs e)
@@ -296,9 +314,9 @@ public partial class MainForm : Form
 	private async Task ApplyStoreLayoutAsync()
 	{
 		// Hidden while the features load, so a store without PayLater never shows the ledger, even briefly.
-		ApplyMenu(showAccountsReceivable: false, CanViewReports());
+		ApplyMenu(showAccountsReceivable: false, CanViewReports(), CanManageCash());
 
-		ApplyMenu((await LoadTillLayoutAsync()).ShowAccountsReceivableMenu, CanViewReports());
+		ApplyMenu((await LoadTillLayoutAsync()).ShowAccountsReceivableMenu, CanViewReports(), CanManageCash());
 	}
 
 	private async Task<TillLayout> LoadTillLayoutAsync()
@@ -315,25 +333,39 @@ public partial class MainForm : Form
 		}
 	}
 
-	private void ApplyMenu(bool showAccountsReceivable, bool showReports)
+	private void ApplyMenu(bool showAccountsReceivable, bool showReports, bool showCashDrawer)
 	{
-		_menuSlotTops ??= AllMenuButtons().Select(button => button.Top).ToArray();
 		AccountsReceivableButton.Visible = showAccountsReceivable;
 		ReportsButton.Visible = showReports;
-		MenuLayout.Stack(ShownMenuButtons(showAccountsReceivable, showReports), _menuSlotTops);
+		CashDrawerButton.Visible = showCashDrawer;
+
+		// Nine equal slots from the laid-out panel, so display scaling is already in them (Pond, 2026-10-19:
+		// shorter buttons are fine while each icon and caption still fits; MenuLayoutTests checks that).
+		var (tops, height) = MenuLayout.EvenSlots(ControlPanel.ClientSize.Height, AllMenuButtons().Length, MenuGap);
+		foreach (var button in AllMenuButtons())
+			button.Height = height;
+
+		MenuLayout.Stack(ShownMenuButtons(showAccountsReceivable, showReports, showCashDrawer), tops);
 	}
 
+	private const int MenuGap = 6;
+
 	private Control[] AllMenuButtons() =>
-		[SaleButton, InventoryButton, UsersButton, ReportsButton, AccountsReceivableButton,
+		[SaleButton, CashDrawerButton, InventoryButton, UsersButton, ReportsButton, AccountsReceivableButton,
 		 SettingsButton, LogInButton, CloseApplicationButton];
+
+	// Cashiers, managers and admins all run the drawer; the gate keeps any other role out (spec §6).
+	private bool CanManageCash() =>
+		_loggedInUser is not null && RoleCapabilities.HasCapability(_loggedInUser.RoleId, Capability.CashManage);
 
 	// StoreHub refuses every report without reports.view, so a user without it would only see errors there.
 	private bool CanViewReports() =>
 		_loggedInUser is not null && RoleCapabilities.HasCapability(_loggedInUser.RoleId, Capability.ReportsView);
 
-	private Control[] ShownMenuButtons(bool showAccountsReceivable, bool showReports) =>
+	private Control[] ShownMenuButtons(bool showAccountsReceivable, bool showReports, bool showCashDrawer) =>
 		AllMenuButtons().Where(button => (button != AccountsReceivableButton || showAccountsReceivable)
-										 && (button != ReportsButton || showReports))
+										 && (button != ReportsButton || showReports)
+										 && (button != CashDrawerButton || showCashDrawer))
 						.ToArray();
 
 	private void OnUserLoggedOut()
