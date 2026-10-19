@@ -3,6 +3,7 @@ using IndyPOS.Application.Abstractions.StoreHub.Repositories;
 using IndyPOS.Application.Common.Exceptions;
 using IndyPOS.Application.Common.Interfaces;
 using IndyPOS.Application.UseCases.Cloud.Sync.Events;
+using IndyPOS.Application.UseCases.StoreHub.CashDrawer.Common;
 using IndyPOS.Application.UseCases.StoreHub.PayLater;
 using IndyPOS.Application.UseCases.StoreHub.PaymentMethods;
 using IndyPOS.Domain.Entities.Core;
@@ -21,19 +22,22 @@ public class CompleteSaleCommandHandler : ICommandHandler<CompleteSaleCommand, C
     private readonly IStoreIdentityService _storeIdentity;
     private readonly IPaymentMethodCatalogService _catalog;
     private readonly ILogger<CompleteSaleCommandHandler> _logger;
+    private readonly ICashDrawerClock _clock;
 
     public CompleteSaleCommandHandler(
         ISaleRepository saleRepository,
         IProductRepository productRepository,
         IStoreIdentityService storeIdentity,
         IPaymentMethodCatalogService catalog,
-        ILogger<CompleteSaleCommandHandler> logger)
+        ILogger<CompleteSaleCommandHandler> logger,
+        ICashDrawerClock clock)
     {
         _saleRepository = saleRepository;
         _productRepository = productRepository;
         _storeIdentity = storeIdentity;
         _catalog = catalog;
         _logger = logger;
+        _clock = clock;
     }
 
     public async Task<CompleteSaleResponse> HandleAsync(
@@ -62,7 +66,9 @@ public class CompleteSaleCommandHandler : ICommandHandler<CompleteSaleCommand, C
             throw;
         }
 
-        var now = DateTime.UtcNow;
+        // Read once: every row of the sale shares this instant, and its store day comes from the same reading.
+        var instant = _clock.Now();
+        var now = instant.Utc;
         var invoiceId = Guid.NewGuid();
 
         // Reserved only after the payment rules pass, so a sale they refuse burns no number. A failure
@@ -161,6 +167,7 @@ public class CompleteSaleCommandHandler : ICommandHandler<CompleteSaleCommand, C
             TotalAmount = invoice.TotalAmount,
             InvoiceNumber = invoice.InvoiceNumber,
             CreatedAtUtc = now,
+            BusinessDate = instant.BusinessDate,
             Lines = lines.Select(l => new InvoiceLineSnapshot
             {
                 LineId = l.Id,
