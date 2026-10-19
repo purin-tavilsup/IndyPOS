@@ -1,6 +1,7 @@
 using FluentAssertions;
 using IndyPOS.Application.UseCases.StoreHub.PayLater;
 using IndyPOS.CloudApi.Domain;
+using IndyPOS.Domain.Entities.Core;
 using Xunit;
 
 using PayLaterDebt = IndyPOS.Domain.Entities.Core.PayLater;
@@ -20,10 +21,13 @@ public class PayLaterMirrorTests(CloudPostgresFixture postgres) : IClassFixture<
     private const decimal StalePaid = 100m;
     private const int V3PaymentId = 4242;
     private const string CustomerName = "ลุงสมชาย";
+    private const decimal RepaidAmount = 100m;
 
     private static readonly DateTime T0 = new(2026, 10, 19, 3, 0, 0, DateTimeKind.Utc);
     private static readonly DateTime T1 = T0.AddMinutes(1);
     private static readonly DateTime T2 = T0.AddMinutes(2);
+    private static readonly DateOnly Today = new(2026, 10, 19);
+    private static readonly Guid Cashier = Guid.Parse("11111111-1111-1111-1111-111111111111");
 
     [Fact]
     public async Task ProcessPendingEventsAsync_WithAStaleDebtSnapshot_KeepsTheNewerPaidAmount()
@@ -181,6 +185,117 @@ public class PayLaterMirrorTests(CloudPostgresFixture postgres) : IClassFixture<
                                                          .BeEquivalentTo(new { IsFromV3 = true, PaidAmount = PartPaid }, pipeline.LoggedErrors);
     }
 
+    [Fact]
+    public async Task ProcessPendingEventsAsync_WithARepaymentBeforeItsDebt_LeavesItUnprocessed()
+    {
+        await using var pipeline = await EventPipeline.CreateAsync(postgres);
+        var repayment = Repayment(Debt());
+        await SendAsync(pipeline, repayment);
+
+        await pipeline.PollAsync();
+
+        (await pipeline.CountUnprocessedAsync()).Should()
+                                                .Be(1);
+    }
+
+    // A repayment and its debt's snapshot are saved together at the store; either may reach the cloud first.
+    [Fact]
+    public async Task ProcessPendingEventsAsync_WithARepaymentBeforeItsDebt_StoresItOnceTheDebtArrives()
+    {
+        await using var pipeline = await EventPipeline.CreateAsync(postgres);
+        var debt = Debt();
+        var repayment = Repayment(debt);
+        await SendAsync(pipeline, repayment);
+        await pipeline.PollAsync();
+        await SendAsync(pipeline, debt);
+        await pipeline.PollAsync();
+        await pipeline.ElapseRetryDelaysAsync();
+
+        await pipeline.PollAsync();
+
+        (await pipeline.FindAsync<CloudPayLaterRepayment>(repayment.Id)).Should()
+                                                                        .NotBeNull(pipeline.LoggedErrors);
+    }
+
+    [Fact]
+    public async Task ProcessPendingEventsAsync_WithARepaymentForAnotherStoresDebt_LeavesItUnprocessed()
+    {
+        await using var pipeline = await EventPipeline.CreateAsync(postgres);
+        var debt = Debt();
+        await SendAsync(pipeline, debt);
+        await pipeline.PollAsync();
+        var intruder = Repayment(debt);
+        intruder.StoreId = OtherStoreId;
+        await SendAsync(pipeline, intruder);
+
+        await pipeline.PollAsync();
+
+        (await pipeline.CountUnprocessedAsync()).Should()
+                                                .Be(1);
+    }
+
+    [Fact]
+    public async Task ProcessPendingEventsAsync_WithTheSameRepaymentTwice_StoresOneRow()
+    {
+        await using var pipeline = await EventPipeline.CreateAsync(postgres);
+        var debt = Debt();
+        var repayment = Repayment(debt);
+        await SendAsync(pipeline, debt);
+        await SendAsync(pipeline, repayment);
+        await SendAsync(pipeline, repayment);
+
+        await pipeline.PollAsync();
+
+        (await pipeline.CountAsync<CloudPayLaterRepayment>()).Should()
+                                                             .Be(1, pipeline.LoggedErrors);
+    }
+
+    [Fact]
+    public async Task ProcessPendingEventsAsync_WithTheSameRepaymentTwice_MarksBothProcessed()
+    {
+        await using var pipeline = await EventPipeline.CreateAsync(postgres);
+        var debt = Debt();
+        var repayment = Repayment(debt);
+        await SendAsync(pipeline, debt);
+        await SendAsync(pipeline, repayment);
+        await SendAsync(pipeline, repayment);
+
+        await pipeline.PollAsync();
+
+        (await pipeline.CountUnprocessedAsync()).Should()
+                                                .Be(0, pipeline.LoggedErrors);
+    }
+
+    [Fact]
+    public async Task ProcessPendingEventsAsync_WithARepayment_RecordsTheCashier()
+    {
+        await using var pipeline = await EventPipeline.CreateAsync(postgres);
+        var debt = Debt();
+        var repayment = Repayment(debt);
+        await SendAsync(pipeline, debt);
+        await SendAsync(pipeline, repayment);
+
+        await pipeline.PollAsync();
+
+        (await pipeline.FindAsync<CloudPayLaterRepayment>(repayment.Id))!.CreatedByUserId.Should()
+                                                                                   .Be(Cashier, pipeline.LoggedErrors);
+    }
+
+    [Fact]
+    public async Task ProcessPendingEventsAsync_WithARepayment_StoresItsBusinessDate()
+    {
+        await using var pipeline = await EventPipeline.CreateAsync(postgres);
+        var debt = Debt();
+        var repayment = Repayment(debt);
+        await SendAsync(pipeline, debt);
+        await SendAsync(pipeline, repayment);
+
+        await pipeline.PollAsync();
+
+        (await pipeline.FindAsync<CloudPayLaterRepayment>(repayment.Id))!.BusinessDate.Should()
+                                                                                .Be(Today, pipeline.LoggedErrors);
+    }
+
     // As a credit sale creates it: nothing paid yet.
     private static PayLaterDebt Debt(int? legacyPaymentId = null) => new()
     {
@@ -195,6 +310,16 @@ public class PayLaterMirrorTests(CloudPostgresFixture postgres) : IClassFixture<
         PayLaterAmount = debt.PayLaterAmount, PaidAmount = paidAmount, IsCompleted = paidAmount >= debt.PayLaterAmount,
         LegacyPaymentId = debt.LegacyPaymentId, CreatedUtc = debt.CreatedUtc, LastModifiedUtc = at
     };
+
+    // As the ลงบัญชี screen records one.
+    private static PayLaterRepayment Repayment(PayLaterDebt debt) => new()
+    {
+        Id = Guid.NewGuid(), StoreId = StoreId, PayLaterId = debt.Id, Amount = RepaidAmount, BusinessDate = Today,
+        CreatedUtc = T1, CreatedByUserId = Cashier
+    };
+
+    private static Task SendAsync(EventPipeline pipeline, PayLaterRepayment repayment) =>
+        pipeline.AddOutboxEventAsync(PayLaterOutbox.Repaid(repayment, repayment.CreatedUtc));
 
     private static Task SendAsync(EventPipeline pipeline, PayLaterDebt debt, string storeId = StoreId) =>
         pipeline.AddOutboxEventAsync(PayLaterOutbox.Changed(debt, storeId, debt.LastModifiedUtc));
