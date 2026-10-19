@@ -42,6 +42,10 @@ public class CloudDbContext : DbContext
     public DbSet<CloudDebtRepayment> DebtRepayments => Set<CloudDebtRepayment>();
     public DbSet<CloudCashCount> CashCounts => Set<CloudCashCount>();
 
+    // ลงบัญชี mirror (PayLaterMirrorModel), read by dashboards and AI agents
+    public DbSet<CloudPayLater> PayLaters => Set<CloudPayLater>();
+    public DbSet<CloudPayLaterRepayment> PayLaterRepayments => Set<CloudPayLaterRepayment>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         // SyncedEventEntity (inbox)
@@ -187,6 +191,7 @@ public class CloudDbContext : DbContext
         });
 
         CashDrawerMirrorModel.Configure(modelBuilder);
+        PayLaterMirrorModel.Configure(modelBuilder);
 
         // OpenIddict's EF entities (application, authorization, scope, token) are
         // registered against this context by AddCore().UseDbContext<CloudDbContext>(),
