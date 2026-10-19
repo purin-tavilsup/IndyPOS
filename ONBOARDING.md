@@ -34,7 +34,7 @@ with it rather than upgrading it.
 | Requirement | Detail |
 |---|---|
 | **.NET SDK 10** | `global.json` pins `10.0.107` with `rollForward: latestMinor`, so any later 10.0.x works |
-| **Docker Desktop** | Required by **502** of the tests (82 + 351 + 61 + 8, derived — see Trap 1) and by Aspire |
+| **Docker Desktop** | Required by **530** of the tests (82 + 351 + 89 + 8, derived — see Trap 1) and by Aspire |
 | **Windows** | Several projects target `net10.0-windows`; the till is Windows Forms |
 | **FC Subject font** | In [`fonts/`](fonts/) — install `Regular` and `Bold`. Every panel names this family explicitly, so without it Windows substitutes a fallback and Thai captions clip |
 
@@ -52,19 +52,19 @@ dotnet test
 They spin up a real PostgreSQL container via Testcontainers. With Docker stopped they fail **fast**
 (each suite in under a second), which reads exactly like a code regression but is not.
 
-Expect **502 failures** with Docker stopped, all from these four suites. The StoreHub row's **128**
+Expect **530 failures** with Docker stopped, all from these four suites. The StoreHub row's **128**
 was **measured** with Docker down on 2026-09-27; the final-review test additions then added 13 more
 HTTP integration tests (`CashFloatEndpointsTests`, `DebtRepaymentEndpointsTests`, plus new cases in
 `CashAuthorizationTests` and `CashPayoutEndpointsTests`) and the concurrent-delete fix added 7
 real-Postgres race tests (`CashEntryConcurrencyTests`), all of which need Docker the same way, so its
 **148** is **derived** (128 + 20), not re-measured; the PayLater-debt fix then added 10 more HTTP integration tests (`PayLaterSaleEndpointTests`), bringing it to **158**, and the sale-user fix 2 more, bringing it to **160**, all derived. (`TestUserIdTests` was added after that and needs
-no container, so it does not change the count.) The invoice-history plan (2026-10-01) then added 71 more StoreHub tests (HTTP and persistence tests on real Postgres), bringing it to **231**, derived on the same assumption that every new one needs a container; the final-review fix added one more HTTP test (the reprint route's 403), making **232**, and the Codex route fix (one HTTP test, 2026-10-01) **233**, both derived the same way. The other two rows are **derived** too: MigrationTool's 11 new tests all use the Postgres fixture (**71 + 11 = 82**), and CloudApi's 20 new tests (2026-09-30, the event-pipeline repair and the sync store check) all run on a container, as do the 22 more from invoice-history plan 2 (2026-10-02, 22 to **44**). The route tidy-up PR A (2026-10-02) then added 26 StoreHub tests and 5 CloudApi tests, all on a container, bringing them to **259** and **49**, derived the same way. Route tidy-up B (2026-10-06) added 22 more StoreHub tests, all on a container, bringing it to **281**, derived the same way. The health-check convention (2026-10-07) added 3 StoreHub and 2 CloudApi tests and the new 8-test `IndyPOS.ServiceDefaults.Tests`, all on a container: **284**, **51** and **8**, derived the same way. The dev store profiles (2026-10-07) added 20 StoreHub and 3 CloudApi tests, all on a container: **304** and **54**, and its review fixes one more each (**305** and **55**), then the EnsureCreated-database check 4 and 3 more (**309** and **58**), and per-store UI slice 2 21 more StoreHub (**330**), then the 2026-10-10 `/auth/me` and sale-shape fixes 6 more HTTP tests (**336**), and #124's Codex fix one dev-seed test (**337**), derived the same way. #126 (2026-10-15) then added 3 CloudApi HTTP tests on a container (**61**), derived the same way. Cash drawer D1 (2026-10-18) added 6 StoreHub tests, all real sales on a container (**343**), and the user-id fix (2026-10-18) 8 repository tests on real Postgres (**351**), derived the same way. The per-suite totals were measured with Docker up; only the Docker-down split was not:
+no container, so it does not change the count.) The invoice-history plan (2026-10-01) then added 71 more StoreHub tests (HTTP and persistence tests on real Postgres), bringing it to **231**, derived on the same assumption that every new one needs a container; the final-review fix added one more HTTP test (the reprint route's 403), making **232**, and the Codex route fix (one HTTP test, 2026-10-01) **233**, both derived the same way. The other two rows are **derived** too: MigrationTool's 11 new tests all use the Postgres fixture (**71 + 11 = 82**), and CloudApi's 20 new tests (2026-09-30, the event-pipeline repair and the sync store check) all run on a container, as do the 22 more from invoice-history plan 2 (2026-10-02, 22 to **44**). The route tidy-up PR A (2026-10-02) then added 26 StoreHub tests and 5 CloudApi tests, all on a container, bringing them to **259** and **49**, derived the same way. Route tidy-up B (2026-10-06) added 22 more StoreHub tests, all on a container, bringing it to **281**, derived the same way. The health-check convention (2026-10-07) added 3 StoreHub and 2 CloudApi tests and the new 8-test `IndyPOS.ServiceDefaults.Tests`, all on a container: **284**, **51** and **8**, derived the same way. The dev store profiles (2026-10-07) added 20 StoreHub and 3 CloudApi tests, all on a container: **304** and **54**, and its review fixes one more each (**305** and **55**), then the EnsureCreated-database check 4 and 3 more (**309** and **58**), and per-store UI slice 2 21 more StoreHub (**330**), then the 2026-10-10 `/auth/me` and sale-shape fixes 6 more HTTP tests (**336**), and #124's Codex fix one dev-seed test (**337**), derived the same way. #126 (2026-10-15) then added 3 CloudApi HTTP tests on a container (**61**), derived the same way, and cash drawer D2 (2026-10-18) 28 more on Postgres (**89**). Cash drawer D1 (2026-10-18) added 6 StoreHub tests, all real sales on a container (**343**), and the user-id fix (2026-10-18) 8 repository tests on real Postgres (**351**), derived the same way. The per-suite totals were measured with Docker up; only the Docker-down split was not:
 
 | Suite | Total | Fails without Docker |
 |---|---|---|
 | `IndyPOS.MigrationTool.Tests` | 145 | **82** (of the other 63, see Trap 3) |
 | `IndyPOS.StoreHub.IntegrationTests` | 359 | **351** (8 need no container, derived) |
-| `IndyPOS.CloudApi.IntegrationTests` | 61 | **61** (all need a container) |
+| `IndyPOS.CloudApi.IntegrationTests` | 89 | **89** (all need a container) |
 | `IndyPOS.ServiceDefaults.Tests` | 8 | **8** (each fixture starts a Postgres) |
 
 **Start Docker and re-run before investigating any of these.**
@@ -133,9 +133,9 @@ reports `Skipped: 1` and writes nothing — which looks like success while leavi
 ### Expected counts
 
 Solution suites (`dotnet test` at the root), Docker running **and** the real store databases present
-— **1569 total** (1568 pass, 1 skipped) — 2026-10-18 (after the store-user cloud-id fix and its Codex fix, which added one Application test; the full run measured 1568 before it; supersedes 1559 earlier on 2026-10-18 after cash drawer D1, 1539 on 2026-10-15 after the sales-history tab and its Codex fix, 1537 before that fix, 1512 earlier on 2026-10-15 after the bill detail screen, 1483 earlier on 2026-10-15 after the sales-history ViewModels, 1422 earlier on 2026-10-15 after the receipt document and the till money format, 1360 on 2026-10-10
-after the dev template products and #124's Codex fix, 1341 earlier on 2026-10-10 after the till Development fix, 1343 on 2026-10-07 after per-store UI slice 2, 1291 earlier on 2026-10-07 after slice 1, 1269 earlier on 2026-10-07 after the dev store profiles and their EnsureCreated-database check, 1209 earlier on 2026-10-07 after the health-check convention, 1186 earlier on 2026-10-07 after the till startup fix, 1183 on 2026-10-06 after route tidy-up B, 1152 on 2026-10-02 after route tidy-up A, 1111 earlier on 2026-10-02, 1089 on 2026-10-01, 928 on 2026-09-30, 853 on 2026-09-27 and 656 on 2026-09-17). Without those databases the total is **1549**
-(derived as 1569 − 20; CI measured 1166 = 1186 − 20 on PR #114, 2026-10-07, which has no store databases), still all
+— **1597 total** (1596 pass, 1 skipped) — measured 2026-10-18 (after cash drawer D2, the cloud cash mirror; supersedes 1569 earlier on 2026-10-18 after the store-user cloud-id fix and its Codex fix, 1559 earlier on 2026-10-18 after cash drawer D1, 1539 on 2026-10-15 after the sales-history tab and its Codex fix, 1537 before that fix, 1512 earlier on 2026-10-15 after the bill detail screen, 1483 earlier on 2026-10-15 after the sales-history ViewModels, 1422 earlier on 2026-10-15 after the receipt document and the till money format, 1360 on 2026-10-10
+after the dev template products and #124's Codex fix, 1341 earlier on 2026-10-10 after the till Development fix, 1343 on 2026-10-07 after per-store UI slice 2, 1291 earlier on 2026-10-07 after slice 1, 1269 earlier on 2026-10-07 after the dev store profiles and their EnsureCreated-database check, 1209 earlier on 2026-10-07 after the health-check convention, 1186 earlier on 2026-10-07 after the till startup fix, 1183 on 2026-10-06 after route tidy-up B, 1152 on 2026-10-02 after route tidy-up A, 1111 earlier on 2026-10-02, 1089 on 2026-10-01, 928 on 2026-09-30, 853 on 2026-09-27 and 656 on 2026-09-17). Without those databases the total is **1577**
+(derived as 1597 − 20; CI measured 1166 = 1186 − 20 on PR #114, 2026-10-07, which has no store databases), still all
 green:
 
 | Suite | Tests |
@@ -147,7 +147,7 @@ green:
 | `IndyPOS.Windows.Forms.Tests` | 127 |
 | `IndyPOS.Vault.Tests` | 17 |
 | `IndyPOS.CloudApi.Tests` | 6 |
-| `IndyPOS.CloudApi.IntegrationTests` | 61 (Docker) |
+| `IndyPOS.CloudApi.IntegrationTests` | 89 (Docker) |
 | `IndyPOS.ServiceDefaults.Tests` | 8 (Docker) |
 | `IndyPOS.Presentation.Tests` | 55 |
 
