@@ -589,6 +589,7 @@ namespace IndyPOS.Infrastructure.Persistence.StoreHub.Migrations
                         .HasColumnName("legacy_payment_id");
 
                     b.Property<decimal>("PaidAmount")
+                        .IsConcurrencyToken()
                         .ValueGeneratedOnAdd()
                         .HasPrecision(18, 2)
                         .HasColumnType("numeric(18,2)")

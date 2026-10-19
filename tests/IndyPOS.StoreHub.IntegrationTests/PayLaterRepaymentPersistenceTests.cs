@@ -1,4 +1,6 @@
 using FluentAssertions;
+using IndyPOS.Application.Abstractions.StoreHub.Repositories;
+using IndyPOS.Application.Common.Exceptions;
 using IndyPOS.Domain.Entities.Core;
 using IndyPOS.Infrastructure.Persistence.StoreHub;
 using Microsoft.EntityFrameworkCore;
@@ -55,6 +57,50 @@ public class PayLaterRepaymentPersistenceTests : IntegrationTestBase
 
         stored!.LegacyPaymentId.Should()
                                .Be(V3PaymentId);
+    }
+
+    // Review finding: two tills repaying one debt at once both read PaidAmount 0 and both wrote 300, so the
+    // audit trail held 600 against a debt showing 300. The second save must now fail and save nothing.
+    [Fact]
+    public async Task RecordRepaymentAsync_WhenAnotherRepaymentSavedFirst_ThrowsConflict()
+    {
+        var debt = await SeedDebtAsync(legacyPaymentId: null);
+        await RepayFromAStaleReadAsync(debt, 100m);
+
+        var act = () => RepayFromAStaleReadAsync(debt, 100m);
+
+        await act.Should()
+                 .ThrowAsync<PayLaterPaymentConflictException>();
+    }
+
+    [Fact]
+    public async Task RecordRepaymentAsync_WhenAnotherRepaymentSavedFirst_WritesNoSecondRepayment()
+    {
+        var debt = await SeedDebtAsync(legacyPaymentId: null);
+        await RepayFromAStaleReadAsync(debt, 100m);
+
+        try { await RepayFromAStaleReadAsync(debt, 100m); }
+        catch (PayLaterPaymentConflictException) { }
+
+        await using var scope = Factory.Services.CreateAsyncScope();
+        var db = scope.ServiceProvider.GetRequiredService<StoreHubDbContext>();
+        (await db.PayLaterRepayments.CountAsync(r => r.PayLaterId == debt.Id)).Should()
+                                                                              .Be(1);
+    }
+
+    /// <summary>Repays <paramref name="amount"/> as a handler would after reading <paramref name="asRead"/>.</summary>
+    private async Task RepayFromAStaleReadAsync(PayLater asRead, decimal amount)
+    {
+        await using var scope = Factory.Services.CreateAsyncScope();
+        var repository = scope.ServiceProvider.GetRequiredService<IPayLaterRepository>();
+        var debt = new PayLater
+        {
+            Id = asRead.Id, PaymentId = asRead.PaymentId, InvoiceId = asRead.InvoiceId, Description = asRead.Description,
+            PayLaterAmount = asRead.PayLaterAmount, PaidAmount = asRead.PaidAmount + amount, CreatedUtc = asRead.CreatedUtc,
+            LastModifiedUtc = DateTime.UtcNow
+        };
+
+        await repository.RecordRepaymentAsync(debt, Repayment(asRead.Id), [], CancellationToken.None);
     }
 
     private static PayLaterRepayment Repayment(Guid payLaterId) => new()

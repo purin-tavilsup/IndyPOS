@@ -1,4 +1,5 @@
 using IndyPOS.Application.Abstractions.StoreHub.Repositories;
+using IndyPOS.Application.Common.Exceptions;
 using IndyPOS.Application.Common.Interfaces;
 using IndyPOS.Domain.Entities.Core;
 using Microsoft.EntityFrameworkCore;
@@ -78,12 +79,25 @@ public class PayLaterRepository : IPayLaterRepository
             .FirstOrDefaultAsync(p => p.Id == debt.Id, cancellationToken)
             ?? throw new InvalidOperationException($"PayLater with ID {debt.Id} not found");
 
+        // The concurrency check must compare against what the handler read, not this fresh load:
+        // a repayment saved in between would otherwise look current and be overwritten.
+        _dbContext.Entry(existing).Property(p => p.PaidAmount).OriginalValue = debt.PaidAmount - repayment.Amount;
         existing.PaidAmount = debt.PaidAmount;
         existing.IsCompleted = debt.IsCompleted;
         existing.LastModifiedUtc = debt.LastModifiedUtc;
         _dbContext.PayLaterRepayments.Add(repayment);
         _dbContext.OutboxEvents.AddRange(events);
 
-        await _dbContext.SaveChangesAsync(cancellationToken);
+        try
+        {
+            await _dbContext.SaveChangesAsync(cancellationToken);
+        }
+        catch (DbUpdateConcurrencyException)
+        {
+            // The repayment and events shared the failed save's transaction, so nothing was written.
+            _dbContext.ChangeTracker.Clear();
+            throw new PayLaterPaymentConflictException(
+                $"PayLater {debt.Id} was repaid by someone else just now. Reload it and try again.");
+        }
     }
 }
