@@ -15,8 +15,8 @@ public sealed class CashCountView : UserControl
 {
     private readonly (TextBox Box, string Caption, Func<CashCountViewModel, int> Read, Action<CashCountViewModel, int> Write)[] _counts;
     private readonly Label _typedTotal = TillStyle.Label("TypedTotalLabel", 16F);
-    private readonly ModernButton _save = TillStyle.Button("SaveCountButton", "บันทึกการนับ", new Size(160, 50));
-    private readonly ModernButton _reset = TillStyle.Button("ResetCountButton", "เริ่มการนับใหม่", new Size(160, 50));
+    private readonly ModernButton _save = TillStyle.Button("SaveCountButton", "บันทึกการนับ", new Size(150, 50));
+    private readonly ModernButton _reset = TillStyle.Button("ResetCountButton", "เริ่มการนับใหม่", new Size(150, 50));
     private readonly DataGridView _history = TillGrid.Create("CountHistoryGrid");
     private readonly Label _error = TillStyle.Label("CountErrorLabel");
     private readonly List<IDisposable> _commandBindings = [];
@@ -144,35 +144,41 @@ public sealed class CashCountView : UserControl
 
     private TableLayoutPanel CountGrid()
     {
+        const int rowHeight = 36;
         var grid = new TableLayoutPanel
         {
             Dock = DockStyle.Top,
-            Height = 9 * 40 + 50,
+            Height = (_counts.Length + 1) * rowHeight + 6,
             ColumnCount = 2,
+            RowCount = _counts.Length + 1,
             BackColor = TillStyle.Background
         };
+        grid.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 40F));
+        grid.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 60F));
 
         foreach (var count in _counts)
-        {
-            var caption = TillStyle.Label($"{count.Box.Name}Caption", 14F);
-            caption.Text = count.Caption;
-            caption.TextAlign = ContentAlignment.MiddleRight;
-            grid.Controls.Add(caption);
-            grid.Controls.Add(count.Box);
-        }
+            AddRow(grid, $"{count.Box.Name}Caption", count.Caption, count.Box, rowHeight);
 
-        var totalCaption = TillStyle.Label("TypedTotalCaption", 14F);
-        totalCaption.Text = "รวม";
-        totalCaption.TextAlign = ContentAlignment.MiddleRight;
-        grid.Controls.Add(totalCaption);
-        grid.Controls.Add(_typedTotal);
+        _typedTotal.Dock = DockStyle.Fill;
+        AddRow(grid, "TypedTotalCaption", "รวม", _typedTotal, rowHeight);
 
         return grid;
     }
 
+    private static void AddRow(TableLayoutPanel grid, string captionName, string captionText, Control field, int rowHeight)
+    {
+        var caption = TillStyle.Label(captionName, 14F);
+        caption.Text = captionText;
+        caption.TextAlign = ContentAlignment.MiddleRight;
+        caption.Dock = DockStyle.Fill;
+        grid.RowStyles.Add(new RowStyle(SizeType.Absolute, rowHeight));
+        grid.Controls.Add(caption);
+        grid.Controls.Add(field);
+    }
+
     private FlowLayoutPanel Buttons()
     {
-        var row = new FlowLayoutPanel { Dock = DockStyle.Top, Height = 60, BackColor = TillStyle.Background };
+        var row = new FlowLayoutPanel { Dock = DockStyle.Top, Height = 60, WrapContents = false, BackColor = TillStyle.Background };
         row.Controls.AddRange([_save, _reset]);
 
         return row;
