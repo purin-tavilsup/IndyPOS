@@ -32,6 +32,8 @@ public interface IPayLaterRepository
 
     /// <summary>
     /// Saves a repayment: the debt's new totals, the repayment row and its outbox events, in one SaveChangesAsync.
+    /// Throws <see cref="Common.Exceptions.PayLaterPaymentConflictException"/>, saving nothing, when another
+    /// repayment changed the debt after it was read.
     /// </summary>
     Task RecordRepaymentAsync(
         PayLater debt,

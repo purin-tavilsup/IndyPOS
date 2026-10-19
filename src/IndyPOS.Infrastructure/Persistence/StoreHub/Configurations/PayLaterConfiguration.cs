@@ -38,7 +38,10 @@ public class PayLaterConfiguration : IEntityTypeConfiguration<PayLater>
             .HasColumnName("paid_amount")
             .HasPrecision(18, 2)
             .HasDefaultValue(0m)
-            .IsRequired();
+            .IsRequired()
+            // Every UPDATE carries "AND paid_amount = <as read>", so of two repayments racing on one debt
+            // the second matches no row and fails, instead of overwriting the first one's total.
+            .IsConcurrencyToken();
 
         builder.Property(e => e.IsCompleted)
             .HasColumnName("is_completed")

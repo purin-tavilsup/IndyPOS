@@ -82,6 +82,10 @@ public static class PayLaterEndpoints
             {
                 return Results.BadRequest(new { error = ex.Message });
             }
+            catch (PayLaterPaymentConflictException ex)
+            {
+                return Results.Conflict(new { error = ex.Message });
+            }
             catch (ArgumentException ex)
             {
                 return Results.BadRequest(new { error = ex.Message });
