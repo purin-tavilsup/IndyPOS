@@ -19,6 +19,7 @@ namespace IndyPOS.StoreHub.IntegrationTests.StoreProfiles;
 public class CashSummaryPerStoreTests(StoreProfileHosts hosts)
 {
     private const decimal DeliveryPrice = 30m;
+    private const decimal HundredNote = 100m;
 
     [Fact]
     public async Task CashSummary_ForMimyShopAfterAFiftyFiftySale_KeepsExpectedCash()
@@ -74,6 +75,18 @@ public class CashSummaryPerStoreTests(StoreProfileHosts hosts)
                           .Be(before.ExpectedCash + DeliveryPrice);
     }
 
+    [Fact]
+    public async Task CashSummary_ForMimyShopAfterACashSaleWithChange_AddsOnlyTheBill()
+    {
+        var before = await SummaryAsync("MimyShop");
+
+        await SellDeliveryAsync("MimyShop", "Cash", tendered: HundredNote);
+        var after = await SummaryAsync("MimyShop");
+
+        after.ExpectedCash.Should()
+                          .Be(before.ExpectedCash + DeliveryPrice);
+    }
+
     private static decimal NonCashTotal(CashDrawerSummaryDto summary, string code) =>
         summary.NonCashPayments.Single(p => p.Code == code).Total;
 
@@ -84,13 +97,13 @@ public class CashSummaryPerStoreTests(StoreProfileHosts hosts)
         return (await client.GetFromJsonAsync<CashDrawerSummaryDto>("/cash/summary"))!;
     }
 
-    private async Task SellDeliveryAsync(string key, string method)
+    private async Task SellDeliveryAsync(string key, string method, decimal tendered = DeliveryPrice)
     {
         var client = await hosts.SignedInAsync(key);
         var product = await ProductAsync(key, ServiceProductBarcodes.Delivery);
         var response = await client.PostAsJsonAsync("/sales", new CompleteSaleRequest(
             Lines: [new SaleLineRequest(product.Id, Quantity: 1, UnitPrice: DeliveryPrice)],
-            Payments: [new SalePaymentRequest(method, DeliveryPrice)]));
+            Payments: [new SalePaymentRequest(method, tendered)]));
         response.EnsureSuccessStatusCode();
     }
 
