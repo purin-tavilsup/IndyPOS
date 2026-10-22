@@ -42,6 +42,48 @@ assignments (and PR #143 later) hang off the person id Auth issues: if the spike
 over person tokens *before* any real account exists, not after. #5 follows
 the operator-access design (PR #143). Each of #2–#5 gets its own design.
 
+### Sign-in spike result (2026-10-22)
+
+**Verdict: keep our own OpenIddict. WorkOS is not needed.** The Claude app signed in through
+OpenIddict with CIMD, Google upstream, and called an MCP tool that answered with the signed-in
+person's email. The spike code stays off `development`, on the branch `spike/mcp-signin`.
+
+- **Claude: proven**, on a personal **Free** plan. claude.ai detected our CIMD support on its own
+  and picked it over DCR. Its client document is `https://claude.ai/oauth/mcp-oauth-client-metadata`,
+  its redirect `https://claude.ai/api/mcp/auth_callback`. It sent S256 PKCE, `resource` = the MCP URL
+  and scopes `mcp offline_access`, then used the token on `/mcp`.
+- **ChatGPT: not tested.** ChatGPT **Free cannot add a custom MCP server**; only paid plans can,
+  through developer mode (sources disagree on whether Plus/Pro may, read-only; Business admins
+  can). So a manager who asks through ChatGPT needs a paid plan, which Pond is considering, or IndyPOS
+  would need a public listing in ChatGPT's app directory. OpenAI documents the same CIMD path Claude
+  used. If ChatGPT's CIMD misbehaves, ChatGPT also accepts a **pre-registered client**, which
+  OpenIddict supports natively, so the fallback is never WorkOS. Tested in piece #3 (Cloud.Mcp).
+- **Google:** project `indypos-512419` exists (consent screen "IndyPOS", External, Testing, Pond as
+  test user). Its spike client points at a dead tunnel; slice 1 adds the real client there.
+
+What slice 1 must carry over, learned the hard way:
+
+1. **OpenIddict has no CIMD** (openiddict-core #2416, declined Feb 2026). Ours runs on the
+   authorization and token request's extract step: an unknown https `client_id` is fetched, its
+   `client_id` must equal its URL, its auth method must be `none`, and it becomes a public,
+   PKCE-only client. For production it also needs an **allowlist of client-document hosts**
+   (claude.ai, chatgpt.com) so no one else can register, an SSRF guard, a size and time limit, and a
+   re-fetch when a document changes.
+2. **Advertise both** `client_id_metadata_document_supported: true` and `none` in
+   `token_endpoint_auth_methods_supported`. Claude falls back to DCR without either, and OpenIddict
+   has no DCR either.
+3. **The issuer must match exactly.** OpenIddict's issuer ends in `/`; the protected-resource
+   metadata's `authorization_servers` must say the same, or strict clients refuse it.
+4. Serve both `/.well-known/openid-configuration` and `/.well-known/oauth-authorization-server`. The
+   MCP SDK's `AddMcp` scheme serves `/.well-known/oauth-protected-resource/mcp` and the `401`
+   challenge that starts the flow.
+5. Register the MCP URL as a resource and validate it as the token's audience.
+6. OpenIddict advertises `plain` PKCE by default: allow **S256 only**.
+7. Advertise `none` only for these clients: OpenIddict 7 refuses the `private_key_jwt` assertions
+   ChatGPT can send (openiddict-core #2539).
+8. Behind Caddy or a tunnel, forwarded headers must be honoured, or the redirect to Google is
+   built with `http`.
+
 ## Goals
 
 - One identity for every **person** using the cloud: the admin and managers.
@@ -159,9 +201,8 @@ The **admin** (Pond) and **managers**. Nobody else. Cashiers stay till-only (non
   build.
 - **Why our own OpenIddict, not a hosted provider:** the security spec already names the cloud as the
   identity authority with OpenIddict, OpenIddict already runs here, one issuer serves machines and
-  people, and store assignments are our data either way. **Fallback:** if the sign-in spike shows
-  Claude and ChatGPT cannot sign in through it, WorkOS AuthKit issues person tokens instead, decided
-  before slice 1 is built.
+  people, and store assignments are our data either way. The fallback was WorkOS AuthKit if the
+  sign-in spike failed; it passed for Claude, so OpenIddict stays (see "Sign-in spike result").
 
 ### Roles
 
