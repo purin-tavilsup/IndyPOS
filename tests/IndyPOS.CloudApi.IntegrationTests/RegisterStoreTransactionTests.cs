@@ -5,6 +5,7 @@ using IndyPOS.CloudApi.Domain;
 using IndyPOS.CloudApi.Infrastructure;
 using IndyPOS.CloudApi.Infrastructure.Auth;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
 using IndyPOS.Testing.Postgres;
@@ -35,10 +36,22 @@ public class RegisterStoreTransactionTests : IAsyncLifetime
         }
     }
 
-    private CloudDbContext CreateContext() =>
+    private CloudDbContext CreateContext(params Microsoft.EntityFrameworkCore.Diagnostics.IInterceptor[] interceptors) =>
         new(new DbContextOptionsBuilder<CloudDbContext>()
             .UseNpgsql(_postgres!.ConnectionString, npgsql => npgsql.EnableRetryOnFailure())
+            .AddInterceptors(interceptors)
             .Options);
+
+    private static Mock<IAuthStoreClients> AuthCreating()
+    {
+        var auth = new Mock<IAuthStoreClients>();
+        auth.Setup(a => a.CreateAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync((string storeId, string _, CancellationToken _) => new StoreClientCredentials($"store_{storeId}", "secret"));
+        return auth;
+    }
+
+    private static RegisterStoreHandler Handler(CloudDbContext db, IAuthStoreClients auth) =>
+        new(db, auth, NullLogger<RegisterStoreHandler>.Instance);
 
     [Fact]
     public async Task HandleAsync_UnderNpgsqlRetryStrategy_CommitsRegistration()
@@ -46,56 +59,69 @@ public class RegisterStoreTransactionTests : IAsyncLifetime
         await using var db = CreateContext();
         await db.Database.MigrateAsync();
 
-        var credentialStore = new Mock<IStoreClientCredentialStore>();
-        credentialStore
-            .Setup(s => s.CreateAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
-            .Returns(Task.CompletedTask);
-
-        var handler = new RegisterStoreHandler(db, credentialStore.Object, NullLogger<RegisterStoreHandler>.Instance);
-
-        var response = await handler.HandleAsync(new RegisterStoreCommand("tx-store-1", "Tx Store", "Tx Store Full"));
+        var response = await Handler(db, AuthCreating().Object).HandleAsync(new RegisterStoreCommand("tx-store-1", "Tx Store", "Tx Store Full"));
 
         response.ClientId.Should().Be("store_tx-store-1");
-
-        var row = await db.StoreConfigs.SingleAsync();
-        row.StoreId.Should().Be("tx-store-1");
-        row.ClientId.Should().Be("store_tx-store-1");
-
-        credentialStore.Verify(
-            s => s.CreateAsync("store_tx-store-1", It.IsAny<string>(), "Tx Store", It.IsAny<CancellationToken>()),
-            Times.Once);
+        (await db.StoreConfigs.SingleAsync()).StoreId.Should().Be("tx-store-1");
     }
 
     [Fact]
-    public async Task HandleAsync_WhenInsertViolatesUniqueConstraint_ThrowsConflictNotDbError()
+    public async Task HandleAsync_WhenInsertViolatesUniqueConstraint_ThrowsConflictWithoutCallingAuth()
     {
         await using var db = CreateContext();
         await db.Database.MigrateAsync();
 
-        // Pre-seed a row that already owns the ClientId the new registration will generate. The new
-        // command's StoreId differs, so the handler's StoreId existence check passes, but the insert
-        // then loses the race to the unique ClientId index — the TOCTOU path. It must surface as a
-        // conflict (InvalidOperationException -> 409), not a raw DbUpdateException (500).
+        // Owns the ClientId the new registration will use; the StoreId check passes and the insert loses the race to
+        // the unique ClientId index (the TOCTOU path). It must be a conflict (409), not a 500, and Auth is not asked.
         db.StoreConfigs.Add(new CloudStoreConfig
         {
-            StoreId = "existing-store",
-            StoreName = "Existing",
-            ClientId = "store_race-store",
-            IsActive = true,
-            LastModifiedAtUtc = DateTime.UtcNow
+            StoreId = "existing-store", StoreName = "Existing", ClientId = "store_race-store", IsActive = true, LastModifiedAtUtc = DateTime.UtcNow
         });
         await db.SaveChangesAsync();
+        var auth = AuthCreating();
 
-        var credentialStore = new Mock<IStoreClientCredentialStore>();
-        credentialStore
-            .Setup(s => s.CreateAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
-            .Returns(Task.CompletedTask);
+        var act = () => Handler(db, auth.Object).HandleAsync(new RegisterStoreCommand("race-store", "Race Store", "Race Store Full"));
 
-        var handler = new RegisterStoreHandler(db, credentialStore.Object, NullLogger<RegisterStoreHandler>.Instance);
+        await act.Should().ThrowAsync<InvalidOperationException>().WithMessage("*race-store*already exists*");
+        auth.Verify(a => a.CreateAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Never);
+    }
 
-        var act = () => handler.HandleAsync(new RegisterStoreCommand("race-store", "Race Store", "Race Store Full"));
+    [Fact]
+    public async Task HandleAsync_WhenAuthIsUnavailable_SavesNothing()
+    {
+        await using var db = CreateContext();
+        await db.Database.MigrateAsync();
+        var auth = new Mock<IAuthStoreClients>();
+        auth.Setup(a => a.CreateAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new AuthUnavailableException("Auth is down"));
 
-        await act.Should().ThrowAsync<InvalidOperationException>()
-                 .WithMessage("*race-store*already exists*");
+        var act = () => Handler(db, auth.Object).HandleAsync(new RegisterStoreCommand("down-store", "Down", "Down Full"));
+
+        await act.Should().ThrowAsync<AuthUnavailableException>();
+        await using var check = CreateContext();
+        (await check.StoreConfigs.AnyAsync()).Should().BeFalse();
+    }
+
+    // The client exists in Auth before CloudApi commits. If the commit then fails, the client must go too, or an
+    // enabled client would be left for a store CloudApi does not have.
+    [Fact]
+    public async Task HandleAsync_WhenTheCommitFailsAfterAuth_DeletesTheClientInAuth()
+    {
+        await using (var setup = CreateContext())
+            await setup.Database.MigrateAsync();
+        await using var db = CreateContext(new FailingCommit());
+        var auth = AuthCreating();
+
+        var act = () => Handler(db, auth.Object).HandleAsync(new RegisterStoreCommand("commit-store", "Commit", "Commit Full"));
+
+        await act.Should().ThrowAsync<Exception>();
+        auth.Verify(a => a.DeleteAsync("commit-store", It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    private sealed class FailingCommit : DbTransactionInterceptor
+    {
+        public override ValueTask<InterceptionResult> TransactionCommittingAsync(
+            System.Data.Common.DbTransaction transaction, TransactionEventData eventData, InterceptionResult result, CancellationToken cancellationToken = default) =>
+            throw new InvalidOperationException("The commit failed (test).");
     }
 }

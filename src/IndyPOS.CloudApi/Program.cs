@@ -43,7 +43,12 @@ builder.AddDatabaseReadinessCheck("cloud-db");
 // Add Cloud infrastructure services
 builder.Services.AddScoped<ISyncedEventRepository, DbSyncedEventRepository>();
 builder.Services.AddScoped<ICloudUserRepository, CloudUserRepository>();
-builder.Services.AddScoped<IStoreClientCredentialStore, OpenIddictStoreClientCredentialStore>();
+// Cloud.Auth's store-client API, with CloudApi's own service client (one token per process).
+builder.Services.AddSingleton<AuthServiceTokenCache>();
+builder.Services.AddHttpClient<IAuthStoreClients, HttpAuthStoreClients>(client =>
+    client.BaseAddress = new Uri(builder.Configuration["services:cloud-auth:https:0"]
+                                 ?? builder.Configuration["services:cloud-auth:http:0"]
+                                 ?? "https+http://cloud-auth"));
 
 // Add EventProcessor background service
 builder.Services.AddHostedService<EventProcessor>();
@@ -334,6 +339,12 @@ app.MapPost("/admin/stores/register", [Authorize(Policy = "SystemAdminOnly")] as
     catch (InvalidOperationException ex)
     {
         return Results.Conflict(new { error = ex.Message });
+    }
+    catch (AuthUnavailableException ex)
+    {
+        // Nothing was saved anywhere (RegisterStoreHandler); the admin can try again once Auth is back.
+        return Results.Json(new { error = $"Cloud.Auth is unavailable; the store was not registered. {ex.Message}" },
+                            statusCode: StatusCodes.Status503ServiceUnavailable);
     }
 }).RequireAuthorization("SystemAdminOnly");
 
