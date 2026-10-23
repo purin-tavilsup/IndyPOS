@@ -2,6 +2,13 @@
 
 > **Status: transition / not yet a production-ready copy-paste procedure.** This section supersedes conflicting instructions below. The historical I1–I3 procedure is retained for implementation reference, **not** as the current production deployment contract. Do not deploy until the Auth/Web implementation, production compose, configuration, and verification steps are reconciled with the approved design.
 
+## Architecture diagrams
+
+- [DigitalOcean cloud infrastructure and service relationships](../diagrams/cloud-infrastructure.md)
+- [GitHub Actions → DigitalOcean CI/CD and deployment relationships](../diagrams/cloud-cicd-deployment.md)
+
+Both diagrams describe the **approved target** and **recommended workflow**, not a completed deployment.
+
 ## Source of truth and deployment gates
 
 - Approved platform/identity design: `docs/superpowers/specs/2026-10-21-cloud-platform-and-identity-design.md` (approved 2026-10-22).
