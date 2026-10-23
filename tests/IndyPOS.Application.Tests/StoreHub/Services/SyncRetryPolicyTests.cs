@@ -27,4 +27,18 @@ public class SyncRetryPolicyTests
         SyncRetryPolicy.NextDelay(attemptsSoFar, Defaults).Should()
                                                           .Be(TimeSpan.FromSeconds(expectedSeconds));
     }
+
+    // Zero is a plausible way to ask for no delay. 0 * 2^1024 is 0 * infinity, which is NaN, and
+    // TimeSpan.FromSeconds(NaN) throws, so the event would be picked again on every poll.
+    [Theory]
+    [InlineData(0)]
+    [InlineData(1024)]
+    [InlineData(int.MaxValue)]
+    public void NextDelay_WithNoBaseDelay_ReturnsZero(int attemptsSoFar)
+    {
+        var noDelay = new SyncWorkerOptions { BaseRetryDelaySeconds = 0 };
+
+        SyncRetryPolicy.NextDelay(attemptsSoFar, noDelay).Should()
+                                                         .Be(TimeSpan.Zero);
+    }
 }

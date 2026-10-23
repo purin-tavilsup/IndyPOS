@@ -93,6 +93,22 @@ public sealed class StoreHubStoreIdCheckTests : IDisposable
         result.Message.Should().Contain("could not be read");
     }
 
+    // StoreHub's JSON configuration provider accepts comments and trailing commas, so the check must too.
+    [Fact]
+    public void Check_WithCommentsAndTrailingCommas_ReturnsAMatch()
+    {
+        var path = ConfigWith("""
+            {
+              // written by the installer
+              "Store": { "Id": "STORE-001", "Type": "GeneralHardware", },
+            }
+            """);
+
+        var result = StoreHubStoreIdCheck.Check(InstalledStoreId, path);
+
+        result.IsMatch.Should().BeTrue();
+    }
+
     [Fact]
     public void Check_WhenTheConfigIsNotJson_ReturnsAMismatch()
     {

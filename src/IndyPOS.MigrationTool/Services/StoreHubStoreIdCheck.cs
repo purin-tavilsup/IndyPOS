@@ -15,6 +15,13 @@ public static class StoreHubStoreIdCheck
     /// <summary>Where the v4 installer puts StoreHub's configuration (InstallationConfig.StoreHubInstallPath).</summary>
     public const string InstalledConfigPath = @"C:\ProgramData\IndyPOS\v4\StoreHub\appsettings.json";
 
+    // What StoreHub's JSON configuration provider accepts, so a file StoreHub runs with is never refused here.
+    private static readonly JsonDocumentOptions StoreHubJson = new()
+    {
+        CommentHandling = JsonCommentHandling.Skip,
+        AllowTrailingCommas = true
+    };
+
     public static StoreIdCheckResult Check(string storeId, string storeHubConfigPath)
     {
         var configured = ReadConfiguredStoreId(storeHubConfigPath, out var problem);
@@ -64,7 +71,7 @@ public static class StoreHubStoreIdCheck
         problem = null;
         try
         {
-            using var document = JsonDocument.Parse(json);
+            using var document = JsonDocument.Parse(json, StoreHubJson);
             var id = Property(Property(document.RootElement, "Store"), "Id");
 
             if (id is { ValueKind: JsonValueKind.String } && !string.IsNullOrWhiteSpace(id.Value.GetString()))
