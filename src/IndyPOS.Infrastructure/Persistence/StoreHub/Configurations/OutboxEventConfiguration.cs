@@ -51,6 +51,10 @@ public class OutboxEventConfiguration : IEntityTypeConfiguration<OutboxEvent>
             .HasDefaultValue("Pending")
             .IsRequired();
 
+        builder.Property(e => e.LastError)
+            .HasColumnName("last_error")
+            .HasMaxLength(OutboxEvent.LastErrorMaxLength);
+
         // Index for SyncWorker polling: WHERE status = 'Pending' ORDER BY next_retry_utc, created_utc
         builder.HasIndex(e => new { e.Status, e.NextRetryUtc, e.CreatedUtc });
     }

@@ -29,18 +29,37 @@ public class OutboxRepository(StoreHubDbContext db) : IOutboxRepository
                 cancellationToken);
     }
 
-    public async Task MarkAsFailedAsync(
+    public async Task ScheduleRetryAsync(
         Guid eventId,
         DateTime nextRetryUtc,
+        string? reason,
         CancellationToken cancellationToken = default)
     {
+        var lastError = Truncate(reason);
+
         await db.OutboxEvents
             .Where(e => e.Id == eventId)
             .ExecuteUpdateAsync(s => s
                 .SetProperty(e => e.Status, "Pending")
                 .SetProperty(e => e.Attempts, e => e.Attempts + 1)
                 .SetProperty(e => e.LastAttemptUtc, DateTime.UtcNow)
-                .SetProperty(e => e.NextRetryUtc, nextRetryUtc),
+                .SetProperty(e => e.NextRetryUtc, nextRetryUtc)
+                .SetProperty(e => e.LastError, lastError),
+                cancellationToken);
+    }
+
+    public async Task MarkAsRefusedAsync(Guid eventId, string reason, CancellationToken cancellationToken = default)
+    {
+        var lastError = Truncate(reason);
+
+        await db.OutboxEvents
+            .Where(e => e.Id == eventId)
+            .ExecuteUpdateAsync(s => s
+                .SetProperty(e => e.Status, "Failed")
+                .SetProperty(e => e.Attempts, e => e.Attempts + 1)
+                .SetProperty(e => e.LastAttemptUtc, DateTime.UtcNow)
+                .SetProperty(e => e.NextRetryUtc, (DateTime?)null)
+                .SetProperty(e => e.LastError, lastError),
                 cancellationToken);
     }
 
@@ -52,8 +71,10 @@ public class OutboxRepository(StoreHubDbContext db) : IOutboxRepository
 
     public async Task<int> GetFailedCountAsync(CancellationToken cancellationToken = default)
     {
-        // Events that have been retried at least once and are still pending
         return await db.OutboxEvents
-            .CountAsync(e => e.Status == "Pending" && e.Attempts > 0, cancellationToken);
+            .CountAsync(e => e.Status == "Failed", cancellationToken);
     }
+
+    private static string? Truncate(string? reason) =>
+        reason is { Length: > OutboxEvent.LastErrorMaxLength } ? reason[..OutboxEvent.LastErrorMaxLength] : reason;
 }

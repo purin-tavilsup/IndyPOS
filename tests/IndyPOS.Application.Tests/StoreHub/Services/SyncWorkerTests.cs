@@ -109,7 +109,7 @@ public class SyncWorkerTests
         syncClient.Setup(x => x.SendEventAsync(testEvent, It.IsAny<CancellationToken>()))
             .ReturnsAsync(false); // Simulate failure
 
-        outboxRepo.Setup(x => x.MarkAsFailedAsync(testEvent.Id, It.IsAny<DateTime>(), It.IsAny<CancellationToken>()))
+        outboxRepo.Setup(x => x.ScheduleRetryAsync(testEvent.Id, It.IsAny<DateTime>(), It.IsAny<string?>(), It.IsAny<CancellationToken>()))
             .Callback(() => markAsFailedCalled.TrySetResult(true))
             .Returns(Task.CompletedTask);
 
@@ -118,17 +118,18 @@ public class SyncWorkerTests
         // Act
         var workerTask = worker.StartAsync(cts.Token);
 
-        // Wait for MarkAsFailedAsync to be called (with timeout)
+        // Wait for ScheduleRetryAsync to be called (with timeout)
         var completedTask = await Task.WhenAny(markAsFailedCalled.Task, Task.Delay(5000));
 
         cts.Cancel();
         await worker.StopAsync(CancellationToken.None);
 
         // Assert
-        completedTask.Should().Be(markAsFailedCalled.Task, "MarkAsFailedAsync should have been called within timeout");
-        outboxRepo.Verify(x => x.MarkAsFailedAsync(
+        completedTask.Should().Be(markAsFailedCalled.Task, "ScheduleRetryAsync should have been called within timeout");
+        outboxRepo.Verify(x => x.ScheduleRetryAsync(
             testEvent.Id,
             It.IsAny<DateTime>(),
+            It.IsAny<string?>(),
             It.IsAny<CancellationToken>()), Times.AtLeastOnce);
     }
 

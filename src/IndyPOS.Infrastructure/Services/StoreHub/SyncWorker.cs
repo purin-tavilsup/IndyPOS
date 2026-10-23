@@ -148,7 +148,7 @@ public class SyncWorker(
         var delaySeconds = _options.BaseRetryDelaySeconds * Math.Pow(2, nextAttempt - 1);
         var nextRetryUtc = DateTime.UtcNow.AddSeconds(delaySeconds);
 
-        await outboxRepository.MarkAsFailedAsync(outboxEvent.Id, nextRetryUtc, cancellationToken);
+        await outboxRepository.ScheduleRetryAsync(outboxEvent.Id, nextRetryUtc, reason: null, cancellationToken);
 
         logger.LogDebug(
             "Event {EventId} will retry at {NextRetry} (attempt {Attempt}/{MaxRetries})",
