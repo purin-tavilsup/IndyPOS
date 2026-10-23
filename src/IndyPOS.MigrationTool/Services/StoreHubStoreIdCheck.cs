@@ -33,19 +33,38 @@ public static class StoreHubStoreIdCheck
     /// <remarks>
     /// Section and key names are matched ignoring case, as .NET configuration binds them; the installer
     /// writes "Store" and "Id". Read with System.Text.Json so the tool needs no configuration package.
+    /// The file is read and the failure caught, never checked for existence first: the installer locks it
+    /// to Administrators and SYSTEM, and a non-elevated run can see it exists but not read it.
     /// </remarks>
     private static string? ReadConfiguredStoreId(string path, out string? problem)
     {
         problem = null;
-        if (!File.Exists(path))
+        string json;
+        try
+        {
+            json = File.ReadAllText(path);
+        }
+        catch (Exception ex) when (ex is FileNotFoundException or DirectoryNotFoundException)
         {
             problem = $"StoreHub's appsettings.json was not found at {path}. Pass its path with --storehub-config.";
             return null;
         }
+        catch (Exception ex) when (ex is UnauthorizedAccessException or IOException)
+        {
+            problem = $"StoreHub's configuration at {path} could not be read ({ex.Message}). " +
+                      "Run the tool from an elevated (Administrator) prompt.";
+            return null;
+        }
 
+        return StoreIdIn(json, path, out problem);
+    }
+
+    private static string? StoreIdIn(string json, string path, out string? problem)
+    {
+        problem = null;
         try
         {
-            using var document = JsonDocument.Parse(File.ReadAllText(path));
+            using var document = JsonDocument.Parse(json);
             var id = Property(Property(document.RootElement, "Store"), "Id");
 
             if (id is { ValueKind: JsonValueKind.String } && !string.IsNullOrWhiteSpace(id.Value.GetString()))

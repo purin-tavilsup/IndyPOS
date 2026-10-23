@@ -79,6 +79,20 @@ public sealed class StoreHubStoreIdCheckTests : IDisposable
         result.IsMatch.Should().BeFalse();
     }
 
+    // The installer locks StoreHub's appsettings.json to Administrators and SYSTEM, so a non-elevated run
+    // can see the file but not read it. That must refuse with a message, not crash with a stack trace.
+    [Fact]
+    public void Check_WhenTheConfigCannotBeRead_ReturnsAMismatchSayingSo()
+    {
+        var path = ConfigWithStoreId(InstalledStoreId);
+        using var lockedByAnotherProcess = new FileStream(path, FileMode.Open, FileAccess.ReadWrite, FileShare.None);
+
+        var result = StoreHubStoreIdCheck.Check(InstalledStoreId, path);
+
+        result.IsMatch.Should().BeFalse();
+        result.Message.Should().Contain("could not be read");
+    }
+
     [Fact]
     public void Check_WhenTheConfigIsNotJson_ReturnsAMismatch()
     {

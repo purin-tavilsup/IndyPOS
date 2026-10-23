@@ -390,7 +390,8 @@ Copy-Item "C:\ProgramData\IndyPOS\db\Store.db" "C:\ProgramData\IndyPOS\backups\S
 > **Store id check:** the tool refuses to start unless `--store-id` equals the installed StoreHub's
 > `Store:Id`, read from `C:\ProgramData\IndyPOS\v4\StoreHub\appsettings.json`. If StoreHub is installed
 > elsewhere, add `--storehub-config "<path to its appsettings.json>"`. A mismatch would make the cloud refuse
-> every migrated event.
+> every migrated event. Run it from an elevated (Administrator) prompt: the installer locks that file to
+> Administrators and SYSTEM.
 
 
 ```powershell
