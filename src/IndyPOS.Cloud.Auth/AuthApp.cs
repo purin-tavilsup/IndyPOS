@@ -1,5 +1,6 @@
 using IndyPOS.Cloud.Auth.Data;
 using IndyPOS.Cloud.Auth.OpenIddict;
+using IndyPOS.Cloud.Auth.StoreClients;
 using IndyPOS.Cloud.Auth.Tokens;
 using IndyPOS.ServiceDefaults;
 using Microsoft.EntityFrameworkCore;
@@ -43,9 +44,14 @@ public sealed class AuthApp
         builder.AddNpgsqlDbContext<AuthDbContext>("auth-db", settings => settings.DisableHealthChecks = true);
         builder.AddDatabaseReadinessCheck("auth-db");
 
+        // Checked here so a missing secret stops the start with its own message.
+        ServiceClients.CloudApiSecret(builder.Configuration);
+
         builder.Services.AddAuthServer(builder.Configuration, builder.Environment);
         builder.Services.AddAuthentication();
-        builder.Services.AddAuthorization();
+        builder.Services.AddAuthorization(options => options.AddStoreClientPolicy());
+        builder.Services.AddScoped<StoreClientService>();
+        builder.Services.AddHostedService<ServiceClientSeeder>();
 
         var app = builder.Build();
         app.UseAuthForwardedHeaders();
@@ -54,6 +60,7 @@ public sealed class AuthApp
         app.UseAuthorization();
         app.MapDefaultEndpoints();
         app.MapTokenEndpoint();
+        app.MapStoreClients();
 
         return app;
     }

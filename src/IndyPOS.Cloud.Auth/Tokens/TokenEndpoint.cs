@@ -1,6 +1,7 @@
 using System.Security.Claims;
 using IndyPOS.Application.Common.Constants;
 using IndyPOS.Cloud.Auth.Data;
+using IndyPOS.Cloud.Auth.StoreClients;
 using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.EntityFrameworkCore;
@@ -12,7 +13,8 @@ namespace IndyPOS.Cloud.Auth.Tokens;
 
 /// <summary>
 /// POST /oauth/token, client credentials only. OpenIddict has already checked the client's secret and permissions;
-/// this decides who the token is for. A store gets one only while Auth has it enabled, and its token is for CloudApi.
+/// this decides who the token is for. A store gets one only while Auth has it enabled, and its token is for CloudApi;
+/// CloudApi's service client gets one for Auth's store-client API.
 /// </summary>
 internal static class TokenEndpoint
 {
@@ -29,6 +31,9 @@ internal static class TokenEndpoint
 
         if (!request.IsClientCredentialsGrantType())
             return Refuse(Errors.UnsupportedGrantType, "Only the client_credentials grant is supported.");
+
+        if (request.ClientId == ServiceClients.CloudApiClientId)
+            return Results.SignIn(ServicePrincipal(request), authenticationScheme: OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
 
         var store = await db.StoreClients.SingleOrDefaultAsync(s => s.ClientId == request.ClientId, context.RequestAborted);
         if (store is null || !store.Enabled)
@@ -54,6 +59,19 @@ internal static class TokenEndpoint
         var principal = new ClaimsPrincipal(identity);
         principal.SetScopes(request.GetScopes());
         principal.SetResources(AuthResources.CloudApi);
+        return principal;
+    }
+
+    /// <summary>CloudApi's own token, for Auth's store-client API only: its audience is Auth, never CloudApi.</summary>
+    private static ClaimsPrincipal ServicePrincipal(OpenIddictRequest request)
+    {
+        var identity = new ClaimsIdentity(OpenIddictServerAspNetCoreDefaults.AuthenticationScheme, Claims.Name, Claims.Role);
+        identity.AddClaim(Claims.Subject, ServiceClients.CloudApiClientId);
+        identity.SetDestinations(static _ => [Destinations.AccessToken]);
+
+        var principal = new ClaimsPrincipal(identity);
+        principal.SetScopes(request.GetScopes());
+        principal.SetResources(AuthResources.Auth);
         return principal;
     }
 
