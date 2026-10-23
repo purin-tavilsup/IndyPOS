@@ -89,6 +89,25 @@ The old 1 vCPU / 2 GB sizing and the expected **13 tables** below are historical
 - [ ] Cloudflare bypass/direct-origin access is blocked by firewall; app and database ports remain private.
 - [ ] Backups restore successfully; secrets are not committed; log retention, image cleanup and certificate renewal are operational.
 
+### Cloud.Auth and CloudApi settings (cloud slice 1, S1-1)
+
+Cloud.Auth issues every token; CloudApi only validates them. The settings that moved:
+
+| Service | Setting | Value |
+|---|---|---|
+| Cloud.Auth | `ConnectionStrings__auth-db` | its own `auth` database and login role on the managed cluster |
+| Cloud.Auth | `INDYPOS_RSA_SIGNING_KEY` | base64 PEM, RSA 2048+; **required** outside Development, and kept across redeploys |
+| Cloud.Auth | `OpenIddict__Issuer` | `https://indypos-auth.exconeer.com/` (ends in `/`) |
+| Cloud.Auth | `OpenIddict__TlsTerminatedUpstream` | `true` behind Caddy (forwarded headers make the URLs https) |
+| Cloud.Auth | `ServiceClients__CloudApi__ClientSecret` | a random secret; Auth refuses to start without it |
+| CloudApi | `Auth__Issuer` | exactly Auth's issuer above |
+| CloudApi | `ServiceClients__CloudApi__ClientSecret` | the same secret, so CloudApi can register stores in Auth |
+| CloudApi | `services__cloud-auth__https__0` | Auth's URL, for register-store calls |
+| StoreHub | `services__cloud-auth__https__0` | Auth's URL, for the store's token (events still go to CloudApi) |
+
+CloudApi no longer needs `INDYPOS_RSA_SIGNING_KEY` or `OpenIddict__TlsTerminatedUpstream`. `deploy/cloud/compose*.yaml`
+and `.env.example` still describe the old single-issuer CloudApi and are updated with the deploy work (M2).
+
 ### Store sync health (sync hardening, `docs/superpowers/specs/2026-10-23-sync-hardening-design.md`)
 
 - StoreHub sends `POST /sync/heartbeats` (store token) every 2 minutes; CloudApi keeps one row per store in
