@@ -2,6 +2,7 @@ using System.Text.Json;
 using IndyPOS.Application.UseCases.Cloud.Sync.Heartbeat;
 using IndyPOS.CloudApi.Domain;
 using Microsoft.EntityFrameworkCore;
+using Npgsql;
 
 namespace IndyPOS.CloudApi.Infrastructure;
 
@@ -70,7 +71,10 @@ internal static class StoreSyncHealthQuery
             : [];
 }
 
-/// <summary>An admin's resend requests. A second press before the store picked the first up returns the open one.</summary>
+/// <summary>
+/// An admin's resend requests. A second press before the store picked the first up returns the open one; the database
+/// enforces one open request per store and event, so two overlapping presses cannot both insert.
+/// </summary>
 internal static class ResendRequests
 {
     /// <returns>The request and whether it is new, or null when the store is not registered.</returns>
@@ -80,16 +84,26 @@ internal static class ResendRequests
         if (!await db.StoreConfigs.AnyAsync(s => s.StoreId == storeId, ct))
             return null;
 
-        var open = await db.SyncResendRequests.Where(r => r.StoreId == storeId && r.EventId == eventId && r.CompletedAtUtc == null)
-                                              .Select(r => (Guid?)r.Id)
-                                              .FirstOrDefaultAsync(ct);
-        if (open is { } existing)
+        if (await OpenRequestIdAsync(db, storeId, eventId, ct) is { } existing)
             return (existing, false);
 
         var request = new CloudResendRequest { Id = Guid.NewGuid(), StoreId = storeId, EventId = eventId, RequestedAtUtc = nowUtc };
         db.SyncResendRequests.Add(request);
-        await db.SaveChangesAsync(ct);
-
-        return (request.Id, true);
+        try
+        {
+            await db.SaveChangesAsync(ct);
+            return (request.Id, true);
+        }
+        catch (DbUpdateException ex) when (ex.InnerException is PostgresException { SqlState: PostgresErrorCodes.UniqueViolation })
+        {
+            // Another press inserted between the check and this insert; the database keeps one open request.
+            db.ChangeTracker.Clear();
+            return ((await OpenRequestIdAsync(db, storeId, eventId, ct))!.Value, false);
+        }
     }
+
+    private static Task<Guid?> OpenRequestIdAsync(CloudDbContext db, string storeId, Guid? eventId, CancellationToken ct) =>
+        db.SyncResendRequests.Where(r => r.StoreId == storeId && r.EventId == eventId && r.CompletedAtUtc == null)
+                             .Select(r => (Guid?)r.Id)
+                             .FirstOrDefaultAsync(ct);
 }

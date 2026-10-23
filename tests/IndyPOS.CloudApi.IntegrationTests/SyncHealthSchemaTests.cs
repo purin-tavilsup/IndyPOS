@@ -51,6 +51,19 @@ public class SyncHealthSchemaTests(CloudPostgresFixture postgres) : IClassFixtur
                     .NotThrowAsync();
     }
 
+    // "Resend all" has no event id; two open ones for a store must still collide.
+    [Fact]
+    public async Task SyncResendRequests_AfterMigrating_AllowOneOpenRequestPerStoreAndEvent()
+    {
+        await using var connection = await OpenAsync();
+        await InsertOpenResendAsync(connection, "store-a");
+
+        var second = () => InsertOpenResendAsync(connection, "store-a");
+
+        await second.Should()
+                    .ThrowAsync<PostgresException>();
+    }
+
     [Theory]
     [MemberData(nameof(SyncHealthTables))]
     public async Task SyncHealthTables_ForEveryColumn_HaveAComment(string table)
@@ -96,6 +109,15 @@ public class SyncHealthSchemaTests(CloudPostgresFixture postgres) : IClassFixtur
             insert into "StoreHeartbeats" ("StoreId", "ReceivedAtUtc", "PendingCount", "FailedCount")
             values (@s, now(), 0, 0)
             """, connection);
+        command.Parameters.AddWithValue("s", storeId);
+        await command.ExecuteNonQueryAsync();
+    }
+
+    private static async Task InsertOpenResendAsync(NpgsqlConnection connection, string storeId)
+    {
+        await using var command = new NpgsqlCommand(
+            """insert into "SyncResendRequests" ("Id", "StoreId", "EventId", "RequestedAtUtc") values (gen_random_uuid(), @s, null, now())""",
+            connection);
         command.Parameters.AddWithValue("s", storeId);
         await command.ExecuteNonQueryAsync();
     }

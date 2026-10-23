@@ -84,11 +84,22 @@ namespace IndyPOS.CloudApi.Infrastructure.Migrations
                 name: "IX_SyncResendRequests_StoreId_CompletedAtUtc",
                 table: "SyncResendRequests",
                 columns: new[] { "StoreId", "CompletedAtUtc" });
+
+            // One open resend request per store and event; "resend all" has no event id, so it is compared as the
+            // empty guid. An expression index, so it works without PostgreSQL 15's NULLS NOT DISTINCT.
+            migrationBuilder.Sql(
+                """
+                CREATE UNIQUE INDEX "IX_SyncResendRequests_OpenPerStoreAndEvent"
+                ON "SyncResendRequests" ("StoreId", COALESCE("EventId", '00000000-0000-0000-0000-000000000000'::uuid))
+                WHERE "CompletedAtUtc" IS NULL;
+                """);
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.Sql("""DROP INDEX IF EXISTS "IX_SyncResendRequests_OpenPerStoreAndEvent";""");
+
             migrationBuilder.DropTable(
                 name: "StoreHeartbeats");
 

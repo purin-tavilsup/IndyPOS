@@ -1,6 +1,9 @@
+using System.Data.Common;
 using FluentAssertions;
 using IndyPOS.CloudApi.Domain;
 using IndyPOS.CloudApi.Infrastructure;
+using Microsoft.EntityFrameworkCore.Diagnostics;
+using Npgsql;
 using Xunit;
 
 namespace IndyPOS.CloudApi.IntegrationTests;
@@ -69,5 +72,51 @@ public class ResendRequestTests(CloudPostgresFixture postgres) : IClassFixture<C
         var result = await ResendRequests.RequestAsync(db, "store-z", eventId: null, Now, CancellationToken.None);
 
         result.Should().BeNull();
+    }
+
+    // Two admin presses that overlap both saw no open request and inserted two; the store then got both, and the
+    // second reported the event ignored after the first had moved it. The interceptor plays the other press: it
+    // inserts an open request after this one checked and before it inserts.
+    [Fact]
+    public async Task RequestAsync_WhenAnotherPressWinsTheRace_ReturnsTheOtherPresssRequest()
+    {
+        var connectionString = await postgres.CreateDatabaseAsync();
+        await using (var setup = CloudPostgresFixture.CreateContext(connectionString))
+        {
+            setup.StoreConfigs.Add(new CloudStoreConfig { StoreId = ThisStore, StoreName = "Store A", StoreFullName = "Store A", LastModifiedAtUtc = Now });
+            await setup.SaveChangesAsync();
+        }
+        var otherPress = new OtherPressInterceptor(connectionString, ThisStore);
+        await using var db = CloudPostgresFixture.CreateContext(connectionString, otherPress);
+
+        var result = await ResendRequests.RequestAsync(db, ThisStore, eventId: null, Now, CancellationToken.None);
+
+        result.Should().Be((otherPress.RequestId, false));
+        await using var check = CloudPostgresFixture.CreateContext(connectionString);
+        check.SyncResendRequests.Count(r => r.CompletedAtUtc == null).Should().Be(1);
+    }
+
+    private sealed class OtherPressInterceptor(string connectionString, string storeId) : DbCommandInterceptor
+    {
+        public Guid RequestId { get; } = Guid.NewGuid();
+        private bool _done;
+
+        public override async ValueTask<InterceptionResult<DbDataReader>> ReaderExecutingAsync(
+            DbCommand command, CommandEventData eventData, InterceptionResult<DbDataReader> result, CancellationToken cancellationToken = default)
+        {
+            if (!_done && command.CommandText.Contains("INSERT INTO \"SyncResendRequests\""))
+            {
+                _done = true;
+                await using var connection = new NpgsqlConnection(connectionString);
+                await connection.OpenAsync(cancellationToken);
+                await using var insert = new NpgsqlCommand(
+                    """insert into "SyncResendRequests" ("Id", "StoreId", "EventId", "RequestedAtUtc") values (@id, @s, null, now())""", connection);
+                insert.Parameters.AddWithValue("id", RequestId);
+                insert.Parameters.AddWithValue("s", storeId);
+                await insert.ExecuteNonQueryAsync(cancellationToken);
+            }
+
+            return result;
+        }
     }
 }
