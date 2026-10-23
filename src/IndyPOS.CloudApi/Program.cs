@@ -44,11 +44,7 @@ builder.AddDatabaseReadinessCheck("cloud-db");
 builder.Services.AddScoped<ISyncedEventRepository, DbSyncedEventRepository>();
 builder.Services.AddScoped<ICloudUserRepository, CloudUserRepository>();
 // Cloud.Auth's store-client API, with CloudApi's own service client (one token per process).
-builder.Services.AddSingleton<AuthServiceTokenCache>();
-builder.Services.AddHttpClient<IAuthStoreClients, HttpAuthStoreClients>(client =>
-    client.BaseAddress = new Uri(builder.Configuration["services:cloud-auth:https:0"]
-                                 ?? builder.Configuration["services:cloud-auth:http:0"]
-                                 ?? "https+http://cloud-auth"));
+builder.Services.AddAuthStoreClients();
 
 // Add EventProcessor background service
 builder.Services.AddHostedService<EventProcessor>();
