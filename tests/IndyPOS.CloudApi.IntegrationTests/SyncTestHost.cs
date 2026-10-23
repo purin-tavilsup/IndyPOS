@@ -57,6 +57,7 @@ internal sealed class SyncTestHost : IAsyncDisposable
         app.UseAuthorization();
         app.MapSyncStatus();
         app.MapSyncEvents();
+        app.MapSyncHeartbeats();
         await app.StartAsync();
 
         return new SyncTestHost(app);
@@ -73,6 +74,15 @@ internal sealed class SyncTestHost : IAsyncDisposable
     public async Task<HttpResponseMessage> PostEventsAsStoreAsync(string storeId, string json)
     {
         using var request = new HttpRequestMessage(HttpMethod.Post, "/sync/events");
+        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", storeId);
+        request.Content = new StringContent(json, Encoding.UTF8, "application/json");
+
+        return await Client.SendAsync(request);
+    }
+
+    public async Task<HttpResponseMessage> PostHeartbeatAsStoreAsync(string storeId, string json)
+    {
+        using var request = new HttpRequestMessage(HttpMethod.Post, "/sync/heartbeats");
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", storeId);
         request.Content = new StringContent(json, Encoding.UTF8, "application/json");
 

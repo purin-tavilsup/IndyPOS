@@ -79,6 +79,7 @@ public static class ConfigureServices
 
 		// SyncWorker configuration
 		services.Configure<SyncWorkerOptions>(configuration.GetSection(SyncWorkerOptions.SectionName));
+		services.Configure<HeartbeatOptions>(configuration.GetSection(HeartbeatOptions.SectionName));
 
 		// Cloud API configuration
 		services.Configure<CloudTokenOptions>(configuration.GetSection(CloudTokenOptions.SectionName));
@@ -108,12 +109,20 @@ public static class ConfigureServices
 				?? configuration["services:cloud-api:http:0"]
 				?? "https+http://cloud-api"; // Aspire service discovery fallback
 
+			// One token for the whole process: DI makes a new typed client per scope.
+			services.AddSingleton<CloudTokenCache>();
 			services.AddHttpClient<ITokenService, CloudTokenService>(client =>
 			{
 				client.BaseAddress = new Uri(cloudApiBaseUrl);
 			});
 
 			services.AddHttpClient<ICloudSyncClient, HttpCloudSyncClient>(client =>
+			{
+				client.BaseAddress = new Uri(cloudApiBaseUrl);
+			});
+
+			// Without a cloud client id there is no heartbeat client, and HeartbeatWorker does nothing.
+			services.AddHttpClient<ICloudHeartbeatClient, HttpCloudHeartbeatClient>(client =>
 			{
 				client.BaseAddress = new Uri(cloudApiBaseUrl);
 			});
@@ -128,12 +137,13 @@ public static class ConfigureServices
 	}
 
 	/// <summary>
-	/// Adds the SyncWorker hosted service.
+	/// Adds the SyncWorker and HeartbeatWorker hosted services.
 	/// Call this after AddStoreHubServices.
 	/// </summary>
 	public static IServiceCollection AddSyncWorker(this IServiceCollection services)
 	{
 		services.AddHostedService<SyncWorker>();
+		services.AddHostedService<HeartbeatWorker>();
 		return services;
 	}
 

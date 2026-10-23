@@ -6,6 +6,7 @@ using IndyPOS.Application.Common.Authorization;
 using IndyPOS.Application.Common.Exceptions;
 using IndyPOS.Application.UseCases.Cloud.Stores.RegisterStore;
 using IndyPOS.Application.UseCases.Cloud.Sync;
+using IndyPOS.Application.UseCases.Cloud.Sync.Heartbeat;
 using IndyPOS.Application.UseCases.Cloud.Sync.IngestEvents;
 using IndyPOS.Application.UseCases.Cloud.Users.CreateUser;
 using IndyPOS.Application.UseCases.Cloud.Users.UpdateUser;
@@ -106,6 +107,8 @@ builder.Services.AddAuthorizationBuilder()
         policy.AddRequirements(new CapabilityRequirement(Capability.UsersCreate));
     });
 
+builder.Services.Configure<StoreSyncHealthOptions>(builder.Configuration.GetSection(StoreSyncHealthOptions.SectionName));
+
 // Add controllers for token endpoint
 builder.Services.AddControllers();
 
@@ -152,6 +155,8 @@ if (app.Environment.IsDevelopment())
 app.MapGet("/", () => "IndyPOS Cloud API");
 
 app.MapSyncEvents();
+app.MapSyncHeartbeats();
+app.MapAdminSyncHealth();
 
 // Bulk migration endpoint - one-time sync from SQLite migration
 // Requires OAuth2 token (store must be registered)

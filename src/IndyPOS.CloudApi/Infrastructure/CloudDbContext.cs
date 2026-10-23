@@ -46,6 +46,11 @@ public class CloudDbContext : DbContext
     public DbSet<CloudPayLater> PayLaters => Set<CloudPayLater>();
     public DbSet<CloudPayLaterRepayment> PayLaterRepayments => Set<CloudPayLaterRepayment>();
 
+    // Store sync health (sync hardening PR 2)
+    public DbSet<CloudStoreHeartbeat> StoreHeartbeats => Set<CloudStoreHeartbeat>();
+    public DbSet<CloudSyncRejection> SyncRejections => Set<CloudSyncRejection>();
+    public DbSet<CloudResendRequest> SyncResendRequests => Set<CloudResendRequest>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         // SyncedEventEntity (inbox)
@@ -196,6 +201,7 @@ public class CloudDbContext : DbContext
 
         CashDrawerMirrorModel.Configure(modelBuilder);
         PayLaterMirrorModel.Configure(modelBuilder);
+        SyncHealthModel.Configure(modelBuilder);
 
         // OpenIddict's EF entities (application, authorization, scope, token) are
         // registered against this context by AddCore().UseDbContext<CloudDbContext>(),
