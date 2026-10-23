@@ -1,3 +1,110 @@
+# Cloud deployment runbook — platform refresh (2026-10-23)
+
+> **Status: transition / not yet a production-ready copy-paste procedure.** This section supersedes conflicting instructions below. The historical I1–I3 procedure is retained for implementation reference, **not** as the current production deployment contract. Do not deploy until the Auth/Web implementation, production compose, configuration, and verification steps are reconciled with the approved design.
+
+## Source of truth and deployment gates
+
+- Approved platform/identity design: `docs/superpowers/specs/2026-10-21-cloud-platform-and-identity-design.md` (approved 2026-10-22).
+- Existing single-API deployment: `deploy/cloud/compose.prod.yaml` and `deploy/cloud/.env.example` (**legacy shape** until updated).
+- Deployment order: sign-in spike (Claude proven; ChatGPT not yet tested) → Auth + Web admin implementation → infrastructure provisioning/deploy → store rollout. The spike is **not** production Auth.
+- **Stop/go gate:** verify on the target commit that Auth and Web are implemented, tests pass, the compose stack actually includes the new services and migrations, and the configuration names below match deployed code. Do not assume an approved design is already implemented.
+- Record the target Git SHA, operator, deployment time, DB backup/restore drill result, and tested rollback procedure before going live.
+
+## Target production topology
+
+```text
+StoreHub (offline-first) --HTTPS--> Cloudflare proxy --HTTPS--> Caddy (Droplet :443)
+                                                        |-- indypos-api.exconeer.com  -> CloudApi
+                                                        |-- indypos-auth.exconeer.com -> Cloud.Auth
+                                                        |-- indypos.exconeer.com      -> Cloud.Web
+                                                        '-- indypos-mcp.exconeer.com  -> future Cloud.Mcp (NOT deployed now)
+
+Droplet: Docker Engine + Docker Compose, independent service containers
+DO Managed PostgreSQL (same sgp1 VPC): separate CloudApi and Auth databases,
+separate least-privilege database users. No direct public DB access.
+```
+
+- Domain: **`exconeer.com`**, registered through Cloudflare Registrar **only after confirming availability and completing purchase**. The design's wording is an intended purchase, not proof of registration.
+- Flat subdomains are intentional: Cloudflare's standard edge certificate does not automatically cover nested names such as `auth.indypos.exconeer.com`.
+- Cloudflare proxy enabled for each public host; SSL/TLS **Full (strict)**. Caddy terminates HTTPS at origin with publicly trusted certificates using Cloudflare DNS-01.
+- Caddy needs a zone-scoped API token with Zone:Read and DNS:Edit; do not share it with API/Auth/Web containers. Keep `/data` persistent for ACME state.
+- Public ingress: TCP 443 from current Cloudflare IPv4/IPv6 ranges; SSH 22 only from a restricted admin source; no public 80, 8080, 5432, or direct application container ports. Maintain the Cloudflare allowlist as published ranges change.
+- Protect internal service calls; do not treat Docker's bridge network as an authorization boundary. Only explicitly intended routes should be reachable through Caddy.
+- Use separate Compose projects/networks for unrelated products (e.g. future Workforce SaaS). Do not put unrelated services on the IndyPOS application network.
+
+## Infrastructure sizing and provisioning
+
+| Item | Initial recommendation | Validation |
+|---|---|---|
+| Region | DigitalOcean `sgp1` | Same region/VPC for Droplet and database |
+| Droplet | Basic Premium AMD, **2 vCPU / 4 GiB RAM** as initial planning size | Benchmark all intended containers; adjust for actual memory/CPU, not store count alone |
+| Container orchestration | Docker Compose (single host) | No Kubernetes required for initial offline-first deployment |
+| Database | DO Managed PostgreSQL, separate Auth and business databases/roles | Confirm plan, connection limits, backups, PITR/restore options |
+| Backups | Enable Droplet backups and managed DB backups | Perform a documented **restore drill before real data** |
+| Monitoring | DO host metrics, external HTTPS uptime, container logs/health | Alert on 5xx, DB readiness, disk, memory, sync backlog and cert renewal |
+| Registry | Existing DO Container Registry, immutable tags | Ensure read-only pull credentials and tag retention/GC |
+
+The old 1 vCPU / 2 GB sizing and the expected **13 tables** below are historical estimates and acceptance criteria. Recalculate schema/table expectations from current migrations (including the separate Auth DB) before acceptance.
+
+## Preflight checklist (must pass)
+
+- [ ] Confirm `exconeer.com` registration, Cloudflare zone, scoped DNS token and proxy/TLS settings.
+- [ ] Confirm Auth, Cloud.Web, and CloudApi implementations are merged and integration tests pass.
+- [ ] Update `deploy/cloud/compose.prod.yaml`, Caddyfile, Docker build/push scripts and `.env.example` to the **three-service** topology; validate with `docker compose -f compose.prod.yaml config`.
+- [ ] Publish immutable, traceable images for **each** application and use read-only registry credentials on Droplet; avoid mutable `latest` in production.
+- [ ] Provision separate Auth and CloudApi databases, unique roles and restricted trusted sources; use private connection strings and TLS to PostgreSQL.
+- [ ] Configure production issuer, external callback/redirect URIs, Google OAuth credentials, initial-admin Google email, token-signing keys, inter-service authentication and per-service secrets. Never commit real secrets or print them in logs.
+- [ ] Restrict public host/port exposure; verify only Caddy publishes 443 and app containers have no host ports. Verify forwarded HTTPS scheme and issuer consistency in Auth.
+- [ ] Confirm migration execution/order for **both databases** and define failure recovery. A failed one-shot migration requires operator intervention; never blindly retry a destructive migration.
+- [ ] Document and perform managed DB restore drill; verify data recovery and retained backups before onboarding a real store.
+- [ ] Validate offline POS sales continue when CloudApi/Auth/DNS are unavailable; queued sync eventually resumes without duplicate transactions.
+
+## Deployment sequence (operator checklist; commands only after implementation gate)
+
+1. Provision DO VPC, Droplet, firewall, managed PostgreSQL and two isolated databases/roles; enable backups and monitoring.
+2. Configure Cloudflare flat DNS records `indypos`, `indypos-auth`, `indypos-api` to the Droplet public IP, proxied; set Full (strict).
+3. Deploy scoped secret configuration on the Droplet (permissions `0600`), including the Caddy DNS token only in Caddy. Replace old `indypos.com` values everywhere, including StoreHub cloud/auth URLs.
+4. Build/push immutable Auth, API and Web images. Verify provenance, digest and registry pull access.
+5. Validate final compose/Caddy config, then execute documented one-shot database migrations for Auth and CloudApi. Check migration exit codes and schema expectations.
+6. Start the services with `docker compose -f compose.prod.yaml up -d` **only after the compose file has been updated**. Inspect `docker compose -f compose.prod.yaml ps` and logs.
+7. Confirm DNS, Caddy certificates, HTTPS issuer/redirects, API liveness **and** readiness, Auth discovery/PKCE/Google sign-in, and Cloud.Web bootstrap admin.
+8. Through Cloud.Web, register a test store, confirm one-time credential display and store client-credentials token from **Auth**; test authorized sync and manager store isolation.
+9. Simulate Cloud/API/Auth outage and recovery with StoreHub; verify offline sales, bounded retries, eventual sync, idempotency and no data loss.
+10. Record successful restore drill, external uptime alert, rollback procedure and deploy SHA. Then onboard stores gradually.
+
+### Required security and acceptance checks
+
+- [ ] `https://indypos-api.exconeer.com/health/live` and `/health/ready` work as implemented; readiness verifies DB, not just process. Use the final app's documented endpoints for Auth/Web (do not invent paths).
+- [ ] Cloud.Auth is the **sole issuer** for both human and store tokens; CloudApi only validates JWTs, audiences, roles and per-request store assignments.
+- [ ] Bootstrap admin signs in via Google; invite links are single-use, expire in 2 days, and uninvited sign-ins fail.
+- [ ] Manager cannot access unassigned stores through any CloudApi endpoint; deactivated stores cannot obtain new tokens.
+- [ ] Token endpoints and OAuth metadata report correct external HTTPS scheme and issuer; no direct cleartext path to token issuance.
+- [ ] Cloudflare bypass/direct-origin access is blocked by firewall; app and database ports remain private.
+- [ ] Backups restore successfully; secrets are not committed; log retention, image cleanup and certificate renewal are operational.
+
+## Rollback and outage response
+
+- **App failure:** retain previous immutable image digests and compose configuration. Roll back application images only when compatible with the **forward-only** DB schema; never assume database down-migrations are safe.
+- **Migration failure:** stop rollout, inspect migration logs and DB reachability, confirm DB state and backup, fix cause, then rerun the migration explicitly. Do not run `docker compose down -v` in production.
+- **Droplet outage:** POS remains offline-first; restore Droplet/service from infrastructure configuration and verify database connectivity, then monitor queued sync catch-up.
+- **Database incident:** use DO managed DB recovery procedure and tested restore point; reconcile sync/idempotency after recovery.
+- **Auth outage:** existing offline tills keep selling; new token issuance, web sign-in and cloud-only operations may be unavailable. Alert and restore Auth independently.
+- **Security incident:** revoke/rotate compromised credentials and signing material using a planned key-rollover process; disable affected store credentials in Auth.
+
+## Outstanding implementation tasks
+
+1. Implement and verify Auth + Cloud.Web admin slice from approved design.
+2. Update production Compose/Caddyfile and build pipeline for new services; keep migration jobs isolated and idempotent.
+3. Update `.env.example`, domain references, StoreHub Auth/API endpoints, OAuth callback configuration and deployment scripts.
+4. Add production-grade tests for authorization boundaries, store token rejection, registration and recovery.
+5. Replace historical single-API acceptance criteria and table counts; run backup/restore and outage drills.
+
+---
+
+## Historical I1–I3 runbook (superseded where conflicting)
+
+The following section documents the **old CloudApi-only** stack and `indypos.com` assumptions. It is retained for technical reference while the deployment assets are migrated. **Do not execute its provisioning/deploy steps verbatim against the new architecture.**
+
 # CloudApi deployment
 
 Covers the container and the two compose stacks in `deploy/cloud/`. Provisioning the Droplet and the
