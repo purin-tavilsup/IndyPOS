@@ -14,10 +14,11 @@ namespace IndyPOS.CloudApi.Infrastructure.Auth;
 /// <remarks>
 /// Two services, so no shared transaction. The order makes every failure leave nothing behind: CloudApi's row is
 /// inserted first inside a transaction, so a concurrent registration of the same store fails on the unique index
-/// before Auth is asked; then Auth creates the client; then the transaction commits. Auth down: roll back, nothing
-/// anywhere. Commit failed after Auth: delete the client in Auth again, so no enabled client is left for a store
-/// CloudApi does not have. If that delete fails too, it is logged with the store id: the one way a stray client can
-/// remain, and a later registration of the same store replaces it.
+/// before Auth is asked; then Auth creates the client; then the transaction commits. Auth down: roll back, nothing in
+/// CloudApi. After Auth created the client, any failure (a cancellation included) checks whether CloudApi's row landed
+/// anyway: if it did, the store is registered and the secret is returned; if not, the client is deleted in Auth
+/// again. A stray client can remain only if that delete fails too (logged with the store id) or Auth created the
+/// client but its answer was lost; its secret was never shown, and registering the store again replaces it.
 /// </remarks>
 public class RegisterStoreHandler(CloudDbContext dbContext, IAuthStoreClients authStoreClients, ILogger<RegisterStoreHandler> logger)
     : ICommandHandler<RegisterStoreCommand, RegisterStoreResponse>
@@ -48,25 +49,41 @@ public class RegisterStoreHandler(CloudDbContext dbContext, IAuthStoreClients au
                 await transaction.CommitAsync(cancellationToken);
             });
         }
-        catch (DbUpdateException ex) when (ex.InnerException is PostgresException { SqlState: PostgresErrorCodes.UniqueViolation })
+        catch (DbUpdateException ex) when (credentials is null && ex.InnerException is PostgresException { SqlState: PostgresErrorCodes.UniqueViolation })
         {
             // A concurrent registration slipped past the check above and lost the race to the unique StoreId/ClientId
             // index, before Auth was asked. Same conflict as the check (409), not a 500.
             throw AlreadyExists(command.StoreId, ex);
         }
-        catch (Exception ex) when (credentials is not null && ex is not OperationCanceledException)
+        catch (Exception ex) when (credentials is not null)
         {
+            // The commit's outcome is unknown: it may have landed and then reported a failure (a dropped connection,
+            // or a retry that hit the unique index on our own row). If the row is there, the store is registered.
+            if (await RegisteredAsync(command.StoreId))
+            {
+                logger.LogWarning(ex, "Registering store {StoreId} reported a failure after its commit landed; it is registered", command.StoreId);
+                return Registered(command.StoreId, credentials);
+            }
+
             await DeleteClientAfterFailedCommitAsync(command.StoreId, ex);
             throw;
         }
 
         logger.LogInformation("Registered store {StoreId} with ClientId {ClientId}", command.StoreId, credentials!.ClientId);
+        return Registered(command.StoreId, credentials);
+    }
 
-        return new RegisterStoreResponse(
-            StoreId: command.StoreId,
-            ClientId: credentials.ClientId,
-            ClientSecret: credentials.ClientSecret,
-            Message: "Store registered successfully. Save the ClientSecret securely - it won't be shown again!");
+    private static RegisterStoreResponse Registered(string storeId, StoreClientCredentials credentials) => new(
+        StoreId: storeId,
+        ClientId: credentials.ClientId,
+        ClientSecret: credentials.ClientSecret,
+        Message: "Store registered successfully. Save the ClientSecret securely - it won't be shown again!");
+
+    /// <summary>Read on a fresh query, never cancelled: it decides whether Auth's client stays.</summary>
+    private async Task<bool> RegisteredAsync(string storeId)
+    {
+        dbContext.ChangeTracker.Clear();
+        return await dbContext.StoreConfigs.AsNoTracking().AnyAsync(s => s.StoreId == storeId, CancellationToken.None);
     }
 
     private async Task DeleteClientAfterFailedCommitAsync(string storeId, Exception commitFailure)

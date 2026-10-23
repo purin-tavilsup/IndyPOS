@@ -118,6 +118,50 @@ public class RegisterStoreTransactionTests : IAsyncLifetime
         auth.Verify(a => a.DeleteAsync("commit-store", It.IsAny<CancellationToken>()), Times.Once);
     }
 
+    // The commit went through but reported a failure (a dropped connection, or a retry that then hit the unique index).
+    // The store is registered, so the admin must get its secret and the client must stay.
+    [Fact]
+    public async Task HandleAsync_WhenTheCommitLandsButReportsAFailure_ReturnsTheSecretAndKeepsTheClient()
+    {
+        await using (var setup = CreateContext())
+            await setup.Database.MigrateAsync();
+        await using var db = CreateContext(new FailAfterCommit());
+        var auth = AuthCreating();
+
+        var response = await Handler(db, auth.Object).HandleAsync(new RegisterStoreCommand("landed-store", "Landed", "Landed Full"));
+
+        response.ClientSecret.Should().Be("secret");
+        auth.Verify(a => a.DeleteAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    // Cancelled after Auth created the client: CloudApi rolls back, so the client must go too.
+    [Fact]
+    public async Task HandleAsync_WhenCancelledAfterAuth_DeletesTheClientInAuth()
+    {
+        await using var db = CreateContext();
+        await db.Database.MigrateAsync();
+        using var cancellation = new CancellationTokenSource();
+        var auth = new Mock<IAuthStoreClients>();
+        auth.Setup(a => a.CreateAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(() =>
+            {
+                cancellation.Cancel();
+                return new StoreClientCredentials("store_cancel-store", "secret");
+            });
+
+        var act = () => Handler(db, auth.Object).HandleAsync(new RegisterStoreCommand("cancel-store", "Cancel", "Cancel Full"), cancellation.Token);
+
+        await act.Should().ThrowAsync<OperationCanceledException>();
+        auth.Verify(a => a.DeleteAsync("cancel-store", It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    private sealed class FailAfterCommit : DbTransactionInterceptor
+    {
+        public override Task TransactionCommittedAsync(
+            System.Data.Common.DbTransaction transaction, TransactionEndEventData eventData, CancellationToken cancellationToken = default) =>
+            throw new InvalidOperationException("The connection dropped after the commit (test).");
+    }
+
     private sealed class FailingCommit : DbTransactionInterceptor
     {
         public override ValueTask<InterceptionResult> TransactionCommittingAsync(

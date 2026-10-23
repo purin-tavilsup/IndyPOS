@@ -338,7 +338,7 @@ app.MapPost("/admin/stores/register", [Authorize(Policy = "SystemAdminOnly")] as
     }
     catch (AuthUnavailableException ex)
     {
-        // Nothing was saved anywhere (RegisterStoreHandler); the admin can try again once Auth is back.
+        // Nothing was saved in CloudApi (RegisterStoreHandler); the admin can try again once Auth is back.
         return Results.Json(new { error = $"Cloud.Auth is unavailable; the store was not registered. {ex.Message}" },
                             statusCode: StatusCodes.Status503ServiceUnavailable);
     }
