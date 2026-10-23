@@ -48,7 +48,6 @@ public class SyncWorkerTests
         {
             BatchSize = 10,
             PollingIntervalSeconds = 1,
-            MaxRetries = 3,
             BaseRetryDelaySeconds = 30,
             Enabled = true
         });
@@ -56,6 +55,121 @@ public class SyncWorkerTests
         var worker = new SyncWorker(scopeFactory.Object, workerOptions, logger);
 
         return (worker, outboxRepo, syncClient);
+    }
+
+    private static SyncWorker CreateWorker(IOutboxRepository outbox, ICloudSyncClient client, SyncWorkerOptions options)
+    {
+        var services = new ServiceCollection();
+        services.AddSingleton(outbox);
+        services.AddSingleton(client);
+
+        return new SyncWorker(
+            services.BuildServiceProvider().GetRequiredService<IServiceScopeFactory>(),
+            Options.Create(options),
+            Moq.Mock.Of<ILogger<SyncWorker>>());
+    }
+
+    /// <summary>
+    /// The stall itself. An event that reached the old retry limit was logged and left untouched: still
+    /// Pending, already due, oldest first. Ten of them filled every batch of ten, so nothing newer was
+    /// ever sent again. Refused events must now step aside as Failed.
+    /// </summary>
+    [Fact]
+    public async Task SyncWorker_WithTenRefusedEventsAheadOfANewOne_StillSendsTheNewOne()
+    {
+        var outbox = new InMemoryOutboxRepository();
+        var refusedIds = new List<Guid>();
+        for (var i = 0; i < 10; i++)
+        {
+            var refused = CreateTestEvent();
+            refused.CreatedUtc = DateTime.UtcNow.AddHours(-1).AddSeconds(i);
+            refused.Attempts = 4;
+            outbox.Add(refused);
+            refusedIds.Add(refused.Id);
+        }
+        var newer = CreateTestEvent();
+        outbox.Add(newer);
+
+        var client = new Mock<ICloudSyncClient>();
+        client.Setup(c => c.SendEventAsync(It.IsAny<OutboxEvent>(), It.IsAny<CancellationToken>()))
+              .ReturnsAsync((OutboxEvent e, CancellationToken _) =>
+                  e.Id == newer.Id ? SyncSendResult.Sent : SyncSendResult.Refused("403 store-mismatch"));
+
+        var worker = CreateWorker(outbox, client.Object, new SyncWorkerOptions { BatchSize = 10, PollingIntervalSeconds = 1 });
+
+        await worker.StartAsync(CancellationToken.None);
+        var deadline = DateTime.UtcNow.AddSeconds(10);
+        while (outbox.Get(newer.Id).Status != "Sent" && DateTime.UtcNow < deadline)
+            await Task.Delay(50);
+        await worker.StopAsync(CancellationToken.None);
+
+        outbox.Get(newer.Id).Status.Should()
+                                   .Be("Sent");
+        refusedIds.Select(id => outbox.Get(id).Status).Should()
+                                                      .OnlyContain(status => status == "Failed");
+    }
+
+    /// <summary>Runs one outbox event through a started worker and returns it once the client was asked once.</summary>
+    private static async Task<OutboxEvent> SendOnceAsync(OutboxEvent outboxEvent, Func<SyncSendResult> answer)
+    {
+        var outbox = new InMemoryOutboxRepository();
+        outbox.Add(outboxEvent);
+        var asked = new TaskCompletionSource();
+
+        var client = new Mock<ICloudSyncClient>();
+        client.Setup(c => c.SendEventAsync(It.IsAny<OutboxEvent>(), It.IsAny<CancellationToken>()))
+              .ReturnsAsync(() =>
+              {
+                  try { return answer(); }
+                  finally { asked.TrySetResult(); }
+              });
+
+        var worker = CreateWorker(outbox, client.Object, new SyncWorkerOptions { PollingIntervalSeconds = 1 });
+
+        await worker.StartAsync(CancellationToken.None);
+        await asked.Task.WaitAsync(TimeSpan.FromSeconds(10));
+        await Task.Delay(200); // let the worker write the outcome
+        await worker.StopAsync(CancellationToken.None);
+
+        return outbox.Get(outboxEvent.Id);
+    }
+
+    // The old limit gave up after five attempts, about eight minutes. A cloud that is down for a day
+    // must never turn a good sale into a failed one.
+    [Fact]
+    public async Task SyncWorker_WhenTheCloudIsUnreachableAfterManyAttempts_KeepsTheEventPending()
+    {
+        var outboxEvent = CreateTestEvent();
+        outboxEvent.Attempts = 50;
+
+        var stored = await SendOnceAsync(outboxEvent, () => SyncSendResult.RetryLater("Cloud unreachable"));
+
+        stored.Status.Should()
+                     .Be("Pending");
+        stored.NextRetryUtc.Should()
+                           .BeCloseTo(DateTime.UtcNow.AddMinutes(15), TimeSpan.FromSeconds(30));
+    }
+
+    [Fact]
+    public async Task SyncWorker_WhenTheCloudRefusesAnEvent_MarksItFailedWithTheReason()
+    {
+        var stored = await SendOnceAsync(CreateTestEvent(), () => SyncSendResult.Refused("403 store-mismatch: not this store"));
+
+        stored.Status.Should()
+                     .Be("Failed");
+        stored.LastError.Should()
+                        .Be("403 store-mismatch: not this store");
+    }
+
+    [Fact]
+    public async Task SyncWorker_WhenSendingThrows_SchedulesARetry()
+    {
+        var stored = await SendOnceAsync(CreateTestEvent(), () => throw new InvalidOperationException("serializer blew up"));
+
+        stored.Status.Should()
+                     .Be("Pending");
+        stored.Attempts.Should()
+                       .Be(1);
     }
 
     [Fact]
@@ -95,12 +209,12 @@ public class SyncWorkerTests
     }
 
     [Fact]
-    public async Task SyncWorker_ShouldMarkAsFailed_WhenSyncFails()
+    public async Task SyncWorker_WhenTheCloudIsDown_SchedulesARetry()
     {
         // Arrange
         var (worker, outboxRepo, syncClient) = CreateSut();
         var testEvent = CreateTestEvent();
-        var markAsFailedCalled = new TaskCompletionSource<bool>();
+        var scheduleRetryCalled = new TaskCompletionSource<bool>();
 
         outboxRepo.SetupSequence(x => x.GetPendingEventsAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(new List<OutboxEvent> { testEvent })
@@ -110,7 +224,7 @@ public class SyncWorkerTests
             .ReturnsAsync(SyncSendResult.RetryLater("simulated outage"));
 
         outboxRepo.Setup(x => x.ScheduleRetryAsync(testEvent.Id, It.IsAny<DateTime>(), It.IsAny<string?>(), It.IsAny<CancellationToken>()))
-            .Callback(() => markAsFailedCalled.TrySetResult(true))
+            .Callback(() => scheduleRetryCalled.TrySetResult(true))
             .Returns(Task.CompletedTask);
 
         using var cts = new CancellationTokenSource();
@@ -119,13 +233,13 @@ public class SyncWorkerTests
         var workerTask = worker.StartAsync(cts.Token);
 
         // Wait for ScheduleRetryAsync to be called (with timeout)
-        var completedTask = await Task.WhenAny(markAsFailedCalled.Task, Task.Delay(5000));
+        var completedTask = await Task.WhenAny(scheduleRetryCalled.Task, Task.Delay(5000));
 
         cts.Cancel();
         await worker.StopAsync(CancellationToken.None);
 
         // Assert
-        completedTask.Should().Be(markAsFailedCalled.Task, "ScheduleRetryAsync should have been called within timeout");
+        completedTask.Should().Be(scheduleRetryCalled.Task, "ScheduleRetryAsync should have been called within timeout");
         outboxRepo.Verify(x => x.ScheduleRetryAsync(
             testEvent.Id,
             It.IsAny<DateTime>(),
@@ -162,7 +276,7 @@ public class SyncWorkerTests
         //
         // Polling a SECOND time is also the stronger assertion, and the one that matches the test's
         // name: surviving the exception means it kept going, not merely that it started.
-        // SyncWorker_ShouldMarkAsFailed_WhenSyncFails in this file already used this shape.
+        // SyncWorker_WhenTheCloudIsDown_SchedulesARetry in this file already used this shape.
         var (worker, outboxRepo, _) = CreateSut();
 
         var polledAfterThrowing = new TaskCompletionSource();
