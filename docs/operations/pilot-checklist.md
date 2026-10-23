@@ -94,6 +94,12 @@ Invoke-RestMethod -Uri "http://localhost:5000/health/ready" -Method GET
 - [ ] `/health/ready` returns 200 OK
 
 ### Step 4: Migrate Data from SQLite
+
+> **Store id check:** the tool refuses to start unless `--store-id` equals the installed StoreHub's
+> `Store:Id`, read from `C:\ProgramData\IndyPOS\v4\StoreHub\appsettings.json`. If StoreHub is installed
+> elsewhere, add `--storehub-config "<path to its appsettings.json>"`. A mismatch would make the cloud refuse
+> every migrated event.
+
 ```powershell
 # Run migration tool (one-time)
 cd "C:\Program Files\IndyPOS\StoreHub"
