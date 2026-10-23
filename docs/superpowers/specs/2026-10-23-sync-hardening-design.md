@@ -211,7 +211,7 @@ Worked out from the latest heartbeat, the rejection log and `/sync/status`'s cou
 
 | Status | Rule |
 |---|---|
-| 🟢 OK | Seen in the last 10 min, no failed events, oldest pending event under 30 min |
+| 🟢 OK | Seen in the last 10 min, no failed events, and **no pending event, or** the oldest pending event under 30 min |
 | 🟡 Behind | Seen in the last 10 min, oldest pending event 30 min or more |
 | 🔴 Failed events | The latest heartbeat reports failed events, **or** an unresolved rejection newer than the latest heartbeat. Resend shown here |
 | ⚪ Offline | Not seen for 10 min or more. Shown as "last seen <time>", in the store's time zone, in neutral grey, **not as an alarm** |
