@@ -1,6 +1,7 @@
 namespace IndyPOS.Infrastructure.Persistence.StoreHub.Repositories;
 
 using IndyPOS.Application.Abstractions.StoreHub.Repositories;
+using IndyPOS.Application.Common.Extensions;
 using IndyPOS.Domain.Entities.Core;
 using Microsoft.EntityFrameworkCore;
 
@@ -75,19 +76,6 @@ public class OutboxRepository(StoreHubDbContext db) : IOutboxRepository
             .CountAsync(e => e.Status == "Failed", cancellationToken);
     }
 
-    /// <remarks>
-    /// Never cuts between the two halves of a character outside the BMP: a lone high surrogate makes
-    /// PostgreSQL's UTF-8 encoding throw, and a write that throws leaves the event due on every poll.
-    /// </remarks>
-    private static string? Truncate(string? reason)
-    {
-        if (reason is not { Length: > OutboxEvent.LastErrorMaxLength })
-            return reason;
-
-        var length = char.IsHighSurrogate(reason[OutboxEvent.LastErrorMaxLength - 1])
-            ? OutboxEvent.LastErrorMaxLength - 1
-            : OutboxEvent.LastErrorMaxLength;
-
-        return reason[..length];
-    }
+    // Cut without splitting a surrogate pair: a lone half makes PostgreSQL's UTF-8 encoding throw.
+    private static string? Truncate(string? reason) => reason.CutTo(OutboxEvent.LastErrorMaxLength);
 }
