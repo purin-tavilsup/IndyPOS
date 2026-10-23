@@ -1,4 +1,5 @@
 using IndyPOS.Application.Abstractions.Cloud.Auth;
+using IndyPOS.Application.Common.Validation;
 using IndyPOS.Application.UseCases.Cloud.Stores.RegisterStore;
 using IndyPOS.CloudApi.Domain;
 using Microsoft.EntityFrameworkCore;
@@ -23,6 +24,9 @@ public class RegisterStoreHandler(CloudDbContext dbContext, IAuthStoreClients au
 {
     public async Task<RegisterStoreResponse> HandleAsync(RegisterStoreCommand command, CancellationToken cancellationToken = default)
     {
+        if (!StoreIds.IsValid(command.StoreId))
+            throw new ArgumentException($"A store id must be {StoreIds.Rule}.", nameof(command));
+
         if (await dbContext.StoreConfigs.AnyAsync(s => s.StoreId == command.StoreId, cancellationToken))
             throw AlreadyExists(command.StoreId);
 

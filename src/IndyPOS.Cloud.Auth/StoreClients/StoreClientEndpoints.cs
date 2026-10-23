@@ -1,4 +1,5 @@
 using IndyPOS.Application.Common.Constants;
+using IndyPOS.Application.Common.Validation;
 using OpenIddict.Abstractions;
 using OpenIddict.Validation.AspNetCore;
 
@@ -22,9 +23,18 @@ internal static class StoreClientEndpoints
             policy.RequireAssertion(context => context.User.HasScope(AuthScopes.StoreClients));
         });
 
+    // The route value is the store id after URL decoding, which leaves "%2F" encoded: checked, so "a/b" and "a%2Fb"
+    // cannot share one client.
+    private static async ValueTask<object?> RejectInvalidStoreId(EndpointFilterInvocationContext context, EndpointFilterDelegate next) =>
+        StoreIds.IsValid(context.HttpContext.Request.RouteValues["storeId"] as string)
+            ? await next(context)
+            : Results.BadRequest(new { error = $"A store id must be {StoreIds.Rule}." });
+
     public static IEndpointRouteBuilder MapStoreClients(this IEndpointRouteBuilder app)
     {
-        var group = app.MapGroup("/store-clients/{storeId}").RequireAuthorization(Policy);
+        var group = app.MapGroup("/store-clients/{storeId}")
+                       .RequireAuthorization(Policy)
+                       .AddEndpointFilter(RejectInvalidStoreId);
 
         group.MapPut("", async (string storeId, CreateStoreClientBody body, StoreClientService service, CancellationToken ct) =>
             await service.CreateOrReplaceAsync(storeId, body.DisplayName, ct) is { } credentials

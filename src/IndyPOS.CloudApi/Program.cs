@@ -332,6 +332,10 @@ app.MapPost("/admin/stores/register", [Authorize(Policy = "SystemAdminOnly")] as
         var response = await handler.HandleAsync(command, cancellationToken);
         return Results.Ok(response);
     }
+    catch (ArgumentException ex)
+    {
+        return Results.BadRequest(new { error = ex.Message });
+    }
     catch (InvalidOperationException ex)
     {
         return Results.Conflict(new { error = ex.Message });

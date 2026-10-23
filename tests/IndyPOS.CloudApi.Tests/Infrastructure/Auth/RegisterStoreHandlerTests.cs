@@ -56,4 +56,21 @@ public class RegisterStoreHandlerTests
         await act.Should().ThrowAsync<InvalidOperationException>().WithMessage("*store1*already exists*");
         auth.VerifyNoOtherCalls();
     }
+
+    [Theory]
+    [InlineData("a/b")]
+    [InlineData("a%2Fb")]
+    [InlineData(" ")]
+    public async Task HandleAsync_WithAnInvalidStoreId_ThrowsWithoutCallingAuth(string storeId)
+    {
+        await using var db = CreateInMemoryContext();
+        var auth = new Mock<IAuthStoreClients>();
+        var handler = new RegisterStoreHandler(db, auth.Object, NullLogger<RegisterStoreHandler>.Instance);
+
+        var act = () => handler.HandleAsync(new RegisterStoreCommand(storeId, "Test Store", "Test Store Full"));
+
+        await act.Should().ThrowAsync<ArgumentException>();
+        auth.VerifyNoOtherCalls();
+        (await db.StoreConfigs.AnyAsync()).Should().BeFalse();
+    }
 }

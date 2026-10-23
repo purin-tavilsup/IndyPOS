@@ -99,6 +99,20 @@ public class StoreClientApiTests(AuthPostgresFixture postgres) : IClassFixture<A
         (await TokenHosts.RequestTokenAsync(host, credentials.ClientId, credentials.ClientSecret)).IsSuccessStatusCode.Should().BeFalse();
     }
 
+    // "a/b" escaped arrives as "a%2Fb", which would share a client with a store really named "a%2Fb".
+    [Theory]
+    [InlineData("a%2Fb")]
+    [InlineData("a%20b")]
+    [InlineData("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")]
+    public async Task PutStoreClient_WithAnInvalidStoreId_ReturnsBadRequest(string escapedStoreId)
+    {
+        await using var host = await StartAsync();
+
+        var response = await (await ServiceClientAsync(host)).PutAsJsonAsync($"/store-clients/{escapedStoreId}", new { displayName = "x" });
+
+        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+    }
+
     [Fact]
     public async Task StoreClientApi_WithoutAToken_ReturnsUnauthorized()
     {
