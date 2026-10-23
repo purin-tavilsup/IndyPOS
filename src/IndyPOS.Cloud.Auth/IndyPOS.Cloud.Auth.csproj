@@ -1,0 +1,32 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <RootNamespace>IndyPOS.Cloud.Auth</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Aspire.Npgsql.EntityFrameworkCore.PostgreSQL" Version="9.2.0" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="9.0.6">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+    <!-- Same major as CloudApi's OpenIddict; one version across the solution. -->
+    <PackageReference Include="OpenIddict.AspNetCore" Version="6.*" />
+    <PackageReference Include="OpenIddict.EntityFrameworkCore" Version="6.*" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\IndyPOS.ServiceDefaults\IndyPOS.ServiceDefaults.csproj" />
+    <ProjectReference Include="..\IndyPOS.Application\IndyPOS.Application.csproj" />
+    <ProjectReference Include="..\IndyPOS.StoreProfiles\IndyPOS.StoreProfiles.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="IndyPOS.Cloud.Auth.IntegrationTests" />
+    <InternalsVisibleTo Include="IndyPOS.CloudApi.IntegrationTests" />
+  </ItemGroup>
+
+</Project>

@@ -12,6 +12,10 @@ using Xunit;
 
 namespace IndyPOS.CloudApi.Tests.Infrastructure.Auth;
 
+/// <summary>
+/// Register-store writes CloudApi's record of the store and asks Cloud.Auth for its client. The all-or-nothing part
+/// across a failure is proved on real PostgreSQL (RegisterStoreTransactionTests); InMemory ignores transactions.
+/// </summary>
 public class RegisterStoreHandlerTests
 {
     private static CloudDbContext CreateInMemoryContext() =>
@@ -21,51 +25,52 @@ public class RegisterStoreHandlerTests
             .Options);
 
     [Fact]
-    public async Task HandleAsync_ValidCommand_WritesConfigRowAndCreatesClientWithSameSecret()
+    public async Task HandleAsync_WhenAuthCreatesTheClient_SavesTheStoreAndReturnsTheSecret()
     {
         await using var db = CreateInMemoryContext();
-        string? secretHandedToClientStore = null;
-        var credentialStore = new Mock<IStoreClientCredentialStore>();
-        credentialStore
-            .Setup(s => s.CreateAsync("store_store1", It.IsAny<string>(), "Test Store", It.IsAny<CancellationToken>()))
-            .Callback<string, string, string, CancellationToken>((_, secret, _, _) => secretHandedToClientStore = secret)
-            .Returns(Task.CompletedTask);
+        var auth = new Mock<IAuthStoreClients>();
+        auth.Setup(a => a.CreateAsync("store1", "Test Store", It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new StoreClientCredentials("store_store1", "secret-from-auth"));
+        var handler = new RegisterStoreHandler(db, auth.Object, NullLogger<RegisterStoreHandler>.Instance);
 
-        var handler = new RegisterStoreHandler(db, credentialStore.Object, NullLogger<RegisterStoreHandler>.Instance);
-        var command = new RegisterStoreCommand("store1", "Test Store", "Test Store Full");
-
-        var response = await handler.HandleAsync(command);
+        var response = await handler.HandleAsync(new RegisterStoreCommand("store1", "Test Store", "Test Store Full"));
 
         response.ClientId.Should().Be("store_store1");
-        response.ClientSecret.Should().NotBeNullOrEmpty();
-        response.ClientSecret.Should().Be(secretHandedToClientStore);
-
+        response.ClientSecret.Should().Be("secret-from-auth");
         var row = await db.StoreConfigs.SingleAsync();
-        row.StoreId.Should().Be("store1");
         row.ClientId.Should().Be("store_store1");
         row.IsActive.Should().BeTrue();
-
-        credentialStore.Verify(
-            s => s.CreateAsync("store_store1", It.IsAny<string>(), "Test Store", It.IsAny<CancellationToken>()),
-            Times.Once);
     }
 
     [Fact]
-    public async Task HandleAsync_DuplicateStoreId_ThrowsAndCreatesNoClient()
+    public async Task HandleAsync_ForAnExistingStore_ThrowsWithoutCallingAuth()
     {
         await using var db = CreateInMemoryContext();
         db.StoreConfigs.Add(new CloudStoreConfig { StoreId = "store1", ClientId = "store_store1", IsActive = true });
         await db.SaveChangesAsync();
-
-        var credentialStore = new Mock<IStoreClientCredentialStore>();
-        var handler = new RegisterStoreHandler(db, credentialStore.Object, NullLogger<RegisterStoreHandler>.Instance);
+        var auth = new Mock<IAuthStoreClients>();
+        var handler = new RegisterStoreHandler(db, auth.Object, NullLogger<RegisterStoreHandler>.Instance);
 
         var act = () => handler.HandleAsync(new RegisterStoreCommand("store1", "Test Store", "Test Store Full"));
 
-        await act.Should().ThrowAsync<InvalidOperationException>()
-                 .WithMessage("*store1*already exists*");
-        credentialStore.Verify(
-            s => s.CreateAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()),
-            Times.Never);
+        await act.Should().ThrowAsync<InvalidOperationException>().WithMessage("*store1*already exists*");
+        auth.VerifyNoOtherCalls();
+    }
+
+    [Theory]
+    [InlineData("a/b")]
+    [InlineData("a%2Fb")]
+    [InlineData(" ")]
+    public async Task HandleAsync_WithAnInvalidStoreId_ThrowsWithoutCallingAuth(string storeId)
+    {
+        await using var db = CreateInMemoryContext();
+        var auth = new Mock<IAuthStoreClients>();
+        var handler = new RegisterStoreHandler(db, auth.Object, NullLogger<RegisterStoreHandler>.Instance);
+
+        var act = () => handler.HandleAsync(new RegisterStoreCommand(storeId, "Test Store", "Test Store Full"));
+
+        await act.Should().ThrowAsync<ArgumentException>();
+        auth.VerifyNoOtherCalls();
+        (await db.StoreConfigs.AnyAsync()).Should().BeFalse();
     }
 }

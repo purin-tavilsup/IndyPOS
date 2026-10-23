@@ -3,7 +3,8 @@ namespace IndyPOS.CloudApi.Domain;
 /// <summary>
 /// Per-store configuration managed in Cloud.
 /// Distributed to stores via GET /master/config.
-/// Also contains OAuth2 client credentials for store authentication.
+/// ClientId is the store's client in Cloud.Auth, recorded here for reference; Auth holds the secret and decides
+/// whether the store gets a token.
 /// </summary>
 public class CloudStoreConfig
 {
@@ -16,8 +17,6 @@ public class CloudStoreConfig
     public string? PrinterName { get; set; }
     public DateTime LastModifiedAtUtc { get; set; }
 
-    // OAuth2 Client Credentials
     public string? ClientId { get; set; }
     public bool IsActive { get; set; } = true;
-    public DateTime? LastAuthenticatedAtUtc { get; set; }
 }

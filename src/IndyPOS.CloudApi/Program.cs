@@ -43,7 +43,8 @@ builder.AddDatabaseReadinessCheck("cloud-db");
 // Add Cloud infrastructure services
 builder.Services.AddScoped<ISyncedEventRepository, DbSyncedEventRepository>();
 builder.Services.AddScoped<ICloudUserRepository, CloudUserRepository>();
-builder.Services.AddScoped<IStoreClientCredentialStore, OpenIddictStoreClientCredentialStore>();
+// Cloud.Auth's store-client API, with CloudApi's own service client (one token per process).
+builder.Services.AddAuthStoreClients();
 
 // Add EventProcessor background service
 builder.Services.AddHostedService<EventProcessor>();
@@ -57,8 +58,8 @@ builder.Services.AddTransient<ICommandHandler<DeactivateCloudUserCommand, Deacti
 builder.Services.AddTransient<IQueryHandler<GetCloudUsersQuery, GetCloudUsersResponse>, GetCloudUsersQueryHandler>();
 builder.Services.AddTransient<ICommandHandler<BulkMigrationCommand, BulkMigrationResponse>, BulkMigrationCommandHandler>();
 
-// Add OpenIddict OAuth2 server
-builder.Services.AddOpenIddictServer(builder.Configuration);
+// Cloud.Auth issues every token; CloudApi only validates them (issuer and audience).
+builder.Services.AddAuthTokenValidation(builder.Configuration, builder.Environment);
 
 // Add authentication & authorization
 // Default scheme: OpenIddict for M2M (store-to-cloud) auth
@@ -109,8 +110,6 @@ builder.Services.AddAuthorizationBuilder()
 
 builder.Services.Configure<StoreSyncHealthOptions>(builder.Configuration.GetSection(StoreSyncHealthOptions.SectionName));
 
-// Add controllers for token endpoint
-builder.Services.AddControllers();
 
 // Add OpenAPI
 builder.Services.AddOpenApi();
@@ -141,8 +140,6 @@ app.MapDefaultEndpoints();
 app.UseAuthentication();
 app.UseAuthorization();
 
-// Map controllers (for TokenController)
-app.MapControllers();
 
 // Configure the HTTP request pipeline
 if (app.Environment.IsDevelopment())
@@ -331,9 +328,41 @@ app.MapPost("/admin/stores/register", [Authorize(Policy = "SystemAdminOnly")] as
         var response = await handler.HandleAsync(command, cancellationToken);
         return Results.Ok(response);
     }
+    catch (ArgumentException ex)
+    {
+        return Results.BadRequest(new { error = ex.Message });
+    }
     catch (InvalidOperationException ex)
     {
         return Results.Conflict(new { error = ex.Message });
+    }
+    catch (AuthUnavailableException ex)
+    {
+        // Nothing was saved in CloudApi (RegisterStoreHandler); the admin can try again once Auth is back.
+        return Results.Json(new { error = $"Cloud.Auth is unavailable; the store was not registered. {ex.Message}" },
+                            statusCode: StatusCodes.Status503ServiceUnavailable);
+    }
+}).RequireAuthorization("SystemAdminOnly");
+
+// POST /admin/stores/{storeId}/deactivation - the safety valve for a stolen till PC: Auth stops issuing the store
+// tokens, then the store is marked inactive. Final. SystemAdminOnly until cloud slice 1 moves it to the Admin
+// person token (and Cloud.Web gives it a button).
+app.MapPost("/admin/stores/{storeId}/deactivation", async (
+    string storeId,
+    CloudDbContext db,
+    IAuthStoreClients authStoreClients,
+    CancellationToken cancellationToken) =>
+{
+    try
+    {
+        return await StoreDeactivation.DeactivateAsync(db, authStoreClients, storeId, cancellationToken) == StoreDeactivationOutcome.NotFound
+            ? Results.NotFound(new { error = $"Store '{storeId}' is not registered." })
+            : Results.NoContent();
+    }
+    catch (AuthUnavailableException ex)
+    {
+        return Results.Json(new { error = $"Cloud.Auth is unavailable; the store is still active. {ex.Message}" },
+                            statusCode: StatusCodes.Status503ServiceUnavailable);
     }
 }).RequireAuthorization("SystemAdminOnly");
 

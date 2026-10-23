@@ -5,18 +5,11 @@ using Microsoft.EntityFrameworkCore;
 namespace IndyPOS.CloudApi.Infrastructure;
 
 /// <summary>
-/// EF Core DbContext for Cloud database.
-/// Includes OpenIddict entities for OAuth2 token management.
+/// EF Core DbContext for Cloud database: business data only. Tokens are Cloud.Auth's, in its own database.
 /// </summary>
 public class CloudDbContext : DbContext
 {
     public CloudDbContext(DbContextOptions<CloudDbContext> options) : base(options) { }
-
-    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-    {
-        // OpenIddict uses its own entity configuration
-        base.OnConfiguring(optionsBuilder);
-    }
 
     // Inbox - raw events from stores
     public DbSet<SyncedEventEntity> SyncedEvents => Set<SyncedEventEntity>();
@@ -203,10 +196,6 @@ public class CloudDbContext : DbContext
         PayLaterMirrorModel.Configure(modelBuilder);
         SyncHealthModel.Configure(modelBuilder);
 
-        // OpenIddict's EF entities (application, authorization, scope, token) are
-        // registered against this context by AddCore().UseDbContext<CloudDbContext>(),
-        // so they must be in the model or its stores throw at runtime.
         base.OnModelCreating(modelBuilder);
-        modelBuilder.UseOpenIddict();
     }
 }

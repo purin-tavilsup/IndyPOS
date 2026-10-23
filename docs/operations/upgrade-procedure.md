@@ -337,6 +337,13 @@ written in one transaction, naming only pre-release columns (`SyncedEvents` inse
 StoreHub retries them on schedule. Verified 2026-10-23 with `postgres:16-alpine` in a throwaway `gate-cloud`
 container on port 55511.
 
+Result for cloud slice 1 PR S1-1, cloud (1 migration, `MoveTokensToAuth`): a **deliberate drop**, allowed only
+because the cloud has never been deployed (Pond, 2026-10-21) — the four OpenIddict tables (47 columns) and
+`StoreConfigs.LastAuthenticatedAtUtc` move to Cloud.Auth's own database. Applied from
+`20261023173047_AddStoreSyncHealth` to the latest, the `information_schema.columns` diff shows only those removals;
+no business table changed. Once the cloud is live, a drop like this needs the two-release route (add, migrate
+readers, drop a release later). Verified 2026-10-23 in a throwaway `gate-cloud` container on port 55511.
+
 **The cloud database needs the same gate** whenever a release adds a CloudApi migration: a cloud
 rollback restores binaries, not schema, so the previous CloudApi must still ingest and process into
 the new schema. `CloudDbContextDesignTimeFactory` reads `ConnectionStrings__cloud-db`, so point

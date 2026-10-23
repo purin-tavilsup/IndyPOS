@@ -13,9 +13,25 @@ var postgres = builder.AddPostgres("postgres")
 // The cloud database is "cloud": the old "cloud-db" was built by EnsureCreated and cannot be migrated.
 var cloudDb = postgres.AddDatabase("cloud-db", databaseName: "cloud");
 
+// Cloud.Auth issues every cloud token. Its own database, next to the cloud's (spec 2026-10-21, "Hosts and names").
+var authDb = postgres.AddDatabase("auth-db", databaseName: "auth");
+var cloudAuth = builder.AddProject<Projects.IndyPOS_Cloud_Auth>("cloud-auth")
+                       .WithReference(authDb)
+                       .WithEnvironment("ServiceClients__CloudApi__ClientSecret", StoreProfiles.DevCloudApiServiceSecret)
+                       .WithHttpHealthCheck("/health/ready", endpointName: "http")
+                       .WaitFor(postgres);
+
+// One issuer value for both sides: Auth stamps it in every token, CloudApi accepts only it. It ends in "/", as
+// OpenIddict's issuer does, so the two match exactly.
+var authIssuer = ReferenceExpression.Create($"{cloudAuth.GetEndpoint("https").Property(EndpointProperty.Url)}/");
+cloudAuth.WithEnvironment("OpenIddict__Issuer", authIssuer);
+
 // Cloud API (central cloud service) - must be defined first for service discovery
 var cloudApi = builder.AddProject<Projects.IndyPOS_CloudApi>("cloud-api")
                       .WithReference(cloudDb)
+                      .WithReference(cloudAuth)
+                      .WithEnvironment("Auth__Issuer", authIssuer)
+                      .WithEnvironment("ServiceClients__CloudApi__ClientSecret", StoreProfiles.DevCloudApiServiceSecret)
                       .WithHttpHealthCheck("/health/ready", endpointName: "http")
                       .WaitFor(postgres);
 
@@ -44,6 +60,7 @@ foreach (var profile in stores)
                           .WithEnvironment("CloudApi__ClientSecret", StoreProfiles.DevCloudClientSecret)
                           .WithReference(database, "storehub-db")
                           .WithReference(cloudApi)
+                          .WithReference(cloudAuth)
                           .WithHttpHealthCheck("/health/ready", endpointName: "http")
                           .WaitFor(postgres);
 

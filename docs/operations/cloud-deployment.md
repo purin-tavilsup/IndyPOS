@@ -89,6 +89,31 @@ The old 1 vCPU / 2 GB sizing and the expected **13 tables** below are historical
 - [ ] Cloudflare bypass/direct-origin access is blocked by firewall; app and database ports remain private.
 - [ ] Backups restore successfully; secrets are not committed; log retention, image cleanup and certificate renewal are operational.
 
+### Cloud.Auth and CloudApi settings (cloud slice 1, S1-1)
+
+Cloud.Auth issues every token; CloudApi only validates them. The settings that moved:
+
+| Service | Setting | Value |
+|---|---|---|
+| Cloud.Auth | `ConnectionStrings__auth-db` | its own `auth` database and login role on the managed cluster |
+| Cloud.Auth | `INDYPOS_RSA_SIGNING_KEY` | base64 PEM, RSA 2048+; **required** outside Development, and kept across redeploys |
+| Cloud.Auth | `OpenIddict__Issuer` | `https://indypos-auth.exconeer.com/` (ends in `/`) |
+| Cloud.Auth | `OpenIddict__TlsTerminatedUpstream` | `true` behind Caddy (forwarded headers make the URLs https) |
+| Cloud.Auth | `ServiceClients__CloudApi__ClientSecret` | a random secret; Auth refuses to start without it |
+| CloudApi | `Auth__Issuer` | exactly Auth's issuer above |
+| CloudApi | `ServiceClients__CloudApi__ClientSecret` | the same secret, so CloudApi can register stores in Auth |
+| CloudApi | `services__cloud-auth__https__0` | Auth's URL, for register-store calls |
+| StoreHub | `services__cloud-auth__https__0` | Auth's URL, for the store's token (events still go to CloudApi) |
+
+CloudApi no longer needs `INDYPOS_RSA_SIGNING_KEY` or `OpenIddict__TlsTerminatedUpstream`. In production
+`OpenIddict__Issuer` (Auth) and `Auth__Issuer` (CloudApi) are **required** and must be `https`: CloudApi fetches
+Auth's discovery document and keys from that URL, so it needs outbound access to it (through Cloudflare, so its
+bot and WAF rules must let CloudApi's requests through).
+
+To deactivate a store (a stolen till PC), `POST /admin/stores/{storeId}/deactivation`: Auth stops issuing it tokens,
+then CloudApi marks it inactive. Final; a token already issued works until it expires (15 minutes). `deploy/cloud/compose*.yaml`
+and `.env.example` still describe the old single-issuer CloudApi and are updated with the deploy work (M2).
+
 ### Store sync health (sync hardening, `docs/superpowers/specs/2026-10-23-sync-hardening-design.md`)
 
 - StoreHub sends `POST /sync/heartbeats` (store token) every 2 minutes; CloudApi keeps one row per store in
@@ -320,7 +345,8 @@ release tags/manifests, then GC with untagged cleanup — is the invariant.)
 2. The managed database has the 13 expected tables.
 3. Caddy's log (`docker compose logs caddy`) shows a certificate obtained for `api.indypos.com`.
 4. `curl https://api.indypos.com/health/live` returns `200`.
-5. Register a store, then `POST https://api.indypos.com/oauth/token` returns `200` with a token.
+5. Register a store, then `POST https://api.indypos.com/oauth/token` returns `200` with a token. *(Superseded by S1-1:
+   the token comes from Cloud.Auth, `POST https://indypos-auth.exconeer.com/oauth/token`; CloudApi answers 404.)*
 6. A direct request to the Droplet IP on 443 from a non-Cloudflare address is refused; 8080 is
    unreachable off the box.
 
@@ -393,7 +419,8 @@ writes exactly one client registry: `RegisterStoreHandler` creates the OpenIddic
 `IStoreClientCredentialStore`) *and* the `StoreConfigs` row in a single transaction, so the
 `client_id` OpenIddict's server pipeline validates against `OpenIddictApplications` is always present.
 `CloudStoreConfig` no longer stores a `ClientSecretHash` — OpenIddict owns the secret — and
-`TokenController` no longer re-verifies it, keeping only its `IsActive` gate. Verified against real
+`TokenController` no longer re-verifies it, keeping only its `IsActive` gate. *(Superseded by S1-1: Cloud.Auth issues
+store tokens and keeps its own enabled flag; CloudApi has no token endpoint.)* Verified against real
 PostgreSQL: register → `POST /oauth/token` returns `200` with a persisted access token (was
 `401 invalid_client`).
 
@@ -452,8 +479,10 @@ repo tracks work in docs, not GitHub issues.
    regression cover. A `WebApplicationFactory` test hitting the real `/oauth/token` with a valid client
    and a wrong secret, asserting the request fails, would pin it. A misconfiguration (e.g. the client
    registered as `Public`, or a missing permission) could silently break the security property today
-   with no test failing.
-2. **`IsActive` gates token *issuance* only.** Deactivating a store blocks new tokens, but an
+   with no test failing. *(Done in S1-1: `StoreTokenTests.Token_WithAWrongSecret_IsRefused` against Cloud.Auth.)*
+2. **Deactivation gates token *issuance* only.** *(Since S1-1: `POST /admin/stores/{storeId}/deactivation`
+   disables the store's client in Cloud.Auth, then sets `IsActive = false`; `IsActive` alone no longer gates
+   anything.)* Deactivating a store blocks new tokens, but an
    already-issued access token stays valid until it expires (15 min). Acceptable for 15-minute tokens;
    documented so it is a known bound, not a surprise.
 3. **Endpoint authorization ignores scopes (pre-existing, not introduced by I0-E).** `/sync/*` and

@@ -161,7 +161,7 @@ is the builder's.)*
 **Amended 2026-10-23 (Pond):** PR 1 builds check 1 only. Check 2 moves to cloud slice 1: the
 migrator's existing cloud code cannot get a token (it posts JSON to `/connect/token`; the endpoint is
 `/oauth/token`), and slice 1 moves token issuance to IndyPOS.Cloud.Auth on another host, so the token
-call is written once there.
+call is written once there. *(Built in cloud slice 1 PR S1-1: `--auth-url`.)*
 
 ## Heartbeat
 

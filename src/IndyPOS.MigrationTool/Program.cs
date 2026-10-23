@@ -39,6 +39,10 @@ var cloudApiOption = new Option<string?>(
     aliases: ["--cloud-api", "-c"],
     description: "Cloud API URL for syncing (optional, e.g., https://api.indypos.cloud)");
 
+var authUrlOption = new Option<string?>(
+    aliases: ["--auth-url"],
+    description: "Cloud.Auth URL, which issues the store's token (e.g., https://indypos-auth.exconeer.com)");
+
 var cloudClientIdOption = new Option<string?>(
     aliases: ["--client-id"],
     description: "OAuth2 Client ID for Cloud API");
@@ -68,6 +72,7 @@ rootCommand.AddOption(sqliteOption);
 rootCommand.AddOption(postgresOption);
 rootCommand.AddOption(storeIdOption);
 rootCommand.AddOption(cloudApiOption);
+rootCommand.AddOption(authUrlOption);
 rootCommand.AddOption(cloudClientIdOption);
 rootCommand.AddOption(cloudClientSecretOption);
 rootCommand.AddOption(storeHubConfigOption);
@@ -81,6 +86,7 @@ rootCommand.SetHandler(async (context) =>
     var postgresConn = context.ParseResult.GetValueForOption(postgresOption)!;
     var storeId = context.ParseResult.GetValueForOption(storeIdOption)!;
     var cloudApi = context.ParseResult.GetValueForOption(cloudApiOption);
+    var authUrl = context.ParseResult.GetValueForOption(authUrlOption);
     var clientId = context.ParseResult.GetValueForOption(cloudClientIdOption);
     var clientSecret = context.ParseResult.GetValueForOption(cloudClientSecretOption);
     var storeHubConfig = context.ParseResult.GetValueForOption(storeHubConfigOption)!;
@@ -106,6 +112,30 @@ rootCommand.SetHandler(async (context) =>
         AnsiConsole.MarkupLine($"[red]Error:[/] {storeIdCheck.Message.EscapeMarkup()}");
         context.ExitCode = 1;
         return;
+    }
+
+    // And, when the store's cloud credentials are given, against the store the cloud knows them as.
+    if (authUrl is { Length: > 0 } && !Uri.TryCreate(authUrl, UriKind.Absolute, out _))
+    {
+        AnsiConsole.MarkupLine($"[red]Error:[/] --auth-url '{authUrl.EscapeMarkup()}' is not an absolute URL.");
+        context.ExitCode = 1;
+        return;
+    }
+
+    if (authUrl is { Length: > 0 } && clientId is { Length: > 0 } && clientSecret is { Length: > 0 })
+    {
+        using var authClient = new HttpClient { BaseAddress = new Uri(authUrl), Timeout = TimeSpan.FromSeconds(15) };
+        var tokenCheck = await StoreTokenClient.CheckStoreIdAsync(authClient, clientId, clientSecret, storeId, CancellationToken.None);
+        if (tokenCheck.Outcome == StoreTokenCheckOutcome.Mismatch)
+        {
+            AnsiConsole.MarkupLine($"[red]Error:[/] {tokenCheck.Message.EscapeMarkup()}");
+            context.ExitCode = 1;
+            return;
+        }
+
+        AnsiConsole.MarkupLine(tokenCheck.Outcome == StoreTokenCheckOutcome.Match
+            ? $"[green]{tokenCheck.Message.EscapeMarkup()}[/]"
+            : $"[yellow]Warning:[/] {tokenCheck.Message.EscapeMarkup()}");
     }
 
     // Display configuration
@@ -148,6 +178,7 @@ rootCommand.SetHandler(async (context) =>
         PostgresConnectionString = postgresConn,
         StoreId = storeId,
         CloudApiUrl = cloudApi,
+        AuthUrl = authUrl,
         CloudClientId = clientId,
         CloudClientSecret = clientSecret,
         DryRun = dryRun

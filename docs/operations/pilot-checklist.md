@@ -99,7 +99,9 @@ Invoke-RestMethod -Uri "http://localhost:5000/health/ready" -Method GET
 > `Store:Id`, read from `C:\ProgramData\IndyPOS\v4\StoreHub\appsettings.json`. If StoreHub is installed
 > elsewhere, add `--storehub-config "<path to its appsettings.json>"`. A mismatch would make the cloud refuse
 > every migrated event. Run it from an elevated (Administrator) prompt: the installer locks that file to
-> Administrators and SYSTEM.
+> Administrators and SYSTEM. With the store's cloud credentials, also pass `--auth-url` (Cloud.Auth, which issues
+> the store's token): the tool then checks `--store-id` against the store the cloud knows them as, and the cloud
+> upload gets its token there. If Auth cannot be reached it says so and carries on.
 
 ```powershell
 # Run migration tool (one-time)

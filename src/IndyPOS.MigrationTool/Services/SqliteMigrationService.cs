@@ -757,26 +757,16 @@ public class SqliteMigrationService
 
         try
         {
-            using var httpClient = new HttpClient { BaseAddress = new Uri(_options.CloudApiUrl) };
-
-            // Get OAuth token
-            var tokenResponse = await httpClient.PostAsJsonAsync("/connect/token",
-                new FormUrlEncodedContent(new Dictionary<string, string>
-                {
-                    ["grant_type"] = "client_credentials",
-                    ["client_id"] = _options.CloudClientId!,
-                    ["client_secret"] = _options.CloudClientSecret!,
-                    ["scope"] = "sync.write"
-                }), ct);
-
-            if (!tokenResponse.IsSuccessStatusCode)
+            if (string.IsNullOrEmpty(_options.AuthUrl))
             {
-                return new CloudSyncResult { IsSuccess = false, Error = "Failed to get OAuth token" };
+                return new CloudSyncResult { IsSuccess = false, Error = "Cloud.Auth URL not configured (--auth-url): the store's token comes from Auth" };
             }
 
-            var tokenResult = await tokenResponse.Content.ReadFromJsonAsync<TokenResponse>(ct);
-            httpClient.DefaultRequestHeaders.Authorization =
-                new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", tokenResult?.AccessToken);
+            using var authClient = new HttpClient { BaseAddress = new Uri(_options.AuthUrl) };
+            var token = await StoreTokenClient.RequestTokenAsync(authClient, _options.CloudClientId!, _options.CloudClientSecret!, ct);
+
+            using var httpClient = new HttpClient { BaseAddress = new Uri(_options.CloudApiUrl) };
+            httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
 
             // Build bulk migration request with actual migrated data
             var bulkRequest = await BuildBulkMigrationRequestAsync(ct);
@@ -1024,8 +1014,4 @@ public class SqliteMigrationService
         public string? DateUpdated { get; set; }
     }
 
-    private class TokenResponse
-    {
-        public string? AccessToken { get; set; }
-    }
 }

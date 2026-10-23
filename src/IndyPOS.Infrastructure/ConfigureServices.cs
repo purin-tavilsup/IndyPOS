@@ -102,18 +102,15 @@ public static class ConfigureServices
 
 		if (!string.IsNullOrEmpty(clientId))
 		{
-			// HTTP client with OAuth2 authentication
-			// Uses Aspire service discovery: "https+http://cloud-api" resolves to CloudApi service
-			// The ServiceDefaults configures AddServiceDiscovery() on all HttpClients
-			var cloudApiBaseUrl = configuration["services:cloud-api:https:0"]
-				?? configuration["services:cloud-api:http:0"]
-				?? "https+http://cloud-api"; // Aspire service discovery fallback
+			// Tokens come from Cloud.Auth; events, users and heartbeats go to CloudApi (CloudAddresses). Both resolve
+			// through Aspire service discovery, which ServiceDefaults configures on every HttpClient.
+			var cloudApiBaseUrl = CloudAddresses.CloudApi(configuration).ToString();
 
 			// One token for the whole process: DI makes a new typed client per scope.
 			services.AddSingleton<CloudTokenCache>();
 			services.AddHttpClient<ITokenService, CloudTokenService>(client =>
 			{
-				client.BaseAddress = new Uri(cloudApiBaseUrl);
+				client.BaseAddress = CloudAddresses.Auth(configuration);
 			});
 
 			services.AddHttpClient<ICloudSyncClient, HttpCloudSyncClient>(client =>

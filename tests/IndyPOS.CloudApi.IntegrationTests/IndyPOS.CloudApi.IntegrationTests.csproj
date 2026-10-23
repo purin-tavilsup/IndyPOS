@@ -24,6 +24,7 @@
   <ItemGroup>
     <ProjectReference Include="..\IndyPOS.Testing.Postgres\IndyPOS.Testing.Postgres.csproj" />
     <ProjectReference Include="..\..\src\IndyPOS.CloudApi\IndyPOS.CloudApi.csproj" />
+    <ProjectReference Include="..\..\src\IndyPOS.Cloud.Auth\IndyPOS.Cloud.Auth.csproj" />
     <ProjectReference Include="..\..\src\IndyPOS.Application\IndyPOS.Application.csproj" />
   </ItemGroup>
 

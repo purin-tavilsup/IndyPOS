@@ -47,7 +47,7 @@ dotnet build
 dotnet test
 ```
 
-### ⚠️ Trap 1 — four suites need Docker and fail loudly without it
+### ⚠️ Trap 1 — five suites need Docker and fail loudly without it
 
 They spin up a real PostgreSQL container via Testcontainers. With Docker stopped they fail **fast**
 (each suite in under a second), which reads exactly like a code regression but is not.
@@ -66,6 +66,7 @@ no container, so it does not change the count.) The invoice-history plan (2026-1
 | `IndyPOS.StoreHub.IntegrationTests` | 364 | **356** (8 need no container, derived) |
 | `IndyPOS.CloudApi.IntegrationTests` | 90 | **90** (all need a container) |
 | `IndyPOS.ServiceDefaults.Tests` | 8 | **8** (each fixture starts a Postgres) |
+| `IndyPOS.Cloud.Auth.IntegrationTests` | 30 | **30** (every test starts a Postgres; added 2026-10-23) |
 
 **Start Docker and re-run before investigating any of these.**
 
@@ -133,21 +134,22 @@ reports `Skipped: 1` and writes nothing — which looks like success while leavi
 ### Expected counts
 
 Solution suites (`dotnet test` at the root), Docker running **and** the real store databases present
-— **1961 total** (1960 pass, 1 skipped) — 2026-10-23 (after sync hardening PR 2 and its Codex fix, which added Application +36, CloudApi.IntegrationTests +41 and StoreHub +6; 1878 earlier after sync hardening PR 1 and its Codex fixes, which added Application +30, MigrationTool +9, StoreHub +7 and CloudApi.IntegrationTests +3; 1829 on 2026-10-19 after cloud-gaps PR 3, its final-review fixes and its Codex fix, which added Application +11, MigrationTool +1 and CloudApi.IntegrationTests +19, the Codex fix's 3 measured with that suite; 1798 earlier on 2026-10-19 after cloud-gaps PR 2 and its Codex fix, which added CloudApi.IntegrationTests +29, the fix's 4 measured with that suite; 1769 earlier on 2026-10-19 after cloud-gaps PR 1, which added Domain +3, Application +13, StoreHub +7 and MigrationTool +5; 1741 earlier on 2026-10-19 after cash drawer D4, its live-run fixes and its Codex fixes, which added three Windows.Forms and three Application tests; the full run measured 1735 before them; supersedes 1669 earlier on 2026-10-19 after the deferred-minors fix, 1663 on 2026-10-18 after cash drawer D3 and its Codex fixes, 1598 earlier on 2026-10-18 after cash drawer D2 and its Codex fix, 1569 earlier on 2026-10-18 after the store-user cloud-id fix and its Codex fix, 1559 earlier on 2026-10-18 after cash drawer D1, 1539 on 2026-10-15 after the sales-history tab and its Codex fix, 1537 before that fix, 1512 earlier on 2026-10-15 after the bill detail screen, 1483 earlier on 2026-10-15 after the sales-history ViewModels, 1422 earlier on 2026-10-15 after the receipt document and the till money format, 1360 on 2026-10-10
-after the dev template products and #124's Codex fix, 1341 earlier on 2026-10-10 after the till Development fix, 1343 on 2026-10-07 after per-store UI slice 2, 1291 earlier on 2026-10-07 after slice 1, 1269 earlier on 2026-10-07 after the dev store profiles and their EnsureCreated-database check, 1209 earlier on 2026-10-07 after the health-check convention, 1186 earlier on 2026-10-07 after the till startup fix, 1183 on 2026-10-06 after route tidy-up B, 1152 on 2026-10-02 after route tidy-up A, 1111 earlier on 2026-10-02, 1089 on 2026-10-01, 928 on 2026-09-30, 853 on 2026-09-27 and 656 on 2026-09-17). Without those databases the total is **1941**
-(derived as 1961 − 20; CI measured 1166 = 1186 − 20 on PR #114, 2026-10-07, which has no store databases), still all
+— **2034 total** (2033 pass, 1 skipped) — 2026-10-23 (after cloud slice 1 S1-1 and its final-review fixes, which added the 30-test `IndyPOS.Cloud.Auth.IntegrationTests`, CloudApi.IntegrationTests +12, MigrationTool +7, Application +17 and CloudApi +7 (its token-server tests removed, new client tests added); 1961 earlier after sync hardening PR 2 and its Codex fix, which added Application +36, CloudApi.IntegrationTests +41 and StoreHub +6; 1878 earlier after sync hardening PR 1 and its Codex fixes, which added Application +30, MigrationTool +9, StoreHub +7 and CloudApi.IntegrationTests +3; 1829 on 2026-10-19 after cloud-gaps PR 3, its final-review fixes and its Codex fix, which added Application +11, MigrationTool +1 and CloudApi.IntegrationTests +19, the Codex fix's 3 measured with that suite; 1798 earlier on 2026-10-19 after cloud-gaps PR 2 and its Codex fix, which added CloudApi.IntegrationTests +29, the fix's 4 measured with that suite; 1769 earlier on 2026-10-19 after cloud-gaps PR 1, which added Domain +3, Application +13, StoreHub +7 and MigrationTool +5; 1741 earlier on 2026-10-19 after cash drawer D4, its live-run fixes and its Codex fixes, which added three Windows.Forms and three Application tests; the full run measured 1735 before them; supersedes 1669 earlier on 2026-10-19 after the deferred-minors fix, 1663 on 2026-10-18 after cash drawer D3 and its Codex fixes, 1598 earlier on 2026-10-18 after cash drawer D2 and its Codex fix, 1569 earlier on 2026-10-18 after the store-user cloud-id fix and its Codex fix, 1559 earlier on 2026-10-18 after cash drawer D1, 1539 on 2026-10-15 after the sales-history tab and its Codex fix, 1537 before that fix, 1512 earlier on 2026-10-15 after the bill detail screen, 1483 earlier on 2026-10-15 after the sales-history ViewModels, 1422 earlier on 2026-10-15 after the receipt document and the till money format, 1360 on 2026-10-10
+after the dev template products and #124's Codex fix, 1341 earlier on 2026-10-10 after the till Development fix, 1343 on 2026-10-07 after per-store UI slice 2, 1291 earlier on 2026-10-07 after slice 1, 1269 earlier on 2026-10-07 after the dev store profiles and their EnsureCreated-database check, 1209 earlier on 2026-10-07 after the health-check convention, 1186 earlier on 2026-10-07 after the till startup fix, 1183 on 2026-10-06 after route tidy-up B, 1152 on 2026-10-02 after route tidy-up A, 1111 earlier on 2026-10-02, 1089 on 2026-10-01, 928 on 2026-09-30, 853 on 2026-09-27 and 656 on 2026-09-17). Without those databases the total is **2014**
+(derived as 2034 − 20; CI measured 1166 = 1186 − 20 on PR #114, 2026-10-07, which has no store databases), still all
 green:
 
 | Suite | Tests |
 |---|---|
-| `IndyPOS.Application.Tests` | 832 |
+| `IndyPOS.Application.Tests` | 849 |
 | `IndyPOS.StoreHub.IntegrationTests` | 384 (Docker) |
-| `IndyPOS.MigrationTool.Tests` | 160 (Docker; 1 skipped. **140** without the real store data — Trap 3, derived) |
+| `IndyPOS.MigrationTool.Tests` | 167 (Docker; 1 skipped. **147** without the real store data — Trap 3, derived) |
 | `IndyPOS.Domain.Tests` | 66 |
 | `IndyPOS.Windows.Forms.Tests` | 182 |
 | `IndyPOS.Vault.Tests` | 17 |
-| `IndyPOS.CloudApi.Tests` | 6 |
-| `IndyPOS.CloudApi.IntegrationTests` | 182 (Docker) |
+| `IndyPOS.CloudApi.Tests` | 13 |
+| `IndyPOS.CloudApi.IntegrationTests` | 194 (Docker) |
+| `IndyPOS.Cloud.Auth.IntegrationTests` | 30 (Docker) |
 | `IndyPOS.ServiceDefaults.Tests` | 8 (Docker) |
 | `IndyPOS.Presentation.Tests` | 124 |
 
@@ -179,6 +181,12 @@ dotnet run --project src/IndyPOS.AppHost --launch-profile https
 
 Dashboard: `https://localhost:17222`. Aspire starts PostgreSQL in Docker and wires StoreHub to it,
 so no local PostgreSQL install is needed.
+
+The cloud is two services: **`cloud-auth`** (IndyPOS.Cloud.Auth, https :7190, its own `auth` database) issues every
+token, and **`cloud-api`** (:7180, `cloud` database) only validates them. StoreHub gets its token from `cloud-auth`
+and sends events and heartbeats to `cloud-api`. In Development, Auth creates the dev stores' clients with the fixed
+dev secret, and the AppHost passes both services the dev service-client secret and one issuer value
+(`OpenIddict__Issuer` / `Auth__Issuer`).
 
 A DEBUG till does not print: each receipt is saved as a PNG under `%LOCALAPPDATA%\IndyPOS\receipts`.
 
