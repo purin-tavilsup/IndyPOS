@@ -133,7 +133,26 @@ public class StoreTokenTests(AuthPostgresFixture postgres) : IClassFixture<AuthP
         start.Should().Throw<InvalidOperationException>().WithMessage("*signing key*");
     }
 
-    private sealed class ProductionAuthHost(string connectionString) : AuthTestHost(connectionString)
+    // Without a configured issuer the issuer would come from each request's Host; CloudApi pins one, so it would refuse
+    // every token with no clear reason. And over http, CloudApi would fetch the signing keys in the clear.
+    [Theory]
+    [InlineData(null)]
+    [InlineData("http://auth.test/")]
+    public async Task Startup_OutsideDevelopmentWithoutAnHttpsIssuer_Fails(string? issuer)
+    {
+        await using var host = new ProductionAuthHost(await postgres.CreateDatabaseAsync(), new Dictionary<string, string?>
+        {
+            ["OpenIddict:RsaSigningKey"] = TestKeys.Rsa2048Base64Pem(),
+            ["OpenIddict:Issuer"] = issuer
+        });
+
+        var start = () => host.CreateClient();
+
+        start.Should().Throw<InvalidOperationException>().WithMessage("*Issuer*");
+    }
+
+    private sealed class ProductionAuthHost(string connectionString, IReadOnlyDictionary<string, string?>? settings = null)
+        : AuthTestHost(connectionString, settings)
     {
         protected override void ConfigureWebHost(Microsoft.AspNetCore.Hosting.IWebHostBuilder builder)
         {
@@ -189,5 +208,14 @@ internal static class TokenHosts
     {
         using var document = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
         return document.RootElement.TryGetProperty("error", out var error) ? error.GetString() : null;
+    }
+}
+
+internal static class TestKeys
+{
+    public static string Rsa2048Base64Pem()
+    {
+        using var rsa = System.Security.Cryptography.RSA.Create(2048);
+        return Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(rsa.ExportPkcs8PrivateKeyPem()));
     }
 }

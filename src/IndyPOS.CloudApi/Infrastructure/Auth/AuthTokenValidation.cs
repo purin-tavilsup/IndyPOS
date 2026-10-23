@@ -33,13 +33,18 @@ public static class AuthTokenValidation
 
     private static string Issuer(IConfiguration configuration, IHostEnvironment environment)
     {
-        if (configuration[IssuerKey] is { Length: > 0 } configured)
-            return configured;
-
+        var configured = configuration[IssuerKey];
         if (environment.IsDevelopment() || environment.IsEnvironment("Testing"))
-            return DevelopmentIssuer;
+            return string.IsNullOrEmpty(configured) ? DevelopmentIssuer : configured;
 
-        throw new InvalidOperationException(
-            $"{IssuerKey} is not set. CloudApi accepts only tokens from Cloud.Auth's issuer, e.g. https://indypos-auth.exconeer.com/.");
+        if (string.IsNullOrEmpty(configured))
+            throw new InvalidOperationException(
+                $"{IssuerKey} is not set. CloudApi accepts only tokens from Cloud.Auth's issuer, e.g. https://indypos-auth.exconeer.com/.");
+
+        // CloudApi fetches Auth's signing keys from this URL; over http they could be swapped on the way.
+        if (!Uri.TryCreate(configured, UriKind.Absolute, out var uri) || uri.Scheme != Uri.UriSchemeHttps)
+            throw new InvalidOperationException($"{IssuerKey} must be an https URL; it is '{configured}'.");
+
+        return configured;
     }
 }

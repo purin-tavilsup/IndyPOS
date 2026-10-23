@@ -11,8 +11,8 @@ namespace IndyPOS.Cloud.Auth.StoreClients;
 /// </summary>
 internal static class ServiceClients
 {
-    public const string CloudApiClientId = "cloud-api";
-    public const string CloudApiSecretKey = "ServiceClients:CloudApi:ClientSecret";
+    public const string CloudApiClientId = AuthServiceClients.CloudApiClientId;
+    public const string CloudApiSecretKey = AuthServiceClients.CloudApiSecretKey;
 
     /// <summary>Fails fast: without the secret CloudApi could never register a store.</summary>
     public static string CloudApiSecret(IConfiguration configuration) =>

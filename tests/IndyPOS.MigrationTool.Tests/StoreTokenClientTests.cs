@@ -84,6 +84,29 @@ public class StoreTokenClientTests
         result.Outcome.Should().Be(StoreTokenCheckOutcome.NotChecked);
     }
 
+    // A wrong --auth-url that answers with a web page used to crash the migrator with a JsonException.
+    [Fact]
+    public async Task CheckStoreIdAsync_WhenAuthAnswersSomethingThatIsNotJson_SaysSoAndLetsTheMigrationContinue()
+    {
+        var result = await StoreTokenClient.CheckStoreIdAsync(AuthAnswering(_ => new HttpResponseMessage(HttpStatusCode.OK)
+        {
+            Content = new StringContent("<html>not Auth</html>", Encoding.UTF8, "text/html")
+        }), "c", "s", StoreId, CancellationToken.None);
+
+        result.Outcome.Should().Be(StoreTokenCheckOutcome.NotChecked);
+    }
+
+    [Fact]
+    public async Task CheckStoreIdAsync_WhenTheTokenIsNotAJwt_SaysSoAndLetsTheMigrationContinue()
+    {
+        var result = await StoreTokenClient.CheckStoreIdAsync(AuthAnswering(_ => new HttpResponseMessage(HttpStatusCode.OK)
+        {
+            Content = new StringContent("""{"access_token":"not-a-jwt"}""", Encoding.UTF8, "application/json")
+        }), "c", "s", StoreId, CancellationToken.None);
+
+        result.Outcome.Should().Be(StoreTokenCheckOutcome.NotChecked);
+    }
+
     private sealed class FakeHandler(Func<HttpRequestMessage, HttpResponseMessage> answer) : HttpMessageHandler
     {
         protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken) =>

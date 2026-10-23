@@ -10,6 +10,15 @@ public static class AuthResources
     public const string Auth = "indypos-auth";
 }
 
+/// <summary>The confidential clients Cloud.Auth's own APIs trust. Both services read the secret from configuration.</summary>
+public static class AuthServiceClients
+{
+    /// <summary>CloudApi's client, which registers, deactivates and deletes store clients.</summary>
+    public const string CloudApiClientId = "cloud-api";
+
+    public const string CloudApiSecretKey = "ServiceClients:CloudApi:ClientSecret";
+}
+
 /// <summary>The scopes Cloud.Auth knows.</summary>
 public static class AuthScopes
 {

@@ -17,8 +17,8 @@ public sealed class HttpAuthStoreClients(
     HttpClient httpClient, AuthServiceTokenCache tokens, IConfiguration configuration, ILogger<HttpAuthStoreClients> logger)
     : IAuthStoreClients
 {
-    public const string ServiceClientId = "cloud-api";
-    public const string ServiceClientSecretKey = "ServiceClients:CloudApi:ClientSecret";
+    public const string ServiceClientId = AuthServiceClients.CloudApiClientId;
+    public const string ServiceClientSecretKey = AuthServiceClients.CloudApiSecretKey;
 
     public async Task<StoreClientCredentials> CreateAsync(string storeId, string displayName, CancellationToken cancellationToken = default)
     {

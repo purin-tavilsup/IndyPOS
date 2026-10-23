@@ -143,8 +143,9 @@ public class StoreClientApiTests(AuthPostgresFixture postgres) : IClassFixture<A
         response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
     }
 
+    // Auth's own API accepts only tokens for Auth's audience, so a store token is not even authenticated there.
     [Fact]
-    public async Task StoreClientApi_WithAStoreToken_ReturnsForbidden()
+    public async Task StoreClientApi_WithAStoreToken_ReturnsUnauthorized()
     {
         await using var host = await StartAsync();
         var credentials = await PutAsync(await ServiceClientAsync(host), "STORE-B");
@@ -154,7 +155,7 @@ public class StoreClientApiTests(AuthPostgresFixture postgres) : IClassFixture<A
 
         var response = await storeClient.PutAsJsonAsync($"/store-clients/{StoreId}", new { displayName = "Store A" });
 
-        response.StatusCode.Should().Be(HttpStatusCode.Forbidden);
+        response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
     }
 
     [Fact]

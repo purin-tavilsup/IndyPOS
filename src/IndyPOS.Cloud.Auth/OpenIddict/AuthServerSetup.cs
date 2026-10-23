@@ -21,7 +21,7 @@ internal static class AuthServerSetup
     {
         var signingKey = LoadSigningKey(configuration, environment);
         var tlsTerminatedUpstream = configuration.GetValue<bool>(TlsTerminatedUpstreamKey);
-        var issuer = configuration[IssuerKey];
+        var issuer = Issuer(configuration, environment);
 
         services.AddOpenIddict()
                 .AddCore(options => options.UseEntityFrameworkCore().UseDbContext<AuthDbContext>())
@@ -52,7 +52,10 @@ internal static class AuthServerSetup
                 })
                 .AddValidation(options =>
                 {
+                    // Auth's own API (store clients) accepts only tokens for Auth: a store token is not even
+                    // authenticated there, whatever scope a mistake might one day grant it.
                     options.UseLocalServer();
+                    options.AddAudiences(AuthResources.Auth);
                     options.UseAspNetCore();
                 });
 
@@ -78,6 +81,24 @@ internal static class AuthServerSetup
         // Caddy is on the private compose network; only it can reach this container.
         options.KnownIPNetworks.Clear();
         options.KnownProxies.Clear();
+    }
+
+    /// <remarks>
+    /// Outside Development the issuer is required and https: without it, the issuer would come from each request's
+    /// Host and CloudApi, which pins one, would refuse every token with no clear reason; over http, CloudApi would
+    /// fetch the signing keys in the clear.
+    /// </remarks>
+    private static string? Issuer(IConfiguration configuration, IHostEnvironment environment)
+    {
+        var issuer = configuration[IssuerKey];
+        if (environment.IsDevelopment() || environment.IsEnvironment("Testing"))
+            return issuer;
+
+        if (string.IsNullOrEmpty(issuer) || !Uri.TryCreate(issuer, UriKind.Absolute, out var uri) || uri.Scheme != Uri.UriSchemeHttps)
+            throw new InvalidOperationException(
+                $"{IssuerKey} must be Auth's public https URL ending in '/', e.g. https://indypos-auth.exconeer.com/. It is '{issuer}'.");
+
+        return issuer;
     }
 
     private static RsaSecurityKey? LoadSigningKey(IConfiguration configuration, IHostEnvironment environment)

@@ -41,17 +41,18 @@ public static class StoreTokenClient
     /// </remarks>
     public static async Task<StoreTokenCheckResult> CheckStoreIdAsync(HttpClient auth, string clientId, string clientSecret, string storeId, CancellationToken ct)
     {
-        string token;
+        string? tokenStoreId;
         try
         {
-            token = await RequestTokenAsync(auth, clientId, clientSecret, ct);
+            tokenStoreId = StoreIdIn(await RequestTokenAsync(auth, clientId, clientSecret, ct));
         }
-        catch (Exception ex) when (ex is HttpRequestException or InvalidOperationException or TaskCanceledException && !ct.IsCancellationRequested)
+        catch (Exception ex) when (ex is HttpRequestException or InvalidOperationException or JsonException or FormatException
+                                   || (ex is TaskCanceledException && !ct.IsCancellationRequested))
         {
+            // Unreachable, refused, or not Auth at all (a wrong URL answering a web page): say so and carry on.
             return new StoreTokenCheckResult(StoreTokenCheckOutcome.NotChecked, $"The store id could not be checked against Cloud.Auth: {ex.Message}");
         }
 
-        var tokenStoreId = StoreIdIn(token);
         return string.Equals(tokenStoreId, storeId, StringComparison.Ordinal)
             ? new StoreTokenCheckResult(StoreTokenCheckOutcome.Match, $"--store-id matches the cloud's store '{storeId}'.")
             : new StoreTokenCheckResult(StoreTokenCheckOutcome.Mismatch,
@@ -63,7 +64,7 @@ public static class StoreTokenClient
     {
         var parts = jwt.Split('.');
         if (parts.Length < 2)
-            return null;
+            throw new FormatException("Cloud.Auth's access token is not a JWT.");
 
         var payload = parts[1].Replace('-', '+').Replace('_', '/');
         payload = payload.PadRight(payload.Length + (4 - payload.Length % 4) % 4, '=');

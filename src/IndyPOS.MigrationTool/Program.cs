@@ -115,6 +115,13 @@ rootCommand.SetHandler(async (context) =>
     }
 
     // And, when the store's cloud credentials are given, against the store the cloud knows them as.
+    if (authUrl is { Length: > 0 } && !Uri.TryCreate(authUrl, UriKind.Absolute, out _))
+    {
+        AnsiConsole.MarkupLine($"[red]Error:[/] --auth-url '{authUrl.EscapeMarkup()}' is not an absolute URL.");
+        context.ExitCode = 1;
+        return;
+    }
+
     if (authUrl is { Length: > 0 } && clientId is { Length: > 0 } && clientSecret is { Length: > 0 })
     {
         using var authClient = new HttpClient { BaseAddress = new Uri(authUrl), Timeout = TimeSpan.FromSeconds(15) };
