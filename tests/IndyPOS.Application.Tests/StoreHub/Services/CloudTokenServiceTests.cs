@@ -2,6 +2,7 @@ using System.Net;
 using System.Text.Json;
 using IndyPOS.Application.Abstractions.Security;
 using IndyPOS.Infrastructure.Services.StoreHub;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Moq;
@@ -127,6 +128,53 @@ public class CloudTokenServiceTests
 
         // Assert - no exception means success
         Assert.True(true);
+    }
+
+    // ITokenService is a typed HttpClient, so DI makes a new one per scope. The heartbeat opens a scope every
+    // two minutes; with a per-instance cache each beat fetched a new token from the cloud.
+    [Fact]
+    public async Task GetAccessTokenAsync_FromTwoServicesSharingACache_FetchesTheTokenOnce()
+    {
+        var fetches = 0;
+        var body = JsonSerializer.Serialize(new { access_token = "shared_token", token_type = "Bearer", expires_in = 900 });
+        HttpClient NewHttpClient() => new(new FakeHttpMessageHandler(_ =>
+        {
+            Interlocked.Increment(ref fetches);
+            return new HttpResponseMessage(HttpStatusCode.OK) { Content = new StringContent(body, System.Text.Encoding.UTF8, "application/json") };
+        })) { BaseAddress = new Uri("https://test-api.example.com") };
+        var cache = new CloudTokenCache();
+
+        await new CloudTokenService(NewHttpClient(), _secureOptions, _logger, cache).GetAccessTokenAsync();
+        var second = await new CloudTokenService(NewHttpClient(), _secureOptions, _logger, cache).GetAccessTokenAsync();
+
+        Assert.Equal("shared_token", second);
+        Assert.Equal(1, fetches);
+    }
+
+    [Fact]
+    public async Task GetAccessTokenAsync_FromTwoDiScopes_FetchesTheTokenOnce()
+    {
+        var fetches = 0;
+        var body = JsonSerializer.Serialize(new { access_token = "scoped_token", token_type = "Bearer", expires_in = 900 });
+        var services = new Microsoft.Extensions.DependencyInjection.ServiceCollection();
+        services.AddSingleton(_secureOptions);
+        services.AddSingleton(_logger);
+        services.AddSingleton<CloudTokenCache>();
+        services.AddHttpClient<IndyPOS.Application.Abstractions.StoreHub.Services.ITokenService, CloudTokenService>(c => c.BaseAddress = new Uri("https://test-api.example.com"))
+                .ConfigurePrimaryHttpMessageHandler(() => new FakeHttpMessageHandler(_ =>
+                {
+                    Interlocked.Increment(ref fetches);
+                    return new HttpResponseMessage(HttpStatusCode.OK) { Content = new StringContent(body, System.Text.Encoding.UTF8, "application/json") };
+                }));
+        using var provider = services.BuildServiceProvider();
+
+        foreach (var _ in Enumerable.Range(0, 2))
+        {
+            using var scope = provider.CreateScope();
+            await scope.ServiceProvider.GetRequiredService<IndyPOS.Application.Abstractions.StoreHub.Services.ITokenService>().GetAccessTokenAsync();
+        }
+
+        Assert.Equal(1, fetches);
     }
 
     private HttpClient CreateMockHttpClient(HttpStatusCode statusCode, string content)

@@ -109,6 +109,8 @@ public static class ConfigureServices
 				?? configuration["services:cloud-api:http:0"]
 				?? "https+http://cloud-api"; // Aspire service discovery fallback
 
+			// One token for the whole process: DI makes a new typed client per scope.
+			services.AddSingleton<CloudTokenCache>();
 			services.AddHttpClient<ITokenService, CloudTokenService>(client =>
 			{
 				client.BaseAddress = new Uri(cloudApiBaseUrl);
