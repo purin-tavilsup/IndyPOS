@@ -152,6 +152,7 @@ if (app.Environment.IsDevelopment())
 app.MapGet("/", () => "IndyPOS Cloud API");
 
 app.MapSyncEvents();
+app.MapSyncHeartbeats();
 
 // Bulk migration endpoint - one-time sync from SQLite migration
 // Requires OAuth2 token (store must be registered)
