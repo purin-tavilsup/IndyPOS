@@ -20,26 +20,50 @@ internal sealed class StoreClientService(AuthDbContext db, IOpenIddictApplicatio
 
     /// <param name="secret">A fixed secret (the dev stores' only); null makes a random one.</param>
     /// <returns>The credentials, or null when the store was disabled.</returns>
+    /// <remarks>
+    /// Serialised per store: the row is inserted if missing and locked (FOR UPDATE) before the OpenIddict client is
+    /// written, all in one transaction, so a retried or doubled call waits and then replaces the secret instead of
+    /// interleaving. OpenIddict's stores use this same DbContext, so they write inside the transaction.
+    /// </remarks>
     public async Task<StoreClientCredentials?> CreateOrReplaceAsync(string storeId, string displayName, CancellationToken ct, string? secret = null)
     {
-        var record = await db.StoreClients.FindAsync([storeId], ct);
-        if (record is { Enabled: false })
-            return null;
-
         var credentials = new StoreClientCredentials(ClientIdFor(storeId), secret ?? Convert.ToBase64String(RandomNumberGenerator.GetBytes(32)));
+        var strategy = db.Database.CreateExecutionStrategy();
+
+        return await strategy.ExecuteAsync(async () =>
+        {
+            db.ChangeTracker.Clear();
+            await using var transaction = await db.Database.BeginTransactionAsync(ct);
+
+            var record = await LockAsync(storeId, credentials.ClientId, ct);
+            if (!record.Enabled)
+                return null;
+
+            await WriteApplicationAsync(credentials, displayName, ct);
+            await transaction.CommitAsync(ct);
+            return credentials;
+        });
+    }
+
+    private async Task<StoreClient> LockAsync(string storeId, string clientId, CancellationToken ct)
+    {
+        await db.Database.ExecuteSqlInterpolatedAsync(
+            $"""INSERT INTO "StoreClients" ("StoreId", "ClientId", "Enabled", "CreatedAtUtc") VALUES ({storeId}, {clientId}, TRUE, {DateTime.UtcNow}) ON CONFLICT ("StoreId") DO NOTHING""",
+            ct);
+
+        return await db.StoreClients.FromSqlInterpolated($"""SELECT * FROM "StoreClients" WHERE "StoreId" = {storeId} FOR UPDATE""")
+                                    .AsTracking()
+                                    .SingleAsync(ct);
+    }
+
+    private async Task WriteApplicationAsync(StoreClientCredentials credentials, string displayName, CancellationToken ct)
+    {
         var descriptor = Descriptor(credentials, displayName);
-        var application = await applications.FindByClientIdAsync(credentials.ClientId, ct);
 
-        if (application is null)
-            await applications.CreateAsync(descriptor, ct);
-        else
+        if (await applications.FindByClientIdAsync(credentials.ClientId, ct) is { } application)
             await applications.UpdateAsync(application, descriptor, ct);
-
-        if (record is null)
-            db.StoreClients.Add(new StoreClient { StoreId = storeId, ClientId = credentials.ClientId, Enabled = true, CreatedAtUtc = DateTime.UtcNow });
-
-        await db.SaveChangesAsync(ct);
-        return credentials;
+        else
+            await applications.CreateAsync(descriptor, ct);
     }
 
     public async Task DisableAsync(string storeId, CancellationToken ct)

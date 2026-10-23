@@ -113,6 +113,26 @@ public class StoreClientApiTests(AuthPostgresFixture postgres) : IClassFixture<A
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
     }
 
+    // A retried or doubled PUT used to interleave: one call updated the secret while another inserted the row, so the
+    // secret returned could differ from the one Auth kept, or a call failed. Calls for one store are now serialised.
+    [Fact]
+    public async Task PutStoreClient_SentManyTimesAtOnce_LeavesOneWorkingSecret()
+    {
+        await using var host = await StartAsync();
+        var client = await ServiceClientAsync(host);
+
+        var responses = await Task.WhenAll(Enumerable.Range(0, 10)
+            .Select(_ => client.PutAsJsonAsync($"/store-clients/{StoreId}", new { displayName = "Store A" })));
+
+        responses.Should().OnlyContain(r => r.StatusCode == HttpStatusCode.OK);
+        var secrets = await Task.WhenAll(responses.Select(async r => (await r.Content.ReadFromJsonAsync<Credentials>())!));
+        var working = 0;
+        foreach (var credentials in secrets)
+            if ((await TokenHosts.RequestTokenAsync(host, credentials.ClientId, credentials.ClientSecret)).IsSuccessStatusCode)
+                working++;
+        working.Should().Be(1);
+    }
+
     [Fact]
     public async Task StoreClientApi_WithoutAToken_ReturnsUnauthorized()
     {
