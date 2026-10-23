@@ -7,8 +7,10 @@
 ```mermaid
 flowchart TB
   DEV["Developer / PR"]
-  REPO["GitHub repository<br/>development + selected release SHA"]
-  CI["GitHub Actions<br/>Build / test / scan"]
+  REPO["GitHub repository<br/>development branch"]
+  CI["PR validation CI<br/>Build / test / scan; no production credentials"]
+  RELEASE["Selected release tag / commit<br/>Protected release trigger"]
+  PUBLISH["Release publishing job<br/>Scoped registry push credentials"]
   REG["DigitalOcean Container Registry<br/>Immutable Auth / API / Web images"]
   APPROVE{"Protected GitHub Environment<br/>Manual production approval"}
   SSH["GitHub Actions deploy job<br/>Restricted SSH credential"]
@@ -26,15 +28,17 @@ flowchart TB
   end
 
   DEV --> REPO --> CI
-  CI -->|"push images"| REG
-  CI --> APPROVE
+  REPO -->|"approved release selection"| RELEASE
+  RELEASE --> PUBLISH
+  PUBLISH -->|"push immutable images"| REG
+  PUBLISH --> APPROVE
   APPROVE --> SSH
   SSH -->|"SSH: run audited script"| LOCK
   LOCK -->|"record current release"| OLD
   LOCK -->|"pull read-only"| REG
   LOCK --> MIG
   MIG --> DB
-  LOCK --> COMP --> APPS
+  MIG -->|"only after successful migrations"| COMP --> APPS
   APPS --> CHECK
   CHECK -->|"success: finalize release"| OLD
   OLD -.->|"schema-compatible app rollback"| COMP
@@ -42,8 +46,8 @@ flowchart TB
 
 ## Release contract
 
-1. PR CI builds and tests without production secrets.
-2. A selected commit or release builds and pushes separate immutable images. Record their digests.
+1. PR CI builds and tests **without** production secrets, registry push permission, or any path to production deployment.
+2. Only a separately triggered, authorized release workflow for a selected commit/tag builds and pushes separate immutable images with scoped registry-push credentials. Record their digests.
 3. Production deployment requires a protected GitHub Environment with manual approval; merging `development` alone does **not** deploy.
 4. The deploy job uses a restricted SSH identity to call an audited script on the Droplet. Only the Droplet connects to managed PostgreSQL through its private VPC.
 5. The host deploy script serializes releases, checks configuration and backup status, records the previous release, pulls with read-only registry credentials, and runs explicit one-shot migrations.
