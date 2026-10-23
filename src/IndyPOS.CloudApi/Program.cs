@@ -62,8 +62,8 @@ builder.Services.AddTransient<ICommandHandler<DeactivateCloudUserCommand, Deacti
 builder.Services.AddTransient<IQueryHandler<GetCloudUsersQuery, GetCloudUsersResponse>, GetCloudUsersQueryHandler>();
 builder.Services.AddTransient<ICommandHandler<BulkMigrationCommand, BulkMigrationResponse>, BulkMigrationCommandHandler>();
 
-// Add OpenIddict OAuth2 server
-builder.Services.AddOpenIddictServer(builder.Configuration);
+// Cloud.Auth issues every token; CloudApi only validates them (issuer and audience).
+builder.Services.AddAuthTokenValidation(builder.Configuration, builder.Environment);
 
 // Add authentication & authorization
 // Default scheme: OpenIddict for M2M (store-to-cloud) auth
@@ -114,8 +114,6 @@ builder.Services.AddAuthorizationBuilder()
 
 builder.Services.Configure<StoreSyncHealthOptions>(builder.Configuration.GetSection(StoreSyncHealthOptions.SectionName));
 
-// Add controllers for token endpoint
-builder.Services.AddControllers();
 
 // Add OpenAPI
 builder.Services.AddOpenApi();
@@ -146,8 +144,6 @@ app.MapDefaultEndpoints();
 app.UseAuthentication();
 app.UseAuthorization();
 
-// Map controllers (for TokenController)
-app.MapControllers();
 
 // Configure the HTTP request pipeline
 if (app.Environment.IsDevelopment())

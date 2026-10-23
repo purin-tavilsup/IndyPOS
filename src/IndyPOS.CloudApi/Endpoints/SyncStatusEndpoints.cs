@@ -14,7 +14,7 @@ internal static class SyncStatusEndpoints
     {
         app.MapGet("/sync/status", async (CloudDbContext db, ClaimsPrincipal user, CancellationToken cancellationToken) =>
         {
-            // Every store token carries store_id (TokenController); one without it is not a store's token.
+            // Every store token carries store_id (Cloud.Auth's TokenEndpoint); one without it is not a store's token.
             var storeId = user.FindFirst("store_id")?.Value;
             if (string.IsNullOrEmpty(storeId))
                 return Results.Forbid();
