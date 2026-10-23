@@ -75,6 +75,19 @@ public class OutboxRepository(StoreHubDbContext db) : IOutboxRepository
             .CountAsync(e => e.Status == "Failed", cancellationToken);
     }
 
-    private static string? Truncate(string? reason) =>
-        reason is { Length: > OutboxEvent.LastErrorMaxLength } ? reason[..OutboxEvent.LastErrorMaxLength] : reason;
+    /// <remarks>
+    /// Never cuts between the two halves of a character outside the BMP: a lone high surrogate makes
+    /// PostgreSQL's UTF-8 encoding throw, and a write that throws leaves the event due on every poll.
+    /// </remarks>
+    private static string? Truncate(string? reason)
+    {
+        if (reason is not { Length: > OutboxEvent.LastErrorMaxLength })
+            return reason;
+
+        var length = char.IsHighSurrogate(reason[OutboxEvent.LastErrorMaxLength - 1])
+            ? OutboxEvent.LastErrorMaxLength - 1
+            : OutboxEvent.LastErrorMaxLength;
+
+        return reason[..length];
+    }
 }

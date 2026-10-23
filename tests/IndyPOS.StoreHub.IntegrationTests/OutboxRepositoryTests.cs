@@ -96,6 +96,21 @@ public class OutboxRepositoryTests : IntegrationTestBase
                                 .Be(OutboxEvent.LastErrorMaxLength);
     }
 
+    // Cutting at the column's length could split a two-unit character and leave half of it, which
+    // PostgreSQL's UTF-8 encoding rejects: the write would throw and the event would be retried with
+    // no backoff on every poll.
+    [Fact]
+    public async Task MarkAsRefusedAsync_WithACharacterSplitAtTheColumnLength_StoresItAsFailed()
+    {
+        var outboxEvent = await AddPendingEventAsync();
+        var reason = new string('x', OutboxEvent.LastErrorMaxLength - 1) + "😀" + "tail";
+
+        await CreateRepository().MarkAsRefusedAsync(outboxEvent.Id, reason);
+
+        (await ReloadAsync(outboxEvent.Id)).Status.Should()
+                                               .Be("Failed");
+    }
+
     [Fact]
     public async Task ScheduleRetryAsync_WithAReason_KeepsTheEventPending()
     {
