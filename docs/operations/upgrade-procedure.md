@@ -327,6 +327,16 @@ the event took `NULL` for `last_error`. A rolled-back StoreHub leaves `Failed` e
 `Pending`), so they wait, kept, for the upgrade to be re-applied. Verified 2026-10-23 with
 `postgres:16-alpine` in a throwaway `gate` container on port 55510.
 
+Result for sync hardening PR 2, cloud (1 migration, `AddStoreSyncHealth`): three new tables only
+(`StoreHeartbeats`, `SyncRejections`, `SyncResendRequests`, 24 columns) and their indexes; no existing table,
+column or index changed. The schema was applied up to the previous release's last cloud migration
+(`20261019151511_AddCashDrawerDaysView`), then to the latest, and the `information_schema.columns` and
+`pg_indexes` snapshots differed only by the new tables. The previous CloudApi's ingest and processing were then
+written in one transaction, naming only pre-release columns (`SyncedEvents` insert, `ProcessedAtUtc` update,
+`ProcessedEvents` insert). A rolled-back CloudApi simply ignores the new tables: heartbeats answer 404 and
+StoreHub retries them on schedule. Verified 2026-10-23 with `postgres:16-alpine` in a throwaway `gate-cloud`
+container on port 55511.
+
 **The cloud database needs the same gate** whenever a release adds a CloudApi migration: a cloud
 rollback restores binaries, not schema, so the previous CloudApi must still ingest and process into
 the new schema. `CloudDbContextDesignTimeFactory` reads `ConnectionStrings__cloud-db`, so point

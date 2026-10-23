@@ -732,6 +732,48 @@ namespace IndyPOS.CloudApi.Infrastructure.Migrations
                     b.ToTable("Products");
                 });
 
+            modelBuilder.Entity("IndyPOS.CloudApi.Domain.CloudResendRequest", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasComment("This request's id, which the store reports back.");
+
+                    b.Property<DateTime?>("CompletedAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasComment("When the store reported it done, UTC; null while open.");
+
+                    b.Property<Guid?>("EventId")
+                        .HasColumnType("uuid")
+                        .HasComment("The one event to resend; null for every Failed event the store has.");
+
+                    b.Property<string>("IgnoredEventIdsJson")
+                        .HasColumnType("jsonb")
+                        .HasComment("Asked-for events the store did not have as Failed: [guid].");
+
+                    b.Property<string>("MovedEventIdsJson")
+                        .HasColumnType("jsonb")
+                        .HasComment("The events the store moved back to Pending: [guid].");
+
+                    b.Property<DateTime>("RequestedAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasComment("When the admin asked, UTC.");
+
+                    b.Property<string>("StoreId")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasComment("The store asked to resend.");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("StoreId", "CompletedAtUtc");
+
+                    b.ToTable("SyncResendRequests", null, t =>
+                        {
+                            t.HasComment("An admin's requests that a store resend its Failed outbox events. The store picks a request up in a heartbeat reply and reports it done in its next heartbeat.");
+                        });
+                });
+
             modelBuilder.Entity("IndyPOS.CloudApi.Domain.CloudStoreConfig", b =>
                 {
                     b.Property<string>("StoreId")
@@ -785,6 +827,107 @@ namespace IndyPOS.CloudApi.Infrastructure.Migrations
                     b.HasIndex("IsActive");
 
                     b.ToTable("StoreConfigs");
+                });
+
+            modelBuilder.Entity("IndyPOS.CloudApi.Domain.CloudStoreHeartbeat", b =>
+                {
+                    b.Property<string>("StoreId")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasComment("The store, from its token.");
+
+                    b.Property<int>("FailedCount")
+                        .HasColumnType("integer")
+                        .HasComment("Outbox events the cloud refused, parked at the store until a resend.");
+
+                    b.Property<string>("FailedEventsJson")
+                        .HasColumnType("jsonb")
+                        .HasComment("Up to 50 of the oldest Failed events: [{eventId, eventType, failedAtUtc, reason}]; null when none.");
+
+                    b.Property<DateTime?>("OldestPendingCreatedAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasComment("When the oldest waiting event was created, UTC; null when none is waiting.");
+
+                    b.Property<int>("PendingCount")
+                        .HasColumnType("integer")
+                        .HasComment("Outbox events still waiting to reach the cloud.");
+
+                    b.Property<DateTime>("ReceivedAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasComment("When the cloud received this heartbeat, UTC: the store's last-seen time.");
+
+                    b.Property<string>("StoreHubVersion")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasComment("The StoreHub version that sent it.");
+
+                    b.HasKey("StoreId");
+
+                    b.ToTable("StoreHeartbeats", null, t =>
+                        {
+                            t.HasComment("Each store's latest heartbeat from StoreHub (every 2 minutes while it runs), one row per store, overwritten. No history. A store PC is usually off at night, so an old ReceivedAtUtc is not by itself a fault.");
+                        });
+                });
+
+            modelBuilder.Entity("IndyPOS.CloudApi.Domain.CloudSyncRejection", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasComment("This row's id.");
+
+                    b.Property<int>("Count")
+                        .HasColumnType("integer")
+                        .HasComment("How many times this event was refused.");
+
+                    b.Property<Guid?>("EventId")
+                        .HasColumnType("uuid")
+                        .HasComment("The refused outbox event; null when the batch named no event that could be read.");
+
+                    b.Property<string>("EventType")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasComment("The refused event's type, when it could be read.");
+
+                    b.Property<DateTime>("FirstRejectedAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasComment("When this event was first refused, UTC.");
+
+                    b.Property<DateTime>("LastRejectedAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasComment("When this event was last refused, UTC.");
+
+                    b.Property<string>("Reason")
+                        .IsRequired()
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)")
+                        .HasComment("The cloud's refusal code and detail.");
+
+                    b.Property<DateTime?>("ResolvedAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasComment("When the cloud later accepted this event, UTC; null while unresolved.");
+
+                    b.Property<int>("StatusCode")
+                        .HasColumnType("integer")
+                        .HasComment("The HTTP status the cloud answered: 400 or 403.");
+
+                    b.Property<string>("StoreId")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasComment("The store whose token sent the refused request.");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("StoreId", "EventId")
+                        .IsUnique()
+                        .HasFilter("\"EventId\" IS NOT NULL");
+
+                    b.HasIndex("StoreId", "ResolvedAtUtc");
+
+                    b.ToTable("SyncRejections", null, t =>
+                        {
+                            t.HasComment("Every refusal the cloud gave on /sync/events (400 malformed batch, 403 wrong store), one row per store and event. Resolved when the same event is later accepted; resolved rows stay as history.");
+                        });
                 });
 
             modelBuilder.Entity("IndyPOS.CloudApi.Domain.CloudUser", b =>
