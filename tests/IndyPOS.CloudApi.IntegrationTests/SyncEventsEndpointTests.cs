@@ -54,6 +54,8 @@ public class SyncEventsEndpointTests(CloudPostgresFixture postgres) : IClassFixt
 
         var response = await host.PostEventsAsStoreAsync(ThisStore, "{}");
 
+        response.StatusCode.Should()
+                           .Be(HttpStatusCode.BadRequest);
         (await RefusalOf(response)).Should()
                                    .Be("malformed-batch");
     }

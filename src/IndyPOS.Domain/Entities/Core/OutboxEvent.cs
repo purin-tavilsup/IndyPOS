@@ -20,8 +20,8 @@ public class OutboxEvent
     public string Status { get; set; } = "Pending";  // Pending, Sent, Failed
 
     /// <summary>
-    /// Why the last attempt did not succeed: the cloud's refusal for a Failed event, or the transient
-    /// error of the latest retry. Null until an attempt fails.
+    /// Why the latest failed attempt did not succeed: the cloud's refusal for a Failed event, or the
+    /// transient error of the latest retry. Null until an attempt fails; kept after a later send succeeds.
     /// </summary>
     public string? LastError { get; set; }
 }
