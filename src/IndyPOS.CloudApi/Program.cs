@@ -344,6 +344,28 @@ app.MapPost("/admin/stores/register", [Authorize(Policy = "SystemAdminOnly")] as
     }
 }).RequireAuthorization("SystemAdminOnly");
 
+// POST /admin/stores/{storeId}/deactivation - the safety valve for a stolen till PC: Auth stops issuing the store
+// tokens, then the store is marked inactive. Final. SystemAdminOnly until cloud slice 1 moves it to the Admin
+// person token (and Cloud.Web gives it a button).
+app.MapPost("/admin/stores/{storeId}/deactivation", async (
+    string storeId,
+    CloudDbContext db,
+    IAuthStoreClients authStoreClients,
+    CancellationToken cancellationToken) =>
+{
+    try
+    {
+        return await StoreDeactivation.DeactivateAsync(db, authStoreClients, storeId, cancellationToken) == StoreDeactivationOutcome.NotFound
+            ? Results.NotFound(new { error = $"Store '{storeId}' is not registered." })
+            : Results.NoContent();
+    }
+    catch (AuthUnavailableException ex)
+    {
+        return Results.Json(new { error = $"Cloud.Auth is unavailable; the store is still active. {ex.Message}" },
+                            statusCode: StatusCodes.Status503ServiceUnavailable);
+    }
+}).RequireAuthorization("SystemAdminOnly");
+
 // POST /admin/users - Create a new cloud user (S4: User Management)
 // Protected by CanManageUsers policy
 app.MapPost("/admin/users", [Authorize(Policy = "CanManageUsers")] async (
