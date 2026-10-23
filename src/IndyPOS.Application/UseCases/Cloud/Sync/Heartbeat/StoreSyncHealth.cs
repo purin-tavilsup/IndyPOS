@@ -1,5 +1,9 @@
+using System.Text.Json.Serialization;
+
 namespace IndyPOS.Application.UseCases.Cloud.Sync.Heartbeat;
 
+/// <summary>Serialized by name, so a reader of the API never depends on the order of the members.</summary>
+[JsonConverter(typeof(JsonStringEnumConverter<StoreSyncState>))]
 public enum StoreSyncState
 {
     Ok,

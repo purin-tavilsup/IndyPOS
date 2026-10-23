@@ -76,4 +76,11 @@ public class StoreSyncHealthTests
         Evaluate(Now.AddMinutes(-1), oldestPendingUtc: Now.AddMinutes(-5), options: new StoreSyncHealthOptions { BehindAfterMinutes = 5 })
             .Should()
             .Be(StoreSyncState.Behind);
+
+    // The admin page and anything else reading the API see the state's name; a number would change meaning if
+    // the enum were ever reordered.
+    [Fact]
+    public void StoreSyncState_WhenSerialized_IsItsName() =>
+        System.Text.Json.JsonSerializer.Serialize(StoreSyncState.Offline).Should()
+                                                                        .Be("\"Offline\"");
 }

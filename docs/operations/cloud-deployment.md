@@ -89,6 +89,20 @@ The old 1 vCPU / 2 GB sizing and the expected **13 tables** below are historical
 - [ ] Cloudflare bypass/direct-origin access is blocked by firewall; app and database ports remain private.
 - [ ] Backups restore successfully; secrets are not committed; log retention, image cleanup and certificate renewal are operational.
 
+### Store sync health (sync hardening, `docs/superpowers/specs/2026-10-23-sync-hardening-design.md`)
+
+- StoreHub sends `POST /sync/heartbeats` (store token) every 2 minutes; CloudApi keeps one row per store in
+  `StoreHeartbeats` and logs every `/sync/events` refusal in `SyncRejections`.
+- `GET /admin/stores/sync-health` lists every registered store as `Ok` / `Behind` / `FailedEvents` / `Offline`;
+  `POST /admin/stores/{storeId}/resend-requests` (`{"eventId": null}` = all) asks a store to resend its Failed events.
+  Both are on `SystemAdminOnly` until cloud slice 1 moves them to the Admin person token.
+- Verified on the local Aspire stack (GeneralHardware, 2026-10-23): first heartbeat 3 s after StoreHub was ready; a
+  Failed event went back to Pending, was sent, and the resend request completed with its id, in about 3 minutes.
+- **Before go-live, run the proving scenarios on the deployed environment** (spec "Proving it on the cloud"):
+  outage longer than 8 minutes, a bare 404 from a missing route, a real wrong-store refusal, Resend one and all, and a
+  store PC switched off and on. Then wipe `StoreHeartbeats`, `SyncRejections` and `SyncResendRequests` with the other
+  test data.
+
 ## Rollback and outage response
 
 - **App failure:** retain previous immutable image digests and compose configuration. Roll back application images only when compatible with the **forward-only** DB schema; never assume database down-migrations are safe.
