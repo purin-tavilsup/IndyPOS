@@ -20,7 +20,7 @@ public class OutboxRepositoryTests : IntegrationTestBase
 
     private OutboxRepository CreateRepository() => new(GetDbContext());
 
-    private async Task<OutboxEvent> AddPendingEventAsync()
+    private async Task<OutboxEvent> AddPendingEventAsync(DateTime? createdUtc = null)
     {
         var outboxEvent = new OutboxEvent
         {
@@ -28,7 +28,7 @@ public class OutboxRepositoryTests : IntegrationTestBase
             StoreId = "test-store",
             Type = "InvoiceCompleted",
             PayloadJson = """{"StoreId":"test-store"}""",
-            CreatedUtc = DateTime.UtcNow,
+            CreatedUtc = createdUtc ?? DateTime.UtcNow,
             Status = "Pending"
         };
 
@@ -150,5 +150,75 @@ public class OutboxRepositoryTests : IntegrationTestBase
 
         (await CreateRepository().GetFailedCountAsync()).Should()
                                                         .Be(before + 1);
+    }
+
+    private async Task<OutboxEvent> AddRefusedEventAsync(string reason = "403 store-mismatch", DateTime? createdUtc = null)
+    {
+        var outboxEvent = await AddPendingEventAsync(createdUtc);
+        await CreateRepository().MarkAsRefusedAsync(outboxEvent.Id, reason);
+        return outboxEvent;
+    }
+
+    [Fact]
+    public async Task GetFailedEventsAsync_ReturnsRefusedEventsWithTheirReason()
+    {
+        var refused = await AddRefusedEventAsync("403 store-mismatch: not this store");
+
+        var failed = await CreateRepository().GetFailedEventsAsync(EveryPendingEvent);
+
+        failed.Should().ContainSingle(e => e.EventId == refused.Id)
+              .Which.Reason.Should().Be("403 store-mismatch: not this store");
+    }
+
+    // The refused event is older than anything else in the shared database, so counting it would show.
+    [Fact]
+    public async Task GetOldestPendingCreatedUtcAsync_IgnoresFailedEvents()
+    {
+        var longAgo = new DateTime(2000, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+        await AddRefusedEventAsync(createdUtc: longAgo);
+        await AddPendingEventAsync();
+
+        var oldest = await CreateRepository().GetOldestPendingCreatedUtcAsync();
+
+        oldest.Should().BeAfter(longAgo.AddYears(1));
+    }
+
+    [Fact]
+    public async Task RequeueFailedAsync_ForOneEvent_MovesItBackToPendingWithItsAttemptsReset()
+    {
+        var refused = await AddRefusedEventAsync();
+
+        var moved = await CreateRepository().RequeueFailedAsync(refused.Id);
+
+        moved.Should().Equal(refused.Id);
+        var stored = await ReloadAsync(refused.Id);
+        stored.Status.Should().Be("Pending");
+        stored.Attempts.Should().Be(0);
+        stored.NextRetryUtc.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task RequeueFailedAsync_ForAPendingEvent_MovesNothing()
+    {
+        var pending = await AddPendingEventAsync();
+
+        (await CreateRepository().RequeueFailedAsync(pending.Id)).Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task RequeueFailedAsync_ForAnUnknownEvent_MovesNothing() =>
+        (await CreateRepository().RequeueFailedAsync(Guid.NewGuid())).Should().BeEmpty();
+
+    [Fact]
+    public async Task RequeueFailedAsync_ForAll_MovesEveryFailedEvent()
+    {
+        var first = await AddRefusedEventAsync();
+        var second = await AddRefusedEventAsync();
+
+        var moved = await CreateRepository().RequeueFailedAsync(eventId: null);
+
+        moved.Should().Contain([first.Id, second.Id]);
+        (await ReloadAsync(first.Id)).Status.Should().Be("Pending");
+        (await ReloadAsync(second.Id)).Status.Should().Be("Pending");
     }
 }
