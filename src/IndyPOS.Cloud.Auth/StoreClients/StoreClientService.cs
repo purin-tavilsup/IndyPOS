@@ -18,14 +18,15 @@ internal sealed class StoreClientService(AuthDbContext db, IOpenIddictApplicatio
 {
     public static string ClientIdFor(string storeId) => $"store_{storeId}";
 
+    /// <param name="secret">A fixed secret (the dev stores' only); null makes a random one.</param>
     /// <returns>The credentials, or null when the store was disabled.</returns>
-    public async Task<StoreClientCredentials?> CreateOrReplaceAsync(string storeId, string displayName, CancellationToken ct)
+    public async Task<StoreClientCredentials?> CreateOrReplaceAsync(string storeId, string displayName, CancellationToken ct, string? secret = null)
     {
         var record = await db.StoreClients.FindAsync([storeId], ct);
         if (record is { Enabled: false })
             return null;
 
-        var credentials = new StoreClientCredentials(ClientIdFor(storeId), Convert.ToBase64String(RandomNumberGenerator.GetBytes(32)));
+        var credentials = new StoreClientCredentials(ClientIdFor(storeId), secret ?? Convert.ToBase64String(RandomNumberGenerator.GetBytes(32)));
         var descriptor = Descriptor(credentials, displayName);
         var application = await applications.FindByClientIdAsync(credentials.ClientId, ct);
 

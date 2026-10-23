@@ -8,10 +8,16 @@ public static class StoreProfiles
     public const string AllKey = "all";
 
     /// <summary>
-    /// The secret every dev store uses to sign in to the dev cloud. Registered only by CloudApi's
+    /// The secret every dev store uses to sign in to the dev cloud. Registered only by Cloud.Auth's
     /// Development seeder; production stores get a random one from /admin/stores/register.
     /// </summary>
     public const string DevCloudClientSecret = "dev-store-secret-not-for-production";
+
+    /// <summary>
+    /// CloudApi's service-client secret in the dev stack (Cloud.Auth's ServiceClients:CloudApi:ClientSecret).
+    /// Production sets a random one in both services' configuration.
+    /// </summary>
+    public const string DevCloudApiServiceSecret = "dev-cloud-api-service-secret-not-for-production";
 
     // Open-price products behind the sale panel's เบ็ดเตล็ด and ฮาร์ดแวร์ buttons, as the real stores have
     // them: untracked, price 0, because the cashier types the price. Without one the button only shows

@@ -17,12 +17,15 @@ var cloudDb = postgres.AddDatabase("cloud-db", databaseName: "cloud");
 var authDb = postgres.AddDatabase("auth-db", databaseName: "auth");
 var cloudAuth = builder.AddProject<Projects.IndyPOS_Cloud_Auth>("cloud-auth")
                        .WithReference(authDb)
+                       .WithEnvironment("ServiceClients__CloudApi__ClientSecret", StoreProfiles.DevCloudApiServiceSecret)
                        .WithHttpHealthCheck("/health/ready", endpointName: "http")
                        .WaitFor(postgres);
 
 // Cloud API (central cloud service) - must be defined first for service discovery
 var cloudApi = builder.AddProject<Projects.IndyPOS_CloudApi>("cloud-api")
                       .WithReference(cloudDb)
+                      .WithReference(cloudAuth)
+                      .WithEnvironment("ServiceClients__CloudApi__ClientSecret", StoreProfiles.DevCloudApiServiceSecret)
                       .WithHttpHealthCheck("/health/ready", endpointName: "http")
                       .WaitFor(postgres);
 

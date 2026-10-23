@@ -52,6 +52,7 @@ public sealed class AuthApp
         builder.Services.AddAuthorization(options => options.AddStoreClientPolicy());
         builder.Services.AddScoped<StoreClientService>();
         builder.Services.AddHostedService<ServiceClientSeeder>();
+        builder.Services.AddHostedService<DevStoreClientsSeeder>();
 
         var app = builder.Build();
         app.UseAuthForwardedHeaders();
