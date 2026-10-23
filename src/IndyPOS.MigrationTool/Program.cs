@@ -47,6 +47,12 @@ var cloudClientSecretOption = new Option<string?>(
     aliases: ["--client-secret"],
     description: "OAuth2 Client Secret for Cloud API");
 
+var storeHubConfigOption = new Option<FileInfo>(
+    aliases: ["--storehub-config"],
+    description: "Path to the installed StoreHub's appsettings.json; --store-id must match its Store:Id " +
+                 $"(default: {StoreHubStoreIdCheck.InstalledConfigPath})",
+    getDefaultValue: () => new FileInfo(StoreHubStoreIdCheck.InstalledConfigPath));
+
 var dryRunOption = new Option<bool>(
     aliases: ["--dry-run", "-d"],
     description: "Validate without making changes",
@@ -64,6 +70,7 @@ rootCommand.AddOption(storeIdOption);
 rootCommand.AddOption(cloudApiOption);
 rootCommand.AddOption(cloudClientIdOption);
 rootCommand.AddOption(cloudClientSecretOption);
+rootCommand.AddOption(storeHubConfigOption);
 rootCommand.AddOption(dryRunOption);
 rootCommand.AddOption(verboseOption);
 
@@ -76,6 +83,7 @@ rootCommand.SetHandler(async (context) =>
     var cloudApi = context.ParseResult.GetValueForOption(cloudApiOption);
     var clientId = context.ParseResult.GetValueForOption(cloudClientIdOption);
     var clientSecret = context.ParseResult.GetValueForOption(cloudClientSecretOption);
+    var storeHubConfig = context.ParseResult.GetValueForOption(storeHubConfigOption)!;
     var dryRun = context.ParseResult.GetValueForOption(dryRunOption);
     var verbose = context.ParseResult.GetValueForOption(verboseOption);
 
@@ -87,6 +95,15 @@ rootCommand.SetHandler(async (context) =>
     if (!sqliteFile.Exists)
     {
         AnsiConsole.MarkupLine($"[red]Error:[/] SQLite file not found: {sqliteFile.FullName.EscapeMarkup()}");
+        context.ExitCode = 1;
+        return;
+    }
+
+    // Before anything else, a dry run included: a wrong store id makes every migrated event one the cloud refuses.
+    var storeIdCheck = StoreHubStoreIdCheck.Check(storeId, storeHubConfig.FullName);
+    if (!storeIdCheck.IsMatch)
+    {
+        AnsiConsole.MarkupLine($"[red]Error:[/] {storeIdCheck.Message.EscapeMarkup()}");
         context.ExitCode = 1;
         return;
     }

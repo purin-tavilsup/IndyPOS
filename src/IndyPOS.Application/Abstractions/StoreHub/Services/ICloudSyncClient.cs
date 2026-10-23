@@ -5,7 +5,8 @@ using IndyPOS.Domain.Entities.Core;
 
 public interface ICloudSyncClient
 {
-    Task<bool> SendEventAsync(OutboxEvent outboxEvent, CancellationToken cancellationToken = default);
+    /// <summary>Sends one outbox event. Never throws for a cloud or network failure; it reports one.</summary>
+    Task<SyncSendResult> SendEventAsync(OutboxEvent outboxEvent, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Gets users from CloudApi for sync.

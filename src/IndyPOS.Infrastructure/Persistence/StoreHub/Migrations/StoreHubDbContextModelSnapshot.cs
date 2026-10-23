@@ -516,6 +516,11 @@ namespace IndyPOS.Infrastructure.Persistence.StoreHub.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("last_attempt_utc");
 
+                    b.Property<string>("LastError")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)")
+                        .HasColumnName("last_error");
+
                     b.Property<DateTime?>("NextRetryUtc")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("next_retry_utc");

@@ -32,19 +32,17 @@ public class HttpCloudSyncClient : ICloudSyncClient
         // BaseAddress is configured via DI in ConfigureServices (Aspire service discovery)
     }
 
-    public async Task<bool> SendEventAsync(OutboxEvent outboxEvent, CancellationToken cancellationToken = default)
+    public async Task<SyncSendResult> SendEventAsync(OutboxEvent outboxEvent, CancellationToken cancellationToken = default)
     {
-        // Get access token
         var token = await _tokenService.GetAccessTokenAsync(cancellationToken);
         if (string.IsNullOrEmpty(token))
         {
             _logger.LogWarning(
                 "Unable to acquire token for event {EventId}, operating in offline mode",
                 outboxEvent.Id);
-            return false;
+            return SyncSendResult.RetryLater("No access token could be obtained");
         }
 
-        // Convert to batch request (single event)
         var request = new SyncEventsRequest(
         [
             new SyncEventRequest(
@@ -55,10 +53,9 @@ public class HttpCloudSyncClient : ICloudSyncClient
                 CreatedAtUtc: outboxEvent.CreatedUtc)
         ]);
 
-        // Send with authentication
-        var success = await SendWithAuthAsync(request, token, cancellationToken);
+        var result = await SendWithAuthAsync(request, token, cancellationToken);
 
-        if (success)
+        if (result.Outcome == SyncSendOutcome.Sent)
         {
             _logger.LogInformation(
                 "Successfully synced event {EventId} ({Type}) for store {StoreId}",
@@ -67,66 +64,105 @@ public class HttpCloudSyncClient : ICloudSyncClient
                 outboxEvent.StoreId);
         }
 
-        return success;
+        return result;
     }
 
-    private async Task<bool> SendWithAuthAsync(
+    private async Task<SyncSendResult> SendWithAuthAsync(
         SyncEventsRequest request,
         string token,
         CancellationToken cancellationToken)
     {
         try
         {
-            using var httpRequest = new HttpRequestMessage(HttpMethod.Post, "/sync/events");
-            httpRequest.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
-            httpRequest.Content = JsonContent.Create(request);
+            using var response = await PostEventsAsync(request, token, cancellationToken);
 
-            var response = await _httpClient.SendAsync(httpRequest, cancellationToken);
+            if (response.StatusCode != HttpStatusCode.Unauthorized)
+                return await ClassifyAsync(response, request, cancellationToken);
 
-            if (response.IsSuccessStatusCode)
-            {
-                return await WasStoredAsync(response, request, cancellationToken);
-            }
+            _logger.LogWarning("Received 401 from Cloud API, clearing cached token and retrying");
+            _tokenService.ClearCachedToken();
 
-            // Handle 401 - token may have expired
-            if (response.StatusCode == HttpStatusCode.Unauthorized)
-            {
-                _logger.LogWarning("Received 401 from Cloud API, clearing cached token and retrying");
-                _tokenService.ClearCachedToken();
+            var newToken = await _tokenService.GetAccessTokenAsync(cancellationToken);
+            if (string.IsNullOrEmpty(newToken))
+                return SyncSendResult.RetryLater("401 from the cloud, and no fresh token could be obtained");
 
-                // Try once more with fresh token
-                var newToken = await _tokenService.GetAccessTokenAsync(cancellationToken);
-                if (string.IsNullOrEmpty(newToken))
-                {
-                    return false;
-                }
-
-                using var retryRequest = new HttpRequestMessage(HttpMethod.Post, "/sync/events");
-                retryRequest.Headers.Authorization = new AuthenticationHeaderValue("Bearer", newToken);
-                retryRequest.Content = JsonContent.Create(request);
-
-                var retryResponse = await _httpClient.SendAsync(retryRequest, cancellationToken);
-                return retryResponse.IsSuccessStatusCode
-                       && await WasStoredAsync(retryResponse, request, cancellationToken);
-            }
-
-            var errorBody = await response.Content.ReadAsStringAsync(cancellationToken);
-            _logger.LogWarning(
-                "Cloud API returned {StatusCode}: {Error}",
-                response.StatusCode,
-                errorBody);
-
-            return false;
+            using var retryResponse = await PostEventsAsync(request, newToken, cancellationToken);
+            return await ClassifyAsync(retryResponse, request, cancellationToken);
         }
         catch (HttpRequestException ex)
         {
             _logger.LogWarning(ex, "HTTP error sending event to Cloud API (offline mode?)");
-            return false;
+            return SyncSendResult.RetryLater($"Cloud unreachable: {ex.Message}");
         }
         catch (TaskCanceledException ex) when (!cancellationToken.IsCancellationRequested)
         {
             _logger.LogWarning(ex, "Request to Cloud API timed out");
-            return false;
+            return SyncSendResult.RetryLater("The request to the cloud timed out");
+        }
+    }
+
+    private async Task<HttpResponseMessage> PostEventsAsync(
+        SyncEventsRequest request,
+        string token,
+        CancellationToken cancellationToken)
+    {
+        using var httpRequest = new HttpRequestMessage(HttpMethod.Post, "/sync/events");
+        httpRequest.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+        httpRequest.Content = JsonContent.Create(request);
+
+        return await _httpClient.SendAsync(httpRequest, cancellationToken);
+    }
+
+    /// <remarks>
+    /// Only a 400 or 403 carrying CloudApi's <see cref="SyncRefusal"/> marker is Refused. Any other
+    /// failure status may come from something that is not the sync handler at all (a proxy, a route not
+    /// deployed yet, the auth layer), and refusing on it would park every event of every store as
+    /// Failed on one bad deploy, so it is treated like an outage.
+    /// </remarks>
+    private async Task<SyncSendResult> ClassifyAsync(
+        HttpResponseMessage response,
+        SyncEventsRequest request,
+        CancellationToken cancellationToken)
+    {
+        if (response.IsSuccessStatusCode)
+            return await WasStoredAsync(response, request, cancellationToken);
+
+        var status = (int)response.StatusCode;
+        var body = await response.Content.ReadAsStringAsync(cancellationToken);
+
+        if (response.StatusCode is HttpStatusCode.BadRequest or HttpStatusCode.Forbidden
+            && ReadRefusal(response, body) is { } refusal)
+        {
+            _logger.LogWarning("Cloud API refused the event: {Status} {Refusal}", status, refusal);
+            return SyncSendResult.Refused($"{status} {refusal}");
+        }
+
+        _logger.LogWarning("Cloud API returned {StatusCode}: {Error}", response.StatusCode, body);
+        return SyncSendResult.RetryLater($"{status} from the cloud");
+    }
+
+    /// <summary>"code: detail" from a problem details body with a sync refusal, or null.</summary>
+    private static string? ReadRefusal(HttpResponseMessage response, string body)
+    {
+        if (response.Content.Headers.ContentType?.MediaType != "application/problem+json")
+            return null;
+
+        try
+        {
+            using var document = JsonDocument.Parse(body);
+            var root = document.RootElement;
+
+            if (root.ValueKind != JsonValueKind.Object
+                || !root.TryGetProperty(SyncRefusal.ExtensionKey, out var code)
+                || code.ValueKind != JsonValueKind.String)
+                return null;
+
+            var detail = root.TryGetProperty("detail", out var d) && d.ValueKind == JsonValueKind.String ? d.GetString() : null;
+            return detail is null ? code.GetString() : $"{code.GetString()}: {detail}";
+        }
+        catch (JsonException)
+        {
+            return null;
         }
     }
 
@@ -136,7 +172,7 @@ public class HttpCloudSyncClient : ICloudSyncClient
     /// SyncWorker mark a failed event Sent, and a single ingest failure lost it for good. So only
     /// the cloud's own "accepted" for this event counts; anything else is a failure and retries.
     /// </remarks>
-    private async Task<bool> WasStoredAsync(
+    private async Task<SyncSendResult> WasStoredAsync(
         HttpResponseMessage response,
         SyncEventsRequest request,
         CancellationToken cancellationToken)
@@ -149,19 +185,17 @@ public class HttpCloudSyncClient : ICloudSyncClient
             var result = body?.Results?.FirstOrDefault(r => r.EventId == eventId);
 
             if (result is { Accepted: true })
-                return true;
+                return SyncSendResult.Sent;
 
-            _logger.LogWarning(
-                "Cloud API did not store event {EventId}: {Reason}",
-                eventId,
-                result?.Reason ?? "no result for this event in the response");
+            var reason = result?.Reason ?? "no result for this event in the response";
+            _logger.LogWarning("Cloud API did not store event {EventId}: {Reason}", eventId, reason);
+            return SyncSendResult.RetryLater($"The cloud did not store the event: {reason}");
         }
         catch (JsonException ex)
         {
             _logger.LogWarning(ex, "Cloud API sent an unreadable sync response for event {EventId}", eventId);
+            return SyncSendResult.RetryLater("The cloud sent an unreadable sync response");
         }
-
-        return false;
     }
 
     private static int ParseStoreId(string storeId)

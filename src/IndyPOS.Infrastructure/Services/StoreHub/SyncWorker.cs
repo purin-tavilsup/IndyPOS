@@ -105,56 +105,67 @@ public class SyncWorker(
             if (cancellationToken.IsCancellationRequested)
                 break;
 
-            try
-            {
-                var success = await cloudSyncClient.SendEventAsync(outboxEvent, cancellationToken);
-
-                if (success)
-                {
-                    await outboxRepository.MarkAsSentAsync(outboxEvent.Id, cancellationToken);
-                    logger.LogDebug("Event {EventId} ({Type}) sent successfully", outboxEvent.Id, outboxEvent.Type);
-                }
-                else
-                {
-                    await HandleFailedEventAsync(outboxRepository, outboxEvent, cancellationToken);
-                }
-            }
-            catch (Exception ex) when (ex is not OperationCanceledException)
-            {
-                logger.LogWarning(ex, "Failed to send event {EventId}", outboxEvent.Id);
-                await HandleFailedEventAsync(outboxRepository, outboxEvent, cancellationToken);
-            }
+            await SendAsync(outboxRepository, cloudSyncClient, outboxEvent, cancellationToken);
         }
     }
 
-    private async Task HandleFailedEventAsync(
+    private async Task SendAsync(
         IOutboxRepository outboxRepository,
+        ICloudSyncClient cloudSyncClient,
         Domain.Entities.Core.OutboxEvent outboxEvent,
         CancellationToken cancellationToken)
     {
-        var nextAttempt = outboxEvent.Attempts + 1;
-
-        if (nextAttempt >= _options.MaxRetries)
+        SyncSendResult result;
+        try
         {
-            logger.LogError(
-                "Event {EventId} ({Type}) exceeded max retries ({MaxRetries}). Leaving for manual review.",
-                outboxEvent.Id,
-                outboxEvent.Type,
-                _options.MaxRetries);
-            return;
+            result = await cloudSyncClient.SendEventAsync(outboxEvent, cancellationToken);
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            logger.LogWarning(ex, "Failed to send event {EventId}", outboxEvent.Id);
+            result = SyncSendResult.RetryLater(ex.Message);
         }
 
-        // Exponential backoff: 30s, 60s, 120s, 240s...
-        var delaySeconds = _options.BaseRetryDelaySeconds * Math.Pow(2, nextAttempt - 1);
-        var nextRetryUtc = DateTime.UtcNow.AddSeconds(delaySeconds);
+        await RecordAsync(outboxRepository, outboxEvent, result, cancellationToken);
+    }
 
-        await outboxRepository.MarkAsFailedAsync(outboxEvent.Id, nextRetryUtc, cancellationToken);
+    /// <remarks>
+    /// Only the cloud's own refusal parks an event as Failed, which takes it out of the queue so it cannot
+    /// hold back the events behind it. Anything else is retried with no attempt limit: an outage of any
+    /// length must not turn a good sale into a failed one.
+    /// </remarks>
+    private async Task RecordAsync(
+        IOutboxRepository outboxRepository,
+        Domain.Entities.Core.OutboxEvent outboxEvent,
+        SyncSendResult result,
+        CancellationToken cancellationToken)
+    {
+        switch (result.Outcome)
+        {
+            case SyncSendOutcome.Sent:
+                await outboxRepository.MarkAsSentAsync(outboxEvent.Id, cancellationToken);
+                logger.LogDebug("Event {EventId} ({Type}) sent successfully", outboxEvent.Id, outboxEvent.Type);
+                break;
 
-        logger.LogDebug(
-            "Event {EventId} will retry at {NextRetry} (attempt {Attempt}/{MaxRetries})",
-            outboxEvent.Id,
-            nextRetryUtc,
-            nextAttempt,
-            _options.MaxRetries);
+            case SyncSendOutcome.Refused:
+                await outboxRepository.MarkAsRefusedAsync(outboxEvent.Id, result.Reason ?? "Refused by the cloud", cancellationToken);
+                logger.LogWarning(
+                    "Event {EventId} ({Type}) was refused by the cloud and is kept as Failed: {Reason}",
+                    outboxEvent.Id,
+                    outboxEvent.Type,
+                    result.Reason);
+                break;
+
+            default:
+                var nextRetryUtc = DateTime.UtcNow + SyncRetryPolicy.NextDelay(outboxEvent.Attempts, _options);
+                await outboxRepository.ScheduleRetryAsync(outboxEvent.Id, nextRetryUtc, result.Reason, cancellationToken);
+                logger.LogDebug(
+                    "Event {EventId} will retry at {NextRetry} (attempt {Attempt}): {Reason}",
+                    outboxEvent.Id,
+                    nextRetryUtc,
+                    outboxEvent.Attempts + 1,
+                    result.Reason);
+                break;
+        }
     }
 }

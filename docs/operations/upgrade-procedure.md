@@ -316,6 +316,17 @@ A rolled-back till still trades and takes repayments, but those repayments write
 and queue no cloud event, so they are missing from the audit trail until the upgrade is re-applied.
 Verified 2026-10-19 with `postgres:16-alpine` in a throwaway `gate` container on port 55510.
 
+Result for sync hardening PR 1, StoreHub (1 migration, `AddOutboxLastError`): `outbox_event` gained one
+column, `last_error character varying(1000) NULL` with no default; no other column or index changed. The
+schema was applied up to the previous release's last migration (`20261019110913_AddPayLaterRepayments`),
+then to the latest, and the `information_schema.columns` and `pg_indexes` snapshots differed only by that
+column. A complete sale (`product` -> `invoice` -> `invoice_line` -> `payment` -> `inventory_movement` ->
+`outbox_event`) and the previous release's retry (an `UPDATE` of `status`, `attempts`, `last_attempt_utc`
+and `next_retry_utc`) were then written in one transaction, naming only the previous release's columns;
+the event took `NULL` for `last_error`. A rolled-back StoreHub leaves `Failed` events alone (it only reads
+`Pending`), so they wait, kept, for the upgrade to be re-applied. Verified 2026-10-23 with
+`postgres:16-alpine` in a throwaway `gate` container on port 55510.
+
 **The cloud database needs the same gate** whenever a release adds a CloudApi migration: a cloud
 rollback restores binaries, not schema, so the previous CloudApi must still ingest and process into
 the new schema. `CloudDbContextDesignTimeFactory` reads `ConnectionStrings__cloud-db`, so point
