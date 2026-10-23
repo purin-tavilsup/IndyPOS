@@ -1,4 +1,6 @@
 using IndyPOS.Cloud.Auth.Data;
+using IndyPOS.Cloud.Auth.OpenIddict;
+using IndyPOS.Cloud.Auth.Tokens;
 using IndyPOS.ServiceDefaults;
 using Microsoft.EntityFrameworkCore;
 
@@ -41,9 +43,17 @@ public sealed class AuthApp
         builder.AddNpgsqlDbContext<AuthDbContext>("auth-db", settings => settings.DisableHealthChecks = true);
         builder.AddDatabaseReadinessCheck("auth-db");
 
+        builder.Services.AddAuthServer(builder.Configuration, builder.Environment);
+        builder.Services.AddAuthentication();
+        builder.Services.AddAuthorization();
+
         var app = builder.Build();
+        app.UseAuthForwardedHeaders();
         app.UseRequestTimeouts();
+        app.UseAuthentication();
+        app.UseAuthorization();
         app.MapDefaultEndpoints();
+        app.MapTokenEndpoint();
 
         return app;
     }

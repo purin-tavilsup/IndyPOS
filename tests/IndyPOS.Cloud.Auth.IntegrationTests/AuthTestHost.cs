@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Mvc.Testing;
 namespace IndyPOS.Cloud.Auth.IntegrationTests;
 
 /// <summary>Auth's real entry point on a TestServer, against one test database. Settings override appsettings.</summary>
-public sealed class AuthTestHost(string connectionString, IReadOnlyDictionary<string, string?>? settings = null)
+public class AuthTestHost(string connectionString, IReadOnlyDictionary<string, string?>? settings = null)
     : WebApplicationFactory<AuthApp>
 {
     protected override void ConfigureWebHost(IWebHostBuilder builder)
