@@ -71,7 +71,7 @@ public class SyncWorkerTests
             .ReturnsAsync(new List<OutboxEvent>()); // Empty on second call
 
         syncClient.Setup(x => x.SendEventAsync(testEvent, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(true);
+            .ReturnsAsync(SyncSendResult.Sent);
 
         outboxRepo.Setup(x => x.MarkAsSentAsync(testEvent.Id, It.IsAny<CancellationToken>()))
             .Callback(() => markAsSentCalled.TrySetResult(true))
@@ -107,7 +107,7 @@ public class SyncWorkerTests
             .ReturnsAsync(new List<OutboxEvent>());
 
         syncClient.Setup(x => x.SendEventAsync(testEvent, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(false); // Simulate failure
+            .ReturnsAsync(SyncSendResult.RetryLater("simulated outage"));
 
         outboxRepo.Setup(x => x.ScheduleRetryAsync(testEvent.Id, It.IsAny<DateTime>(), It.IsAny<string?>(), It.IsAny<CancellationToken>()))
             .Callback(() => markAsFailedCalled.TrySetResult(true))

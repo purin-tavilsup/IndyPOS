@@ -107,9 +107,9 @@ public class SyncWorker(
 
             try
             {
-                var success = await cloudSyncClient.SendEventAsync(outboxEvent, cancellationToken);
+                var result = await cloudSyncClient.SendEventAsync(outboxEvent, cancellationToken);
 
-                if (success)
+                if (result.Outcome == SyncSendOutcome.Sent)
                 {
                     await outboxRepository.MarkAsSentAsync(outboxEvent.Id, cancellationToken);
                     logger.LogDebug("Event {EventId} ({Type}) sent successfully", outboxEvent.Id, outboxEvent.Type);

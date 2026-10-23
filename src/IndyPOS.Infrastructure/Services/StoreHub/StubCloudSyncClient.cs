@@ -11,7 +11,7 @@ using Microsoft.Extensions.Logging;
 /// </summary>
 public class StubCloudSyncClient(ILogger<StubCloudSyncClient> logger) : ICloudSyncClient
 {
-    public Task<bool> SendEventAsync(OutboxEvent outboxEvent, CancellationToken cancellationToken = default)
+    public Task<SyncSendResult> SendEventAsync(OutboxEvent outboxEvent, CancellationToken cancellationToken = default)
     {
         logger.LogInformation(
             "[STUB] Would send event {EventId} ({Type}) for store {StoreId} to cloud",
@@ -20,7 +20,7 @@ public class StubCloudSyncClient(ILogger<StubCloudSyncClient> logger) : ICloudSy
             outboxEvent.StoreId);
 
         // Simulate successful sync for now
-        return Task.FromResult(true);
+        return Task.FromResult(SyncSendResult.Sent);
     }
 
     public Task<CloudUserSyncResponse?> GetUsersAsync(
