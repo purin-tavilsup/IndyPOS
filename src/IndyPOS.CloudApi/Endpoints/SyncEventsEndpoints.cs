@@ -22,22 +22,29 @@ internal static class SyncEventsEndpoints
         {
             var command = new IngestEventsCommand(request.Events, user.FindFirst("store_id")?.Value ?? string.Empty);
 
-            // A 400 or 403, not a 200 with Accepted=false: HttpCloudSyncClient treats any 2xx as sent, so only a
-            // failure status makes the store keep the event and back off for manual review.
+            // A marked 400 or 403, not a 200 with Accepted=false: StoreHub treats only a refusal carrying
+            // SyncRefusal's marker as final and parks the event as Failed, kept for a resend. Every other
+            // failure status, and Accepted=false, is retried.
             try
             {
                 return Results.Ok(await handler.HandleAsync(command, cancellationToken));
             }
             catch (MalformedSyncBatchException ex)
             {
-                return Results.Problem(ex.Message, statusCode: StatusCodes.Status400BadRequest);
+                return Refusal(ex.Message, StatusCodes.Status400BadRequest, SyncRefusal.MalformedBatch);
             }
             catch (StoreMismatchException ex)
             {
-                return Results.Problem(ex.Message, statusCode: StatusCodes.Status403Forbidden);
+                return Refusal(ex.Message, StatusCodes.Status403Forbidden, SyncRefusal.StoreMismatch);
             }
         }).RequireAuthorization();
 
         return app;
     }
+
+    private static IResult Refusal(string detail, int statusCode, string refusal) =>
+        Results.Problem(
+            detail,
+            statusCode: statusCode,
+            extensions: new Dictionary<string, object?> { [SyncRefusal.ExtensionKey] = refusal });
 }
