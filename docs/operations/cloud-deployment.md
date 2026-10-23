@@ -91,6 +91,67 @@ The old 1 vCPU / 2 GB sizing and the expected **13 tables** below are historical
 - **Auth outage:** existing offline tills keep selling; new token issuance, web sign-in and cloud-only operations may be unavailable. Alert and restore Auth independently.
 - **Security incident:** revoke/rotate compromised credentials and signing material using a planned key-rollover process; disable affected store credentials in Auth.
 
+## Recommended CI/CD and release operations (planned; not yet implemented)
+
+**Deployment approach:** GitHub Actions → DigitalOcean Container Registry → SSH-triggered Docker Compose on the Droplet. This is the recommended target workflow, **not a claim that the repository currently contains a working production pipeline**. Preserve the existing `push-image.ps1` manual procedure until the pipeline is implemented and validated.
+
+### Release policy
+
+1. Every PR: build, run automated tests and security checks; do not expose production secrets to PR workflows.
+2. On a selected release commit/tag: build **separate Auth, CloudApi and Web images**, tag immutably with commit SHA (and optionally timestamp), push to DO Container Registry, record their image digests.
+3. Deploy production only through a protected GitHub Environment with **required reviewer approval**. Do not automatically deploy every merge to `development`.
+4. After approval, an authorized GitHub Actions job connects to the Droplet using a **restricted deploy SSH identity** and invokes a small, audited deploy script on the host. Prefer a GitHub-hosted runner initially; a self-hosted runner adds production-host execution and maintenance risks.
+5. The Droplet pulls images using **read-only** registry credentials. Avoid copying registry push credentials or long-lived cloud API tokens into production. Rotate pull credentials before expiry; prefer short-lived credentials refreshed by a controlled mechanism where feasible.
+6. On the Droplet, write an immutable **release manifest** recording git SHA, image digests for each service, config version, migration identifiers, timestamp and operator. Retain the prior manifest for rollback.
+7. Deploy and verify in the order below. Report success/failure to the GitHub Environment; failed verification must not be reported as a successful deployment.
+
+### Deployment procedure (to automate)
+
+```text
+GitHub release / manual dispatch
+  → CI tests + immutable image build/push
+  → production environment approval
+  → SSH to Droplet: acquire exclusive deployment lock
+  → preflight: config, registry pull, disk, DB connectivity, backup status
+  → record previous release manifest
+  → run explicit one-shot DB migrations (Auth and CloudApi)
+  → start/update Compose services with pinned image digests
+  → check HTTPS endpoints, OAuth issuer/login, API readiness and store token flow
+  → smoke-test sync; watch error rates and sync backlog
+  → mark release healthy and retain rollback metadata
+```
+
+**Operational guardrails:**
+
+- Serialize deployments with a lock (GitHub Actions concurrency plus host-side lock) so migrations and service updates cannot race.
+- Run migrations **inside the Droplet/VPC**, never directly from a public GitHub-hosted runner to the private managed database. Require migrations to exit 0 before dependent services start; inspect partial schema state on failure.
+- Use **expand-and-contract** database changes. Take/verify backups before high-risk migrations, but **do not rely on restoring a database as an ordinary app rollback**. A prior application image must remain compatible with the upgraded schema.
+- Keep production secrets in restricted server-side files or a suitable secret manager. Set restrictive file permissions, mask CI logs, separate per-service secrets and use scoped Cloudflare DNS credentials only for Caddy. Do not put secrets in image layers, workflow output, release manifests or Git.
+- Ensure Auth's signing keys persist across container replacement and have a documented key rotation/revocation strategy; do not regenerate signing keys on every deploy. Verify key storage and recovery during restore drill.
+- Validate `docker compose -f compose.prod.yaml config` without printing interpolated secrets into logs; use `config --quiet` where supported. Pin image digests for repeatability.
+- Maintain external uptime probes and alerts for API/Auth/Web, DB readiness, host disk/RAM/CPU, certificate renewal and StoreHub sync backlog. Separate liveness from readiness: DB failure should not cause an endless process-restart loop.
+- **Single-host downtime is acceptable for the pilot** because tills continue offline, but document the interruption to cloud-only login, dashboard, approvals and remote access. Schedule risky releases during low usage and use a short smoke-test window.
+- Keep application logs bounded (existing Docker log rotation), retain deploy audit records and prune obsolete registry tags only after verifying the new release and retaining rollback images.
+
+### Failure handling and rollback
+
+| Failure | Response |
+|---|---|
+| Build/tests fail | Do not publish/deploy release |
+| Image pull or preflight fails | Leave running release unchanged; fix credentials/network/config |
+| Migration fails | Stop rollout; inspect DB state and logs; restore only via incident recovery plan |
+| New service fails readiness/smoke tests | Restore **previous pinned application images/config**, only if schema-compatible; verify Auth issuer and store sync |
+| Signing-key or secret loss | Treat as a security/recovery incident; recover from protected backups or execute planned rotation |
+| Host/database outage | Keep tills selling offline; recover infrastructure and validate sync catch-up/idempotency |
+
+### Milestone plan
+
+- **M1 Infrastructure ready:** purchased domain and DNS, sgp1 VPC/Droplet/firewall, managed PostgreSQL, Caddy and TLS.
+- **M2 Deployment ready:** production three-service Compose/Caddy/env, CI image pipeline, protected manual approval, SSH deploy script, migrations, immutable release manifests, rollback and monitoring.
+- **M3 Production ready:** Auth/Web implementation, admin bootstrap, store registration, backup **restore drill**, security/E2E tests, offline-outage test and monitored pilot rollout.
+
+**No Kubernetes, Redis or queue broker required for the initial single-Droplet pilot.** Revisit multi-host orchestration/HA only when uptime objectives, workload, or independent scaling requirements justify the complexity.
+
 ## Outstanding implementation tasks
 
 1. Implement and verify Auth + Cloud.Web admin slice from approved design.
