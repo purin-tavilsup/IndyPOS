@@ -22,6 +22,7 @@ public class HeartbeatWorkerTests
     private readonly InMemoryOutboxRepository _outbox = new();
     private readonly ConcurrentQueue<HeartbeatRequest> _sent = new();
     private readonly Mock<ICloudHeartbeatClient> _client = new();
+    private readonly Mock<ILogger<HeartbeatWorker>> _logger = new();
 
     private static OutboxEvent Event(string status, DateTime? createdUtc = null, string? lastError = null) => new()
     {
@@ -43,15 +44,15 @@ public class HeartbeatWorkerTests
     private static HeartbeatResponse Nothing() => new([]);
 
     /// <summary>Runs the worker until it has sent <paramref name="beats"/> heartbeats, and returns them.</summary>
-    private async Task<List<HeartbeatRequest>> RunAsync(int beats)
+    private async Task<List<HeartbeatRequest>> RunAsync(int beats, int intervalSeconds = 1)
     {
         var services = new ServiceCollection();
         services.AddSingleton<IOutboxRepository>(_outbox);
         services.AddSingleton(_client.Object);
         var worker = new HeartbeatWorker(
             services.BuildServiceProvider().GetRequiredService<IServiceScopeFactory>(),
-            Options.Create(new HeartbeatOptions { IntervalSeconds = 1 }),
-            Moq.Mock.Of<ILogger<HeartbeatWorker>>());
+            Options.Create(new HeartbeatOptions { IntervalSeconds = intervalSeconds }),
+            _logger.Object);
 
         await worker.StartAsync(CancellationToken.None);
         var deadline = DateTime.UtcNow.AddSeconds(15);
@@ -76,7 +77,7 @@ public class HeartbeatWorkerTests
 
         beat.PendingCount.Should().Be(2);
         beat.FailedCount.Should().Be(1);
-        beat.OldestPendingCreatedAtUtc.Should().Be(oldest);
+        beat.OldestPendingAgeSeconds.Should().BeInRange(40 * 60, 41 * 60);
         beat.FailedEvents.Should().ContainSingle(e => e.EventId == failed.Id && e.Reason == "403 store-mismatch");
     }
 
@@ -160,6 +161,29 @@ public class HeartbeatWorkerTests
         CloudAnswers(() => throw new InvalidOperationException("boom"), Nothing);
 
         var beats = await RunAsync(2);
+
+        beats.Should().HaveCount(2);
+    }
+
+    // A cloud that leaves "resends" out (an older or newer reply shape) must not make every beat log a failure.
+    [Fact]
+    public async Task Heartbeat_WhenTheReplyHasNoResends_LogsNoWarning()
+    {
+        CloudAnswers(() => new HeartbeatResponse(null!));
+
+        await RunAsync(2);
+
+        _logger.Verify(l => l.Log(LogLevel.Warning, It.IsAny<EventId>(), It.IsAny<It.IsAnyType>(), It.IsAny<Exception?>(),
+            It.IsAny<Func<It.IsAnyType, Exception?, string>>()), Times.Never);
+    }
+
+    // Task.Delay throws on a negative interval outside the loop's catch, which stopped the whole StoreHub host.
+    [Fact]
+    public async Task Heartbeat_WithANegativeInterval_KeepsBeating()
+    {
+        CloudAnswers(Nothing);
+
+        var beats = await RunAsync(2, intervalSeconds: -5);
 
         beats.Should().HaveCount(2);
     }

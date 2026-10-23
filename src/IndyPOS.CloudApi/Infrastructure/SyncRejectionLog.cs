@@ -18,7 +18,8 @@ internal static class SyncRejectionLog
         CloudDbContext db, string storeId, IReadOnlyList<SyncEventRequest?>? events, int statusCode, string reason,
         DateTime nowUtc, CancellationToken ct)
     {
-        var refused = events?.Where(e => e is not null).Select(e => e!).ToList() ?? [];
+        // One row per event: a batch naming the same event twice must not add two rows the unique index refuses.
+        var refused = events?.Where(e => e is not null).Select(e => e!).DistinctBy(e => e.EventId).ToList() ?? [];
 
         if (refused.Count == 0)
             db.SyncRejections.Add(NewRejection(storeId, eventId: null, eventType: null, statusCode, reason, nowUtc));

@@ -1,4 +1,5 @@
 using System.Text.Json;
+using IndyPOS.Application.Common.Extensions;
 using IndyPOS.Application.UseCases.Cloud.Sync.Heartbeat;
 using IndyPOS.CloudApi.Domain;
 using Microsoft.EntityFrameworkCore;
@@ -12,6 +13,7 @@ namespace IndyPOS.CloudApi.Infrastructure;
 internal static class HeartbeatRecorder
 {
     private static readonly JsonSerializerOptions Web = new(JsonSerializerDefaults.Web);
+    private const int StoreHubVersionMaxLength = 50;
 
     public static async Task<HeartbeatResponse> RecordAsync(
         CloudDbContext db, string storeId, HeartbeatRequest request, DateTime nowUtc, CancellationToken ct)
@@ -38,29 +40,34 @@ internal static class HeartbeatRecorder
             db.StoreHeartbeats.Add(row);
         }
 
-        var failedEvents = request.FailedEvents?.Take(HeartbeatLimits.MaxFailedEventsPerHeartbeat).ToList();
+        // The store already keeps the heartbeat light; the cloud enforces the same limits rather than trusting it.
+        var failedEvents = request.FailedEvents?.Where(e => e is not null)
+                                               .Take(HeartbeatLimits.MaxFailedEventsPerHeartbeat)
+                                               .Select(e => e with { Reason = e.Reason.CutTo(HeartbeatLimits.MaxReasonLength) })
+                                               .ToList();
 
         row.ReceivedAtUtc = nowUtc;
-        row.StoreHubVersion = request.StoreHubVersion;
+        row.StoreHubVersion = request.StoreHubVersion.CutTo(StoreHubVersionMaxLength);
         row.PendingCount = request.PendingCount;
         row.FailedCount = request.FailedCount;
-        row.OldestPendingCreatedAtUtc = request.OldestPendingCreatedAtUtc;
+        row.OldestPendingCreatedAtUtc = request.OldestPendingAgeSeconds is { } age ? nowUtc.AddSeconds(-Math.Max(0, age)) : null;
         row.FailedEventsJson = failedEvents is { Count: > 0 } ? JsonSerializer.Serialize(failedEvents, Web) : null;
     }
 
     private static async Task CompleteResendsAsync(
         CloudDbContext db, string storeId, IReadOnlyList<CompletedResend>? completed, DateTime nowUtc, CancellationToken ct)
     {
-        if (completed is not { Count: > 0 })
+        var reports = completed?.Where(c => c is not null).ToList() ?? [];
+        if (reports.Count == 0)
             return;
 
-        var ids = completed.Select(c => c.RequestId).ToList();
+        var ids = reports.Select(c => c.RequestId).ToList();
         var requests = await db.SyncResendRequests.Where(r => r.StoreId == storeId && r.CompletedAtUtc == null && ids.Contains(r.Id))
                                                   .ToListAsync(ct);
 
         foreach (var request in requests)
         {
-            var report = completed.First(c => c.RequestId == request.Id);
+            var report = reports.First(c => c.RequestId == request.Id);
             request.CompletedAtUtc = nowUtc;
             request.MovedEventIdsJson = JsonSerializer.Serialize(report.MovedEventIds ?? [], Web);
             request.IgnoredEventIdsJson = JsonSerializer.Serialize(report.IgnoredEventIds ?? [], Web);

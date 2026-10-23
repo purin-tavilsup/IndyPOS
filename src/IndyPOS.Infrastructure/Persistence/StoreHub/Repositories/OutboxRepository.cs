@@ -99,8 +99,8 @@ public class OutboxRepository(StoreHubDbContext db) : IOutboxRepository
         var failed = db.OutboxEvents.Where(e => e.Status == "Failed" && (eventId == null || e.Id == eventId));
         var ids = await failed.Select(e => e.Id).ToListAsync(cancellationToken);
 
-        // Still filtered on Failed so a row is never moved out of another state. Nothing else writes a Failed row
-        // (the sync worker only reads Pending ones), so the ids read are the ids moved.
+        // Still filtered on Failed so a row is never moved out of another state. Nothing else moves a row out of
+        // Failed (the sync worker only picks Pending ones), so the ids read are the ids moved.
         await db.OutboxEvents
             .Where(e => ids.Contains(e.Id) && e.Status == "Failed")
             .ExecuteUpdateAsync(s => s

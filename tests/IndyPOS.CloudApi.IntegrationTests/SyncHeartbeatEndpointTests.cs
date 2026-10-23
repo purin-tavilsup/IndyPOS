@@ -22,7 +22,7 @@ public class SyncHeartbeatEndpointTests(CloudPostgresFixture postgres) : IClassF
 
     private static string Heartbeat(int pending = 0, int failed = 0, IEnumerable<FailedEventSummary>? failedEvents = null,
         IEnumerable<CompletedResend>? completed = null, string version = "4.1.0") =>
-        JsonSerializer.Serialize(new HeartbeatRequest(version, pending, failed, OldestPendingCreatedAtUtc: null,
+        JsonSerializer.Serialize(new HeartbeatRequest(version, pending, failed, OldestPendingAgeSeconds: null,
             failedEvents?.ToList(), completed?.ToList()), Web);
 
     private async Task<(SyncTestHost Host, string ConnectionString)> StartAsync()
@@ -172,5 +172,55 @@ public class SyncHeartbeatEndpointTests(CloudPostgresFixture postgres) : IClassF
         var response = await host.PostHeartbeatAsStoreAsync(SyncTestHost.WithoutAStore, Heartbeat());
 
         response.StatusCode.Should().Be(HttpStatusCode.Forbidden);
+    }
+
+    // The store sends an age, not its own clock's time, so a till PC with a wrong clock cannot fake Behind.
+    [Fact]
+    public async Task PostHeartbeat_WithAnOldestPendingAge_StoresItAgainstTheCloudsClock()
+    {
+        var (host, connectionString) = await StartAsync();
+        await using var _ = host;
+
+        await ReplyAsync(await host.PostHeartbeatAsStoreAsync(ThisStore, """{"pendingCount":1,"failedCount":0,"oldestPendingAgeSeconds":1800}"""));
+
+        var row = await HeartbeatRowAsync(connectionString);
+        row.OldestPendingCreatedAtUtc.Should().BeCloseTo(row.ReceivedAtUtc.AddMinutes(-30), TimeSpan.FromSeconds(1));
+    }
+
+    // A longer version than the column holds made every heartbeat a 500, and the store looked offline for good.
+    [Fact]
+    public async Task PostHeartbeat_WithAVersionLongerThanTheColumn_StoresItCut()
+    {
+        var (host, connectionString) = await StartAsync();
+        await using var _ = host;
+
+        var response = await host.PostHeartbeatAsStoreAsync(ThisStore, Heartbeat(version: new string('9', 60)));
+
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        (await HeartbeatRowAsync(connectionString)).StoreHubVersion!.Length.Should().Be(50);
+    }
+
+    [Fact]
+    public async Task PostHeartbeat_WithANullCompletedResend_IsAccepted()
+    {
+        var (host, _) = await StartAsync();
+        await using var __ = host;
+
+        var response = await host.PostHeartbeatAsStoreAsync(ThisStore, """{"pendingCount":0,"failedCount":0,"completedResends":[null],"failedEvents":[null]}""");
+
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+    }
+
+    [Fact]
+    public async Task PostHeartbeat_WithALongFailedReason_StoresItCut()
+    {
+        var (host, connectionString) = await StartAsync();
+        await using var _ = host;
+        var failedEvent = new FailedEventSummary(Guid.NewGuid(), "InvoiceCompleted", DateTime.UtcNow, new string('x', 5_000));
+
+        await ReplyAsync(await host.PostHeartbeatAsStoreAsync(ThisStore, Heartbeat(failed: 1, failedEvents: [failedEvent])));
+
+        var stored = JsonSerializer.Deserialize<List<FailedEventSummary>>((await HeartbeatRowAsync(connectionString)).FailedEventsJson!, Web)!;
+        stored.Single().Reason!.Length.Should().Be(HeartbeatLimits.MaxReasonLength);
     }
 }

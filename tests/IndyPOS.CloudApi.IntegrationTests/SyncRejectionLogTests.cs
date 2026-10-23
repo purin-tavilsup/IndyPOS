@@ -122,4 +122,36 @@ public class SyncRejectionLogTests(CloudPostgresFixture postgres) : IClassFixtur
         response.StatusCode.Should().Be(HttpStatusCode.Forbidden);
         (await response.Content.ReadAsStringAsync()).Should().Contain("store-mismatch");
     }
+
+    // Checked against the database before anything was saved, the second copy added a second row, the unique
+    // index refused the save, and the whole batch went unlogged.
+    [Fact]
+    public async Task SyncEvents_WithTheSameEventTwiceInARefusedBatch_LogsItOnce()
+    {
+        var (host, connectionString) = await StartAsync();
+        await using var _ = host;
+        var eventId = Guid.NewGuid();
+
+        await host.PostEventsAsStoreAsync(ThisStore, Batch((eventId, "store-b"), (eventId, "store-b")));
+
+        (await RejectionsAsync(connectionString)).Should().ContainSingle(r => r.EventId == eventId);
+    }
+
+    [Fact]
+    public async Task SyncEvents_WhenTheLogCannotBeWritten_StillAcceptsTheEvent()
+    {
+        var (host, connectionString) = await StartAsync();
+        await using var _ = host;
+        await using (var connection = new NpgsqlConnection(connectionString))
+        {
+            await connection.OpenAsync();
+            await using var drop = new NpgsqlCommand("""drop table "SyncRejections" """, connection);
+            await drop.ExecuteNonQueryAsync();
+        }
+
+        var response = await host.PostEventsAsStoreAsync(ThisStore, Batch((Guid.NewGuid(), ThisStore)));
+
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        (await response.Content.ReadAsStringAsync()).Should().Contain("\"accepted\":true");
+    }
 }

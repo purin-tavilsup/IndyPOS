@@ -15,9 +15,10 @@ using Microsoft.Extensions.Options;
 /// requests in the reply. Runs on its own, so a slow or absent cloud never delays a sale or the sync worker.
 /// </summary>
 /// <remarks>
-/// Kept light: the failed list and the completed resends are left out when empty, and each reason is cut to 200
+/// Kept light: the failed list and the completed resends are sent as null when empty, and each reason is cut to 200
 /// characters (the full one stays in last_error). A completed resend is reported until a heartbeat carrying it gets
-/// through, so the cloud never loses track of what was moved.
+/// through. It is held in memory only: if StoreHub restarts before reporting it, the cloud hands the request out
+/// again and it is recorded as having moved nothing. Making it durable is not worth a table.
 /// </remarks>
 public class HeartbeatWorker(
     IServiceScopeFactory scopeFactory,
@@ -44,7 +45,8 @@ public class HeartbeatWorker(
                 logger.LogWarning(ex, "Heartbeat failed; the next one goes on schedule");
             }
 
-            await Task.Delay(TimeSpan.FromSeconds(_options.IntervalSeconds), stoppingToken);
+            // At least a second: Task.Delay throws on a negative delay outside the catch, which would stop the host.
+            await Task.Delay(TimeSpan.FromSeconds(Math.Max(1, _options.IntervalSeconds)), stoppingToken);
         }
     }
 
@@ -61,7 +63,7 @@ public class HeartbeatWorker(
             return;
 
         _completedResends.Clear();
-        foreach (var resend in reply.Resends)
+        foreach (var resend in reply.Resends ?? [])
             _completedResends.Add(await ResendAsync(outbox, resend, cancellationToken));
     }
 
@@ -73,10 +75,13 @@ public class HeartbeatWorker(
             _version,
             await outbox.GetPendingCountAsync(cancellationToken),
             await outbox.GetFailedCountAsync(cancellationToken),
-            await outbox.GetOldestPendingCreatedUtcAsync(cancellationToken),
+            AgeInSeconds(await outbox.GetOldestPendingCreatedUtcAsync(cancellationToken)),
             failed.Count == 0 ? null : failed.Select(e => e with { Reason = e.Reason.CutTo(HeartbeatLimits.MaxReasonLength) }).ToList(),
             _completedResends.Count == 0 ? null : _completedResends.ToList());
     }
+
+    private static int? AgeInSeconds(DateTime? createdUtc) =>
+        createdUtc is { } created ? (int)Math.Max(0, (DateTime.UtcNow - created).TotalSeconds) : null;
 
     private async Task<CompletedResend> ResendAsync(IOutboxRepository outbox, ResendInstruction resend, CancellationToken cancellationToken)
     {

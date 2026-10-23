@@ -11,13 +11,14 @@ public sealed record CompletedResend(Guid RequestId, IReadOnlyList<Guid> MovedEv
 
 /// <summary>
 /// What a StoreHub sends every two minutes. Kept light: the two lists are null when empty, so a store with
-/// nothing wrong sends only its counts.
+/// nothing wrong sends only its counts. The oldest pending event goes as an age, not a time, so a till PC with a
+/// wrong clock cannot make the store look behind or on time.
 /// </summary>
 public sealed record HeartbeatRequest(
     string? StoreHubVersion,
     int PendingCount,
     int FailedCount,
-    DateTime? OldestPendingCreatedAtUtc,
+    int? OldestPendingAgeSeconds,
     IReadOnlyList<FailedEventSummary>? FailedEvents,
     IReadOnlyList<CompletedResend>? CompletedResends);
 
