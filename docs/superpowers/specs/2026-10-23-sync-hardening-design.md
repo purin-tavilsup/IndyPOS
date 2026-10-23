@@ -158,6 +158,11 @@ cloud's store registration. So the migrator checks both: *(Claude's call.)*
 On any mismatch it refuses to start and prints both values. *(How it reads StoreHub's configuration
 is the builder's.)*
 
+**Amended 2026-10-23 (Pond):** PR 1 builds check 1 only. Check 2 moves to cloud slice 1: the
+migrator's existing cloud code cannot get a token (it posts JSON to `/connect/token`; the endpoint is
+`/oauth/token`), and slice 1 moves token issuance to IndyPOS.Cloud.Auth on another host, so the token
+call is written once there.
+
 ## Heartbeat
 
 - StoreHub sends a heartbeat to CloudApi **every 2 minutes** while it runs, in its own background
