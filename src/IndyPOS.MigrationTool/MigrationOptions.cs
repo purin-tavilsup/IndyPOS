@@ -6,6 +6,9 @@ public class MigrationOptions
     public required string PostgresConnectionString { get; init; }
     public required string StoreId { get; init; }
     public string? CloudApiUrl { get; init; }
+
+    /// <summary>Cloud.Auth, which issues the store's token (--auth-url). The token is no longer CloudApi's.</summary>
+    public string? AuthUrl { get; init; }
     public string? CloudClientId { get; init; }
     public string? CloudClientSecret { get; init; }
     public bool DryRun { get; init; }
